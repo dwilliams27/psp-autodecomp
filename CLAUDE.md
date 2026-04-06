@@ -1,6 +1,6 @@
 # Autonoma
 
-Autonomous decompilation of PSP games using coding agent swarms. See `foundation.md` for goals, milestones, and principles. See `docs/decisions/` for verified research and design rationale.
+Autonomous decompilation of PSP games using coding agent swarms. See `foundation.md` for goals, milestones, and principles. See `docs/decisions/` for verified research and design rationale. See `docs/direction/` for phase roadmap and north-star guidance.
 
 ## Current target
 
@@ -41,6 +41,7 @@ Additional system dependencies (Homebrew):
 - Byte-exact matching is the only standard. A function is done when it compiles to identical bytes.
 - Research before action. Investigate tooling and compiler behavior before writing code.
 - Decisions go in `docs/decisions/` with numbered filenames (001, 002, ...).
+- Direction docs go in `docs/direction/` with numbered filenames. These are aspirational/north-star — keep them up to date as phases complete (mark `[x]` in the doc). Unlike decisions (which are point-in-time records), direction docs are living documents.
 - Do not commit binaries, ISOs, or SDK files. The `.gitignore` handles this.
 - **Before committing any code changes, run `/simplify` first.** This is mandatory — no exceptions.
 - **No silent fallbacks.** If something is broken, fail loudly and early. Never add graceful degradation, default values, or try/except swallowing without explicit human approval. Broken things must be visible so they get fixed.
