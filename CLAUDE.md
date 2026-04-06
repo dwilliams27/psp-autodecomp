@@ -17,6 +17,7 @@ tools/wibo                                # wibo binary from decompals/wibo (mac
 tools/include/                            # official Sony PSP SDK 6.60 headers (from psp_sdk_660.7z on archive.org)
 tools/pspdecrypt/                         # git clone https://github.com/John-K/pspdecrypt (build with make)
 tools/m2c/                                # git clone https://github.com/matt-kempster/m2c (pip install -e .)
+tools/asm-differ/                         # git clone https://github.com/simonlindholm/asm-differ
 tools/iso_extract/                        # extracted ISO contents (7z x the .iso)
 tools/extracted_symbols/                  # .sym and .map files extracted from DATA.PAK
 tools/extract_pak.py                      # ViciousEngine DATA.PAK extraction script
@@ -34,6 +35,9 @@ Additional system dependencies (Homebrew):
 - SNC expects headers via `-I tools/include`. No `include_snc/` needed.
 - The .sym files in DATA.PAK are **ELF binaries with debug info**, not text. The .map file is a text-format SN Systems linker map.
 - These are NOT PPSSPP `.sym` format — ghidra-allegrex `PpssppImportSymFile` cannot import them directly.
+- **asm/0.s was patched** after splat ran: `[]` → `_arr_`, `~` → `_dtor_` in symbol names, and all `.ent`/`.end` directives stripped. These are required for GAS compatibility. If splat is re-run, the same patches must be reapplied.
+- **Full binary rebuild is blocked** by ~24K VFPU instructions in asm/0.s that standard `mipsel-linux-gnu-as` doesn't support (sv.q, lv.q, vdot, vsqrt, mfv, etc.). Needs a PSP-aware assembler or encoding as `.word` directives. Function-level .o comparison works fine without the full link.
+- **asm-differ** works in `-o` mode for function-level comparison: `python3 tools/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`. Expected .o files go in `expected/` mirroring the `build/` structure.
 
 ## Norms
 

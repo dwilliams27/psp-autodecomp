@@ -250,5 +250,7 @@ Each tool maps to a Claude Code skill wrapper:
 2. **SNC `-X` flag combination**: 108 control variables exist. The exact combination used by ViciousEngine must be determined empirically.
 3. **ProDG .sym parser**: The Game-dvd.sym file is an ELF with debug info, not a text file. A parser is needed to extract the symbol table for import into Ghidra and for generating splat symbol address files.
 4. **Linker replacement**: pspld.exe is broken under wibo. GNU ld should work but may produce different section layout. Needs testing.
-5. **PRX comparison strategy**: Whether to compare at the .o level, the linked ELF level, or the final PRX level. The .o level is simplest and is how sotn-decomp works.
+5. ~~**PRX comparison strategy**~~: **Resolved.** Function-level .o comparison via asm-differ `-o` mode is the primary workflow. Full binary rebuild is blocked by VFPU assembler support (see below).
 6. **SDK header compatibility**: Exact differences between pspdev headers and official SDK headers for the APIs this game uses.
+7. **VFPU assembler support**: Standard `mipsel-linux-gnu-as` (binutils 2.46) does not support PSP VFPU instructions (~24K occurrences in asm/0.s: sv.q, lv.q, vdot.t, vsqrt.s, mfv, etc.). Full binary rebuild requires either a PSP-aware GAS build or encoding these as raw `.word` directives. Function-level matching at .o granularity is unaffected.
+8. **splat asm post-processing**: GAS cannot handle `[]` or `~` in symbol names, and auto-generates broken `.size` from `.ent`/`.end` pairings on some symbols. After any splat re-run, apply: `[]` → `_arr_`, `~` → `_dtor_`, strip `.ent`/`.end` lines.

@@ -2,7 +2,7 @@
 
 North-star roadmap for taking Days of Thunder from raw binary to fully matching C. Phases are sequential but overlap — type recovery (Phase 2) runs continuously alongside matching (Phase 3). Mark each phase complete as it finishes.
 
-## Phase 0: Infrastructure [ ]
+## Phase 0: Infrastructure [x]
 
 Get the build system working and prove one byte-exact match on a real function.
 
