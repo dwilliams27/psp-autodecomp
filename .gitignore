@@ -1,2 +1,8 @@
 *.iso
 tools/
+!tools/map_parser.py
+!tools/extract_pak.py
+build/
+asm/
+assets/
+.DS_Store

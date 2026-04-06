@@ -1,0 +1,51 @@
+name: days_of_thunder
+sha1: 952cbd11eb99fe986662e83d2d3512d207f9b979
+options:
+  platform: psp
+  basename: EBOOT
+  base_path: ..
+  build_path: build
+  target_path: tools/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec
+  asm_path: asm
+  src_path: src
+  asset_path: assets
+  # SNC not recognized by splat. SN64 is same company (SN Systems).
+  # With full symbols, this mainly affects heuristics we don't rely on.
+  compiler: SN64
+
+  symbol_addrs_path:
+    - config/symbol_addrs.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.txt
+
+  ld_script_path: build/EBOOT.ld
+
+  section_order:
+    - .text
+    - .rodata
+    - .data
+    - .bss
+
+  mips_abi_float_regs: o32
+  gp_value: 0x003A08D0
+
+  find_file_boundaries: true
+
+segments:
+  # .text: 0x00000000 to 0x0036BAB4 (addr), file offset 0xA0
+  - name: main
+    type: code
+    start: 0x0
+    vram: 0x0
+    bss_size: 0x95A2C
+    subsegments:
+      - [0x0, asm]
+      # Stub sections start at 0x36BAB4
+      - [0x36BAB4, bin, stubs]
+      # .rodata at addr 0x36C728
+      - [0x36C728, rodata]
+      # .data at addr 0x372F50
+      - [0x372F50, data]
+      # .bss at addr 0x3988C0
+      - [0x3988C0, bss]
+  - [0x42E2EC]

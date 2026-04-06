@@ -45,3 +45,4 @@ Additional system dependencies (Homebrew):
 - Do not commit binaries, ISOs, or SDK files. The `.gitignore` handles this.
 - **Before committing any code changes, run `/simplify` first.** This is mandatory — no exceptions.
 - **No silent fallbacks.** If something is broken, fail loudly and early. Never add graceful degradation, default values, or try/except swallowing without explicit human approval. Broken things must be visible so they get fixed.
+- **No deferred shortcuts.** Handle edge cases fully when you encounter them, not "later." If a tool doesn't handle all 12,506 symbols correctly, fix it now — don't skip the hard ones with a TODO. Untracked "I'll handle this later" decisions accumulate invisibly and cause bizarre behavior in a system built by many agents over time.
