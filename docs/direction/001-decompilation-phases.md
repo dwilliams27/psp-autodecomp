@@ -1,163 +1,249 @@
 # Decompilation Phases
 
-North-star roadmap for taking Days of Thunder from raw binary to fully matching C. Phases are sequential but overlap — type recovery (Phase 2) runs continuously alongside matching (Phase 3). Mark each phase complete as it finishes.
+North-star roadmap for taking Days of Thunder from raw binary to fully matching C. Phases are sequential but overlap — type recovery runs continuously from Phase 2 onward. Mark each phase complete as it finishes.
+
+## Codebase profile (from linker map analysis)
+
+These numbers inform every phase's prioritization:
+
+- **10,045 functions** total, **9,767 with real code** (272 zero-size stubs, 6 data mislabeled)
+- **Only 8 .obj files**, 5 are unity builds (`*All_psp.obj` = 93% of functions, 97% of code)
+- **gcAll_psp.obj** alone: 6,190 functions (49%), 2.2 MB
+- **gMain_psp.obj** (816 functions, 112 KB) is SNC's C runtime library — not game code
+
+### Size distribution
+
+| Range | Functions | % of count | % of bytes |
+|-------|-----------|------------|------------|
+| ≤8 bytes | 1,043 | 10.7% | ~0.2% |
+| 9-64 bytes | 1,004 | 10.3% | ~0.9% |
+| 65-256 bytes | 3,736 | 38.2% | ~14% |
+| 257-1024 bytes | 3,377 | 34.5% | ~40% |
+| >1024 bytes | 613 | 6.3% | ~45% |
+
+The 613 functions over 1 KB contain nearly half the binary's bytes. But the 2,047 functions under 64 bytes contribute only ~1% of bytes — they're cheap to match and build momentum.
+
+### Architectural layers (by class prefix)
+
+- **`c` (core)**: 188 classes, 585 functions. Memory, file I/O, serialization, type system.
+- **`e` (engine)**: 281 classes, 3,141 functions. Collision, models, animation, rendering, physics.
+- **`gc` (game classes)**: 458 classes, 5,129 functions. Game logic built on ViciousEngine.
+  - **189 `gcDo*`/`gcVal*` template classes** (2,114 functions): Highly uniform action/value pattern with `VisitReferences`, `Evaluate`, `Read`, `Write`. Match a few exemplars → template the rest.
+- **`m` (math)**: 14 classes, 64 functions, 22 KB. Small, self-contained. Ideal early target.
+- **`nw` (network)**: 15 classes, 167 functions. Networking, voice chat.
+
+## Compiler flags (determined)
+
+**-O2 is confirmed.** Testing across 22 functions of varying complexity:
+- -O2, -O3, -O4 produce **byte-identical output** on all tested functions
+- -O5 differs only on functions with OR-condition loops and dead initializations (original binary matches -O2/-O3/-O4 patterns, not -O5)
+- -O0 and -O1 produce dramatically larger code (~2x) and don't fill branch delay slots
+
+The remaining flag question is whether any SNC `-X` control variables (108 exist) were used. This is best determined empirically: if a function won't match at -O2 despite correct C, investigate `-X` flags. No evidence yet that any are needed.
+
+---
 
 ## Phase 0: Infrastructure [x]
 
 Get the build system working and prove one byte-exact match on a real function.
 
-### Deliverables
+### Deliverables (all complete)
 
-1. **Symbol address file** — parse the .map into splat-compatible `config/symbol_addrs.txt` (9,047 function entries: `FunctionName = 0xADDR; // size:0xNN`)
-2. **splat config** — YAML config for the decrypted EBOOT that splits the binary into asm/data segments
-3. **Makefile** — compile .c with SNC, assemble .s with mipsel-linux-gnu-as, link with mipsel-linux-gnu-ld, compare against original
-4. **diff_settings.py** — asm-differ config for this project
-5. **First real match** — pick a non-trivial function (not just `return 0`), write C, compile, verify byte-exact match end-to-end through the build system
+1. **Symbol address file** — `config/symbol_addrs.txt` with 10,045 functions + 2,218 data symbols
+2. **splat config** — `config/splat.yaml`, splits decrypted EBOOT into asm/data segments
+3. **Makefile** — compiles C/C++ with SNC, assembles with GAS, links with GNU ld
+4. **diff_settings.py** — asm-differ config for function-level .o comparison
+5. **First real match** — `eWorld::LockWorld(bool)` (36 bytes, branch + delay slots), byte-exact
 
-### What this proves
+### Known issues discovered
 
-The entire pipeline works: split -> edit -> compile -> link -> diff -> verify. Without this, nothing else can proceed.
+- **Full binary rebuild blocked**: ~24K VFPU instructions unsupported by standard `mipsel-linux-gnu-as`. Needs PSP-aware assembler or `.word` encoding. Function-level .o comparison is unaffected.
+- **splat asm post-processing required**: GAS can't handle `[]`, `~` in symbol names or `.ent`/`.end` on some symbols. Must reapply patches after any splat re-run.
 
-## Phase 1: Compiler Flags + Tool Validation [ ]
+## Phase 1: Matching Automation [ ]
 
-Pin down the exact SNC flags and validate every tool the agents will use.
+Build the tooling that lets agents work independently. Without this, nothing scales.
 
-### Compiler flag determination
+### Function extraction and comparison pipeline
 
-Match ~20-50 simple functions across different compilation units to determine:
-- Exact optimization level (-O2? -O3? -O4?)
-- Key `-X` control variables (inline level, unroll settings, scheduling, etc.)
-- Whether all compilation units use the same flags or if some differ
+The critical gap: right now, matching a function requires manually finding its address, running objdump, hand-writing expected .o files, and eyeballing hex. Agents need:
 
-Strategy: start with the smallest leaf functions (8-16 bytes), try each -O level, find the one where multiple functions match simultaneously. Then test progressively larger functions to validate.
+1. **`extract_func.py`** — given a symbol name (or address), extract its disassembly from the original binary and create an expected .o file in `expected/`. Uses symbol_addrs.txt for address/size lookup.
+2. **`compare_func.py`** (or Makefile target) — compile a source file, compare the .o against the expected .o, report match/mismatch with instruction-level diff. Wraps asm-differ.
+3. **Batch comparison** — given a list of functions and a source file, report which match and which don't. Essential for flag testing and progress tracking.
 
-### Tool validation
+### Function database
 
-Before agents run unattended, every tool in the context-generation pipeline must be tested end-to-end and proven reliable. Specifically:
+Parse the linker map into a structured, queryable format. Agents need to answer:
+- "Give me all methods on `cFastMemAllocator`"
+- "What functions are in `cAll_psp.obj` between 8-32 bytes?"
+- "What does `Reset()` call? What calls it?"
+- "Which `gcDo*` classes have all methods ≤64 bytes?"
 
-**Context generators (things agents will consume):**
-- [ ] **Disassembler** — `mipsel-linux-gnu-objdump` correctly disassembles any function by address/name, including Allegrex extensions (CLZ, EXT/INS, SEB/SEH, rotates). Verify on functions that contain these instructions.
-- [ ] **m2c** — produces usable initial C from a function's disassembly. Test on 10+ functions of varying complexity. Document which instruction patterns it handles well and which it struggles with.
-- [ ] **Ghidra headless** — bulk decompilation of all 9,047 functions to pseudo-C files. Install Ghidra + ghidra-allegrex, write the analysis script, run it, verify output quality on a sample.
-- [ ] **Symbol/map parser** — parse the .sym ELF and .map to extract: function names, addresses, sizes, source .obj file paths, class relationships. Output a structured format agents can query (e.g., "give me all methods on cFastMemAllocator" or "what functions does Reset() call?").
-- [ ] **Call graph extractor** — for any function, identify its callees (from `jal` targets) and callers (from cross-references). Agents need to know what a function calls and what calls it.
-- [ ] **Struct field tracker** — as functions are matched and struct offsets are discovered, maintain a header file per class. Agents need to read current struct definitions and propose additions.
+Fields: name, demangled name, address, size, .obj file, class name, callee list (from `jal` targets), matched status.
 
-**Build/verify tools (things agents will invoke):**
-- [ ] **Compile skill** — `wibo pspsnc.exe -c` with the determined flags, returns success or errors
-- [ ] **Diff skill** — `asm-differ` for a named function, returns match/mismatch with instruction-level details
-- [ ] **Verify skill** — compile + diff + report: matched bytes, mismatched bytes, total bytes
+### m2c integration
 
-Each tool must fail loudly on bad input (no silent fallbacks). If objdump can't disassemble an address, it errors. If m2c can't handle an instruction, it says so. If compilation fails, the full error is returned.
+m2c produces good first-pass C (tested on 4 functions, 36-124 bytes). Pipeline requirements:
+- **objdump-to-m2c format converter** — m2c needs `.s` files with `glabel` directives and `$register` names, not raw objdump output
+- **Symbol resolution** — resolve `jal 0xADDR` to function names using symbol_addrs.txt before feeding to m2c
+- **Context files** — feed struct definitions to m2c via `--context` for better type inference
 
-## Phase 2: Type Recovery [ ]
+### -X flag investigation (if needed)
 
-Reconstruct struct/class definitions from matched functions. This phase runs continuously alongside Phase 3 — every matched function potentially reveals new type information.
+Monitor for functions that produce correct logic but wrong instruction scheduling or register allocation at -O2. These may indicate `-X` control variables. No evidence of any needed yet — revisit if matching failures cluster around specific patterns.
 
-### What we already know from symbols
+### Phase 1 is complete when
 
-- All 9,047 function names with C++ demangled signatures (parameter types, const qualifiers, etc.)
-- Class hierarchy implied by method names (cFastMemAllocator inherits from cMemAllocator)
-- Virtual tables (addresses in .map)
-- Compilation unit boundaries (which functions were in the same .obj file)
+- An agent can run a single command to extract, decompile, compile, and diff any function
+- The function database is queryable for prioritization
+- m2c produces usable first-pass C for at least 80% of tested functions
 
-### What we must reconstruct
+## Phase 2: Type Bootstrap + Early Matching [ ]
 
-- **Struct/class member layouts** — field names, offsets, sizes, types. Discovered from assembly: `sw a0, 0x1C(v0)` means a field at offset 0x1C. The constructor is usually the best source since it initializes every field.
-- **Enum values** — immediate constants in the assembly that represent enum members. Named from context.
-- **Typedefs and forward declarations** — inferred from how types are used across functions.
-- **Inheritance and vtable layout** — vtable entries map to virtual function addresses, which we can resolve from the symbol table.
+Interleave type discovery with matching — you can't do one without the other. Start with the easiest functions to build momentum and struct knowledge.
 
-### How it works
+### Wave 1: Trivial functions (≤8 bytes, ~1,000 functions)
 
-1. Match a constructor → discover the struct layout (fields and their initial values)
-2. Match simple methods → confirm field types from how they're used
-3. Write a header file for the class
-4. Use that header to match more complex methods on the same class
-5. Repeat — each class header makes the next one easier
+These are single-instruction functions: return a constant, load a field, call a trampoline. Match rate should approach 100% with correct flags. Each match is cheap but reveals:
+- Return types (what does this getter return?)
+- Field offsets (which struct field at which offset?)
+- Call patterns (what does this trampoline forward to?)
+
+### Wave 2: Math library (64 functions, 22 KB)
+
+The `m` prefix classes (`mSphere`, `mRay`, `mBasis`, `mFrustum`, `mQuat`, etc.) are self-contained with no dependencies on game logic. Pure computation. Ideal for:
+- Validating the matching pipeline at scale
+- Building confidence in compiler flag settings
+- Producing reusable math headers
+
+### Wave 3: Core class constructors + simple methods
+
+For each class, the constructor reveals the struct layout (field initialization order, vtable pointer, default values). Strategy:
+1. Match the constructor → write the class header with field offsets
+2. Match simple methods (getters, setters, flag tests) → confirm field types
+3. Use the header to match progressively harder methods
+
+Priority classes: `cMemAllocator` family (already started), `cListSubscriber`, `cFile`, `cObject` — the foundation classes that many others inherit from.
 
 ### Snowball effect
 
-Early functions are hard because types are unknown. But each matched function adds type information that makes subsequent functions easier. By the time we've matched 30% of functions, we likely know 70%+ of the struct layouts. This is the core feedback loop that makes autonomous decompilation tractable.
+Early functions are hard because types are unknown. But each match adds type info that constrains subsequent functions. By ~30% matched, ~70%+ of struct layouts should be known.
 
-## Phase 3: Bulk Matching [ ]
+### Phase 2 is complete when
 
-The main grind. Work through all 9,047 functions systematically.
+- All ≤8 byte functions are matched
+- Math library is matched
+- At least 10 class headers exist with verified struct layouts
+- Matching rate on attempted functions exceeds 50%
+
+## Phase 3: Systematic Matching [ ]
+
+The main grind. Work through all functions systematically using the tooling and type knowledge from Phases 1-2.
 
 ### Priority ordering
 
-1. **Trivial functions** (≤16 bytes) — getters, setters, `return 0` stubs. Match rate should be near 100%. Proves the pipeline and builds confidence.
-2. **Leaf functions** — call nothing, pure computation. No dependency on understanding other functions.
-3. **Functions whose callees are all matched** — we understand the types flowing through, making the C more constrained.
-4. **Functions in well-understood classes** — struct layouts are known, method patterns are familiar.
+1. **Leaf functions** — call nothing, pure computation. No type dependencies.
+2. **Functions whose callees are all matched** — types flowing through are known.
+3. **Functions in well-understood classes** — struct layouts known, method patterns familiar.
+4. **Template classes (gcDo*/gcVal*)** — 189 classes, 2,114 functions following uniform patterns. Match 3-5 exemplars per pattern, then template-generate the rest.
 5. **Large/complex functions** — saved for last when maximum context is available.
 
-### What an agent starts with for each function
+### Agent context package
 
-The agent receives a context package:
+Each agent receives:
+- **Function identity**: name, address, size, .obj file, class
+- **Disassembly**: from the original binary
+- **m2c output**: first-pass C (pre-generated)
+- **Type context**: current class headers for all referenced types
+- **Neighbor context**: already-matched C for same class / same compilation unit
+- **Call graph**: callees (with signatures) and callers
 
-- **Function identity**: name, address, size, source .obj file, class (if method)
-- **Disassembly**: full MIPS assembly from the original binary
-- **Initial C attempts**: Ghidra pseudo-C and m2c output (pre-generated)
-- **Type context**: current struct/class header files for all types referenced by this function
-- **Neighbor context**: already-matched C source for functions in the same class and same compilation unit
-- **Call graph**: list of callees (with their signatures) and callers
-- **Compiler info**: SNC version, optimization level, flags
+### Agent iteration loop
 
-### The agent's iteration loop
+1. Read disassembly + m2c output
+2. Write C using known types and struct definitions
+3. Compile with SNC
+4. Diff against expected
+5. If match → done
+6. If mismatch → analyze: register allocation (reorder declarations), branch structure (if↔switch), scheduling (expression order), and retry
+7. After N attempts, report failure with best diff
 
-1. Read disassembly and initial C attempts
-2. Write C incorporating known types and struct definitions
-3. Compile with `/compile`
-4. Check with `/diff`
-5. If match → done, submit result
-6. If mismatch → analyze the diff:
-   - Wrong register allocation? → reorder variable declarations
-   - Wrong branch structure? → change control flow idiom (if→switch, etc.)
-   - Wrong instruction scheduling? → adjust expression evaluation order
-   - Off by a few instructions? → try decomp-permuter for brute-force variation search
-7. Repeat up to N attempts, then report failure with best diff achieved
+### Template class acceleration
+
+The `gcDo*`/`gcVal*` classes are ~21% of all functions. They share:
+- Same set of virtual methods (`VisitReferences`, `Evaluate`, `Read`, `Write`, etc.)
+- Same serialization patterns
+- Same memory layout conventions
+
+Match 3-5 complete exemplar classes, extract the pattern, and generate C for the remaining ~184 classes. Validate each with the comparison pipeline.
 
 ### Progress tracking
 
-The orchestrator maintains:
-- Total functions: 9,047
-- Matched: N (with matched byte count)
-- Failed: M (with best diff score for each)
-- In progress: K
-- Percentage complete (by function count and by byte count)
+- Total functions: ~9,767 (excluding zero-size stubs)
+- Track: matched / failed / in-progress / untried
+- Track by byte count (since 613 large functions = 45% of bytes)
+- Track by class (how complete is each class?)
+
+### Phase 3 is complete when
+
+- ≥90% of functions matched by count
+- ≥95% of bytes matched
 
 ## Phase 4: Hard Functions [ ]
 
-Functions that resist automated matching after Phase 3. These require deeper analysis:
+Functions that resist automated matching. These require deeper analysis:
 
-- **Complex control flow** — deeply nested loops, switch statements with fallthrough, where SNC's optimizer makes non-obvious choices
-- **Compiler-specific idioms** — patterns where SNC generates code that no straightforward C would produce (requires knowing SNC's specific optimization quirks)
-- **VFPU code** — vector floating-point operations, if any exist in game logic (unlikely for a racing game's non-rendering code, but possible)
-- **Functions that depend on unmatched functions** — circular dependencies where two functions reference each other's types
+- **Complex control flow** — deeply nested loops, switch with fallthrough, non-obvious optimizer choices
+- **SNC-specific idioms** — patterns where SNC generates code that no straightforward C produces
+- **VFPU code** — vector floating-point operations (uncommon in game logic, but possible in engine math)
+- **Large functions** — the 613 functions >1 KB, especially `gcGame::VisitReferences` (30 KB), `gcEntity::Replicate` (11 KB)
+- **Static initializers** — `__sti__gcAll_psp_cpp` (124 KB) and `__sti__eAll_psp_cpp` (74 KB) are compiler-generated type registration chains
+- **C runtime** — gMain_psp.obj (816 functions) is SNC's libc. May be matchable by finding the exact SNC runtime library source, or may need function-by-function work.
 
 Strategies:
-- **decomp-permuter** — brute-force C variations to find matching output
-- **Cross-reference with other ViciousEngine games** — if we can find similar functions in Alien Syndrome or other ViciousEngine titles, the same C patterns may apply
-- **Manual human review** — for the truly stubborn cases, a human looks at the diff and provides direction
+- **decomp-permuter** — brute-force C variations
+- **Cross-reference with other ViciousEngine games** — Alien Syndrome and others may share engine code
+- **Manual human review** — for the truly stubborn cases
 
 ## Phase 5: Completion + Validation [ ]
 
-All 9,047 functions match byte-exact.
+All ~9,767 real functions match byte-exact.
+
+### Full binary rebuild
+
+Requires solving the VFPU assembler blocker:
+- Option A: Build a PSP-aware GAS (from pspdev toolchain) that handles VFPU instructions
+- Option B: Encode all VFPU instructions in asm/0.s as `.word` directives (automatable)
+- Option C: Use SNC's own assembler (pspas.exe, which works under wibo) for VFPU sections
 
 ### Final verification
-- Full binary rebuild produces byte-identical output to the original EBOOT
+
+- Full binary rebuild produces SHA1-identical output to original EBOOT
 - Every function individually verified via asm-differ
+- Clean build from source with no manual patches
 
 ### Artifacts
-- Complete C source tree that compiles to a matching binary
+
+- Complete C/C++ source tree
 - Header files with all struct/class definitions
-- Build system that reproduces the binary from source
-- Documentation of SNC compiler behavior and flag choices
+- Build system that reproduces the binary
+- Documentation of SNC compiler behavior
 
 ### What carries forward to Milestone 2
+
 - SNC compiler flag knowledge
 - ViciousEngine struct/class definitions (shared across games)
-- Agent skills and orchestration system
+- Agent orchestration and matching skills
 - Type recovery patterns and heuristics
-- All tooling (splat configs need updating, but the tools transfer)
+- Tooling (splat configs need updating, but tools transfer)
+
+---
+
+## Open questions (revisit as we learn more)
+
+1. **Are any `-X` flags needed?** No evidence yet. Will surface as matching failures with correct C logic but wrong codegen. Revisit during Phase 2/3.
+2. **Ghidra headless: worth the setup cost?** m2c handles the tested functions well. Ghidra may add value for large functions (>1 KB) where its data flow analysis is stronger. Evaluate during Phase 3 if m2c hit rate drops.
+3. **C runtime strategy**: Is gMain_psp.obj worth decompiling function-by-function, or can we find the original SNC runtime source? 816 functions is significant effort for non-game code.
+4. **Template class automation**: The gcDo*/gcVal* hypothesis (match a few → generate the rest) needs validation. If the classes are less uniform than they appear, this becomes manual work on 2,114 functions.
+5. **VFPU assembler solution**: Three options listed in Phase 5. Need to evaluate before full binary rebuild is attempted.
