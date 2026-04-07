@@ -1,6 +1,6 @@
 def apply(config, args):
     config["arch"] = "mipsel"
-    config["baseimg"] = "tools/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec"
+    config["baseimg"] = "extern/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec"
     config["myimg"] = "build/EBOOT.elf"
     config["mapfile"] = "build/EBOOT.map"
     config["build_dir"] = "build/"

@@ -2,18 +2,18 @@
 # Compiler: SNC (SN Systems) via wibo
 # Target: PRX (relocatable ELF), VMA 0x0
 
-WIBO     := tools/wibo
-SNC      := tools/snc/pspsnc.exe
+WIBO     := extern/wibo
+SNC      := extern/snc/pspsnc.exe
 CC       := $(WIBO) $(SNC)
 AS       := mipsel-linux-gnu-as
 LD       := mipsel-linux-gnu-ld
 OBJCOPY  := mipsel-linux-gnu-objcopy
 
-CFLAGS   := -c -O2 -G0 -Itools/include -Iinclude
+CFLAGS   := -c -O2 -G0 -Iextern/include -Iinclude
 ASFLAGS  := -march=allegrex -mabi=eabi -EL -Iinclude
 LDFLAGS  := -T build/EBOOT.ld --Map build/EBOOT.map
 
-TARGET      := tools/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec
+TARGET      := extern/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec
 SHA1        := 952cbd11eb99fe986662e83d2d3512d207f9b979
 BUILD_DIR   := build
 TARGET_ELF  := $(BUILD_DIR)/EBOOT.elf
@@ -89,6 +89,6 @@ $(BUILD_DIR)/assets/%.bin.o: assets/%.bin
 #   make build/src/bar.cpp.o
 #
 # Compare with asm-differ:
-#   python3 tools/asm-differ/diff.py -o -f build/src/bar.cpp.o SYMBOL_NAME
+#   python3 extern/asm-differ/diff.py -o -f build/src/bar.cpp.o SYMBOL_NAME
 
 .PHONY: all clean verify

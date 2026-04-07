@@ -5,7 +5,7 @@ options:
   basename: EBOOT
   base_path: ..
   build_path: build
-  target_path: tools/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec
+  target_path: extern/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec
   asm_path: asm
   src_path: src
   asset_path: assets

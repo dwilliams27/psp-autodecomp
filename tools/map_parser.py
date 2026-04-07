@@ -2,7 +2,7 @@
 """Parse SN Systems linker map into splat-compatible symbol address file.
 
 Usage:
-    python3 tools/map_parser.py tools/extracted_symbols/Game-dvd.map config/symbol_addrs.txt
+    python3 tools/map_parser.py extern/extracted_symbols/Game-dvd.map config/symbol_addrs.txt
 """
 
 import re

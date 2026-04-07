@@ -6,21 +6,34 @@ Autonomous decompilation of PSP games using coding agent swarms. See `foundation
 
 **Days of Thunder** (USA, PSP Mini, NPUZ00185). ViciousEngine game compiled with SNC (SN Systems ProDG). 3.57 MB .text section, 9,047 named functions. Full debug symbols available.
 
-## Gitignored files (must be obtained separately)
+## Repository layout
 
-These are not checked in. An agent starting fresh needs to know where they go:
+```
+tools/           # our scripts (committed)
+extern/          # third-party tools and extracted data (gitignored, obtained separately)
+src/             # decompiled C/C++ source files
+include/         # reconstructed struct headers
+config/          # splat config, symbol addrs, function database
+asm/             # splat-generated assembly (gitignored)
+build/           # compilation output (gitignored)
+expected/        # expected .o files for comparison (gitignored)
+docs/            # decisions and direction docs
+```
+
+## External dependencies (must be obtained separately)
+
+Everything in `extern/` is gitignored. An agent starting fresh needs:
 
 ```
 Days of Thunder (USA) (minis) (PSN).iso   # game ISO, root of repo
-tools/snc/                                # SNC compiler (pspsnc 1.2.7503.0) from decompme/compilers
-tools/wibo                                # wibo binary from decompals/wibo (macOS x86_64, runs under Rosetta 2)
-tools/include/                            # official Sony PSP SDK 6.60 headers (from psp_sdk_660.7z on archive.org)
-tools/pspdecrypt/                         # git clone https://github.com/John-K/pspdecrypt (build with make)
-tools/m2c/                                # git clone https://github.com/matt-kempster/m2c (pip install -e .)
-tools/asm-differ/                         # git clone https://github.com/simonlindholm/asm-differ
-tools/iso_extract/                        # extracted ISO contents (7z x the .iso)
-tools/extracted_symbols/                  # .sym and .map files extracted from DATA.PAK
-tools/extract_pak.py                      # ViciousEngine DATA.PAK extraction script
+extern/snc/                               # SNC compiler (pspsnc 1.2.7503.0) from decompme/compilers
+extern/wibo                               # wibo binary from decompals/wibo (macOS x86_64, runs under Rosetta 2)
+extern/include/                           # official Sony PSP SDK 6.60 headers (from psp_sdk_660.7z on archive.org)
+extern/pspdecrypt/                        # git clone https://github.com/John-K/pspdecrypt (build with make)
+extern/m2c/                               # git clone https://github.com/matt-kempster/m2c (pip install -e .)
+extern/asm-differ/                        # git clone https://github.com/simonlindholm/asm-differ
+extern/iso_extract/                       # extracted ISO contents (7z x the .iso)
+extern/extracted_symbols/                 # .sym and .map files extracted from DATA.PAK
 ```
 
 Additional system dependencies (Homebrew):
@@ -32,12 +45,12 @@ Additional system dependencies (Homebrew):
 - The binary is a **PRX** (ELF type 0xFFA0, relocatable), not a static ELF. This is normal for PSP Minis.
 - SNC compiler works on macOS ARM via: Rosetta 2 -> wibo -> pspsnc.exe. The linker (pspld.exe) is broken under wibo; use `mipsel-linux-gnu-ld` instead.
 - SNC optimization levels are **-O0 through -O5** (no -Os). The game was compiled at -O2 or higher.
-- SNC expects headers via `-I tools/include`. No `include_snc/` needed.
+- SNC expects headers via `-I extern/include`. No `include_snc/` needed.
 - The .sym files in DATA.PAK are **ELF binaries with debug info**, not text. The .map file is a text-format SN Systems linker map.
 - These are NOT PPSSPP `.sym` format — ghidra-allegrex `PpssppImportSymFile` cannot import them directly.
 - **asm/0.s was patched** after splat ran: `[]` → `_arr_`, `~` → `_dtor_` in symbol names, and all `.ent`/`.end` directives stripped. These are required for GAS compatibility. If splat is re-run, the same patches must be reapplied.
 - **Full binary rebuild is blocked** by ~24K VFPU instructions in asm/0.s that standard `mipsel-linux-gnu-as` doesn't support (sv.q, lv.q, vdot, vsqrt, mfv, etc.). Needs a PSP-aware assembler or encoding as `.word` directives. Function-level .o comparison works fine without the full link.
-- **asm-differ** works in `-o` mode for function-level comparison: `python3 tools/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`. Expected .o files go in `expected/` mirroring the `build/` structure.
+- **asm-differ** works in `-o` mode for function-level comparison: `python3 extern/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`. Expected .o files go in `expected/` mirroring the `build/` structure.
 
 ## Norms
 

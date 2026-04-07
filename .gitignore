@@ -1,10 +1,9 @@
 *.iso
-tools/
-!tools/map_parser.py
-!tools/extract_pak.py
+extern/
 build/
 asm/
 assets/
 expected/
 __pycache__/
+*.pyc
 .DS_Store
