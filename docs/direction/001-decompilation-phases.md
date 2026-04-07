@@ -60,44 +60,35 @@ Get the build system working and prove one byte-exact match on a real function.
 - **Full binary rebuild blocked**: ~24K VFPU instructions unsupported by standard `mipsel-linux-gnu-as`. Needs PSP-aware assembler or `.word` encoding. Function-level .o comparison is unaffected.
 - **splat asm post-processing required**: GAS can't handle `[]`, `~` in symbol names or `.ent`/`.end` on some symbols. Must reapply patches after any splat re-run.
 
-## Phase 1: Matching Automation [ ]
+## Phase 1: Matching Automation [x]
 
 Build the tooling that lets agents work independently. Without this, nothing scales.
 
-### Function extraction and comparison pipeline
+### Deliverables (all complete)
 
-The critical gap: right now, matching a function requires manually finding its address, running objdump, hand-writing expected .o files, and eyeballing hex. Agents need:
+All tools live in `tools/`, third-party dependencies in `extern/` (gitignored).
 
-1. **`extract_func.py`** — given a symbol name (or address), extract its disassembly from the original binary and create an expected .o file in `expected/`. Uses symbol_addrs.txt for address/size lookup.
-2. **`compare_func.py`** (or Makefile target) — compile a source file, compare the .o against the expected .o, report match/mismatch with instruction-level diff. Wraps asm-differ.
-3. **Batch comparison** — given a list of functions and a source file, report which match and which don't. Essential for flag testing and progress tracking.
+1. **`func_db.py`** — parses linker map into `config/functions.json` (9,966 functions). Queryable by class, size, .obj file, match status, leaf status. Tracks match progress.
+2. **`extract_func.py`** — extracts function bytes from original binary, creates expected .o files via `.incbin` (handles VFPU). Supports single function or batch mode.
+3. **`compare_func.py`** — compiles source with SNC, compares .o bytes against expected, reports match/mismatch. Size-indexed lookup for O(1) candidate matching. Auto-updates match status in functions.json.
+4. **`decompile_func.py`** — objdump-to-m2c format converter (register names, branch labels, JAL symbol resolution) + m2c invocation. Produces initial C for any function.
+5. **`call_graph.py`** — raw binary scan for JAL instructions (no objdump needed). 7,531 functions make calls, 2,229 are leaf functions. Enriches functions.json with callers/callees.
+6. **`common.py`** — shared utilities: `load_db`, `save_db`, `find_function`, `filter_functions`, `build_addr_map`, constants.
 
-### Function database
+### Agent workflow
 
-Parse the linker map into a structured, queryable format. Agents need to answer:
-- "Give me all methods on `cFastMemAllocator`"
-- "What functions are in `cAll_psp.obj` between 8-32 bytes?"
-- "What does `Reset()` call? What calls it?"
-- "Which `gcDo*` classes have all methods ≤64 bytes?"
-
-Fields: name, demangled name, address, size, .obj file, class name, callee list (from `jal` targets), matched status.
-
-### m2c integration
-
-m2c produces good first-pass C (tested on 4 functions, 36-124 bytes). Pipeline requirements:
-- **objdump-to-m2c format converter** — m2c needs `.s` files with `glabel` directives and `$register` names, not raw objdump output
-- **Symbol resolution** — resolve `jal 0xADDR` to function names using symbol_addrs.txt before feeding to m2c
-- **Context files** — feed struct definitions to m2c via `--context` for better type inference
+```bash
+python3 tools/func_db.py query --class mSphere --size-max 64    # find target
+python3 tools/extract_func.py "mSphere::SomeMethod"              # create expected .o
+python3 tools/decompile_func.py "mSphere::SomeMethod"            # get initial C
+# edit the C in src/mSphere.cpp
+python3 tools/compare_func.py src/mSphere.cpp                    # compile + compare
+python3 tools/call_graph.py show "mSphere::SomeMethod"           # check dependencies
+```
 
 ### -X flag investigation (if needed)
 
 Monitor for functions that produce correct logic but wrong instruction scheduling or register allocation at -O2. These may indicate `-X` control variables. No evidence of any needed yet — revisit if matching failures cluster around specific patterns.
-
-### Phase 1 is complete when
-
-- An agent can run a single command to extract, decompile, compile, and diff any function
-- The function database is queryable for prioritization
-- m2c produces usable first-pass C for at least 80% of tested functions
 
 ## Phase 2: Type Bootstrap + Early Matching [ ]
 
