@@ -60,6 +60,12 @@ if ! sudo pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
 fi
 echo "PF sandbox active."
 
+# Unlock the autodecomp keychain (created with empty password) so Claude can auth
+echo "Unlocking keychain..."
+sudo -i -u "$SANDBOX_USER" security unlock-keychain -p "" /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
+# Prevent auto-lock during the overnight run
+sudo -i -u "$SANDBOX_USER" security set-keychain-settings /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
+
 # Cleanup: disable PF on exit (Ctrl-C, crash, normal exit)
 cleanup() {
     echo ""
