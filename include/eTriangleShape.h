@@ -20,6 +20,7 @@ public:
     int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     float GetVolume(void) const;
     void GetVolumeUnderPlane(eDragAreaUtil *, const mPlane &, const mOCS &, float *, mVec3 *) const;
+    int CanSweep(void) const;
 };
 
 #endif
