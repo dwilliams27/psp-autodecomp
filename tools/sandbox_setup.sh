@@ -52,8 +52,13 @@ echo "[acl] Granting '$SANDBOX_USER' access to $REPO_DIR..."
 chmod -R -a "$SANDBOX_USER allow" "$REPO_DIR" 2>/dev/null || true
 # file_inherit,directory_inherit: new files/dirs created within also get this ACL
 # delete_child: allows deleting files within directories (not just the directory itself)
-chmod -R +a "$SANDBOX_USER allow read,write,execute,delete,delete_child,add_file,add_subdirectory,list,search,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit" "$REPO_DIR"
-echo "[done] ACLs applied"
+ACL_PERMS="read,write,execute,delete,delete_child,add_file,add_subdirectory,list,search,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit"
+chmod -R +a "$SANDBOX_USER allow $ACL_PERMS" "$REPO_DIR"
+# Both users need full access to .git so commits work from either account
+REPO_OWNER="${SUDO_USER:-$(stat -f '%Su' "$REPO_DIR")}"
+chmod -R +a "$REPO_OWNER allow $ACL_PERMS" "$REPO_DIR/.git"
+chmod -R +a "$SANDBOX_USER allow $ACL_PERMS" "$REPO_DIR/.git"
+echo "[done] ACLs applied (both users can commit)"
 
 # Also ensure the user's home dir exists for Claude Code config
 mkdir -p /Users/$SANDBOX_USER/.claude
