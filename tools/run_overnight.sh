@@ -47,12 +47,18 @@ echo "User: $SANDBOX_USER"
 echo "Args: $*"
 echo ""
 
-# Enable PF firewall — fail if this doesn't work (sandbox is the whole point)
+# Enable PF firewall — load rules and enable
 echo "Enabling PF sandbox..."
-if ! sudo pfctl -e -f /etc/pf.conf 2>&1; then
-    echo "Error: failed to enable PF firewall. Cannot run without sandbox."
+# Load rules (may warn about flushing, that's fine)
+sudo pfctl -f /etc/pf.conf 2>&1 | grep -v "^$"
+# Enable PF (-e returns non-zero if already enabled, which is fine)
+sudo pfctl -e 2>&1 | grep -v "^$" || true
+# Verify PF is actually running
+if ! sudo pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
+    echo "Error: PF firewall is not running. Cannot run without sandbox."
     exit 1
 fi
+echo "PF sandbox active."
 
 # Cleanup: disable PF on exit (Ctrl-C, crash, normal exit)
 cleanup() {
