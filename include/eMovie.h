@@ -4,6 +4,7 @@
 class eMovie {
 public:
     void PlatformPause(void);
+    void PlatformResume(void);
 };
 
 #endif
