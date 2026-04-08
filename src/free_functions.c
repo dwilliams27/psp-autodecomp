@@ -1,3 +1,23 @@
+int cGetBuildId(void) {
+    return *(int *)0x385EC;
+}
+
+int cGetBuildDateTime(void) {
+    return *(int *)0x37BC00;
+}
+
+unsigned char cIsAppRestarting(void) {
+    return *(unsigned char *)0x37BC0C;
+}
+
+unsigned char cIsAppRestarted(void) {
+    return *(unsigned char *)0x37BC0D;
+}
+
+unsigned char cIsAppQuickStarted(void) {
+    return *(unsigned char *)0x37BC0E;
+}
+
 void cBuildPath(const char *path) {
 }
 
