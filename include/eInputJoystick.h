@@ -8,7 +8,10 @@ public:
     enum eAxisElement {};
     enum eButton {};
 
+    static void PlatformPreUpdate();
     static void PlatformCapture(int);
+    static bool PlatformControllerPresent(int);
+    static bool PlatformControllerBatteryLow(int);
     static void BindReset(int);
     static void BindAnalog(int, eAnalog, eAxis, eAxisElement);
     static void BindButton(int, eButton, bool);
