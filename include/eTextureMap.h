@@ -53,6 +53,28 @@ class eOnePassModelMtl {
 public:
     void PlatformFree(void);
     void Unapply(void) const;
+    void CreateData(void);
+};
+
+class eProjectedDynamicMtl {
+public:
+    void PlatformFree(void);
+    void Unapply(void) const;
+    void CreateData(void);
+};
+
+class eProjectedHeightmapMtl {
+public:
+    void PlatformFree(void);
+    void Apply(const eCamera *, const eWorld *) const;
+    void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
+    void Unapply(void) const;
+    void CreateData(void);
+};
+
+class eReflectionModelMtl {
+public:
+    void PlatformFree(void);
 };
 
 #endif
