@@ -48,7 +48,11 @@ fi
 # ──────────────────────────────────────────
 
 echo "[acl] Granting '$SANDBOX_USER' access to $REPO_DIR..."
-chmod -R +a "$SANDBOX_USER allow read,write,execute,delete,add_file,add_subdirectory,list,search,readattr,writeattr,readextattr,writeextattr,readsecurity" "$REPO_DIR"
+# Clear any existing ACLs for this user first (idempotent re-runs)
+chmod -R -a "$SANDBOX_USER allow" "$REPO_DIR" 2>/dev/null || true
+# file_inherit,directory_inherit: new files/dirs created within also get this ACL
+# delete_child: allows deleting files within directories (not just the directory itself)
+chmod -R +a "$SANDBOX_USER allow read,write,execute,delete,delete_child,add_file,add_subdirectory,list,search,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit" "$REPO_DIR"
 echo "[done] ACLs applied"
 
 # Also ensure the user's home dir exists for Claude Code config
@@ -161,8 +165,9 @@ fi
 check "PF anchor file exists" \
     test -f "$PF_ANCHOR_FILE"
 
-check "PF autodecomp anchor loaded" \
-    bash -c "pfctl -s anchors 2>/dev/null | grep -q autodecomp"
+# PF isn't enabled until run_overnight.sh starts — check config, not live state
+check "PF anchor in pf.conf" \
+    grep -q 'anchor "autodecomp"' /etc/pf.conf
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

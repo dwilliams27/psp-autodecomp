@@ -20,7 +20,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
-from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
+from common import (DB_PATH, EBOOT_PATH, OBJDUMP, CLAUDE,
                     load_db, save_db, filter_functions, build_addr_map)
 
 BATCH_SIZE = 5
@@ -303,7 +303,7 @@ def build_prompt(batch, functions, session_id):
 def run_claude_session(prompt, session_id):
     """Invoke Claude Code in headless mode. Returns (success, error_msg)."""
     cmd = [
-        "claude", "-p", prompt,
+        CLAUDE, "-p", prompt,
         "--dangerously-skip-permissions",
         "--output-format", "json",
         "--verbose",

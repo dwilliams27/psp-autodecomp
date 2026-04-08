@@ -68,4 +68,5 @@ trap cleanup EXIT
 # Run orchestrator as sandboxed user
 echo "Starting orchestrator as '$SANDBOX_USER'..."
 echo ""
-sudo -u "$SANDBOX_USER" bash -c 'cd "$1" && shift && python3 tools/orchestrator.py "$@"' -- "$REPO_DIR" "$@"
+# -i required: sets up login environment so macOS Keychain is accessible for Claude auth
+sudo -i -u "$SANDBOX_USER" bash -c 'cd "$1" && shift && python3 tools/orchestrator.py "$@"' -- "$REPO_DIR" "$@"

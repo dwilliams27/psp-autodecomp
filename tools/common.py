@@ -15,6 +15,7 @@ OBJCOPY = "mipsel-linux-gnu-objcopy"
 NM = "mipsel-linux-gnu-nm"
 AS = "mipsel-linux-gnu-as"
 AS_FLAGS = ["-march=allegrex", "-mabi=eabi", "-EL"]
+CLAUDE = "/usr/local/bin/claude"
 
 
 def load_db():
