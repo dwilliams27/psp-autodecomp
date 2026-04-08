@@ -19,6 +19,11 @@ public:
 class gcExpression {
 public:
     int GetMaxChildren(void) const;
+    int GetMaxBranches(void) const;
+    void SetChild(int, gcExpression *);
+    gcExpression *GetChild(int) const;
+    gcExpression *GetBranch(int) const;
+    void SetBranch(int, gcExpression *);
 };
 
 #endif
