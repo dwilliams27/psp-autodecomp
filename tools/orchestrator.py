@@ -409,11 +409,13 @@ def create_overnight_branch():
     Verifies we're on main with a clean tree first.
     Returns the branch name.
     """
-    # Verify clean working tree
-    ok, status, _ = git_run("status", "--porcelain")
-    if ok and status:
+    # Verify no uncommitted changes to tracked files (untracked files are fine)
+    ok, staged, _ = git_run("diff", "--cached", "--name-only")
+    ok2, unstaged, _ = git_run("diff", "--name-only")
+    dirty = (staged + "\n" + unstaged).strip()
+    if dirty:
         raise RuntimeError(
-            f"Working tree is not clean — commit or stash changes before running:\n{status[:200]}"
+            f"Working tree has uncommitted changes — commit or stash before running:\n{dirty[:200]}"
         )
 
     # Verify we're on main
