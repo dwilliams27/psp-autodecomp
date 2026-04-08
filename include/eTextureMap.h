@@ -75,6 +75,15 @@ public:
 class eReflectionModelMtl {
 public:
     void PlatformFree(void);
+    void Unapply(void) const;
+    void CreateData(void);
+};
+
+class eRefractionModelMtl {
+public:
+    void PlatformFree(void);
+    void Unapply(void) const;
+    void CreateData(void);
 };
 
 #endif
