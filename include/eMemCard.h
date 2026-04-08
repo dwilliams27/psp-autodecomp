@@ -7,6 +7,11 @@ public:
     struct eSaveParams {};
 
     static int Reset(void);
+    static void SetSlot(int);
+    static float GetMinSaveTime(void);
+    static float GetMinLoadTime(void);
+    static void Format(void);
+    static int GetSaveSize(int a, int b, int c);
     static void EndLoad(const eLoadParams &);
     static void EndSave(const eSaveParams &);
 };
