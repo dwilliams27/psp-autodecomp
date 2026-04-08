@@ -157,6 +157,10 @@ def parse_map_to_functions(map_path):
                 is_func = False
             elif current_section and "linkonce.d" in current_section:
                 is_func = False
+            elif current_section and "linkonce.b" in current_section:
+                is_func = False
+            elif current_section and "linkonce.r" in current_section:
+                is_func = False
 
             if not is_func:
                 continue

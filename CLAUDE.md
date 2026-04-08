@@ -65,6 +65,32 @@ python3 tools/compare_func.py src/file.cpp                       # compile + com
 python3 tools/call_graph.py show "ClassName::Method"             # check dependencies
 ```
 
+## Overnight autonomous runs
+
+The orchestrator (`tools/orchestrator.py`) runs Claude Code in headless mode to match functions at scale. It's designed for unattended overnight operation.
+
+### Setup (one-time)
+```bash
+sudo ./tools/sandbox_setup.sh    # creates 'autodecomp' user + PF rules
+sudo -u autodecomp claude        # authenticate Claude Code for the new user
+```
+
+### Running
+```bash
+./tools/run_overnight.sh --hours 8                  # full overnight run
+./tools/run_overnight.sh --hours 2 --size-max 8     # trivial functions only
+./tools/run_overnight.sh --dry-run --limit 3        # test without sandbox
+```
+
+### Checking progress
+```bash
+python3 tools/func_db.py stats                      # overall progress
+python3 tools/func_db.py query --status matched      # matched functions
+tail -f logs/match_*.jsonl                            # live log
+```
+
+Results are in `config/functions.json` (match_status field) and `logs/`.
+
 ## Norms
 
 - All decompilation work is done by agents. Humans provide direction and unblock.
@@ -73,6 +99,6 @@ python3 tools/call_graph.py show "ClassName::Method"             # check depende
 - Decisions go in `docs/decisions/` with numbered filenames (001, 002, ...).
 - Direction docs go in `docs/direction/` with numbered filenames. These are aspirational/north-star — keep them up to date as phases complete (mark `[x]` in the doc). Unlike decisions (which are point-in-time records), direction docs are living documents.
 - Do not commit binaries, ISOs, or SDK files. The `.gitignore` handles this.
-- **Before committing any code changes, run `/simplify` first.** This is mandatory — no exceptions.
+- **Before committing any code changes, run `/review` first.** This is mandatory — no exceptions. Our custom `/review` (`.claude/skills/review/SKILL.md`) launches 4 review agents: code reuse, code quality, efficiency, and a silent-fallback auditor. Do NOT use the built-in `/simplify` — it only has 3 agents and misses silent fallbacks.
 - **No silent fallbacks.** If something is broken, fail loudly and early. Never add graceful degradation, default values, or try/except swallowing without explicit human approval. Broken things must be visible so they get fixed.
 - **No deferred shortcuts.** Handle edge cases fully when you encounter them, not "later." If a tool doesn't handle all 12,506 symbols correctly, fix it now — don't skip the hard ones with a TODO. Untracked "I'll handle this later" decisions accumulate invisibly and cause bizarre behavior in a system built by many agents over time.

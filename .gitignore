@@ -4,6 +4,7 @@ build/
 asm/
 assets/
 expected/
+logs/
 __pycache__/
 *.pyc
 .DS_Store
