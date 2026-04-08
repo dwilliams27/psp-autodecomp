@@ -1,6 +1,8 @@
 #ifndef GCREPLICATIONVISITOR_H
 #define GCREPLICATIONVISITOR_H
 
+#include "gcGame.h"
+
 class gcRegionBase {
 public:
     gcRegionBase &operator=(const gcRegionBase &);
@@ -14,11 +16,6 @@ public:
 class gcMap {
 public:
     gcMap &operator=(const gcMap &);
-};
-
-class gcGame {
-public:
-    gcGame &operator=(const gcGame &);
 };
 
 #endif
