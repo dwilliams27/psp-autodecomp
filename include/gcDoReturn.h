@@ -1,10 +1,20 @@
 #ifndef GCDORETURN_H
 #define GCDORETURN_H
 
+class cMemPool;
+class cBase;
+class cFile;
+class gcExpression;
+
 class gcDoReturn {
 public:
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
+    unsigned int GetTextColor(void) const;
+    gcExpression *GetChild(int) const;
+    void GetText(char *) const;
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcDoSetValue {
