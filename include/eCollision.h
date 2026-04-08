@@ -25,9 +25,5 @@ public:
     void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *, unsigned int, int, const cHandleT<eMaterial> *, float) const;
 };
 
-class eVideo {
-public:
-    static void PreFlip(void);
-};
 
 #endif

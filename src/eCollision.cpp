@@ -1,4 +1,5 @@
 #include "eCollision.h"
+#include "eVideo.h"
 
 int eCollision::GetTriTriContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) {
     return 0;
