@@ -1,0 +1,15 @@
+__asm__(
+    ".set noreorder\n"
+    ".text\n"
+    ".globl __0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K\n"
+    "__0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K:\n"
+    ".word 0x44806000\n"
+    ".word 0x44046000\n"
+    ".word 0x44066000\n"
+    ".word 0x44076000\n"
+    ".word 0x48e40006\n"
+    ".word 0x48e60026\n"
+    ".word 0x48e70046\n"
+    "jr $31\n"
+    ".word 0xf8a60000\n"
+);

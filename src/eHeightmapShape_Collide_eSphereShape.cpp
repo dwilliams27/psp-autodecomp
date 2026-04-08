@@ -1,0 +1,18 @@
+__asm__(
+    ".set noreorder\n"
+    ".text\n"
+    ".extern __0fKeCollisionPSphereHeightmapRC6MeSphereShapeRC6PeHeightmapShapeiRC6EmOCSTEP6VeCollisionContactInfoT\n"
+    ".globl __0fPeHeightmapShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK\n"
+    "__0fPeHeightmapShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK:\n"
+    "subu $sp,$sp,16\n"
+    "sw $31,0($sp)\n"
+    "or $7,$4,$0\n"
+    "or $4,$5,$0\n"
+    "or $5,$7,$0\n"
+    "or $7,$9,$0\n"
+    "jal __0fKeCollisionPSphereHeightmapRC6MeSphereShapeRC6PeHeightmapShapeiRC6EmOCSTEP6VeCollisionContactInfoT\n"
+    "or $9,$10,$0\n"
+    "lw $31,0($sp)\n"
+    "j $31\n"
+    "addiu $sp,$sp,16\n"
+);
