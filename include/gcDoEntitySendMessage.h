@@ -16,6 +16,19 @@ public:
 class gcDoEvaluation {
 public:
     int GetMaxChildren(void) const;
+    int GetMaxBranches(void) const;
+};
+
+class gcDoFunction {
+public:
+    int GetExprFlags(void) const;
+    int GetMaxChildren(void) const;
+};
+
+class gcDoLog {
+public:
+    float Evaluate(void) const;
+    int GetMaxChildren(void) const;
 };
 
 #endif
