@@ -12,6 +12,7 @@ public:
     static float GetMinLoadTime(void);
     static void Format(void);
     static int GetSaveSize(int a, int b, int c);
+    static void BeginLoad(const eLoadParams &);
     static void EndLoad(const eLoadParams &);
     static void EndSave(const eSaveParams &);
 };

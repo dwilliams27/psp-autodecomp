@@ -4,6 +4,7 @@
 class eVRAMMgr {
 public:
     static void EndRender(void);
+    static void InvalidateAll(void);
 };
 
 class eHeightmapTemplateData {

@@ -7,6 +7,7 @@ class gcUIWidget {
 public:
     enum gcUIEffect {};
     void OnGetSize(mVec2 *, mVec2 *, unsigned int) const;
+    void *GetResizableSprites(void);
 };
 
 #endif
