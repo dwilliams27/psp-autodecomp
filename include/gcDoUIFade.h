@@ -33,6 +33,23 @@ public:
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
+    void SetBranch(int, gcExpression *);
+};
+
+class gcValBinaryOp {
+public:
+    int GetMaxChildren(void) const;
+};
+
+class gcValCameraFollowEntity3rdVariable {
+public:
+    float Evaluate(void) const;
+    void Set(float);
+};
+
+class gcValCameraValue {
+public:
+    float Evaluate(void) const;
 };
 
 #endif
