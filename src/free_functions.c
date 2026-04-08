@@ -52,3 +52,13 @@ void cBase_Reset(void *self, void *pool, int reset) {
 void cBase_GetName(const void *self, char *name) {
     *name = 0;
 }
+
+void cSetCommandLine(const char *cmd) {
+    *(const char **)0x37BC08 = cmd;
+}
+
+int cGetFPUControl(void) {
+    int result;
+    __asm__ volatile("cfc1 %0, $31" : "=r"(result));
+    return result;
+}

@@ -15,6 +15,7 @@ public:
     static void SetAlphaWriteEnable(bool);
     static void SetFlippedBFCMode(bool);
     static int IsWidescreen(void);
+    static struct eViewport *GetFullscreenViewport(void);
 };
 
 #endif
