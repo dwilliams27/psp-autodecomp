@@ -3,6 +3,13 @@
 
 #include "gcGame.h"
 
+class cOutStream;
+
+class gcReplicationVisitor {
+public:
+    void SetMemCardStream(cOutStream *);
+};
+
 class gcRegionBase {
 public:
     gcRegionBase &operator=(const gcRegionBase &);

@@ -4,6 +4,7 @@
 class gcStreamedCinematic {
 public:
     int AllowParentCreate(void) const;
+    void NeedsDelete(void);
 };
 
 #endif
