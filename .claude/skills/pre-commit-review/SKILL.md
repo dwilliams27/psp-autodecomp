@@ -1,5 +1,5 @@
 ---
-name: review
+name: pre-commit-review
 description: Review changed code for reuse, quality, efficiency, and silent fallbacks. Launches 4 specialized review agents in parallel, then fixes all issues found.
 ---
 

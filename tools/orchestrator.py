@@ -28,6 +28,7 @@ MAX_CONSECUTIVE_FAILURES = 5
 SESSION_TIMEOUT = 1800
 LOGS_DIR = "logs"
 SESSION_RESULTS_DIR = "logs/session_results"
+GIT = "git"
 
 
 def log(msg):
@@ -390,7 +391,91 @@ def process_session_results(session_id, batch, functions):
                 log(f"  WARNING: {func['name']} not reported in session results — reverting to untried")
                 target["match_status"] = "untried"
 
-    return matched, failed
+    return matched, failed, results
+
+
+def git_run(*args):
+    """Run a git command. Returns (success, stdout, stderr)."""
+    result = subprocess.run(
+        [GIT] + list(args),
+        capture_output=True, text=True
+    )
+    return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
+
+
+def create_overnight_branch():
+    """Create and checkout a branch for this overnight run.
+
+    Verifies we're on main with a clean tree first.
+    Returns the branch name.
+    """
+    # Verify clean working tree
+    ok, status, _ = git_run("status", "--porcelain")
+    if ok and status:
+        raise RuntimeError(
+            f"Working tree is not clean — commit or stash changes before running:\n{status[:200]}"
+        )
+
+    # Verify we're on main
+    ok, current, _ = git_run("branch", "--show-current")
+    if ok and current != "main":
+        raise RuntimeError(
+            f"Expected to be on 'main' branch, but on '{current}'. "
+            f"Checkout main first: git checkout main"
+        )
+
+    branch = f"overnight/{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    ok, _, err = git_run("checkout", "-b", branch)
+    if not ok:
+        raise RuntimeError(f"Failed to create branch {branch}: {err}")
+
+    log(f"Created branch: {branch}")
+    return branch
+
+
+def git_commit_batch(session_id, matched_funcs, matched_files):
+    """Commit matched source files and updated functions.json after a batch.
+
+    Raises on any git failure — matched work must be persisted.
+    """
+    if not matched_funcs:
+        return
+
+    files_to_commit = set(matched_files)
+
+    # Include any .h files that were created/modified for matched classes
+    for f in matched_funcs:
+        if f.get("class_name"):
+            header = f"include/{f['class_name'].replace('::', '_')}.h"
+            if os.path.exists(header):
+                files_to_commit.add(header)
+
+    files_to_commit.add(DB_PATH)
+
+    # Stage all files — fail loudly if any are missing or git add fails
+    for path in files_to_commit:
+        if path == DB_PATH:
+            # DB always exists
+            pass
+        elif not os.path.exists(path):
+            raise RuntimeError(
+                f"Matched file not found on disk: {path}. "
+                f"Claude reported a match but didn't write the source file."
+            )
+        ok, _, err = git_run("add", "--", path)
+        if not ok:
+            raise RuntimeError(f"git add failed for {path}: {err}")
+
+    func_names = [f["name"].split("(")[0] for f in matched_funcs]
+    msg = f"Match {len(matched_funcs)} functions (session {session_id})\n\n"
+    msg += "\n".join(f"  - {name}" for name in func_names)
+
+    ok, out, err = git_run("commit", "-m", msg)
+    if not ok:
+        raise RuntimeError(
+            f"git commit failed after matching {len(matched_funcs)} functions: "
+            f"{out} {err}"
+        )
 
 
 def print_progress(functions, start_time):
@@ -434,6 +519,13 @@ def main():
     total_failed = 0
     total_errors = 0
     consecutive_failures = 0
+
+    # Create a branch for this run so main stays clean (skip for dry runs)
+    if args.dry_run:
+        branch = "(dry-run, no branch)"
+        log("DRY RUN — no branch created, no Claude sessions, no commits")
+    else:
+        branch = create_overnight_branch()
 
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
     print_progress(functions, start_time)
@@ -505,7 +597,7 @@ def main():
 
         # Process results
         try:
-            matched, failed = process_session_results(session_id, batch, functions)
+            matched, failed, session_results = process_session_results(session_id, batch, functions)
             total_matched += matched
             total_failed += failed
             total_attempted += len(batch)
@@ -514,16 +606,31 @@ def main():
             log(f"Session {session_id} done ({session_duration:.0f}s): "
                 f"{matched} matched, {failed} failed")
 
+            matched_funcs = []
+            matched_files = set()
             for func in batch:
                 target = addr_index.get(func["address"])
+                status = target["match_status"] if target else "unknown"
                 log_event(log_path, {
                     "event": "function_result",
                     "session_id": session_id,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
-                    "status": target["match_status"] if target else "unknown",
+                    "status": status,
                 })
+                if status == "matched":
+                    matched_funcs.append(func)
+
+            # Collect file paths from results
+            for entry in session_results:
+                if entry.get("status") == "matched" and entry.get("file"):
+                    matched_files.add(entry["file"])
+
+            # Auto-commit matched work
+            if matched_funcs:
+                save_db(functions)
+                git_commit_batch(session_id, matched_funcs, matched_files)
 
         except (FileNotFoundError, ValueError) as e:
             log(f"Session {session_id} SYSTEM ERROR: {e}")
@@ -553,6 +660,7 @@ def main():
     elapsed = datetime.now() - start_time
     log("")
     log("=== OVERNIGHT RUN COMPLETE ===")
+    log(f"Branch: {branch}")
     log(f"Duration: {str(elapsed).split('.')[0]}")
     log(f"Attempted: {total_attempted} functions")
     log(f"Matched: {total_matched}")
@@ -560,6 +668,9 @@ def main():
     log(f"System errors: {total_errors}")
     print_progress(functions, start_time)
     log(f"Full log: {log_path}")
+    log(f"")
+    log(f"To review: git log {branch} --oneline")
+    log(f"To merge:  git checkout main && git merge {branch}")
 
 
 if __name__ == "__main__":
