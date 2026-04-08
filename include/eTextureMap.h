@@ -86,4 +86,21 @@ public:
     void CreateData(void);
 };
 
+class eShadowVolumeModelMtl {
+public:
+    void PlatformFree(void);
+    void CreateData(void);
+};
+
+class eExtrudedShadowVolumeModelMtl {
+public:
+    void CreateData(void);
+};
+
+class eSilhouetteModelMtl {
+public:
+    void PlatformFree(void);
+    void CreateData(void);
+};
+
 #endif
