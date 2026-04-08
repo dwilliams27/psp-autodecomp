@@ -4,6 +4,8 @@
 class eStandardWeatherEffectMtl {
 public:
     void PlatformFree(void);
+    void Unapply(void) const;
+    void CreateData(void);
 };
 
 #endif
