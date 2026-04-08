@@ -16,6 +16,11 @@ public:
     static void SetPointerParam(int, float, float);
     static void SetAccelParam(int, float, float);
     static void ZeroMainAccelPosVel(int);
+    static void ZeroExtAccelPosVel(int);
+    static void EnablePointer(int, bool);
+    static void EnableAimingMode(int, bool);
+    static void StopRumble(int);
+    static float GetControllerExtension(int);
 };
 
 #endif
