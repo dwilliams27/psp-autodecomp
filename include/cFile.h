@@ -13,6 +13,7 @@ public:
     int mNumVisible;
 
     void SetNumVisible(int numVisible);
+    bool IsModifiable(void) const;
 };
 
 class cLanguage {

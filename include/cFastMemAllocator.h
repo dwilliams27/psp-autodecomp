@@ -4,6 +4,7 @@
 class cFastMemAllocator {
 public:
     float GetSizeScale(void) const;
+    void Free(void *);
 };
 
 #endif

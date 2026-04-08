@@ -14,6 +14,7 @@ public:
     void LogAllocations(void) const;
     int BeginBlock(cMemBlockAllocation *);
     void EndBlock(cMemBlockAllocation *, cMemBlockAllocation *);
+    void StopBlock(bool);
 };
 
 #endif
