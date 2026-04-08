@@ -70,10 +70,14 @@ sudo -i -u "$SANDBOX_USER" security set-keychain-settings /Users/$SANDBOX_USER/L
 cleanup() {
     echo ""
     echo "Flushing PF sandbox rules..."
-    if ! sudo pfctl -a autodecomp -F all 2>&1; then
-        echo "WARNING: Failed to flush PF autodecomp anchor. Run 'sudo pfctl -a autodecomp -F all' manually."
+    # sudo credentials may have expired during long run — use -n (non-interactive)
+    # If it fails, tell user to run manually
+    if ! sudo -n pfctl -a autodecomp -F all 2>/dev/null; then
+        echo "WARNING: Could not flush PF rules (sudo expired). Run manually:"
+        echo "  sudo pfctl -a autodecomp -F all"
+    else
+        echo "PF sandbox rules flushed."
     fi
-    echo "Done."
 }
 trap cleanup EXIT
 

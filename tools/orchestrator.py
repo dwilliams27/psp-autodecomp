@@ -630,9 +630,20 @@ def main():
                     matched_files.add(entry["file"])
 
             # Auto-commit matched work
+            # Git errors are loud but non-fatal — matched work is saved in
+            # functions.json and source files on disk regardless of git state
             if matched_funcs:
                 save_db(functions)
-                git_commit_batch(session_id, matched_funcs, matched_files)
+                try:
+                    git_commit_batch(session_id, matched_funcs, matched_files)
+                except RuntimeError as e:
+                    log(f"  GIT COMMIT ERROR (matching still saved): {e}")
+                    log_event(log_path, {
+                        "event": "git_error",
+                        "session_id": session_id,
+                        "error": str(e),
+                    })
+                    total_errors += 1
 
         except (FileNotFoundError, ValueError) as e:
             log(f"Session {session_id} SYSTEM ERROR: {e}")
