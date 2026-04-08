@@ -24,6 +24,15 @@ public:
     gcExpression *GetChild(int) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    unsigned int GetTextColor(void) const;
+    gcExpression *GetNext(void) const;
+    void SetNext(gcExpression *);
+    int GetExprFlags(void) const;
+};
+
+class gcAction : public gcExpression {
+public:
+    int GetExprFlags(void) const;
 };
 
 #endif
