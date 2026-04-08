@@ -21,12 +21,34 @@ public:
     static int PlatformInitialize(void);
 };
 
+class cFilePlatform {
+public:
+    char _pad[0x104];
+
+    void Close(void);
+    void ReadAsync(void *buf, unsigned int offset, unsigned int size);
+};
+
 class cBufferedFile {
 public:
-    char pad[0x128];
+    char pad0[0x04];
+    unsigned int mBufferSize;
+    void *mBufferPtr[2];
+    char pad1[0x04];
+    int mCurrentBuffer;
+    int mBufPos;
+    unsigned int mFilePos[2];
+    cFilePlatform mPlatform;
     int mSize;
+    int mHandle;
 
+    void Close(void);
+    void FillBuffer(int bufIndex);
+    void WaitForFill(void);
+    void NextBuffer(void);
+    int GetFilePos(void) const;
     int GetSize(void) const;
+    bool IsOpen(void) const;
 };
 
 #endif

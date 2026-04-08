@@ -1,0 +1,7 @@
+[
+  {"address": "0x0000e950", "status": "matched", "attempts": 1, "file": "src/cBufferedFile.cpp"},
+  {"address": "0x0000e7f8", "status": "matched", "attempts": 1, "file": "src/cBufferedFile_GetFilePos.cpp"},
+  {"address": "0x0000e554", "status": "matched", "attempts": 1, "file": "src/cBufferedFile_Close.cpp"},
+  {"address": "0x0000e5ec", "status": "matched", "attempts": 1, "file": "src/cBufferedFile_FillBuffer.cpp"},
+  {"address": "0x0000e6ac", "status": "failed", "attempts": 12, "file": "src/cBufferedFile_NextBuffer.cpp"}
+]
