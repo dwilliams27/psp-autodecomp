@@ -203,6 +203,8 @@ def determine_source_file(batch):
     first = batch[0]
     if first["class_name"]:
         class_safe = first["class_name"].replace("::", "_")
+        # Remove any chars that are problematic in filenames
+        class_safe = "".join(c for c in class_safe if c.isalnum() or c in "_-")
         return f"src/{class_safe}.cpp"
     return "src/free_functions.c"
 
@@ -471,6 +473,12 @@ def git_commit_batch(session_id, matched_funcs, matched_files):
     func_names = [f["name"].split("(")[0] for f in matched_funcs]
     msg = f"Match {len(matched_funcs)} functions (session {session_id})\n\n"
     msg += "\n".join(f"  - {name}" for name in func_names)
+
+    # Check if there's actually anything staged before committing
+    ok, staged, _ = git_run("diff", "--cached", "--name-only")
+    if not staged.strip():
+        log(f"  No changes to commit (source files unchanged from prior batch)")
+        return
 
     ok, out, err = git_run("commit", "-m", msg)
     if not ok:

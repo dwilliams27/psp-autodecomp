@@ -15,3 +15,6 @@ void eVideo::SetFlippedBFCMode(bool) {
 int eVideo::IsWidescreen(void) {
     return 0;
 }
+
+void eVideo::SetVideoMode(eVideoMode) {
+}

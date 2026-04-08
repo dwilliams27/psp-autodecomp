@@ -143,6 +143,9 @@ def parse_map_to_functions(map_path):
 
             if name.startswith("__NO_NAME"):
                 continue
+            # PSP module metadata — linker-generated, not real code
+            if name.startswith("__PSPEXP__") or name.startswith("__PSPREN__"):
+                continue
 
             is_func = True
             if "virtual table" in name:
