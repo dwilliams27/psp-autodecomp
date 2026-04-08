@@ -1,0 +1,7 @@
+[
+  {"address": "0x000ecfcc", "status": "matched", "attempts": 1, "file": "src/gcReplicationVisitor.cpp"},
+  {"address": "0x000ee4d0", "status": "matched", "attempts": 1, "file": "src/gcReplicationVisitor.cpp"},
+  {"address": "0x000f0fc4", "status": "matched", "attempts": 1, "file": "src/gcReplicationVisitor.cpp"},
+  {"address": "0x000f1178", "status": "matched", "attempts": 1, "file": "src/gcReplicationVisitor.cpp"},
+  {"address": "0x00105e70", "status": "matched", "attempts": 1, "file": "src/gcReplicationVisitor.cpp"}
+]
