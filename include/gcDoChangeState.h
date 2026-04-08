@@ -4,6 +4,7 @@
 class gcDoChangeState {
 public:
     int GetExprFlags(void) const;
+    int GetMaxChildren(void) const;
 };
 
 #endif

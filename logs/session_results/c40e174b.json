@@ -1,0 +1,7 @@
+[
+  {"address": "0x0029bf6c", "status": "matched", "attempts": 1, "file": "src/gcDoChangeState.cpp"},
+  {"address": "0x002a0a80", "status": "matched", "attempts": 1, "file": "src/gcPartialEntityController_PostUpdateFinal.cpp"},
+  {"address": "0x002a0a88", "status": "matched", "attempts": 1, "file": "src/gcPartialEntityController_OnActivated.cpp"},
+  {"address": "0x002a0a90", "status": "matched", "attempts": 1, "file": "src/gcPartialEntityController_OnDeactivated.cpp"},
+  {"address": "0x002b3704", "status": "matched", "attempts": 1, "file": "src/gcDoEntityForEach_GetMaxBranches.cpp"}
+]
