@@ -44,6 +44,15 @@ public:
 class eDynamicLightModelMtl {
 public:
     void PlatformFree(void);
+    void Apply(const eCamera *, const eWorld *) const;
+    void Unapply(void) const;
+    void CreateData(void);
+};
+
+class eOnePassModelMtl {
+public:
+    void PlatformFree(void);
+    void Unapply(void) const;
 };
 
 #endif
