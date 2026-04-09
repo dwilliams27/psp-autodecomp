@@ -21,7 +21,8 @@ import uuid
 from datetime import datetime, timedelta
 
 from common import (DB_PATH, EBOOT_PATH, OBJDUMP, CLAUDE,
-                    load_db, save_db, filter_functions, build_addr_map)
+                    load_db, save_db, filter_functions, build_addr_map,
+                    fix_vfpu_disassembly)
 
 BATCH_SIZE = 5
 MAX_CONSECUTIVE_FAILURES = 5
@@ -138,8 +139,11 @@ def disassemble_function(addr, size):
     if result.returncode != 0:
         raise RuntimeError(f"objdump failed for 0x{addr:x}: {result.stderr.strip()}")
 
+    # Fix VFPU instructions that objdump mis-decodes
+    output = fix_vfpu_disassembly(result.stdout)
+
     lines = []
-    for line in result.stdout.split("\n"):
+    for line in output.split("\n"):
         line = line.strip()
         if ":" in line and "\t" in line and not line.startswith("Disassembly"):
             lines.append(line)
@@ -636,6 +640,58 @@ def main():
             for entry in session_results:
                 if entry.get("status") == "matched" and entry.get("file"):
                     matched_files.add(entry["file"])
+
+            # Server-side verification: independently compile and check each match
+            if matched_files:
+                verified_addrs = set()
+                for src_file in matched_files:
+                    if not os.path.exists(src_file):
+                        log(f"  VERIFY ERROR: matched source file does not exist: {src_file}")
+                        log_event(log_path, {
+                            "event": "verify_error",
+                            "session_id": session_id,
+                            "error": f"source file missing: {src_file}",
+                        })
+                        continue
+                    verify_result = subprocess.run(
+                        ["python3", "tools/compare_func.py", src_file],
+                        capture_output=True, text=True
+                    )
+                    if verify_result.returncode != 0:
+                        log(f"  VERIFY ERROR: compare_func.py failed for {src_file} "
+                            f"(exit {verify_result.returncode}): "
+                            f"{verify_result.stderr.strip()[:200]}")
+                        log_event(log_path, {
+                            "event": "verify_error",
+                            "session_id": session_id,
+                            "error": f"compare_func.py failed for {src_file}",
+                        })
+                        continue
+                    # Parse verified matches: compare_func prints lines like
+                    #   "  checkmark SYMBOL -- MATCH (FUNCNAME, SIZEB)"
+                    # Extract the function name between parens to match against DB
+                    for line in verify_result.stdout.split("\n"):
+                        if "MATCH" in line and "✓" in line:
+                            # Extract address from matched function name in DB
+                            for func in matched_funcs:
+                                func_short = func["name"].split("(")[0]
+                                # Exact match: function name must appear as a
+                                # standalone token, not as a substring
+                                if f" {func_short}" in line or f"({func_short}," in line:
+                                    verified_addrs.add(func["address"])
+
+                reverted = 0
+                for func in list(matched_funcs):
+                    target = addr_index.get(func["address"])
+                    if target and target["match_status"] == "matched":
+                        if func["address"] not in verified_addrs:
+                            log(f"  VERIFY FAILED: {func['name']} — not confirmed by compare_func.py, reverting to untried")
+                            target["match_status"] = "untried"
+                            matched_funcs.remove(func)
+                            reverted += 1
+                            total_matched -= 1
+                if reverted > 0:
+                    log(f"  Server-side verification reverted {reverted} false matches")
 
             # Auto-commit matched work
             # Git errors are loud but non-fatal — matched work is saved in

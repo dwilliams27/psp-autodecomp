@@ -18,75 +18,8 @@ import subprocess
 import sys
 from collections import defaultdict
 
-from common import OBJDUMP, OBJCOPY, NM, READELF, load_db, save_db
-
-# MIPS relocation types and their byte masks.
-# For each type, we specify which bytes of the 4-byte instruction word
-# are affected by the relocation (and should be masked during comparison).
-# Byte positions are in little-endian order.
-RELOC_MASKS = {
-    4: bytes([0x00, 0x00, 0x00, 0xfc]),  # R_MIPS_26: mask bits [25:0] (jal target)
-    5: bytes([0x00, 0x00, 0xff, 0xff]),  # R_MIPS_HI16: mask bits [15:0]
-    6: bytes([0x00, 0x00, 0xff, 0xff]),  # R_MIPS_LO16: mask bits [15:0]
-}
-
-
-def get_text_relocations(o_path):
-    """Get .text section relocations from a compiled .o file.
-
-    Returns a list of (offset, reloc_type) tuples.
-    """
-    result = subprocess.run(
-        [READELF, "-r", o_path], capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"readelf failed on {o_path} (exit {result.returncode}):\n{result.stderr}"
-        )
-
-    # "There are no relocations in this file." is normal for .o files without external refs
-    if "no relocations" in result.stdout.lower():
-        return []
-
-    relocs = []
-    in_text = False
-    for line in result.stdout.split("\n"):
-        if ".rel.text" in line:
-            in_text = True
-            continue
-        if in_text and line.strip() == "":
-            break
-        if in_text and line.strip() and not line.startswith("Relocation") and not line.startswith(" Offset"):
-            parts = line.split()
-            if len(parts) >= 3:
-                offset = int(parts[0], 16)
-                info = int(parts[1], 16)
-                reloc_type = info & 0xFF
-                relocs.append((offset, reloc_type))
-    return relocs
-
-
-def mask_relocation_bytes(data, relocations):
-    """Apply relocation masks to a byte array, zeroing relocated fields.
-
-    Returns a new bytearray with relocation-affected bits zeroed out.
-    """
-    masked = bytearray(data)
-    for offset, reloc_type in relocations:
-        if reloc_type not in RELOC_MASKS:
-            raise ValueError(
-                f"Unhandled MIPS reloc type {reloc_type} at offset {offset:#x} — "
-                f"add it to RELOC_MASKS"
-            )
-        if offset + 4 > len(masked):
-            raise IndexError(
-                f"Reloc offset {offset:#x} out of bounds for "
-                f"{len(masked)}-byte .text section"
-            )
-        mask = RELOC_MASKS[reloc_type]
-        for i in range(4):
-            masked[offset + i] &= mask[i]
-    return bytes(masked)
+from common import (OBJDUMP, OBJCOPY, NM, load_db, save_db,
+                    get_text_relocations, mask_relocation_bytes)
 
 
 def compile_source(src_path):

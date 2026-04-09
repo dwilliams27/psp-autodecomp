@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tempfile
 
-from common import EBOOT_PATH, OBJDUMP, load_db, find_function
+from common import EBOOT_PATH, OBJDUMP, load_db, find_function, fix_vfpu_disassembly
 
 M2C_PATH = "extern/m2c/m2c.py"
 
@@ -67,7 +67,7 @@ def disassemble_function(func):
     if result.returncode != 0:
         print(f"Error disassembling: {result.stderr}", file=sys.stderr)
         return None
-    return result.stdout
+    return fix_vfpu_disassembly(result.stdout)
 
 
 def convert_to_m2c_asm(objdump_output, func, addr_lookup):

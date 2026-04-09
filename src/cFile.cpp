@@ -15,5 +15,5 @@ int cLanguage::PlatformInitialize(void) {
 }
 
 int cBufferedFile::GetSize(void) const {
-    return mSize;
+    return mPlatform.mSize;
 }

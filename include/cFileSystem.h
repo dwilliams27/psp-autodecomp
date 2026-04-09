@@ -5,7 +5,6 @@
 
 struct cFileHandle {
     cBufferedFile mBufferedFile;
-    char pad2[0x1C];
     unsigned int mDataStart;
     unsigned int mField14C;
     unsigned int mCurrentPos;

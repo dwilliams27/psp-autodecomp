@@ -18,7 +18,8 @@ import sys
 import tempfile
 
 from common import (EBOOT_PATH, TEXT_FILE_OFFSET, OBJCOPY, NM,
-                    load_db, save_db)
+                    load_db, save_db,
+                    get_text_relocations, mask_relocation_bytes)
 
 
 def get_original_bytes(eboot_fh, address, size):
@@ -64,7 +65,8 @@ def get_compiled_symbols(o_path):
     result = {}
     for i, (offset, name) in enumerate(symbols):
         end = symbols[i + 1][0] if i + 1 < len(symbols) else len(text_bytes)
-        result[name] = text_bytes[offset:end]
+        # Store (bytes, symbol_offset_in_text) so callers can adjust relocations
+        result[name] = (text_bytes[offset:end], offset)
 
     return result
 
@@ -86,8 +88,8 @@ def find_all_compiled_symbols():
             o_path = os.path.join(root, fname)
             try:
                 symbols = get_compiled_symbols(o_path)
-                for name, data in symbols.items():
-                    all_symbols[name] = (data, o_path)
+                for name, (data, sym_offset) in symbols.items():
+                    all_symbols[name] = (data, o_path, sym_offset)
             except RuntimeError as e:
                 print(f"  ERROR reading {o_path}: {e}", file=sys.stderr)
                 errors += 1
@@ -130,8 +132,13 @@ def verify_all(verbose=False, fix=False):
 
     verified = 0
     mismatched = 0
-    not_compiled = 0
     problem_addrs = set()
+
+    # Pre-compute relocations for all .o files (keyed by o_path)
+    reloc_cache = {}
+    for sym_name, (_, o_file, _) in all_symbols.items():
+        if o_file not in reloc_cache:
+            reloc_cache[o_file] = get_text_relocations(o_file)
 
     with open(EBOOT_PATH, "rb") as eboot:
         for func in matched:
@@ -139,31 +146,39 @@ def verify_all(verbose=False, fix=False):
             size = func["size"]
             expected = get_original_bytes(eboot, addr, size)
 
-            # Look up by scanning all symbols for matching bytes at this size.
-            # We can't use name-based lookup because the DB has safe_names while
-            # the .o files have SNC-mangled names — no mapping between them yet.
-            # Instead, search for any compiled symbol whose first `size` bytes
-            # match the original exactly.
             found = False
-            for sym_name, (compiled_bytes, o_file) in all_symbols.items():
-                if len(compiled_bytes) >= size and compiled_bytes[:size] == expected:
+            for sym_name, (compiled_bytes, o_file, sym_offset) in all_symbols.items():
+                if len(compiled_bytes) < size:
+                    continue
+
+                compiled_func = compiled_bytes[:size]
+                expected_func = expected
+
+                # Filter relocations to those within this symbol's range,
+                # adjusting offsets to be relative to the symbol start
+                all_relocs = reloc_cache.get(o_file, [])
+                func_relocs = []
+                for off, rtype in all_relocs:
+                    relative = off - sym_offset
+                    if 0 <= relative < size:
+                        func_relocs.append((relative, rtype))
+
+                if func_relocs:
+                    compiled_func = mask_relocation_bytes(compiled_func, func_relocs)
+                    expected_func = mask_relocation_bytes(expected_func, func_relocs)
+
+                if compiled_func == expected_func:
                     verified += 1
                     found = True
                     if verbose:
-                        print(f"  ✓ {func['address']}  {size:>4}B  {func['name']}")
+                        reloc_note = f" ({len(func_relocs)} relocs masked)" if func_relocs else ""
+                        print(f"  ✓ {func['address']}  {size:>4}B  {func['name']}{reloc_note}")
                     break
 
             if not found:
                 problem_addrs.add(func["address"])
-                # Distinguish: is there a symbol with this exact size that DOESN'T match?
-                size_matches = [n for n, (b, _) in all_symbols.items()
-                                if len(b) == size and b != expected]
-                if size_matches:
-                    mismatched += 1
-                    print(f"  ✗ {func['address']}  {size:>4}B  {func['name']} — BYTE MISMATCH")
-                else:
-                    not_compiled += 1
-                    print(f"  ? {func['address']}  {size:>4}B  {func['name']} — not found in compiled .o files")
+                mismatched += 1
+                print(f"  ✗ {func['address']}  {size:>4}B  {func['name']} — BYTE MISMATCH")
 
     total = len(matched)
     print(f"\n{'='*60}")
@@ -172,7 +187,7 @@ def verify_all(verbose=False, fix=False):
     print(f"Total matched in DB:    {total}")
     print(f"Byte-exact verified:    {verified}")
     print(f"Byte mismatch:          {mismatched}")
-    print(f"Not found in compiled:  {not_compiled}")
+    print(f"Not found in compiled:  0")
     print(f"{'='*60}")
 
     if verified == total:
@@ -188,7 +203,7 @@ def verify_all(verbose=False, fix=False):
         save_db(functions)
         print(f"Reset {len(problem_addrs)} functions to 'untried'.")
 
-    return verified, mismatched, not_compiled, total
+    return verified, mismatched, total
 
 
 def main():

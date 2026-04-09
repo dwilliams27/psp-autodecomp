@@ -2,7 +2,7 @@
 
 void cBufferedFile::FillBuffer(int bufIndex) {
     unsigned int filePos = mFilePos[bufIndex];
-    unsigned int fileSize = mSize;
+    unsigned int fileSize = mPlatform.mSize;
     if (filePos < fileSize) {
         unsigned int remaining = fileSize - filePos;
         unsigned int readSize = remaining;

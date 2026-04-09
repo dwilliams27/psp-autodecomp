@@ -24,6 +24,9 @@ public:
 class cFilePlatform {
 public:
     char _pad[0x104];
+    int mSize;
+    int mHandle;
+    char _pad2[0x14];
 
     void Close(void);
     void ReadAsync(void *buf, unsigned int offset, unsigned int size);
@@ -39,8 +42,7 @@ public:
     int mBufPos;
     unsigned int mFilePos[2];
     cFilePlatform mPlatform;
-    int mSize;
-    int mHandle;
+    int mAllocHandle;
 
     void Close(void);
     void FillBuffer(int bufIndex);

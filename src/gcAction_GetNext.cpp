@@ -1,5 +1,10 @@
-#include "cBase.h"
+struct gcAction {
+    char pad[8];
+    unsigned int mNext;
 
-gcExpression *gcExpression::GetNext(void) const {
-    return (gcExpression *)(*(unsigned int *)((char *)this + 8) & ~3u);
+    gcAction *GetNext(void) const;
+};
+
+gcAction *gcAction::GetNext(void) const {
+    return (gcAction *)(mNext & ~3u);
 }
