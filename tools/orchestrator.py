@@ -686,6 +686,13 @@ def main():
                     if target and target["match_status"] == "matched":
                         if func["address"] not in verified_addrs:
                             log(f"  VERIFY FAILED: {func['name']} — not confirmed by compare_func.py, reverting to untried")
+                            log_event(log_path, {
+                                "event": "verify_failed",
+                                "session_id": session_id,
+                                "address": func["address"],
+                                "name": func["name"],
+                                "size": func["size"],
+                            })
                             target["match_status"] = "untried"
                             matched_funcs.remove(func)
                             reverted += 1
