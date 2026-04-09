@@ -5,6 +5,13 @@ class gcRegion;
 
 class gcMap {
 public:
+    struct cObjectLoad {
+        char pad_000[8];
+        int mField8;
+        int mFieldC;
+        cObjectLoad();
+    };
+
     bool AreRegionsLoading(void) const;
     void *GetGroups(int *) ;
     void *GetContainedFactories(int *);

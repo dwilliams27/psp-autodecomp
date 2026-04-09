@@ -14,6 +14,7 @@ public:
 class cFactory {
 public:
     int AllowParentCreate(void) const;
+    int GetContainedFactories(int *count);
 };
 
 #endif

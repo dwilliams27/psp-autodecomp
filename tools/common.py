@@ -13,6 +13,7 @@ TEXT_FILE_OFFSET = 0xA0  # .text section file offset in the PRX
 OBJDUMP = "mipsel-linux-gnu-objdump"
 OBJCOPY = "mipsel-linux-gnu-objcopy"
 NM = "mipsel-linux-gnu-nm"
+READELF = "mipsel-linux-gnu-readelf"
 AS = "mipsel-linux-gnu-as"
 AS_FLAGS = ["-march=allegrex", "-mabi=eabi", "-EL"]
 CLAUDE = "/usr/local/bin/claude"

@@ -35,17 +35,39 @@ public:
     int GetMaxChildren(void) const;
 };
 
+struct gcDoSwitchCaseData {
+    char _pad[0x0C];
+    gcExpression **mChildren;
+    char _pad2[0x04];
+    gcExpression *mBranch;
+};
+
 class gcDoSwitchCase {
 public:
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
     int GetExprFlags(void) const;
+    unsigned int GetTextColor(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    gcExpression *GetBranch(int) const;
+    void SetBranch(int, gcExpression *);
+};
+
+struct gcValCaseRangeData {
+    char _pad[0x08];
+    gcExpression **mChildren;
 };
 
 class gcValCaseRange {
 public:
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
+    unsigned int GetTextColor(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    void GetText(char *) const;
+    void AssignCopy(const cBase *);
 };
 
 class gcDoSwitch {

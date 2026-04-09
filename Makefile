@@ -57,6 +57,11 @@ verify: $(TARGET_BIN)
 	@echo "$(SHA1)  $<" | shasum -a 1 -c
 
 # ──────────────────────────────────────────
+# Per-file flag overrides
+# ──────────────────────────────────────────
+$(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5
+
+# ──────────────────────────────────────────
 # Compile rules
 # ──────────────────────────────────────────
 
