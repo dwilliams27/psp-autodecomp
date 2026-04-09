@@ -214,10 +214,12 @@ def determine_source_file(batch):
 
 
 def build_prompt(batch, functions, session_id):
+    """Build prompt for Claude. Returns (prompt_text, warnings_list)."""
     source_file = determine_source_file(batch)
     class_name = batch[0].get("class_name")
     header_content = get_class_header(class_name)
     addr_map = build_addr_map(functions)
+    warnings = []
 
     prompt_parts = [
         "You are a PSP decompilation agent working on Days of Thunder. "
@@ -277,13 +279,15 @@ def build_prompt(batch, functions, session_id):
         try:
             disasm = disassemble_function(addr, func["size"])
         except RuntimeError as e:
-            log(f"  Skipping {func['name']}: disassembly failed — {e}")
+            warnings.append({"type": "disasm_failed", "address": func["address"],
+                             "name": func["name"], "error": str(e)})
             continue
 
         try:
             m2c = get_m2c_output(func)
         except RuntimeError as e:
-            log(f"  WARNING: m2c failed for {func['name']}: {e}")
+            warnings.append({"type": "m2c_failed", "address": func["address"],
+                             "name": func["name"], "error": str(e)})
             m2c = "// m2c unavailable — see orchestrator log"
 
         func_num += 1
@@ -304,7 +308,7 @@ def build_prompt(batch, functions, session_id):
         prompt_parts.append(f"m2c output:\n{m2c}\n\n")
         prompt_parts.append(f"Write to: {source_file}\n\n")
 
-    return "".join(prompt_parts)
+    return "".join(prompt_parts), warnings
 
 
 def run_claude_session(prompt, session_id):
@@ -330,11 +334,11 @@ def run_claude_session(prompt, session_id):
     return True, None
 
 
-def process_session_results(session_id, batch, functions):
+def process_session_results(session_id, batch, functions, log_path=None):
     """Read the results file written by Claude and update the database.
 
     Also reverts any batch functions not mentioned in results back to untried.
-    Returns (matched_count, failed_count) or raises on error.
+    Returns (matched_count, failed_count, results_list) or raises on error.
     """
     results_path = os.path.join(SESSION_RESULTS_DIR, f"{session_id}.json")
 
@@ -395,6 +399,13 @@ def process_session_results(session_id, batch, functions):
             target = addr_index.get(func["address"])
             if target and target["match_status"] == "in_progress":
                 log(f"  WARNING: {func['name']} not reported in session results — reverting to untried")
+                if log_path:
+                    log_event(log_path, {
+                        "event": "unreported_function",
+                        "session_id": session_id,
+                        "address": func["address"],
+                        "name": func["name"],
+                    })
                 target["match_status"] = "untried"
 
     return matched, failed, results
@@ -581,7 +592,16 @@ def main():
         save_db(functions)
 
         # Build prompt and run Claude
-        prompt = build_prompt(batch, functions, session_id)
+        prompt, prompt_warnings = build_prompt(batch, functions, session_id)
+        for w in prompt_warnings:
+            log(f"  {w['type'].upper()}: {w['name']} — {w['error']}")
+            log_event(log_path, {
+                "event": w["type"],
+                "session_id": session_id,
+                "address": w["address"],
+                "name": w["name"],
+                "error": w["error"],
+            })
         session_start = time.time()
         success, error_msg = run_claude_session(prompt, session_id)
         session_duration = time.time() - session_start
@@ -611,7 +631,7 @@ def main():
 
         # Process results
         try:
-            matched, failed, session_results = process_session_results(session_id, batch, functions)
+            matched, failed, session_results = process_session_results(session_id, batch, functions, log_path)
             total_matched += matched
             total_failed += failed
             total_attempted += len(batch)
