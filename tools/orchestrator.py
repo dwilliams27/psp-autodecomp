@@ -20,9 +20,11 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
-from common import (DB_PATH, EBOOT_PATH, OBJDUMP, CLAUDE,
+from common import (DB_PATH, EBOOT_PATH, OBJDUMP, OBJCOPY, NM, CLAUDE,
+                    TEXT_FILE_OFFSET,
                     load_db, save_db, filter_functions, build_addr_map,
-                    fix_vfpu_disassembly)
+                    fix_vfpu_disassembly,
+                    get_text_relocations, mask_relocation_bytes)
 
 BATCH_SIZE = 5
 MAX_CONSECUTIVE_FAILURES = 5
@@ -503,6 +505,101 @@ def git_commit_batch(session_id, matched_funcs, matched_files):
         )
 
 
+def verify_match(func, matched_files):
+    """Verify a claimed match by comparing compiled bytes against original.
+
+    Uses nm to find the exact symbol in the compiled .o, extracts its bytes,
+    applies relocation masking, and compares against the original EBOOT.
+
+    Returns True if byte-exact match confirmed, False if bytes genuinely
+    don't match. Raises RuntimeError on system/tooling errors.
+    """
+    import tempfile
+
+    addr = int(func["address"], 16)
+    size = func["size"]
+
+    # Read expected bytes from original binary
+    with open(EBOOT_PATH, "rb") as f:
+        f.seek(addr + TEXT_FILE_OFFSET)
+        expected = f.read(size)
+
+    if len(expected) != size:
+        raise RuntimeError(
+            f"Short read from EBOOT: wanted {size} bytes at offset "
+            f"{addr + TEXT_FILE_OFFSET:#x}, got {len(expected)}"
+        )
+
+    for src_file in matched_files:
+        if not os.path.exists(src_file):
+            raise RuntimeError(f"Source file {src_file} does not exist")
+
+        o_path = src_file.replace("src/", "build/src/") + ".o"
+        r = subprocess.run(["make", o_path], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"Compilation failed for {src_file}: {r.stderr.strip()[:200]}")
+        if not os.path.exists(o_path):
+            raise RuntimeError(f"make succeeded but {o_path} not found")
+
+        # Get symbol offsets via nm
+        nm_result = subprocess.run([NM, o_path], capture_output=True, text=True)
+        if nm_result.returncode != 0:
+            raise RuntimeError(f"nm failed on {o_path}: {nm_result.stderr.strip()}")
+
+        symbols = []
+        for line in nm_result.stdout.strip().split("\n"):
+            parts = line.split()
+            if len(parts) == 3 and parts[1] == "T":
+                symbols.append((int(parts[0], 16), parts[2]))
+        symbols.sort()
+
+        if not symbols:
+            continue  # This .o has no text symbols — try next source file
+
+        # Extract raw .text bytes
+        with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            r = subprocess.run(
+                [OBJCOPY, "-O", "binary", "-j", ".text", o_path, tmp_path],
+                capture_output=True, text=True
+            )
+            if r.returncode != 0:
+                raise RuntimeError(f"objcopy failed on {o_path}: {r.stderr.strip()}")
+            with open(tmp_path, "rb") as f:
+                text_bytes = f.read()
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+        # Get relocations
+        relocations = get_text_relocations(o_path)
+
+        # Check each symbol that matches the expected size
+        for i, (sym_offset, sym_name) in enumerate(symbols):
+            sym_end = symbols[i + 1][0] if i + 1 < len(symbols) else len(text_bytes)
+            sym_size = sym_end - sym_offset
+
+            if sym_size < size:
+                continue
+
+            chunk = text_bytes[sym_offset:sym_offset + size]
+            compiled_masked = chunk
+            expected_masked = expected
+
+            # Filter and adjust relocations for this symbol
+            func_relocs = [(off - sym_offset, rtype) for off, rtype in relocations
+                           if sym_offset <= off < sym_offset + size]
+            if func_relocs:
+                compiled_masked = mask_relocation_bytes(chunk, func_relocs)
+                expected_masked = mask_relocation_bytes(expected, func_relocs)
+
+            if compiled_masked == expected_masked:
+                return True
+
+    return False
+
+
 def print_progress(functions, start_time):
     total = sum(1 for f in functions if f["size"] > 0)
     matched = sum(1 for f in functions if f["match_status"] == "matched")
@@ -661,10 +758,51 @@ def main():
                 if entry.get("status") == "matched" and entry.get("file"):
                     matched_files.add(entry["file"])
 
-            # Note: server-side verification removed — the name-matching between
-            # SNC-mangled symbols and demangled DB names was fundamentally broken,
-            # causing infinite retry loops. Use verify_matches.py as a post-run
-            # audit instead (it does relocation-aware byte comparison correctly).
+            # Orchestrator verification: independently verify each claimed match
+            # by comparing compiled bytes against original (with relocation masking).
+            # No name matching needed — pure byte comparison.
+            if matched_funcs:
+                reverted = 0
+                for func in list(matched_funcs):
+                    try:
+                        verified = verify_match(func, matched_files)
+                    except RuntimeError as e:
+                        # System/tooling error — not a genuine mismatch
+                        log(f"  VERIFY ERROR: {func['name']} — {e}")
+                        log_event(log_path, {
+                            "event": "verify_error",
+                            "session_id": session_id,
+                            "address": func["address"],
+                            "name": func["name"],
+                            "error": str(e),
+                        })
+                        # Revert to untried (system error, deserves retry)
+                        target = addr_index.get(func["address"])
+                        if target:
+                            target["match_status"] = "untried"
+                        matched_funcs.remove(func)
+                        reverted += 1
+                        total_matched -= 1
+                        continue
+
+                    if not verified:
+                        log(f"  VERIFY FAILED: {func['name']} — bytes don't match original")
+                        log_event(log_path, {
+                            "event": "verify_failed",
+                            "session_id": session_id,
+                            "address": func["address"],
+                            "name": func["name"],
+                            "size": func["size"],
+                        })
+                        target = addr_index.get(func["address"])
+                        if target:
+                            target["match_status"] = "failed"
+                        matched_funcs.remove(func)
+                        reverted += 1
+                        total_matched -= 1
+                        total_failed += 1
+                if reverted > 0:
+                    log(f"  Orchestrator verification rejected {reverted} matches")
 
             # Auto-commit matched work
             # Git errors are loud but non-fatal — matched work is saved in
