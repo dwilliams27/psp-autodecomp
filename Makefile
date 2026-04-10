@@ -68,6 +68,15 @@ $(BUILD_DIR)/src/gcTableColumnFloat.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iexte
 $(BUILD_DIR)/src/gcDoChangeState_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 $(BUILD_DIR)/src/gcDoChangeState_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 $(BUILD_DIR)/src/gcDoChangeState_GetType.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendMessage_GetType.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendMessage_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendMessage_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_ctor.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoFunction_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoFunction_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoFunction_dtor.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 
 # ──────────────────────────────────────────
 # Compile rules

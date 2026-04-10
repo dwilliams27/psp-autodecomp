@@ -20,8 +20,13 @@ public:
 
 class gcDoEntitySendPartialControllerMessage {
 public:
+    gcDoEntitySendPartialControllerMessage(cBase *);
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 class gcDoEvaluation {
@@ -34,6 +39,11 @@ class gcDoFunction {
 public:
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
+    ~gcDoFunction(void);
 };
 
 class gcDoLog {

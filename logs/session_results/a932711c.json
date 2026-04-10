@@ -1,0 +1,7 @@
+[
+  {"address": "0x002d99a0", "status": "matched", "attempts": 1, "file": "src/gcDoFunction.cpp"},
+  {"address": "0x002d99b4", "status": "matched", "attempts": 1, "file": "src/gcDoFunction_SetChild.cpp"},
+  {"address": "0x002d92b8", "status": "matched", "attempts": 2, "file": "src/gcDoFunction_Write.cpp"},
+  {"address": "0x002d90f8", "status": "matched", "attempts": 8, "file": "src/gcDoFunction_New.cpp"},
+  {"address": "0x002da10c", "status": "failed", "attempts": 10, "file": "src/gcDoFunction_dtor.cpp"}
+]
