@@ -9,6 +9,7 @@ public:
     void ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &);
     void ApplyPositionedForce(int, const mVec3 &, const mVec3 &);
     int GetCollisionMask(void) const;
+    void OnSnappedTo(void);
 
     char _pad[0x114];
     int collisionMask;
