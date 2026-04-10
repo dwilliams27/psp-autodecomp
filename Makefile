@@ -9,7 +9,7 @@ AS       := mipsel-linux-gnu-as
 LD       := mipsel-linux-gnu-ld
 OBJCOPY  := mipsel-linux-gnu-objcopy
 
-CFLAGS   := -c -O2 -G0 -Iextern/include -Iinclude
+CFLAGS   := -c -O2 -G0 -Xsched=1 -Iextern/include -Iinclude
 ASFLAGS  := -march=allegrex -mabi=eabi -EL -Iinclude
 LDFLAGS  := -T build/EBOOT.ld --Map build/EBOOT.map
 
@@ -60,6 +60,14 @@ verify: $(TARGET_BIN)
 # Per-file flag overrides
 # ──────────────────────────────────────────
 $(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5
+$(BUILD_DIR)/src/gcUIWidget_InitialUpdate.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcUIWidget_InitialUpdateUI.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xmopt=0 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcUIWidget_CaptureFocus.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcTableColumnFloat.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoChangeState_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoChangeState_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcDoChangeState_GetType.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 
 # ──────────────────────────────────────────
 # Compile rules
