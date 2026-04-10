@@ -82,3 +82,29 @@ int cGetFPUControl(void) {
     __asm__ volatile("cfc1 %0, $31" : "=r"(result));
     return result;
 }
+
+extern int *__exception_ptr;
+void __exception_caught(void) {
+    __exception_ptr = *__exception_ptr;
+}
+
+void gcAction_SetNext(int *self, int next) {
+    self[2] = next | (self[2] & 3);
+}
+
+extern const int cType__vtable[];
+void *cType_cType(void *self) {
+    *(const int **)((char *)self + 44) = cType__vtable;
+    return self;
+}
+
+int eSoundData_GetNumExternalDependencies(const void *self) {
+    return ((_Bool)(*(const short *)((const char *)self + 28) == 0)) == 0;
+}
+
+void *eInput_eButtonState_eButtonState(int *self) {
+    self[3] = 0;
+    self[4] = 0;
+    self[5] = 0;
+    return self;
+}
