@@ -87,14 +87,3 @@ void cArrayBase_eDynamicMeshMorphTarget____dtor_cArrayBase_void(void **self, int
 }
 
 }
-
-extern char eRenderTargetVideoRegisterInitName[];
-
-class eRenderTargetVideoRegisterInit {
-public:
-    const char *GetName(void);
-};
-
-const char *eRenderTargetVideoRegisterInit::GetName(void) {
-    return eRenderTargetVideoRegisterInitName;
-}

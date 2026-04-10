@@ -8,6 +8,7 @@ class eVideo {
 public:
     enum eVideoMode {};
 
+    static void RegisterInit(class eIVideoRegisterInit *);
     static void SetVideoMode(eVideoMode);
     static void PreFlip(void);
     static void EndStencil(void);
