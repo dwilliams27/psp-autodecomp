@@ -3,6 +3,7 @@
 
 class eMovie {
 public:
+    static void SetDrawCallback(void (*callback)(void *), void *data);
     void PlatformPause(void);
     void PlatformResume(void);
 };
