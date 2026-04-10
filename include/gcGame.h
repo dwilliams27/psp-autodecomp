@@ -8,7 +8,6 @@ typedef int nwSocketHandle;
 class nwConnectionHandle {
 public:
     int mHandle;
-    nwConnectionHandle();
 };
 
 class gcGame {

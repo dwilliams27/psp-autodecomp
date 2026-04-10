@@ -3,11 +3,19 @@
 
 struct mVec3;
 
+class cFilePlatform;
+
 class cFileSystemPlatform {
 public:
     static int IsCDDvD(void);
     static int FileExists(const char *name);
     static int GetFileStatus(void);
+    static void SetSuspendCallback(void (*)(void *), void *);
+    static void ReplaceChar(char *str, char from, char to);
+    static int ExitCallback(int, int, void *);
+    static void Close(cFilePlatform *fp);
+    static void WaitSuspend(void);
+    static void WaitAsync(cFilePlatform *fp);
 };
 
 class eMoviePlatform {

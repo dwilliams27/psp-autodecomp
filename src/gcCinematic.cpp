@@ -14,5 +14,5 @@ void gcReplicationVisitor::SetNetConnection(int connection) {
 }
 
 void gcReplicationVisitor::SetMemCardStream(cInStream *stream) {
-    mMemCardStream = stream;
+    mInStream = stream;
 }

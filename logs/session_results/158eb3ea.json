@@ -1,0 +1,7 @@
+[
+  {"address": "0x0000ee94", "status": "matched", "attempts": 1, "file": "src/cFileSystemPlatform.cpp"},
+  {"address": "0x0000f68c", "status": "matched", "attempts": 2, "file": "src/cFileSystemPlatform.cpp"},
+  {"address": "0x0000fabc", "status": "matched", "attempts": 1, "file": "src/cFileSystemPlatform.cpp"},
+  {"address": "0x0000f200", "status": "matched", "attempts": 1, "file": "src/cFileSystemPlatform.cpp"},
+  {"address": "0x0000ee30", "status": "matched", "attempts": 4, "file": "src/cFileSystemPlatform.cpp"}
+]

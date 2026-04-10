@@ -7,13 +7,28 @@ public:
     void OnClosed(void);
 };
 
+class cBase;
+
 class cListSubscriber {
 public:
-    char pad[0x20];
-    int mNumVisible;
+    cBase *mOwner;            // 0x00
+    void *mTypeInfo;          // 0x04
+    void *mNext;              // 0x08
+    void *mPrev;              // 0x0C
+    unsigned char mAttached;  // 0x10
+    // 3 bytes padding
+    int mFirst;               // 0x14
+    int mLast;                // 0x18
+    int mCount;               // 0x1C
+    int mNumVisible;          // 0x20
 
+    cListSubscriber(cBase *owner);
     void SetNumVisible(int numVisible);
     bool IsModifiable(void) const;
+    void OnCleared(void);
+    void Attach(void);
+    void Detach(void);
+    void OnAdded(void *);
 };
 
 class cLanguage {
