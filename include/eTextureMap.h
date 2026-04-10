@@ -1,9 +1,22 @@
 #ifndef ETEXTUREMAP_H
 #define ETEXTUREMAP_H
 
-class eTextureMap {
+#include "eRenderTarget.h"
+
+class eTextureMap : public eTexture {
 public:
+    bool field_4C;
+    unsigned char field_4D;
+    char _pad_4E[2];
+    int field_50;
+
+    int GetNumExternalDependencies(void) const;
+    eTextureMap(cBase *);
+    void Write(cFile &) const;
+    eTextureMap &operator=(const eTextureMap &);
     void CreateData(void);
+
+    static eTextureMap *New(cMemPool *, cBase *);
 };
 
 class eProjectedModelMtl {
