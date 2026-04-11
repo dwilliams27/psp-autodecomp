@@ -17,11 +17,7 @@ When a function is matched and verified in session A, then the same source file 
 - Use separate source files per function (already mostly done, but some agents put multiple functions in one file)
 - Lock matched source files from further modification
 
-## 2. ~~compare_func.py matches functions by size, not address~~ FIXED
-
-**Fixed:** 2026-04-11. Rewrote compare_func.py to compare directly against EBOOT bytes instead of expected .o files. Uses single-pass candidate matching with relocation masking. No longer depends on expected .o files at all.
-
-## 3. func_db.py rebuild drops failure_notes
+## 2. func_db.py rebuild drops failure_notes
 
 **Found:** 2026-04-11 code review
 
