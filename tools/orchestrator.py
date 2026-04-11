@@ -342,7 +342,11 @@ def build_prompt(batch, functions, session_id):
         f"  {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
         f"The file must contain a JSON array, one entry per function:\n"
         f'[{{"address": "0x...", "status": "matched|failed", "attempts": N, '
-        f'"file": "src/..."}}]\n\n'
+        f'"file": "src/...", "notes": "..."}}]\n\n'
+        f"For FAILED functions, the 'notes' field is REQUIRED. Write 1-2 paragraphs: "
+        f"what approaches you tried, what the byte diff looked like, where you got "
+        f"stuck, and what you think the root cause is. These notes are passed to the "
+        f"next agent that retries this function — make them useful.\n\n"
         f"This file is how the orchestrator tracks your progress. "
         f"If you don't write it, your work is lost.\n\n",
     ]
@@ -397,6 +401,20 @@ def build_prompt(batch, functions, session_id):
         sched_hint = get_sched_hint(func)
         if sched_hint:
             prompt_parts.append(f"\n{sched_hint}\n")
+
+        prior_notes = func.get("failure_notes", [])
+        if prior_notes:
+            prompt_parts.append(
+                f"\nPRIOR ATTEMPTS ({len(prior_notes)} failed):\n"
+            )
+            for note in prior_notes:
+                prompt_parts.append(
+                    f"  Session {note['session']}: {note['notes']}\n"
+                )
+            prompt_parts.append(
+                "Use these notes to avoid repeating the same approaches. "
+                "Try something different.\n"
+            )
 
         prompt_parts.append(f"\nDisassembly:\n{disasm}\n\n")
         prompt_parts.append(f"m2c output:\n{m2c}\n\n")
@@ -486,6 +504,24 @@ def process_session_results(session_id, batch, functions, log_path=None):
                 matched += 1
             else:
                 failed += 1
+                notes = entry.get("notes", "")
+                if not notes:
+                    log(f"  WARNING: {addr} reported failed with no notes (agent ignored REQUIRED field)")
+                    if log_path:
+                        log_event(log_path, {
+                            "event": "missing_failure_notes",
+                            "session_id": session_id,
+                            "address": addr,
+                        })
+                if notes:
+                    if "failure_notes" not in addr_index[addr]:
+                        addr_index[addr]["failure_notes"] = []
+                    addr_index[addr]["failure_notes"].append({
+                        "session": session_id,
+                        "notes": notes,
+                    })
+                    # Keep only the most recent 5 to bound prompt/DB size
+                    addr_index[addr]["failure_notes"] = addr_index[addr]["failure_notes"][-5:]
 
     # Log and revert any batch functions NOT mentioned in results
     for func in batch:
