@@ -11,6 +11,7 @@ public:
     void GetVelocity(mVec3 *) const;
     void SetPreviousPrimaryController(bool);
     void SetPrimaryController(int, bool);
+    float GetSoundFrequencyOffset(int) const;
 };
 
 #endif
