@@ -1,0 +1,15 @@
+[
+  {
+    "address": "0x001473e8",
+    "status": "failed",
+    "attempts": 5,
+    "file": "src/gcLookAtController.cpp",
+    "notes": "SNC version 1.2.7503.0 does not generate 'sltu + andi 0xff' bool cast pattern found in expected binary. 6 missing andi instructions = 24 bytes size mismatch (612 vs 640). Tried all flag combinations (-Xmopt, -Xxopt, -Xsched) and multiple C patterns (bool, unsigned char, explicit casts). Pattern not reproducible with this compiler version."
+  },
+  {
+    "address": "0x0001ce74",
+    "status": "matched",
+    "attempts": 8,
+    "file": "src/eAudioFader.cpp"
+  }
+]
