@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Compare compiled .o against expected function bytes.
+"""Compare compiled .o against expected function bytes from the original EBOOT.
 
-Compiles a source file with SNC, then compares each function's .text bytes
-against the expected .o extracted from the original binary. Reports match
-or mismatch with instruction-level diff.
+Compiles a source file with SNC, then for each .text symbol, reads the
+original bytes from EBOOT.BIN.dec for all same-size function candidates,
+applies relocation masking, and reports byte-exact match or closest mismatch.
 
 Usage:
     python3 tools/compare_func.py src/eWorld.cpp           # compare all symbols
@@ -12,19 +12,30 @@ Usage:
 """
 
 import argparse
+from collections import defaultdict
 import json
 import os
 import subprocess
 import sys
-from collections import defaultdict
+import tempfile
 
-from common import (OBJDUMP, OBJCOPY, NM, load_db, save_db,
+from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
+                    OBJCOPY, NM,
+                    load_db, save_db,
                     get_text_relocations, mask_relocation_bytes)
+
+
+def load_eboot():
+    """Read the entire EBOOT .text section into memory.
+
+    Returns bytes. Raises on missing or unreadable EBOOT.
+    """
+    with open(EBOOT_PATH, "rb") as f:
+        return f.read()
 
 
 def compile_source(src_path):
     """Compile a source file using the Makefile. Returns the .o path or None."""
-    ext = os.path.splitext(src_path)[1]
     o_path = src_path.replace("src/", "build/src/") + ".o"
 
     result = subprocess.run(
@@ -40,24 +51,35 @@ def compile_source(src_path):
     return o_path
 
 
-def get_symbols(o_path):
-    """Get all text symbols from an .o file using nm."""
-    result = subprocess.run(
-        [NM, o_path], capture_output=True, text=True
-    )
+def get_symbol_layout(o_path, text_size):
+    """Get text symbol offsets and sizes from a .o file via nm.
+
+    text_size is the total .text section size (from extract_text_bytes).
+    Returns list of (offset, size, name) sorted by offset.
+    Raises RuntimeError if nm fails.
+    """
+    result = subprocess.run([NM, o_path], capture_output=True, text=True)
     if result.returncode != 0:
-        return []
+        raise RuntimeError(
+            f"nm failed on {o_path} (rc={result.returncode}): {result.stderr.strip()}"
+        )
     symbols = []
     for line in result.stdout.strip().split("\n"):
         parts = line.split()
         if len(parts) == 3 and parts[1] == "T":
-            symbols.append(parts[2])
-    return symbols
+            symbols.append((int(parts[0], 16), parts[2]))
+    symbols.sort()
+
+    layout = []
+    for i, (off, name) in enumerate(symbols):
+        next_off = symbols[i + 1][0] if i + 1 < len(symbols) else text_size
+        size = next_off - off
+        layout.append((off, size, name))
+    return layout
 
 
-def extract_raw_text(o_path, max_bytes=None):
-    """Extract raw .text section bytes from a .o file using objcopy."""
-    import tempfile
+def extract_text_bytes(o_path):
+    """Extract raw .text section bytes from a .o file."""
     with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as tmp:
         tmp_path = tmp.name
     try:
@@ -68,37 +90,14 @@ def extract_raw_text(o_path, max_bytes=None):
         if result.returncode != 0:
             return None
         with open(tmp_path, "rb") as f:
-            data = f.read()
-        if max_bytes and len(data) > max_bytes:
-            data = data[:max_bytes]
-        return data
+            return f.read()
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
 
-def get_disasm(o_path):
-    """Get disassembly text from a .o file."""
-    result = subprocess.run(
-        [OBJDUMP, "-d", "-j", ".text", o_path],
-        capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        return ""
-    return result.stdout
-
-
-def find_func_by_address_range(functions, addr, size):
-    """Find a function in the database that covers the given address range."""
-    for f in functions:
-        f_addr = int(f["address"], 16)
-        if f_addr == addr and f["size"] == size:
-            return f
-    return None
-
-
 def build_size_index(functions):
-    """Build a size → [func_records] index for fast lookup."""
+    """Build size -> [func_records] index for candidate lookup."""
     index = defaultdict(list)
     for f in functions:
         if f["size"] > 0:
@@ -106,113 +105,103 @@ def build_size_index(functions):
     return index
 
 
-def compare_symbol(compiled_o, symbol, functions, size_index=None):
-    """Compare one symbol from the compiled .o against its expected bytes.
+def find_func_and_diff(compiled_bytes, func_relocs, sym_size, size_index, eboot_data):
+    """Find the database function whose EBOOT bytes match the compiled bytes.
 
-    Extracts raw .text bytes from both .o files and compares directly.
-    Relocation sites in the compiled .o are masked in both byte arrays
-    before comparison, since the compiled .o has zeros at those positions
-    while the expected .o (extracted from the linked binary) has final addresses.
-    Uses size_index for O(1) candidate lookup instead of scanning all functions.
+    Single pass over same-size candidates: returns the byte-exact match if found,
+    otherwise returns the closest mismatch with diff count.
 
-    Returns (matched: bool, func_record or None, diff_text: str)
+    Returns (func_or_None, diff_count). diff_count is 0 for exact match.
     """
-    our_bytes = extract_raw_text(compiled_o)
-    if our_bytes is None or len(our_bytes) == 0:
-        return False, None, f"Could not extract .text bytes from {compiled_o}"
+    candidates = size_index.get(sym_size, [])
+    compiled_masked = mask_relocation_bytes(compiled_bytes, func_relocs) if func_relocs else compiled_bytes
 
-    our_size = len(our_bytes)
-
-    # Read relocations from compiled .o to mask address-dependent bytes
-    relocations = get_text_relocations(compiled_o)
-
-    if size_index is None:
-        size_index = build_size_index(functions)
-
-    candidates = size_index.get(our_size, [])
-
-    best_match = None
-    best_score = float("inf")
-
-    # Mask our bytes once (relocation sites zeroed)
-    our_masked = mask_relocation_bytes(our_bytes, relocations) if relocations else our_bytes
+    best_func = None
+    best_diff = float("inf")
 
     for f in candidates:
-        expected_path = f"expected/build/func/{int(f['address'], 16):08x}.o"
-        if not os.path.exists(expected_path):
-            continue
+        func_addr = int(f["address"], 16)
+        start = func_addr + TEXT_FILE_OFFSET
+        expected = eboot_data[start:start + f["size"]]
 
-        exp_bytes = extract_raw_text(expected_path, max_bytes=f["size"])
-        if exp_bytes is None:
-            continue
+        if len(expected) != f["size"]:
+            raise RuntimeError(
+                f"Short EBOOT read for {f['name']} at {f['address']}: "
+                f"got {len(expected)}/{f['size']}B. EBOOT may be truncated."
+            )
 
-        # Apply same mask to expected bytes
-        exp_masked = mask_relocation_bytes(exp_bytes, relocations) if relocations else exp_bytes
+        expected_masked = mask_relocation_bytes(expected, func_relocs) if func_relocs else expected
 
-        cmp_size = min(len(our_masked), len(exp_masked), f["size"])
-        diff_count = sum(1 for a, b in zip(our_masked[:cmp_size], exp_masked[:cmp_size]) if a != b)
-        if diff_count < best_score:
-            best_score = diff_count
-            best_match = (f, expected_path)
+        if compiled_masked == expected_masked:
+            return f, 0
 
-    if best_match is None:
-        return False, None, f"No expected function with size {our_size} bytes"
+        dc = sum(1 for a, b in zip(compiled_masked, expected_masked) if a != b)
+        if dc < best_diff:
+            best_diff = dc
+            best_func = f
 
-    f, exp_path = best_match
-    if best_score == 0:
-        reloc_note = f" (with {len(relocations)} reloc(s) masked)" if relocations else ""
-        return True, f, f"MATCH{reloc_note}"
-
-    diff = f"MISMATCH: {best_score}/{f['size']} bytes differ\n"
-    diff += f"Expected: {f['name']} at {f['address']}\n"
-    if relocations:
-        diff += f"({len(relocations)} relocation(s) already masked)\n"
-    diff += "\n--- Expected ---\n"
-    diff += get_disasm(exp_path)
-    diff += "\n--- Compiled ---\n"
-    diff += get_disasm(compiled_o)
-
-    return False, f, diff
+    return best_func, best_diff
 
 
-def compare_file(src_path, symbol_filter=None, functions=None):
-    """Compile and compare all symbols in a source file."""
+def compare_file(src_path, symbol_filter=None, functions=None, eboot_data=None):
+    """Compile and compare all symbols in a source file against EBOOT bytes.
+
+    Returns list of (sym_name, matched, func_record, message).
+    """
     if functions is None:
         functions = load_db()
+    if eboot_data is None:
+        eboot_data = load_eboot()
 
     o_path = compile_source(src_path)
     if not o_path:
         return []
 
-    symbols = get_symbols(o_path)
-    if symbol_filter:
-        symbols = [s for s in symbols if s == symbol_filter]
+    text_bytes = extract_text_bytes(o_path)
+    if text_bytes is None:
+        print(f"Could not extract .text from {o_path}", file=sys.stderr)
+        return []
 
-    if not symbols:
+    layout = get_symbol_layout(o_path, len(text_bytes))
+    if symbol_filter:
+        layout = [(off, sz, name) for off, sz, name in layout if name == symbol_filter]
+
+    if not layout:
         print(f"No text symbols found in {o_path}")
         return []
 
+    relocations = get_text_relocations(o_path)
     size_index = build_size_index(functions)
-    results = []
-    for sym in symbols:
-        matched, func, diff = compare_symbol(o_path, sym, functions, size_index)
-        status = "MATCH" if matched else "MISMATCH"
-        results.append((sym, matched, func, diff))
 
-        if matched:
-            print(f"  ✓ {sym} — {diff}", end="")
-            if func:
-                print(f" ({func['name']}, {func['size']}B)")
-            else:
-                print()
+    results = []
+    for sym_off, sym_size, sym_name in layout:
+        compiled = text_bytes[sym_off:sym_off + sym_size]
+        func_relocs = [(off - sym_off, rtype) for off, rtype in relocations
+                       if sym_off <= off < sym_off + sym_size]
+
+        func, diff_count = find_func_and_diff(
+            compiled, func_relocs, sym_size, size_index, eboot_data
+        )
+
+        if func is not None and diff_count == 0:
+            reloc_note = f" (with {len(func_relocs)} reloc(s) masked)" if func_relocs else ""
+            msg = f"MATCH{reloc_note}"
+            print(f"  \u2713 {sym_name} \u2014 {msg} ({func['name']}, {func['size']}B)")
+            results.append((sym_name, True, func, msg))
+        elif func is not None:
+            msg = f"MISMATCH: {diff_count}/{func['size']} bytes differ ({func['name']})"
+            print(f"  \u2717 {sym_name} \u2014 {msg}")
+            results.append((sym_name, False, func, msg))
         else:
-            print(f"  ✗ {sym} — {diff}")
+            msg = f"NO MATCH: no function with size {sym_size}B in database"
+            print(f"  \u2717 {sym_name} \u2014 {msg}")
+            results.append((sym_name, False, None, msg))
 
     return results
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare compiled .o against expected function bytes")
+    parser = argparse.ArgumentParser(description="Compare compiled .o against EBOOT function bytes")
     parser.add_argument("source", nargs="?", help="Source file to compile and compare")
     parser.add_argument("--symbol", help="Compare only this symbol")
     parser.add_argument("--batch", action="store_true", help="Compare all source files in directory")
@@ -226,7 +215,7 @@ def main():
         sys.exit(1)
 
     functions = load_db()
-
+    eboot_data = load_eboot()
     addr_index = {f["address"]: f for f in functions}
 
     def update_matched(func):
@@ -244,7 +233,7 @@ def main():
         total_compared = 0
         for src in sorted(sources):
             print(f"\n{src}:")
-            results = compare_file(src, functions=functions)
+            results = compare_file(src, functions=functions, eboot_data=eboot_data)
             for sym, matched, func, diff in results:
                 total_compared += 1
                 if matched:
@@ -252,7 +241,7 @@ def main():
                     update_matched(func)
         print(f"\nTotal: {total_matched}/{total_compared} matched")
     else:
-        results = compare_file(args.source, args.symbol, functions)
+        results = compare_file(args.source, args.symbol, functions, eboot_data)
         for sym, matched, func, diff in results:
             if matched:
                 update_matched(func)

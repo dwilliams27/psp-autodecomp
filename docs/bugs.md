@@ -17,17 +17,9 @@ When a function is matched and verified in session A, then the same source file 
 - Use separate source files per function (already mostly done, but some agents put multiple functions in one file)
 - Lock matched source files from further modification
 
-## 2. compare_func.py matches functions by size, not address
+## 2. ~~compare_func.py matches functions by size, not address~~ FIXED
 
-**Found:** 2026-04-11 verification
-
-`compare_func.py` finds expected .o files by matching compiled symbol sizes against expected function sizes. When a source file contains multiple functions, it can match a compiled symbol against the wrong expected .o (e.g., ePortal::Activate 12B matched against gcReplicationVisitor::BeginWrite 460B because both happened to be in the size index).
-
-**Impact:** Interactive `compare_func.py` reports false mismatches on multi-function files. The orchestrator's `verify_match()` is NOT affected (it compares directly against EBOOT bytes).
-
-**Root cause:** Size-based matching is a heuristic that breaks when multiple expected .o files share the same function size.
-
-**Fix:** Match by address, not size. The function address is embedded in the expected .o filename (`expected/build/func/{addr:08x}.o`) and in the compiled symbol name (which includes the address suffix). Use this for deterministic matching.
+**Fixed:** 2026-04-11. Rewrote compare_func.py to compare directly against EBOOT bytes instead of expected .o files. Uses single-pass candidate matching with relocation masking. No longer depends on expected .o files at all.
 
 ## 3. func_db.py rebuild drops failure_notes
 
