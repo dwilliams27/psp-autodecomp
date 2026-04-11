@@ -51,7 +51,7 @@ Additional system dependencies (Homebrew):
 - **asm/0.s was patched** after splat ran: `[]` → `_arr_`, `~` → `_dtor_` in symbol names, and all `.ent`/`.end` directives stripped. These are required for GAS compatibility. If splat is re-run, the same patches must be reapplied.
 - **Full binary rebuild is blocked** by ~24K VFPU instructions in asm/0.s that standard `mipsel-linux-gnu-as` doesn't support (sv.q, lv.q, vdot, vsqrt, mfv, etc.). Needs a PSP-aware assembler or encoding as `.word` directives. Function-level .o comparison works fine without the full link.
 - **asm-differ** works in `-o` mode for function-level comparison: `python3 extern/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`. Expected .o files go in `expected/` mirroring the `build/` structure.
-- **-O2 confirmed** as the compiler flag. -O2/-O3/-O4 produce identical bytes. -O5 differs only on specific loop patterns. No `-X` flags needed so far.
+- **-O2 confirmed** as the compiler flag. -O2/-O3/-O4 produce identical bytes. -O5 differs only on specific loop patterns. **Most code uses `-Xsched=2`** (SNC default). Within `eAll_psp.obj`, some engine classes use `-Xsched=1` (eTextureMap, eBumpOffsetMap, eDynamicMeshMorphTarget, eCollisionConstraint, eInputKeyboard). The Makefile defaults to `sched=2` with per-class pattern overrides for the sched=1 exceptions. See `docs/decisions/003-compiler-flags.md` for the full analysis. Use `__asm__ volatile("" ::: "memory")` barriers when the scheduler still reorders within basic blocks.
 - **Function database** at `config/functions.json` has 9,966 functions with class, size, .obj file, call graph, and match status. Query with `python3 tools/func_db.py`.
 
 ## Matching workflow

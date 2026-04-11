@@ -38,11 +38,21 @@ class mOCS;
 class mVec3;
 class eTexture;
 
-class eBumpOffsetMap {
+class eBumpOffsetMap : public eTexture {
 public:
+    bool field_4C;
+    char _pad_4D[3];
+    float field_50;
+    int field_54;
+
+    eBumpOffsetMap(cBase *);
     void PlatformFree(void);
     void CreateData(void);
     void Apply(int, const eCamera *, const eWorld *) const;
+    void Write(cFile &) const;
+    int GetNumExternalDependencies(void) const;
+
+    static eBumpOffsetMap *New(cMemPool *, cBase *);
 };
 
 class eDynamicLightHeightmapMtl {

@@ -22,6 +22,11 @@ class gcDoUISendMessage {
 public:
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 class gcExpression;
@@ -47,9 +52,20 @@ public:
     void SetBranch(int, gcExpression *);
 };
 
+struct gcValBinaryOpData {
+    char _pad[0x08];
+    int mOp;
+    gcExpression **mChildren;
+};
+
 class gcValBinaryOp {
 public:
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    void GetText(char *) const;
+    void AssignCopy(const cBase *);
+    int GetExprFlags(void) const;
 };
 
 class gcValCameraFollowEntity3rdVariable {

@@ -6,6 +6,8 @@ class cMemPool;
 class gcUIWidgetGroup;
 class gcDoUIShowDialog;
 
+class gcUIWidget;
+
 class gcUIDialog {
 public:
     char pad_000[0x44];
@@ -25,6 +27,7 @@ public:
     void Reset(cMemPool *pool, bool flag);
     void Focus(void);
     void Close(void);
+    void CreateControl(gcUIWidget *);
 };
 
 #endif

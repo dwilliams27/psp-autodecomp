@@ -1,0 +1,442 @@
+[
+  {
+    "address": "0x00040694",
+    "size": 124,
+    "name": "ePortal::ConnectRoom",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Zone START \u2014 should confirm sched=2",
+    "has_bin": false
+  },
+  {
+    "address": "0x00044c44",
+    "size": 140,
+    "name": "eDynamicGeom::eDynamicGeom(cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Early-mid zone \u2014 sched=2 expected",
+    "has_bin": false
+  },
+  {
+    "address": "0x00047a08",
+    "size": 156,
+    "name": "eDynamicModel::NeedsSkinning",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Core middle \u2014 potential boundary",
+    "has_bin": false
+  },
+  {
+    "address": "0x0004e234",
+    "size": 152,
+    "name": "eDynamicMesh::eDynamicMesh(cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Mid zone \u2014 near potential boundary",
+    "has_bin": false
+  },
+  {
+    "address": "0x00052bb0",
+    "size": 132,
+    "name": "eHeightmap::CastSphere",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Mid zone \u2014 near potential boundary",
+    "has_bin": false
+  },
+  {
+    "address": "0x0005bab0",
+    "size": 176,
+    "name": "ePath::PathT2Units(float) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Late-mid zone \u2014 sched=1 expected",
+    "has_bin": false
+  },
+  {
+    "address": "0x0005f388",
+    "size": 184,
+    "name": "eStaticSkyLight::GetDirectLight",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Late zone \u2014 sched=1 expected",
+    "has_bin": false
+  },
+  {
+    "address": "0x00065bbc",
+    "size": 160,
+    "name": "eBipedController::GetVelocity(int, mVec3 *, mVec3 *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Late zone \u2014 sched=1 expected",
+    "has_bin": false
+  },
+  {
+    "address": "0x0006afbc",
+    "size": 104,
+    "name": "eCapsuleShape::GetSupport(const mVec3 &, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Late zone \u2014 already has .bin!",
+    "has_bin": true
+  },
+  {
+    "address": "0x0006c490",
+    "size": 180,
+    "name": "eSimulatedController::GetVelocity(int, const mVec3 &, mVec3 *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "transition_zone",
+    "priority": "critical",
+    "reason": "Zone END \u2014 should confirm sched=1",
+    "has_bin": false
+  },
+  {
+    "address": "0x0006ea60",
+    "size": 68,
+    "name": "eCollisionConstraint::Allocate(const eContactFeature &) static",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_verify",
+    "priority": "critical",
+    "reason": "Only non-trivial leaf for this class \u2014 has .bin!",
+    "has_bin": true
+  },
+  {
+    "address": "0x0006e7bc",
+    "size": 676,
+    "name": "eCollisionConstraint::Initialize(cMemPool *) static",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_verify",
+    "priority": "critical",
+    "reason": "Large function, 1 callee \u2014 has .bin!",
+    "has_bin": true
+  },
+  {
+    "address": "0x0003b954",
+    "size": 128,
+    "name": "eInputKeyboard::KeyToASCII(eInputKeyboard::eKey) static",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_verify",
+    "priority": "critical",
+    "reason": "Only sizeable leaf for eInputKeyboard \u2014 needs .bin",
+    "has_bin": false
+  },
+  {
+    "address": "0x0019f598",
+    "size": 68,
+    "name": "mVec3::MakeNormal(const mVec3 &, const mVec3 &, const mVec3 &)",
+    "obj_file": "mAll_psp.obj",
+    "category": "mall_verify",
+    "priority": "critical",
+    "reason": "Pure leaf math, 0 callees",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a0a74",
+    "size": 132,
+    "name": "mBox::Extend(const mBox &)",
+    "obj_file": "mAll_psp.obj",
+    "category": "mall_verify",
+    "priority": "critical",
+    "reason": "AABB extension, leaf",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a19cc",
+    "size": 84,
+    "name": "mFrustum::GetOrtho(float *, ...) const",
+    "obj_file": "mAll_psp.obj",
+    "category": "mall_verify",
+    "priority": "critical",
+    "reason": "6 float outputs, leaf",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a2f38",
+    "size": 180,
+    "name": "mQuat::Mult(const mQuat &, const mQuat &)",
+    "obj_file": "mAll_psp.obj",
+    "category": "mall_verify",
+    "priority": "critical",
+    "reason": "Quaternion multiply, pure float math",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a020c",
+    "size": 196,
+    "name": "mBasis::Orthonormalize(void)",
+    "obj_file": "mAll_psp.obj",
+    "category": "mall_verify",
+    "priority": "critical",
+    "reason": "Vector normalization + cross products",
+    "has_bin": false
+  },
+  {
+    "address": "0x001edb78",
+    "size": 112,
+    "name": "eDynamicGeom::GetSubObjectToWorld(int, mOCS *) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "chunk2_transition",
+    "priority": "high",
+    "reason": "Chunk 2 early zone",
+    "has_bin": false
+  },
+  {
+    "address": "0x001e8a0c",
+    "size": 204,
+    "name": "eRayCast::eRayCast(const mVec3 &, const mVec3 &, unsigned int, bool)",
+    "obj_file": "eAll_psp.obj",
+    "category": "chunk2_transition",
+    "priority": "high",
+    "reason": "Chunk 2 mid zone, leaf ctor",
+    "has_bin": false
+  },
+  {
+    "address": "0x002095e0",
+    "size": 144,
+    "name": "eMultiSphereShape::GetProjectedMinMax",
+    "obj_file": "eAll_psp.obj",
+    "category": "chunk2_transition",
+    "priority": "high",
+    "reason": "Chunk 2 late zone",
+    "has_bin": false
+  },
+  {
+    "address": "0x001e5bc4",
+    "size": 500,
+    "name": "cRedBlackTree::FindNode(...) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "500B LEAF \u2014 search algorithm with loops",
+    "has_bin": false
+  },
+  {
+    "address": "0x0001d224",
+    "size": 508,
+    "name": "eAudioChannel::CalcPanning(int, const mOCS *, float *) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "508B LEAF \u2014 float-heavy audio panning",
+    "has_bin": false
+  },
+  {
+    "address": "0x00248e58",
+    "size": 564,
+    "name": "gcCamera::gcEntityFollowState ctor",
+    "obj_file": "gcAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "564B LEAF \u2014 large ctor, many field inits",
+    "has_bin": false
+  },
+  {
+    "address": "0x000065f0",
+    "size": 504,
+    "name": "cOutStream::Write(float, int, int, bool)",
+    "obj_file": "cAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "504B \u2014 serialization with type dispatch",
+    "has_bin": false
+  },
+  {
+    "address": "0x00014738",
+    "size": 640,
+    "name": "gcLookAtController::SetHPR(float, float, float, bool)",
+    "obj_file": "gcAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "640B LEAF \u2014 float math + conditionals",
+    "has_bin": false
+  },
+  {
+    "address": "0x0001ce74",
+    "size": 196,
+    "name": "eAudioFader::Update(cTimeValue)",
+    "obj_file": "eAll_psp.obj",
+    "category": "training_loop",
+    "priority": "medium",
+    "reason": "Float interpolation loop, leaf",
+    "has_bin": false
+  },
+  {
+    "address": "0x000d5348",
+    "size": 232,
+    "name": "gcExpressionList::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_loop",
+    "priority": "medium",
+    "reason": "Core eval loop, called by 60+ funcs",
+    "has_bin": false
+  },
+  {
+    "address": "0x002fa058",
+    "size": 192,
+    "name": "gcDoReturn::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_switch",
+    "priority": "medium",
+    "reason": "Switch on return type, header available",
+    "has_bin": false
+  },
+  {
+    "address": "0x00150260",
+    "size": 180,
+    "name": "gcValCaseRange::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_switch",
+    "priority": "medium",
+    "reason": "Range comparison logic, leaf",
+    "has_bin": false
+  },
+  {
+    "address": "0x002f9e98",
+    "size": 124,
+    "name": "gcDoReturn::Write(cFile &) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_serial",
+    "priority": "medium",
+    "reason": "Compact Write, header available",
+    "has_bin": true
+  },
+  {
+    "address": "0x002f9f14",
+    "size": 324,
+    "name": "gcDoReturn::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_serial",
+    "priority": "medium",
+    "reason": "Read counterpart, teaches Read pattern",
+    "has_bin": false
+  },
+  {
+    "address": "0x0003417c",
+    "size": 60,
+    "name": "eCollisionPair::BodiesSleeping(void) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "training_bool",
+    "priority": "medium",
+    "reason": "Bool member access + AND/OR logic",
+    "has_bin": false
+  },
+  {
+    "address": "0x0011887c",
+    "size": 96,
+    "name": "gcEntity::GetSoundFrequencyOffset(int) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_bool",
+    "priority": "medium",
+    "reason": "Indexed array access + bounds check",
+    "has_bin": false
+  },
+  {
+    "address": "0x0019fb80",
+    "size": 216,
+    "name": "mBasis::SetQuat(const mQuat &)",
+    "obj_file": "mAll_psp.obj",
+    "category": "training_float",
+    "priority": "medium",
+    "reason": "Quaternion to matrix, dense float math",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a1544",
+    "size": 168,
+    "name": "mSphere::CalcEmbeddedContact(const mSphere &, mCollideHit *) const",
+    "obj_file": "mAll_psp.obj",
+    "category": "training_float",
+    "priority": "medium",
+    "reason": "Sphere contact calc, conditional + float",
+    "has_bin": false
+  },
+  {
+    "address": "0x001a69e8",
+    "size": 216,
+    "name": "nwConnection::UpdatePing(cTimeValue)",
+    "obj_file": "nwAll_psp.obj",
+    "category": "nw_verify",
+    "priority": "medium",
+    "reason": "Leaf, 216B, sched=2 confirmation",
+    "has_bin": false
+  },
+  {
+    "address": "0x0007ae64",
+    "size": 264,
+    "name": "eTextureMap::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_large",
+    "priority": "high",
+    "reason": "264B Read in sched=1 zone \u2014 tests sched=1 with complex serialization",
+    "has_bin": false
+  },
+  {
+    "address": "0x0007340c",
+    "size": 400,
+    "name": "eCompoundShape::GetEmbedContacts(...) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_large",
+    "priority": "high",
+    "reason": "400B LEAF in sched=1 zone \u2014 loops over sub-shapes, physics math",
+    "has_bin": false
+  },
+  {
+    "address": "0x0007359c",
+    "size": 336,
+    "name": "eCompoundShape::GetAABB(mBox *, const mOCS &) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_large",
+    "priority": "high",
+    "reason": "336B in sched=1 zone \u2014 AABB computation, loop + math",
+    "has_bin": false
+  },
+  {
+    "address": "0x0000440c",
+    "size": 308,
+    "name": "cCRC::Calc(const void *, int, int, unsigned int) static",
+    "obj_file": "cAll_psp.obj",
+    "category": "algorithmic",
+    "priority": "high",
+    "reason": "CRC loop \u2014 if -Xunroll matters anywhere, it's here. LEAF, pure algorithm.",
+    "has_bin": false
+  },
+  {
+    "address": "0x000068c4",
+    "size": 296,
+    "name": "cOutStream::WriteBits(const void *, int)",
+    "obj_file": "cAll_psp.obj",
+    "category": "algorithmic",
+    "priority": "high",
+    "reason": "Bit-level stream writing \u2014 shift/mask loop. LEAF. Bitwise codegen test.",
+    "has_bin": false
+  },
+  {
+    "address": "0x000d58c0",
+    "size": 548,
+    "name": "gcEventParams::Write(cOutStream &) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "548B Write with likely switch on param types \u2014 tests switch codegen at scale",
+    "has_bin": false
+  },
+  {
+    "address": "0x000731e4",
+    "size": 552,
+    "name": "eCompoundShape::GetSweptContacts(...) const",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_large",
+    "priority": "high",
+    "reason": "552B LEAF in sched=1 \u2014 largest sched=1 test. Swept collision with loops.",
+    "has_bin": false
+  }
+]

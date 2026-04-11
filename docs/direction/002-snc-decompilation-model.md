@@ -50,6 +50,39 @@ Key papers and projects:
 - Start from LLM4Decompile-Ref checkpoint if architecturally compatible
 - This gives general decompilation knowledge; we specialize on SNC
 
+## Compiler Flag Confidence (as of 2026-04-10)
+
+Comprehensive audit of compiler flags completed. See `docs/decisions/003-compiler-flags.md` for full evidence.
+
+### What is verified
+
+| Claim | Evidence | Confidence |
+|---|---|---|
+| Optimization level is -O2 | Compiled 5 files at -O0 through -O5; -O0/-O1 produce larger code, -O2/-O3/-O4/-O5 identical. Opt agent tested 10 more. | **99%** |
+| Default flags: `-c -O2 -G0 -Xsched=2` | SNC preset table extracted from binary confirms sched=2 at -O2. 641/641 matched functions compile correctly. | **99%** |
+| sched=1 for eTextureMap, eBumpOffsetMap, eDynamicMeshMorphTarget | Prologue bytes in binary match sched=1 output, not sched=2. 10 non-trivial functions verified. | **95%** |
+| sched=1 for eCollisionConstraint, eInputKeyboard | Assigned based on address range in eAll_psp.obj. Zero non-trivial (>=60B) matches to verify byte-level difference. | **70%** — needs larger function matches |
+| Only 3 flags affect codegen: sched, mopt, xopt | 43 flag variations tested on stress-test code (loops, floats, switches, structs, aliasing). 26 flags produce identical bytes at all levels. | **90%** — tested on 2 synthetic + 5 real functions |
+| No `-Xunroll` pragma overrides | 641 matches without hitting one. But zero matches above 512B where unroll would matter most. | **80%** — needs large function coverage |
+| eAll_psp.obj sched boundary at ~0x040000-0x06e000 | 21 classifiable prologues confirm sched=2 early, sched=1 late. 726 functions in transition zone, only 40 matched (all trivial). | **60%** — transition zone uncharted |
+
+### Coverage gaps (blocks before fine-tuning)
+
+Current matches are **heavily biased toward trivial code**: avg matched function is 27B, 86% of matches are <=32B. The functions where flags matter (>=60B) are only 1% matched (84/8,265).
+
+| Gap | Functions available | Matched | What it would resolve |
+|---|---|---|---|
+| eAll_psp.obj transition zone | 592 (>=60B) | ~0 non-trivial | Exact sched boundary, new sched=1 classes |
+| 200-512B functions (any obj) | 4,317 | 28 (0.6%) | Whether unroll/fcm/constp pragmas exist |
+| 513B+ functions | 1,713 | 0 (0%) | Unknown unknowns in complex code |
+| mAll_psp.obj | 58 | 0 | Verify sched=2 assumption |
+| eCollisionConstraint (>=60B) | 2 | 0 | Verify sched=1 |
+| eInputKeyboard (>=60B) | 1 | 0 | Verify sched=1 |
+
+### Pre-fine-tuning matching targets
+
+~50 strategic matches needed (2-3 overnight runs). See `config/finetune_targets.json` when generated. Matching these would raise all confidence levels to 90%+ before generating training data.
+
 ## Synthetic Data Generation
 
 Our unique advantage: **we have the exact production compiler and can generate unlimited verified training pairs.**
@@ -59,9 +92,17 @@ Our unique advantage: **we have the exact production compiler and can generate u
 tools/generate_training_data.py
   1. Generate random C functions (varying patterns: loops, branches, struct access,
      casts, VFPU intrinsics, switch statements, bool params, etc.)
-  2. Compile each: wibo pspsnc.exe -c -O2 -G0 -Iextern/include
+  2. Compile each TWICE with both scheduling modes:
+       wibo pspsnc.exe -c -O2 -G0 -Xsched=2 -Iextern/include  (most code)
+       wibo pspsnc.exe -c -O2 -G0 -Xsched=1 -Iextern/include  (some engine classes)
+     NOTE: The binary has multiple .obj units with different -Xsched flags.
+     Most code (gc/c/nw prefix + most e-prefix) uses sched=2. Within
+     eAll_psp.obj, some classes use sched=1 (eTextureMap, eBumpOffsetMap,
+     eDynamicMeshMorphTarget, eCollisionConstraint, eInputKeyboard).
+     See docs/decisions/003-compiler-flags.md for the full analysis.
+     Each training pair must be tagged with its sched flag.
   3. Disassemble: mipsel-linux-gnu-objdump -d (+ VFPU fix via rabbitizer)
-  4. Output: JSONL of {"assembly": "...", "source": "...", "pattern_tags": [...]}
+  4. Output: JSONL of {"assembly": "...", "source": "...", "sched": 1|2, "pattern_tags": [...]}
 ```
 
 ### Why synthetic data works here
@@ -73,7 +114,9 @@ tools/generate_training_data.py
 ### Real data augmentation
 - Every overnight match adds another verified (asm, C) pair from the real binary
 - These are the highest-value training examples — real game code patterns
-- Target: 500+ real pairs before first fine-tuning (currently at 546 matches)
+- Currently at 649 matches, but 86% are <=32B trivial stubs
+- **Critical gap**: zero matches above 512B. Training data must include complex functions.
+- Pre-fine-tuning target: 50 strategic matches to fill coverage gaps (see above)
 
 ### Target dataset
 - **Phase 1**: 5,000 synthetic SNC pairs + 500 real matched pairs → first fine-tune

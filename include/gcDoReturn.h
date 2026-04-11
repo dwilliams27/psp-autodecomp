@@ -27,12 +27,22 @@ class gcDoStateFunction {
 public:
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    void GetText(char *) const;
 };
 
 class gcDoStateParentHandler {
 public:
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    void GetText(char *) const;
 };
 
 struct gcDoSwitchCaseData {

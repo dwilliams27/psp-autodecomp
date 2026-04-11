@@ -9,7 +9,8 @@ AS       := mipsel-linux-gnu-as
 LD       := mipsel-linux-gnu-ld
 OBJCOPY  := mipsel-linux-gnu-objcopy
 
-CFLAGS   := -c -O2 -G0 -Xsched=1 -Iextern/include -Iinclude
+CFLAGS   := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
+ECFLAGS  := -c -O2 -G0 -Xsched=1 -Iextern/include -Iinclude
 ASFLAGS  := -march=allegrex -mabi=eabi -EL -Iinclude
 LDFLAGS  := -T build/EBOOT.ld --Map build/EBOOT.map
 
@@ -58,25 +59,35 @@ verify: $(TARGET_BIN)
 
 # ──────────────────────────────────────────
 # Per-file flag overrides
+#
+# Almost all code uses -Xsched=2 (SNC default at -O2). Within eAll_psp.obj,
+# some engine classes (addr range ~0x6e000-0x8f000) use -Xsched=1 instead:
+#   sched=1: eTextureMap, eBumpOffsetMap, eDynamicMeshMorphTarget,
+#            eCollisionConstraint, eInputKeyboard
+#   sched=2: everything else (eAudio, eCamera, eRenderTarget, eShape,
+#            ePortal, ePhysics, plus all gc/c/nw/gMain/m code)
+#
+# See docs/decisions/003-compiler-flags.md for the full analysis.
 # ──────────────────────────────────────────
+
+# Engine classes confirmed sched=1 (per prologue byte-matching)
+#
+# WARNING: These 5 are the only CONFIRMED sched=1 classes. The sched=1 zone
+# (eAll_psp.obj addresses 0x06e000-0x0bab28) contains ~40 more classes
+# (eShadowFillModelMtl, eDynamicLightModelMtl, eBipedController, eSimulatedController,
+# eBoxShape, eMeshShape, eHeightmapShape, etc.) whose non-trivial functions have NOT
+# been matched yet. Their trivial stubs produce identical bytes with either sched.
+# When matching non-trivial functions from these classes, if bytes don't match,
+# try adding a sched=1 override here. See docs/decisions/003-compiler-flags.md.
+$(BUILD_DIR)/src/eTextureMap%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eBumpOffsetMap%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eDynamicMeshMorphTarget%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eCollisionConstraint%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eInputKeyboard%.o: CFLAGS := $(ECFLAGS)
+
+# Other per-file overrides
 $(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5
-$(BUILD_DIR)/src/gcUIWidget_InitialUpdate.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcUIWidget_InitialUpdateUI.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 $(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xmopt=0 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcUIWidget_CaptureFocus.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcTableColumnFloat.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoChangeState_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoChangeState_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoChangeState_GetType.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendMessage_GetType.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendMessage_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendMessage_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoEntitySendPartialControllerMessage_ctor.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoFunction_Write.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoFunction_New.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-$(BUILD_DIR)/src/gcDoFunction_dtor.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
 
 # ──────────────────────────────────────────
 # Compile rules
