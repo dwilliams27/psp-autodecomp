@@ -1,5 +1,6 @@
 #include "eDynamicModel.h"
 #include "eDynamicMesh.h"
+#include "ePath.h"
 
 bool eDynamicModel::NeedsSkinning(const eDynamicMesh *mesh, int count, int *indices) const {
     for (int i = 0; i < count; i++) {
@@ -18,10 +19,37 @@ bool eDynamicModel::NeedsSkinning(const eDynamicMesh *mesh, int count, int *indi
             if ((unsigned char)((val >> 16) == (gval & 0xFFFF))) {
                 return false;
             }
-            return true;
+            goto ret;
         }
     }
+ret:
     return true;
+}
+
+float ePath::PathT2Units(float t) const {
+    int intPart = (int)t;
+    float nextT = t + 1.0f;
+    ePathPoint *points = mPoints;
+    float maxIndex;
+    if (points != 0) {
+        int count = *(int *)((char *)points - 4) & 0x3FFFFFFF;
+        maxIndex = (float)(count - 1);
+    } else {
+        maxIndex = -1.0f;
+    }
+    int nextIdx;
+    if (nextT <= 0.0f) {
+        nextIdx = (int)0.0f;
+    } else {
+        if (maxIndex <= nextT) {
+            nextT = maxIndex;
+        }
+        nextIdx = (int)nextT;
+    }
+    float curDist = points[intPart].mDistance;
+    float nextDist = points[nextIdx].mDistance;
+    float frac = t - (float)intPart;
+    return curDist + frac * (nextDist - curDist);
 }
 
 extern char eDynamicMeshclassdesc[];
