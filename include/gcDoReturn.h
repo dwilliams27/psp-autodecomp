@@ -14,6 +14,7 @@ public:
     gcExpression *GetChild(int) const;
     void GetText(char *) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -78,6 +79,7 @@ public:
     void SetChild(int, gcExpression *);
     void GetText(char *) const;
     void AssignCopy(const cBase *);
+    float Evaluate(void) const;
 };
 
 class gcDoSwitch {
