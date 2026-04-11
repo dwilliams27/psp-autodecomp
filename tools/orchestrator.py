@@ -9,6 +9,7 @@ Usage:
     python3 tools/orchestrator.py --hours 2 --size-max 8     # trivial only
     python3 tools/orchestrator.py --dry-run --limit 3        # test run
     python3 tools/orchestrator.py --hours 8 --class eWorld   # target class
+    python3 tools/orchestrator.py --hours 8 --targets config/finetune_targets.json  # targeted mode
 """
 
 import argparse
@@ -27,8 +28,16 @@ from common import (DB_PATH, EBOOT_PATH, OBJDUMP, OBJCOPY, NM, CLAUDE,
                     get_text_relocations, mask_relocation_bytes)
 
 BATCH_SIZE = 5
+TARGETS_BATCH_SIZE = 2
 MAX_CONSECUTIVE_FAILURES = 5
 SESSION_TIMEOUT = 1800
+TARGETS_SESSION_TIMEOUT = 5400  # 1.5 hours for larger finetune targets
+
+# Address ranges for sched zone hints in prompts
+SCHED1_ZONE_START = 0x06e000
+SCHED1_ZONE_END = 0x0bab28
+TRANSITION_ZONE_START = 0x040000
+TRANSITION_ZONE_END = 0x06e000
 LOGS_DIR = "logs"
 SESSION_RESULTS_DIR = "logs/session_results"
 GIT = "git"
@@ -63,6 +72,66 @@ def revert_in_progress(functions, batch, addr_index=None):
         target = addr_index.get(func["address"])
         if target and target["match_status"] == "in_progress":
             target["match_status"] = "untried"
+
+
+def load_targets_file(path):
+    """Load a targets JSON file (e.g., finetune_targets.json).
+
+    Returns list of target dicts with at least 'address' fields.
+    Validates that every entry has an 'address' field.
+    """
+    with open(path, "r") as f:
+        targets = json.load(f)
+    if not isinstance(targets, list):
+        raise ValueError(f"Targets file {path} must be a JSON array")
+    for i, t in enumerate(targets):
+        if "address" not in t:
+            raise ValueError(f"Target entry {i} in {path} missing 'address' field: {t}")
+    return targets
+
+
+def _group_and_fill_batch(candidates, batch_size):
+    """Group candidates by class when possible, fill remaining slots.
+
+    Takes a pre-sorted candidate list and returns a batch up to batch_size.
+    """
+    batch = []
+    if candidates[0].get("class_name"):
+        target_class = candidates[0]["class_name"]
+        batch = [f for f in candidates if f["class_name"] == target_class][:batch_size]
+
+    if len(batch) < batch_size:
+        batch_addrs = {f["address"] for f in batch}
+        for c in candidates:
+            if c["address"] not in batch_addrs:
+                batch.append(c)
+                if len(batch) >= batch_size:
+                    break
+
+    return batch
+
+
+def pick_next_batch_targeted(functions, targets, addr_index, batch_size):
+    """Select the next batch from a specific targets list.
+
+    Only picks targets that are untried in the database.
+    Priority order matches the targets file order (critical first).
+    Warns about target addresses not found in the database.
+    """
+    candidates = []
+    for t in targets:
+        addr = t["address"]
+        func = addr_index.get(addr)
+        if not func:
+            log(f"  WARNING: target {addr} ({t.get('name', '?')}) not in database — skipping")
+            continue
+        if func["match_status"] == "untried":
+            candidates.append(func)
+
+    if not candidates:
+        return []
+
+    return _group_and_fill_batch(candidates, batch_size)
 
 
 def pick_next_batch(functions, args, batch_size=BATCH_SIZE):
@@ -108,22 +177,7 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE):
 
     candidates.sort(key=priority_key)
 
-    # Group by class when possible for shared context
-    batch = []
-    if candidates[0].get("class_name"):
-        target_class = candidates[0]["class_name"]
-        batch = [f for f in candidates if f["class_name"] == target_class][:batch_size]
-
-    # Fill remaining slots from other candidates
-    if len(batch) < batch_size:
-        batch_addrs = {f["address"] for f in batch}
-        for c in candidates:
-            if c["address"] not in batch_addrs:
-                batch.append(c)
-                if len(batch) >= batch_size:
-                    break
-
-    return batch
+    return _group_and_fill_batch(candidates, batch_size)
 
 
 def disassemble_function(addr, size):
@@ -213,6 +267,28 @@ def determine_source_file(batch):
         class_safe = "".join(c for c in class_safe if c.isalnum() or c in "_-")
         return f"src/{class_safe}.cpp"
     return "src/free_functions.c"
+
+
+def get_sched_hint(func):
+    """Return a sched zone hint string for this function, or None."""
+    addr = int(func["address"], 16)
+    if SCHED1_ZONE_START <= addr < SCHED1_ZONE_END:
+        return (
+            "SCHED HINT: This function is in the confirmed sched=1 zone "
+            f"(0x{SCHED1_ZONE_START:06x}-0x{SCHED1_ZONE_END:06x}). "
+            "The Makefile should already apply -Xsched=1 for known classes. "
+            "If bytes don't match, verify the Makefile has a sched=1 override "
+            "for this class — add one if missing."
+        )
+    if TRANSITION_ZONE_START <= addr < TRANSITION_ZONE_END:
+        return (
+            "SCHED HINT: This function is in the transition zone "
+            f"(0x{TRANSITION_ZONE_START:06x}-0x{TRANSITION_ZONE_END:06x}) where "
+            "the sched flag may be either 1 or 2. Try sched=2 first (default). "
+            "If bytes don't match, add a sched=1 override in the Makefile for "
+            "this class and retry."
+        )
+    return None
 
 
 def build_prompt(batch, functions, session_id):
@@ -306,14 +382,20 @@ def build_prompt(batch, functions, session_id):
         prompt_parts.append(f"Leaf: {func.get('is_leaf', 'unknown')}")
         if callee_names:
             prompt_parts.append(f", Calls: {', '.join(callee_names)}")
-        prompt_parts.append(f"\n\nDisassembly:\n{disasm}\n\n")
+        prompt_parts.append("\n")
+
+        sched_hint = get_sched_hint(func)
+        if sched_hint:
+            prompt_parts.append(f"\n{sched_hint}\n")
+
+        prompt_parts.append(f"\nDisassembly:\n{disasm}\n\n")
         prompt_parts.append(f"m2c output:\n{m2c}\n\n")
         prompt_parts.append(f"Write to: {source_file}\n\n")
 
     return "".join(prompt_parts), warnings
 
 
-def run_claude_session(prompt, session_id):
+def run_claude_session(prompt, session_id, timeout=SESSION_TIMEOUT):
     """Invoke Claude Code in headless mode. Returns (success, error_msg)."""
     cmd = [
         CLAUDE, "-p", prompt,
@@ -324,10 +406,10 @@ def run_claude_session(prompt, session_id):
 
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=SESSION_TIMEOUT
+            cmd, capture_output=True, text=True, timeout=timeout
         )
     except subprocess.TimeoutExpired:
-        return False, "session timed out"
+        return False, f"session timed out after {timeout}s"
 
     if result.returncode != 0:
         stderr = result.stderr.strip()[:200] if result.stderr else "unknown error"
@@ -511,8 +593,10 @@ def verify_match(func, matched_files):
     Uses nm to find the exact symbol in the compiled .o, extracts its bytes,
     applies relocation masking, and compares against the original EBOOT.
 
-    Returns True if byte-exact match confirmed, False if bytes genuinely
-    don't match. Raises RuntimeError on system/tooling errors.
+    Returns (True, None) if byte-exact match confirmed.
+    Returns (False, diff_summary) if bytes genuinely don't match, where
+    diff_summary is a list of dicts describing each mismatched word.
+    Raises RuntimeError on system/tooling errors.
     """
     import tempfile
 
@@ -529,6 +613,8 @@ def verify_match(func, matched_files):
             f"Short read from EBOOT: wanted {size} bytes at offset "
             f"{addr + TEXT_FILE_OFFSET:#x}, got {len(expected)}"
         )
+
+    best_diff = None  # track the closest mismatch for logging
 
     for src_file in matched_files:
         if not os.path.exists(src_file):
@@ -595,9 +681,58 @@ def verify_match(func, matched_files):
                 expected_masked = mask_relocation_bytes(expected, func_relocs)
 
             if compiled_masked == expected_masked:
-                return True
+                return True, None
 
-    return False
+            # Build diff summary for the closest match
+            diffs = build_byte_diff(compiled_masked, expected_masked, addr)
+            if best_diff is None or len(diffs) < len(best_diff):
+                best_diff = diffs
+
+    return False, best_diff
+
+
+def build_byte_diff(compiled, expected, base_addr):
+    """Build a summary of mismatched 4-byte words between compiled and expected.
+
+    Returns a list of dicts, each describing one mismatched word:
+      {"offset": int, "addr": "0x...", "compiled": "0x...", "expected": "0x..."}
+    Capped at 8 entries to keep logs concise.
+    """
+    diffs = []
+    total_mismatches = 0
+    length = min(len(compiled), len(expected))
+    for off in range(0, length - 3, 4):
+        c_word = compiled[off:off + 4]
+        e_word = expected[off:off + 4]
+        if c_word != e_word:
+            total_mismatches += 1
+            if len(diffs) < 8:
+                diffs.append({
+                    "offset": off,
+                    "addr": f"0x{base_addr + off:08x}",
+                    "compiled": f"0x{int.from_bytes(c_word, 'little'):08x}",
+                    "expected": f"0x{int.from_bytes(e_word, 'little'):08x}",
+                })
+
+    # Note size mismatch if applicable
+    if len(compiled) != len(expected):
+        diffs.append({
+            "offset": -1,
+            "addr": "size_mismatch",
+            "compiled": f"{len(compiled)}B",
+            "expected": f"{len(expected)}B",
+        })
+
+    # Mark truncation so log readers know the diff is incomplete
+    if total_mismatches > 8:
+        diffs.append({
+            "offset": -2,
+            "addr": "truncated",
+            "compiled": f"{total_mismatches} total mismatched words",
+            "expected": "only first 8 shown",
+        })
+
+    return diffs
 
 
 def print_progress(functions, start_time):
@@ -621,10 +756,26 @@ def main():
     parser.add_argument("--size-min", type=int, help="Minimum function size")
     parser.add_argument("--size-max", type=int, help="Maximum function size")
     parser.add_argument("--limit", type=int, help="Max total functions to attempt")
-    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="Functions per session")
+    parser.add_argument("--batch-size", type=int, default=None,
+                        help="Functions per session (default: 2 for --targets, 5 otherwise)")
+    parser.add_argument("--targets", type=str,
+                        help="Path to targets JSON file (e.g., config/finetune_targets.json). "
+                             "Only functions listed in this file will be attempted. "
+                             "Uses longer session timeout and smaller batches.")
     parser.add_argument("--dry-run", action="store_true", help="Skip sandbox, for testing")
 
     args = parser.parse_args()
+
+    # Load targets file if specified
+    targets_list = None
+    if args.targets:
+        targets_list = load_targets_file(args.targets)
+        log(f"Loaded {len(targets_list)} targets from {args.targets}")
+
+    # Set defaults based on mode
+    if args.batch_size is None:
+        args.batch_size = TARGETS_BATCH_SIZE if targets_list else BATCH_SIZE
+    session_timeout = TARGETS_SESSION_TIMEOUT if targets_list else SESSION_TIMEOUT
 
     os.makedirs(LOGS_DIR, exist_ok=True)
     os.makedirs(SESSION_RESULTS_DIR, exist_ok=True)
@@ -649,11 +800,17 @@ def main():
     else:
         branch = create_overnight_branch()
 
+    mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
+    log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
     print_progress(functions, start_time)
 
     while datetime.now() < deadline:
-        batch = pick_next_batch(functions, args, batch_size=args.batch_size)
+        if targets_list:
+            batch = pick_next_batch_targeted(functions, targets_list, addr_index,
+                                             batch_size=args.batch_size)
+        else:
+            batch = pick_next_batch(functions, args, batch_size=args.batch_size)
         if not batch:
             log("No more untried functions matching criteria. Done.")
             break
@@ -700,7 +857,7 @@ def main():
                 "error": w["error"],
             })
         session_start = time.time()
-        success, error_msg = run_claude_session(prompt, session_id)
+        success, error_msg = run_claude_session(prompt, session_id, timeout=session_timeout)
         session_duration = time.time() - session_start
 
         if not success:
@@ -765,7 +922,7 @@ def main():
                 reverted = 0
                 for func in list(matched_funcs):
                     try:
-                        verified = verify_match(func, matched_files)
+                        verified, diff_summary = verify_match(func, matched_files)
                     except RuntimeError as e:
                         # System/tooling error — not a genuine mismatch
                         log(f"  VERIFY ERROR: {func['name']} — {e}")
@@ -786,13 +943,23 @@ def main():
                         continue
 
                     if not verified:
-                        log(f"  VERIFY FAILED: {func['name']} — bytes don't match original")
+                        diff_count = len(diff_summary) if diff_summary else 0
+                        diff_preview = ""
+                        if diff_summary:
+                            first = diff_summary[0]
+                            diff_preview = (f" (first diff at {first['addr']}: "
+                                          f"compiled={first['compiled']} "
+                                          f"expected={first['expected']}, "
+                                          f"{diff_count} total diffs)")
+                        log(f"  VERIFY FAILED: {func['name']} — bytes don't match{diff_preview}")
                         log_event(log_path, {
                             "event": "verify_failed",
                             "session_id": session_id,
                             "address": func["address"],
                             "name": func["name"],
                             "size": func["size"],
+                            "diff_count": diff_count,
+                            "byte_diffs": diff_summary or [],
                         })
                         target = addr_index.get(func["address"])
                         if target:

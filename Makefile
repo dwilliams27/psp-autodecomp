@@ -72,7 +72,7 @@ verify: $(TARGET_BIN)
 
 # Engine classes confirmed sched=1 (per prologue byte-matching)
 #
-# WARNING: These 5 are the only CONFIRMED sched=1 classes. The sched=1 zone
+# WARNING: These 6 are the only CONFIRMED sched=1 classes. The sched=1 zone
 # (eAll_psp.obj addresses 0x06e000-0x0bab28) contains ~40 more classes
 # (eShadowFillModelMtl, eDynamicLightModelMtl, eBipedController, eSimulatedController,
 # eBoxShape, eMeshShape, eHeightmapShape, etc.) whose non-trivial functions have NOT
@@ -83,7 +83,9 @@ $(BUILD_DIR)/src/eTextureMap%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eBumpOffsetMap%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eDynamicMeshMorphTarget%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eCollisionConstraint%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eCompoundShape%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eInputKeyboard%.o: CFLAGS := $(ECFLAGS)
+$(BUILD_DIR)/src/eDynamicModel%.o: CFLAGS := $(ECFLAGS)
 
 # Other per-file overrides
 $(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5

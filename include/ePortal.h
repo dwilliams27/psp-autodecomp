@@ -1,7 +1,8 @@
 #ifndef EPORTAL_H
 #define EPORTAL_H
 
-class cBase;
+#include "cObject.h"
+
 class eRoom;
 
 template <class T>
@@ -15,18 +16,12 @@ public:
     static void *GetPoolFromPtr(const void *);
 };
 
-class cObject {
-public:
-    cObject(cBase *);
-    ~cObject(void);
-    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
-};
-
 class ePortal : public cObject {
 public:
     ePortal(cBase *);
     ~ePortal(void);
     void Activate(bool);
+    void ConnectRoom(cHandleT<eRoom>, bool);
     void DisconnectRoom(cHandleT<eRoom>, bool);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
