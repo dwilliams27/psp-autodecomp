@@ -17,12 +17,3 @@ When a function is matched and verified in session A, then the same source file 
 - Use separate source files per function (already mostly done, but some agents put multiple functions in one file)
 - Lock matched source files from further modification
 
-## 2. func_db.py rebuild drops failure_notes
-
-**Found:** 2026-04-11 code review
-
-`func_db.py build` rebuilds `functions.json` from the linker map and only preserves `match_status` from the old database. The new `failure_notes` field (added for retry context) is not preserved during a rebuild.
-
-**Impact:** Running `func_db.py build` after accumulating failure notes would silently lose all retry context.
-
-**Fix:** Add `failure_notes` to the list of preserved fields in `func_db.py build`, alongside `match_status`.

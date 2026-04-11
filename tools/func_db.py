@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-from common import DB_PATH, MAP_PATH, load_db, save_db, filter_functions
+from common import DB_PATH, MAP_PATH, load_db, save_db, filter_functions, build_addr_map
 
 # Same regexes as map_parser.py
 SYMBOL_RE = re.compile(
@@ -209,18 +209,21 @@ def cmd_build(args):
         print(f"Error: {MAP_PATH} not found.", file=sys.stderr)
         sys.exit(1)
 
-    # If DB exists, preserve match_status
-    old_status = {}
+    # If DB exists, preserve match_status and failure_notes
+    old_data = {}
     if os.path.exists(DB_PATH):
         old = load_db()
-        old_status = {f["address"]: f.get("match_status", "untried") for f in old}
+        old_data = build_addr_map(old)
 
     functions = parse_map_to_functions(MAP_PATH)
 
-    # Restore match_status from previous build
+    # Restore preserved fields from previous build
     for func in functions:
-        if func["address"] in old_status:
-            func["match_status"] = old_status[func["address"]]
+        old_func = old_data.get(func["address"])
+        if old_func:
+            func["match_status"] = old_func.get("match_status", "untried")
+            if "failure_notes" in old_func:
+                func["failure_notes"] = old_func["failure_notes"]
 
     save_db(functions)
 
