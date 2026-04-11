@@ -4,6 +4,7 @@ extern char ePortalvirtualtable[];
 extern void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
 extern void cHandleT_eRoom_ctor(void *);
 extern void cObject___dtor_cObject_void(void *, int);
+extern void *D_00038890[];
 
 struct DeleteRecord {
     short offset;
@@ -13,6 +14,28 @@ struct DeleteRecord {
 
 void ePortal::Activate(bool active) {
     *(unsigned char *)((char *)this + 0xF0) = (unsigned char)active;
+}
+
+void ePortal::ConnectRoom(cHandleT<eRoom> handle, bool second) {
+    int *room = (int *)((char *)this + ((second != 0) * 4) + 0xE8);
+    int current = *room;
+    int canStore;
+    if (current == 0) {
+        canStore = 1;
+    } else {
+        unsigned short index = (unsigned short)current;
+        void *lookup = D_00038890[index];
+        void *result = 0;
+        if (lookup != 0) {
+            if (*(int *)((char *)lookup + 0x30) == current) {
+                result = lookup;
+            }
+        }
+        canStore = (result == 0) & 0xFF;
+    }
+    if (canStore) {
+        *room = handle.mIndex;
+    }
 }
 
 void ePortal::VisitReferences(unsigned int a, cBase *b, void (*c)(cBase *, unsigned int, void *), void *d, unsigned int e) {
