@@ -8,14 +8,14 @@ typedef eInputKeyboard::eInputState KeyState;
 char eInputKeyboard::KeyToASCII(eKey key) {
     KeyState *state = (KeyState *)D_000454A8;
 
-    unsigned char s_raw = state->buttons[62].rawValue;
-    unsigned char n_raw = state->buttons[88].rawValue;
-    unsigned char c_raw = state->buttons[58].rawValue;
-    unsigned int shift = s_raw != 0;
-    unsigned int numlock = n_raw != 0;
-    unsigned int caps = c_raw != 0;
+    unsigned char caps_raw = state->buttons[62].rawValue;
+    unsigned char numlock_raw = state->buttons[88].rawValue;
+    unsigned char shift_raw = state->buttons[58].rawValue;
+    int caps = caps_raw != 0;
+    int numlock = numlock_raw != 0;
+    int shift = shift_raw != 0;
 
-    int shifted = shift != 0;
+    int shifted = caps != 0;
 
     if (key >= (eKey)24 && key < (eKey)50) {
         shifted = (shift ^ caps) != 0;
