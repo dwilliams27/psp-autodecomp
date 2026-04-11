@@ -1,6 +1,6 @@
 # Autonoma
 
-Autonomous decompilation of PSP games using coding agent swarms. See `foundation.md` for goals, milestones, and principles. See `docs/decisions/` for verified research and design rationale. See `docs/direction/` for phase roadmap and north-star guidance.
+Autonomous decompilation of PSP games using coding agent swarms. See `foundation.md` for goals, milestones, and principles. See `docs/decisions/` for verified research and design rationale. See `docs/direction/` for phase roadmap and north-star guidance. See `docs/bugs.md` for known bugs discovered during development — add new bugs there when found rather than leaving TODOs in code.
 
 ## Current target
 
