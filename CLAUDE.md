@@ -52,7 +52,7 @@ Additional system dependencies (Homebrew):
 - **Full binary rebuild is blocked** by ~24K VFPU instructions in asm/0.s that standard `mipsel-linux-gnu-as` doesn't support (sv.q, lv.q, vdot, vsqrt, mfv, etc.). Needs a PSP-aware assembler or encoding as `.word` directives. Function-level .o comparison works fine without the full link.
 - **asm-differ** works in `-o` mode for function-level comparison: `python3 extern/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`. Expected .o files go in `expected/` mirroring the `build/` structure.
 - **-O2 confirmed** as the compiler flag. -O2/-O3/-O4 produce identical bytes. -O5 differs only on specific loop patterns. **Only 3 SNC flags affect codegen: `-Xsched`, `-Xmopt`, `-Xxopt`** (43 flag variations tested; 26 other flags produce identical bytes at all levels). See `docs/decisions/003-compiler-flags.md`.
-- **Compiler flag layout**: Most code uses `-Xsched=2` (SNC default). `eAll_psp.obj` is a **unity build** (`eAll_psp.cpp`) that uses `#pragma` to switch sched mid-file. The sched=1 zone is at addresses ~0x06e000-0x0bab28 — confirmed classes: eTextureMap, eBumpOffsetMap, eDynamicMeshMorphTarget, eCollisionConstraint, eInputKeyboard. **~40 more classes** in that zone are unverified (trivial stubs only). Transition zone at ~0x040000-0x06e000 is uncharted. The Makefile defaults to `sched=2` with per-class pattern overrides for sched=1 exceptions. When matching a new engine class, if bytes don't match, try `-Xsched=1`.
+- **Compiler flag layout**: Most code uses `-Xsched=2` (SNC default). `eAll_psp.obj` is a **unity build** (`eAll_psp.cpp`) that uses `#pragma` to switch sched mid-file. The sched=1 zone is at addresses ~0x06e000-0x0bab28 — confirmed classes: eTextureMap, eBumpOffsetMap, eDynamicMeshMorphTarget, eCollisionConstraint, eCompoundShape, eInputKeyboard. **~40 more classes** in that zone are unverified (trivial stubs only). Transition zone at ~0x040000-0x06e000 is uncharted. The Makefile defaults to `sched=2` with per-class pattern overrides for sched=1 exceptions. When matching a new engine class, if bytes don't match, try `-Xsched=1`.
 - **Pre-fine-tuning targets**: 44 strategic functions in `config/finetune_targets.json` must be matched before generating synthetic training data. These fill coverage gaps: transition zone boundary, sched=1 verification, mAll_psp.obj (0/58 matched), large functions (0 matches above 512B). See `docs/decisions/004-pre-finetune-matching-targets.md`.
 - Use `__asm__ volatile("" ::: "memory")` barriers when the scheduler still reorders within basic blocks (e.g., `li` moved before `sw` to fill pipeline slots).
 - **Function database** at `config/functions.json` has 9,966 functions with class, size, .obj file, call graph, and match status. Query with `python3 tools/func_db.py`.
@@ -83,7 +83,10 @@ sudo -u autodecomp claude        # authenticate Claude Code for the new user
 ./tools/run_overnight.sh --hours 8                  # full overnight run
 ./tools/run_overnight.sh --hours 2 --size-max 8     # trivial functions only
 ./tools/run_overnight.sh --dry-run --limit 3        # test without sandbox
+./tools/run_overnight.sh --hours 8 --targets config/finetune_targets.json  # targeted finetune run
 ```
+
+The `--targets` flag switches to targeted mode: pulls exclusively from the specified file, uses batch_size=2 and 1.5hr session timeout (tuned for larger functions). See `docs/decisions/004-pre-finetune-matching-targets.md`.
 
 ### Checking progress
 ```bash
