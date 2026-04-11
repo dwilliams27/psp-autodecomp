@@ -63,32 +63,28 @@ void eHeightmap::CastSphere(const eCollisionInfo &info, const mRay &ray, float r
 }
 
 float ePath::PathT2Units(float t) const {
-    int idx = (int)t;
-    float nextT = t + 1.0f;
+    int startIdx = (int)t;
+    float endT = t + 1.0f;
     ePathPoint *points = mPoints;
     float maxIdx;
 
     if (points != 0) {
-        maxIdx = (float)((*((int *)points - 1) & 0x3FFFFFFF) - 1);
+        maxIdx = (float)((((int *)points)[-1] & 0x3FFFFFFF) - 1);
     } else {
         maxIdx = -1.0f;
     }
 
     int endIdx;
-    if (nextT <= 0.0f) {
-        __asm__ volatile(
-            ".word 0x46007b4d\n"
-            "mfc1 %0, $f13"
-            : "=r"(endIdx)
-        );
+    if (endT <= 0.0f) {
+        endIdx = (int)0.0f;
     } else {
-        if (maxIdx <= nextT) {
-            nextT = maxIdx;
+        if (maxIdx <= endT) {
+            endT = maxIdx;
         }
-        endIdx = (int)nextT;
+        endIdx = (int)endT;
     }
 
-    float startDist = points[idx].mDistance;
+    float startDist = points[startIdx].mDistance;
     float endDist = points[endIdx].mDistance;
-    return startDist + (t - (float)idx) * (endDist - startDist);
+    return startDist + (t - (float)startIdx) * (endDist - startDist);
 }
