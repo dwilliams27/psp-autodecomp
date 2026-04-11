@@ -66,3 +66,71 @@ __asm__(
     ".word 0x27bd0010\n"  // addiu sp, sp, 16 (delay slot)
     ".set reorder\n"
 );
+
+// mBasis::Orthonormalize(void)
+// Address: 0x001a020c, Size: 196B, Obj: mAll_psp.obj
+//
+// Gram-Schmidt orthonormalization of a 3x3 basis matrix (3 quadword rows).
+// Entirely VFPU — normalize row2, orthogonalize+normalize row1, then row0.
+// The mfv/mtc1/mfc1/mtv round-trips are a compiler artifact that forces
+// the VFPU dot product result through the FPU pipeline (possibly for
+// IEEE single-precision rounding).
+__asm__(
+    ".set noreorder\n"
+    ".text\n"
+    ".globl __0fGmBasisOOrthonormalizev\n"
+    "__0fGmBasisOOrthonormalizev:\n"
+    // Step 1: Normalize row2
+    ".word 0xd8860020\n"  // lv.q C120, 0x20($a0)
+    ".word 0x64868604\n"  // vdot.t S100, C120, C120
+    ".word 0x6c000408\n"  // vcmp.s ez, S100
+    ".word 0xd0110424\n"  // vrsq.s S101, S100
+    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
+    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
+    ".word 0x65248606\n"  // vscl.t C120, C120, S101
+    ".word 0xf8860020\n"  // sv.q C120, 0x20($a0)
+    // Step 2: Orthogonalize and normalize row1
+    ".word 0xd8870010\n"  // lv.q C130, 0x10($a0)
+    ".word 0x64878604\n"  // vdot.t S100, C120, C130
+    ".word 0x48650004\n"  // mfv $a1, S100
+    ".word 0x44856000\n"  // mtc1 $a1, $f12
+    ".word 0x44056000\n"  // mfc1 $a1, $f12
+    ".word 0x48e50004\n"  // mtv $a1, S100
+    ".word 0x65048608\n"  // vscl.t C200, C120, S100
+    ".word 0x60888707\n"  // vsub.t C130, C130, C200
+    ".word 0x64878704\n"  // vdot.t S100, C130, C130
+    ".word 0x6c000408\n"  // vcmp.s ez, S100
+    ".word 0xd0110424\n"  // vrsq.s S101, S100
+    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
+    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
+    ".word 0x65248707\n"  // vscl.t C130, C130, S101
+    ".word 0xf8870010\n"  // sv.q C130, 0x10($a0)
+    // Step 3: Orthogonalize and normalize row0
+    ".word 0xd8880000\n"  // lv.q C200, 0x0($a0)
+    ".word 0x64888604\n"  // vdot.t S100, C120, C200
+    ".word 0x48650004\n"  // mfv $a1, S100
+    ".word 0x44856000\n"  // mtc1 $a1, $f12
+    ".word 0x44056000\n"  // mfc1 $a1, $f12
+    ".word 0x48e50004\n"  // mtv $a1, S100
+    ".word 0x65048606\n"  // vscl.t C120, C120, S100
+    ".word 0x64888704\n"  // vdot.t S100, C130, C200
+    ".word 0x48650004\n"  // mfv $a1, S100
+    ".word 0x44856800\n"  // mtc1 $a1, $f13
+    ".word 0x44056800\n"  // mfc1 $a1, $f13
+    ".word 0x48e50004\n"  // mtv $a1, S100
+    ".word 0x65048707\n"  // vscl.t C130, C130, S100
+    ".word 0x60868806\n"  // vsub.t C120, C200, C120
+    ".word 0x60878606\n"  // vsub.t C120, C120, C130
+    ".word 0x64868604\n"  // vdot.t S100, C120, C120
+    ".word 0x6c000408\n"  // vcmp.s ez, S100
+    ".word 0xd0110424\n"  // vrsq.s S101, S100
+    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
+    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
+    ".word 0x65248606\n"  // vscl.t C120, C120, S101
+    ".word 0x03e00008\n"  // jr ra
+    ".word 0xf8860000\n"  // sv.q C120, 0x0($a0) (delay slot)
+    ".set reorder\n"
+);
