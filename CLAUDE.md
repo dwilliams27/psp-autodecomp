@@ -30,7 +30,7 @@ extern/snc/                               # SNC compiler (pspsnc 1.2.7503.0) fro
 extern/wibo                               # wibo binary from decompals/wibo (macOS x86_64, runs under Rosetta 2)
 extern/include/                           # official Sony PSP SDK 6.60 headers (from psp_sdk_660.7z on archive.org)
 extern/pspdecrypt/                        # git clone https://github.com/John-K/pspdecrypt (build with make)
-extern/m2c/                               # git clone https://github.com/matt-kempster/m2c (pip install -e .)
+extern/m2c/                               # git clone -b psp-vfpu-passthrough https://github.com/dwilliams27/m2c (pip install -e .)
 extern/asm-differ/                        # git clone https://github.com/simonlindholm/asm-differ
 extern/iso_extract/                       # extracted ISO contents (7z x the .iso)
 extern/extracted_symbols/                 # .sym and .map files extracted from DATA.PAK
@@ -108,3 +108,5 @@ Results are in `config/functions.json` (match_status field) and `logs/`.
 - **STOP. Before committing ANY code changes, you MUST run `/pre-commit-review` first.** No exceptions. No "I'll do it after." No skipping for small changes. This is the single most important norm in this repo. Our custom `/pre-commit-review` (`.claude/skills/pre-commit-review/SKILL.md`) launches 4 review agents: code reuse, code quality, efficiency, and a **silent-fallback auditor**. Do NOT use the built-in `/simplify` — it only has 3 agents and misses silent fallbacks.
 - **No silent fallbacks.** If something is broken, fail loudly and early. Never add graceful degradation, default values, or try/except swallowing without explicit human approval. Broken things must be visible so they get fixed.
 - **No deferred shortcuts.** Handle edge cases fully when you encounter them, not "later." If a tool doesn't handle all 12,506 symbols correctly, fix it now — don't skip the hard ones with a TODO. Untracked "I'll handle this later" decisions accumulate invisibly and cause bizarre behavior in a system built by many agents over time.
+- **C/C++ source only.** Matched functions must be decompiled C/C++ that compiles to identical bytes. Never submit `.s` assembly files as matches — copying disassembly produces zero training data value and defeats the entire purpose. If a function can't be matched in C (e.g., dense VFPU), report it as failed, don't bypass with assembly.
+- **Agents must not modify tooling.** Overnight/headless agents should never modify files in `tools/`, `config/` (except `functions.json` match status), or the `Makefile`. If a tool has a bug, report it as a session error — a human will fix it. The only files agents should create or modify are `src/*.cpp`, `src/*.c`, and `include/*.h`.

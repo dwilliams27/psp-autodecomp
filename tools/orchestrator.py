@@ -277,16 +277,16 @@ def get_sched_hint(func):
             "SCHED HINT: This function is in the confirmed sched=1 zone "
             f"(0x{SCHED1_ZONE_START:06x}-0x{SCHED1_ZONE_END:06x}). "
             "The Makefile should already apply -Xsched=1 for known classes. "
-            "If bytes don't match, verify the Makefile has a sched=1 override "
-            "for this class — add one if missing."
+            "If bytes don't match and you suspect a missing sched override, "
+            "report failure — a human will update the Makefile."
         )
     if TRANSITION_ZONE_START <= addr < TRANSITION_ZONE_END:
         return (
             "SCHED HINT: This function is in the transition zone "
             f"(0x{TRANSITION_ZONE_START:06x}-0x{TRANSITION_ZONE_END:06x}) where "
             "the sched flag may be either 1 or 2. Try sched=2 first (default). "
-            "If bytes don't match, add a sched=1 override in the Makefile for "
-            "this class and retry."
+            "If bytes don't match, this class may need sched=1 — report failure "
+            "with a note and a human will update the Makefile."
         )
     return None
 
@@ -304,6 +304,16 @@ def build_prompt(batch, functions, session_id):
         "Your job is to produce C/C++ source that compiles to byte-identical "
         "machine code for each function below.\n\n"
         "Read CLAUDE.md for repo norms and the matching workflow.\n\n"
+
+        "HARD RULES:\n"
+        "- Only write .c/.cpp/.h files in src/ and include/. "
+        "NEVER submit .s assembly files as matches — that's copying, not decompiling.\n"
+        "- NEVER modify files in tools/, the Makefile, or config/ "
+        "(except the results JSON you're asked to write). "
+        "If a tool seems broken, report failure — do not patch it.\n"
+        "- If a function can't be matched in C (e.g., dense VFPU with no scalar "
+        "equivalent), report it as failed. Do not bypass.\n\n"
+
         "For each function:\n"
         "1. Study the disassembly carefully. Understand the control flow, "
         "register usage, and delay slot filling.\n"

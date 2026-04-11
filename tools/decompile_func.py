@@ -156,7 +156,7 @@ def convert_registers(insn):
         matched = False
         for reg_name, reg_replacement in sorted(REG_MAP.items(), key=lambda x: -len(x[0])):
             if operands[i:].startswith(reg_name):
-                before_ok = (i == 0 or not operands[i-1].isalnum())
+                before_ok = (i == 0 or (not operands[i-1].isalnum() and operands[i-1] != "$"))
                 after_pos = i + len(reg_name)
                 after_ok = (after_pos >= len(operands) or
                            operands[after_pos] in ",()+-: \t" or
