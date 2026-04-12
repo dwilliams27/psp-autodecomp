@@ -1,0 +1,82 @@
+[
+  {
+    "address": "0x000d5348",
+    "size": 232,
+    "name": "gcExpressionList::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_loop",
+    "priority": "medium",
+    "reason": "Core eval loop, called by 60+ funcs",
+    "has_bin": true
+  },
+  {
+    "address": "0x002fa058",
+    "size": 192,
+    "name": "gcDoReturn::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_switch",
+    "priority": "medium",
+    "reason": "Switch on return type, header available",
+    "has_bin": true
+  },
+  {
+    "address": "0x002f9f14",
+    "size": 324,
+    "name": "gcDoReturn::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "category": "training_serial",
+    "priority": "medium",
+    "reason": "Read counterpart, teaches Read pattern",
+    "has_bin": true
+  },
+  {
+    "address": "0x001a69e8",
+    "size": 216,
+    "name": "nwConnection::UpdatePing(cTimeValue)",
+    "obj_file": "nwAll_psp.obj",
+    "category": "nw_verify",
+    "priority": "medium",
+    "reason": "Leaf, 216B, sched=2 confirmation",
+    "has_bin": true
+  },
+  {
+    "address": "0x0007ae64",
+    "size": 264,
+    "name": "eTextureMap::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "category": "sched1_large",
+    "priority": "high",
+    "reason": "264B Read in sched=1 zone \u2014 tests sched=1 with complex serialization",
+    "has_bin": true
+  },
+  {
+    "address": "0x0000440c",
+    "size": 308,
+    "name": "cCRC::Calc(const void *, int, int, unsigned int) static",
+    "obj_file": "cAll_psp.obj",
+    "category": "algorithmic",
+    "priority": "high",
+    "reason": "CRC loop \u2014 if -Xunroll matters anywhere, it's here. LEAF, pure algorithm.",
+    "has_bin": true
+  },
+  {
+    "address": "0x000068c4",
+    "size": 296,
+    "name": "cOutStream::WriteBits(const void *, int)",
+    "obj_file": "cAll_psp.obj",
+    "category": "algorithmic",
+    "priority": "high",
+    "reason": "Bit-level stream writing \u2014 shift/mask loop. LEAF. Bitwise codegen test.",
+    "has_bin": true
+  },
+  {
+    "address": "0x000d58c0",
+    "size": 548,
+    "name": "gcEventParams::Write(cOutStream &) const",
+    "obj_file": "gcAll_psp.obj",
+    "category": "large_function",
+    "priority": "high",
+    "reason": "548B Write with likely switch on param types \u2014 tests switch codegen at scale",
+    "has_bin": true
+  }
+]
