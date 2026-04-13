@@ -62,12 +62,24 @@ Two scalar builtins for converting between C floats and VFPU scalar registers:
 | Scheduling capability | None (asm blocks are opaque) | Full (native lv.q/sv.q with delay slot fill) |
 | Delay-slot VFPU stores | Impossible | Works natively |
 
-## Limitations and Open Questions
+## VFPU Register Allocation via Flags
 
-1. **vmidt.q (identity matrix)**: No known C-level way to generate this. May still need inline asm for initial VFPU setup, with V16SF types for the subsequent stores.
-2. **VFPU arithmetic** (vadd.q, vmul.q, vdot.q, etc.): Unclear whether SNC auto-vectorizes C arithmetic on V4SF types or if these need inline asm. Needs testing.
-3. **Register allocation**: SNC chooses which VFPU matrix banks to use. The EBOOT may use specific registers that don't match SNC's allocation choices. Needs per-function verification.
-4. **Makefile integration**: Need to add `-Xvfpumatrix=N` flags for source files using these types.
+SNC's VFPU register allocation is controlled by `-Xvfpumatrix=N` and `-Xvfpuscalar=N`. These determine which VFPU registers the compiler uses, affecting the `lv.q`/`sv.q` register encoding.
+
+**Proven match:** `gcEntity::SetVelocity` (28B) — with default flags (no VFPU flags), the function is 2 bytes off due to VFPU register C000 vs C060. Adding `-Xvfpumatrix=1 -Xvfpuscalar=8` shifts allocation to match the EBOOT exactly (0 bytes diff).
+
+The correct flag values likely vary per `.obj` file (similar to `-Xsched`). To determine the values for a given obj file, find a small VFPU function, test flag combinations, and match the register encoding.
+
+## Auto-VFPU for Struct Copies
+
+SNC automatically uses `lv.q`/`sv.q` for aligned struct copies of 16+ bytes WITHOUT requiring V4SF/V16SF types. A plain `*dst = *src` on an aligned struct generates VFPU load+store. The VFPU flags control register selection.
+
+## Limitations
+
+1. **V4SF/V16SF are transport-only**: Load and store work. Arithmetic (`+`, `-`, `*`) fails with "Unsupported vector type operation." ALL VFPU computation (vmidt.q, vadd.q, vmul.q, vdot.q, etc.) must use inline asm.
+2. **vmidt.q (identity matrix)**: No C equivalent. Must be inline asm. SNC cannot schedule across asm boundaries, so functions using vmidt.q + sv.q will have scheduling diffs (e.g., eCamera::eCamera, 10/136 bytes).
+3. **Register allocation**: Flag values must be determined empirically per obj file by matching register encodings on small functions. Values may differ between gcAll_psp.obj, eAll_psp.obj, etc.
+4. **Makefile integration**: Need per-file `-Xvfpumatrix=N -Xvfpuscalar=N` overrides, similar to `-Xsched` overrides.
 
 ## Method
 

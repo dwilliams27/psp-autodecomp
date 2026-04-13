@@ -91,6 +91,14 @@ $(BUILD_DIR)/src/eDynamicModel%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5
 $(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xmopt=0 -Iextern/include -Iinclude
 
+# VFPU register allocation flags — controls which VFPU registers SNC uses
+# for auto-vectorized struct copies (lv.q/sv.q). Values must be determined
+# empirically per obj file by matching register encodings.
+# See docs/decisions/007-vfpu-native-types.md.
+#
+# gcAll_psp.obj: confirmed via gcEntity::SetVelocity byte-exact match
+$(BUILD_DIR)/src/gcEntity%.o: CFLAGS += -Xvfpumatrix=1 -Xvfpuscalar=8
+
 # ──────────────────────────────────────────
 # Compile rules
 # ──────────────────────────────────────────
