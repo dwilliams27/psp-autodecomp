@@ -9,8 +9,8 @@ AS       := mipsel-linux-gnu-as
 LD       := mipsel-linux-gnu-ld
 OBJCOPY  := mipsel-linux-gnu-objcopy
 
-CFLAGS   := -c -O2 -G0 -Xsched=2 -Iextern/include -Iinclude
-ECFLAGS  := -c -O2 -G0 -Xsched=1 -Iextern/include -Iinclude
+CFLAGS   := -c -O2 -G0 -Xsched=2 -Xvfpumatrix=1 -Xvfpuscalar=8 -Iextern/include -Iinclude
+ECFLAGS  := -c -O2 -G0 -Xsched=1 -Xvfpumatrix=1 -Xvfpuscalar=8 -Iextern/include -Iinclude
 ASFLAGS  := -march=allegrex -mabi=eabi -EL -Iinclude
 LDFLAGS  := -T build/EBOOT.ld --Map build/EBOOT.map
 
@@ -89,15 +89,15 @@ $(BUILD_DIR)/src/eDynamicModel%.o: CFLAGS := $(ECFLAGS)
 
 # Other per-file overrides
 $(BUILD_DIR)/src/gcLoadingScreen_Read.cpp.o: CFLAGS += -Xxopt=5
-$(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xmopt=0 -Iextern/include -Iinclude
+$(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xvfpumatrix=1 -Xvfpuscalar=8 -Xmopt=0 -Iextern/include -Iinclude
 
 # VFPU register allocation flags — controls which VFPU registers SNC uses
-# for auto-vectorized struct copies (lv.q/sv.q). Values must be determined
-# empirically per obj file by matching register encodings.
+# for auto-vectorized struct copies (lv.q/sv.q). All obj files use the same
+# values: -Xvfpumatrix=1 -Xvfpuscalar=8 (first auto-temp at vt=24/C120).
+# Confirmed by scanning lv.q/sv.q register encodings across gcAll, eAll,
+# mAll, and cAll obj files. nwAll and gMain have no VFPU (flags are harmless).
 # See docs/decisions/007-vfpu-native-types.md.
-#
-# gcAll_psp.obj: confirmed via gcEntity::SetVelocity byte-exact match
-$(BUILD_DIR)/src/gcEntity%.o: CFLAGS += -Xvfpumatrix=1 -Xvfpuscalar=8
+# Flags are now in base CFLAGS/ECFLAGS above.
 
 # ──────────────────────────────────────────
 # Compile rules
