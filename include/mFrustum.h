@@ -1,6 +1,6 @@
 #pragma once
 
-typedef unsigned int SceULong128 __attribute__((mode(TI)));
+#include "mPlane.h"
 
 struct mSphere;
 
@@ -12,7 +12,7 @@ struct mSphere;
 //   stepping by 0x10, accessing quadword at +0x00 and float at +0x0C per plane
 // Each plane is (nx, ny, nz, d) stored as a quadword
 struct mFrustum {
-    SceULong128 planes[6];  // 6 planes, each 16 bytes: (nx, ny, nz, d)
+    mPlane planes[6];  // 6 planes, each 16 bytes: (nx, ny, nz, d)
 
     void GetOrtho(float *, float *, float *, float *, float *, float *) const;
     void GetPerspective(float *, float *, float *, float *, float *, float *) const;
