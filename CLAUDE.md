@@ -104,6 +104,7 @@ Results are in `config/functions.json` (match_status field) and `logs/`.
 
 - All decompilation work is done by agents. Humans provide direction and unblock.
 - Byte-exact matching is the only standard. A function is done when it compiles to identical bytes.
+- **Maximum effort. No shortcuts.** Every function gets your best attempt at real C/C++ decompilation. Iterate with `compare_func.py` extensively. Try multiple source restructurings. Run the permuter for last-mile matching. Only mark a function `failed` after exhausting all approaches — not after one attempt. Lazy work (wrapping disassembly in `__asm__()`) is worse than no work because it inflates match counts with zero training value.
 - Research before action. Investigate tooling and compiler behavior before writing code.
 - Decisions go in `docs/decisions/` with numbered filenames (001, 002, ...).
 - Direction docs go in `docs/direction/` with numbered filenames. These are aspirational/north-star — keep them up to date as phases complete (mark `[x]` in the doc). Unlike decisions (which are point-in-time records), direction docs are living documents.
