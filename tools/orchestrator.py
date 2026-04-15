@@ -737,6 +737,74 @@ def verify_match(func, matched_files):
     return False, best_diff
 
 
+def validate_source_quality(matched_files):
+    """Reject matches that are pure assembly — no C/C++ training data value.
+
+    A source file is rejected if it contains ONLY file-scope __asm__() blocks
+    and no real C/C++ function bodies. Small inline __asm__ volatile() inside
+    C/C++ functions is fine — the C/C++ surrounding code has training value.
+
+    Returns a list of rejected file paths with reasons.
+    """
+    import re
+    rejected = []
+    for src_file in matched_files:
+        if not os.path.exists(src_file):
+            raise RuntimeError(
+                f"validate_source_quality: {src_file} does not exist"
+            )
+        with open(src_file) as f:
+            content = f.read()
+
+        # Strip comments and preprocessor
+        stripped = re.sub(r'//.*$', '', content, flags=re.MULTILINE)
+        stripped = re.sub(r'/\*.*?\*/', '', stripped, flags=re.DOTALL)
+        stripped = re.sub(r'^\s*#.*$', '', stripped, flags=re.MULTILINE)
+
+        # Check for file-scope __asm__( blocks
+        has_filescope_asm = bool(re.search(r'^__asm__\s*\(', stripped, re.MULTILINE))
+        if not has_filescope_asm:
+            continue  # No file-scope asm — fine
+
+        # Count C/C++ statements outside of __asm__() blocks.
+        # Skip: struct/class/typedef/extern declarations, blank lines, braces.
+        # Count: assignments (=), function calls, control flow keywords,
+        # return statements — anything that represents real C/C++ logic.
+        lines = stripped.split('\n')
+        cpp_statement_count = 0
+        in_asm_block = False
+        paren_depth = 0
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            if re.match(r'^__asm__\s*\(', line):
+                in_asm_block = True
+                paren_depth = line.count('(') - line.count(')')
+                continue
+            if in_asm_block:
+                paren_depth += line.count('(') - line.count(')')
+                if paren_depth <= 0:
+                    in_asm_block = False
+                continue
+            # Skip declarations that aren't executable statements
+            if re.match(r'^(struct|class|typedef|extern|enum|union|using)\b', line):
+                continue
+            if line in ('{', '}', '};', '};'):
+                continue
+            # Count lines that look like executable C/C++ statements
+            if re.match(r'(if|for|while|return|switch|case|do|break|continue|goto)\b', line):
+                cpp_statement_count += 1
+            elif re.search(r'[=;]', line) and not line.startswith('//'):
+                # Assignment, function call with semicolon, variable declaration
+                cpp_statement_count += 1
+
+        if cpp_statement_count < 3:
+            rejected.append(src_file)
+
+    return rejected
+
+
 def build_byte_diff(compiled, expected, base_addr):
     """Build a summary of mismatched 4-byte words between compiled and expected.
 
@@ -1016,6 +1084,35 @@ def main():
                         total_failed += 1
                 if reverted > 0:
                     log(f"  Orchestrator verification rejected {reverted} matches")
+
+            # Source quality gate: reject pure-assembly matches
+            if matched_funcs and matched_files:
+                asm_rejected = validate_source_quality(matched_files)
+                if asm_rejected:
+                    log(f"  ASSEMBLY-ONLY REJECTION: {len(asm_rejected)} files are pure asm with no C/C++")
+                    for asm_file in asm_rejected:
+                        log(f"    Rejected: {asm_file}")
+                        log_event(log_path, {
+                            "event": "rejected_assembly_only",
+                            "session_id": session_id,
+                            "file": asm_file,
+                            "reason": "File contains only __asm__() blocks — no C/C++ training data",
+                        })
+                    # Revert match status for functions whose ONLY source is a rejected file
+                    for func in list(matched_funcs):
+                        func_files = {e["file"] for e in session_results
+                                      if e.get("address") == func["address"]
+                                      and e.get("file")}
+                        if func_files and func_files.issubset(set(asm_rejected)):
+                            target = addr_index.get(func["address"])
+                            if target:
+                                target["match_status"] = "failed"
+                            matched_funcs.remove(func)
+                            total_matched -= 1
+                            total_failed += 1
+                            log(f"    Reverted: {func['name']} → failed (assembly-only source)")
+                    # Remove rejected files from commit set
+                    matched_files -= set(asm_rejected)
 
             # Auto-commit matched work
             # Git errors are loud but non-fatal — matched work is saved in
