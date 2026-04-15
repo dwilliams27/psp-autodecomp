@@ -16,25 +16,25 @@ __asm__(
     "__0fReMultiSphereShapeSGetProjectedMinMaxRC6FmVec3RC6EmOCSPfTDK:\n"
     "lwc1 $f12, 132($a0)\n"         // f12 = this->halfLen (0x84)
     "mfc1 $t1, $f12\n"              // t1 = halfLen bits
-    ".word 0x48e90004\n"             // mtv $t1, S100
-    ".word 0xd8c60030\n"             // lv.q C120, 0x30($a2) — ocs.position
-    ".word 0xd8c70020\n"             // lv.q C130, 0x20($a2) — ocs.forward
-    ".word 0x65048708\n"             // vscl.t C200, C130, S100 — forward * halfLen
-    ".word 0x60088608\n"             // vadd.t C200, C120, C200 — point1 = pos + fwd*halfLen
-    ".word 0xd8a90000\n"             // lv.q C210, 0($a1) — dir
-    ".word 0x64898804\n"             // vdot.t S100, C200, C210 — dot1
-    ".word 0x48650004\n"             // mfv $a1, S100
+    "mtv $t1, S100\n"
+    "lv.q C120, 0x30($a2)\n"
+    "lv.q C130, 0x20($a2)\n"
+    "vscl.t C200, C130, S100\n"
+    "vadd.t C200, C120, C200\n"
+    "lv.q C210, 0($a1)\n"
+    "vdot.t S100, C200, C210\n"
+    "mfv $a1, S100\n"
     "mtc1 $a1, $f13\n"              // f13 = dot1
     "lwc1 $f14, 128($a0)\n"         // f14 = this->radius (0x80)
     "sub.s $f15, $f13, $f14\n"      // f15 = dot1 - radius (min1)
     "add.s $f13, $f13, $f14\n"      // f13 = dot1 + radius (max1)
     "neg.s $f12, $f12\n"            // f12 = -halfLen
     "mfc1 $a0, $f12\n"              // a0 = -halfLen bits
-    ".word 0x48e40004\n"             // mtv $a0, S100
-    ".word 0x65048707\n"             // vscl.t C130, C130, S100 — forward * (-halfLen)
-    ".word 0x60078606\n"             // vadd.t C120, C120, C130 — point2 = pos + fwd*(-halfLen)
-    ".word 0x64898604\n"             // vdot.t S100, C120, C210 — dot2
-    ".word 0x48640004\n"             // mfv $a0, S100
+    "mtv $a0, S100\n"
+    "vscl.t C130, C130, S100\n"
+    "vadd.t C120, C120, C130\n"
+    "vdot.t S100, C120, C210\n"
+    "mfv $a0, S100\n"
     "mtc1 $a0, $f16\n"              // f16 = dot2
     "sub.s $f12, $f16, $f14\n"      // f12 = dot2 - radius (min2)
     "add.s $f14, $f16, $f14\n"      // f14 = dot2 + radius (max2)

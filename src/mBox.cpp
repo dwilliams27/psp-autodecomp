@@ -14,10 +14,10 @@ __asm__(
     ".globl __0fEmBoxGExtendRC6EmBox\n"
     "__0fEmBoxGExtendRC6EmBox:\n"
     // Check if other box is empty (other.min > other.max in all 3 components)
-    ".word 0xd8a60000\n"         // lv.q C120, 0($a1) — other.min
-    ".word 0xd8a70010\n"         // lv.q C130, 0x10($a1) — other.max
-    ".word 0x6c078607\n"         // vcmp.t gt, C120, C130
-    ".word 0xffff0000\n"         // vnop
+    "lv.q C120, 0($a1)\n"
+    "lv.q C130, 0x10($a1)\n"
+    "vcmp.t gt, C120, C130\n"
+    "vnop\n"
     ".word 0x48660083\n"         // mfvc $a2, $131
     "andi $a2, $a2, 0x20\n"     // isolate vcmp all-true bit
     "sltu $a2, $zero, $a2\n"    // normalize to 0/1
@@ -25,32 +25,32 @@ __asm__(
     "bnez $a2, 1f\n"            // if other is empty, return
     "nop\n"
     // Check if this box is empty (this->min > this->max in all 3 components)
-    ".word 0xd8860000\n"         // lv.q C120, 0($a0) — this->min
-    ".word 0xd8870010\n"         // lv.q C130, 0x10($a0) — this->max
-    ".word 0x6c078607\n"         // vcmp.t gt, C120, C130
-    ".word 0xffff0000\n"         // vnop
+    "lv.q C120, 0($a0)\n"
+    "lv.q C130, 0x10($a0)\n"
+    "vcmp.t gt, C120, C130\n"
+    "vnop\n"
     ".word 0x48660083\n"         // mfvc $a2, $131
     "andi $a2, $a2, 0x20\n"     // isolate bit
     "sltu $a2, $zero, $a2\n"    // normalize
     "andi $a2, $a2, 0xff\n"     // bool mask
-    ".word 0xd8a60000\n"         // lv.q C120, 0($a1) — preload other.min
+    "lv.q C120, 0($a1)\n"
     "bnel $a2, $zero, 2f\n"     // if this is empty, branch-likely to copy tail
-    ".word 0xf8860000\n"         // sv.q C120, 0($a0) — delay: store other.min
+    "sv.q C120, 0($a0)\n"
     // Normal extend: component-wise min of mins, max of maxes
-    ".word 0xd8870000\n"         // lv.q C130, 0($a0) — this->min
-    ".word 0x6d068706\n"         // vmin.t C120, C130, C120
-    ".word 0xf8860000\n"         // sv.q C120, 0($a0) — store new min
-    ".word 0xd8860010\n"         // lv.q C120, 0x10($a0) — this->max
-    ".word 0xd8a70010\n"         // lv.q C130, 0x10($a1) — other.max
-    ".word 0x6d878606\n"         // vmax.t C120, C120, C130
-    ".word 0xf8860010\n"         // sv.q C120, 0x10($a0) — store new max
+    "lv.q C130, 0($a0)\n"
+    "vmin.t C120, C130, C120\n"
+    "sv.q C120, 0($a0)\n"
+    "lv.q C120, 0x10($a0)\n"
+    "lv.q C130, 0x10($a1)\n"
+    "vmax.t C120, C120, C130\n"
+    "sv.q C120, 0x10($a0)\n"
     "1:\n"                       // return point (also reached when other is empty)
-    ".word 0x03e00008\n"         // jr $ra
+    "jr $ra\n"
     "nop\n"
     "2:\n"                       // copy tail: this was empty, copy other entirely
-    ".word 0xd8a60010\n"         // lv.q C120, 0x10($a1) — other.max
-    ".word 0x03e00008\n"         // jr $ra
-    ".word 0xf8860010\n"         // sv.q C120, 0x10($a0) — delay: store other.max
+    "lv.q C120, 0x10($a1)\n"
+    "jr $ra\n"
+    "sv.q C120, 0x10($a0)\n"
     ".set reorder\n"
 );
 

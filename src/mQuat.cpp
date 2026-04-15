@@ -19,51 +19,51 @@ __asm__(
     ".text\n"
     ".globl __0fFmQuatEMultRC6FmQuatTB\n"
     "__0fFmQuatEMultRC6FmQuatTB:\n"
-    ".word 0x27bdfff0\n"  // addiu sp, sp, -16
-    ".word 0xc4cc000c\n"  // lwc1 $f12, 12(a2)      — bw = b.w
-    ".word 0xc4ad0000\n"  // lwc1 $f13, 0(a1)       — ax = a.x
-    ".word 0xc4ce0000\n"  // lwc1 $f14, 0(a2)       — bx = b.x
-    ".word 0xc4af000c\n"  // lwc1 $f15, 12(a1)      — aw = a.w
-    ".word 0x460d6402\n"  // mul.s $f16, $f12, $f13  — bw*ax
-    ".word 0xc4b10008\n"  // lwc1 $f17, 8(a1)       — az = a.z
-    ".word 0x460f7482\n"  // mul.s $f18, $f14, $f15  — bx*aw
-    ".word 0xc4b30004\n"  // lwc1 $f19, 4(a1)       — ay = a.y
-    ".word 0xc4c00004\n"  // lwc1 $f0, 4(a2)        — by = b.y
-    ".word 0x46117082\n"  // mul.s $f2, $f14, $f17   — bx*az
-    ".word 0x46136042\n"  // mul.s $f1, $f12, $f19   — bw*ay
-    ".word 0xc4c30008\n"  // lwc1 $f3, 8(a2)        — bz = b.z
-    ".word 0x46110102\n"  // mul.s $f4, $f0, $f17    — by*az
-    ".word 0x46128400\n"  // add.s $f16, $f16, $f18  — bw*ax + bx*aw
-    ".word 0x46131982\n"  // mul.s $f6, $f3, $f19    — bz*ay
-    ".word 0x46020881\n"  // sub.s $f2, $f1, $f2     — bw*ay - bx*az
-    ".word 0x460f01c2\n"  // mul.s $f7, $f0, $f15    — by*aw
-    ".word 0x46048400\n"  // add.s $f16, $f16, $f4   — bw*ax+bx*aw+by*az
-    ".word 0x46116142\n"  // mul.s $f5, $f12, $f17   — bw*az
-    ".word 0x460d0242\n"  // mul.s $f9, $f0, $f13    — by*ax
-    ".word 0x46137202\n"  // mul.s $f8, $f14, $f19   — bx*ay
-    ".word 0x460d1902\n"  // mul.s $f4, $f3, $f13    — bz*ax
-    ".word 0x46068401\n"  // sub.s $f16, $f16, $f6   — x = bw*ax+bx*aw+by*az-bz*ay
-    ".word 0x46071480\n"  // add.s $f18, $f2, $f7    — bw*ay-bx*az+by*aw
-    ".word 0x460f6302\n"  // mul.s $f12, $f12, $f15  — bw*aw
-    ".word 0x460d7342\n"  // mul.s $f13, $f14, $f13  — bx*ax
-    ".word 0xe7b00000\n"  // swc1 $f16, 0(sp)        — store result.x
-    ".word 0x46082840\n"  // add.s $f1, $f5, $f8     — bw*az+bx*ay
-    ".word 0x46049400\n"  // add.s $f16, $f18, $f4   — y = bw*ay-bx*az+by*aw+bz*ax
-    ".word 0x460f1bc2\n"  // mul.s $f15, $f3, $f15   — bz*aw
-    ".word 0x460d6301\n"  // sub.s $f12, $f12, $f13  — bw*aw-bx*ax
-    ".word 0x46130382\n"  // mul.s $f14, $f0, $f19   — by*ay
-    ".word 0x46090881\n"  // sub.s $f2, $f1, $f9     — bw*az+bx*ay-by*ax
-    ".word 0xe7b00004\n"  // swc1 $f16, 4(sp)        — store result.y
-    ".word 0x46111c02\n"  // mul.s $f16, $f3, $f17   — bz*az
-    ".word 0x460e6301\n"  // sub.s $f12, $f12, $f14  — bw*aw-bx*ax-by*ay
-    ".word 0x460f13c0\n"  // add.s $f15, $f2, $f15   — z = bw*az+bx*ay-by*ax+bz*aw
-    ".word 0x46106301\n"  // sub.s $f12, $f12, $f16  — w = bw*aw-bx*ax-by*ay-bz*az
-    ".word 0xe7af0008\n"  // swc1 $f15, 8(sp)        — store result.z
-    ".word 0xe7ac000c\n"  // swc1 $f12, 12(sp)       — store result.w
-    ".word 0xdba60000\n"  // lv.q C120, 0(sp)        — load result quadword
-    ".word 0xf8860000\n"  // sv.q C120, 0(a0)        — store to this
-    ".word 0x03e00008\n"  // jr ra
-    ".word 0x27bd0010\n"  // addiu sp, sp, 16 (delay slot)
+    "addiu $sp, $sp, -16\n"
+    "lwc1 $f12, 12($a2)\n"
+    "lwc1 $f13, 0($a1)\n"
+    "lwc1 $f14, 0($a2)\n"
+    "lwc1 $f15, 12($a1)\n"
+    "mul.s $f16, $f12, $f13\n"
+    "lwc1 $f17, 8($a1)\n"
+    "mul.s $f18, $f14, $f15\n"
+    "lwc1 $f19, 4($a1)\n"
+    "lwc1 $f0, 4($a2)\n"
+    "mul.s $f2, $f14, $f17\n"
+    "mul.s $f1, $f12, $f19\n"
+    "lwc1 $f3, 8($a2)\n"
+    "mul.s $f4, $f0, $f17\n"
+    "add.s $f16, $f16, $f18\n"
+    "mul.s $f6, $f3, $f19\n"
+    "sub.s $f2, $f1, $f2\n"
+    "mul.s $f7, $f0, $f15\n"
+    "add.s $f16, $f16, $f4\n"
+    "mul.s $f5, $f12, $f17\n"
+    "mul.s $f9, $f0, $f13\n"
+    "mul.s $f8, $f14, $f19\n"
+    "mul.s $f4, $f3, $f13\n"
+    "sub.s $f16, $f16, $f6\n"
+    "add.s $f18, $f2, $f7\n"
+    "mul.s $f12, $f12, $f15\n"
+    "mul.s $f13, $f14, $f13\n"
+    "swc1 $f16, 0($sp)\n"
+    "add.s $f1, $f5, $f8\n"
+    "add.s $f16, $f18, $f4\n"
+    "mul.s $f15, $f3, $f15\n"
+    "sub.s $f12, $f12, $f13\n"
+    "mul.s $f14, $f0, $f19\n"
+    "sub.s $f2, $f1, $f9\n"
+    "swc1 $f16, 4($sp)\n"
+    "mul.s $f16, $f3, $f17\n"
+    "sub.s $f12, $f12, $f14\n"
+    "add.s $f15, $f2, $f15\n"
+    "sub.s $f12, $f12, $f16\n"
+    "swc1 $f15, 8($sp)\n"
+    "swc1 $f12, 12($sp)\n"
+    "lv.q C120, 0($sp)\n"
+    "sv.q C120, 0($a0)\n"
+    "jr $ra\n"
+    "addiu $sp, $sp, 16\n"
     ".set reorder\n"
 );
 
@@ -81,56 +81,56 @@ __asm__(
     ".globl __0fGmBasisOOrthonormalizev\n"
     "__0fGmBasisOOrthonormalizev:\n"
     // Step 1: Normalize row2
-    ".word 0xd8860020\n"  // lv.q C120, 0x20($a0)
-    ".word 0x64868604\n"  // vdot.t S100, C120, C120
-    ".word 0x6c000408\n"  // vcmp.s ez, S100
-    ".word 0xd0110424\n"  // vrsq.s S101, S100
-    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    "lv.q C120, 0x20($a0)\n"
+    "vdot.t S100, C120, C120\n"
+    "vcmp.s ez, S100\n"
+    "vrsq.s S101, S100\n"
+    "vsqrt.s S102, S100\n"
     ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
-    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
-    ".word 0x65248606\n"  // vscl.t C120, C120, S101
-    ".word 0xf8860020\n"  // sv.q C120, 0x20($a0)
+    "vcmovt.s S101, S100, 0\n"
+    "vscl.t C120, C120, S101\n"
+    "sv.q C120, 0x20($a0)\n"
     // Step 2: Orthogonalize and normalize row1
-    ".word 0xd8870010\n"  // lv.q C130, 0x10($a0)
-    ".word 0x64878604\n"  // vdot.t S100, C120, C130
-    ".word 0x48650004\n"  // mfv $a1, S100
-    ".word 0x44856000\n"  // mtc1 $a1, $f12
-    ".word 0x44056000\n"  // mfc1 $a1, $f12
-    ".word 0x48e50004\n"  // mtv $a1, S100
-    ".word 0x65048608\n"  // vscl.t C200, C120, S100
-    ".word 0x60888707\n"  // vsub.t C130, C130, C200
-    ".word 0x64878704\n"  // vdot.t S100, C130, C130
-    ".word 0x6c000408\n"  // vcmp.s ez, S100
-    ".word 0xd0110424\n"  // vrsq.s S101, S100
-    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    "lv.q C130, 0x10($a0)\n"
+    "vdot.t S100, C120, C130\n"
+    "mfv $a1, S100\n"
+    "mtc1 $a1, $f12\n"
+    "mfc1 $a1, $f12\n"
+    "mtv $a1, S100\n"
+    "vscl.t C200, C120, S100\n"
+    "vsub.t C130, C130, C200\n"
+    "vdot.t S100, C130, C130\n"
+    "vcmp.s ez, S100\n"
+    "vrsq.s S101, S100\n"
+    "vsqrt.s S102, S100\n"
     ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
-    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
-    ".word 0x65248707\n"  // vscl.t C130, C130, S101
-    ".word 0xf8870010\n"  // sv.q C130, 0x10($a0)
+    "vcmovt.s S101, S100, 0\n"
+    "vscl.t C130, C130, S101\n"
+    "sv.q C130, 0x10($a0)\n"
     // Step 3: Orthogonalize and normalize row0
-    ".word 0xd8880000\n"  // lv.q C200, 0x0($a0)
-    ".word 0x64888604\n"  // vdot.t S100, C120, C200
-    ".word 0x48650004\n"  // mfv $a1, S100
-    ".word 0x44856000\n"  // mtc1 $a1, $f12
-    ".word 0x44056000\n"  // mfc1 $a1, $f12
-    ".word 0x48e50004\n"  // mtv $a1, S100
-    ".word 0x65048606\n"  // vscl.t C120, C120, S100
-    ".word 0x64888704\n"  // vdot.t S100, C130, C200
-    ".word 0x48650004\n"  // mfv $a1, S100
-    ".word 0x44856800\n"  // mtc1 $a1, $f13
-    ".word 0x44056800\n"  // mfc1 $a1, $f13
-    ".word 0x48e50004\n"  // mtv $a1, S100
-    ".word 0x65048707\n"  // vscl.t C130, C130, S100
-    ".word 0x60868806\n"  // vsub.t C120, C200, C120
-    ".word 0x60878606\n"  // vsub.t C120, C120, C130
-    ".word 0x64868604\n"  // vdot.t S100, C120, C120
-    ".word 0x6c000408\n"  // vcmp.s ez, S100
-    ".word 0xd0110424\n"  // vrsq.s S101, S100
-    ".word 0xd0160444\n"  // vsqrt.s S102, S100
+    "lv.q C200, 0($a0)\n"
+    "vdot.t S100, C120, C200\n"
+    "mfv $a1, S100\n"
+    "mtc1 $a1, $f12\n"
+    "mfc1 $a1, $f12\n"
+    "mtv $a1, S100\n"
+    "vscl.t C120, C120, S100\n"
+    "vdot.t S100, C130, C200\n"
+    "mfv $a1, S100\n"
+    "mtc1 $a1, $f13\n"
+    "mfc1 $a1, $f13\n"
+    "mtv $a1, S100\n"
+    "vscl.t C130, C130, S100\n"
+    "vsub.t C120, C200, C120\n"
+    "vsub.t C120, C120, C130\n"
+    "vdot.t S100, C120, C120\n"
+    "vcmp.s ez, S100\n"
+    "vrsq.s S101, S100\n"
+    "vsqrt.s S102, S100\n"
     ".word 0xdc0010e5\n"  // vpfxs 1, Y, Z, W
-    ".word 0xd2a00424\n"  // vcmovt.s S101, S100, 0
-    ".word 0x65248606\n"  // vscl.t C120, C120, S101
-    ".word 0x03e00008\n"  // jr ra
-    ".word 0xf8860000\n"  // sv.q C120, 0x0($a0) (delay slot)
+    "vcmovt.s S101, S100, 0\n"
+    "vscl.t C120, C120, S101\n"
+    "jr $ra\n"
+    "sv.q C120, 0($a0)\n"
     ".set reorder\n"
 );

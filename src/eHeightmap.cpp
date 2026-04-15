@@ -28,20 +28,20 @@ void eHeightmap::CastSphere(const eCollisionInfo &info, const mRay &ray, float r
         "addiu $sp, $sp, -96\n"
         "sw $ra, 80($sp)\n"
         "move $t3, $a1\n"
-        ".word 0xd8c60000\n"         // lv.q C120, 0(a2)
-        ".word 0xfba60000\n"         // sv.q C120, 0(sp)
+        "lv.q C120, 0($a2)\n"
+        "sv.q C120, 0($sp)\n"
         "swc1 $f12, 12($sp)\n"
         "lwc1 $f12, 32($a2)\n"
-        ".word 0xfba60010\n"         // sv.q C120, 0x10(sp)
+        "sv.q C120, 0x10($sp)\n"
         "addiu $v0, $sp, 16\n"
-        ".word 0xd8c70010\n"         // lv.q C130, 0x10(a2)
-        ".word 0xfba70030\n"         // sv.q C130, 0x30(sp)
+        "lv.q C130, 0x10($a2)\n"
+        "sv.q C130, 0x30($sp)\n"
         "swc1 $f12, 64($sp)\n"
         "mfc1 $a0, $f12\n"
-        ".word 0x48e40004\n"         // mtv a0, S100
-        ".word 0x65048707\n"         // vscl.t C130, C130, S100
-        ".word 0x60078606\n"         // vadd.t C120, C120, C130
-        ".word 0xfba60020\n"         // sv.q C120, 0x20(sp)
+        "mtv $a0, S100\n"
+        "vscl.t C130, C130, S100\n"
+        "vadd.t C120, C120, C130\n"
+        "sv.q C120, 0x20($sp)\n"
         "lw $a0, 4($t3)\n"
         "lw $a1, 4($a0)\n"
         "addiu $a1, $a1, 160\n"

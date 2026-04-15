@@ -13,10 +13,10 @@ __asm__(
     // Prologue
     "addiu $sp, $sp, -32\n"
     // VFPU: dot3(ray.direction, normal)
-    ".word 0xd9060010\n"         // lv.q C120, 0x10($t0) - ray.direction
-    ".word 0xd8e70000\n"         // lv.q C130, 0x0($a3)  - normal
-    ".word 0x64878604\n"         // vdot.t S100, C120, C130
-    ".word 0x48660004\n"         // mfv $a2, S100
+    "lv.q C120, 0x10($t0)\n"
+    "lv.q C130, 0($a3)\n"
+    "vdot.t S100, C120, C130\n"
+    "mfv $a2, S100\n"
     // Move dot result to FPU, compare with 0
     "mtc1 $6, $f13\n"
     "mtc1 $0, $f12\n"
@@ -46,22 +46,22 @@ __asm__(
     "mul.s $f12, $f13, $f12\n"  // factor = dot * intensity
     "mfc1 $4, $f12\n"
     // VFPU: scale color by factor, store to outColor
-    ".word 0x48e40004\n"         // mtv $a0, S100
-    ".word 0xdba60000\n"         // lv.q C120, 0($sp)
-    ".word 0x65048606\n"         // vscl.t C120, C120, S100
-    ".word 0xf8a60000\n"         // sv.q C120, 0($a1)
-    ".word 0x03e00008\n"         // jr $ra
+    "mtv $a0, S100\n"
+    "lv.q C120, 0($sp)\n"
+    "vscl.t C120, C120, S100\n"
+    "sv.q C120, 0($a1)\n"
+    "jr $ra\n"
     "addiu $sp, $sp, 32\n"
     // Zero path: dot <= 0, output zero vector
     "1:\n"
     "mfc1 $4, $f12\n"
     "mfc1 $6, $f12\n"
     "mfc1 $7, $f12\n"
-    ".word 0x48e40006\n"         // mtv $a0, S120
-    ".word 0x48e60026\n"         // mtv $a2, S121
-    ".word 0x48e70046\n"         // mtv $a3, S122
-    ".word 0xf8a60000\n"         // sv.q C120, 0($a1)
-    ".word 0x03e00008\n"         // jr $ra
+    "mtv $a0, S120\n"
+    "mtv $a2, S121\n"
+    "mtv $a3, S122\n"
+    "sv.q C120, 0($a1)\n"
+    "jr $ra\n"
     "addiu $sp, $sp, 32\n"
     ".set reorder\n"
 );
