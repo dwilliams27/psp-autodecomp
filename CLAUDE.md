@@ -1,4 +1,4 @@
-# Autonoma
+# psp-autodecomp
 
 Autonomous decompilation of PSP games using coding agent swarms. See `foundation.md` for goals, milestones, and principles. See `docs/decisions/` for verified research and design rationale. See `docs/direction/` for phase roadmap and north-star guidance. See `docs/bugs.md` for known bugs discovered during development — add new bugs there when found rather than leaving TODOs in code.
 
@@ -59,6 +59,21 @@ Additional system dependencies (Homebrew):
 - **Native VFPU types**: SNC has a fully functional VFPU type system that generates `lv.q`/`sv.q` and schedules them with MIPS code (including delay slots). **The base type must be `int`, not `float`** (the Sony SDK headers are wrong). Use: `typedef int v4sf_t __attribute__((mode(V4SF)));` (quad) and `typedef int v16sf_t __attribute__((mode(V16SF)));` (matrix). Requires `-Xvfpumatrix=N` flag. Builtins: `__builtin_ftovs(float)` / `__builtin_vstof(vs)` for scalars. See `docs/decisions/007-vfpu-native-types.md`. **Do NOT use `.word` for VFPU** — use native types for stores/loads so SNC can schedule, and VFPU mnemonics in inline asm only for operations without C equivalents (vmidt.q, vmov.q, etc.).
 - **Permuter tool** (`tools/permuter.py`) does mechanical last-mile matching by randomly mutating C source and comparing compiled output. Use it when within ~10-20 bytes of matching: `python3 tools/permuter.py src/file.cpp 0xADDR --time 300 --save-best`. See `docs/decisions/005-snc-permuter.md`.
 - **Function database** at `config/functions.json` has 9,966 functions with class, size, .obj file, call graph, and match status. Query with `python3 tools/func_db.py`.
+
+## SNC compiler research
+
+Deep research on SNC codegen is in `docs/research/`. **Read the relevant docs before matching** — they contain hard-won knowledge that will save you hours of trial and error.
+
+| Doc | Read when... |
+|-----|-------------|
+| `snc-fpu-scheduling.md` | Function has FPU arithmetic (mul.s, add.s). Source expression ORDER matters. |
+| `snc-struct-vfpu-codegen.md` | Function has lv.q/sv.q or the mtc1/mfc1/mtv/sv.q pattern |
+| `snc-delay-slots.md` | Inline asm instructions aren't landing in delay slots |
+| `snc-branch-likely.md` | Function has beqzl/bnezl/bnel — 7 patterns documented |
+| `snc-vtable-layout.md` | Function has virtual dispatch (lw/addiu/lh/addu/lw/jalr pattern) |
+| `snc-constructor-codegen.md` | Function is a constructor initializing float members |
+| `snc-loop-switch.md` | Function has loops or switch statements |
+| `snc-name-mangling.md` | Need to determine the mangled symbol name for a function |
 
 ## Matching workflow
 
