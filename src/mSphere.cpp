@@ -71,13 +71,10 @@ void nwConnection::UpdatePing(cTimeValue tv) {
     } else {
         pSrc = &mPingSamples;
     }
-
     pingValue = *pSrc;
     maxPingVal = *(int *)0x0036C7FC;
 
-    if (!(pingValue < maxPingVal)) {
-        pVal = pMax;
-    } else {
+    if (pingValue < maxPingVal) {
         pMax = pVal;
     }
     pingValue = *pMax;

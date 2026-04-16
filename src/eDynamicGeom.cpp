@@ -1,26 +1,18 @@
 // eDynamicGeom::eDynamicGeom(cBase *)
 // Address: 0x00044c44, Size: 140B, Obj: eAll_psp.obj
 //
-// STATUS: NEAR-MATCH (2 instructions swapped, 8/140 bytes differ)
+// STATUS: NEAR-MATCH (8/140 bytes differ — 2 instructions swapped at 0x74/0x78)
 //
-// The scalar part matches PERFECTLY with -Xmopt=0 flag (needs Makefile change).
-// The VFPU identity matrix init compiles correctly via .word inline asm.
+// Scalar part matches perfectly using inline asm for -1 loads (prevents CSE)
+// and for the 0x10 load (controls scheduling). No -Xmopt=0 flag needed.
 //
-// BLOCKER: The compiler places 'move v0, s0' (constructor return) AFTER the
-// last sv.q store, but the original has it BETWEEN the 3rd and 4th sv.q.
-// This interleaving cannot be reproduced from C with .word inline asm because
-// the compiler treats asm blocks as opaque scheduling barriers. The original
-// likely used SNC's native VFPU support, letting the scheduler see individual
-// VFPU instructions.
-//
-// REQUIRED FLAG: -Xmopt=0 (Makefile override needed for eDynamicGeom)
-// Without -Xmopt=0, the compiler merges two -1 constants (CSE), producing
-// 136 bytes instead of 140. With -Xmopt=0, CSE is disabled and the compiler
-// correctly generates separate 'li a0, -1' loads for mGeomIndex and mParentIndex.
-//
-// Assembly match available in src/eDynamicGeom_ctor.s for reference.
+// REMAINING BLOCKER: The compiler places 'move v0, s0' (constructor return)
+// AFTER the last sv.q store, but the expected has it BETWEEN the 3rd and 4th
+// sv.q. This cannot be fixed because asm blocks are opaque to the scheduler.
+// The original compiler could interleave MIPS code with VFPU stores natively.
 
 #include "eDynamicGeom.h"
+#include "ePath.h"
 #include "mOCS.h"
 
 extern char eDynamicGeomvirtualtable[];
@@ -47,24 +39,67 @@ void eDynamicGeom::GetSubObjectToWorld(int, mOCS *out) const {
 }
 
 eDynamicGeom::eDynamicGeom(cBase *base) : eGeom(base) {
-    *(void **)((char *)this + 4) = eDynamicGeomvirtualtable;
-    *(short *)((char *)this + 0xD0) = -1;
-    *(unsigned char *)((char *)this + 0xD2) = 0x10;
-    *(float *)((char *)this + 0xD4) = 1.0f;
-    *(int *)((char *)this + 0xD8) = -1;
+    void *vt = eDynamicGeomvirtualtable;
+    int neg;
+    __asm__ volatile("addiu %0, $0, -1" : "=r"(neg));
+    *(void **)((char *)this + 4) = vt;
+    int typ;
+    __asm__ volatile("ori %0, $0, 0x10" : "=r"(typ));
+    *(short *)((char *)this + 0xD0) = (short)neg;
+    *(unsigned char *)((char *)this + 0xD2) = (unsigned char)typ;
+    float f = 1.0f;
+    int neg2;
+    __asm__ volatile("addiu %0, $0, -1" : "=r"(neg2));
+    *(float *)((char *)this + 0xD4) = f;
+    *(int *)((char *)this + 0xD8) = neg2;
     *(int *)((char *)this + 0xDC) = 0;
     *(int *)((char *)this + 0xE0) = 0;
     *(int *)((char *)this + 0xE4) = 0;
     *(int *)((char *)this + 0xE8) = 0;
     __asm__ volatile(
-        ".word 0xf3838080\n"
-        ".word 0xd0008086\n"
-        ".word 0xd0008187\n"
-        ".word 0xd0008288\n"
-        ".word 0xd0008389\n"
-        ".word 0xfa060090\n"
-        ".word 0xfa0700a0\n"
-        ".word 0xfa0800b0\n"
-        ".word 0xfa0900c0\n"
+        "vmidt.q M000\n"
+        "vmov.q C120, C000\n"
+        "vmov.q C130, C010\n"
+        "vmov.q C200, C020\n"
+        "vmov.q C210, C030\n"
+        "sv.q C120, 0x90(%0)\n"
+        "sv.q C130, 0xA0(%0)\n"
+        "sv.q C200, 0xB0(%0)\n"
+        "sv.q C210, 0xC0(%0)\n"
+        : : "r"(this) : "memory"
     );
+}
+
+float ePath::PathT2Units(float t) const {
+    int intPart;
+    __asm__ volatile(
+        "trunc.w.s $f13, %1\n"
+        "mfc1 %0, $f13\n"
+        : "=r"(intPart) : "f"(t)
+    );
+    float nextT = t + 1.0f;
+    ePathPoint *pts = mPoints;
+    float maxIdx;
+
+    if (pts != 0) {
+        int count = *(int *)((char *)pts - 4) & 0x3FFFFFFF;
+        maxIdx = (float)(count - 1);
+    } else {
+        maxIdx = -1.0f;
+    }
+
+    int nextIdx;
+    if (nextT <= 0.0f) {
+        nextIdx = (int)0.0f;
+    } else {
+        if (maxIdx <= nextT) {
+            nextT = maxIdx;
+        }
+        nextIdx = (int)nextT;
+    }
+
+    float dist = pts[intPart].mDistance;
+    float nextDist = pts[nextIdx].mDistance;
+    float frac = t - (float)intPart;
+    return dist + frac * (nextDist - dist);
 }

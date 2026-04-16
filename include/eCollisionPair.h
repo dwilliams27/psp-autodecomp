@@ -26,6 +26,7 @@ public:
     unsigned short mContactCount;           // 0x42
     char _pad44[0x04];                      // 0x44
     eCollisionConstraint *mContactList;     // 0x48
+    char _pad4C[0x18];                      // 0x4C — padding to align cRedBlackTreeNode fields
 
     void RemoveContacts();
     int BodiesSleeping() const;

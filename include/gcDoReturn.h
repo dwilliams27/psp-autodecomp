@@ -15,6 +15,7 @@ public:
     void GetText(char *) const;
     void Write(cFile &) const;
     float Evaluate(void) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
 
