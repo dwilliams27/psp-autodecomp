@@ -18,6 +18,7 @@ READELF = "mipsel-linux-gnu-readelf"
 AS = "mipsel-linux-gnu-as"
 AS_FLAGS = ["-march=allegrex", "-mabi=eabi", "-EL"]
 CLAUDE = "/usr/local/bin/claude"
+CLAUDE_MODEL = "claude-opus-4-7"
 
 
 def load_db():

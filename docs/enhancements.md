@@ -36,7 +36,35 @@ No one else has a corpus of "SNC at -O2 on Allegrex" codegen patterns. This woul
 
 ---
 
-## 2. ASM Bigram/Trigram RAG for Function Matching
+## 2. Revisit m2c as the initial decompiler
+
+m2c is likely the weakest link in the matching pipeline. Most agent time on near-miss functions goes to restructuring m2c's generic output into SNC-idiomatic C. m2c was built for generic MIPS (N64/PS1 target era) and has no knowledge of SNC's quirks: branch-likely patterns, VFPU intrinsics, SNC's specific register allocation preferences, struct-access idioms, etc.
+
+Options to explore:
+1. **Fine-tuned SNC decompilation model** (see above / `docs/direction/002-snc-decompilation-model.md`). Long-term answer: replace m2c with a model trained on SNC output patterns.
+2. **m2c patches for SNC idioms** — fork `extern/m2c` (already on the `psp-vfpu-passthrough` branch) and add SNC-specific pattern recognition. Lower ceiling than #1 but faster to implement.
+3. **Ghidra pseudo-C as an alternative input** — per LLM4Decompile research, refining Ghidra output produces better results than refining raw decompiler output. Could replace or supplement m2c in the pipeline.
+4. **Hybrid**: use multiple decompilers (m2c + Ghidra + future SNC model) and have the agent choose the best starting point.
+
+Impact if solved: directly raises the overall match rate ceiling, reduces wasted agent time, and improves training data quality (better-structured C in training pairs).
+
+Not blocked by anything. Can be worked on in parallel with other tasks.
+
+---
+
+## 3. Binary-patch pspcor.exe to fix bnel heuristic divergence
+
+Surgical patch to `pspcor.exe` that adds a sixth check to `del_slot_can_fill` at VA `0x43afbc`, rejecting branch-likely promotion when the delay-slot candidate is a scheduling-filler move with no register overlap with the branch's compare registers. Replicates the original SNC's heuristic per Experiment F's rules.
+
+**Expected impact**: 2-7 additional matches among the failed-40 (confirmed: `gcStateVTableEntry::Set`, `cOutStream::WriteBits`). Low immediate ROI but eliminates a known failure class going forward.
+
+**Not blocking anything.** Defer until source-quality improvements (items #1, #2) plateau and bnel-divergence cases become a meaningful fraction of remaining failures.
+
+Full design + reverse-engineering context + patch bytes in `docs/decisions/011-bnel-compiler-patch-design.md`.
+
+---
+
+## 4. ASM Bigram/Trigram RAG for Function Matching
 
 Index matched (successfully decompiled) functions by the bigrams and trigrams of their assembly instructions. Use ColBERT-style per-token embeddings so that retrieval captures fine-grained instruction-sequence similarity rather than collapsing an entire function into a single vector.
 

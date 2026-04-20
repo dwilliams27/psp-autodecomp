@@ -22,7 +22,7 @@ import uuid
 from datetime import datetime, timedelta
 
 from common import (DB_PATH, EBOOT_PATH, OBJDUMP, OBJCOPY, NM, CLAUDE,
-                    TEXT_FILE_OFFSET,
+                    CLAUDE_MODEL, TEXT_FILE_OFFSET,
                     load_db, save_db, filter_functions, build_addr_map,
                     fix_vfpu_disassembly,
                     get_text_relocations, mask_relocation_bytes)
@@ -427,6 +427,7 @@ def run_claude_session(prompt, session_id, timeout=SESSION_TIMEOUT):
     """Invoke Claude Code in headless mode. Returns (success, error_msg)."""
     cmd = [
         CLAUDE, "-p", prompt,
+        "--model", CLAUDE_MODEL,
         "--dangerously-skip-permissions",
         "--output-format", "json",
         "--verbose",

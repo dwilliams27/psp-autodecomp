@@ -85,3 +85,28 @@ If any of these criteria are not met, the function is **not confirmed unmatchabl
 - Register allocation diffs (different register numbers, same instruction) are source-controllable
 - Statement reordering diffs are source-controllable
 - Agents must NOT use this classification to avoid hard work on functions that are merely difficult
+
+---
+
+## EDIT (2026-04-19): Confirmed and refined
+
+This doc's core claim — that `gcStateVTableEntry::Set` has a real bnel-heuristic divergence — was verified via precise byte-level analysis on 2026-04-19.
+
+**Confirmed details of the Set divergence:**
+
+Byte-level diff of our compiled output vs original EBOOT bytes (96-byte function, all 24 instructions compared). Only 4 instructions differ:
+
+| Offset | Ours | Original | Classification |
+|--------|------|----------|----------------|
+| 0x14 | `lui a3, 0x0` | `lui a3, 0x4` | Relocation (masked) |
+| 0x1c | `addiu a3, a3, 0` | `addiu a3, a3, 0x8890` | Relocation (masked) |
+| **0x34** | **`bnel t1, t0, +3`** | **`bne t1, t0, +2`** | **REAL: heuristic** |
+| **0x38** | **`move a3, a2`** | **`nop`** | **REAL: delay slot** |
+
+The real divergence matches decision 006's description exactly: our compiler emits `bnel + move a3, a2` where the original emits `bne + nop`.
+
+**What this fits under Experiment F's rule set** (see decision 010): the delay-slot `move a3, a2` has **zero register overlap** with the branch's compare registers `{t1, t0}`. Per F, the original compiler's heuristic for this pattern is "74% regular, 26% likely" — so choosing regular is the expected majority behavior. Our compiler appears to always promote in this pattern (0% regular), missing a specific "no-overlap move" rejection rule.
+
+**Clarification of scope**: Decision 010 section F originally reported "zero cases where we emit bnel and the original emits bne+nop in the matched corpus." That statement is technically correct but misleading — the analysis only examined the 462 matched `.o` files, which by definition cannot contain bnel divergences (they would not match). The divergence lives in the **40 failed** functions, which F's analysis did not cover. See the EDIT in decision 010 for the corresponding correction.
+
+**Status of this doc:** the rule set, diagnostic criteria, and scope framing in the original body of this doc remain valid for the specific pattern it describes. The "rare edge case" characterization should be tempered — the pattern is rare per-branch but accumulates across functions.
