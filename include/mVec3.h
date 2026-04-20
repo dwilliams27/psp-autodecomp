@@ -7,6 +7,8 @@ struct mVec3 {
     SceULong128 qw;
     mVec3() {}
     mVec3(const mVec3 &);
+    mVec3(float x, float y, float z);
+    void IRandDir(float mag);
 };
 
 #endif
