@@ -292,6 +292,68 @@ int gcDoSwitch_GetBranch(const struct gcDoEval_t *self, int idx) {
     return v;
 }
 
+typedef void (*stop_fn_t)(void);
+extern stop_fn_t _stop_hook_ptr;
+int _stop(void) {
+    if (&_stop_hook_ptr != 0) {
+        _stop_hook_ptr();
+    }
+    return 0;
+}
+
+struct mem_block_t {
+    struct mem_block_t *next;
+    int size;
+};
+struct mem_pool_t {
+    char _pad[12];
+    int used;
+};
+extern struct mem_block_t *g_free_block_head;
+extern struct mem_pool_t *g_block_pool;
+void free_in_mem_block(void *p) {
+    struct mem_block_t *blk = g_free_block_head;
+    struct mem_pool_t *pool = g_block_pool;
+    g_free_block_head = blk->next;
+    pool->used = pool->used - blk->size - 16;
+}
+
+void *gcMsgCinematicEnded_New(void *buf) {
+    int cursor = *(int *)((char *)buf + 1200) + 4;
+    *(int *)((char *)buf + 1200) = cursor;
+    void *obj = (char *)buf + cursor;
+    void *result = 0;
+    if (obj != 0) {
+        *(int *)obj = 0x388FF0;
+        result = obj;
+    }
+    return result;
+}
+
+void *gcMsgRequestLoadedState_New(void *buf) {
+    int cursor = *(int *)((char *)buf + 1200) + 4;
+    *(int *)((char *)buf + 1200) = cursor;
+    void *obj = (char *)buf + cursor;
+    void *result = 0;
+    if (obj != 0) {
+        *(int *)obj = 0x389050;
+        result = obj;
+    }
+    return result;
+}
+
+void *gcMsgCheckSynchronization_New(void *buf) {
+    int cursor = *(int *)((char *)buf + 1200) + 4;
+    *(int *)((char *)buf + 1200) = cursor;
+    void *obj = (char *)buf + cursor;
+    void *result = 0;
+    if (obj != 0) {
+        *(int *)obj = 0x38AD00;
+        result = obj;
+    }
+    return result;
+}
+
 unsigned char ePlatformInput_AnyButtonPressed(unsigned char *state) {
     int i = 4;
     state += 0x60;
