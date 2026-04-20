@@ -1,10 +1,29 @@
 #ifndef CFILE_H
 #define CFILE_H
 
+struct cFileHandle;
+class cObject;
+
 class cFile {
 public:
+    cFileHandle *mHandle;    // 0x00
+    bool mMode;              // 0x04
+    bool mField5;            // 0x05
+    unsigned char _pad6;     // 0x06 (not initialized in ctor)
+    bool mField7;            // 0x07
+    char _pad[0x100];        // 0x08..0x107
+    int mDepCount;           // 0x108
+    const cObject **mDepArray; // 0x10C
+
+    static unsigned char s_bSwapEndianess;
+
+    cFile();
     void OnCreated(void);
     void OnClosed(void);
+    void Close(bool flag);
+    unsigned int GetCurrentPos(void) const;
+    void SetCurrentPos(unsigned int offset);
+    bool AddDependency(const cObject *obj);
 };
 
 class cBase;
