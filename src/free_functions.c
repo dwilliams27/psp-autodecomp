@@ -241,3 +241,66 @@ float eAudio_GetGroupVolume(int group, int fader) {
     eAudioFader_t *f = &gp->faders[fader];
     return f->target;
 }
+
+struct __thrown_obj_t {
+    int _0;
+    int type;
+    int _8;
+    unsigned char flag;
+    char _padC[3];
+    int data;
+};
+extern struct __thrown_obj_t *volatile g_thrown_obj;
+void __type_of_thrown_object(int *out_type, unsigned char *out_flag, int *out_data) {
+    *out_type = g_thrown_obj->type;
+    *out_flag = g_thrown_obj->flag;
+    *out_data = g_thrown_obj->data;
+}
+
+struct gcDoBreak_root_t {
+    char _0[16];
+    int *unk10;
+};
+extern struct gcDoBreak_root_t *g_gcDoBreak_root;
+float gcDoBreak_Evaluate(const void *self) {
+    int *p = 0;
+    struct gcDoBreak_root_t *r = g_gcDoBreak_root;
+    if (r != 0) {
+        p = r->unk10;
+    }
+    *p |= 2;
+    return 1.0f;
+}
+
+struct gcDoEval_t {
+    char _0[16];
+    int unk10;
+    int _14;
+    int unk18;
+};
+int gcDoEvaluation_GetBranch(const struct gcDoEval_t *self, int idx) {
+    int v = 0;
+    if (idx == 0) return self->unk10;
+    if (idx == 1) v = self->unk18;
+    return v;
+}
+
+int gcDoSwitch_GetBranch(const struct gcDoEval_t *self, int idx) {
+    int v = 0;
+    if (idx == 0) return self->unk10;
+    if (idx == 1) v = self->unk18;
+    return v;
+}
+
+unsigned char ePlatformInput_AnyButtonPressed(unsigned char *state) {
+    int i = 4;
+    state += 0x60;
+    do {
+        if (state[4] > 0) {
+            return 0xFF;
+        }
+        i++;
+        state += 24;
+    } while (i < 41);
+    return 0;
+}
