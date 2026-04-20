@@ -1,7 +1,90 @@
+class ePoint;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+    cHandleT();
+};
+
+template <class T>
+cHandleT<T>::cHandleT() : mIndex(0) {}
+
+struct LookAtEntry {
+    float v0;
+    float v4;
+    float v8;
+    float vC;
+    float heading;        // 0x10
+    float pitch;          // 0x14
+    float roll;           // 0x18
+    unsigned short flags; // 0x1C
+    short pad1E;
+};
+
+struct LookAtParent {
+    char pad0[0x152];
+    unsigned char b152;       // 0x152
+    char pad1[0x1AC - 0x153];
+    LookAtEntry *array;       // 0x1AC
+};
+
+struct LookAtRef {
+    char pad0[0x14];
+    signed char idx;          // 0x14
+};
+
+struct gcLookAtController_layout {
+    LookAtParent *parent;     // 0x00
+    char pad04[4];            // 0x04
+    LookAtRef *ref;           // 0x08
+    char pad0C[0x40 - 0x0C];
+};
+
 class gcLookAtController {
 public:
+    LookAtParent *m_parent;       // 0x00
+    int m_pad04;                  // 0x04
+    LookAtRef *m_ref;             // 0x08
+    char m_pad0C[0x38 - 0x0C];    // 0x0C..0x37
+    cHandleT<ePoint> m_target;    // 0x38
+    cHandleT<ePoint> m_target2;   // 0x3C  (separate handle)
+    short m_state;                // 0x40
+
     void SetHPR(float heading, float pitch, float roll, bool snap);
+    void LookAt(cHandleT<ePoint> p);
+    float GetHeading() const;
+    float GetPitch() const;
+    float GetRoll() const;
+    void OnDeactivated();
 };
+
+void gcLookAtController::LookAt(cHandleT<ePoint> p) {
+    m_state = 2;
+    m_target = p;
+    cHandleT<ePoint> *p2 = &m_target2;
+    p2->mIndex = 0;
+}
+
+float gcLookAtController::GetHeading() const {
+    return m_parent->array[m_ref->idx].heading;
+}
+
+float gcLookAtController::GetPitch() const {
+    return m_parent->array[m_ref->idx].pitch;
+}
+
+float gcLookAtController::GetRoll() const {
+    return m_parent->array[m_ref->idx].roll;
+}
+
+void gcLookAtController::OnDeactivated() {
+    LookAtParent *parent = m_parent;
+    LookAtEntry *e = &parent->array[m_ref->idx];
+    unsigned short newFlags = (unsigned short)(e->flags & ~1);
+    e->flags = newFlags;
+    parent->b152 = (unsigned char)(parent->b152 | 0x10);
+}
 
 static inline bool isNewEntry(int flags) {
     return (flags & 4) != 0;
