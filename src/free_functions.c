@@ -149,3 +149,39 @@ int eCompoundShape_GetNumSubShapes(const int *self) {
     }
     return count;
 }
+
+int strlen(const char *s) {
+    const char *start = s;
+    while (*s != 0) s++;
+    return s - start;
+}
+
+int eDynamicAABBTreeNode_NeedsSplit(const void *self) {
+    if (*((const unsigned char *)self + 0x4E)) {
+        return 0;
+    }
+    return *((const unsigned short *)((const char *)self + 0x4C)) >= 4;
+}
+
+void eDynamicAABBTreeNode_UnsplitNode(int *self) {
+    int i = 0;
+    int *p = self;
+    do {
+        p[15] = 0;
+        i++;
+        p++;
+    } while (i < 3);
+    *((char *)self + 0x4E) = 0;
+}
+
+int gcBoolSet_GetSize(const void *self) {
+    int *p = *(int **)((const char *)self + 12);
+    if (p == 0) return 0;
+    return p[-1] & 0x3FFFFFFF;
+}
+
+int gcFloatSet_GetSize(const void *self) {
+    int *p = *(int **)((const char *)self + 12);
+    if (p == 0) return 0;
+    return p[-1] & 0x3FFFFFFF;
+}
