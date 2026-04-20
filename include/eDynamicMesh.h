@@ -23,4 +23,7 @@ public:
     int HasSkin() const;
     void Free();
     void Reset(cMemPool *, bool);
+
+    void AssignCopy(const cBase *);
+    static eDynamicMesh *New(cMemPool *, cBase *);
 };
