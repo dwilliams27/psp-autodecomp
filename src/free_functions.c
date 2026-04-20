@@ -185,3 +185,59 @@ int gcFloatSet_GetSize(const void *self) {
     if (p == 0) return 0;
     return p[-1] & 0x3FFFFFFF;
 }
+
+float copysignf(float x, float y) {
+    union { float f; int i; } ux, uy;
+    ux.f = x;
+    uy.f = y;
+    ux.i = (ux.i & 0x7FFFFFFF) | (uy.i & 0x80000000);
+    return ux.f;
+}
+
+void *eCameraEffectMgrEntry_eCameraEffectMgrEntry(int *self) {
+    *(unsigned char *)self = 0;
+    *((float *)self + 1) = 1.0f;
+    *((float *)self + 2) = 0.0f;
+    self[3] = 0;
+    self[4] = 0;
+    return self;
+}
+
+void *mWaveGen_mWaveGen(int *self) {
+    self[4] = 0;
+    ((float *)self)[0] = 0.0f;
+    ((float *)self)[1] = 1.0f;
+    ((float *)self)[2] = 0.0f;
+    ((float *)self)[3] = 1.0f;
+    return self;
+}
+
+extern int cLanguage__s_pInstance;
+unsigned char cLanguage_IsTextLanguageSupported(int lang) {
+    int v = cLanguage__s_pInstance;
+    int found = 0;
+    if (v != 0 && *(unsigned char *)(lang + v + 520) != 0) {
+        found = 1;
+    }
+    return (unsigned char)found;
+}
+
+typedef struct {
+    int eAudioFader_unk0;
+    float target;
+    int eAudioFader_unk8;
+    int eAudioFader_unkC;
+} eAudioFader_t;
+
+typedef struct {
+    int eAudioGroup_g0;
+    int eAudioGroup_g4;
+    eAudioFader_t faders[3];
+} eAudioGroup_t;
+
+extern eAudioGroup_t eAudio__s_groups[];
+float eAudio_GetGroupVolume(int group, int fader) {
+    eAudioGroup_t *gp = &eAudio__s_groups[group];
+    eAudioFader_t *f = &gp->faders[fader];
+    return f->target;
+}
