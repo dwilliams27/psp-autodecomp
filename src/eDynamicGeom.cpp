@@ -14,8 +14,82 @@
 #include "eDynamicGeom.h"
 #include "ePath.h"
 #include "mOCS.h"
+#include "cFile.h"
 
 extern char eDynamicGeomvirtualtable[];
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void End(void);
+};
+
+void eGeom_Write(const void *, cFile &);
+
+void eDynamicGeom::SetDynamicGeomFlagsOnOff(unsigned int on, unsigned int off) {
+    mGeomType |= on;
+    mGeomType &= ~off;
+}
+
+void eDynamicGeom::DetachChildren(void) {
+    eDynamicGeom *child = (eDynamicGeom *)mFieldE0;
+    if (child != 0) {
+        do {
+            child->Detach();
+            child = (eDynamicGeom *)mFieldE0;
+        } while (child != 0);
+    }
+}
+
+void eDynamicGeom::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    eGeom_Write(this, file);
+    wb.End();
+}
+
+// eDynamicGeom::UpdateChildFlags — STATUS: NEAR-MATCH (47/92 bytes differ)
+// Structurally identical 23 instructions, but SNC register-allocates differently.
+// Expected uses: child→a0, off→a1, on→a2 (stays), a3 as multi-purpose temp.
+// Mine uses:     child→a2, on→t0 (saved), a1→on, a3→off (stays).
+// Root cause: the register allocator picks different argument-register assignments
+// based on unidentified heuristics. Permuter ran 300s with only marginal gain
+// (47→45). Tried: (1) simple form, (2) `unsigned int newOn=on/newOff=off` locals
+// (this puts child→a0 correctly but coalesces away the phi → 22 insns only, 88B),
+// (3) if-else with explicit finalOff (inserts unconditional branch), (4) local
+// `unsigned char flag = child->mGeomType` (no effect), (5) struct VtEntry for
+// vtable lookup (no effect), (6) reassigning newOn=on at end of if-body (coalesced).
+// The two-variant tradeoff: can get correct SIZE (23 insns) with wrong reg alloc,
+// OR correct reg alloc for `child` but missing one phi-move instruction.
+// Not bnel divergence (diff >10 bytes). Likely needs specific source idiom or
+// a different -Xflag combination to trigger SNC's alternate allocation strategy.
+void eDynamicGeom::UpdateChildFlags(eDynamicGeom *child, unsigned int on, unsigned int off) {
+    if (child->mGeomType & 1) {
+        on &= ~1u;
+        off &= ~1u;
+    }
+    int *vt = *(int **)((char *)child + 4);
+    int *entry = (int *)((char *)vt + 0x70);
+    short adj = *(short *)entry;
+    void (*fn)(void *, unsigned int, unsigned int) =
+        (void (*)(void *, unsigned int, unsigned int))entry[1];
+    fn((char *)child + adj, on, off);
+}
+
+void eDynamicGeom::UpdateLocalToWorldRecurse(void) {
+    int *vt = *(int **)((char *)this + 4);
+    int *entry = (int *)((char *)vt + 0xB8);
+    short adj = *(short *)entry;
+    void (*fn)(void *) = (void (*)(void *))entry[1];
+    fn((char *)this + adj);
+    eDynamicGeom *child = (eDynamicGeom *)mFieldE0;
+    if (child != 0) {
+        do {
+            child->UpdateLocalToWorldRecurse();
+            child = (eDynamicGeom *)child->mFieldE8;
+        } while (child != (eDynamicGeom *)mFieldE0);
+    }
+}
 
 void eDynamicGeom::GetSubObjectToWorld(int, mOCS *out) const {
     if (*(unsigned char *)((char *)this + 0x8C) & 4) {
