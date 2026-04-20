@@ -108,3 +108,44 @@ void *eInput_eButtonState_eButtonState(int *self) {
     self[5] = 0;
     return self;
 }
+
+float fabsf(float x) {
+    union { float f; int i; } u;
+    u.f = x;
+    u.i &= 0x7FFFFFFF;
+    return u.f;
+}
+
+void *cMemPoolPlatform_cMemPoolPlatform(int *self) {
+    self[0] = 0;
+    self[1] = -1;
+    self[2] = 0;
+    return self;
+}
+
+void *eDynamicVertChunk_eDynamicVertChunk(int *self) {
+    self[0] = 0;
+    self[1] = 0;
+    self[2] = 0;
+    self[3] = 0;
+    return self;
+}
+
+void *eViewport_eViewport(int *self, int a, int b, int c, int d) {
+    self[0] = a;
+    self[1] = b;
+    self[2] = c;
+    self[3] = d;
+    return self;
+}
+
+int eCompoundShape_GetNumSubShapes(const int *self) {
+    int count = 0;
+    const int *arr;
+    __asm__ volatile("" ::: "memory");
+    arr = (const int *)self[32];
+    if (arr != 0) {
+        count = arr[-1];
+    }
+    return count;
+}
