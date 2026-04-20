@@ -1,6 +1,8 @@
 #ifndef EINPUTJOYSTICK_H
 #define EINPUTJOYSTICK_H
 
+class eCamera;
+
 class eInputJoystick {
 public:
     enum eAnalog {};
@@ -8,6 +10,12 @@ public:
     enum eAxisElement {};
     enum eButton {};
 
+    static bool Initialize();
+    static void RecheckPresent();
+    static void Draw(const eCamera &cam);
+    static void DrawPointer(int idx, const eCamera &cam);
+    static bool PlatformInitialize();
+    static void PlatformUpdateRumble(int);
     static void PlatformPreUpdate();
     static void PlatformCapture(int);
     static bool PlatformControllerPresent(int);
