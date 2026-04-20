@@ -3,7 +3,41 @@
 #include "eMovie.h"
 #include "ePath.h"
 
+extern char eHeightmapvirtualtable[];
+extern "C" void eHeightmapData___dtor_eHeightmapData_void(void *, int);
+
 void eHeightmap::PlatformReset(cMemPool *, bool) {
+}
+
+eHeightmap::eHeightmap(cBase *base) : eGeom(base) {
+    *(void **)((char *)this + 4) = eHeightmapvirtualtable;
+    *(void **)((char *)this + 0x90) = 0;
+}
+
+void eHeightmap::PlatformFree(void) {
+    void *data = *(void **)((char *)this + 0x90);
+    if (data != 0) {
+        eHeightmapData___dtor_eHeightmapData_void(data, 3);
+        *(void **)((char *)this + 0x90) = 0;
+    }
+}
+
+int eHeightmap::GetSurface(int idx) const {
+    char *arr = *(char **)((char *)*(void **)((char *)this + 0x60) + 0x7C);
+    char *entry = arr + idx * 20 + 12;
+    return *(int *)entry;
+}
+
+void eHeightmap::GetEmbedContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, eContactCollector *) const {
+    char *shape = ((char **)&info)[1];
+    int *entry = (int *)(((char **)shape)[1] + 0xB0);
+    ((void (*)(char *, int, const mSphere *, const eCollisionInfo &))entry[1])(shape + *(short *)entry, idx, sphere, info);
+}
+
+void eHeightmap::GetSweptContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, const mCollideInfo *ci, eContactCollector *) const {
+    char *shape = ((char **)&info)[1];
+    int *entry = (int *)(((char **)shape)[1] + 0xA8);
+    ((void (*)(char *, int, const mSphere *, const mCollideInfo *, const eCollisionInfo &))entry[1])(shape + *(short *)entry, idx, sphere, ci, info);
 }
 
 int eMemCard::Reset(void) {
