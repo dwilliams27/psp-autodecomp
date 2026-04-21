@@ -19,9 +19,16 @@ public:
     int mIndex;
 };
 
+class cBase;
+
 class gcCinematic {
 public:
+    gcCinematic(cBase *);
     void Reset(cMemPool *, bool);
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    static void FreeDynamicInstance(class gcCinematicInstance *);
 };
 
 struct gcDialogHolder {
