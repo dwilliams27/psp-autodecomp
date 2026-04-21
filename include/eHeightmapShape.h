@@ -1,8 +1,13 @@
 #ifndef EHEIGHTMAPSHAPE_H
 #define EHEIGHTMAPSHAPE_H
 
+class cBase;
 class eBoxShape;
+class eCapsuleShape;
 class eCollisionContactInfo;
+class eCompoundShape;
+class eConvexHullShape;
+class eCylinderShape;
 class eMeshShape;
 class eSphereShape;
 class mBox;
@@ -11,8 +16,14 @@ class mVec3;
 
 class eHeightmapShape {
 public:
+    eHeightmapShape(cBase *);
+
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCylinderShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     void GetAABB(mBox *, const mOCS &) const;
