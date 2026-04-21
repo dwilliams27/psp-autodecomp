@@ -5,6 +5,9 @@ class cBase;
 class eBoxShape;
 class eSphereShape;
 class eMultiSphereShape;
+class eCapsuleShape;
+class eCylinderShape;
+class eConvexHullShape;
 class eCollisionContactInfo;
 class mOCS;
 
@@ -18,6 +21,9 @@ public:
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCylinderShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
 };
 
 #endif
