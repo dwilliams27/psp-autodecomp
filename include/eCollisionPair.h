@@ -33,7 +33,7 @@ public:
     int IsDisjoint() const;
     eCollisionConstraint *FindContact(const eContactFeature &) const;
     void CleanupContacts();
-    void AddContact(eCollisionConstraint *);
+    int AddContact(eCollisionConstraint *);
     void Collide(unsigned short, eConstraintSolver *);
     void AddExternalContact(const mVec3 &, const mVec3 &, eConstraintSolver *);
     int HasMeshShape();
