@@ -68,6 +68,8 @@ Full design + reverse-engineering context + patch bytes in `docs/decisions/011-b
 
 Currently `tools/orchestrator.py` and `tools/run_overnight.sh` log plain text to stdout — timestamps and event messages all in one undifferentiated stream. Hard to scan a multi-hour log for what mattered.
 
+**Status (2026-04-21)**: design WIP in `tools/launcher_demos/`. Final chosen layout is `v11_dashboard_with_helix.py` — figlet `autodecomp` header + run-status panel (time left / progress bar / this-run deltas / current variant / current function on the left, braille-rendered single-coil fixed-ends assembly-helix in the middle, variant A/B scoreboard with mini-bars on the right), orchestrator + agent log panels below, recent-outcomes panel at the bottom with size-proportional bars. Dynamically resizes with terminal width. Needs real wiring: today it plays a scripted demo timeline; production needs a tailer that reads `logs/match_*.jsonl` + the live Claude transcript. Other demo variants (v1-v10) are rejected iterations kept as reference.
+
 Changes to make:
 - **ANSI color** the per-event lines: green for `matched`, red for `failed`, yellow for `verify_failed` / `session_error` / `system_error`, dim/grey for routine events (batch start, function claim).
 - **Highlight match counts** in summary lines (e.g., "session N produced **3 matches**, 2 failed" with the numbers in bold/colored).
