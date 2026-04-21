@@ -64,7 +64,27 @@ Full design + reverse-engineering context + patch bytes in `docs/decisions/011-b
 
 ---
 
-## 4. ASM Bigram/Trigram RAG for Function Matching
+## 4. Pretty overnight console output
+
+Currently `tools/orchestrator.py` and `tools/run_overnight.sh` log plain text to stdout — timestamps and event messages all in one undifferentiated stream. Hard to scan a multi-hour log for what mattered.
+
+Changes to make:
+- **ANSI color** the per-event lines: green for `matched`, red for `failed`, yellow for `verify_failed` / `session_error` / `system_error`, dim/grey for routine events (batch start, function claim).
+- **Highlight match counts** in summary lines (e.g., "session N produced **3 matches**, 2 failed" with the numbers in bold/colored).
+- **Live progress bar** for the run as a whole — sessions completed / sessions remaining / time elapsed vs. budget.
+- **Per-session summary block** when a session completes, with a 2-3 line digest (functions, match rate, notable diffs) instead of the raw JSONL spam.
+- **TTY detection**: only emit color when stdout is a terminal (preserve plain JSONL piping behavior, since `match_*.jsonl` is also written to disk).
+
+Constraints:
+- Must not change the JSONL log file format (other tools / post-mortem skill parse it).
+- No new dependencies — stick to stdlib `os.isatty()` + bare ANSI escape codes.
+- The `run_overnight.sh` wrapper passes stdout through to console; pretty output should work end-to-end without piping through `tee` etc.
+
+Impact: zero on match rate, but big on operator UX during long unattended runs and when reviewing console output post-hoc.
+
+---
+
+## 5. ASM Bigram/Trigram RAG for Function Matching
 
 Index matched (successfully decompiled) functions by the bigrams and trigrams of their assembly instructions. Use ColBERT-style per-token embeddings so that retrieval captures fine-grained instruction-sequence similarity rather than collapsing an entire function into a single vector.
 
