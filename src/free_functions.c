@@ -409,4 +409,5 @@ int gcTableColumnShort_Compare(const void *self, int i, int j) {
     return result;
 }
 
-/* eTexture::GetFullTexCoords — see session notes (marked failed) */
+/* eTexture::GetFullTexCoords lives in src/eTexture_GetFullTexCoords.cpp
+   (SNC C does not accept V4SF aggregate initializers; C++ is required). */
