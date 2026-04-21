@@ -15,6 +15,16 @@ public:
     static void BeginLoad(const eLoadParams &);
     static void EndLoad(const eLoadParams &);
     static void EndSave(const eSaveParams &);
+    static void Initialize(void);
+    static unsigned char CardDifferent(void);
+    static unsigned char CardPresent(void);
+    static unsigned char CardChanged(void);
+    static int GetCardFreeSpace(void);
+};
+
+class eMemCardPlatform {
+public:
+    static void Initialize(void);
 };
 
 #endif
