@@ -10,6 +10,10 @@ public:
 
     static void RegisterInit(class eIVideoRegisterInit *);
     static void SetVideoMode(eVideoMode);
+    static void SetDefaultVideoMode(void);
+    static void Flip(void);
+    static void EndFrame(void);
+    static void InvalidateTextureCache(void);
     static void PreFlip(void);
     static void EndStencil(void);
     static void ApplyVertexShader(const eCamera *, const eVertexShader *);
