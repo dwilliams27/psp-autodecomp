@@ -43,7 +43,10 @@ struct _VtEntry {
 void gcDoUIShowDialog::GetName(char *out) const {
     *out = 0;
     _VtEntry *e = (_VtEntry *)((*(char **)((char *)this + 0x48)) + 0x78);
-    e->fn((char *)this + 0x44 + e->adj, out);
+    short adj = e->adj;
+    void (*fn)(void *, char *) = e->fn;
+    char *t = (char *)this + 0x44;
+    fn(t + adj, out);
 }
 
 // ============================================================================
