@@ -376,12 +376,11 @@ void *memset(void *dst, int val, unsigned int n) {
 }
 
 int strcmp(const char *s1, const char *s2) {
-    while (*s1) {
-        if (*s1 != *s2) break;
+    while (*s1 && *s1 == *s2) {
         s1++;
         s2++;
     }
-    return (unsigned char)*s1 - (unsigned char)*s2;
+    return *(const unsigned char *)s1 - *(const unsigned char *)s2;
 }
 
 struct _Bigint {
@@ -410,4 +409,4 @@ int gcTableColumnShort_Compare(const void *self, int i, int j) {
     return result;
 }
 
-/* eTexture::GetFullTexCoords — unmatchable without VFPU scalar placement control */
+/* eTexture::GetFullTexCoords — see session notes (marked failed) */
