@@ -1,7 +1,50 @@
 #include "eCapsuleShape.h"
 #include "eSimulatedController.h"
+#include "eCollision.h"
 #include "mVec3.h"
 #include "mOCS.h"
+
+class cBase;
+
+extern "C" {
+    void eShape___ct_eShape_cBaseptr(void *self, cBase *parent);
+}
+
+extern char eCapsuleShapevirtualtable[];
+
+// eCapsuleShape::eCapsuleShape(cBase *) — 0x0006a0d8
+// Calls eShape base ctor, installs vtable at +0x04, sets radius and halfHeight to 1.0.
+eCapsuleShape::eCapsuleShape(cBase *parent) {
+    eShape___ct_eShape_cBaseptr(this, parent);
+    *(void **)((char *)this + 4) = eCapsuleShapevirtualtable;
+    __asm__ volatile(
+        "lui $a0, 0x3f80\n"
+        "mtc1 $a0, $f12\n"
+        "swc1 $f12, 0x80(%0)\n"
+        "swc1 $f12, 0x84(%0)\n"
+        :: "r"(this) : "$a0", "$f12", "memory"
+    );
+}
+
+// eCapsuleShape::Collide(const eConvexHullShape *, ...) — 0x0006ad58
+int eCapsuleShape::Collide(const eConvexHullShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::CapsuleConvexHull(*this, *shape, ocs1, ocs2, info);
+}
+
+// eCapsuleShape::Collide(const eCompoundShape *, ...) — 0x0006ad7c
+int eCapsuleShape::Collide(const eCompoundShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::CapsuleCompound(*this, *shape, b, ocs1, ocs2, info);
+}
+
+// eCapsuleShape::Collide(const eMeshShape *, ...) — 0x0006ada4
+int eCapsuleShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::CapsuleMesh(*this, *shape, b, ocs1, ocs2, info);
+}
+
+// eCapsuleShape::Collide(const eHeightmapShape *, ...) — 0x0006adcc
+int eCapsuleShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::CapsuleHeightmap(*this, *shape, b, ocs1, ocs2, info);
+}
 
 // eCapsuleShape::GetSupport(const mVec3 &, const mOCS &, mVec3 *) const
 // Address: 0x0006afbc, Size: 104 bytes
