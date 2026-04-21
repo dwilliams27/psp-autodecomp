@@ -4,6 +4,7 @@
 class cMemPool;
 class cBase;
 class cFile;
+class cType;
 class gcExpression;
 
 class gcDoReturn {
@@ -12,10 +13,13 @@ public:
     int GetExprFlags(void) const;
     unsigned int GetTextColor(void) const;
     gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
     void GetText(char *) const;
     void Write(cFile &) const;
     float Evaluate(void) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 };
 
