@@ -1,12 +1,37 @@
 #ifndef EBOXSHAPE_H
 #define EBOXSHAPE_H
 
-class eBoxShape {
+#include "eShape.h"
+
+struct mOCS;
+class cBase;
+class cFile;
+class eSphereShape;
+class eMultiSphereShape;
+class eCapsuleShape;
+class eConvexHullShape;
+class eCompoundShape;
+class eMeshShape;
+class eHeightmapShape;
+class eCollisionContactInfo;
+
+class eBoxShape : public eShape {
 public:
-    char _pad[0x80];       // 0x00
     float mHalfExtents[4]; // 0x80 — quad-aligned (x,y,z,_)
 
+    eBoxShape(cBase *);
+
     float GetVolume(void) const;
+    void Write(cFile &) const;
+
+    int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
 };
 
 #endif
