@@ -84,7 +84,25 @@ Impact: zero on match rate, but big on operator UX during long unattended runs a
 
 ---
 
-## 5. ASM Bigram/Trigram RAG for Function Matching
+## 5. Overnight-run observability gaps
+
+The first deep prompt-audit (2026-04-21) surfaced data-access gaps that made session analysis harder than it should be. Fix these so future audits and A/B experiment analysis go faster.
+
+### Orchestrator logging additions
+- **`function_start` / `function_end` events** in `match_*.jsonl` with timestamps, so per-function duration is computable. Currently only session-level timing exists; median session is 1799s but we can't tell if that was 1 function at 25 min + 4 starved, or balanced 6 min each.
+- **Timeout-hit tagging**: when a session reaches `SESSION_TIMEOUT`, explicitly emit a `session_timeout` event. Every session hitting 1799s (1s below the 1800s cap) is a red flag that agents never finish naturally, but it's not flagged anywhere today.
+- **Per-session summary file** at `logs/session_summary/{sid}.json` written at session end with extracted stats: tool counts (bash/read/write/edit/grep/glob), compare_func iterations per function, research-doc reads, permuter invocations, system-reminder counts, time-to-first-match, time-to-last-match. Auditing a run becomes reading ~30 small structured JSONs instead of parsing ~130 MB of raw transcripts.
+
+### Transcript access
+- **`sandbox_setup.sh` should set group-readable permissions** on `/Users/autodecomp/.claude/projects/-Users-dwilliams-proj-psp-autodecomp/`, either via `setfacl` or by putting `autodecomp` and `dwilliams` in a shared group with `g+r` inheritance. Currently every new overnight run writes owner-only files and manual `sudo chmod -R a+r` is needed before every audit.
+- **Explicit sid→transcript-UUID index**: orchestrator should emit `logs/session_transcripts.jsonl` at session start with `{sid, transcript_uuid, started_at}`. Today sid→transcript mapping requires grepping inside transcript content, which is brittle (sid can appear in subagent spawns, need to disambiguate by file size).
+
+### Why later, not now
+None of these block the A/B testing work or the prompt overhaul — they just make next-round audits ~5× faster. Schedule after we have the A/B harness running and a couple of prompt-change runs to analyze.
+
+---
+
+## 6. ASM Bigram/Trigram RAG for Function Matching
 
 Index matched (successfully decompiled) functions by the bigrams and trigrams of their assembly instructions. Use ColBERT-style per-token embeddings so that retrieval captures fine-grained instruction-sequence similarity rather than collapsing an entire function into a single vector.
 

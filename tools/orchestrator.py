@@ -13,8 +13,11 @@ Usage:
 """
 
 import argparse
+import glob
+import importlib
 import json
 import os
+import random
 import subprocess
 import sys
 import time
@@ -291,136 +294,12 @@ def get_sched_hint(func):
     return None
 
 
-def build_prompt(batch, functions, session_id):
-    """Build prompt for Claude. Returns (prompt_text, warnings_list)."""
-    source_file = determine_source_file(batch)
-    class_name = batch[0].get("class_name")
-    header_content = get_class_header(class_name)
-    addr_map = build_addr_map(functions)
-    warnings = []
-
-    prompt_parts = [
-        "You are a PSP decompilation agent working on Days of Thunder. "
-        "Your job is to produce C/C++ source that compiles to byte-identical "
-        "machine code for each function below.\n\n"
-        "Read CLAUDE.md for repo norms and the matching workflow.\n\n"
-
-        "HARD RULES:\n"
-        "- Only write .c/.cpp/.h files in src/ and include/. "
-        "NEVER submit .s assembly files as matches — that's copying, not decompiling.\n"
-        "- NEVER modify files in tools/, the Makefile, or config/ "
-        "(except the results JSON you're asked to write). "
-        "If a tool seems broken, report failure — do not patch it.\n"
-        "- If a function can't be matched in C (e.g., dense VFPU with no scalar "
-        "equivalent), report it as failed. Do not bypass.\n\n"
-
-        "For each function:\n"
-        "1. Study the disassembly carefully. Understand the control flow, "
-        "register usage, and delay slot filling.\n"
-        "2. Read the m2c output as a starting point — it's often close but "
-        "rarely perfect.\n"
-        "3. Write C/C++ source to the specified file.\n"
-        "4. Compile: make build/src/<file>.o\n"
-        "5. Compare: python3 tools/compare_func.py src/<file>.cpp\n"
-        "6. If MATCH: great, move to next function.\n"
-        "7. If MISMATCH: this is where the real work begins. Analyze the "
-        "byte diff:\n"
-        "   - Different register allocation? Try reordering variable "
-        "declarations, splitting/merging expressions.\n"
-        "   - Different branch structure? Try if/else vs ternary vs switch. "
-        "Try inverting conditions.\n"
-        "   - Different instruction scheduling? Try changing expression "
-        "evaluation order, adding/removing casts.\n"
-        "   - SNC at -O2 fills branch delay slots and sometimes generates "
-        "redundant masks (andi x,x,0xff twice for bool casts). Work WITH "
-        "the compiler's patterns, not against them.\n"
-        "   - Keep iterating. Try radically different approaches if "
-        "incremental changes aren't working.\n"
-        "   - Only report failure after you've genuinely exhausted your ideas.\n\n",
-
-        f"CRITICAL: When done with ALL functions, write results to this exact file:\n"
-        f"  {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
-        f"The file must contain a JSON array, one entry per function:\n"
-        f'[{{"address": "0x...", "status": "matched|failed", "attempts": N, '
-        f'"file": "src/...", "notes": "..."}}]\n\n'
-        f"For FAILED functions, the 'notes' field is REQUIRED. Write 1-2 paragraphs: "
-        f"what approaches you tried, what the byte diff looked like, where you got "
-        f"stuck, and what you think the root cause is. These notes are passed to the "
-        f"next agent that retries this function — make them useful.\n\n"
-        f"This file is how the orchestrator tracks your progress. "
-        f"If you don't write it, your work is lost.\n\n",
-    ]
-
-    if header_content:
-        prompt_parts.append(
-            f"== CLASS HEADER: include/{class_name}.h ==\n"
-            f"```\n{header_content}\n```\n\n"
-        )
-
-    if class_name:
-        neighbors = get_matched_neighbors(functions, batch[0])
-        if neighbors:
-            prompt_parts.append(f"== ALREADY MATCHED in {class_name} ==\n")
-            for n in neighbors:
-                prompt_parts.append(f"  {n['name']} ({n['size']}B) — matched\n")
-            prompt_parts.append("\n")
-
-    func_num = 0
-    for func in batch:
-        addr = int(func["address"], 16)
-        try:
-            disasm = disassemble_function(addr, func["size"])
-        except RuntimeError as e:
-            warnings.append({"type": "disasm_failed", "address": func["address"],
-                             "name": func["name"], "error": str(e)})
-            continue
-
-        try:
-            m2c = get_m2c_output(func)
-        except RuntimeError as e:
-            warnings.append({"type": "m2c_failed", "address": func["address"],
-                             "name": func["name"], "error": str(e)})
-            m2c = "// m2c unavailable — see orchestrator log"
-
-        func_num += 1
-
-        callees = func.get("callees", [])
-        callee_names = []
-        for c_addr in callees:
-            target = addr_map.get(c_addr)
-            callee_names.append(target["name"] if target else f"unknown@{c_addr}")
-
-        prompt_parts.append(f"== FUNCTION {func_num}: {func['name']} ==\n")
-        prompt_parts.append(f"Address: {func['address']}, Size: {func['size']} bytes, "
-                           f"Obj: {func['obj_file']}\n")
-        prompt_parts.append(f"Leaf: {func.get('is_leaf', 'unknown')}")
-        if callee_names:
-            prompt_parts.append(f", Calls: {', '.join(callee_names)}")
-        prompt_parts.append("\n")
-
-        sched_hint = get_sched_hint(func)
-        if sched_hint:
-            prompt_parts.append(f"\n{sched_hint}\n")
-
-        prior_notes = func.get("failure_notes", [])
-        if prior_notes:
-            prompt_parts.append(
-                f"\nPRIOR ATTEMPTS ({len(prior_notes)} failed):\n"
-            )
-            for note in prior_notes:
-                prompt_parts.append(
-                    f"  Session {note['session']}: {note['notes']}\n"
-                )
-            prompt_parts.append(
-                "Use these notes to avoid repeating the same approaches. "
-                "Try something different.\n"
-            )
-
-        prompt_parts.append(f"\nDisassembly:\n{disasm}\n\n")
-        prompt_parts.append(f"m2c output:\n{m2c}\n\n")
-        prompt_parts.append(f"Write to: {source_file}\n\n")
-
-    return "".join(prompt_parts), warnings
+def build_prompt(batch, functions, session_id, variant):
+    """Dispatch to a named prompt variant under tools/prompt_variants/.
+    Returns (prompt_text, warnings_list). `variant` is required.
+    """
+    module = importlib.import_module(f"prompt_variants.{variant}")
+    return module.build_prompt(batch, functions, session_id)
 
 
 def run_claude_session(prompt, session_id, timeout=SESSION_TIMEOUT):
@@ -447,7 +326,7 @@ def run_claude_session(prompt, session_id, timeout=SESSION_TIMEOUT):
     return True, None
 
 
-def process_session_results(session_id, batch, functions, log_path=None):
+def process_session_results(session_id, batch, functions, log_path, variant):
     """Read the results file written by Claude and update the database.
 
     Also reverts any batch functions not mentioned in results back to untried.
@@ -512,6 +391,7 @@ def process_session_results(session_id, batch, functions, log_path=None):
                         log_event(log_path, {
                             "event": "missing_failure_notes",
                             "session_id": session_id,
+                            "variant": variant,
                             "address": addr,
                         })
                 if notes:
@@ -534,6 +414,7 @@ def process_session_results(session_id, batch, functions, log_path=None):
                     log_event(log_path, {
                         "event": "unreported_function",
                         "session_id": session_id,
+                        "variant": variant,
                         "address": func["address"],
                         "name": func["name"],
                     })
@@ -878,8 +759,30 @@ def main():
                              "Only functions listed in this file will be attempted. "
                              "Uses longer session timeout and smaller batches.")
     parser.add_argument("--dry-run", action="store_true", help="Skip sandbox, for testing")
+    parser.add_argument("--variants", type=str, default="base",
+                        help="Comma-separated prompt variants to A/B test "
+                             "(default: base). Each session picks one at random. "
+                             "Variants live in tools/prompt_variants/<name>.py.")
 
     args = parser.parse_args()
+
+    args.variants = [v.strip() for v in args.variants.split(",") if v.strip()]
+    if not args.variants:
+        log("ERROR: --variants must specify at least one name")
+        sys.exit(1)
+    available = sorted(
+        os.path.basename(p)[:-3]
+        for p in glob.glob(os.path.join("tools", "prompt_variants", "*.py"))
+        if os.path.basename(p) not in ("__init__.py", "_common.py")
+    )
+    for v in args.variants:
+        if v not in available:
+            log(f"ERROR: variant '{v}' not found. Available: {', '.join(available)}")
+            sys.exit(1)
+        importlib.import_module(f"prompt_variants.{v}")
+    if len(args.variants) > 1:
+        log(f"A/B mode: {len(args.variants)} variants ({', '.join(args.variants)}) — "
+            f"each session picks one randomly")
 
     # Load targets file if specified
     targets_list = None
@@ -935,7 +838,8 @@ def main():
             break
 
         session_id = str(uuid.uuid4())[:8]
-        log(f"Session {session_id}: {len(batch)} functions — "
+        selected_variant = random.choice(args.variants)
+        log(f"Session {session_id} [{selected_variant}]: {len(batch)} functions — "
             f"{', '.join(f['name'].split('(')[0] for f in batch)}")
 
         # Pre-generate expected .o files
@@ -947,6 +851,7 @@ def main():
             log_event(log_path, {
                 "event": "prep_error",
                 "session_id": session_id,
+                "variant": selected_variant,
                 "error": str(e),
             })
             total_errors += 1
@@ -961,12 +866,14 @@ def main():
         save_db(functions)
 
         # Build prompt and run Claude
-        prompt, prompt_warnings = build_prompt(batch, functions, session_id)
+        prompt, prompt_warnings = build_prompt(batch, functions, session_id,
+                                               variant=selected_variant)
         for w in prompt_warnings:
             log(f"  {w['type'].upper()}: {w['name']} — {w['error']}")
             log_event(log_path, {
                 "event": w["type"],
                 "session_id": session_id,
+                "variant": selected_variant,
                 "address": w["address"],
                 "name": w["name"],
                 "error": w["error"],
@@ -980,6 +887,7 @@ def main():
             log_event(log_path, {
                 "event": "session_error",
                 "session_id": session_id,
+                "variant": selected_variant,
                 "error": error_msg,
                 "functions": [f["address"] for f in batch],
                 "duration_s": session_duration,
@@ -1000,7 +908,7 @@ def main():
 
         # Process results
         try:
-            matched, failed, session_results = process_session_results(session_id, batch, functions, log_path)
+            matched, failed, session_results = process_session_results(session_id, batch, functions, log_path, variant=selected_variant)
             total_matched += matched
             total_failed += failed
             total_attempted += len(batch)
@@ -1017,6 +925,7 @@ def main():
                 log_event(log_path, {
                     "event": "function_result",
                     "session_id": session_id,
+                    "variant": selected_variant,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
@@ -1044,6 +953,7 @@ def main():
                         log_event(log_path, {
                             "event": "verify_error",
                             "session_id": session_id,
+                            "variant": selected_variant,
                             "address": func["address"],
                             "name": func["name"],
                             "error": str(e),
@@ -1070,6 +980,7 @@ def main():
                         log_event(log_path, {
                             "event": "verify_failed",
                             "session_id": session_id,
+                            "variant": selected_variant,
                             "address": func["address"],
                             "name": func["name"],
                             "size": func["size"],
@@ -1096,6 +1007,7 @@ def main():
                         log_event(log_path, {
                             "event": "rejected_assembly_only",
                             "session_id": session_id,
+                            "variant": selected_variant,
                             "file": asm_file,
                             "reason": "File contains only __asm__() blocks — no C/C++ training data",
                         })
@@ -1127,6 +1039,7 @@ def main():
                     log_event(log_path, {
                         "event": "git_error",
                         "session_id": session_id,
+                        "variant": selected_variant,
                         "error": str(e),
                     })
                     total_errors += 1
@@ -1136,6 +1049,7 @@ def main():
             log_event(log_path, {
                 "event": "system_error",
                 "session_id": session_id,
+                "variant": selected_variant,
                 "error": str(e),
                 "functions": [f["address"] for f in batch],
                 "duration_s": session_duration,

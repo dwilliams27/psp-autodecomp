@@ -366,3 +366,48 @@ unsigned char ePlatformInput_AnyButtonPressed(unsigned char *state) {
     } while (i < 41);
     return 0;
 }
+
+void *memset(void *dst, int val, unsigned int n) {
+    unsigned char *p = (unsigned char *)dst;
+    while (n-- != 0) {
+        *p++ = (unsigned char)val;
+    }
+    return dst;
+}
+
+int strcmp(const char *s1, const char *s2) {
+    while (*s1) {
+        if (*s1 != *s2) break;
+        s1++;
+        s2++;
+    }
+    return (unsigned char)*s1 - (unsigned char)*s2;
+}
+
+struct _Bigint {
+    struct _Bigint *_next;
+    int _k;
+};
+
+struct _Balloc_reent {
+    char _pad[0x4C];
+    struct _Bigint **_freelist;
+};
+
+void _Bfree(struct _Balloc_reent *r, struct _Bigint *b) {
+    if (b != 0) {
+        b->_next = r->_freelist[b->_k];
+        r->_freelist[b->_k] = b;
+    }
+}
+
+int gcTableColumnShort_Compare(const void *self, int i, int j) {
+    short *arr = *(short **)((const char *)self + 8);
+    int result = -1;
+    if (arr[i] >= arr[j]) {
+        result = arr[j] < arr[i];
+    }
+    return result;
+}
+
+/* eTexture::GetFullTexCoords — unmatchable without VFPU scalar placement control */
