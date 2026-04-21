@@ -24,9 +24,18 @@ public:
     U mSubHandle;
 };
 
+class cBase;
+class cFile;
+class cMemPool;
+class gcReplicationVisitor;
+
 class gcRegion {
 public:
     int AllowParentCreate(void) const;
+    void MemCardReplicate(gcReplicationVisitor &);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcMap {
