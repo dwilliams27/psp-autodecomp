@@ -10,12 +10,22 @@ public:
     int mHandle;
 };
 
+class cBase;
+class cMemPool;
+
 class gcGame {
 public:
+    gcGame(cBase *);
     gcGame &operator=(const gcGame &);
     void NetReplicate(bool);
     void ResetNetConnection(int);
     void *GetGroups(int *);
+    void ResetLoadingCinematicPools(void);
+    void DeleteLoadingScreen(void);
+    void Reset(cMemPool *, bool);
+    void DeleteMap(void);
+    static void OnMovieDraw(void *);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcNetGame {
