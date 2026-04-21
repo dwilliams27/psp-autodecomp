@@ -14,6 +14,7 @@ public:
     void OnMemPoolReset(const cMemPool *, unsigned int);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 class gcExpression {
