@@ -411,3 +411,71 @@ int gcTableColumnShort_Compare(const void *self, int i, int j) {
 
 /* eTexture::GetFullTexCoords lives in src/eTexture_GetFullTexCoords.cpp
    (SNC C does not accept V4SF aggregate initializers; C++ is required). */
+
+const char *cStrChr(const char *s, int c) {
+    char cc = (char)c;
+    char ch;
+    for (;;) {
+        ch = *s;
+        if (ch == 0) break;
+        if (ch == cc) break;
+        s++;
+    }
+    if (ch == cc) {
+        return s;
+    } else {
+        return 0;
+    }
+}
+
+void eBroadphase_MarkPairsUnvisited(void *self, void *state) {
+    void *pair = *(void **)((char *)state + 156);
+    if (pair != 0) {
+        do {
+            void *other = *(void **)((char *)pair + 16);
+            *(unsigned short *)((char *)pair + 64) = *(unsigned short *)((char *)pair + 64) | 1;
+            if (state == other) {
+                pair = *(void **)((char *)pair + 40);
+            } else {
+                pair = *(void **)((char *)pair + 48);
+            }
+        } while (pair != *(void **)((char *)state + 156));
+    }
+}
+
+void eStaticModel_GetEmbedContacts(const void *self, const void *info, int idx, const void *sphere, void *cc) {
+    char *shape = ((char **)info)[1];
+    int *entry = (int *)(((char **)shape)[1] + 0xB0);
+    ((void (*)(char *, int, const void *, const void *, void *))entry[1])(shape + *(short *)entry, idx, sphere, info, cc);
+}
+
+#pragma control sched=1
+void eEmbedSphereCollisionHandler_ProcessCollision(void *self, void *info) {
+    char *obj = *(char **)info;
+    char *vt = ((char **)obj)[1];
+    short *slot = (short *)(vt + 0x90);
+    char *adjusted = obj + *slot;
+    typedef void (*Method)(void *, void *, int, void *, void *);
+    Method m = *(Method *)((char *)slot + 4);
+    m(adjusted, info, 1, (char *)self + 0x48D0, (char *)self + 0x40);
+}
+#pragma control sched=2
+
+void eConvexHullUtil_TensorSubExpression(const void *self, float a, float b, float c, volatile float *P, volatile float *S, volatile float *T) {
+    float sum = a + b;
+    float p = sum + c;
+    *P = p;
+    __asm__ volatile("" ::: "memory");
+    float a_sq = a * a;
+    float sum_b = sum * b;
+    float s1 = a_sq + sum_b;
+    float c_p = c * p;
+    float s = s1 + c_p;
+    *S = s;
+    __asm__ volatile("" ::: "memory");
+    float a_cubed = a_sq * a;
+    float s1_b = s1 * b;
+    float t1 = a_cubed + s1_b;
+    float c_s = c * s;
+    *T = t1 + c_s;
+}
