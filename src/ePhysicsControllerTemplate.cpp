@@ -1,0 +1,188 @@
+#include "cBase.h"
+#include "cFile.h"
+
+class cMemPool {
+public:
+    static void *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void End(void);
+};
+
+class ePhysicsController;
+class eDynamicModel;
+class ePhysicsControllerTemplate;
+
+class cBaseArray {
+public:
+    int mCount;
+    cBase *mOwner;
+    void RemoveAll(void);
+    void Write(cWriteBlock &) const;
+};
+
+extern char ePhysicsControllerTemplateclassdesc[];
+extern char ePhysicsControllerTemplate_base_classdesc[];
+extern const char ePhysicsControllerTemplate_base_name[];
+extern const char ePhysicsControllerTemplate_base_desc[];
+
+static cType *s_type_base;
+static cType *s_type_ePhysicsControllerTemplate;
+
+class ePhysicsControllerTemplate {
+public:
+    cBase *mOwner;             // +0
+    void *mClassDesc;          // +4
+    cBaseArray mArr1;          // +8
+    cBaseArray mArr2;          // +16
+    cBaseArray mArr3;          // +24
+    unsigned int mField20;     // +32
+    unsigned int mField24;     // +36
+
+    ePhysicsControllerTemplate(cBase *b);
+    void Write(cFile &) const;
+    const cType *GetType(void) const;
+
+    static void CreateAndResetInstance(cMemPool *pool, eDynamicModel *model,
+                                       const ePhysicsControllerTemplate *tpl,
+                                       ePhysicsController **out);
+};
+
+// --- ctor ---
+ePhysicsControllerTemplate::ePhysicsControllerTemplate(cBase *b) {
+    mOwner = b;
+    mClassDesc = ePhysicsControllerTemplateclassdesc;
+    mArr1.mCount = 0;
+    mArr1.mOwner = (cBase *)this;
+    mArr2.mCount = 0;
+    mArr2.mOwner = (cBase *)this;
+    mArr3.mCount = 0;
+    mArr3.mOwner = (cBase *)this;
+    __asm__ volatile("" ::: "memory");
+    mField20 = 1;
+    mField24 = 0;
+}
+
+// --- Write ---
+void ePhysicsControllerTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 5);
+    mArr1.Write(wb);
+    mArr2.Write(wb);
+    mArr3.Write(wb);
+    wb.Write(mField20);
+    wb.End();
+}
+
+// --- GetType ---
+const cType *ePhysicsControllerTemplate::GetType(void) const {
+    if (!s_type_ePhysicsControllerTemplate) {
+        if (!s_type_base) {
+            s_type_base = cType::InitializeType(
+                ePhysicsControllerTemplate_base_name,
+                ePhysicsControllerTemplate_base_desc,
+                1, 0, 0, 0, 0, 0);
+        }
+        s_type_ePhysicsControllerTemplate = cType::InitializeType(
+            0, 0, 0x22F, s_type_base, 0, 0, 0, 0);
+    }
+    return s_type_ePhysicsControllerTemplate;
+}
+
+// --- dtor ---
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void free(void *);
+
+extern "C" void ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_void(
+    ePhysicsControllerTemplate *self, int flags)
+{
+    if (self != 0) {
+        self->mClassDesc = ePhysicsControllerTemplateclassdesc;
+        cBaseArray *a3 = &self->mArr3;
+        cBaseArray *a2 = &self->mArr2;
+        cBaseArray *a1 = &self->mArr1;
+        if (a3 != 0) a3->RemoveAll();
+        if (a2 != 0) a2->RemoveAll();
+        if (a1 != 0) a1->RemoveAll();
+        self->mClassDesc = ePhysicsControllerTemplate_base_classdesc;
+        if (flags & 1) {
+            void *pool = cMemPool::GetPoolFromPtr(self);
+            if (pool != 0) {
+                void *block = *(void **)((char *)pool + 0x24);
+                __asm__ volatile("" ::: "memory");
+                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+                short off = rec->offset;
+                rec->fn((char *)block + off, self);
+            } else {
+                free(self);
+            }
+        }
+    }
+}
+
+// --- CreateAndResetInstance ---
+struct VtEntry {
+    short adj;
+    short _pad;
+    void *fn;
+};
+
+void ePhysicsControllerTemplate::CreateAndResetInstance(
+    cMemPool *pool, eDynamicModel *model,
+    const ePhysicsControllerTemplate *tpl,
+    ePhysicsController **out)
+{
+    ePhysicsController *existing = *out;
+
+    if (tpl == 0) {
+        if (existing != 0) {
+            void *vt = *(void **)((char *)existing + 4);
+            VtEntry *e = (VtEntry *)((char *)vt + 0x50);
+            ((void (*)(void *, int))e->fn)((char *)existing + e->adj, 3);
+            *out = 0;
+        }
+        return;
+    }
+
+    if (existing == 0 || *(const ePhysicsControllerTemplate **)((char *)existing + 8) != tpl) {
+        if (existing != 0) {
+            void *vt = *(void **)((char *)existing + 4);
+            VtEntry *e = (VtEntry *)((char *)vt + 0x50);
+            ((void (*)(void *, int))e->fn)((char *)existing + e->adj, 3);
+            *out = 0;
+        }
+        void *tvt = *(void **)((char *)tpl + 4);
+        VtEntry *te = (VtEntry *)((char *)tvt + 0x78);
+        void *typeObj = ((void *(*)(void *))te->fn)((char *)tpl + te->adj);
+        void *(*creator)(cMemPool *, eDynamicModel *) =
+            *(void *(**)(cMemPool *, eDynamicModel *))((char *)typeObj + 0x10);
+        ePhysicsController *created = (ePhysicsController *)creator(pool, model);
+        *out = created;
+        *(const ePhysicsControllerTemplate **)((char *)created + 8) = tpl;
+        *(eDynamicModel **)((char *)(*out) + 0xC) = model;
+        existing = *out;
+    }
+
+    if (existing != 0) {
+        void *vt = *(void **)((char *)existing + 4);
+        VtEntry *e = (VtEntry *)((char *)vt + 0x38);
+        ((void (*)(void *, cMemPool *, int))e->fn)((char *)existing + e->adj, pool, 1);
+    }
+}
