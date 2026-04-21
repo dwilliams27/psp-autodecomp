@@ -11,6 +11,26 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, int, int, int, int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+
 extern char *D_0037D7C8;
 extern gcStreamedCinematic *D_0037D7D4[2];
 
@@ -73,4 +93,54 @@ void gcCinematicInstance::HandleStreamedCinematicDelete(void) {
         }
         i++;
     } while (i < 2);
+}
+
+// Function 6: 0x000eaf50, 120 bytes — Read
+int gcCinematicInstance::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    __asm__ volatile("" ::: "memory");
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    return result;
+}
+
+// Function 7: 0x000ebdcc, 124 bytes — UpdateDialogs
+void gcCinematicInstance::UpdateDialogs(cTimeValue tv) {
+    gcUIDialog *dlg0 = NULL;
+    gcDialogHolder *dh0 = mpDialogHolder0;
+    if (dh0 != NULL) {
+        dlg0 = dh0->mpDialog;
+        if (dlg0 != NULL) {
+            dlg0->Update(tv);
+        }
+    }
+    gcDialogHolder *dh1 = mpDialogHolder1;
+    if (dh1 != NULL) {
+        gcUIDialog *dlg1 = dh1->mpDialog;
+        if (dlg1 != NULL && dlg1 != dlg0) {
+            dlg1->Update(tv);
+        }
+    }
+}
+
+// Function 8: 0x00243df8, 124 bytes — New (static)
+void gcCinematicInstance_gcCinematicInstance(gcCinematicInstance *, cBase *);
+
+gcCinematicInstance *gcCinematicInstance::New(cMemPool *pool, cBase *parent) {
+    gcCinematicInstance *result = 0;
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    int (*fn)(void *, int, int, int, int) = entry->fn;
+    void *base = (char *)block + off;
+    gcCinematicInstance *obj = (gcCinematicInstance *)fn(base, 0x58, 4, 0, 0);
+    if (obj != 0) {
+        gcCinematicInstance_gcCinematicInstance(obj, parent);
+        result = obj;
+    }
+    return result;
 }
