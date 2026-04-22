@@ -26,11 +26,11 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
-from common import (DB_PATH, EBOOT_PATH, OBJDUMP, OBJCOPY, NM, CLAUDE,
-                    CLAUDE_MODEL, TEXT_FILE_OFFSET,
+from common import (DB_PATH, EBOOT_PATH, OBJDUMP, CLAUDE,
+                    CLAUDE_MODEL,
                     load_db, save_db, filter_functions, build_addr_map,
-                    fix_vfpu_disassembly,
-                    get_text_relocations, mask_relocation_bytes)
+                    fix_vfpu_disassembly)
+from byte_match import CompileFailed, check_byte_match
 
 BATCH_SIZE = 5
 TARGETS_BATCH_SIZE = 2
@@ -728,108 +728,6 @@ def git_commit_batch(session_id, matched_funcs, matched_files):
         )
 
 
-def verify_match(func, matched_files):
-    """Verify a claimed match by comparing compiled bytes against original.
-
-    Uses nm to find the exact symbol in the compiled .o, extracts its bytes,
-    applies relocation masking, and compares against the original EBOOT.
-
-    Returns (True, None) if byte-exact match confirmed.
-    Returns (False, diff_summary) if bytes genuinely don't match, where
-    diff_summary is a list of dicts describing each mismatched word.
-    Raises RuntimeError on system/tooling errors.
-    """
-    import tempfile
-
-    addr = int(func["address"], 16)
-    size = func["size"]
-
-    # Read expected bytes from original binary
-    with open(EBOOT_PATH, "rb") as f:
-        f.seek(addr + TEXT_FILE_OFFSET)
-        expected = f.read(size)
-
-    if len(expected) != size:
-        raise RuntimeError(
-            f"Short read from EBOOT: wanted {size} bytes at offset "
-            f"{addr + TEXT_FILE_OFFSET:#x}, got {len(expected)}"
-        )
-
-    best_diff = None  # track the closest mismatch for logging
-
-    for src_file in matched_files:
-        if not os.path.exists(src_file):
-            raise RuntimeError(f"Source file {src_file} does not exist")
-
-        o_path = src_file.replace("src/", "build/src/") + ".o"
-        r = subprocess.run(["make", o_path], capture_output=True, text=True)
-        if r.returncode != 0:
-            raise RuntimeError(f"Compilation failed for {src_file}: {r.stderr.strip()[:200]}")
-        if not os.path.exists(o_path):
-            raise RuntimeError(f"make succeeded but {o_path} not found")
-
-        # Get symbol offsets via nm
-        nm_result = subprocess.run([NM, o_path], capture_output=True, text=True)
-        if nm_result.returncode != 0:
-            raise RuntimeError(f"nm failed on {o_path}: {nm_result.stderr.strip()}")
-
-        symbols = []
-        for line in nm_result.stdout.strip().split("\n"):
-            parts = line.split()
-            if len(parts) == 3 and parts[1] == "T":
-                symbols.append((int(parts[0], 16), parts[2]))
-        symbols.sort()
-
-        if not symbols:
-            continue  # This .o has no text symbols — try next source file
-
-        # Extract raw .text bytes
-        with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as tmp:
-            tmp_path = tmp.name
-        try:
-            r = subprocess.run(
-                [OBJCOPY, "-O", "binary", "-j", ".text", o_path, tmp_path],
-                capture_output=True, text=True
-            )
-            if r.returncode != 0:
-                raise RuntimeError(f"objcopy failed on {o_path}: {r.stderr.strip()}")
-            with open(tmp_path, "rb") as f:
-                text_bytes = f.read()
-        finally:
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
-
-        # Get relocations
-        relocations = get_text_relocations(o_path)
-
-        # Check each symbol that matches the expected size
-        for i, (sym_offset, sym_name) in enumerate(symbols):
-            sym_end = symbols[i + 1][0] if i + 1 < len(symbols) else len(text_bytes)
-            sym_size = sym_end - sym_offset
-
-            if sym_size < size:
-                continue
-
-            chunk = text_bytes[sym_offset:sym_offset + size]
-            compiled_masked = chunk
-            expected_masked = expected
-
-            # Filter and adjust relocations for this symbol
-            func_relocs = [(off - sym_offset, rtype) for off, rtype in relocations
-                           if sym_offset <= off < sym_offset + size]
-            if func_relocs:
-                compiled_masked = mask_relocation_bytes(chunk, func_relocs)
-                expected_masked = mask_relocation_bytes(expected, func_relocs)
-
-            if compiled_masked == expected_masked:
-                return True, None
-
-            # Build diff summary for the closest match
-            diffs = build_byte_diff(compiled_masked, expected_masked, addr)
-            if best_diff is None or len(diffs) < len(best_diff):
-                best_diff = diffs
-
-    return False, best_diff
 
 
 def validate_source_quality(matched_files):
@@ -898,50 +796,6 @@ def validate_source_quality(matched_files):
             rejected.append(src_file)
 
     return rejected
-
-
-def build_byte_diff(compiled, expected, base_addr):
-    """Build a summary of mismatched 4-byte words between compiled and expected.
-
-    Returns a list of dicts, each describing one mismatched word:
-      {"offset": int, "addr": "0x...", "compiled": "0x...", "expected": "0x..."}
-    Capped at 8 entries to keep logs concise.
-    """
-    diffs = []
-    total_mismatches = 0
-    length = min(len(compiled), len(expected))
-    for off in range(0, length - 3, 4):
-        c_word = compiled[off:off + 4]
-        e_word = expected[off:off + 4]
-        if c_word != e_word:
-            total_mismatches += 1
-            if len(diffs) < 8:
-                diffs.append({
-                    "offset": off,
-                    "addr": f"0x{base_addr + off:08x}",
-                    "compiled": f"0x{int.from_bytes(c_word, 'little'):08x}",
-                    "expected": f"0x{int.from_bytes(e_word, 'little'):08x}",
-                })
-
-    # Note size mismatch if applicable
-    if len(compiled) != len(expected):
-        diffs.append({
-            "offset": -1,
-            "addr": "size_mismatch",
-            "compiled": f"{len(compiled)}B",
-            "expected": f"{len(expected)}B",
-        })
-
-    # Mark truncation so log readers know the diff is incomplete
-    if total_mismatches > 8:
-        diffs.append({
-            "offset": -2,
-            "addr": "truncated",
-            "compiled": f"{total_mismatches} total mismatched words",
-            "expected": "only first 8 shown",
-        })
-
-    return diffs
 
 
 def print_progress(functions, start_time, log_path=None):
@@ -1187,21 +1041,71 @@ def main():
                 if target and target["match_status"] == "matched":
                     matched_funcs.append(func)
 
-            # Collect file paths from results
+            # Build per-function src_file mapping from session_results so
+            # verify_match checks each claimed match against exactly the file
+            # the agent wrote it to. Also populate `matched_files` for the
+            # downstream quality gate and git commit.
+            addr_to_src = {}
             for entry in session_results:
+                if (entry.get("status") == "matched"
+                        and entry.get("address") and entry.get("file")):
+                    addr_to_src[entry["address"]] = entry["file"]
                 if entry.get("status") == "matched" and entry.get("file"):
                     matched_files.add(entry["file"])
 
-            # Orchestrator verification: independently verify each claimed match
-            # by comparing compiled bytes against original (with relocation masking).
-            # No name matching needed — pure byte comparison.
+            # Orchestrator verification: independently verify each claimed
+            # match via the canonical byte_match.check_byte_match. Policy:
+            #   - Verified   → record src_file + symbol_name on the DB entry
+            #   - Byte mismatch / no matching sym / ambiguous → mark `failed`
+            #   - Compile failure (src the agent wrote won't build) → `failed`
+            #     (evidence the claim was bogus)
+            #   - Other tooling error (system issue) → `untried` for retry
             if matched_funcs:
                 reverted = 0
                 for func in list(matched_funcs):
+                    src_file = addr_to_src.get(func["address"])
+                    if not src_file:
+                        log(f"  VERIFY ERROR: {func['name']} — no src_file in session_results")
+                        log_event(log_path, {
+                            "event": "verify_error",
+                            "session_id": session_id,
+                            "variant": selected_variant,
+                            "address": func["address"],
+                            "name": func["name"],
+                            "error": "no src_file in session_results",
+                        })
+                        target = addr_index.get(func["address"])
+                        if target:
+                            target["match_status"] = "untried"
+                        matched_funcs.remove(func)
+                        reverted += 1
+                        total_matched -= 1
+                        continue
+
                     try:
-                        verified, diff_summary = verify_match(func, matched_files)
+                        result = check_byte_match(func, src_file)
+                    except CompileFailed as e:
+                        log(f"  VERIFY FAILED: {func['name']} — compile error: {e}")
+                        log_event(log_path, {
+                            "event": "verify_failed",
+                            "session_id": session_id,
+                            "variant": selected_variant,
+                            "address": func["address"],
+                            "name": func["name"],
+                            "size": func["size"],
+                            "diff_count": 0,
+                            "byte_diffs": [],
+                            "reason": "compile_failed",
+                        })
+                        target = addr_index.get(func["address"])
+                        if target:
+                            target["match_status"] = "failed"
+                        matched_funcs.remove(func)
+                        reverted += 1
+                        total_matched -= 1
+                        total_failed += 1
+                        continue
                     except RuntimeError as e:
-                        # System/tooling error — not a genuine mismatch
                         log(f"  VERIFY ERROR: {func['name']} — {e}")
                         log_event(log_path, {
                             "event": "verify_error",
@@ -1211,7 +1115,6 @@ def main():
                             "name": func["name"],
                             "error": str(e),
                         })
-                        # Revert to untried (system error, deserves retry)
                         target = addr_index.get(func["address"])
                         if target:
                             target["match_status"] = "untried"
@@ -1220,33 +1123,39 @@ def main():
                         total_matched -= 1
                         continue
 
-                    if not verified:
-                        diff_count = len(diff_summary) if diff_summary else 0
-                        diff_preview = ""
-                        if diff_summary:
-                            first = diff_summary[0]
-                            diff_preview = (f" (first diff at {first['addr']}: "
-                                          f"compiled={first['compiled']} "
-                                          f"expected={first['expected']}, "
-                                          f"{diff_count} total diffs)")
-                        log(f"  VERIFY FAILED: {func['name']} — bytes don't match{diff_preview}")
-                        log_event(log_path, {
-                            "event": "verify_failed",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "address": func["address"],
-                            "name": func["name"],
-                            "size": func["size"],
-                            "diff_count": diff_count,
-                            "byte_diffs": diff_summary or [],
-                        })
+                    if result.ok:
                         target = addr_index.get(func["address"])
                         if target:
-                            target["match_status"] = "failed"
-                        matched_funcs.remove(func)
-                        reverted += 1
-                        total_matched -= 1
-                        total_failed += 1
+                            target["src_file"] = src_file
+                            target["symbol_name"] = result.sym_name
+                        continue
+
+                    diff_preview = ""
+                    if result.byte_diffs:
+                        first = result.byte_diffs[0]
+                        diff_preview = (f" (first diff at {first.get('addr','?')}: "
+                                        f"compiled={first.get('compiled','?')} "
+                                        f"expected={first.get('expected','?')}, "
+                                        f"{result.diff_count} total diffs)")
+                    log(f"  VERIFY FAILED: {func['name']} — {result.reason}{diff_preview}")
+                    log_event(log_path, {
+                        "event": "verify_failed",
+                        "session_id": session_id,
+                        "variant": selected_variant,
+                        "address": func["address"],
+                        "name": func["name"],
+                        "size": func["size"],
+                        "diff_count": result.diff_count,
+                        "byte_diffs": result.byte_diffs,
+                        "reason": result.reason,
+                    })
+                    target = addr_index.get(func["address"])
+                    if target:
+                        target["match_status"] = "failed"
+                    matched_funcs.remove(func)
+                    reverted += 1
+                    total_matched -= 1
+                    total_failed += 1
                 if reverted > 0:
                     log(f"  Orchestrator verification rejected {reverted} matches")
 

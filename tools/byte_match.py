@@ -1,18 +1,20 @@
 """Canonical byte-match verification. The ONE source of truth used by
-compare_func.py, orchestrator.verify_match, and verify_matches.py.
+compare_func, orchestrator, and verify_matches.
 
-Principle: no ambiguity, no silent fallback. Given a function and a src
-file, we answer exactly one question — do the current bytes of the
-relevant symbol inside the compiled .o match the original EBOOT bytes
-at the function's address, after relocation masking?
+Given a function and a src file, answers: do the bytes of the symbol
+inside the compiled .o match the EBOOT bytes at the function's address,
+after relocation masking?
 
-Any ambiguity (two symbols in the .o with byte-identical prefixes, a
-compile failure, a missing .o) is raised or returned as an explicit
-reason code. Never silently passes.
+Returns a VerifyResult with a reason code for per-function outcomes.
+Raises for tooling failures: compile errors (CompileFailed), nm/objcopy
+failures, missing .o, short EBOOT read. Callers distinguish those from
+verification failures when deciding whether to flip an entry to `failed`
+vs `untried`.
 """
 
 from __future__ import annotations
 
+import functools
 import os
 import subprocess
 import tempfile
@@ -27,6 +29,13 @@ from common import (
     get_text_relocations,
     mask_relocation_bytes,
 )
+
+
+class CompileFailed(RuntimeError):
+    """A src_file did not compile. Distinct from generic tooling failures
+    so callers can distinguish an agent-caused bad match (flip to failed)
+    from a system problem (flip to untried).
+    """
 
 
 # Reason codes returned on failure. Kept short and stable so callers can
@@ -134,9 +143,9 @@ class VerifyResult:
 def compile_src(src_file: str, build_dir: str = "build/src") -> str:
     """Compile src_file via make; return the .o path.
 
-    Raises RuntimeError on compile failure (captures stderr for context).
-    Does NOT silently continue — the caller decides whether to treat a
-    compile failure as a hard fail or a skippable condition.
+    Raises CompileFailed when make exits non-zero (src/agent problem).
+    Raises RuntimeError for other tooling issues (missing .o after
+    successful make).
     """
     rel = src_file.lstrip("./")
     if rel.startswith("src/"):
@@ -149,7 +158,7 @@ def compile_src(src_file: str, build_dir: str = "build/src") -> str:
     )
     if result.returncode != 0:
         stderr = (result.stderr or result.stdout or "").strip()
-        raise RuntimeError(
+        raise CompileFailed(
             f"compile failed for {src_file}: {stderr[:500]}"
         )
     if not os.path.exists(o_path):
@@ -217,16 +226,61 @@ def symbols_with_bytes(o_path: str) -> dict[str, tuple[bytes, int]]:
     return out
 
 
+_EBOOT_CACHE: Optional[bytes] = None
+
+
+def _eboot() -> bytes:
+    """Lazy-load the whole EBOOT once. Avoids ~1000 open+seek cycles in
+    bulk audits. The binary is ~4 MB; holding it is trivial."""
+    global _EBOOT_CACHE
+    if _EBOOT_CACHE is None:
+        with open(EBOOT_PATH, "rb") as f:
+            _EBOOT_CACHE = f.read()
+    return _EBOOT_CACHE
+
+
 def read_eboot_bytes(addr: int, size: int) -> bytes:
     """Read `size` bytes at virtual `addr` from the EBOOT .text section."""
-    with open(EBOOT_PATH, "rb") as f:
-        f.seek(addr + TEXT_FILE_OFFSET)
-        data = f.read(size)
+    start = addr + TEXT_FILE_OFFSET
+    data = _eboot()[start:start + size]
     if len(data) != size:
         raise RuntimeError(
             f"short EBOOT read at {addr:#x}: got {len(data)}/{size} bytes"
         )
     return data
+
+
+# Per-.o caches keyed by (path, mtime) so re-verifying many functions in
+# the same .o (bulk audit) doesn't re-run nm/objcopy/readelf for each.
+@functools.lru_cache(maxsize=None)
+def _cached_symbols_with_bytes(o_path: str, _mtime: float) -> dict[str, tuple[bytes, int]]:
+    return symbols_with_bytes(o_path)
+
+
+@functools.lru_cache(maxsize=None)
+def _cached_relocations(o_path: str, _mtime: float) -> list:
+    return get_text_relocations(o_path)
+
+
+def _mtime(path: str) -> float:
+    return os.path.getmtime(path)
+
+
+def find_db_func_for_sym(sym_name: str, functions: list[dict]) -> Optional[dict]:
+    """Resolve a compiled symbol to the ONE DB function whose mangled form
+    encodes it. Inverse of `sym_encodes_func`.
+
+    Scans the DB linearly — caller can skip the scan by pre-indexing if
+    it matters. Returns None if no DB entry's (class, method) encodes
+    this sym_name (e.g., free functions not yet in the DB, or mangled
+    forms the encoder doesn't recognize).
+    """
+    for f in functions:
+        if f.get("size", 0) <= 0:
+            continue
+        if sym_encodes_func(sym_name, f):
+            return f
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -259,7 +313,7 @@ def check_byte_match(func: dict, src_file: str) -> VerifyResult:
     size = int(func["size"])
 
     o_path = compile_src(src_file)
-    syms = symbols_with_bytes(o_path)
+    syms = _cached_symbols_with_bytes(o_path, _mtime(o_path))
     if not syms:
         return VerifyResult(ok=False, reason=REASON_NO_SYMBOLS, o_file=o_path)
 
@@ -277,7 +331,7 @@ def check_byte_match(func: dict, src_file: str) -> VerifyResult:
         )
 
     expected = read_eboot_bytes(addr, size)
-    relocations = get_text_relocations(o_path)
+    relocations = _cached_relocations(o_path, _mtime(o_path))
 
     matches: list[str] = []
     best: Optional[tuple[str, int, list[dict]]] = None
