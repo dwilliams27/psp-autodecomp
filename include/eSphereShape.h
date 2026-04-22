@@ -3,6 +3,10 @@
 
 struct mVec3;
 struct mOCS;
+class cBase;
+class cFile;
+class cMemPool;
+class eCollisionSupport;
 class eMultiSphereShape;
 class eCapsuleShape;
 class eConvexHullShape;
@@ -16,9 +20,13 @@ public:
     char _pad[0x74];
     float mRadius;  // 0x74
 
+    eSphereShape(cBase *);
+
     int CanSweep(void) const;
     float GetVolume(void) const;
+    void Write(cFile &) const;
     void GetSupport(const mVec3 &dir, const mOCS &ocs, mVec3 *out) const;
+    void GetSupport(const mVec3 &dir, const mOCS &ocs, eCollisionSupport *out) const;
     void GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *outMin, float *outMax) const;
     void GetInertialTensor(float mass, mVec3 *out) const;
     int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
@@ -27,6 +35,8 @@ public:
     int Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+
+    static eSphereShape *New(cMemPool *, cBase *);
 };
 
 #endif
