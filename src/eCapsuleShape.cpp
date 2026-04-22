@@ -1,16 +1,51 @@
 #include "eCapsuleShape.h"
+#include "eBoxShape.h"
 #include "eSimulatedController.h"
 #include "eCollision.h"
 #include "mVec3.h"
 #include "mOCS.h"
 
 class cBase;
+class cFile;
+class cMemPool;
 
 extern "C" {
     void eShape___ct_eShape_cBaseptr(void *self, cBase *parent);
+    void eShape___dtor_eShape_void(void *, int);
 }
 
 extern char eCapsuleShapevirtualtable[];
+
+// Free-function wrapper for eShape::Write (resolved via linker; jal is masked)
+void eShape_Write_Capsule(const void *, cFile &);
+void eCapsuleShape_eCapsuleShape(eCapsuleShape *, cBase *);
+
+// cWriteBlock helper — same layout as used by other shape Write() functions
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+// Pool-layout helpers (mirror eSphereShape.cpp / eMultiSphereShape.cpp)
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+struct AllocEntry {
+    short offset;
+    short pad;
+    unsigned int (*fn)(void *, int, int, int, int);
+};
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+void *cMemPool_GetPoolFromPtr_Cap(const void *);
 
 // eCapsuleShape::eCapsuleShape(cBase *) — 0x0006a0d8
 // Calls eShape base ctor, installs vtable at +0x04, sets radius and halfHeight to 1.0.
@@ -137,3 +172,92 @@ void eSimulatedController::GetVelocity(int index, const mVec3 &pos, mVec3 *out) 
         ::: "memory"
     );
 }
+
+// eCapsuleShape::GetVolume(void) const — 0x0006aebc
+// Volume = cylinder(r, 2*halfHeight) + sphere(r)
+//        = r*r*pi * (halfHeight*2) + r*r*r * 4.1887903
+#pragma control sched=1
+float eCapsuleShape::GetVolume(void) const {
+    float r2 = radius * radius;
+    return (r2 * 3.1415927f) * (halfHeight * 2.0f) + (r2 * radius) * 4.1887903f;
+}
+#pragma control sched=2
+
+// eCapsuleShape::Write(cFile &) const — 0x00069f78
+#pragma control sched=1
+void eCapsuleShape::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    eShape_Write_Capsule(this, file);
+    wb.Write(radius);
+    wb.Write(halfHeight);
+    wb.End();
+}
+#pragma control sched=2
+
+// eCapsuleShape::~eCapsuleShape(void) — 0x0006a11c
+#pragma control sched=1
+extern "C" void eCapsuleShape___dtor_eCapsuleShape_void(eCapsuleShape *self, int flags) {
+    if (self != 0) {
+        *(void **)((char *)self + 4) = eCapsuleShapevirtualtable;
+        eShape___dtor_eShape_void(self, 0);
+        if (flags & 1) {
+            void *pool = cMemPool_GetPoolFromPtr_Cap(self);
+            void *block = *(void **)((char *)pool + 0x24);
+            char *allocTable = *(char **)((char *)block + 0x1C);
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            void *base = (char *)block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, self);
+        }
+    }
+}
+#pragma control sched=2
+
+// eCapsuleShape::New(cMemPool *, cBase *) static — 0x00209728
+#pragma control sched=1
+eCapsuleShape *eCapsuleShape::New(cMemPool *pool, cBase *parent) {
+    eCapsuleShape *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eCapsuleShape *obj = (eCapsuleShape *)entry->fn(base, 0x90, 0x10, 0, 0);
+    if (obj != 0) {
+        eCapsuleShape_eCapsuleShape(obj, parent);
+        result = obj;
+    }
+    return result;
+}
+#pragma control sched=2
+
+// eCapsuleShape::Collide(const eBoxShape *, ...) const — 0x0006ab28
+// Delegates to eCollision::BoxCapsule with args swapped, then negates each
+// contact normal (at info+0x20, stride 0x40).
+#pragma control sched=1
+int eCapsuleShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    int hit = eCollision::BoxCapsule(*shape, *this, ocs2, ocs1, info);
+    int i = 0;
+    if (hit != 0) {
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+#pragma control sched=2
