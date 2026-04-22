@@ -15,8 +15,16 @@ public:
 
 class cBase;
 class cFile;
+class cMemPool;
+class cType;
 
-class gcDoEntityForEachAttached {
+class gcDoEntityFindAttachedBase {
+public:
+    void GetText(char *, char *, bool) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class gcDoEntityForEachAttached : public gcDoEntityFindAttachedBase {
 public:
     char _pad[0x64];
     gcExpression *branch;
@@ -30,6 +38,10 @@ public:
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
+    void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 #endif
