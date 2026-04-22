@@ -3,6 +3,11 @@
 
 #include "gcUIWidget.h"
 
+class cBase;
+class cMemPool;
+class cTimeValue;
+class gcEventStackData;
+
 struct gcUICell {
     int row;
     int col;
@@ -10,8 +15,15 @@ struct gcUICell {
 
 class gcUIWidgetList {
 public:
+    gcUIWidgetList(cBase *);
     void FillCell(gcUICell, int);
     void PlayEffect(gcUIWidget::gcUIEffect);
+    int IsUpdateEmpty(bool, bool) const;
+    void Focus(bool, bool);
+    void UpdateUI(cTimeValue, const gcEventStackData &);
+    void FocusCurCell(bool);
+    void FillCurVisibleItems(void);
+    static gcUIWidgetList *New(cMemPool *, cBase *);
 };
 
 #endif
