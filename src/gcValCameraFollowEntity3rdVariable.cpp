@@ -1,4 +1,5 @@
 #include "gcValCameraFollowEntity3rdVariable.h"
+#include "gcValCameraValue.h"
 #include "cBase.h"
 
 class cFile;
@@ -11,15 +12,31 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, int);
+    ~cReadBlock(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *, cBase *(*)(cMemPool *, cBase *), const char *, const char *, unsigned int);
+};
+
 extern char gcValCameraFollowEntity3rdVariablevirtualtable[];
 extern char gcValCameraFollowEntity3rdVariableDerivedvtable[];
 
 extern const char gcValCameraFollowEntity3rdVariable_text[];
+extern const char gcValCameraFollowEntity3rdVariable_base_name[];
+extern const char gcValCameraFollowEntity3rdVariable_base_desc[];
 
 gcValCameraFollowEntity3rdVariable *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcLValue_Write(const gcValCameraFollowEntity3rdVariable *, cFile &);
 void *cMemPool_GetPoolFromPtr(void *);
+void cFile_SetCurrentPos(void *, unsigned int);
+int gcLValue_Read(void *, cFile &, cMemPool *);
 
 struct DeleteRecord {
     short offset;
@@ -79,6 +96,68 @@ cBase *gcValCameraFollowEntity3rdVariable::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValCameraFollowEntity3rdVariable::Evaluate(void) const
+// -----------------------------------------------------------------------------
+float gcValCameraFollowEntity3rdVariable::Evaluate(void) const {
+    return 0.0f;
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValCameraFollowEntity3rdVariable::Set(float)
+// -----------------------------------------------------------------------------
+void gcValCameraFollowEntity3rdVariable::Set(float) {
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValCameraFollowEntity3rdVariable::Read(cFile &, cMemPool *)
+// -----------------------------------------------------------------------------
+int gcValCameraFollowEntity3rdVariable::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    cReadBlock rb(file, 2, true);
+    if (rb._data[3] != 2) goto fail;
+    if (gcLValue_Read(this, file, pool) == 0) goto fail;
+    return result;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValCameraFollowEntity3rdVariable::GetType(void) const
+// -----------------------------------------------------------------------------
+static cType *gcValCFE3V_type_base;
+static cType *gcValCFE3V_type_6A;
+static cType *gcValCFE3V_type_6C;
+static cType *gcValCFE3V_type_6D;
+static cType *gcValCFE3V_type_self;
+
+const cType *gcValCameraFollowEntity3rdVariable::GetType(void) const {
+    if (!gcValCFE3V_type_self) {
+        if (!gcValCFE3V_type_6D) {
+            if (!gcValCFE3V_type_6C) {
+                if (!gcValCFE3V_type_6A) {
+                    if (!gcValCFE3V_type_base) {
+                        gcValCFE3V_type_base = cType::InitializeType(gcValCameraFollowEntity3rdVariable_base_name, gcValCameraFollowEntity3rdVariable_base_desc, 1, 0, 0, 0, 0, 0);
+                    }
+                    gcValCFE3V_type_6A = cType::InitializeType(0, 0, 0x6A, gcValCFE3V_type_base, 0, 0, 0, 0);
+                }
+                gcValCFE3V_type_6C = cType::InitializeType(0, 0, 0x6C, gcValCFE3V_type_6A, 0, 0, 0, 0x80);
+            }
+            gcValCFE3V_type_6D = cType::InitializeType(0, 0, 0x6D, gcValCFE3V_type_6C, 0, 0, 0, 0);
+        }
+        gcValCFE3V_type_self = cType::InitializeType(0, 0, 0xCA, gcValCFE3V_type_6D, gcValCameraFollowEntity3rdVariable::New, 0, 0, 0);
+    }
+    return gcValCFE3V_type_self;
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValCameraValue::Evaluate(void) const
+// -----------------------------------------------------------------------------
+float gcValCameraValue::Evaluate(void) const {
+    return 0.0f;
 }
 
 // -----------------------------------------------------------------------------
