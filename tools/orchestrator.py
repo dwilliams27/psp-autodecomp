@@ -1175,32 +1175,16 @@ def main():
             consecutive_failures = 0
 
             log(f"Session {session_id} done ({session_duration:.0f}s): "
-                f"{matched} matched, {failed} failed")
+                f"{matched} claimed matched, {failed} failed (pre-verify)")
 
-            log_event(log_path, {
-                "event": "session_done",
-                "session_id": session_id,
-                "variant": selected_variant,
-                "matched": matched,
-                "failed": failed,
-                "duration_s": session_duration,
-            })
-
+            # Build matched_funcs from the DB; function_result + session_done
+            # events are deferred until after verify + quality gate so they
+            # reflect the authoritative post-verification status.
             matched_funcs = []
             matched_files = set()
             for func in batch:
                 target = addr_index.get(func["address"])
-                status = target["match_status"] if target else "unknown"
-                log_event(log_path, {
-                    "event": "function_result",
-                    "session_id": session_id,
-                    "variant": selected_variant,
-                    "address": func["address"],
-                    "name": func["name"],
-                    "size": func["size"],
-                    "status": status,
-                })
-                if status == "matched":
+                if target and target["match_status"] == "matched":
                     matched_funcs.append(func)
 
             # Collect file paths from results
@@ -1295,6 +1279,39 @@ def main():
                             log(f"    Reverted: {func['name']} → failed (assembly-only source)")
                     # Remove rejected files from commit set
                     matched_files -= set(asm_rejected)
+
+            # Emit authoritative per-function + session outcomes AFTER verify
+            # and the quality gate. Earlier events would report stale status
+            # for functions the agent claimed matched but verification rejected.
+            final_matched = 0
+            final_failed = 0
+            for func in batch:
+                target = addr_index.get(func["address"])
+                final_status = target["match_status"] if target else "unknown"
+                log_event(log_path, {
+                    "event": "function_result",
+                    "session_id": session_id,
+                    "variant": selected_variant,
+                    "address": func["address"],
+                    "name": func["name"],
+                    "size": func["size"],
+                    "status": final_status,
+                })
+                if final_status == "matched":
+                    final_matched += 1
+                elif final_status == "failed":
+                    final_failed += 1
+
+            log_event(log_path, {
+                "event": "session_done",
+                "session_id": session_id,
+                "variant": selected_variant,
+                "matched": final_matched,
+                "failed": final_failed,
+                "claimed_matched": matched,
+                "claimed_failed": failed,
+                "duration_s": session_duration,
+            })
 
             # Auto-commit matched work
             # Git errors are loud but non-fatal — matched work is saved in
