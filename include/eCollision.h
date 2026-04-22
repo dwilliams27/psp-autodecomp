@@ -36,6 +36,8 @@ public:
     static int CapsuleCompound(const eCapsuleShape &, const eCompoundShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CapsuleMesh(const eCapsuleShape &, const eMeshShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CapsuleHeightmap(const eCapsuleShape &, const eHeightmapShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    static int CompoundCompound(const eCompoundShape &, const eCompoundShape &, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    static int CompoundMesh(const eCompoundShape &, const eMeshShape &, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CompoundHeightmap(const eCompoundShape &, const eHeightmapShape &, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int ConvexHullHeightmap(const eConvexHullShape &, const eHeightmapShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int Clip(const eCollisionSupport *, const eCollisionSupport *, eContactResult *, unsigned int);

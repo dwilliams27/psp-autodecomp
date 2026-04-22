@@ -3,6 +3,8 @@
 
 class mVec2;
 class gcUIDialog;
+class cTimeValue;
+class gcEventStackData;
 
 class gcUIWidget {
 public:
@@ -19,6 +21,8 @@ public:
     void InitialUpdateUI(void);
     void CaptureFocus(bool);
     int IsUpdateEmpty(bool, bool) const;
+    void UpdateUI(cTimeValue, const gcEventStackData &);
+    void Focus(bool, bool);
 };
 
 #endif

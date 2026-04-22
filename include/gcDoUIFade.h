@@ -60,12 +60,15 @@ struct gcValBinaryOpData {
 
 class gcValBinaryOp {
 public:
+    gcValBinaryOp(cBase *);
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
     void SetChild(int, gcExpression *);
     void GetText(char *) const;
     void AssignCopy(const cBase *);
     int GetExprFlags(void) const;
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 class gcValCameraFollowEntity3rdVariable {

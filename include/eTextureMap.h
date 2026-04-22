@@ -28,8 +28,13 @@ public:
 
 class eShadowFillModelMtl {
 public:
+    eShadowFillModelMtl(cBase *);
     void PlatformFree(void);
+    void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static eShadowFillModelMtl *New(cMemPool *, cBase *);
 };
 
 class eCamera;
@@ -91,6 +96,7 @@ public:
 
 class eProjectedDynamicMtl {
 public:
+    eProjectedDynamicMtl(cBase *);
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -98,11 +104,16 @@ public:
 
 class eProjectedHeightmapMtl {
 public:
+    eProjectedHeightmapMtl(cBase *);
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
     void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    void PlatformRead(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static eProjectedHeightmapMtl *New(cMemPool *, cBase *);
 };
 
 class eDrawInfo;
@@ -143,7 +154,11 @@ public:
 
 class eExtrudedShadowVolumeModelMtl {
 public:
+    eExtrudedShadowVolumeModelMtl(cBase *);
     void CreateData(void);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static eExtrudedShadowVolumeModelMtl *New(cMemPool *, cBase *);
 };
 
 class eSilhouetteModelMtl {

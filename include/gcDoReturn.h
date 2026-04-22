@@ -25,8 +25,13 @@ public:
 
 class gcDoSetValue {
 public:
+    gcDoSetValue(cBase *);
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
+    gcExpression *GetChild(int) const;
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 class gcDoStateFunction {
@@ -77,6 +82,7 @@ struct gcValCaseRangeData {
 
 class gcValCaseRange {
 public:
+    gcValCaseRange(cBase *);
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
     unsigned int GetTextColor(void) const;
@@ -85,6 +91,8 @@ public:
     void GetText(char *) const;
     void AssignCopy(const cBase *);
     float Evaluate(void) const;
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 class gcDoSwitch {

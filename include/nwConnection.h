@@ -52,7 +52,9 @@ public:
 
     struct nwMsgsBlock {
         nwMsgsBlock();
-        char _data[0x428];
+        char _pad0[0x41C];
+        unsigned int mLastSeq;  // 0x41C
+        char _padEnd[0x8];      // 0x420..0x428
     };
 
     struct nwOutBlockInfo {
@@ -91,6 +93,7 @@ public:
     void BufferInBlock(unsigned int, unsigned char *, int);
     void ResendConnect();
     void TransportSend(const nwAddress &, const nwOutPacket &);
+    bool IsBlockIdOld(unsigned int blockId, nwSendMethod method) const;
 
     static void DispatchMessages(unsigned char *, int, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool);
     static void DispatchMessage(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool);

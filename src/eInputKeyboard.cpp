@@ -18,7 +18,8 @@ bool eInputKeyboard::PlatformPresent() {
 }
 
 void eInputKeyboard::RecheckPresent() {
-    *(char *)(D_000454A8 + 0xA09) = 1;
+    KeyState *s = (KeyState *)D_000454A8;
+    s->present = 1;
 }
 
 void eInputKeyboard::Reset() {
