@@ -6,6 +6,8 @@ class cMemPool;
 class gcUIWidgetGroup;
 class gcDoUIShowDialog;
 class cTimeValue;
+class cName;
+template <class T> class cSubHandleT;
 
 class gcUIWidget;
 
@@ -24,6 +26,11 @@ public:
 
     void CalcInstanceSize(void);
     void OnFinalOpen(void);
+    void OnFinalClose(void);
+    int IsNextMouseOver(gcUIWidget *, int) const;
+    void OnSpawned(cMemPool *, const cName &);
+    gcUIWidget *GetControl(cSubHandleT<gcUIWidget>, int) const;
+    static void FreeDynamicInstance(gcUIDialog *);
     void ClearEvents(void);
     void Reset(cMemPool *pool, bool flag);
     void Focus(void);
