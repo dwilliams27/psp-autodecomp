@@ -21,14 +21,27 @@ public:
     cObject &operator=(const cObject &);
     void Copy(cMemPool *, cBase *) const;
     void Write(cFile &) const;
+    int Load(void);
     static int GetNameFromGUID(const cGUID &, const cType *, bool, bool, cName *);
 };
 
 class cFactory {
 public:
+    char _pad0[72];         // 0x00
+    unsigned int mField48;  // 0x48
+
     int AllowParentCreate(void) const;
     int GetContainedFactories(int *count);
     void CopyObject(const cObject *, const cGUID &);
+    void Write(cFile &) const;
+    void Clean(bool flag);
+    void LoadLocalized(void);
+    void LoadLocalized(const char *);
+    int Load(void);
+    ~cFactory(void);
+    void ClearVisitedReferences(unsigned int);
+    void MarkForClean(unsigned int);
+    void DeleteMarkedForClean(unsigned int, bool);
 };
 
 #endif
