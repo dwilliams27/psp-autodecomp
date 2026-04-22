@@ -19,8 +19,11 @@ HELIX_TURNS = 2.2
 HELIX_R_PEAK = 2.4
 HELIX_Y_ASPECT = 0.55
 HELIX_SLOTS = 150
-HELIX_FLOW = 0.10
-HELIX_PHASE = 0.9
+# Negative flow reverses the slot-translation direction (wave now travels
+# rightward across the panel instead of leftward). Smaller magnitude slows
+# character cycling so the stream isn't hypnotic in peripheral vision.
+HELIX_FLOW = -0.04
+HELIX_PHASE = 0.5
 
 
 _MNEM = [

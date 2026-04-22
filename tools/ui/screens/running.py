@@ -3,6 +3,7 @@
 import re
 from datetime import datetime, timedelta
 
+from rich.align import Align
 from rich.box import HEAVY, ROUNDED
 from rich.console import Group
 from rich.layout import Layout
@@ -366,8 +367,9 @@ class RunningScreen(Screen):
         else:
             t = Text()
             lines = list(state.orch_log)
+            last = len(lines) - 1
             for i, line in enumerate(lines):
-                is_latest = (i == len(lines) - 1)
+                is_latest = (i == last)
                 lower = line.lower()
                 if "failed" in lower or "verify" in lower or "error" in lower:
                     style = BAD if is_latest else f"dim {BAD}"
@@ -377,11 +379,20 @@ class RunningScreen(Screen):
                     style = LEAF if is_latest else DIM
                 else:
                     style = BODY if is_latest else DIM
-                t.append(line + "\n", style=style)
+                # No trailing newline on the final line — with Align(vertical=
+                # "bottom") a trailing \n would leave a blank row under the text.
+                suffix = "" if is_latest else "\n"
+                t.append(line + suffix, style=style)
             content = t
-        return Panel(content, border_style=MOSS, box=ROUNDED,
-                     title=Text(" orchestrator ", style=f"bold {LEAF}"),
-                     title_align="left", padding=(0, 1))
+        return Panel(
+            # Bottom-align so new lines pile up from the bottom (tail -f),
+            # not from the top. Without this a deque shorter than the panel
+            # height leaves the lower half empty.
+            Align(content, vertical="bottom"),
+            border_style=MOSS, box=ROUNDED,
+            title=Text(" orchestrator ", style=f"bold {LEAF}"),
+            title_align="left", padding=(0, 1),
+        )
 
     def _agent_panel(self, app):
         state = app.state
@@ -390,8 +401,9 @@ class RunningScreen(Screen):
         else:
             t = Text()
             lines = list(state.agent_log)
+            last = len(lines) - 1
             for i, line in enumerate(lines):
-                is_latest = (i == len(lines) - 1)
+                is_latest = (i == last)
                 if line.startswith("$"):
                     style = SUNLIT if is_latest else SUN
                 elif line.lstrip().startswith("\u2192"):  # "  → ..."
@@ -408,7 +420,8 @@ class RunningScreen(Screen):
                     style = LEAF if is_latest else DIM
                 else:
                     style = BODY if is_latest else DIM
-                t.append(line + "\n", style=style)
+                suffix = "" if is_latest else "\n"
+                t.append(line + suffix, style=style)
             content = t
         subtitle = None
         if state.current_batch_names:
@@ -416,11 +429,14 @@ class RunningScreen(Screen):
                 ", ".join(state.current_batch_names)[:120],
                 style=DIM, overflow="ellipsis",
             )
-        return Panel(content, border_style=MOSS, box=ROUNDED,
-                     title=Text(" agent activity ", style=f"bold {LEAF}"),
-                     title_align="left",
-                     subtitle=subtitle, subtitle_align="left",
-                     padding=(0, 1))
+        return Panel(
+            Align(content, vertical="bottom"),
+            border_style=MOSS, box=ROUNDED,
+            title=Text(" agent activity ", style=f"bold {LEAF}"),
+            title_align="left",
+            subtitle=subtitle, subtitle_align="left",
+            padding=(0, 1),
+        )
 
     def _outcomes_panel(self, app):
         state = app.state

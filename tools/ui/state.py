@@ -33,9 +33,13 @@ class RunState:
         self.current_addr_to_name = {}
         self.current_working = "(waiting)"
 
-        self.orch_log = deque(maxlen=12)
-        self.agent_log = deque(maxlen=14)
-        self.outcomes = deque(maxlen=8)
+        # Caps generous enough to fill tall terminals (120+ rows) without
+        # unbounded memory growth. Panels clip to the visible height at
+        # render time, but a bigger deque means scroll-back history is
+        # available when the terminal is resized larger.
+        self.orch_log = deque(maxlen=120)
+        self.agent_log = deque(maxlen=120)
+        self.outcomes = deque(maxlen=40)
 
     # -- convenience accessors --
     def elapsed_s(self, now=None):
