@@ -64,43 +64,30 @@ Full design + reverse-engineering context + patch bytes in `docs/decisions/011-b
 
 ---
 
-## 4. Pretty overnight console output
+## 4. Overnight-run observability: remaining gaps
 
-Currently `tools/orchestrator.py` and `tools/run_overnight.sh` log plain text to stdout — timestamps and event messages all in one undifferentiated stream. Hard to scan a multi-hour log for what mattered.
+The live TUI (`tools/ui/app.py`, shipped 2026-04-21) closed the biggest observability gaps — orchestrator now emits `run_start`/`run_done`, `session_start`/`session_done`, `progress_tick`, `orch_note` (every `log()` call teed to jsonl), and `agent_event` entries parsed from Claude's stream-json (tool_use/tool_result/text/thinking). Live-viewing a run is solved; post-hoc audits can now read the jsonl instead of chasing transcripts.
 
-**Status (2026-04-21)**: design WIP in `tools/launcher_demos/`. Final chosen layout is `v11_dashboard_with_helix.py` — figlet `autodecomp` header + run-status panel (time left / progress bar / this-run deltas / current variant / current function on the left, braille-rendered single-coil fixed-ends assembly-helix in the middle, variant A/B scoreboard with mini-bars on the right), orchestrator + agent log panels below, recent-outcomes panel at the bottom with size-proportional bars. Dynamically resizes with terminal width. Needs real wiring: today it plays a scripted demo timeline; production needs a tailer that reads `logs/match_*.jsonl` + the live Claude transcript. Other demo variants (v1-v10) are rejected iterations kept as reference.
+What's still missing for deeper post-hoc analysis:
 
-Changes to make:
-- **ANSI color** the per-event lines: green for `matched`, red for `failed`, yellow for `verify_failed` / `session_error` / `system_error`, dim/grey for routine events (batch start, function claim).
-- **Highlight match counts** in summary lines (e.g., "session N produced **3 matches**, 2 failed" with the numbers in bold/colored).
-- **Live progress bar** for the run as a whole — sessions completed / sessions remaining / time elapsed vs. budget.
-- **Per-session summary block** when a session completes, with a 2-3 line digest (functions, match rate, notable diffs) instead of the raw JSONL spam.
-- **TTY detection**: only emit color when stdout is a terminal (preserve plain JSONL piping behavior, since `match_*.jsonl` is also written to disk).
+- **Per-function timing**: `function_start` / `function_end` events so you can tell whether a session ran "1 function for 25 min + 4 starved" vs "balanced 6 min each". The current `agent_event` stream gives rough timing via tool_use timestamps but no explicit start/end bracket per function.
+- **Per-session summary file** at `logs/session_summary/<sid>.json` with extracted stats (tool counts, compare_func iterations per function, research-doc reads, permuter invocations, time-to-first-match). The raw jsonl has everything needed to compute these; it's a post-processing step that would make A/B comparison queries one-line.
+- **Transcript access perms**: `/Users/autodecomp/.claude/projects/...` is still mode 600. The live stream covers ~90% of what you'd want to see, but direct transcript access is needed for internal Claude state that stream-json doesn't expose (e.g., permission-denial events). Fix via `setfacl` or shared-group setup in `sandbox_setup.sh`.
+- **sid → transcript-UUID index**: orchestrator could emit `logs/session_transcripts.jsonl` at each session start with `{sid, transcript_uuid, started_at}`. Today the mapping requires grepping inside transcript content, which is brittle when a sid also appears in subagent spawns.
 
-Constraints:
-- Must not change the JSONL log file format (other tools / post-mortem skill parse it).
-- No new dependencies — stick to stdlib `os.isatty()` + bare ANSI escape codes.
-- The `run_overnight.sh` wrapper passes stdout through to console; pretty output should work end-to-end without piping through `tee` etc.
-
-Impact: zero on match rate, but big on operator UX during long unattended runs and when reviewing console output post-hoc.
+Schedule after the next few overnight runs surface which of these is actually blocking analysis — `agent_event` may cover more ground than originally estimated.
 
 ---
 
-## 5. Overnight-run observability gaps
+## 5. TUI: additional screens
 
-The first deep prompt-audit (2026-04-21) surfaced data-access gaps that made session analysis harder than it should be. Fix these so future audits and A/B experiment analysis go faster.
+`tools/ui/` has a screen registry (`App.register` / `App.switch_to`) already plumbed; today only `running` is registered. Candidate next screens:
 
-### Orchestrator logging additions
-- **`function_start` / `function_end` events** in `match_*.jsonl` with timestamps, so per-function duration is computable. Currently only session-level timing exists; median session is 1799s but we can't tell if that was 1 function at 25 min + 4 starved, or balanced 6 min each.
-- **Timeout-hit tagging**: when a session reaches `SESSION_TIMEOUT`, explicitly emit a `session_timeout` event. Every session hitting 1799s (1s below the 1800s cap) is a red flag that agents never finish naturally, but it's not flagged anywhere today.
-- **Per-session summary file** at `logs/session_summary/{sid}.json` written at session end with extracted stats: tool counts (bash/read/write/edit/grep/glob), compare_func iterations per function, research-doc reads, permuter invocations, system-reminder counts, time-to-first-match, time-to-last-match. Auditing a run becomes reading ~30 small structured JSONs instead of parsing ~130 MB of raw transcripts.
+- **Config**: interactive setup for `--hours`, `--variants`, `--targets`, `--size-max` instead of CLI args. Would let non-CLI users start a run via `python3 tools/ui/app.py --config` and tune parameters live before hitting "start".
+- **Historical / replay**: scrub through a past `match_*.jsonl` file with playback speed control. Useful for onboarding and for re-viewing incidents.
+- **Postmortem**: compare two runs side-by-side (variant rates, failure categories, session timings). Complements the post-mortem markdown docs with a live view.
 
-### Transcript access
-- **`sandbox_setup.sh` should set group-readable permissions** on `/Users/autodecomp/.claude/projects/-Users-dwilliams-proj-psp-autodecomp/`, either via `setfacl` or by putting `autodecomp` and `dwilliams` in a shared group with `g+r` inheritance. Currently every new overnight run writes owner-only files and manual `sudo chmod -R a+r` is needed before every audit.
-- **Explicit sid→transcript-UUID index**: orchestrator should emit `logs/session_transcripts.jsonl` at session start with `{sid, transcript_uuid, started_at}`. Today sid→transcript mapping requires grepping inside transcript content, which is brittle (sid can appear in subagent spawns, need to disambiguate by file size).
-
-### Why later, not now
-None of these block the A/B testing work or the prompt overhaul — they just make next-round audits ~5× faster. Schedule after we have the A/B harness running and a couple of prompt-change runs to analyze.
+Adding screen switching (number keys, Ctrl-Tab) requires a keyboard-input story. Rich's `Live` doesn't own stdin; options are (a) a stdin-reader thread, or (b) migrate to Textual. Keyboard nav is deferred until the second screen is actually wanted — no point choosing the input mechanism in advance.
 
 ---
 
