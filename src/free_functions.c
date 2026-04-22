@@ -37,6 +37,20 @@ void cSetAppQuickStarted(_Bool quickStarted) {
 void cBuildPath(const char *path) {
 }
 
+int cGetConfigTerritory(void) {
+    return 0;
+}
+
+void cFile__OnCreated(void *self) {
+}
+
+void cFile__OnClosed(void *self) {
+}
+
+void cListSubscriber_SetNumVisible(int *self, int n) {
+    self[8] = n;
+}
+
 int cGetCurrentPlatform(void) {
     return 4;
 }
