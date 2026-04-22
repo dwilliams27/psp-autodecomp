@@ -758,31 +758,108 @@ def create_overnight_branch():
     return branch
 
 
+def _session_dirty_paths():
+    """Return the set of include/** and src/** paths currently dirty in
+    git (modified, deleted, or untracked). Auto-staged alongside the
+    explicit matched_files so header edits and sibling src files land
+    in the same commit as the matches they belong to.
+    """
+    ok, out, err = git_run("status", "--porcelain")
+    if not ok:
+        raise RuntimeError(
+            f"git status failed — can't determine dirty paths: {err}"
+        )
+    paths = set()
+    for line in out.splitlines():
+        if len(line) < 4:
+            continue
+        # porcelain v1: "XY path" with X/Y being status codes
+        path = line[3:]
+        # Rename uses "orig -> new"; we only care about the destination
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if path.startswith(("include/", "src/")):
+            paths.add(path)
+    return paths
+
+
+def _collect_compile_failures(src_paths):
+    """Compile each src path via byte_match.compile_src. Returns list of
+    (path, error_message) tuples for failures. Skips non-.cpp/.c paths
+    and deleted files (no-op for those, not failure)."""
+    from byte_match import compile_src, CompileFailed
+    failures = []
+    for p in src_paths:
+        if not p.endswith((".cpp", ".c")):
+            continue
+        if not os.path.exists(p):
+            continue  # deletion in the change set, not a failure
+        try:
+            compile_src(p)
+        except CompileFailed as e:
+            failures.append((p, str(e)))
+    return failures
+
+
+def verify_tree_compiles():
+    """Compile every src/*.cpp and src/*.c. Raise on any failure.
+
+    Pre-flight gate at run start: we refuse to start sessions from a
+    broken tree because any session that touches a class with a broken
+    src file either inherits the brokenness or wastes Claude tokens
+    debugging it.
+    """
+    sources = sorted(glob.glob("src/*.cpp") + glob.glob("src/*.c"))
+    failures = _collect_compile_failures(sources)
+    if failures:
+        msg_lines = [
+            f"Pre-session build check failed — {len(failures)} src files "
+            f"don't compile. Refusing to start sessions from a broken tree.",
+            "",
+        ]
+        for p, err in failures[:10]:
+            msg_lines.append(f"  {p}:")
+            msg_lines.append(f"    {err[:200]}")
+        if len(failures) > 10:
+            msg_lines.append(f"  ... and {len(failures) - 10} more")
+        raise RuntimeError("\n".join(msg_lines))
+
+
 def git_commit_batch(session_id, matched_funcs, matched_files):
     """Commit matched source files and updated functions.json after a batch.
 
-    Raises on any git failure — matched work must be persisted.
+    Auto-stages any include/** or src/** the session touched (not just
+    the files named in session_results), compiles before staging, and
+    refuses to commit on any compile failure. Raises on git failure —
+    matched work must be persisted.
     """
     if not matched_funcs:
         return
 
     files_to_commit = set(matched_files)
-
-    # Include any .h files that were created/modified for matched classes
-    for f in matched_funcs:
-        if f.get("class_name"):
-            header = f"include/{f['class_name'].replace('::', '_')}.h"
-            if os.path.exists(header):
-                files_to_commit.add(header)
-
+    # Sweep in header edits, sibling src files, and any other
+    # include/** or src/** the session dirtied.
+    files_to_commit |= _session_dirty_paths()
     files_to_commit.add(DB_PATH)
 
-    # Stage all files — fail loudly if any are missing or git add fails
+    # Compile-check BEFORE staging. If any src in the set fails, we
+    # raise and the operator's tree is left exactly as the session left
+    # it — no half-staged half-unstaged mess to untangle.
+    compile_failures = _collect_compile_failures(files_to_commit)
+    if compile_failures:
+        lines = [f"{p}: {e[:120]}" for p, e in compile_failures[:5]]
+        raise RuntimeError(
+            f"Commit-time build failed for {len(compile_failures)} files. "
+            f"Session produced src that doesn't compile cleanly; refusing "
+            f"to commit. Tree left dirty for operator inspection. "
+            f"Failing files: {'; '.join(lines)}"
+        )
+
+    # Stage (deletions included via git add on missing files).
     for path in files_to_commit:
         if path == DB_PATH:
-            # DB always exists
             pass
-        elif not os.path.exists(path):
+        elif path in matched_files and not os.path.exists(path):
             raise RuntimeError(
                 f"Matched file not found on disk: {path}. "
                 f"Claude reported a match but didn't write the source file."
@@ -1002,6 +1079,23 @@ def main():
     mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
+
+    # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
+    # into sessions whose target classes inherit broken source. See
+    # enhancements #8.
+    if not args.dry_run:
+        log("Pre-flight: verifying the tree compiles cleanly...")
+        try:
+            verify_tree_compiles()
+            log("Pre-flight: OK — all src files compile.")
+        except RuntimeError as e:
+            log(f"Pre-flight FAILED:\n{e}")
+            log_event(log_path, {
+                "event": "run_preflight_failed",
+                "error": str(e)[:2000],
+            })
+            sys.exit(1)
+
     print_progress(functions, start_time, log_path)
 
     while datetime.now() < deadline:
