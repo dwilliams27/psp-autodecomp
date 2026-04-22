@@ -26,6 +26,32 @@ public:
     cBaseArray &operator=(const cBaseArray &);
 };
 
+extern char gcValCaseRangevirtualtable[];
+extern char cBaseclassdesc_for_gcValCaseRange[];
+
+void cBaseArray_SetSize(void *, int);
+void cBaseArray_RemoveAll(void *);
+void gcValue_Write(const gcValCaseRange *, cFile &);
+void gcValCaseRange_gcValCaseRange(gcValCaseRange *, cBase *);
+void *cMemPool_GetPoolFromPtr(void *);
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short _pad;
+    int (*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 unsigned int gcValCaseRange::GetTextColor(void) const {
     return 0xFF808000;
 }
@@ -90,4 +116,66 @@ void gcDoReturn::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+// 0x00150218, 72B
+gcValCaseRange::gcValCaseRange(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(char **)((char *)this + 4) = gcValCaseRangevirtualtable;
+    *(int *)((char *)this + 8) = 0;
+    *(int *)((char *)this + 0xC) = (int)this;
+    cBaseArray_SetSize((char *)this + 8, 2);
+}
+
+// 0x0030546c, 124B
+cBase *gcValCaseRange::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValCaseRange *result = 0;
+    gcValCaseRange *obj = (gcValCaseRange *)entry->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        gcValCaseRange_gcValCaseRange(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// 0x0015006c, 128B
+void gcValCaseRange::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcValue_Write(this, file);
+    int i = 0;
+    int off = 0;
+    do {
+        wb.WriteBase(*(const cBase **)((char *)*(void **)((char *)this + 8) + off));
+        i++;
+        off += 4;
+    } while (i < 2);
+    wb.End();
+}
+
+// 0x003058d8, 152B
+extern "C" {
+
+void gcValCaseRange___dtor_gcValCaseRange_void(gcValCaseRange *self, int flags) {
+    if (self != 0) {
+        *(char **)((char *)self + 4) = gcValCaseRangevirtualtable;
+        void *arr = (char *)self + 8;
+        if (arr != 0) {
+            cBaseArray_RemoveAll(arr);
+        }
+        *(char **)((char *)self + 4) = cBaseclassdesc_for_gcValCaseRange;
+        if (flags & 1) {
+            void *pool = cMemPool_GetPoolFromPtr(self);
+            void *block = *(void **)((char *)pool + 0x24);
+            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+            short off = rec->offset;
+            rec->fn((char *)block + off, self);
+        }
+    }
+}
+
 }
