@@ -80,7 +80,7 @@ def find_all_compiled_symbols():
         )
 
     all_symbols = {}
-    errors = 0
+    errors = []
     for root, _, files in os.walk(build_dir):
         for fname in files:
             if not fname.endswith(".o"):
@@ -91,13 +91,84 @@ def find_all_compiled_symbols():
                 for name, (data, sym_offset) in symbols.items():
                     all_symbols[name] = (data, o_path, sym_offset)
             except RuntimeError as e:
-                print(f"  ERROR reading {o_path}: {e}", file=sys.stderr)
-                errors += 1
+                errors.append((o_path, str(e)))
 
-    if errors > 0:
-        print(f"  {errors} .o files had errors", file=sys.stderr)
+    if errors:
+        # Same reasoning as the compile-error raise: partial symbol data
+        # means the audit can't decide verification correctly.
+        details = "; ".join(f"{p}: {m}" for p, m in errors[:5])
+        raise RuntimeError(
+            f"{len(errors)} .o files could not be read: {details}"
+            f"{'...' if len(errors) > 5 else ''}"
+        )
 
     return all_symbols
+
+
+# SNC operator code table (docs/research/snc-name-mangling.md §6.1).
+# Member operators are mangled __0o<class><op_code><params>; global new/delete
+# as __0O<op_code><params>. If an operator isn't in this table we can't
+# verify it — that's a tool gap, not a silent pass.
+_OP_CODES = {
+    "operator+": "pl", "operator-": "mi", "operator*": "ml", "operator/": "dv",
+    "operator%": "md", "operator=": "as", "operator==": "eq", "operator!=": "ne",
+    "operator<": "lt", "operator>": "gt", "operator<=": "le", "operator>=": "ge",
+    "operator+=": "apl", "operator-=": "ami", "operator*=": "amu",
+    "operator/=": "adv", "operator%=": "amd", "operator&": "an", "operator|": "or",
+    "operator^": "er", "operator~": "co", "operator!": "nt", "operator&&": "aa",
+    "operator||": "oo", "operator<<": "ls", "operator>>": "rs",
+    "operator<<=": "als", "operator>>=": "ars", "operator()": "cl",
+    "operator[]": "vc", "operator->": "rf", "operator++": "pp",
+    "operator--": "mm", "operator,": "cm",
+    "operator new": "nw", "operator delete": "dl",
+    "operator new[]": "nwa", "operator delete[]": "dla",
+}
+
+
+def _sym_matches_name(sym_name, cls, method):
+    """True iff sym_name encodes the (cls, method) pair per SNC mangling
+    rules in docs/research/snc-name-mangling.md. Handles ctors, dtors,
+    operators, free functions, and regular instance/static methods.
+
+    Returns False (not raising) when the check can't be decided — these
+    show up as NO MATCHING SYMBOL, not as silently-verified matches.
+    """
+    if not method:
+        return False
+
+    # Dtor: method_name = "~<class>" → __0o<classLen><class>dt<params>
+    if method.startswith("~"):
+        return bool(cls) and method[1:] == cls and (cls + "dt") in sym_name
+
+    # Ctor: method_name == class_name → __0o<classLen><class>ct<params>
+    if cls and method == cls:
+        return (cls + "ct") in sym_name
+
+    # Operator: member __0o<class><op><params>, global __0O<op><params>
+    if method.startswith("operator"):
+        op_code = _OP_CODES.get(method)
+        if not op_code:
+            return False
+        if cls:
+            return (cls + op_code) in sym_name
+        return sym_name.startswith(f"__0O{op_code}")
+
+    # Regular instance / static method:
+    # __0f<classLen><class><methodLen><method><params>[T for static]
+    if cls:
+        ci = sym_name.find(cls)
+        if ci < 0:
+            return False
+        mi = sym_name.find(method, ci + len(cls))
+        if mi < 0:
+            return False
+        # Gap is the length-prefix letter(s): 1 char for names 1-51, 2 chars
+        # for 52-103, 3 for longer. See §2.1 of the mangling doc.
+        gap = mi - (ci + len(cls))
+        return 1 <= gap <= 3
+
+    # Free function: __0F<methodLen><method><params>
+    return method in sym_name
 
 
 def verify_all(verbose=False, fix=False):
@@ -115,15 +186,33 @@ def verify_all(verbose=False, fix=False):
         if f.endswith((".c", ".cpp"))
     )
     print(f"Recompiling {len(src_files)} source files...")
-    compile_errors = 0
+    compile_errors = []
     for src in src_files:
         o_path = src.replace("src/", "build/src/") + ".o"
         result = subprocess.run(["make", o_path], capture_output=True, text=True)
         if result.returncode != 0:
             print(f"  compile error: {src}")
-            compile_errors += 1
-    if compile_errors > 0:
-        print(f"  {compile_errors} files failed to compile")
+            compile_errors.append(src)
+    if compile_errors:
+        # A compile failure means we have no .o for that src, so any
+        # claimed matches whose real symbol lives there will show up as
+        # NO MATCHING SYMBOL even though they might have been real at
+        # commit time. --fix would then destroy those records.
+        # Refuse to --fix while compile is broken; warn otherwise.
+        if fix:
+            raise RuntimeError(
+                f"{len(compile_errors)} source files failed to compile. "
+                f"Refusing to --fix while any src is broken — a compile "
+                f"failure causes false NO MATCHING SYMBOL reports and "
+                f"would destroy real matches. Broken files: "
+                f"{', '.join(compile_errors[:5])}"
+                f"{'...' if len(compile_errors) > 5 else ''}"
+            )
+        print(f"  WARNING: {len(compile_errors)} src files failed to compile; "
+              f"their matches will show as NO MATCHING SYMBOL below.")
+        print(f"           Do NOT run --fix until these are fixed:")
+        for src in compile_errors:
+            print(f"             {src}")
 
     # Build symbol map from all compiled .o files
     print("Scanning compiled symbols...")
@@ -145,9 +234,22 @@ def verify_all(verbose=False, fix=False):
             addr = int(func["address"], 16)
             size = func["size"]
             expected = get_original_bytes(eboot, addr, size)
+            cls = func.get("class_name") or ""
+            method = func.get("method_name") or ""
+
+            # Only symbols whose mangled form actually encodes this
+            # function's (class, method) pair are considered. Eliminates
+            # the historical first-byte-match-wins false positive where
+            # e.g. an 8-byte wrapper matched an unrelated symbol in an
+            # unrelated .o file just by byte-pattern coincidence.
+            name_candidates = [
+                (sn, cb, of, so)
+                for sn, (cb, of, so) in all_symbols.items()
+                if _sym_matches_name(sn, cls, method)
+            ]
 
             found = False
-            for sym_name, (compiled_bytes, o_file, sym_offset) in all_symbols.items():
+            for sym_name, compiled_bytes, o_file, sym_offset in name_candidates:
                 if len(compiled_bytes) < size:
                     continue
 
@@ -178,7 +280,11 @@ def verify_all(verbose=False, fix=False):
             if not found:
                 problem_addrs.add(func["address"])
                 mismatched += 1
-                print(f"  ✗ {func['address']}  {size:>4}B  {func['name']} — BYTE MISMATCH")
+                if not name_candidates:
+                    reason = "NO MATCHING SYMBOL"
+                else:
+                    reason = "BYTE MISMATCH"
+                print(f"  ✗ {func['address']}  {size:>4}B  {func['name']} — {reason}")
 
     total = len(matched)
     print(f"\n{'='*60}")
