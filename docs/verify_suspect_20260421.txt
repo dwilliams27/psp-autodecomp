@@ -1,0 +1,118 @@
+  WARNING: 10 src files failed to compile; their matches will show as NO MATCHING SYMBOL below.
+  ✗ 0x000039f4    28B  cDynamicMemAllocator::GetSizeScale(void) const — NO MATCHING SYMBOL
+  ✗ 0x00005448     8B  cFile::OnCreated(void) — NO MATCHING SYMBOL
+  ✗ 0x00005450     8B  cFile::OnClosed(void) — NO MATCHING SYMBOL
+  ✗ 0x000076e4    40B  cListSubscriber::Write(cFile &) const — NO MATCHING SYMBOL
+  ✗ 0x00007fc8    44B  cLanguage::IsTextLanguageSupported(cLanguage::cLanguages) static — NO MATCHING SYMBOL
+  ✗ 0x00007ff4    36B  cLanguage::GetSupportedVoiceLanguage(cLanguage::cLanguages) static — NO MATCHING SYMBOL
+  ✗ 0x000084a4     8B  cLanguage::PlatformInitialize(void) static — NO MATCHING SYMBOL
+  ✗ 0x0000dcf0    40B  cXML::cNode::cNode(cXML::cNodeType, const char *) — NO MATCHING SYMBOL
+  ✗ 0x000115a0    48B  ePlatformInput_AnyButtonPressed(eInputJoystick::eInputState *) — NO MATCHING SYMBOL
+  ✗ 0x0001c918   120B  eConfigBase::~eConfigBase(void) — NO MATCHING SYMBOL
+  ✗ 0x0001efb0    44B  eAudio::GetGroupVolume(eAudio::eGroup, eAudioGroup::eFader) static — NO MATCHING SYMBOL
+  ✗ 0x0002b970   128B  eShape::~eShape(void) — NO MATCHING SYMBOL
+  ✗ 0x0002bed0   124B  eTexture::~eTexture(void) — NO MATCHING SYMBOL
+  ✗ 0x00030548     8B  eVideo::SetVideoMode(eVideo::eVideoMode) static — NO MATCHING SYMBOL
+  ✗ 0x00032f38     8B  eStandardSpriteMtl::CreateData(void) — NO MATCHING SYMBOL
+  ✗ 0x00039b48     8B  eFont::ReadKerningTableOld(cReadBlock &) — NO MATCHING SYMBOL
+  ✗ 0x0003a960     8B  eInputJoystick::PlatformCapture(int) static — NO MATCHING SYMBOL
+  ✗ 0x0003a968     8B  eInputJoystick::BindReset(int) static — NO MATCHING SYMBOL
+  ✗ 0x0003a970     8B  eInputJoystick::BindAnalog(int, eInputJoystick::eAnalog, eInputJoystick::eAxis, eInputJoystick::eAxisElement) static — NO MATCHING SYMBOL
+  ✗ 0x0003a978     8B  eInputJoystick::BindButton(int, eInputJoystick::eButton, bool) static — NO MATCHING SYMBOL
+  ✗ 0x0003a980     8B  eInputJoystick::GetButtonBinding(int, eInputJoystick::eButton) static — NO MATCHING SYMBOL
+  ✗ 0x0003b914    44B  eInputKeyboard::Reset(void) static — BYTE MISMATCH
+  ✗ 0x0003b954   128B  eInputKeyboard::KeyToASCII(eInputKeyboard::eKey) static — NO MATCHING SYMBOL
+  ✗ 0x00046c68   128B  ePhysicsController::~ePhysicsController(void) — NO MATCHING SYMBOL
+  ✗ 0x00056c30    12B  eMemCard::BeginLoad(const eMemCard::eLoadParams &) static — NO MATCHING SYMBOL
+  ✗ 0x00056c3c     8B  eMemCard::EndLoad(const eMemCard::eLoadParams &) static — NO MATCHING SYMBOL
+  ✗ 0x00056d34     8B  eMemCard::EndSave(const eMemCard::eSaveParams &) static — NO MATCHING SYMBOL
+  ✗ 0x00056e44    28B  eMovie::Open(const char *) — NO MATCHING SYMBOL
+  ✗ 0x0005ab78    48B  ePathPoint::ePathPoint(void) — NO MATCHING SYMBOL
+  ✗ 0x00063560    16B  eContactCollector::ClearContacts(eContactCollector::eContactType) — NO MATCHING SYMBOL
+  ✗ 0x00073ac8    28B  eCompoundShape::Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const — NO MATCHING SYMBOL
+  ✗ 0x00073ae4    28B  eCompoundShape::Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const — NO MATCHING SYMBOL
+  ✗ 0x00073b00    28B  eCompoundShape::Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const — NO MATCHING SYMBOL
+  ✗ 0x00074ebc    56B  eKeyframedController::eKeyframedController(cBase *) — NO MATCHING SYMBOL
+  ✗ 0x0007b0e0   132B  eTextureMap::~eTextureMap(void) — NO MATCHING SYMBOL
+  ✗ 0x0007d44c   124B  eProjector::~eProjector(void) — NO MATCHING SYMBOL
+  ✗ 0x0007ec7c   124B  eShadow::~eShadow(void) — NO MATCHING SYMBOL
+  ✗ 0x0007f1bc    76B  eShadowFillModelMtl::Write(cFile &) const — NO MATCHING SYMBOL
+  ✗ 0x0007fa48     8B  eShadowFillModelMtl::CreateData(void) — NO MATCHING SYMBOL
+  ✗ 0x00080434   132B  eBumpOffsetMap::~eBumpOffsetMap(void) — NO MATCHING SYMBOL
+  ✗ 0x00080974     8B  eDynamicLightHeightmapMtl::PlatformFree(void) — NO MATCHING SYMBOL
+  ✗ 0x0008f0c0   184B  eDynamicMeshMorphTarget::~eDynamicMeshMorphTarget(void) — NO MATCHING SYMBOL
+  ✗ 0x000d8ea8    24B  gcUIWidget::GetNeighbor(gcUIWidget::gcUINeighbor) const — NO MATCHING SYMBOL
+  ✗ 0x000d8ec0    24B  gcUIWidget::SetNeighbor(gcUIWidget::gcUINeighbor, cSubHandleT<gcUIWidget>) — NO MATCHING SYMBOL
+  ✗ 0x000e2168    64B  gcUI::gcFader::gcFader(void) — NO MATCHING SYMBOL
+  ✗ 0x000e21a8    52B  gcUI::gcFader::Reset(void) — NO MATCHING SYMBOL
+  ✗ 0x000e2894    48B  gcUI::gcFader::OnMemPoolReset(const cMemPool *, unsigned int) — NO MATCHING SYMBOL
+  ✗ 0x000edb8c   132B  gcStreamedCinematicConfig::~gcStreamedCinematicConfig(void) — NO MATCHING SYMBOL
+  ✗ 0x000ef5ac   172B  gcRegion::~gcRegion(void) — NO MATCHING SYMBOL
+  ✗ 0x000f0f2c   152B  gcLoadingScreen::~gcLoadingScreen(void) — NO MATCHING SYMBOL
+  ✗ 0x0011b714    24B  gcDesiredEntityHelper::gcDesiredEntityHelper(gcDesiredEntityHelper::gcPrimary, gcDesiredEntityHelper::gcRelationship, gcDesiredEntityHelper::gcRelationship) — NO MATCHING SYMBOL
+  ✗ 0x001251c8    12B  gcDesiredObjectHelper::GetPrimaryText(gcDesiredObjectHelper::gcPrimary) static — NO MATCHING SYMBOL
+  ✗ 0x0012dfc8    20B  gcDesiredUIWidgetHelper::gcDesiredUIWidgetHelper(gcDesiredUIWidgetHelper::gcPrimary) — NO MATCHING SYMBOL
+  ✗ 0x0012f100   100B  gcValNumber::~gcValNumber(void) — NO MATCHING SYMBOL
+  ✗ 0x0012f4e4   128B  gcAction::~gcAction(void) — NO MATCHING SYMBOL
+  ✗ 0x0013e530   128B  gcPartialEntityControllerTemplate::~gcPartialEntityControllerTemplate(void) — NO MATCHING SYMBOL
+  ✗ 0x0014f89c    12B  gcDoSetValue::GetOpText(gcDoSetValue::gcOp) static — NO MATCHING SYMBOL
+  ✗ 0x00150010    40B  gcDoSwitchCase::GetText(char *) const — BYTE MISMATCH
+  ✗ 0x0015231c    40B  gcDoWhile::GetText(char *) const — NO MATCHING SYMBOL
+  ✗ 0x001a796c    28B  nwConnection::nwOutBlockInfo::Next(void) — NO MATCHING SYMBOL
+  ✗ 0x001a79e8    28B  nwConnection::nwInBlockInfo::Next(void) — NO MATCHING SYMBOL
+  ✗ 0x001c60b4    24B  cMemPoolPlatform::cMemPoolPlatform(void) — NO MATCHING SYMBOL
+  ✗ 0x001c6574    20B  cType::cType(void) — NO MATCHING SYMBOL
+  ✗ 0x001d76a4    12B  cHandleT<ePortal>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x001d7afc    12B  cHandleT<eRoom>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x001db654     8B  mMatrix4::mMatrix4(void) — NO MATCHING SYMBOL
+  ✗ 0x001db794    24B  eDynamicVertChunk::eDynamicVertChunk(void) — BYTE MISMATCH
+  ✗ 0x001db7ac    24B  eViewport::eViewport(int, int, int, int) — NO MATCHING SYMBOL
+  ✗ 0x001e0ff8     8B  eShape::GetSupport(const mVec3 &, const mOCS &, eCollisionSupport *) const — BYTE MISMATCH
+  ✗ 0x001e128c    12B  cHandleT<eTexture>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x001e3730    12B  cHandleT<eCameraEffect>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x001e373c    40B  eCameraEffectMgrEntry::eCameraEffectMgrEntry(void) — NO MATCHING SYMBOL
+  ✗ 0x001e3764    20B  eInput::eButtonState::eButtonState(void) — NO MATCHING SYMBOL
+  ✗ 0x001e4250    40B  mWaveGen::mWaveGen(void) — NO MATCHING SYMBOL
+  ✗ 0x001e4318   124B  eTexCoordGen::New(cMemPool *, cBase *) static — NO MATCHING SYMBOL
+  ✗ 0x001e74a4    12B  cHandleT<eSprite>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x001f4b44    36B  eMeshShape::GetInertialTensor(float, mVec3 *) const — NO MATCHING SYMBOL
+  ✗ 0x00208928    16B  eSavedContact::eSavedContact(void) — NO MATCHING SYMBOL
+  ✗ 0x0020efb0    36B  bool eDynamicAABBTreeNode<eRigidBodyState>::NeedsSplit(void) const — NO MATCHING SYMBOL
+  ✗ 0x0020f71c    36B  void eDynamicAABBTreeNode<eRigidBodyState>::UnsplitNode(void) — NO MATCHING SYMBOL
+  ✗ 0x00216a1c   160B  eShadowFillModelMtl::AssignCopy(const cBase *) — NO MATCHING SYMBOL
+  ✗ 0x0021da2c    12B  cArrayBase<eDynamicMeshVisTriList>::cArrayBase(void) — NO MATCHING SYMBOL
+  ✗ 0x0021db64    12B  cArrayBase<eDynamicMeshMorphTarget>::cArrayBase(void) — NO MATCHING SYMBOL
+  ✗ 0x0021db70    12B  cArrayBase<eDynamicMeshVisSkinTriList>::cArrayBase(void) — NO MATCHING SYMBOL
+  ✗ 0x0022757c   116B  cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> >::~cHandlePairT(void) — NO MATCHING SYMBOL
+  ✗ 0x002275f0    16B  cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> >::cHandlePairT(void) — NO MATCHING SYMBOL
+  ✗ 0x0023331c    12B  cHandleT<gcStateMachine>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x00233328    16B  cHandlePairT<gcStateMachine, cSubHandleT<gcState> >::cHandlePairT(void) — NO MATCHING SYMBOL
+  ✗ 0x00234318    24B  cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> >::cHandlePairT(const cHandlePairT<cHandlePairT, gcEnumeration> &) — NO MATCHING SYMBOL
+  ✗ 0x0023c4a0    16B  cHandlePairT<gcUIDialog, cSubHandleT<gcUIWidget> >::cHandlePairT(void) — NO MATCHING SYMBOL
+  ✗ 0x0023f0a4    32B  gcUIDialog::gcMouseOver::gcMouseOver(void) — NO MATCHING SYMBOL
+  ✗ 0x00241e5c    12B  cHandleT<gcEntity>::cHandleT(void) — NO MATCHING SYMBOL
+  ✗ 0x00245578    16B  cGUIDT<gcRegion>::cGUIDT(void) — NO MATCHING SYMBOL
+  ✗ 0x0024767c    16B  gcMap::cObjectLoad::cObjectLoad(void) — NO MATCHING SYMBOL
+  ✗ 0x00248e48    16B  gcBackgroundLoader::gcObjectLoad::gcObjectLoad(void) — NO MATCHING SYMBOL
+  ✗ 0x002597c0   116B  gcStateInfo::~gcStateInfo(void) — NO MATCHING SYMBOL
+  ✗ 0x002612d0     8B  gcCameraModes::UpdateLookFromPoint(gcCamera &, gcCamera::gcState &, cTimeValue) static — NO MATCHING SYMBOL
+  ✗ 0x00262a88    60B  gcDesiredCamera::AssignCopy(const cBase *) — NO MATCHING SYMBOL
+  ✗ 0x00267ee8   100B  gcEntitySoundConfig::~gcEntitySoundConfig(void) — NO MATCHING SYMBOL
+  ✗ 0x002680c8   100B  gcEntityRumbleConfig::~gcEntityRumbleConfig(void) — NO MATCHING SYMBOL
+  ✗ 0x00270f30    52B  gcTableColumnByte::AssignCopy(const cBase *) — NO MATCHING SYMBOL
+  ✗ 0x0027de20   100B  gcGameStrings::~gcGameStrings(void) — NO MATCHING SYMBOL
+  ✗ 0x0027e6e8     8B  gcUIWidgetList::PlayEffect(gcUIWidget::gcUIEffect) — NO MATCHING SYMBOL
+  ✗ 0x0029465c   124B  gcDoBreak::~gcDoBreak(void) — NO MATCHING SYMBOL
+  ✗ 0x002d88d0    52B  gcDoEvaluation::GetChild(int) const — NO MATCHING SYMBOL
+  ✗ 0x00318bd8   124B  gcDoWhile::New(cMemPool *, cBase *) static — NO MATCHING SYMBOL
+  ✗ 0x00318d7c    52B  gcDoWhile::GetChild(int) const — NO MATCHING SYMBOL
+  ✗ 0x00320bd0     8B  gcValBinaryOp::GetMaxChildren(void) const — NO MATCHING SYMBOL
+  ✗ 0x00322310     8B  gcValCameraFollowEntity3rdVariable::Evaluate(void) const — NO MATCHING SYMBOL
+  ✗ 0x00322318     8B  gcValCameraFollowEntity3rdVariable::Set(float) — NO MATCHING SYMBOL
+  ✗ 0x00322348   100B  gcValCameraFollowEntity3rdVariable::~gcValCameraFollowEntity3rdVariable(void) — NO MATCHING SYMBOL
+  ✗ 0x003238a8     8B  gcValCameraValue::Evaluate(void) const — NO MATCHING SYMBOL
+  ✗ 0x00323914   100B  gcValCameraValue::~gcValCameraValue(void) — NO MATCHING SYMBOL
+  ✗ 0x003445f4   100B  gcValFPSInfo::~gcValFPSInfo(void) — NO MATCHING SYMBOL
+  ✗ 0x00347894   100B  gcValKeyboardState::~gcValKeyboardState(void) — NO MATCHING SYMBOL
+  ✗ 0x00350b24   100B  gcValMouseState::~gcValMouseState(void) — NO MATCHING SYMBOL
+  ✗ 0x0035b980   100B  gcValStateTimer::~gcValStateTimer(void) — NO MATCHING SYMBOL
