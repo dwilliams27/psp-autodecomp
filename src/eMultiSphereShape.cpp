@@ -1,4 +1,5 @@
 #include "eMultiSphereShape.h"
+#include "eBoxShape.h"
 #include "eCapsuleShape.h"
 #include "eCompoundShape.h"
 #include "eMeshShape.h"
@@ -13,10 +14,58 @@
 #include "eCollisionPair.h"
 
 class eConvexHullShape;
+class cFile;
+class cBase;
+class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+extern char eMultiSphereShapevirtualtable[];
+
+void eShape_Write_MS(const void *, cFile &);
+void eShape_eShape_MS(void *, cBase *);
+void eMultiSphereShape_eMultiSphereShape(eMultiSphereShape *, cBase *);
+extern "C" void eShape___dtor_eShape_void(void *, int);
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    unsigned int (*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+void *cMemPool_GetPoolFromPtr_MS(const void *);
 
 int eMultiSphereShape::CanSweep(void) const {
     return 1;
 }
+
+#pragma control sched=1
+float eMultiSphereShape::GetVolume(void) const {
+    float r2 = mRadius * mRadius;
+    float r2pi = r2 * 3.1415927f;
+    float doubled = mHalfLength * 2.0f;
+    float cyl = r2pi * doubled;
+    float r3 = r2 * mRadius;
+    return cyl + r3 * 4.1887903f;
+}
+#pragma control sched=2
 
 // eMultiSphereShape::GetProjectedMinMax
 // Projects two sphere centers (center ± halfLength along ocs.row2) onto dir,
@@ -75,6 +124,82 @@ void eMultiSphereShape::GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, fl
     else
         *outMax = max2;
 }
+
+// eMultiSphereShape::Write(cFile &) const — 0x000688d0
+#pragma control sched=1
+void eMultiSphereShape::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    eShape_Write_MS(this, file);
+    wb.Write(mRadius);
+    wb.Write(mHalfLength);
+    wb.End();
+}
+#pragma control sched=2
+
+// eMultiSphereShape::~eMultiSphereShape(void) — 0x00068bb8
+#pragma control sched=1
+extern "C" void eMultiSphereShape___dtor_eMultiSphereShape_void(eMultiSphereShape *self, int flags) {
+    if (self != 0) {
+        *(void **)((char *)self + 4) = eMultiSphereShapevirtualtable;
+        eShape___dtor_eShape_void(self, 0);
+        if (flags & 1) {
+            void *pool = cMemPool_GetPoolFromPtr_MS(self);
+            void *block = *(void **)((char *)pool + 0x24);
+            char *allocTable = *(char **)((char *)block + 0x1C);
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            void *base = (char *)block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, self);
+        }
+    }
+}
+#pragma control sched=2
+
+// eMultiSphereShape::New(cMemPool *, cBase *) static — 0x0020936c
+#pragma control sched=1
+eMultiSphereShape *eMultiSphereShape::New(cMemPool *pool, cBase *parent) {
+    eMultiSphereShape *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eMultiSphereShape *obj = (eMultiSphereShape *)entry->fn(base, 0xD0, 0x10, 0, 0);
+    if (obj != 0) {
+        eMultiSphereShape_eMultiSphereShape(obj, parent);
+        result = obj;
+    }
+    return result;
+}
+#pragma control sched=2
+
+// eMultiSphereShape::Collide(const eBoxShape *, ...) — 0x000695e0
+#pragma control sched=1
+int eMultiSphereShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    if (eCollision::BoxMultiSphere(*shape, *this, ocs2, ocs1, info) != 0) {
+        int i = 0;
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+#pragma control sched=2
 
 int eMultiSphereShape::Collide(const eCapsuleShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::MultiSphereCapsule(*this, *shape, ocs1, ocs2, info);
