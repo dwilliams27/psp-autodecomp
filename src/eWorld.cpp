@@ -1,4 +1,13 @@
 #include "eWorld.h"
+#include "mVec3.h"
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void *cMemPool_GetPoolFromPtr(const void *);
 
 static int sNextCullId;
 
@@ -76,5 +85,65 @@ void eWorld::AddRoomSet(eRoomSet *rs) {
         roomSetList = rs;
         rs->prevRoomSet = rs;
         rs->nextRoomSet = rs;
+    }
+}
+
+int eWorld::IsPointInFluidVolume(const eRoom *room, const mVec3 &pos) const {
+    const eRoom *r = GetRoomFromPos(room, pos);
+    if (r) {
+        return r->IsPointInFluidVolume(pos);
+    }
+    return 0;
+}
+
+void eWorld::RemoveRoom(eRoom *r) {
+    if (r && r->nextRoom && r->prevRoom) {
+        if (roomList == r) roomList = r->prevRoom;
+        r->nextRoom->prevRoom = r->prevRoom;
+        r->prevRoom->nextRoom = r->nextRoom;
+        r->nextRoom = 0;
+        r->prevRoom = 0;
+        if (roomList == r) roomList = 0;
+    }
+}
+
+void eWorld::RemoveRoomSet(eRoomSet *rs) {
+    if (rs && rs->nextRoomSet && rs->prevRoomSet) {
+        if (roomSetList == rs) roomSetList = rs->prevRoomSet;
+        rs->nextRoomSet->prevRoomSet = rs->prevRoomSet;
+        rs->prevRoomSet->nextRoomSet = rs->nextRoomSet;
+        rs->nextRoomSet = 0;
+        rs->prevRoomSet = 0;
+        if (roomSetList == rs) roomSetList = 0;
+    }
+}
+
+void eWorld::RemoveSound(eSound *s) {
+    s->Stop();
+    if (s && s->nextSound && s->prevSound) {
+        if (soundList == s) soundList = s->prevSound;
+        s->nextSound->prevSound = s->prevSound;
+        s->prevSound->nextSound = s->nextSound;
+        s->nextSound = 0;
+        s->prevSound = 0;
+        if (soundList == s) soundList = 0;
+    }
+}
+
+extern "C" void eWorld___dtor_eWorld_void(eWorld *self, int flags) {
+    if (self != 0) {
+        int i = 0;
+        do {
+            i++;
+        } while (i < 3);
+        if (flags & 1) {
+            if (self != 0) {
+                void *pool = cMemPool_GetPoolFromPtr(self);
+                void *block = *(void **)((char *)pool + 0x24);
+                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+                short off = rec->offset;
+                rec->fn((char *)block + off, self);
+            }
+        }
     }
 }
