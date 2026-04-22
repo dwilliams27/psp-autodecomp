@@ -17,9 +17,11 @@ import glob
 import importlib
 import json
 import os
+import queue
 import random
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timedelta
@@ -46,9 +48,27 @@ SESSION_RESULTS_DIR = "logs/session_results"
 GIT = "git"
 
 
+_LOG_PATH = None
+
+
+def set_log_path(path):
+    """Register the active jsonl so `log()` can tee orch_note events to it.
+
+    Called once from main() after the log file has been created.
+    """
+    global _LOG_PATH
+    _LOG_PATH = path
+
+
 def log(msg):
+    """Print a timestamped line to the console and tee to jsonl as orch_note.
+
+    The jsonl tee is how the live TUI mirrors orchestrator output.
+    """
     ts = datetime.now().strftime("%H:%M:%S")
     print(f"[{ts}] {msg}", flush=True)
+    if _LOG_PATH:
+        log_event(_LOG_PATH, {"event": "orch_note", "text": msg})
 
 
 def log_event(log_path, event):
@@ -302,26 +322,219 @@ def build_prompt(batch, functions, session_id, variant):
     return module.build_prompt(batch, functions, session_id)
 
 
-def run_claude_session(prompt, session_id, timeout=SESSION_TIMEOUT):
-    """Invoke Claude Code in headless mode. Returns (success, error_msg)."""
+def _format_tool_use(tool_name, tool_input):
+    """Turn a tool_use block into a one-line display string for the TUI."""
+    if not isinstance(tool_input, dict):
+        return f"{tool_name}"
+    if tool_name == "Bash":
+        cmd = str(tool_input.get("command", ""))
+        return f"$ {cmd[:200]}"
+    if tool_name in ("Read", "Write", "Edit", "NotebookEdit"):
+        return f"{tool_name.lower()} {tool_input.get('file_path', '')}"
+    if tool_name == "Grep":
+        pat = str(tool_input.get("pattern", ""))[:80]
+        path = tool_input.get("path", "")
+        tail = f" in {path}" if path else ""
+        return f"grep '{pat}'{tail}"
+    if tool_name == "Glob":
+        return f"glob {tool_input.get('pattern', '')}"
+    if tool_name == "Agent":
+        desc = tool_input.get("description", "")
+        return f"agent: {desc}"[:200]
+    # Unknown tool — show name + a short param peek
+    peek = str(tool_input)[:80]
+    return f"{tool_name} {peek}"
+
+
+_RESULT_KEYWORDS = ("match", "mismatch", "fail", "error", "permuter",
+                    "diff", "verify", "byte", "segfault", "exit")
+
+
+def _format_tool_result(content, is_error):
+    """Extract a one-line signal from a tool_result block."""
+    if isinstance(content, list):
+        parts = []
+        for c in content:
+            if isinstance(c, dict):
+                parts.append(str(c.get("text", "")))
+            else:
+                parts.append(str(c))
+        text = "\n".join(parts)
+    else:
+        text = str(content or "")
+
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return "(empty)"
+
+    # Prefer lines with keywords that indicate real matching signal.
+    key_lines = [ln for ln in lines
+                 if any(k in ln.lower() for k in _RESULT_KEYWORDS)]
+    if key_lines:
+        head = " | ".join(key_lines[:2])
+        prefix = "! " if is_error else ""
+        return f"{prefix}{head}"[:240]
+
+    prefix = "! " if is_error else ""
+    return f"{prefix}{lines[0]}"[:240]
+
+
+def _emit_stream_event(msg, session_id, variant, log_path):
+    """Parse a single stream-json line and emit agent_event entries.
+
+    Ignores `system` init messages and the final `result` message — the
+    orchestrator processes the outcome via the session_results/<sid>.json
+    file Claude writes, not via the stream.
+    """
+    mtype = msg.get("type")
+    if mtype == "assistant":
+        inner = msg.get("message", {}) or {}
+        for block in inner.get("content", []) or []:
+            btype = block.get("type")
+            if btype == "text":
+                text = (block.get("text") or "").strip()
+                if text:
+                    log_event(log_path, {
+                        "event": "agent_event",
+                        "session_id": session_id,
+                        "variant": variant,
+                        "kind": "text",
+                        "text": text[:500],
+                    })
+            elif btype == "thinking":
+                text = (block.get("thinking") or "").strip()
+                if text:
+                    log_event(log_path, {
+                        "event": "agent_event",
+                        "session_id": session_id,
+                        "variant": variant,
+                        "kind": "thinking",
+                        "text": text[:500],
+                    })
+            elif btype == "tool_use":
+                tool = block.get("name") or "?"
+                inp = block.get("input") or {}
+                log_event(log_path, {
+                    "event": "agent_event",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "kind": "tool_use",
+                    "tool": tool,
+                    "tool_use_id": block.get("id"),
+                    "text": _format_tool_use(tool, inp),
+                })
+    elif mtype == "user":
+        inner = msg.get("message", {}) or {}
+        content = inner.get("content", []) or []
+        if not isinstance(content, list):
+            return
+        for block in content:
+            if block.get("type") == "tool_result":
+                is_error = bool(block.get("is_error", False))
+                text = _format_tool_result(block.get("content"), is_error)
+                log_event(log_path, {
+                    "event": "agent_event",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "kind": "tool_result",
+                    "tool_use_id": block.get("tool_use_id"),
+                    "is_error": is_error,
+                    "text": text,
+                })
+
+
+def run_claude_session(prompt, session_id, log_path, variant,
+                       timeout=SESSION_TIMEOUT):
+    """Invoke Claude Code in headless mode, streaming tool calls to log_path.
+
+    Uses --output-format stream-json so each agent message arrives as its
+    own line; we parse text / thinking / tool_use / tool_result blocks and
+    emit agent_event entries into the run's jsonl for the TUI to tail.
+
+    Returns (success, error_msg).
+    """
     cmd = [
         CLAUDE, "-p", prompt,
         "--model", CLAUDE_MODEL,
         "--dangerously-skip-permissions",
-        "--output-format", "json",
+        "--output-format", "stream-json",
         "--verbose",
     ]
 
     try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, bufsize=1,
         )
-    except subprocess.TimeoutExpired:
-        return False, f"session timed out after {timeout}s"
+    except OSError as e:
+        return False, f"failed to spawn claude: {e}"
 
-    if result.returncode != 0:
-        stderr = result.stderr.strip()[:200] if result.stderr else "unknown error"
-        return False, f"claude exited {result.returncode}: {stderr}"
+    q = queue.Queue()
+
+    def _reader(stream, tag):
+        try:
+            for line in stream:
+                q.put((tag, line))
+        finally:
+            q.put((tag, None))
+
+    t_out = threading.Thread(target=_reader, args=(proc.stdout, "out"),
+                             daemon=True)
+    t_err = threading.Thread(target=_reader, args=(proc.stderr, "err"),
+                             daemon=True)
+    t_out.start()
+    t_err.start()
+
+    start = time.time()
+    eof_count = 0
+    stderr_tail = []
+
+    while eof_count < 2:
+        elapsed = time.time() - start
+        remaining = timeout - elapsed
+        if remaining <= 0:
+            proc.kill()
+            return False, f"session timed out after {timeout}s"
+        try:
+            tag, line = q.get(timeout=min(remaining, 1.0))
+        except queue.Empty:
+            if proc.poll() is not None and q.empty():
+                break
+            continue
+        if line is None:
+            eof_count += 1
+            continue
+        if tag == "out":
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                parsed = json.loads(line)
+            except json.JSONDecodeError:
+                # stream-json should produce one JSON object per line.
+                # Record anything else verbatim so it's visible and debuggable.
+                log_event(log_path, {
+                    "event": "agent_event",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "kind": "raw",
+                    "text": line[:500],
+                })
+                continue
+            _emit_stream_event(parsed, session_id, variant, log_path)
+        elif tag == "err":
+            stderr_tail.append(line)
+            if len(stderr_tail) > 20:
+                stderr_tail = stderr_tail[-20:]
+
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+
+    if proc.returncode != 0:
+        err = "".join(stderr_tail).strip()[:200] if stderr_tail else "unknown error"
+        return False, f"claude exited {proc.returncode}: {err}"
 
     return True, None
 
@@ -731,7 +944,7 @@ def build_byte_diff(compiled, expected, base_addr):
     return diffs
 
 
-def print_progress(functions, start_time):
+def print_progress(functions, start_time, log_path=None):
     total = sum(1 for f in functions if f["size"] > 0)
     matched = sum(1 for f in functions if f["match_status"] == "matched")
     failed = sum(1 for f in functions if f["match_status"] == "failed")
@@ -741,6 +954,16 @@ def print_progress(functions, start_time):
 
     log(f"Progress: {matched}/{total} matched ({matched*100/total:.1f}%), "
         f"{failed} failed, {untried} untried | elapsed: {elapsed_str}")
+
+    if log_path:
+        log_event(log_path, {
+            "event": "progress_tick",
+            "matched_total": matched,
+            "failed_total": failed,
+            "untried_total": untried,
+            "total": total,
+            "elapsed_s": elapsed.total_seconds(),
+        })
 
 
 def main():
@@ -799,6 +1022,14 @@ def main():
     os.makedirs(SESSION_RESULTS_DIR, exist_ok=True)
 
     log_path = os.path.join(LOGS_DIR, f"match_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl")
+    # Symlink logs/match_latest.jsonl so the TUI can tail without knowing the
+    # filename. Atomic replace: swap it even if an old run's symlink is stale.
+    latest_link = os.path.join(LOGS_DIR, "match_latest.jsonl")
+    if os.path.islink(latest_link) or os.path.exists(latest_link):
+        os.remove(latest_link)
+    os.symlink(os.path.basename(log_path), latest_link)
+
+    set_log_path(log_path)
     log(f"Log: {log_path}")
 
     functions = load_db()
@@ -807,6 +1038,20 @@ def main():
     deadline = start_time + timedelta(hours=args.hours)
     total_attempted = 0
     total_matched = 0
+
+    mode = "targeted" if targets_list else "general"
+    log_event(log_path, {
+        "event": "run_start",
+        "hours": args.hours,
+        "deadline": deadline.isoformat(),
+        "start_time": start_time.isoformat(),
+        "variants": args.variants,
+        "batch_size": args.batch_size,
+        "session_timeout": session_timeout,
+        "mode": mode,
+        "targets_count": len(targets_list) if targets_list else 0,
+        "dry_run": args.dry_run,
+    })
     total_failed = 0
     total_errors = 0
     consecutive_failures = 0
@@ -821,7 +1066,7 @@ def main():
     mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
-    print_progress(functions, start_time)
+    print_progress(functions, start_time, log_path)
 
     while datetime.now() < deadline:
         if targets_list:
@@ -841,6 +1086,18 @@ def main():
         selected_variant = random.choice(args.variants)
         log(f"Session {session_id} [{selected_variant}]: {len(batch)} functions — "
             f"{', '.join(f['name'].split('(')[0] for f in batch)}")
+
+        log_event(log_path, {
+            "event": "session_start",
+            "session_id": session_id,
+            "variant": selected_variant,
+            "class_name": batch[0].get("class_name"),
+            "functions": [
+                {"address": f["address"], "name": f["name"],
+                 "size": f["size"], "obj_file": f.get("obj_file")}
+                for f in batch
+            ],
+        })
 
         # Pre-generate expected .o files
         try:
@@ -879,7 +1136,10 @@ def main():
                 "error": w["error"],
             })
         session_start = time.time()
-        success, error_msg = run_claude_session(prompt, session_id, timeout=session_timeout)
+        success, error_msg = run_claude_session(
+            prompt, session_id, log_path, selected_variant,
+            timeout=session_timeout,
+        )
         session_duration = time.time() - session_start
 
         if not success:
@@ -916,6 +1176,15 @@ def main():
 
             log(f"Session {session_id} done ({session_duration:.0f}s): "
                 f"{matched} matched, {failed} failed")
+
+            log_event(log_path, {
+                "event": "session_done",
+                "session_id": session_id,
+                "variant": selected_variant,
+                "matched": matched,
+                "failed": failed,
+                "duration_s": session_duration,
+            })
 
             matched_funcs = []
             matched_files = set()
@@ -1067,7 +1336,7 @@ def main():
             time.sleep(backoff)
 
         save_db(functions)
-        print_progress(functions, start_time)
+        print_progress(functions, start_time, log_path)
 
     # Final summary
     elapsed = datetime.now() - start_time
@@ -1079,11 +1348,21 @@ def main():
     log(f"Matched: {total_matched}")
     log(f"Failed: {total_failed}")
     log(f"System errors: {total_errors}")
-    print_progress(functions, start_time)
+    print_progress(functions, start_time, log_path)
     log(f"Full log: {log_path}")
     log(f"")
     log(f"To review: git log {branch} --oneline")
     log(f"To merge:  git checkout main && git merge {branch}")
+
+    log_event(log_path, {
+        "event": "run_done",
+        "branch": branch,
+        "duration_s": elapsed.total_seconds(),
+        "attempted": total_attempted,
+        "matched": total_matched,
+        "failed": total_failed,
+        "errors": total_errors,
+    })
 
 
 if __name__ == "__main__":
