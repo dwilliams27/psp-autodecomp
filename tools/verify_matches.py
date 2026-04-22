@@ -235,7 +235,11 @@ def verify_all(verbose=False, fix=False):
             size = func["size"]
             expected = get_original_bytes(eboot, addr, size)
             cls = func.get("class_name") or ""
-            method = func.get("method_name") or ""
+            # DB's method_name includes the arg list for free functions
+            # (e.g. "cGetBuildId(void)") but not for class methods. Strip
+            # the args in both cases so _sym_matches_name gets a bare
+            # identifier.
+            method = (func.get("method_name") or "").split("(", 1)[0]
 
             # Only symbols whose mangled form actually encodes this
             # function's (class, method) pair are considered. Eliminates
