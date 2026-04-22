@@ -121,3 +121,29 @@ The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1
 - **Nested-class name-check gap (mitigated, not eliminated).** `byte_match.sym_encodes_func` uses SNC's non-nested mangling rule (`<class><methodLen><method>` with 1-3 char gap). For nested classes SNC uses the `5`-prefix scope form (see `docs/research/snc-name-mangling.md` §5.1). The current checker passes nested-class matches through *because the within-file byte-match scope makes name matching unnecessary when only one candidate exists per .o*. That's robust in practice but masks a real gap: if a .o ever contains byte-identical nested-class overloads we'd pick the wrong one. A proper forward-mangler in `byte_match` (~200 lines Python) closes this. Not worth it until we see the ambiguity fire.
 
 - **Operator table is hand-maintained.** `byte_match._OP_CODES` covers ~30 operators from the mangling doc's §6.1. Any operator we miss returns `NO_NAMED_SYMBOL`, which is loud — but also destructive under `--fix`. Audit any newly-matched operator before running `--fix`.
+
+---
+
+## 8. Build-must-stay-green invariant at commit time
+
+On 2026-04-21 we discovered 10 src files committed into the repo in a broken-compile state, ~23 DB entries left stranded with bogus provenance, and a verification pipeline that had been silently masking the damage for weeks. Root-cause analysis surfaced three distinct ways this drift gets in:
+
+1. **Per-function verify ≠ per-file verify.** Today's `git_commit_batch` commits whole src files, but `check_byte_match` only verifies the specific functions the session claimed. An agent that correctly decompiles `cFile::AddDependency` and simultaneously breaks `cFile::Close` gets both committed — only the former went through byte verification.
+
+2. **Header drift invalidates downstream src silently.** Session A matches `cFile.cpp` against a header that has `cFileSystem::Read`. Session B later trims that header without touching `cFile.cpp`. No agent ever sees the mismatch because no one recompiles `cFile.cpp` after the header edit.
+
+3. **Header changes commit separately from dependent src.** Agents sometimes modify `include/*.h` during matching without the orchestrator's commit flow treating the header edits as part of the match. Downstream breakage is invisible until someone tries the next session on an affected class.
+
+Prevention ideas, any of which close a subset of the drift:
+
+- **`git_commit_batch` should compile every src file it's about to commit, end-to-end, not just the files it claims matches in.** A single `make build/src/<f>.o` per touched src before staging. On failure, don't commit — emit a loud error event and leave the session's work unstaged for operator review. Cost: ~30s per session. Closes case 1.
+
+- **Pre-session build check: refuse to start a session if the current tree doesn't fully compile.** The orchestrator could keep a `last_known_green` commit sha and compare against it before picking a batch. If any file in the current tree fails to compile, block new sessions until it's fixed (or auto-revert to `last_known_green`). Closes cases 1, 2, 3 prospectively.
+
+- **Periodic full-build audit.** `tools/verify_matches.py` already re-compiles all matched src as part of the audit. Run it as a cron (or every N sessions) and alert on any new compile failure. Closes cases 2, 3 retroactively.
+
+- **Header-change reachability check.** When an agent writes `include/*.h`, the orchestrator could re-compile every src file that `#include`s that header. Catches case 3 at the moment of damage. Most expensive (could be 30-100 src files per header touch); defer until cheaper options prove insufficient.
+
+- **Session-level src-file locking.** If session A is currently working on `cFile.cpp`, session B (potentially modifying headers `cFile` depends on) can't run concurrently. Prevents one class of race. Low value solo; only worthwhile as part of a broader concurrency model.
+
+Recommend: ship the first two (commit-time compile check + pre-session green-build gate) together — they close the most common drift paths for ~1-2 hours of work. Ship the periodic audit as a cron once the others are in so we have a safety net for anything the gates missed.
