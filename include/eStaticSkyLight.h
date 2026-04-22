@@ -1,11 +1,23 @@
 #ifndef ESTATICSKYLIGHT_H
 #define ESTATICSKYLIGHT_H
 
+#include "eStaticLight.h"
+
+class cBase;
+class cMemPool;
+class cFile;
 class mVec3;
 class mRay;
 
-class eStaticSkyLight {
+class eStaticSkyLight : public eStaticLight {
 public:
+    eStaticSkyLight(cBase *);
+    ~eStaticSkyLight();
+
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+
     int GetNumStratifiedSamples(void) const;
     void GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const;
 

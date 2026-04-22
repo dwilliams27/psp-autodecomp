@@ -3,6 +3,135 @@
 #include "mRay.h"
 #include "eBipedController.h"
 
+class cFile;
+class cMemPool;
+class cBase;
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+template <class T> T *dcast(const cBase *);
+
+void *cMemPool_GetPoolFromPtr(void *);
+
+extern "C" {
+    void eStaticLight___dtor_eStaticLight_void(void *, int);
+    void eStaticSkyLight_eStaticSkyLight(eStaticSkyLight *, cBase *);
+}
+
+extern char eStaticSkyLightvirtualtable[];
+
+#pragma control sched=1
+
+struct cHandle {
+    int mIndex;
+};
+
+struct AllocEntry {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+// ── eStaticSkyLight::eStaticSkyLight(cBase *) @ 0x0005F2CC ──
+eStaticSkyLight::eStaticSkyLight(cBase *parent) : eStaticLight(parent) {
+    *(void **)((char *)this + 4) = eStaticSkyLightvirtualtable;
+    *(float *)((char *)this + 0x90) = 180.0f;
+    __asm__ volatile("" ::: "memory");
+}
+
+// ── eStaticSkyLight::Write(cFile &) const @ 0x0005F1A4 ──
+void eStaticSkyLight::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    eStaticLight::Write(file);
+    wb.Write(*(float *)((char *)this + 0x90));
+    wb.End();
+}
+
+// ── eStaticSkyLight::~eStaticSkyLight(void) @ 0x0005F30C ──
+extern "C" {
+
+void eStaticSkyLight___dtor_eStaticSkyLight_void(eStaticSkyLight *self, int flags) {
+    if (self != 0) {
+        *(void **)((char *)self + 4) = eStaticSkyLightvirtualtable;
+        eStaticLight___dtor_eStaticLight_void(self, 0);
+        if (flags & 1) {
+            void *pool = cMemPool_GetPoolFromPtr(self);
+            void *block = *(void **)((char *)pool + 0x24);
+            char *allocTable = *(char **)((char *)block + 0x1C);
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            void *base = (char *)block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, self);
+        }
+    }
+}
+
+}
+
+// ── eStaticSkyLight::New(cMemPool *, cBase *) static @ 0x002060C0 ──
+cBase *eStaticSkyLight::New(cMemPool *pool, cBase *parent) {
+    eStaticSkyLight *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eStaticSkyLight *obj = (eStaticSkyLight *)entry->fn(base, 0xA0, 0x10, 0, 0);
+    if (obj != 0) {
+        eStaticSkyLight_eStaticSkyLight(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// ── eStaticSkyLight::AssignCopy(const cBase *) @ 0x00206040 ──
+void eStaticSkyLight::AssignCopy(const cBase *base) {
+    eStaticSkyLight *other = dcast<eStaticSkyLight>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(float *)((char *)this + 0x44) = *(const float *)((const char *)other + 0x44);
+    *(cHandle *)((char *)this + 0x48) = *(const cHandle *)((const char *)other + 0x48);
+    __asm__ volatile(
+        "lv.q C120, 0x80(%1)\n"
+        "sv.q C120, 0x80(%0)\n"
+        "lv.q C120, 0x50(%1)\n"
+        "sv.q C120, 0x50(%0)\n"
+        "lv.q C120, 0x60(%1)\n"
+        "sv.q C120, 0x60(%0)\n"
+        "lv.q C120, 0x70(%1)\n"
+        "sv.q C120, 0x70(%0)\n"
+        :: "r"(this), "r"(other) : "memory"
+    );
+    *(float *)((char *)this + 0x90) = *(const float *)((const char *)other + 0x90);
+}
+
+#pragma control sched=2
+
 int eStaticSkyLight::GetNumStratifiedSamples(void) const {
     return 8;
 }
