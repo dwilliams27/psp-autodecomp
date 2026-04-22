@@ -13,6 +13,7 @@ public:
     void FindSlideVelocity(mVec3 *) const;
     int ValidateTri(eContact *, int);
     int ValidatePoint(eContact *, int, int);
+    int ValidateEdge(eContact *, int, int);
     void VerifySoftContacts(void);
 };
 
