@@ -103,3 +103,21 @@ Index matched (successfully decompiled) functions by the bigrams and trigrams of
 - Granularity of "tokens" — individual instructions, instruction+operand pairs, or basic-block-level chunks?
 - How to handle variable register names and immediates (normalize vs. preserve)?
 - Index partitioning strategy — per-game, per-compiler, or global with metadata filters?
+
+---
+
+## 7. Verification pipeline follow-ups
+
+The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1a106e1`) consolidated the three match-checking tools onto a single `tools/byte_match.check_byte_match`. A few items were flagged during that work but deferred so we could get back to matching. None are blocking, all are worth closing before the next major refactor:
+
+- **`record_match_provenance()` helper.** Both `tools/orchestrator.py` (post-verify) and `tools/compare_func.py` (`update_matched`) write `src_file` + `symbol_name` onto the DB entry, but each can write a different path shape (`src/foo.cpp` from the orchestrator via session_results; whatever the agent typed from compare_func's CLI). `tools/verify_matches.py` tolerates both via `os.path.exists`, but a single helper in `byte_match.py` that normalizes (e.g., always repo-relative, always `src/...`) would eliminate the latent drift. Small diff — 20 lines plus two call-site updates.
+
+- **Migrate `tools/permuter.py` off its own compile/nm/objcopy helpers.** Per the pre-commit-review, permuter has its own `compile_source` (via direct WIBO+SNC call, not `make`), its own `extract_text_section` / `get_symbol_bytes` / `score_bytes`. Semantically similar to `byte_match`'s helpers but bypasses `make` for throughput. Two options: (a) add a `compile_src(..., bypass_make=True)` variant in `byte_match` that drops into the raw compiler call permuter needs; (b) keep permuter separate but share the post-compile nm/objcopy/compare helpers. Either way drops ~100 lines of permuter and gives it the same relocation-masking + reason-code semantics as the main path.
+
+- **`record_match_provenance()` inverse — backfill older DB entries from `logs/session_results/*.json`.** The migration (`tools/migrations/backfill_match_schema.py`) runs successfully today but flipped 11 entries to `failed` for lack of any session_results record (these are pre-session-results matches). Those might still be recoverable by scanning `asm/` or splat output. Low priority.
+
+- **`tools/func_db.py` query subcommand should surface `src_file` / `symbol_name`.** Today it prints status but not provenance, so agents can't easily answer "which src file contains the already-matched `cFoo::Bar`?" without grep'ing session_results.
+
+- **Nested-class name-check gap (mitigated, not eliminated).** `byte_match.sym_encodes_func` uses SNC's non-nested mangling rule (`<class><methodLen><method>` with 1-3 char gap). For nested classes SNC uses the `5`-prefix scope form (see `docs/research/snc-name-mangling.md` §5.1). The current checker passes nested-class matches through *because the within-file byte-match scope makes name matching unnecessary when only one candidate exists per .o*. That's robust in practice but masks a real gap: if a .o ever contains byte-identical nested-class overloads we'd pick the wrong one. A proper forward-mangler in `byte_match` (~200 lines Python) closes this. Not worth it until we see the ambiguity fire.
+
+- **Operator table is hand-maintained.** `byte_match._OP_CODES` covers ~30 operators from the mangling doc's §6.1. Any operator we miss returns `NO_NAMED_SYMBOL`, which is loud — but also destructive under `--fix`. Audit any newly-matched operator before running `--fix`.
