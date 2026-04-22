@@ -31,8 +31,15 @@ public:
 
 class gcDoEvaluation {
 public:
+    gcDoEvaluation(cBase *);
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
+    void SetBranch(int, class gcExpression *);
+    int IsElseIf(void) const;
+    void GetText(char *) const;
+    float Evaluate(void) const;
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcDoFunction {
