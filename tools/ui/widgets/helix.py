@@ -19,11 +19,14 @@ HELIX_TURNS = 2.2
 HELIX_R_PEAK = 2.4
 HELIX_Y_ASPECT = 0.55
 HELIX_SLOTS = 150
-# Negative flow reverses the slot-translation direction (wave now travels
-# rightward across the panel instead of leftward). Smaller magnitude slows
-# character cycling so the stream isn't hypnotic in peripheral vision.
-HELIX_FLOW = -0.04
-HELIX_PHASE = 0.5
+# Wave direction is controlled by HELIX_PHASE, not FLOW:
+#   peak velocity = -phase * width / (2π · turns)
+# So negative phase → wave travels rightward. FLOW handles character
+# cycling; positive flow keeps individual characters sliding rightward
+# in the same direction as the envelope, for consistent motion.
+# Smaller magnitudes = slower animation.
+HELIX_FLOW = 0.04
+HELIX_PHASE = -0.5
 
 
 _MNEM = [
