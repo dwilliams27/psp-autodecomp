@@ -17,6 +17,7 @@ public:
     void ApplyPositionedForce(int, const mVec3 &, const mVec3 &);
     void Reset(cMemPool *, bool);
     void PostUpdate(mOCS *, eDynamicModel *) const;
+    void AssignCopy(const class cBase *);
 };
 
 #endif

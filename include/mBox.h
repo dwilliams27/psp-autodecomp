@@ -13,4 +13,6 @@ struct mBox {
 
     void Extend(int, const mVec3 *, int);
     void Extend(const mBox &);
+    void GetCorners(mVec3 *) const;
+    void XformInv(const mBox &, const struct mOCS &);
 };

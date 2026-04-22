@@ -23,6 +23,9 @@ public:
     void GetVelocity(int, mVec3 *, mVec3 *) const;
 };
 
+class eKeyframedController;
+eKeyframedController *dcast(const cBase *);
+
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
 // eKeyframedController::eKeyframedController(cBase *) @ 0x00074ebc
@@ -43,4 +46,18 @@ void eKeyframedControllerImpl::GetVelocity(int idx, mVec3 *out_a, mVec3 *out_b) 
 }
 
 void eKeyframedController::ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &) {
+}
+
+#pragma control sched=1
+
+// eKeyframedController::AssignCopy(const cBase *) @ 0x0020de14
+void eKeyframedController::AssignCopy(const cBase *other) {
+    eKeyframedController *p = dcast(other);
+    eKeyframedControllerImpl *src = (eKeyframedControllerImpl *)p;
+    eKeyframedControllerImpl *self = (eKeyframedControllerImpl *)this;
+    self->mField8 = src->mField8;
+    __asm__ volatile("" ::: "memory");
+    self->mFieldC = src->mFieldC;
+    self->mField10 = src->mField10;
+    self->mField14 = src->mField14;
 }

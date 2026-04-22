@@ -21,6 +21,7 @@ struct gcTableColumnFloat {
     void Read(cInStream &stream);
     void AssignCopy(const cBase *other);
     void Set(int row, const wchar_t *text, bool flag);
+    int Compare(int row1, int row2) const;
 };
 
 void gcTableColumnFloat::Set(int row, float value) {
@@ -44,4 +45,14 @@ void gcTableColumnFloat::AssignCopy(const cBase *other) {
 void gcTableColumnFloat::Set(int row, const wchar_t *text, bool flag) {
     float val = cAtoF(text);
     mValues.mData[row] = val;
+}
+
+int gcTableColumnFloat::Compare(int row1, int row2) const {
+    float a = mValues.mData[row1];
+    float b = mValues.mData[row2];
+    int v = -1;
+    if (!(a < b)) {
+        v = (a <= b) ? 0 : 1;
+    }
+    return v;
 }
