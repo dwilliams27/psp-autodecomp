@@ -5,6 +5,28 @@
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+template <class T> class cHandleT {
+public:
+    int mHandle;
+};
+
+class cTimeValue {
+public:
+    int mValue;
+};
+
+class cFile;
+
+void eDynamicGeom_Write(const void *, cFile &);
+
+class cWriteBlock {
+public:
+    char _data[264];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void End(void);
+};
+
 void *eDynamicModel::GetCurrentPhysicsController(void) const {
     int idx = *(int *)((char *)this + 0x120);
     if (idx != -1) {
@@ -43,7 +65,54 @@ void eDynamicModel::GetSweptContacts(const eCollisionInfo &info, int idx, const 
     ((void (*)(char *, int, const mSphere *, const mCollideInfo *, const eCollisionInfo &, eContactCollector *))entry[1])(shape + *(short *)entry, idx, sphere, ci, info, cc);
 }
 
+void eDynamicModel::Write(cFile &file) const {
+    cWriteBlock wb(file, 3);
+    eDynamicGeom_Write(this, file);
+    wb.Write(*(unsigned int *)((char *)this + 0xF4));
+    wb.End();
+}
+
+void eDynamicModel::SetSkin(cHandleT<eSkin> skin1, int type, cHandleT<eSkin> skin2, cTimeValue time) {
+    *(cHandleT<eSkin> *)((char *)this + 0xFC) = skin1;
+    SetMaterialSet(type, time);
+    SetSurfaceSet(skin2.mHandle);
+}
+
+void *eDynamicModel::GetAnimationState(void) const {
+    void *p = *(void **)((char *)this + 0x124);
+    int flag = 1;
+    if (p != 0) {
+        flag = (*(int *)((char *)p - 4) & 0x3FFFFFFF) == 0;
+    }
+    if (flag != 0) return 0;
+    void *ret = 0;
+    if (*(signed char *)((char *)this + 0x13C) > 0) {
+        ret = p;
+    }
+    return ret;
+}
+
+void eDynamicModel::CastRay(const eCollisionInfo &info, const mRay &ray, mCollideHit *hit) const {
+    char *shape = ((char **)&info)[1];
+    int *entry = (int *)(((char **)shape)[1] + 0x98);
+    ((void (*)(char *, const mRay &, const eCollisionInfo &, void *, void *, void *))entry[1])(
+        shape + *(short *)entry, ray, info,
+        (char *)hit + 0x10, (char *)hit + 0x20, (char *)hit + 0x30);
+}
+
 #pragma control sched=1
+
+void eDynamicModel::ClearPartialAnimationController(int idx) {
+    if (idx < 0) return;
+    char *ptr = *(char **)((char *)this + 0x128);
+    int count = 0;
+    if (ptr != 0) {
+        count = *(int *)(ptr - 4) & 0x3FFFFFFF;
+    }
+    if (idx < count) {
+        ptr[idx * 0x44 + 64] = 0;
+    }
+}
 
 bool eDynamicModel::NeedsSkinning(const eDynamicMesh *mesh, int count, int *indices) const {
     for (int i = 0; i < count; i++) {
