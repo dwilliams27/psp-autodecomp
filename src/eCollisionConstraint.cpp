@@ -134,6 +134,11 @@ buildFreeList:
     return 1;
 }
 
+void eCollisionConstraint::Free(eCollisionConstraint *p) {
+    p->mNext = gCollisionConstraintFreeList;
+    gCollisionConstraintFreeList = p;
+}
+
 eCollisionConstraint *eCollisionConstraint::Allocate(const eContactFeature &feature) {
     eCollisionConstraint *node = gCollisionConstraintFreeList;
     if (node) {
