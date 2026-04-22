@@ -3,6 +3,12 @@
 class cStr {
 public:
     char _data[256];
+    void Set(const char *fmt, ...);
+};
+
+class cFileSystem {
+public:
+    static int Exists(const char *);
 };
 
 class cLanguage {
@@ -31,13 +37,45 @@ public:
     static unsigned char IsTextLanguageSupported(cLanguages);
     static void SetLanguage(cLanguages);
     static int GetLanguage(const char *, cLanguages *);
+    static const char *GetLanguageName(cLanguages);
+    static const char *GetLanguageShortName(cLanguages);
+    static bool FindLanguageFile(const char *, const char *, cStr *);
 };
+
+extern cLanguage::cLanguages gLangState[2];
+extern const char kFmtLong[];
+extern const char kFmtShort[];
+extern const char kSubDir[];
 
 extern "C" {
     void cGetLanguageAndButton(int *lang, int *btn);
     int cGetCommandLineValue(const char *name, cStr *out);
     int sceImposeSetLanguageMode(int language, int button_assign);
     int sceUtilityGetSystemParamInt(int id, int *value);
+}
+
+// ─── cLanguage::FindLanguageFile(const char *, const char *, cStr *) static @ 0x00008018 ───
+bool cLanguage::FindLanguageFile(const char *arg0, const char *arg1, cStr *out) {
+    out->Set(kFmtLong, kSubDir, arg0, GetLanguageName(gLangState[1]), arg1);
+    if (cFileSystem::Exists((const char *)out)) return true;
+
+    out->Set(kFmtLong, kSubDir, arg0, GetLanguageShortName(gLangState[1]), arg1);
+    if (cFileSystem::Exists((const char *)out)) return true;
+
+    out->Set(kFmtLong, kSubDir, arg0, GetLanguageName(gLangState[0]), arg1);
+    if (cFileSystem::Exists((const char *)out)) return true;
+
+    out->Set(kFmtLong, kSubDir, arg0, GetLanguageShortName(gLangState[0]), arg1);
+    if (cFileSystem::Exists((const char *)out)) return true;
+
+    out->Set(kFmtShort, kSubDir, arg0, arg1);
+    if (cFileSystem::Exists((const char *)out)) return true;
+    return false;
+}
+
+// ─── cLanguage::PlatformInitialize(void) static @ 0x000084a4 ───
+int cLanguage::PlatformInitialize(void) {
+    return 1;
 }
 
 // ─── cLanguage::OnLanguageChanged(void) static @ 0x000084ac ───
