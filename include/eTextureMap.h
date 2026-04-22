@@ -26,17 +26,6 @@ public:
     void CreateData(void);
 };
 
-class eShadowFillModelMtl {
-public:
-    eShadowFillModelMtl(cBase *);
-    void PlatformFree(void);
-    void Unapply(void) const;
-    void CreateData(void);
-    void Write(cFile &) const;
-    void AssignCopy(const cBase *);
-    static eShadowFillModelMtl *New(cMemPool *, cBase *);
-};
-
 class eCamera;
 class eWorld;
 class mOCS;
@@ -47,6 +36,20 @@ class eColor;
 class cBase;
 class cFile;
 class cMemPool;
+
+class eShadowFillModelMtl {
+public:
+    eShadowFillModelMtl(cBase *);
+    void PlatformFree(void);
+    void Unapply(void) const;
+    void CreateData(void);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
+    void PlatformRead(cFile &, cMemPool *);
+    void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+    static eShadowFillModelMtl *New(cMemPool *, cBase *);
+};
 
 class eBumpOffsetMap : public eTexture {
 public:

@@ -31,6 +31,10 @@ void eShadowFillModelMtl::PlatformFree(void) {
 struct RenderState {
     char pad[0x20];
     int field_20;
+    int field_24;
+    char pad28[0xC];
+    int field_34;
+    int field_38;
 };
 
 extern RenderState D_00098428;
@@ -151,4 +155,170 @@ void eShadowFillModelMtl::AssignCopy(const cBase *src) {
     *(cHandle *)((char *)this + 0x6C) = *(cHandle *)((char *)&other + 0x6C);
     __asm__ volatile("" ::: "memory");
     ((int *)this)[0x70 / 4] = ((int *)&other)[0x70 / 4];
+}
+
+// ── cReadBlock / cMemBlockSuspend ──
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class eModelMtlRW {
+public:
+    int Read(cFile &, cMemPool *);
+    void ApplyCommonDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+};
+
+// ── PlatformRead ──
+
+void eShadowFillModelMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    return;
+}
+
+// ── Read ──
+
+int eShadowFillModelMtl::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1 || !((eModelMtlRW *)this)->Read(file, pool)) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    PlatformRead(file, pool);
+    CreateData();
+    return result;
+}
+
+// ── ApplyDynamic ──
+
+class eColor {
+public:
+    unsigned int mColor;
+};
+
+void eShadowFillModelMtl::ApplyDynamic(const eDrawInfo &di, const mOCS &ocs, float f, unsigned int u, eColor c) const {
+    ((const eModelMtlRW *)this)->ApplyCommonDynamic(di, ocs, f, (u & ~4) | 0x20, c);
+
+    int alpha = (int)((float)((const unsigned char *)this)[0x6B]
+                      * 0.003921569f
+                      * *(const float *)((const char *)&di + 0x18)
+                      * 255.0f) & 0xff & 0xff;
+
+    if (D_00098428.field_24 != 1 || alpha != D_00098428.field_34 || 0xff != D_00098428.field_38) {
+        int cmd = alpha << 8;
+        cmd = cmd | 0x1;
+        cmd = cmd | 0xff0000;
+        cmd = cmd | 0xdc000000;
+        int *p = D_000984D0.ptr;
+        D_000984D0.ptr = p + 1;
+        *p = cmd;
+        D_00098428.field_24 = 1;
+        D_00098428.field_34 = alpha;
+        D_00098428.field_38 = 0xff;
+    }
+}
+
+// ── Destructor ──
+
+extern "C" void eMaterial___dtor_eMaterial_void(void *, int);
+extern "C" void *cMemPool_GetPoolFromPtr(void *);
+
+struct SFMDeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void eShadowFillModelMtl___dtor_eShadowFillModelMtl_void(eShadowFillModelMtl *self, int flags) {
+    if (self != 0) {
+        *(void **)((char *)self + 4) = (void *)0x384f08;
+        self->PlatformFree();
+        *(void **)((char *)self + 4) = (void *)0x380018;
+
+        char *p60 = (char *)self + 0x60;
+
+        if (((char *)self + 0x64) != 0) {
+            int *arr2 = *(int **)((char *)self + 0x64);
+            int count2 = 0;
+            if (arr2 != 0) {
+                count2 = arr2[-1] & 0x3fffffff;
+            }
+            int i2 = 0;
+            int cond2 = i2 < count2;
+            if (cond2) {
+                i2 = 1;
+                do {
+                    cond2 = i2 < count2;
+                    i2 += 1;
+                } while (cond2);
+            }
+            if (arr2 != 0) {
+                int *arr2_hdr = arr2 - 1;
+                if (arr2_hdr != 0) {
+                    void *pool2 = cMemPool_GetPoolFromPtr(arr2_hdr);
+                    void *block2 = *(void **)((char *)pool2 + 0x24);
+                    SFMDeleteRec *rec2 = (SFMDeleteRec *)(*(char **)((char *)block2 + 0x1c) + 0x30);
+                    short off2 = rec2->offset;
+                    rec2->fn((char *)block2 + off2, arr2_hdr);
+                }
+                *(void **)((char *)self + 0x64) = 0;
+            }
+        }
+
+        if (p60 != 0) {
+            int *arr1 = *(int **)p60;
+            int count1 = 0;
+            if (arr1 != 0) {
+                count1 = arr1[-1] & 0x3fffffff;
+            }
+            int i1 = 0;
+            int cond1 = i1 < count1;
+            if (cond1) {
+                i1 = 1;
+                do {
+                    cond1 = i1 < count1;
+                    i1 += 1;
+                } while (cond1);
+            }
+            if (arr1 != 0) {
+                int *arr1_hdr = arr1 - 1;
+                if (arr1_hdr != 0) {
+                    void *pool1 = cMemPool_GetPoolFromPtr(arr1_hdr);
+                    void *block1 = *(void **)((char *)pool1 + 0x24);
+                    SFMDeleteRec *rec1 = (SFMDeleteRec *)(*(char **)((char *)block1 + 0x1c) + 0x30);
+                    short off1 = rec1->offset;
+                    rec1->fn((char *)block1 + off1, arr1_hdr);
+                }
+                *(void **)p60 = 0;
+            }
+        }
+
+        eMaterial___dtor_eMaterial_void(self, 0);
+
+        if ((flags & 1) && self != 0) {
+            void *pool0 = cMemPool_GetPoolFromPtr(self);
+            void *block0 = *(void **)((char *)pool0 + 0x24);
+            SFMDeleteRec *rec0 = (SFMDeleteRec *)(*(char **)((char *)block0 + 0x1c) + 0x30);
+            short off0 = rec0->offset;
+            rec0->fn((char *)block0 + off0, self);
+        }
+    }
 }
