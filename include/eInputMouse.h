@@ -3,6 +3,9 @@
 
 struct mVec2;
 class eCamera;
+class eColor;
+template <class T> class cHandleT;
+class eMaterial;
 
 class eInputMouse {
 public:
@@ -15,6 +18,7 @@ public:
     static void PlatformUpdate();
     static int PlatformPresent();
     static void RecheckPresent();
+    static void BeginDrag(const mVec2 &pos, int color, int material);
     static void UpdateDrag(const mVec2 &drag);
     static void EndDrag();
     static void Reset();

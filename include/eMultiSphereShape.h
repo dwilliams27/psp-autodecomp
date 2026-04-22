@@ -9,6 +9,7 @@ class eConvexHullShape;
 class eHeightmapShape;
 class eMeshShape;
 class eCollisionContactInfo;
+class cBase;
 
 class eMultiSphereShape {
 public:
@@ -16,6 +17,7 @@ public:
     float mRadius;       // 0x80
     float mHalfLength;   // 0x84
 
+    eMultiSphereShape(cBase *);
     int CanSweep(void) const;
     void GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *outMin, float *outMax) const;
     int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

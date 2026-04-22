@@ -1,5 +1,9 @@
 #include "mVec3.h"
+#include "mVec2.h"
 #include "mOCS.h"
+#include "eMultiSphereShape.h"
+#include "eTextureMap.h"
+#include "eInputMouse.h"
 
 typedef unsigned int SceULong128 __attribute__((mode(TI)));
 typedef int v16sf_t __attribute__((mode(V16SF)));
@@ -97,3 +101,105 @@ void gcTableColumnShort::Set(int row, float value) {
 float gcTableColumnShort::Get(int row) const {
     return (float)mValues.mData[row];
 }
+
+// ---- F2: eBroadphase::UpdateRigidBody — 0x00035c64, 68B ----
+// Calls template static eDynamicAABBTreeNode<eRigidBodyState>::UpdateObject
+// with (body->mTreeNode, body, this->mAllocator), then this->UpdatePairs(body).
+// The caller's a1 register already holds `body`, so SNC doesn't emit a
+// redundant move a1 setup before the first jal.
+
+class eRigidBodyState;
+
+class eBroadphase {
+public:
+    char _pad0[0x10];
+    void *mAllocator;   // +0x10
+
+    void UpdateRigidBody(eRigidBodyState *body);
+    void UpdatePairs(eRigidBodyState *body);
+};
+
+extern "C" {
+    void eBroadphase_helper_TreeNodeUpdateObject(
+        void *node, eRigidBodyState *body, void *allocator);
+}
+
+void eBroadphase::UpdateRigidBody(eRigidBodyState *body) {
+    void *treeNode = *(void **)((char *)body + 0xB8);
+    eBroadphase_helper_TreeNodeUpdateObject(treeNode, body, mAllocator);
+    UpdatePairs(body);
+}
+
+// ---- F3: eInputMouse::BeginDrag(const mVec2 &, eColor, cHandleT<eMaterial>) static — 0x0003b4ec, 68B ----
+// Writes drag state to global struct at 0x45338; clears a byte flag at 0x37C120.
+// Two copies of the mVec2 are stored (start/end) — compiler reloads pos.x/pos.y
+// between the two stores because it can't prove `pos` doesn't alias the globals.
+
+struct MouseDragState {
+    char _pad0[0x7F];
+    char active;          // +0x7F
+    char _pad1[0x20];
+    float startX;         // +0xA0
+    float startY;         // +0xA4
+    float endX;           // +0xA8
+    float endY;           // +0xAC
+    int color;            // +0xB0
+    int material;         // +0xB4
+};
+
+extern MouseDragState gMouseDragState;
+extern char gMouseDragClearFlag;
+
+void eInputMouse::BeginDrag(const mVec2 &pos, int color, int material) {
+    gMouseDragState.active = 1;
+    gMouseDragState.color = color;
+    gMouseDragState.material = material;
+    gMouseDragState.startX = pos.x;
+    gMouseDragState.startY = pos.y;
+    gMouseDragState.endX = pos.x;
+    gMouseDragState.endY = pos.y;
+    gMouseDragClearFlag = 0;
+}
+
+// ---- F4: eMultiSphereShape::eMultiSphereShape(cBase *) — 0x00068b74, 68B ----
+// Transition zone (sched=2 default). Pattern identical to eCapsuleShape ctor:
+// call eShape base ctor (via extern "C" shim), install vtable at +0x04,
+// init radius (+0x80) and halfLength (+0x84) to 1.0f via inline asm.
+
+extern "C" {
+    void eShape___ct_eShape_cBaseptr_swept(void *self, cBase *parent);
+}
+
+extern char eMultiSphereShapevirtualtable[];
+
+eMultiSphereShape::eMultiSphereShape(cBase *parent) {
+    eShape___ct_eShape_cBaseptr_swept(this, parent);
+    *(void **)((char *)this + 4) = eMultiSphereShapevirtualtable;
+    __asm__ volatile(
+        "lui $a0, 0x3f80\n"
+        "mtc1 $a0, $f12\n"
+        "swc1 $f12, 0x80(%0)\n"
+        "swc1 $f12, 0x84(%0)\n"
+        :: "r"(this) : "$a0", "$f12", "memory"
+    );
+}
+
+// ---- F5: eProjectedDynamicMtl::eProjectedDynamicMtl(cBase *) — 0x0008310c, 68B ----
+// Sched=1 zone (need #pragma). Calls eGeomMtl base ctor, installs vtable at
+// +0x04, sets int at +0x68 to -1, then calls this->CreateData().
+
+extern "C" {
+    void eGeomMtl___ct_eGeomMtl_cBaseptr_swept(void *self, cBase *parent);
+}
+
+extern char eProjectedDynamicMtlvirtualtable[];
+
+#pragma control sched=1
+eProjectedDynamicMtl::eProjectedDynamicMtl(cBase *parent) {
+    eGeomMtl___ct_eGeomMtl_cBaseptr_swept(this, parent);
+    ((void **)this)[0x4 / 4] = eProjectedDynamicMtlvirtualtable;
+    __asm__ volatile("" ::: "memory");
+    ((int *)this)[0x68 / 4] = -1;
+    CreateData();
+}
+#pragma control sched=2
