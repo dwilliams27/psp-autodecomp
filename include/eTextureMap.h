@@ -37,6 +37,11 @@ class eWorld;
 class mOCS;
 class mVec3;
 class eTexture;
+class eDrawInfo;
+class eColor;
+class cBase;
+class cFile;
+class cMemPool;
 
 class eBumpOffsetMap : public eTexture {
 public:
@@ -66,10 +71,15 @@ public:
 
 class eDynamicLightModelMtl {
 public:
+    eDynamicLightModelMtl(cBase *);
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
+    void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static eDynamicLightModelMtl *New(cMemPool *, cBase *);
 };
 
 class eOnePassModelMtl {
@@ -95,18 +105,34 @@ public:
     void CreateData(void);
 };
 
+class eDrawInfo;
+class eColor;
+class cBase;
+class cFile;
+class cMemPool;
+
 class eReflectionModelMtl {
 public:
+    eReflectionModelMtl(cBase *);
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+    void PlatformRead(cFile &, cMemPool *);
+    void Write(cFile &) const;
+    static eReflectionModelMtl *New(cMemPool *, cBase *);
 };
 
 class eRefractionModelMtl {
 public:
+    eRefractionModelMtl(cBase *);
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+    void PlatformRead(cFile &, cMemPool *);
+    void Write(cFile &) const;
+    static eRefractionModelMtl *New(cMemPool *, cBase *);
 };
 
 class eShadowVolumeModelMtl {
@@ -122,8 +148,13 @@ public:
 
 class eSilhouetteModelMtl {
 public:
+    eSilhouetteModelMtl(cBase *);
     void PlatformFree(void);
     void CreateData(void);
+    void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+    void Unapply(void) const;
+    float GetSilhouetteOffset(const eDrawInfo &) const;
+    static eSilhouetteModelMtl *New(cMemPool *, cBase *);
 };
 
 #endif

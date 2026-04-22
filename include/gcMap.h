@@ -32,6 +32,7 @@ public:
     void DeleteRegion(int);
     void DeleteDynamicLoadedObjects(int, cHandleT<gcEntity>);
     void ResetRegionStates(void);
+    void ClearRegionSetState(int, int);
 
     char pad_000[0x140];
     int mFlags;                             // 0x140

@@ -1,12 +1,18 @@
 #include "eMultiSphereShape.h"
 #include "eCapsuleShape.h"
+#include "eCompoundShape.h"
+#include "eMeshShape.h"
+#include "eHeightmapShape.h"
 #include "eSimulatedController.h"
 #include "eTriangleShape.h"
 #include "gcStreamedCinematic.h"
+#include "eCollision.h"
 #include "mVec3.h"
 #include "mOCS.h"
 #include "cRedBlackTree.h"
 #include "eCollisionPair.h"
+
+class eConvexHullShape;
 
 int eMultiSphereShape::CanSweep(void) const {
     return 1;
@@ -68,6 +74,26 @@ void eMultiSphereShape::GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, fl
         *outMax = max1;
     else
         *outMax = max2;
+}
+
+int eMultiSphereShape::Collide(const eCapsuleShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::MultiSphereCapsule(*this, *shape, ocs1, ocs2, info);
+}
+
+int eMultiSphereShape::Collide(const eConvexHullShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::MultiSphereConvexHull(*this, *shape, ocs1, ocs2, info);
+}
+
+int eMultiSphereShape::Collide(const eCompoundShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::MultiSphereCompound(*this, *shape, b, ocs1, ocs2, info);
+}
+
+int eMultiSphereShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::MultiSphereMesh(*this, *shape, b, ocs1, ocs2, info);
+}
+
+int eMultiSphereShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::MultiSphereHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }
 
 int eCapsuleShape::CanSweep(void) const {

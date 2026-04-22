@@ -16,4 +16,5 @@ struct mBasis {
     void SetQuat(const mQuat &);
     void Orthonormalize(void);
     void GetAxisAngle(mVec3 *, float *) const;
+    void GetHPR(float *, float *, float *) const;
 };

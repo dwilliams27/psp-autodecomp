@@ -5,6 +5,7 @@ class gcUI;
 class cMemPool;
 class gcUIWidgetGroup;
 class gcDoUIShowDialog;
+class cTimeValue;
 
 class gcUIWidget;
 
@@ -28,6 +29,7 @@ public:
     void Focus(void);
     void Close(void);
     void CreateControl(gcUIWidget *);
+    void Update(cTimeValue);
 };
 
 #endif

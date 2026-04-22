@@ -1,8 +1,14 @@
 #include "eSphereShape.h"
 #include "eMultiSphereShape.h"
+#include "eCapsuleShape.h"
+#include "eCompoundShape.h"
+#include "eMeshShape.h"
+#include "eHeightmapShape.h"
 #include "eCollision.h"
 #include "mVec3.h"
 #include "mOCS.h"
+
+class eConvexHullShape;
 
 int eSphereShape::CanSweep(void) const {
     return 1;
@@ -64,4 +70,24 @@ void eSphereShape::GetInertialTensor(float mass, mVec3 *out) const {
 
 int eSphereShape::Collide(const eMultiSphereShape *ms, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::SphereMultiSphere(*this, *ms, ocs1, ocs2, info);
+}
+
+int eSphereShape::Collide(const eCapsuleShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereCapsule(*this, *shape, ocs1, ocs2, info);
+}
+
+int eSphereShape::Collide(const eConvexHullShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereConvexHull(*this, *shape, ocs1, ocs2, info);
+}
+
+int eSphereShape::Collide(const eCompoundShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereCompound(*this, *shape, b, ocs1, ocs2, info);
+}
+
+int eSphereShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereMesh(*this, *shape, b, ocs1, ocs2, info);
+}
+
+int eSphereShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }

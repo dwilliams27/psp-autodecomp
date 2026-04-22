@@ -29,6 +29,11 @@ public:
     gcExpression *GetNext(void) const;
     void SetNext(gcExpression *);
     int GetExprFlags(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void GetText(char *) const;
+    const char *GetTextSeparator(int) const;
+    void GetTextRecursive(char *) const;
 };
 
 class gcAction : public gcExpression {

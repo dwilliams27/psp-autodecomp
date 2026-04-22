@@ -17,11 +17,15 @@ class mOCS;
 // eShape base class for all collision shapes.
 // Layout inferred from eShape::GetSurface (+0x6C), eCompoundShape ctor
 // (base fields up to +0x7F), and matched source files.
+class cFile;
+
 class eShape {
 public:
     char _pad00[0x80];  // 0x00 — includes vtable, cBase*, surface, and other fields
 
     eShape(cBase *);
+
+    void Write(cFile &) const;
 
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

@@ -20,6 +20,7 @@ public:
 };
 
 class cBase;
+class cTimeValue;
 
 class gcCinematic {
 public:
@@ -46,13 +47,17 @@ public:
     cHandle mChainHandle;               // 0x40
     float mChainTime;                   // 0x44
 
+    gcCinematicInstance(cBase *);
     void Reset(cMemPool *, bool);
     static void UpdateProfile(void);
     void Chain(cHandleT<gcCinematic>, cHandle, float);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static void FreeDynamicInstances(void);
     void CloseDialogs(void);
     void HandleStreamedCinematicDelete(void);
+    void UpdateDialogs(cTimeValue);
+    static gcCinematicInstance *New(cMemPool *, cBase *);
 };
 
 #endif
