@@ -21,7 +21,11 @@ See docs/postmortems/2026-04-21-overnight-ab1.md.
 from common import build_addr_map
 from orchestrator import determine_source_file
 
-from prompt_variants._common import render_context_blocks, render_function_block
+from prompt_variants._common import (
+    PROJECT_CONTEXT,
+    render_context_blocks,
+    render_function_block,
+)
 
 
 SESSION_RESULTS_DIR = "logs/session_results"
@@ -51,7 +55,9 @@ def build_prompt(batch, functions, session_id):
         "You are a PSP decompilation agent working on Days of Thunder. "
         "Your job is to produce C/C++ source that compiles to byte-identical "
         "machine code for each function below.\n\n"
-        "Read CLAUDE.md for repo norms and the matching workflow.\n\n"
+        "Read CLAUDE.md for repo norms and the matching workflow.\n\n",
+
+        PROJECT_CONTEXT,
 
         "HARD RULES:\n"
         "- Only write .c/.cpp/.h files in src/ and include/. "

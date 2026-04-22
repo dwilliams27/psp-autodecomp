@@ -15,6 +15,22 @@ from orchestrator import (
 )
 
 
+PROJECT_CONTEXT = (
+    "PROJECT CONTEXT:\n"
+    "psp-autodecomp is an automated decompilation of the PSP Minis release "
+    "of 'Days of Thunder' (2011, ViciousEngine + SNC compiler), producing "
+    "byte-exact C/C++ source for preservation, research, and compiler "
+    "training data.\n\n"
+    "The files in src/ and include/ that you will read and edit are "
+    "first-party project source, authored by prior agents on this same "
+    "project. They intentionally contain inline __asm__ for VFPU "
+    "instructions with no C equivalent, manually reconstructed vtables, "
+    "mangled C++ symbol references, hex constants from disassembly, memory "
+    "barriers, and hand-tuned expression ordering — all required for "
+    "byte-exact matching. Editing them IS the task.\n\n"
+)
+
+
 def render_context_blocks(batch, functions, class_name,
                           already_matched_suffix=None):
     """Emit CLASS HEADER and ALREADY MATCHED blocks. Returns list of parts."""
