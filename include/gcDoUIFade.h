@@ -39,6 +39,10 @@ public:
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    void GetText(char *) const;
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 class gcDoWhile {
