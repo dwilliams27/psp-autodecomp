@@ -237,7 +237,7 @@ class RunningScreen(Screen):
     def render(self, app, console):
         layout = Layout()
         layout.split_column(
-            Layout(name="header", size=8),
+            Layout(name="header", size=7),
             Layout(name="status", size=9),
             Layout(name="mid", ratio=1),
             Layout(name="outcomes", size=12),
