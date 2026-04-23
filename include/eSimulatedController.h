@@ -4,6 +4,7 @@
 struct mVec3;
 
 class eGeom;
+class cFile;
 
 class eSimulatedController {
 public:
@@ -11,6 +12,7 @@ public:
     void RemoveContacts(void);
     int GetCollisionMask(void) const;
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
+    void Write(cFile &) const;
 
     char _pad[0x34];
     int collisionMask;      // offset 0x34
