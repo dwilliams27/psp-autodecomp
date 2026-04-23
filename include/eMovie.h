@@ -10,9 +10,11 @@ public:
     void Close(void);
     void Update(cTimeValue *);
     static void Pause(void);
+    static void Resume(void);
     static void SetDrawCallback(void (*callback)(void *), void *data);
     void PlatformPause(void);
     void PlatformResume(void);
+    void ResetTime(void);
 };
 
 #endif
