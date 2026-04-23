@@ -2,6 +2,8 @@
 #define EHEIGHTMAPSHAPE_H
 
 class cBase;
+class cFile;
+class cMemPool;
 class eBoxShape;
 class eCapsuleShape;
 class eCollisionContactInfo;
@@ -9,6 +11,7 @@ class eCompoundShape;
 class eConvexHullShape;
 class eCylinderShape;
 class eMeshShape;
+class eShape;
 class eSphereShape;
 class mBox;
 class mOCS;
@@ -26,11 +29,16 @@ public:
     int Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     void GetAABB(mBox *, const mOCS &) const;
     void GetInertialTensor(float, mVec3 *) const;
     int GetTileIndex(void) const;
     int GetTileTriCount(void) const;
     float GetVolume(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static eHeightmapShape *New(cMemPool *, cBase *);
 };
 
 #endif
