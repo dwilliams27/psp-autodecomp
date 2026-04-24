@@ -9,6 +9,7 @@ import sys
 DB_PATH = "config/functions.json"
 EBOOT_PATH = "extern/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec"
 MAP_PATH = "extern/extracted_symbols/Game-dvd.map"
+SYM_PATH = "extern/extracted_symbols/Game-dvd.sym"
 TEXT_FILE_OFFSET = 0xA0  # .text section file offset in the PRX
 
 OBJDUMP = "mipsel-linux-gnu-objdump"

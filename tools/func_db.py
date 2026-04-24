@@ -19,7 +19,21 @@ import os
 import re
 import sys
 
-from common import DB_PATH, MAP_PATH, load_db, save_db, filter_functions, build_addr_map
+from common import DB_PATH, MAP_PATH, SYM_PATH, load_db, save_db, filter_functions, build_addr_map
+from byte_match import nm_symbols
+
+# nm type codes for code-bearing symbols. T/t = strong text definitions,
+# W/w = weak text (libc/runtime overrides). D/B/R = data, skipped.
+_NM_TEXT_TYPES = frozenset({"T", "t", "W", "w"})
+
+# System V ABI linker-synthesized boundary markers. Pinned to section
+# starts/ends (size 0); not real functions. Skipped so they can't collide
+# with the real first symbol at the same address.
+_BOUNDARY_MARKERS = frozenset({
+    "_etext", "_ftext", "etext",
+    "_end", "end",
+    "_edata", "edata",
+})
 
 # Same regexes as map_parser.py
 SYMBOL_RE = re.compile(
@@ -203,13 +217,78 @@ def parse_map_to_functions(map_path):
     return functions
 
 
+def load_sym_address_map(sym_path):
+    """Return {addr_int: mangled_name} from the original .sym file.
+
+    Multiple text symbols at one address are rejected loudly so a future
+    schema regression can't silently collapse two functions into one entry.
+    """
+    if not os.path.exists(sym_path):
+        raise RuntimeError(
+            f"Symbol file not found at {sym_path}. The DB build needs the "
+            f"original .sym to populate authoritative mangled names."
+        )
+
+    addr_to_sym = {}
+    collisions = []
+    for addr, type_code, sym in nm_symbols(sym_path, defined_only=True):
+        if type_code not in _NM_TEXT_TYPES:
+            continue
+        if sym in _BOUNDARY_MARKERS:
+            continue
+        if addr in addr_to_sym and addr_to_sym[addr] != sym:
+            collisions.append((addr, addr_to_sym[addr], sym))
+        addr_to_sym[addr] = sym
+    if collisions:
+        head = "; ".join(f"0x{a:x}: {a1} vs {a2}" for a, a1, a2 in collisions[:5])
+        raise RuntimeError(
+            f"{len(collisions)} addresses in {sym_path} have multiple text "
+            f"symbols. Examples: {head}"
+        )
+    return addr_to_sym
+
+
+def _populate_mangled_symbols(functions, addr_to_sym):
+    """Apply addr→mangled mapping to functions in place.
+
+    Returns (populated_count, confirmed_count, mismatches, missing_size_zero,
+    missing_real). missing_real is non-empty only if a size>0 entry has no
+    .sym mapping — that's a real function the verifier can't disambiguate
+    later, so callers should raise.
+    """
+    populated = 0
+    confirmed = 0
+    mismatches = []
+    missing_size_zero = []
+    missing_real = []
+    for func in functions:
+        addr = int(func["address"], 16)
+        sym = addr_to_sym.get(addr)
+        if sym is None:
+            (missing_size_zero if func["size"] == 0 else missing_real).append(
+                (func["address"], func.get("name", "?"))
+            )
+            continue
+        existing = func.get("mangled_symbol")
+        if existing is None:
+            func["mangled_symbol"] = sym
+            populated += 1
+        elif existing == sym:
+            confirmed += 1
+        else:
+            mismatches.append((func["address"], existing, sym))
+    return populated, confirmed, mismatches, missing_size_zero, missing_real
+
+
 def cmd_build(args):
     """Parse map file and create functions.json."""
     if not os.path.exists(MAP_PATH):
         print(f"Error: {MAP_PATH} not found.", file=sys.stderr)
         sys.exit(1)
 
-    # If DB exists, preserve match_status and failure_notes
+    # If DB exists, preserve match_status, failure_notes, and post-match
+    # state (src_file). symbol_name is repopulated from .sym below — old
+    # DB entries' symbol_name is treated as a sanity check, not authoritative.
     old_data = {}
     if os.path.exists(DB_PATH):
         old = load_db()
@@ -217,13 +296,36 @@ def cmd_build(args):
 
     functions = parse_map_to_functions(MAP_PATH)
 
-    # Restore preserved fields from previous build
+    addr_to_sym = load_sym_address_map(SYM_PATH)
+    _, _, mismatches, missing_size_zero, missing_real = _populate_mangled_symbols(
+        functions, addr_to_sym,
+    )
+    if mismatches:
+        head = "; ".join(f"{a}: had {o!r}, .sym says {n!r}"
+                         for a, o, n in mismatches[:5])
+        raise RuntimeError(
+            f"{len(mismatches)} entries had a stored mangled_symbol that "
+            f"disagrees with .sym. Refusing to silently overwrite. "
+            f"Examples: {head}"
+        )
+    if missing_real:
+        head = "; ".join(f"{a} {n}" for a, n in missing_real[:5])
+        raise RuntimeError(
+            f"{len(missing_real)} size>0 functions have no entry in .sym. "
+            f"Either the .sym is incomplete or a non-function was classified "
+            f"as a function. Examples: {head}"
+        )
+
     for func in functions:
         old_func = old_data.get(func["address"])
         if old_func:
             func["match_status"] = old_func.get("match_status", "untried")
             if "failure_notes" in old_func:
                 func["failure_notes"] = old_func["failure_notes"]
+            if "src_file" in old_func:
+                func["src_file"] = old_func["src_file"]
+            if "symbol_name" in old_func:
+                func["symbol_name"] = old_func["symbol_name"]
 
     save_db(functions)
 
@@ -236,6 +338,10 @@ def cmd_build(args):
     print(f"  {with_class} class methods across {unique_classes} classes")
     print(f"  {total - with_class} free functions")
     print(f"  {len(obj_files)} compilation units: {', '.join(sorted(obj_files))}")
+    print(f"  mangled_symbol populated from {SYM_PATH}")
+    if missing_size_zero:
+        print(f"  {len(missing_size_zero)} zero-size linker artifacts left "
+              f"unmapped (boundary markers like _edata/_end/_gp)")
 
 
 def cmd_query(args):
@@ -309,6 +415,42 @@ def cmd_stats(args):
         print(f"  {obj}: {count}")
 
 
+def cmd_backfill_symbols(args):
+    """In-place migration: populate mangled_symbol on every DB entry from .sym.
+
+    Use this when the DB pre-dates the symbol_name-on-build feature and a
+    full rebuild is undesirable (would lose match_status / src_file /
+    failure_notes that aren't in the build's preserved set).
+    """
+    functions = load_db()
+    addr_to_sym = load_sym_address_map(SYM_PATH)
+    populated, confirmed, mismatches, missing_size_zero, missing_real = (
+        _populate_mangled_symbols(functions, addr_to_sym)
+    )
+
+    if mismatches:
+        head = "; ".join(f"{a}: had {o!r}, .sym says {n!r}"
+                         for a, o, n in mismatches[:5])
+        raise RuntimeError(
+            f"{len(mismatches)} entries had a stored mangled_symbol that "
+            f"disagrees with .sym. Investigate before backfilling. "
+            f"Examples: {head}"
+        )
+    if missing_real:
+        head = "; ".join(f"{a} {n}" for a, n in missing_real[:5])
+        raise RuntimeError(
+            f"{len(missing_real)} size>0 functions have no entry in .sym. "
+            f"Examples: {head}"
+        )
+
+    save_db(functions)
+    print(f"Backfilled {populated} entries with mangled_symbol from {SYM_PATH}")
+    print(f"  {confirmed} entries already had a matching mangled_symbol (confirmed)")
+    if missing_size_zero:
+        print(f"  {len(missing_size_zero)} zero-size linker artifacts left "
+              f"unmapped (boundary markers like _edata/_end/_gp)")
+
+
 def cmd_set_status(args):
     """Update match status for a function."""
     functions = load_db()
@@ -350,6 +492,9 @@ def main():
 
     sub.add_parser("stats", help="Print summary statistics")
 
+    sub.add_parser("backfill-symbols",
+                   help="In-place populate symbol_name on every DB entry from .sym")
+
     ss = sub.add_parser("set-status", help="Update match status")
     ss.add_argument("address", help="Function address (hex)")
     ss.add_argument("status", choices=["untried", "in_progress", "matched", "failed"],
@@ -360,7 +505,13 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    {"build": cmd_build, "query": cmd_query, "stats": cmd_stats, "set-status": cmd_set_status}[args.command](args)
+    {
+        "build": cmd_build,
+        "query": cmd_query,
+        "stats": cmd_stats,
+        "backfill-symbols": cmd_backfill_symbols,
+        "set-status": cmd_set_status,
+    }[args.command](args)
 
 
 if __name__ == "__main__":

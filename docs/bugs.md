@@ -44,3 +44,42 @@ Multiple agents have submitted file-scope `__asm__()` blocks as "matches" — wr
 
 **Fix:** Each file needs human triage — determine if it's C++-expressible (rework) or genuinely VFPU-only (mark `failed`). The duplicate mBasis::Orthonormalize in mQuat.cpp will cause link errors if both files are included.
 
+
+## 3. Substring symbol gate has accepted ~80 wrong-signature matches over the project's history
+
+**Found:** 2026-04-24 while fixing the AMBIGUOUS-overload bug
+
+The verifier's name gate (`tools/byte_match.py:sym_encodes_func`) matches a compiled symbol against a DB entry by class+method substring with a 1–3 character gap, ignoring the parameter-type suffix of SNC mangling. For overloaded methods that compile to identical bytes (common for trivial 28–44 byte stubs that delegate to shared template machinery), this is fine for the AMBIGUOUS rejection case (loud failure, fixed in a separate commit by adding `mangled_symbol` disambiguation).
+
+The deeper issue: when the substring gate yields a **single** byte-matching candidate that happens to be the wrong overload (or a function with reordered/wrong parameter types that still compiles to identical MIPS bytes because all parameters live in registers), it has been silently accepted as a verified match.
+
+**Evidence:** Of 1293 currently-matched DB entries, 80 have a stored `symbol_name` that disagrees with the `.sym` authoritative `mangled_symbol`. Most disagreements are benign:
+- `cFile__OnCreated` vs `__0fFcFileJOnCreatedv` (our .o uses safe_name; .sym uses mangled — same function, different naming style)
+- `eShape___dtor_eShape_void` vs `__0oGeShapedtv` (our patched-post-splat dtor name vs original `dt` form)
+
+But several are concerning, e.g.:
+- `0x00047f80 eDynamicModel::SetSkin(...)`: stored `__0fNeDynamicModelHSetSkin6IcHandleT76FeSkin_iTB6KcTimeValue` vs .sym `...iTC6KcTimeValue` — type back-reference index differs, indicating a different parameter-type sequence.
+- `0x0003b4ec eInputMouse::BeginDrag(...)`: stored `__0fLeInputMouseJBeginDragRC6FmVec2iTCT` vs .sym `...RC6FmVec26GeColor6IcHandleT76JeMaterial_T` — substantially different parameter encodings.
+
+These look like real wrong-signature matches: the bytes happened to align under MIPS register-passing, but the C++ signature in our reconstruction differs from the original.
+
+**Impact:** Up to 80 entries in functions.json may be marked "matched" with a source file that doesn't accurately reflect the original function's signature. Training data poisoning risk — a fine-tune would learn incorrect parameter mappings.
+
+**Possible fix:**
+- Audit the 80 mismatches, classify each as "naming-style only" (benign) vs "wrong signature" (must re-verify)
+- For the wrong-signature subset, revert match status to `failed` and rework the source
+- Long-term: tighten the verifier's gate to require exact `mangled_symbol` match for `.cpp` reconstructions (currently only used as an AMBIGUOUS tie-breaker)
+
+**Detection script** (one-shot, addr-list output):
+```python
+import json, subprocess
+db = json.load(open('config/functions.json'))
+out = subprocess.run(['mipsel-linux-gnu-nm','--defined-only','extern/extracted_symbols/Game-dvd.sym'],
+                    capture_output=True, text=True).stdout
+sym_map = {int(p[0],16): p[2] for ln in out.splitlines()
+           if (p := ln.split(None, 2)) and len(p)==3 and p[1] in ('T','t','W','w')}
+for f in db:
+    addr = int(f['address'],16); stored = f.get('symbol_name'); sym = sym_map.get(addr)
+    if stored and sym and stored != sym:
+        print(f['address'], f['name'], '|', stored, 'vs', sym)
+```

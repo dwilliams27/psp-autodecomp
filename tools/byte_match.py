@@ -168,21 +168,38 @@ def compile_src(src_file: str, build_dir: str = "build/src") -> str:
     return o_path
 
 
-def nm_text_symbols(o_path: str) -> list[tuple[int, str]]:
-    """Return sorted (offset, sym_name) for T-type symbols in o_path.
+def nm_symbols(path: str, *, defined_only: bool = False) -> list[tuple[int, str, str]]:
+    """Return [(addr, type_code, sym_name)] from nm. Caller filters by type.
 
-    Raises RuntimeError on nm failure.
+    Raises RuntimeError on nm failure or non-hex address (the only line
+    shape we recognize is the standard `addr type name` triple).
     """
-    result = subprocess.run([NM, o_path], capture_output=True, text=True)
+    cmd = [NM]
+    if defined_only:
+        cmd.append("--defined-only")
+    cmd.append(path)
+    result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        raise RuntimeError(
-            f"nm failed on {o_path}: {result.stderr.strip()}"
-        )
-    syms: list[tuple[int, str]] = []
-    for line in result.stdout.strip().splitlines():
-        parts = line.split()
-        if len(parts) == 3 and parts[1] == "T":
-            syms.append((int(parts[0], 16), parts[2]))
+        raise RuntimeError(f"nm failed on {path}: {result.stderr.strip()}")
+    syms: list[tuple[int, str, str]] = []
+    for line in result.stdout.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) != 3:
+            continue
+        addr_hex, type_code, sym = parts
+        try:
+            addr = int(addr_hex, 16)
+        except ValueError:
+            raise RuntimeError(
+                f"nm produced a non-hex address on {path}: {line!r}"
+            )
+        syms.append((addr, type_code, sym))
+    return syms
+
+
+def nm_text_symbols(o_path: str) -> list[tuple[int, str]]:
+    """Return sorted (offset, sym_name) for T-type symbols in o_path."""
+    syms = [(addr, name) for addr, t, name in nm_symbols(o_path) if t == "T"]
     syms.sort()
     return syms
 
@@ -371,6 +388,19 @@ def check_byte_match(func: dict, src_file: str) -> VerifyResult:
         )
 
     if len(matches) > 1:
+        # Multiple byte-matching candidates passed the substring gate
+        # (overload twins that compile to identical bytes). Disambiguate
+        # by exact mangled-name match against the authoritative .sym
+        # mapping when available. Only converts AMBIGUOUS → OK; never the
+        # reverse.
+        mangled = func.get("mangled_symbol")
+        if mangled and mangled in matches:
+            return VerifyResult(
+                ok=True,
+                reason=REASON_OK,
+                sym_name=mangled,
+                o_file=o_path,
+            )
         return VerifyResult(
             ok=False,
             reason=REASON_AMBIGUOUS,
