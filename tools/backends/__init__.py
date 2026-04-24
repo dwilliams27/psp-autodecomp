@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from common import CLAUDE_MODEL
+from common import CLAUDE_MODEL, CODEX_MODEL
 
 from .base import (
     AgentEvent,
@@ -11,14 +11,17 @@ from .base import (
     run_session,
 )
 from .claude import ClaudeBackend
+from .codex import CodexBackend
 
 
 _REGISTRY: dict[str, type[Backend]] = {
     "claude": ClaudeBackend,
+    "codex": CodexBackend,
 }
 
 _DEFAULT_MODELS: dict[str, str] = {
     "claude": CLAUDE_MODEL,
+    "codex": CODEX_MODEL,
 }
 
 AVAILABLE_BACKENDS = sorted(_REGISTRY)
@@ -40,6 +43,7 @@ __all__ = [
     "AgentRefused",
     "Backend",
     "ClaudeBackend",
+    "CodexBackend",
     "get_backend",
     "run_session",
     "AVAILABLE_BACKENDS",

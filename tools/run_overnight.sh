@@ -3,10 +3,16 @@
 # Enables PF sandbox, runs orchestrator as autodecomp user, cleans up on exit.
 #
 # Usage:
-#   ./tools/run_overnight.sh --hours 8                    # 8-hour run, default priorities
-#   ./tools/run_overnight.sh --hours 2 --size-max 8       # 2 hours, trivial functions only
-#   ./tools/run_overnight.sh --hours 8 --class eWorld     # target specific class
-#   ./tools/run_overnight.sh --dry-run --limit 3          # test with 3 functions, no sandbox
+#   ./tools/run_overnight.sh --hours 8                        # 8-hour run, default priorities
+#   ./tools/run_overnight.sh --hours 2 --size-max 8           # 2 hours, trivial functions only
+#   ./tools/run_overnight.sh --hours 8 --class eWorld         # target specific class
+#   ./tools/run_overnight.sh --dry-run --limit 3              # test with 3 functions, no sandbox
+#   ./tools/run_overnight.sh --hours 8 --backend codex        # drive sessions with OpenAI Codex
+#
+# Auth: --backend claude uses the autodecomp user's Keychain (unlocked below).
+#       --backend codex uses the autodecomp user's ~/.codex/auth.json
+#       (run `sudo -u autodecomp codex login` once) or a parent OPENAI_API_KEY,
+#       which is preserved through sudo -i.
 
 set -euo pipefail
 
@@ -84,6 +90,8 @@ trap cleanup EXIT
 # Run orchestrator as sandboxed user
 echo "Starting orchestrator as '$SANDBOX_USER'..."
 echo ""
-# -i required: sets up login environment so macOS Keychain is accessible for Claude auth
-# Embed repo path directly in the command string since -i sanitizes env
-sudo -i -u "$SANDBOX_USER" bash -c "cd '$REPO_DIR' && python3 tools/orchestrator.py $*"
+# -i required: sets up login environment so macOS Keychain is accessible for Claude auth.
+# --preserve-env=OPENAI_API_KEY lets the codex backend use a parent-exported key
+# (no-op if unset; codex falls through to its own auth.json).
+# Embed repo path directly in the command string since -i sanitizes env.
+sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -c "cd '$REPO_DIR' && python3 tools/orchestrator.py $*"

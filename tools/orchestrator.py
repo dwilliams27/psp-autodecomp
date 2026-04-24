@@ -728,9 +728,7 @@ def main():
     parser.add_argument("--backend", type=str, default="claude",
                         choices=AVAILABLE_BACKENDS,
                         help="Coding-agent CLI to drive sessions with "
-                             "(default: claude). Codex support is staged; "
-                             "only backends registered in tools/backends/ are "
-                             "offered here.")
+                             "(default: claude).")
 
     args = parser.parse_args()
 

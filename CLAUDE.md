@@ -88,23 +88,29 @@ python3 tools/call_graph.py show "ClassName::Method"             # check depende
 
 ## Overnight autonomous runs
 
-The orchestrator (`tools/orchestrator.py`) runs Claude Code in headless mode to match functions at scale. It's designed for unattended overnight operation.
+The orchestrator (`tools/orchestrator.py`) drives a headless coding-agent CLI to match functions at scale. Two backends are supported: Claude Code (default) and OpenAI Codex (`--backend codex`). Backend code lives in `tools/backends/` — see `base.py` for the `Backend` ABC and shared `run_session` loop.
 
 ### Setup (one-time)
 ```bash
-sudo ./tools/sandbox_setup.sh    # creates 'autodecomp' user + PF rules
-sudo -u autodecomp claude        # authenticate Claude Code for the new user
+sudo ./tools/sandbox_setup.sh                       # creates 'autodecomp' user + PF rules
+sudo -u autodecomp claude                           # authenticate Claude (Keychain-backed)
+sudo -u autodecomp codex login                      # authenticate Codex (only if using --backend codex)
 ```
+
+Alternative for Codex: export `OPENAI_API_KEY` in the parent shell before invoking `run_overnight.sh` — it is preserved through `sudo -i` and overrides `~/.codex/auth.json`.
 
 ### Running
 ```bash
-./tools/run_overnight.sh --hours 8                  # full overnight run
-./tools/run_overnight.sh --hours 2 --size-max 8     # trivial functions only
-./tools/run_overnight.sh --dry-run --limit 3        # test without sandbox
+./tools/run_overnight.sh --hours 8                                    # full overnight run (Claude)
+./tools/run_overnight.sh --hours 2 --size-max 8                       # trivial functions only
+./tools/run_overnight.sh --dry-run --limit 3                          # test without sandbox
 ./tools/run_overnight.sh --hours 8 --targets config/finetune_targets.json  # targeted finetune run
+./tools/run_overnight.sh --hours 8 --backend codex                    # drive sessions with Codex
 ```
 
 The `--targets` flag switches to targeted mode: pulls exclusively from the specified file, uses batch_size=2 and 1.5hr session timeout (tuned for larger functions). See `docs/decisions/004-pre-finetune-matching-targets.md`.
+
+The `--backend` flag selects which CLI drives sessions. Default models: Claude uses `claude-opus-4-7`, Codex uses `gpt-5.4` (both in `tools/common.py`). Every log event carries a `backend` field for attribution.
 
 ### Checking progress
 ```bash
