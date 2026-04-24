@@ -21,7 +21,7 @@ CLAUDE = "/usr/local/bin/claude"
 CLAUDE_MODEL = "claude-opus-4-7"
 # Resolved via PATH — codex ships through nvm, not /usr/local/bin.
 CODEX = "codex"
-CODEX_MODEL = "gpt-5.4"
+CODEX_MODEL = "gpt-5.5"
 
 
 def load_db():

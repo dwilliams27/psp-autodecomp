@@ -93,8 +93,8 @@ The orchestrator (`tools/orchestrator.py`) drives a headless coding-agent CLI to
 ### Setup (one-time)
 ```bash
 sudo ./tools/sandbox_setup.sh                       # creates 'autodecomp' user + PF rules
-sudo -u autodecomp claude                           # authenticate Claude (Keychain-backed)
-sudo -u autodecomp codex login                      # authenticate Codex (only if using --backend codex)
+sudo -i -u autodecomp claude                        # authenticate Claude (Keychain-backed)
+sudo -i -u autodecomp codex login                   # authenticate Codex (only if using --backend codex)
 ```
 
 Alternative for Codex: export `OPENAI_API_KEY` in the parent shell before invoking `run_overnight.sh` — it is preserved through `sudo -i` and overrides `~/.codex/auth.json`.
@@ -110,7 +110,7 @@ Alternative for Codex: export `OPENAI_API_KEY` in the parent shell before invoki
 
 The `--targets` flag switches to targeted mode: pulls exclusively from the specified file, uses batch_size=2 and 1.5hr session timeout (tuned for larger functions). See `docs/decisions/004-pre-finetune-matching-targets.md`.
 
-The `--backend` flag selects which CLI drives sessions. Default models: Claude uses `claude-opus-4-7`, Codex uses `gpt-5.4` (both in `tools/common.py`). Every log event carries a `backend` field for attribution.
+The `--backend` flag selects which CLI drives sessions. Default models: Claude uses `claude-opus-4-7`, Codex uses `gpt-5.5` (both in `tools/common.py`). Every log event carries a `backend` field for attribution.
 
 ### Checking progress
 ```bash
