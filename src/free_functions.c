@@ -493,3 +493,10 @@ void eConvexHullUtil_TensorSubExpression(const void *self, float a, float b, flo
     float c_s = c * s;
     *T = t1 + c_s;
 }
+
+extern void _exit(int status);
+void abort(void) {
+    for (;;) {
+        _exit(1);
+    }
+}
