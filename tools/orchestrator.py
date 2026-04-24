@@ -17,20 +17,18 @@ import glob
 import importlib
 import json
 import os
-import queue
 import random
 import subprocess
 import sys
-import threading
 import time
 import uuid
 from datetime import datetime, timedelta
 
-from common import (DB_PATH, EBOOT_PATH, OBJDUMP, CLAUDE,
-                    CLAUDE_MODEL,
+from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     load_db, save_db, filter_functions, build_addr_map,
                     fix_vfpu_disassembly)
 from byte_match import CompileFailed, check_byte_match
+from backends import AgentRefused, AVAILABLE_BACKENDS, get_backend, run_session
 
 BATCH_SIZE = 5
 TARGETS_BATCH_SIZE = 2
@@ -42,16 +40,6 @@ MAX_CONSECUTIVE_REFUSALS = 8
 REFUSAL_BACKOFF_S = 5
 SESSION_TIMEOUT = 1800
 TARGETS_SESSION_TIMEOUT = 5400  # 1.5 hours for larger finetune targets
-
-
-class AgentRefused(RuntimeError):
-    """Raised when the agent produces text matching a refusal pattern from
-    a safety-classifier misfire. Distinct from generic session failure so
-    the outer loop can use a short linear backoff + separate ceiling.
-    """
-    def __init__(self, reason: str):
-        super().__init__(f"agent refused mid-session ({reason})")
-        self.reason = reason
 
 # Address ranges for sched zone hints in prompts
 SCHED1_ZONE_START = 0x06e000
@@ -357,267 +345,6 @@ def build_prompt(batch, functions, session_id, variant):
     """
     module = importlib.import_module(f"prompt_variants.{variant}")
     return module.build_prompt(batch, functions, session_id)
-
-
-def _format_tool_use(tool_name, tool_input):
-    """Turn a tool_use block into a one-line display string for the TUI."""
-    if not isinstance(tool_input, dict):
-        return f"{tool_name}"
-    if tool_name == "Bash":
-        cmd = str(tool_input.get("command", ""))
-        return f"$ {cmd[:200]}"
-    if tool_name in ("Read", "Write", "Edit", "NotebookEdit"):
-        return f"{tool_name.lower()} {tool_input.get('file_path', '')}"
-    if tool_name == "Grep":
-        pat = str(tool_input.get("pattern", ""))[:80]
-        path = tool_input.get("path", "")
-        tail = f" in {path}" if path else ""
-        return f"grep '{pat}'{tail}"
-    if tool_name == "Glob":
-        return f"glob {tool_input.get('pattern', '')}"
-    if tool_name == "Agent":
-        desc = tool_input.get("description", "")
-        return f"agent: {desc}"[:200]
-    # Unknown tool — show name + a short param peek
-    peek = str(tool_input)[:80]
-    return f"{tool_name} {peek}"
-
-
-_RESULT_KEYWORDS = ("match", "mismatch", "fail", "error", "permuter",
-                    "diff", "verify", "byte", "segfault", "exit")
-
-
-def _format_tool_result(content, is_error):
-    """Extract a one-line signal from a tool_result block."""
-    if isinstance(content, list):
-        parts = []
-        for c in content:
-            if isinstance(c, dict):
-                parts.append(str(c.get("text", "")))
-            else:
-                parts.append(str(c))
-        text = "\n".join(parts)
-    else:
-        text = str(content or "")
-
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    if not lines:
-        return "(empty)"
-
-    # Prefer lines with keywords that indicate real matching signal.
-    key_lines = [ln for ln in lines
-                 if any(k in ln.lower() for k in _RESULT_KEYWORDS)]
-    if key_lines:
-        head = " | ".join(key_lines[:2])
-        prefix = "! " if is_error else ""
-        return f"{prefix}{head}"[:240]
-
-    prefix = "! " if is_error else ""
-    return f"{prefix}{lines[0]}"[:240]
-
-
-# Substrings in agent text blocks that indicate a safety-classifier
-# misfire refusal. Each pattern MUST contain an explicit refusal verb
-# ("refuse", "decline", "cannot", "won't") — matching on content-adjacent
-# words like "malware" or "analyze" alone would fire on agents reasoning
-# *about* the misfire rather than actually refusing.
-_REFUSAL_PATTERNS = (
-    "refuse to improve",
-    "refuse to augment",
-    "refuse to modify",
-    "refuse to edit",
-    "refuse to help",
-    "decline to improve",
-    "decline to augment",
-    "cannot help with modifying",
-    "cannot help with editing",
-    "won't be augmenting",
-    "will not be augmenting",
-    "will not augment",
-)
-
-
-def _is_refusal_text(text: str) -> bool:
-    lt = text.lower()
-    return any(p in lt for p in _REFUSAL_PATTERNS)
-
-
-def _emit_stream_event(msg, session_id, variant, log_path):
-    """Parse a single stream-json line, emit agent_event entries, and
-    return the detected refusal marker (or None).
-
-    Returns a string reason like "refusal_in_text" if the agent produced
-    text that looks like the safety-classifier misfire pattern, else
-    None. The caller kills the subprocess on non-None so we don't waste
-    30 min watching the agent write its 'I can't help' essay.
-    """
-    refusal = None
-    mtype = msg.get("type")
-    if mtype == "assistant":
-        inner = msg.get("message", {}) or {}
-        for block in inner.get("content", []) or []:
-            btype = block.get("type")
-            if btype == "text":
-                text = (block.get("text") or "").strip()
-                if text:
-                    log_event(log_path, {
-                        "event": "agent_event",
-                        "session_id": session_id,
-                        "variant": variant,
-                        "kind": "text",
-                        "text": text[:500],
-                    })
-                    if _is_refusal_text(text):
-                        refusal = "refusal_in_text"
-            elif btype == "thinking":
-                text = (block.get("thinking") or "").strip()
-                if text:
-                    log_event(log_path, {
-                        "event": "agent_event",
-                        "session_id": session_id,
-                        "variant": variant,
-                        "kind": "thinking",
-                        "text": text[:500],
-                    })
-                    if _is_refusal_text(text):
-                        refusal = "refusal_in_thinking"
-            elif btype == "tool_use":
-                tool = block.get("name") or "?"
-                inp = block.get("input") or {}
-                log_event(log_path, {
-                    "event": "agent_event",
-                    "session_id": session_id,
-                    "variant": variant,
-                    "kind": "tool_use",
-                    "tool": tool,
-                    "tool_use_id": block.get("id"),
-                    "text": _format_tool_use(tool, inp),
-                })
-    elif mtype == "user":
-        inner = msg.get("message", {}) or {}
-        content = inner.get("content", []) or []
-        if not isinstance(content, list):
-            return None
-        for block in content:
-            if block.get("type") == "tool_result":
-                is_error = bool(block.get("is_error", False))
-                text = _format_tool_result(block.get("content"), is_error)
-                log_event(log_path, {
-                    "event": "agent_event",
-                    "session_id": session_id,
-                    "variant": variant,
-                    "kind": "tool_result",
-                    "tool_use_id": block.get("tool_use_id"),
-                    "is_error": is_error,
-                    "text": text,
-                })
-    return refusal
-
-
-def run_claude_session(prompt, session_id, log_path, variant,
-                       timeout=SESSION_TIMEOUT):
-    """Invoke Claude Code in headless mode, streaming tool calls to log_path.
-
-    Uses --output-format stream-json so each agent message arrives as its
-    own line; we parse text / thinking / tool_use / tool_result blocks and
-    emit agent_event entries into the run's jsonl for the TUI to tail.
-
-    Returns (success, error_msg).
-    """
-    cmd = [
-        CLAUDE, "-p", prompt,
-        "--model", CLAUDE_MODEL,
-        "--dangerously-skip-permissions",
-        "--append-system-prompt", SYSTEM_PROMPT_APPEND,
-        "--output-format", "stream-json",
-        "--verbose",
-    ]
-
-    try:
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, bufsize=1,
-        )
-    except OSError as e:
-        return False, f"failed to spawn claude: {e}"
-
-    q = queue.Queue()
-
-    def _reader(stream, tag):
-        try:
-            for line in stream:
-                q.put((tag, line))
-        finally:
-            q.put((tag, None))
-
-    t_out = threading.Thread(target=_reader, args=(proc.stdout, "out"),
-                             daemon=True)
-    t_err = threading.Thread(target=_reader, args=(proc.stderr, "err"),
-                             daemon=True)
-    t_out.start()
-    t_err.start()
-
-    start = time.time()
-    eof_count = 0
-    stderr_tail = []
-
-    while eof_count < 2:
-        elapsed = time.time() - start
-        remaining = timeout - elapsed
-        if remaining <= 0:
-            proc.kill()
-            return False, f"session timed out after {timeout}s"
-        try:
-            tag, line = q.get(timeout=min(remaining, 1.0))
-        except queue.Empty:
-            if proc.poll() is not None and q.empty():
-                break
-            continue
-        if line is None:
-            eof_count += 1
-            continue
-        if tag == "out":
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                parsed = json.loads(line)
-            except json.JSONDecodeError:
-                log_event(log_path, {
-                    "event": "agent_event",
-                    "session_id": session_id,
-                    "variant": variant,
-                    "kind": "raw",
-                    "text": line[:500],
-                })
-                continue
-            refusal = _emit_stream_event(parsed, session_id, variant, log_path)
-            if refusal:
-                # Safety-classifier misfire: agent started writing refusal
-                # text. Don't let it run the clock out.
-                proc.kill()
-                log_event(log_path, {
-                    "event": "agent_refused",
-                    "session_id": session_id,
-                    "variant": variant,
-                    "reason": refusal,
-                })
-                raise AgentRefused(refusal)
-        elif tag == "err":
-            stderr_tail.append(line)
-            if len(stderr_tail) > 20:
-                stderr_tail = stderr_tail[-20:]
-
-    try:
-        proc.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-
-    if proc.returncode != 0:
-        err = "".join(stderr_tail).strip()[:200] if stderr_tail else "unknown error"
-        return False, f"claude exited {proc.returncode}: {err}"
-
-    return True, None
 
 
 def process_session_results(session_id, batch, functions, log_path, variant):
@@ -998,6 +725,12 @@ def main():
                         help="Comma-separated prompt variants to A/B test "
                              "(default: base). Each session picks one at random. "
                              "Variants live in tools/prompt_variants/<name>.py.")
+    parser.add_argument("--backend", type=str, default="claude",
+                        choices=AVAILABLE_BACKENDS,
+                        help="Coding-agent CLI to drive sessions with "
+                             "(default: claude). Codex support is staged; "
+                             "only backends registered in tools/backends/ are "
+                             "offered here.")
 
     args = parser.parse_args()
 
@@ -1030,6 +763,8 @@ def main():
         args.batch_size = TARGETS_BATCH_SIZE if targets_list else BATCH_SIZE
     session_timeout = TARGETS_SESSION_TIMEOUT if targets_list else SESSION_TIMEOUT
 
+    backend = get_backend(args.backend, system_append=SYSTEM_PROMPT_APPEND)
+
     os.makedirs(LOGS_DIR, exist_ok=True)
     os.makedirs(SESSION_RESULTS_DIR, exist_ok=True)
 
@@ -1058,6 +793,8 @@ def main():
         "deadline": deadline.isoformat(),
         "start_time": start_time.isoformat(),
         "variants": args.variants,
+        "backend": backend.name,
+        "model": backend.model,
         "batch_size": args.batch_size,
         "session_timeout": session_timeout,
         "mode": mode,
@@ -1078,6 +815,7 @@ def main():
 
     mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
+    log(f"Backend: {backend.name} (model={backend.model})")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
 
     # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
@@ -1121,6 +859,7 @@ def main():
             "event": "session_start",
             "session_id": session_id,
             "variant": selected_variant,
+            "backend": backend.name,
             "class_name": batch[0].get("class_name"),
             "functions": [
                 {"address": f["address"], "name": f["name"],
@@ -1167,8 +906,10 @@ def main():
             })
         session_start = time.time()
         try:
-            success, error_msg = run_claude_session(
-                prompt, session_id, log_path, selected_variant,
+            success, error_msg = run_session(
+                backend, prompt, session_id,
+                log_fn=lambda ev: log_event(log_path, ev),
+                variant=selected_variant,
                 timeout=session_timeout,
             )
         except AgentRefused as e:
