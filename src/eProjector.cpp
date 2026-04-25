@@ -7,6 +7,11 @@ class cBase;
 class cFile;
 class cMemPool_fwd;
 
+class cTimeValue {
+public:
+    float mTime;
+};
+
 class cMemPool {
 public:
     static void *GetPoolFromPtr(const void *);
@@ -30,7 +35,7 @@ public:
     eProjector(cBase *);
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
-    void Update(int /*cTimeValue*/);
+    void Update(cTimeValue);
 };
 
 class cWriteBlock {
@@ -92,7 +97,7 @@ void eProjector::Reset(cMemPool *, bool) {
 }
 
 // ── Update ──
-void eProjector::Update(int /*tv*/) {
+void eProjector::Update(cTimeValue) {
     if (*(unsigned char *)((char *)this + 0x8C) & 4) {
         int *vt = *(int **)((char *)this + 4);
         int *entry = (int *)((char *)vt + 0xB8);

@@ -22,6 +22,7 @@ struct gcTableColumnShort {
     void AssignCopy(const cBase *other);
     void Get(int row, wchar_t *buf, int bufsize) const;
     void Set(int row, const wchar_t *text, bool flag);
+    int Compare(int row1, int row2) const;
     static cBase *New(cMemPool *pool, cBase *parent);
 };
 
@@ -56,6 +57,16 @@ void gcTableColumnShort::Get(int row, wchar_t *buf, int bufsize) const {
 // 0x00271828, 68B
 void gcTableColumnShort::Set(int row, const wchar_t *text, bool flag) {
     mValues.mData[row] = (short)cAtoI(text);
+}
+
+// 0x002718dc, 52B
+int gcTableColumnShort::Compare(int row1, int row2) const {
+    short *data = mValues.mData;
+    int result = -1;
+    if (data[row1] >= data[row2]) {
+        result = data[row2] < data[row1];
+    }
+    return result;
 }
 
 // 0x00271538, 136B — static, ctor fully inlined (no jal to constructor).

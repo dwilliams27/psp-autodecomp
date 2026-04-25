@@ -402,15 +402,6 @@ void _Bfree(struct _Balloc_reent *r, struct _Bigint *b) {
     }
 }
 
-int gcTableColumnShort_Compare(const void *self, int i, int j) {
-    short *arr = *(short **)((const char *)self + 8);
-    int result = -1;
-    if (arr[i] >= arr[j]) {
-        result = arr[j] < arr[i];
-    }
-    return result;
-}
-
 /* eTexture::GetFullTexCoords lives in src/eTexture_GetFullTexCoords.cpp
    (SNC C does not accept V4SF aggregate initializers; C++ is required). */
 
