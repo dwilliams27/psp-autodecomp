@@ -777,9 +777,10 @@ def main():
                              "(default: base). Each session picks one at random. "
                              "Variants live in tools/prompt_variants/<name>.py.")
     parser.add_argument("--backend", type=str, default="claude",
-                        choices=AVAILABLE_BACKENDS,
-                        help="Coding-agent CLI to drive sessions with "
-                             "(default: claude).")
+                        help="Coding-agent CLI(s) to drive sessions. "
+                             "Comma-separated for A/B (e.g. claude,codex); "
+                             "each session picks one at random. "
+                             f"Available: {', '.join(AVAILABLE_BACKENDS)}.")
 
     args = parser.parse_args()
 
@@ -801,6 +802,20 @@ def main():
         log(f"A/B mode: {len(args.variants)} variants ({', '.join(args.variants)}) — "
             f"each session picks one randomly")
 
+    args.backends = list(dict.fromkeys(
+        b.strip().lower() for b in args.backend.split(",") if b.strip()
+    ))
+    if not args.backends:
+        log("ERROR: --backend must specify at least one backend")
+        sys.exit(1)
+    for b in args.backends:
+        if b not in AVAILABLE_BACKENDS:
+            log(f"ERROR: backend '{b}' not found. Available: {', '.join(AVAILABLE_BACKENDS)}")
+            sys.exit(1)
+    if len(args.backends) > 1:
+        log(f"Backend A/B: {len(args.backends)} backends ({', '.join(args.backends)}) — "
+            f"each session picks one randomly")
+
     # Load targets file if specified
     targets_list = None
     if args.targets:
@@ -812,7 +827,8 @@ def main():
         args.batch_size = TARGETS_BATCH_SIZE if targets_list else BATCH_SIZE
     session_timeout = TARGETS_SESSION_TIMEOUT if targets_list else SESSION_TIMEOUT
 
-    backend = get_backend(args.backend, system_append=SYSTEM_PROMPT_APPEND)
+    backends = {name: get_backend(name, system_append=SYSTEM_PROMPT_APPEND)
+                for name in args.backends}
 
     os.makedirs(LOGS_DIR, exist_ok=True)
     os.makedirs(SESSION_RESULTS_DIR, exist_ok=True)
@@ -836,14 +852,19 @@ def main():
     total_matched = 0
 
     mode = "targeted" if targets_list else "general"
+    backend_summary = ", ".join(
+        f"{n}/{backends[n].model}" for n in args.backends
+    )
+    primary = args.backends[0]
     log_event(log_path, {
         "event": "run_start",
         "hours": args.hours,
         "deadline": deadline.isoformat(),
         "start_time": start_time.isoformat(),
         "variants": args.variants,
-        "backend": backend.name,
-        "model": backend.model,
+        "backend": primary,
+        "model": backends[primary].model,
+        "backends": [{"name": n, "model": backends[n].model} for n in args.backends],
         "batch_size": args.batch_size,
         "session_timeout": session_timeout,
         "mode": mode,
@@ -864,7 +885,7 @@ def main():
 
     mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
-    log(f"Backend: {backend.name} (model={backend.model})")
+    log(f"Backend: {backend_summary}")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
 
     # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
@@ -901,7 +922,11 @@ def main():
 
         session_id = str(uuid.uuid4())[:8]
         selected_variant = random.choice(args.variants)
-        log(f"Session {session_id} [{selected_variant}]: {len(batch)} functions — "
+        backend = random.choice(list(backends.values()))
+        tag = (f"[{selected_variant}/{backend.name}]"
+               if len(args.backends) > 1
+               else f"[{selected_variant}]")
+        log(f"Session {session_id} {tag}: {len(batch)} functions — "
             f"{', '.join(f['name'].split('(')[0] for f in batch)}")
 
         log_event(log_path, {
@@ -909,6 +934,7 @@ def main():
             "session_id": session_id,
             "variant": selected_variant,
             "backend": backend.name,
+            "model": backend.model,
             "class_name": batch[0].get("class_name"),
             "functions": [
                 {"address": f["address"], "name": f["name"],
@@ -1229,6 +1255,7 @@ def main():
                     "event": "function_result",
                     "session_id": session_id,
                     "variant": selected_variant,
+                    "backend": backend.name,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
@@ -1243,6 +1270,7 @@ def main():
                 "event": "session_done",
                 "session_id": session_id,
                 "variant": selected_variant,
+                "backend": backend.name,
                 "matched": final_matched,
                 "failed": final_failed,
                 "claimed_matched": matched,

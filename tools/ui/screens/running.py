@@ -97,6 +97,15 @@ class RunningScreen(Screen):
         state.session_timeout_s = event.get("session_timeout", 1800)
         state.backend = event.get("backend") or ""
         state.model = event.get("model") or ""
+        for b in event.get("backends") or []:
+            state.ensure_backend(b.get("name", ""))
+        # In an A/B run the left-panel "backend" line should still show
+        # something — surface the full set joined since each session picks
+        # a different one. The per-backend scoreboard rows below carry
+        # the actual head-to-head numbers.
+        if len(state.backends) > 1:
+            state.backend = "/".join(state.backends)
+            state.model = ""
         for v in state.variants:
             state.ensure_variant(v)
         state.orch_log.append(
@@ -155,7 +164,10 @@ class RunningScreen(Screen):
     def _on_function_result(self, state, event):
         status = event.get("status")
         variant = event.get("variant", "?")
+        backend = event.get("backend") or ""
         state.ensure_variant(variant)
+        if backend:
+            state.ensure_backend(backend)
         outcome = {
             "status": status,
             "name": event.get("name", "?"),
@@ -171,9 +183,17 @@ class RunningScreen(Screen):
         short = _short_name(event.get("name", "?"))
         if status == "matched":
             state.this_run_matched[variant] = state.this_run_matched.get(variant, 0) + 1
+            if backend:
+                state.this_run_matched_by_backend[backend] = (
+                    state.this_run_matched_by_backend.get(backend, 0) + 1
+                )
             state.orch_log.append(_ts() + f"  matched: {short}")
         elif status == "failed":
             state.this_run_failed[variant] = state.this_run_failed.get(variant, 0) + 1
+            if backend:
+                state.this_run_failed_by_backend[backend] = (
+                    state.this_run_failed_by_backend.get(backend, 0) + 1
+                )
             state.orch_log.append(_ts() + f"  failed:  {short}")
 
     def _on_verify_failed(self, state, event):
@@ -380,14 +400,12 @@ class RunningScreen(Screen):
 
         MAX_M_BARS = 8
         MAX_F_BARS = 4
-        right_lines = []
-        for v in state.variants:
-            m = state.this_run_matched.get(v, 0)
-            f = state.this_run_failed.get(v, 0)
+
+        def _scoreboard_row(label, m, f):
             total = m + f
             rate = (100.0 * m / total) if total else 0.0
             l = Text()
-            l.append(f"{v[:7]:<7}", style=f"bold {MOSS}")
+            l.append(f"{label[:7]:<7}", style=f"bold {MOSS}")
             l.append("\u25B0" * min(m, MAX_M_BARS), style=f"bold {OK}")
             if m > MAX_M_BARS:
                 l.append("+", style=DIM)
@@ -396,7 +414,22 @@ class RunningScreen(Screen):
                 l.append("+", style=DIM)
             l.append(f"  {m}m\u00b7{f}f", style=DIM)
             l.append(f"  {rate:.0f}%", style=f"bold {BODY}" if total else DIM)
-            right_lines.append(l)
+            return l
+
+        right_lines = []
+        for v in state.variants:
+            right_lines.append(_scoreboard_row(
+                v,
+                state.this_run_matched.get(v, 0),
+                state.this_run_failed.get(v, 0),
+            ))
+        if len(state.backends) > 1:
+            for b in state.backends:
+                right_lines.append(_scoreboard_row(
+                    b,
+                    state.this_run_matched_by_backend.get(b, 0),
+                    state.this_run_failed_by_backend.get(b, 0),
+                ))
         while len(right_lines) < helix.HELIX_H:
             right_lines.append(Text(""))
 

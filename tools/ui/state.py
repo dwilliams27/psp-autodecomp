@@ -25,6 +25,9 @@ class RunState:
         self.this_run_matched = {}
         self.this_run_failed = {}
         self.this_run_verify_fail = 0
+        self.backends = ()
+        self.this_run_matched_by_backend = {}
+        self.this_run_failed_by_backend = {}
 
         self.current_session_sid = None
         self.current_session_variant = None
@@ -83,3 +86,17 @@ class RunState:
             self.this_run_failed[variant] = 0
         if variant not in self.variants:
             self.variants = self.variants + (variant,)
+
+    def ensure_backend(self, backend):
+        """Register a backend seen mid-run for A/B tally tracking.
+
+        Mirrors `ensure_variant` — backends listed in the run_start event
+        are registered up front; this catches any stragglers.
+        """
+        if not backend:
+            return
+        if backend not in self.this_run_matched_by_backend:
+            self.this_run_matched_by_backend[backend] = 0
+            self.this_run_failed_by_backend[backend] = 0
+        if backend not in self.backends:
+            self.backends = self.backends + (backend,)
