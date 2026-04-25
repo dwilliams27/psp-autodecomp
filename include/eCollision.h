@@ -64,6 +64,7 @@ public:
     static int SphereHeightmap(const eSphereShape &, const eHeightmapShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int SphereMesh(const eSphereShape &, const eMeshShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int SphereMultiSphere(const eSphereShape &, const eMultiSphereShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    static int SphereSphere(const eSphereShape &, const eSphereShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
 };
 
 class eMaterial {

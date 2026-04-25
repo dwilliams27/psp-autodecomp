@@ -1,5 +1,6 @@
 #include "eSphereShape.h"
 #include "eShape.h"
+#include "eBoxShape.h"
 #include "eMultiSphereShape.h"
 #include "eCapsuleShape.h"
 #include "eCompoundShape.h"
@@ -56,6 +57,15 @@ struct DeleteRecord {
 void *cMemPool_GetPoolFromPtr(const void *);
 
 int eSphereShape::CanSweep(void) const {
+    return 1;
+}
+
+// eSphereShape::NeedsRollingFriction(float *) const — 0x0020913c
+// Trivial leaf. Volatile-store on *out forces SNC to keep the swc1 immediately
+// after the lwc1, putting `li v0, 1` in the jr delay slot rather than between
+// the FPU load and store.
+int eSphereShape::NeedsRollingFriction(float *out) const {
+    *(volatile float *)out = mRadius;
     return 1;
 }
 
@@ -193,25 +203,8 @@ void eSphereShape::GetSupport(const mVec3 &dir, const mOCS &ocs, eCollisionSuppo
 }
 
 // eSphereShape::~eSphereShape(void) — 0x00067c60
-#pragma control sched=1
-extern "C" void eSphereShape___dtor_eSphereShape_void(eSphereShape *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eSphereShapevirtualtable;
-        eShape___dtor_eShape_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
-}
-#pragma control sched=2
+// Defined canonically (with class-local inheritance from eShape and an
+// `operator delete` for the deleting-tail dispatch) in src/eSphereShape_dtor.cpp.
 
 // eSphereShape::New(cMemPool *, cBase *) static — 0x00208fe0
 #pragma control sched=1
@@ -231,4 +224,98 @@ eSphereShape *eSphereShape::New(cMemPool *pool, cBase *parent) {
     }
     return result;
 }
+#pragma control sched=1
+
+// eSphereShape::Collide(const eBoxShape *, ...) const — 0x000683c0
+// Delegates to eCollision::BoxSphere with args swapped (box-perspective),
+// then negates each contact normal at info+0x20 (stride 0x40) since the
+// returned normals point box→sphere and we need sphere→box.
+int eSphereShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    if (eCollision::BoxSphere(*shape, *this, ocs2, ocs1, info) != 0) {
+        int i = 0;
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+
+// eSphereShape::Collide(const eSphereShape *, ...) const — 0x0006844c
+// Same shape as Collide(eBoxShape*) but routes to SphereSphere. The arg
+// swap is structural (consistent with the box overload) even though both
+// shapes are spheres — the OCS pair is swapped accordingly.
+int eSphereShape::Collide(const eSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    if (eCollision::SphereSphere(*shape, *this, ocs2, ocs1, info) != 0) {
+        int i = 0;
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+
 #pragma control sched=2
+// eSphereShape::GetAABB(mBox *, const mOCS &) const — 0x00068280
+// AABB of a sphere = [translation - r, translation + r] per axis.
+// The translation is OCS[0x30] (xyz). Each axis is extracted via VFPU
+// vdot.t against (1,0,0)/(0,1,0)/(0,0,1) (the prefix register zeros W),
+// then mfv'd to an integer reg and reinterpreted as float so SNC emits
+// mtc1 (not lwc1 from a stack slot).
+void eSphereShape::GetAABB(mBox *box, const mOCS &ocs) const {
+    int bx, by, bz;
+    __asm__ volatile(
+        ".word 0xdc0070c1\n"  // vpfxs 1, 0, 0, W
+        "vmov.t C120, C000\n"
+        "lv.q C130, 0x30(%1)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        : "=r"(bx) : "r"(&ocs)
+    );
+    float tx = *(float *)&bx;
+    *(float *)((char *)box + 0x00) = tx - mRadius;
+    *(float *)((char *)box + 0x10) = tx + mRadius;
+    __asm__ volatile(
+        ".word 0xdc0070c4\n"  // vpfxs 0, 1, 0, W
+        "vmov.t C120, C000\n"
+        "lv.q C130, 0x30(%1)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        : "=r"(by) : "r"(&ocs)
+    );
+    float ty = *(float *)&by;
+    *(float *)((char *)box + 0x04) = ty - mRadius;
+    *(float *)((char *)box + 0x14) = ty + mRadius;
+    __asm__ volatile(
+        ".word 0xdc0070d0\n"  // vpfxs 0, 0, 1, W
+        "vmov.t C120, C000\n"
+        "lv.q C130, 0x30(%1)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        : "=r"(bz) : "r"(&ocs)
+    );
+    float tz = *(float *)&bz;
+    *(float *)((char *)box + 0x08) = tz - mRadius;
+    *(float *)((char *)box + 0x18) = tz + mRadius;
+}
