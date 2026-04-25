@@ -17,6 +17,10 @@ int cFileSystem::GetFileStatus(void) {
     return cFileSystemPlatform::GetFileStatus();
 }
 
+int cFileSystem::Write(cFileHandle *handle, const void *data, unsigned int size) {
+    return 0;
+}
+
 void cFileSystem::Close(cFileHandle *handle) {
     if (!handle->mFlag) {
         handle->mBufferedFile.Close();
@@ -25,4 +29,7 @@ void cFileSystem::Close(cFileHandle *handle) {
     handle->mField14C = 0;
     handle->mCurrentPos = 0;
     handle->mFlag = 0;
+}
+
+void cFile::OnCreated(void) {
 }

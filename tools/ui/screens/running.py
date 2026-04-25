@@ -95,6 +95,8 @@ class RunningScreen(Screen):
         state.mode = event.get("mode", "general")
         state.batch_size = event.get("batch_size", 5)
         state.session_timeout_s = event.get("session_timeout", 1800)
+        state.backend = event.get("backend") or ""
+        state.model = event.get("model") or ""
         for v in state.variants:
             state.ensure_variant(v)
         state.orch_log.append(
@@ -304,6 +306,17 @@ class RunningScreen(Screen):
             w = w[:19] + "..."
         l.append(w, style=BODY if w not in ("(waiting)", "-") else DIM)
         left_lines.append(l)
+
+        if state.backend:
+            l = Text()
+            l.append("backend    ", style=LEAF)
+            tag = state.backend
+            if state.model:
+                tag = f"{state.backend}/{state.model}"
+            if len(tag) > 22:
+                tag = tag[:19] + "..."
+            l.append(tag, style=BODY)
+            left_lines.append(l)
 
         while len(left_lines) < helix.HELIX_H:
             left_lines.append(Text(""))

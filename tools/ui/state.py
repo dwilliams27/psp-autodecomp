@@ -14,6 +14,8 @@ class RunState:
         self.batch_size = 5
         self.session_timeout_s = 1800
         self.run_done = False
+        self.backend = ""
+        self.model = ""
 
         # Absolute matched count, seeded from the DB at startup and updated
         # by progress_tick events. Used to compute the "+N since last tick"
