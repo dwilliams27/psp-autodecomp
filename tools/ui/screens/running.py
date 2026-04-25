@@ -249,9 +249,9 @@ class RunningScreen(Screen):
             Layout(name="mid", ratio=1),
             Layout(name="outcomes", size=12),
         )
-        # Top of mid: full-width agent narrative (text + thinking) — the
-        # agent's verbose reasoning. Bottom: existing orch + tool stream
-        # side-by-side.
+        # Top of mid: full-width agent activity (text + thinking) — the
+        # agent's verbose reasoning. Bottom: orchestrator events + agent
+        # actions (compact tool calls + results) side-by-side.
         layout["mid"].split_column(
             Layout(name="narrative", ratio=1),
             Layout(name="bottom", ratio=1),
@@ -272,7 +272,7 @@ class RunningScreen(Screen):
     def _narrative_panel(self, app):
         state = app.state
         if not state.agent_narrative_log:
-            content = Text("(waiting for agent narrative)", style=DIM)
+            content = Text("(waiting for agent activity)", style=DIM)
         else:
             t = Text()
             lines = list(state.agent_narrative_log)
@@ -290,7 +290,7 @@ class RunningScreen(Screen):
         return Panel(
             Align(content, vertical="bottom"),
             border_style=MOSS, box=ROUNDED,
-            title=Text(" agent narrative ", style=f"bold {LEAF}"),
+            title=Text(" agent activity ", style=f"bold {LEAF}"),
             title_align="left", padding=(0, 1),
         )
 
@@ -483,7 +483,7 @@ class RunningScreen(Screen):
         return Panel(
             Align(content, vertical="bottom"),
             border_style=MOSS, box=ROUNDED,
-            title=Text(" agent activity ", style=f"bold {LEAF}"),
+            title=Text(" agent actions ", style=f"bold {LEAF}"),
             title_align="left",
             subtitle=subtitle, subtitle_align="left",
             padding=(0, 1),
