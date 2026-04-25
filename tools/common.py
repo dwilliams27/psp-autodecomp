@@ -25,6 +25,63 @@ CODEX = "codex"
 CODEX_MODEL = "gpt-5.5"
 
 
+def strip_cpp_comments(src):
+    """Replace `//` line and `/* */` block comments with spaces.
+
+    Preserves character offsets and line numbers. String/char literals
+    are passed through untouched, so an embedded `//` doesn't trigger.
+    """
+    out = []
+    i = 0
+    n = len(src)
+    while i < n:
+        c = src[i]
+        if c == "/" and i + 1 < n and src[i + 1] == "/":
+            j = src.find("\n", i)
+            j = n if j < 0 else j
+            out.append(" " * (j - i))
+            i = j
+        elif c == "/" and i + 1 < n and src[i + 1] == "*":
+            j = src.find("*/", i + 2)
+            if j < 0:
+                out.append(" " * (n - i))
+                i = n
+            else:
+                for k in range(i, j + 2):
+                    out.append("\n" if src[k] == "\n" else " ")
+                i = j + 2
+        elif c == '"' or c == "'":
+            quote = c
+            out.append(c)
+            i += 1
+            while i < n:
+                out.append(src[i])
+                if src[i] == "\\" and i + 1 < n:
+                    out.append(src[i + 1])
+                    i += 2
+                    continue
+                if src[i] == quote:
+                    i += 1
+                    break
+                i += 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+def canonical_method_pattern(class_name, method_name):
+    """Regex source that matches `Class::method` (with flexible spacing).
+
+    Does NOT include the trailing `\\s*\\(` — callers append it themselves
+    (the audit tool composes this into an alternation and adds the paren
+    once for the whole group; the orchestrator appends per-call).
+    """
+    return (re.escape(class_name)
+            + r"\s*::\s*"
+            + re.escape(method_name))
+
+
 def load_db():
     """Load functions.json. Exits with error if missing."""
     if not os.path.exists(DB_PATH):

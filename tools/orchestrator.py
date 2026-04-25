@@ -25,8 +25,9 @@ import uuid
 from datetime import datetime, timedelta
 
 from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
-                    load_db, save_db, filter_functions, build_addr_map,
-                    fix_vfpu_disassembly)
+                    canonical_method_pattern, load_db, save_db,
+                    filter_functions, build_addr_map,
+                    fix_vfpu_disassembly, strip_cpp_comments)
 from byte_match import CompileFailed, check_byte_match
 from backends import AgentRefused, AVAILABLE_BACKENDS, get_backend, run_session
 
@@ -615,6 +616,56 @@ def git_commit_batch(session_id, matched_funcs, matched_files):
 
 
 
+def reject_extern_c_class_methods(matched_funcs, addr_to_src):
+    """Flag class-method matches whose reconstruction is extern-C / safe-name.
+
+    Returns list of (func, reason) for entries where DB has a class_name
+    set but the reconstructed src file contains no canonical
+    `Class::method(...)` definition. These cases were the predominant
+    structural-fidelity bug (see docs/fix_plan.md, Phase 4) — bytes match
+    but the source teaches the model wrong abstractions.
+
+    The check is permissive: the canonical form just has to *exist* in
+    the file. A file with both canonical and safe-name forms passes.
+    """
+    import re
+    rejected = []
+    for func in matched_funcs:
+        cls = func.get("class_name")
+        if not cls:
+            continue
+        src_path = addr_to_src.get(func["address"])
+        # Upstream verify pass already enforces that every survivor in
+        # matched_funcs has a real src file. Assert to fail loudly if
+        # that invariant is ever broken — silent skip would let bad
+        # entries bypass the gate.
+        assert src_path and os.path.exists(src_path), (
+            f"reject_extern_c_class_methods: invariant violation — "
+            f"matched_funcs entry {func['address']} has no readable "
+            f"src_file (addr_to_src={src_path!r})"
+        )
+
+        method = (func.get("method_name") or "").split("(", 1)[0]
+        if not method:
+            raise ValueError(
+                f"DB entry {func['address']} has class_name={cls!r} but "
+                f"no method_name. Quality gate cannot evaluate. Fix the "
+                f"DB before retrying."
+            )
+
+        with open(src_path) as f:
+            stripped = strip_cpp_comments(f.read())
+
+        canonical = canonical_method_pattern(cls, method) + r"\s*\("
+        if re.search(canonical, stripped):
+            continue
+        rejected.append((func,
+                         f"class method but no canonical {cls}::{method}(...) "
+                         f"definition found in {src_path}; reconstruction "
+                         f"looks extern-C / safe-name (anti-pattern)"))
+    return rejected
+
+
 def validate_source_quality(matched_files):
     """Reject matches that are pure assembly — no C/C++ training data value.
 
@@ -1134,6 +1185,37 @@ def main():
                             log(f"    Reverted: {func['name']} → failed (assembly-only source)")
                     # Remove rejected files from commit set
                     matched_files -= set(asm_rejected)
+
+            # Quality gate: class-method must be reconstructed in canonical
+            # C++ form, not extern-C / safe-name. See fix_plan Phase 2.
+            if matched_funcs:
+                xc_rejected = reject_extern_c_class_methods(
+                    matched_funcs, addr_to_src,
+                )
+                if xc_rejected:
+                    log(f"  EXTERN-C CLASS-METHOD REJECTION: "
+                        f"{len(xc_rejected)} matches lack canonical Class::method form")
+                    for func, reason in xc_rejected:
+                        log(f"    Rejected: {func['name']} — {reason}")
+                        log_event(log_path, {
+                            "event": "rejected_extern_c_class_method",
+                            "session_id": session_id,
+                            "variant": selected_variant,
+                            "address": func["address"],
+                            "name": func["name"],
+                            "reason": reason,
+                        })
+                        target = addr_index.get(func["address"])
+                        if target:
+                            target["match_status"] = "failed"
+                            target.setdefault("failure_notes", []).append({
+                                "session": session_id,
+                                "notes": reason,
+                            })
+                            target["failure_notes"] = target["failure_notes"][-5:]
+                        matched_funcs.remove(func)
+                        total_matched -= 1
+                        total_failed += 1
 
             # Emit authoritative per-function + session outcomes AFTER verify
             # and the quality gate. Earlier events would report stale status

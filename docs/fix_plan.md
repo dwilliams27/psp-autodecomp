@@ -37,19 +37,27 @@ untried pool.
 `param-types: 0`, `param-count: 31` (down from 48 — the remaining 31
 are exactly the self-arg pattern, queued for Phase 4).
 
-## Phase 2 — Quality gate
+## Phase 2 — Quality gate [done]
 
 Stop new matches from landing with the same anti-patterns.
 
-- [ ] In `tools/orchestrator.py` (`validate_source_quality` or sibling):
-      reject a match whose DB entry has a `class_name` AND whose
-      reconstructed src defines the function as `extern "C"` or as a
-      free function with `void *self` (or `void *`) first parameter.
-- [ ] Mirror the existing pure-asm rejection's "loud failure" semantics
-      — log the event, mark the function `failed` with notes.
-- [ ] Test on existing rejected files (positive control) and a clean
-      class-method match (negative control).
-- [ ] Commit.
+- [x] New `reject_extern_c_class_methods(matched_funcs, addr_to_src)` in
+      `tools/orchestrator.py`. For every matched function with a
+      `class_name`, requires the reconstructed src to contain a
+      canonical `Class::method(...)` definition. If absent, rejects.
+- [x] Mirrors the asm rejection's loud-failure semantics: emits a
+      `rejected_extern_c_class_method` event, marks the function `failed`
+      with detailed `failure_notes`, decrements the run's matched count.
+- [x] Tested with three controls:
+      - `cWriteBlock::Write(int, const char *)` (canonical cWriteBlock.cpp): OK
+      - `cFile::OnCreated(void)` (safe-name in free_functions.c): REJECTED
+      - `cRestartApp(bool)` (free function, no class_name): OK (skipped)
+- [x] Commit.
+
+**Result**: Future sessions that produce extern-C / safe-name
+reconstructions of class methods will be flagged and reverted, just like
+pure-asm matches today. Existing matched safe-name entries are left
+untouched here — Phase 4 retires them.
 
 ## Phase 3 — Typedef-int header audit
 

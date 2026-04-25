@@ -27,7 +27,8 @@ import sys
 from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import filter_functions, load_db
+from common import (canonical_method_pattern, filter_functions, load_db,
+                    strip_cpp_comments)
 
 
 def split_params(param_str):
@@ -124,49 +125,6 @@ def parse_demangled_params(name):
     return [normalize_type(p) for p in split_params(inner)]
 
 
-def strip_comments(src):
-    """Remove // line and /* block */ comments. Preserves line numbers
-    by replacing comment chars with spaces."""
-    out = []
-    i = 0
-    n = len(src)
-    while i < n:
-        c = src[i]
-        if c == "/" and i + 1 < n and src[i + 1] == "/":
-            j = src.find("\n", i)
-            j = n if j < 0 else j
-            out.append(" " * (j - i))
-            i = j
-        elif c == "/" and i + 1 < n and src[i + 1] == "*":
-            j = src.find("*/", i + 2)
-            if j < 0:
-                out.append(" " * (n - i))
-                i = n
-            else:
-                for k in range(i, j + 2):
-                    out.append("\n" if src[k] == "\n" else " ")
-                i = j + 2
-        elif c == '"' or c == "'":
-            # Skip string-literal contents so an embedded // doesn't trigger.
-            quote = c
-            out.append(c)
-            i += 1
-            while i < n:
-                out.append(src[i])
-                if src[i] == "\\" and i + 1 < n:
-                    out.append(src[i + 1])
-                    i += 2
-                    continue
-                if src[i] == quote:
-                    i += 1
-                    break
-                i += 1
-        else:
-            out.append(c)
-            i += 1
-    return "".join(out)
-
-
 @functools.lru_cache(maxsize=None)
 def _load_stripped(src_path):
     """Cached read+strip of a src file. Returns None if the file isn't
@@ -175,7 +133,7 @@ def _load_stripped(src_path):
     if not os.path.exists(src_path):
         return None
     with open(src_path, encoding="utf-8") as f:
-        return strip_comments(f.read())
+        return strip_cpp_comments(f.read())
 
 
 def find_all_function_defs(src_path, class_name, method_name):
@@ -204,7 +162,7 @@ def find_all_function_defs(src_path, class_name, method_name):
     alternatives = []
     if class_name:
         cls_safe = class_name.replace("::", "_")
-        alternatives.append(re.escape(class_name) + r"\s*::\s*" + re.escape(method_name))
+        alternatives.append(canonical_method_pattern(class_name, method_name))
         if method_name.startswith("~"):
             alternatives.append(re.escape(class_name) + r"___dtor_" + re.escape(class_name))
             alternatives.append(re.escape(class_name) + r"__dtor_" + re.escape(class_name))
