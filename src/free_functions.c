@@ -332,18 +332,6 @@ void free_in_mem_block(void *p) {
     pool->used = pool->used - blk->size - 16;
 }
 
-void *gcMsgCinematicEnded_New(void *buf) {
-    int cursor = *(int *)((char *)buf + 1200) + 4;
-    *(int *)((char *)buf + 1200) = cursor;
-    void *obj = (char *)buf + cursor;
-    void *result = 0;
-    if (obj != 0) {
-        *(int *)obj = 0x388FF0;
-        result = obj;
-    }
-    return result;
-}
-
 void *gcMsgRequestLoadedState_New(void *buf) {
     int cursor = *(int *)((char *)buf + 1200) + 4;
     *(int *)((char *)buf + 1200) = cursor;

@@ -1,6 +1,6 @@
 struct nwMsgVoice;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
 
 class nwHeadset {
 public:

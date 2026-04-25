@@ -57,6 +57,25 @@ void gcMsgCinematicEnded::Write(cOutStream &, nwSocketHandle, const nwAddress &,
 void gcMsgRequestLoadedState::Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const {
 }
 
+// -----------------------------------------------------------------------------
+// gcMsgCinematicEnded::New  @ 0x00264628  (gcAll_psp.obj, 48B, static)
+//   Bump-allocates 4 bytes from the nwMsgBuffer arena (offset stored at +0x4B0)
+//   and writes the gcMsgCinematicEnded vtable pointer (0x388FF0) into the
+//   returned slot.  Returns NULL if the resulting pointer is null.
+// -----------------------------------------------------------------------------
+
+nwMsg *gcMsgCinematicEnded::New(nwMsgBuffer &buf) {
+    int cursor = buf.mOffset + 4;
+    buf.mOffset = cursor;
+    char *obj = (char *)&buf + cursor;
+    nwMsg *result = 0;
+    if (obj != 0) {
+        *(int *)obj = 0x388FF0;
+        result = (nwMsg *)obj;
+    }
+    return result;
+}
+
 void gcEntityTemplate::CalcInstanceSize(void) {
 }
 
@@ -75,7 +94,7 @@ void gcUIWidgetList::FillCell(gcUICell, int) {
 // -----------------------------------------------------------------------------
 
 void gcMsgCinematicEnded::Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle conn) {
-    gpGame->ResetNetConnection((unsigned char)conn);
+    gpGame->ResetNetConnection((unsigned char)conn.mValue);
 }
 
 // -----------------------------------------------------------------------------
