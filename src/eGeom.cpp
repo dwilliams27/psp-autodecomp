@@ -3,6 +3,13 @@
 class cFile;
 class cMemPool;
 class cBase;
+class eCollisionInfo;
+class mRay;
+class mCollideHit;
+class mSphere;
+class mCollideInfo;
+class eContactCollector;
+class eSurface;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 typedef int v16sf_t __attribute__((mode(V16SF)));
@@ -32,6 +39,14 @@ public:
     static void CleanNeedsUpdateList(void);
     void ApplyLocalToWorld(const mOCS &);
     eGeom(cBase *base);
+
+    bool CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
+    bool CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const;
+    int GetSweptContacts(const eCollisionInfo &, int, const mSphere *,
+                         const mCollideInfo *, eContactCollector *) const;
+    int GetEmbedContacts(const eCollisionInfo &, int, const mSphere *,
+                         eContactCollector *) const;
+    eSurface *GetSurface(int) const;
 };
 
 extern char eGeomvirtualtable[];
@@ -110,4 +125,31 @@ eGeom::eGeom(cBase *base) {
         : : "r"(this) : "memory"
     );
     *(float *)((char *)this + 0x5C) = -1.0f;
+}
+
+// ── CastRay ──
+bool eGeom::CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const {
+    return false;
+}
+
+// ── CastSphere ──
+bool eGeom::CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const {
+    return false;
+}
+
+// ── GetSweptContacts ──
+int eGeom::GetSweptContacts(const eCollisionInfo &, int, const mSphere *,
+                            const mCollideInfo *, eContactCollector *) const {
+    return 0;
+}
+
+// ── GetEmbedContacts ──
+int eGeom::GetEmbedContacts(const eCollisionInfo &, int, const mSphere *,
+                            eContactCollector *) const {
+    return 0;
+}
+
+// ── GetSurface ──
+eSurface *eGeom::GetSurface(int) const {
+    return 0;
 }
