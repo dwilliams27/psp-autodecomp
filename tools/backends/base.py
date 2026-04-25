@@ -185,6 +185,7 @@ def run_session(
     try:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
             text=True, bufsize=1, env=child_env,
         )
     except OSError as e:
@@ -256,7 +257,12 @@ def run_session(
         proc.kill()
 
     if proc.returncode != 0:
-        err = "".join(stderr_tail).strip()[:200] if stderr_tail else "unknown error"
+        # Surface the full tail (capped above at 20 lines) so silent-exit
+        # bugs are diagnosable from the run log alone. "(no stderr)" is
+        # itself a useful signal — narrows the failure to "child did not
+        # write to its stderr" rather than "we lost the message".
+        err = ("".join(stderr_tail).strip()
+               if stderr_tail else "(no stderr)")
         return False, f"{backend.name} exited {proc.returncode}: {err}"
 
     return True, None

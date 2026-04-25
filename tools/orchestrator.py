@@ -953,6 +953,7 @@ def main():
                 "event": "prep_error",
                 "session_id": session_id,
                 "variant": selected_variant,
+                "backend": backend.name,
                 "error": str(e),
             })
             total_errors += 1
@@ -994,6 +995,7 @@ def main():
                 "event": "session_error",
                 "session_id": session_id,
                 "variant": selected_variant,
+                "backend": backend.name,
                 "error": str(e),
                 "functions": [f["address"] for f in batch],
                 "duration_s": session_duration,
@@ -1023,6 +1025,7 @@ def main():
                 "event": "session_error",
                 "session_id": session_id,
                 "variant": selected_variant,
+                "backend": backend.name,
                 "error": error_msg,
                 "functions": [f["address"] for f in batch],
                 "duration_s": session_duration,
@@ -1291,6 +1294,7 @@ def main():
                         "event": "git_error",
                         "session_id": session_id,
                         "variant": selected_variant,
+                        "backend": backend.name,
                         "error": str(e),
                     })
                     total_errors += 1
@@ -1301,6 +1305,7 @@ def main():
                 "event": "system_error",
                 "session_id": session_id,
                 "variant": selected_variant,
+                "backend": backend.name,
                 "error": str(e),
                 "functions": [f["address"] for f in batch],
                 "duration_s": session_duration,
