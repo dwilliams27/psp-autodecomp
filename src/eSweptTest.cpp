@@ -4,17 +4,20 @@
 
 // ---------- Function 1: eSweptTest::AddIgnoreGeom ----------
 
-struct eSweptTest_layout {
+class eDynamicGeom;
+
+class eSweptTest {
+public:
     int _pad0;                          // 0x00
     int count;                          // 0x04
-    const void *ignores[4];             // 0x08
+    const eDynamicGeom *ignores[4];     // 0x08
+
+    void AddIgnoreGeom(const eDynamicGeom *);
 };
 
-extern "C" void eSweptTest_AddIgnoreGeom(
-    struct eSweptTest_layout *self, const void *geom)
-{
-    if (self->count != 4) {
-        self->ignores[self->count++] = geom;
+void eSweptTest::AddIgnoreGeom(const eDynamicGeom *geom) {
+    if (count != 4) {
+        ignores[count++] = geom;
     }
 }
 
