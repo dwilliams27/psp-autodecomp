@@ -7,8 +7,16 @@ class cOutStream;
 class cInStream;
 class nwAddress;
 class cBase;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+
+class nwSocketHandle {
+public:
+    int mHandle;
+};
+
+class nwConnectionHandle {
+public:
+    int mHandle;
+};
 
 struct nwMsgBuffer {
     char _pad[0x4B0];
@@ -47,6 +55,20 @@ public:
 
 static nwMsgType *sCheckSyncType;
 
+extern char gcMsgCheckSynchronizationvirtualtable[];
+
+// 0x00285b48, 48B
+nwMsg *gcMsgCheckSynchronization::New(nwMsgBuffer &buf) {
+    buf.mOffset += 4;
+    char *p = (char *)&buf + buf.mOffset;
+    nwMsg *result = 0;
+    if (p) {
+        *(char **)p = gcMsgCheckSynchronizationvirtualtable;
+        result = (nwMsg *)p;
+    }
+    return result;
+}
+
 // 0x00136c0c, 56B
 void gcMsgCheckSynchronization::Write(cOutStream &s, nwSocketHandle, const nwAddress &, nwConnectionHandle) const {
     ((cOutStreamRef *)&s)->Write((unsigned int)cRand(), 0x20, true);
@@ -57,8 +79,8 @@ void gcMsgCheckSynchronization::Read(cInStream &s, nwSocketHandle sock, const nw
     volatile nwSocketHandle vol_sock;
     volatile nwConnectionHandle vol_conn;
     unsigned int tmp;
-    vol_sock = sock;
-    vol_conn = conn;
+    vol_sock.mHandle = sock.mHandle;
+    vol_conn.mHandle = conn.mHandle;
     ((cInStreamRef *)&s)->Read(tmp, 0x20, true);
     cRand();
 }

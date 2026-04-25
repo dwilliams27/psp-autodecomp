@@ -356,18 +356,6 @@ void *gcMsgRequestLoadedState_New(void *buf) {
     return result;
 }
 
-void *gcMsgCheckSynchronization_New(void *buf) {
-    int cursor = *(int *)((char *)buf + 1200) + 4;
-    *(int *)((char *)buf + 1200) = cursor;
-    void *obj = (char *)buf + cursor;
-    void *result = 0;
-    if (obj != 0) {
-        *(int *)obj = 0x38AD00;
-        result = obj;
-    }
-    return result;
-}
-
 unsigned char ePlatformInput_AnyButtonPressed(unsigned char *state) {
     int i = 4;
     state += 0x60;
