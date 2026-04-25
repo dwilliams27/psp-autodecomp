@@ -190,12 +190,6 @@ int gcBoolSet_GetSize(const void *self) {
     return p[-1] & 0x3FFFFFFF;
 }
 
-int gcFloatSet_GetSize(const void *self) {
-    int *p = *(int **)((const char *)self + 12);
-    if (p == 0) return 0;
-    return p[-1] & 0x3FFFFFFF;
-}
-
 float copysignf(float x, float y) {
     union { float f; int i; } ux, uy;
     ux.f = x;
