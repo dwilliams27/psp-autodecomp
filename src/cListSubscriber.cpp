@@ -40,3 +40,7 @@ void cListSubscriber::OnAdded(void *item) {
         mFirst = 0;
     }
 }
+
+void cListSubscriber::SetNumVisible(int numVisible) {
+    mNumVisible = numVisible;
+}
