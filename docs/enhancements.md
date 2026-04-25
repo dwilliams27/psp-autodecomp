@@ -147,3 +147,15 @@ Prevention ideas, any of which close a subset of the drift:
 - **Session-level src-file locking.** If session A is currently working on `cFile.cpp`, session B (potentially modifying headers `cFile` depends on) can't run concurrently. Prevents one class of race. Low value solo; only worthwhile as part of a broader concurrency model.
 
 Recommend: ship the first two (commit-time compile check + pre-session green-build gate) together — they close the most common drift paths for ~1-2 hours of work. Ship the periodic audit as a cron once the others are in so we have a safety net for anything the gates missed.
+
+## 9. Retire `SYSTEM_PROMPT_APPEND` once upstream safety classifier stabilizes
+
+The orchestrator currently injects a project-specific framing (`tools/orchestrator.py:SYSTEM_PROMPT_APPEND`) explaining that the inline asm, mangled symbols, and hex constants in src/ and include/ are legitimate decompilation artifacts, not malware. Without it Claude's safety classifier misfires mid-session and refuses to edit src/ files, citing "malware analysis" — which doesn't apply.
+
+**Status as of 2026-04-24**: the framing is doing its job. Looking at `logs/match_20260422_122826.jsonl` and similar, the agent receives a stream of upstream system-reminders flagging the content as malware-adjacent, then correctly identifies them as misfires and continues the matching task. No refusals land; the orchestrator's `MAX_CONSECUTIVE_REFUSALS` circuit-breaker hasn't tripped in any recent run.
+
+But the agent's narrative output is now ~30+ "acknowledging the misfiring reminder, continuing" lines per session. That's noise — visible in the `agent activity` panel of the TUI — and a tax on the prompt context. Suspicion is that the current Claude model (Opus 4.7) is over-tuned on this content class; it's plausible Anthropic ships a fix that re-tunes the classifier.
+
+**Action**: keep the framing for now. Periodically (e.g., every Claude major release) try a smoke run with `SYSTEM_PROMPT_APPEND = ""` on a small batch of src/ that contains inline asm, mangled symbols, and hex constants. If the agent doesn't refuse and the narrative panel doesn't fill with classifier-acknowledgments, drop the framing entirely. Until then it's a free win even if noisy.
+
+The Codex backend doesn't have this issue at all (different classifier, different misfire surface) — useful negative control.
