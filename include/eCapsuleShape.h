@@ -7,6 +7,8 @@ class cMemPool;
 struct mVec3;
 struct mOCS;
 class eBoxShape;
+class eSphereShape;
+class eMultiSphereShape;
 class eConvexHullShape;
 class eCompoundShape;
 class eMeshShape;
@@ -24,9 +26,13 @@ public:
     int CanSweep(void) const;
     float GetVolume(void) const;
     void Write(cFile &) const;
+    int NeedsRollingFriction(float *) const;
     void GetSupport(const mVec3 &dir, const mOCS &ocs, mVec3 *out) const;
 
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCompoundShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

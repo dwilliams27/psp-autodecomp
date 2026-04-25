@@ -32,6 +32,7 @@ public:
     static int BoxCompound(const eBoxShape &, const eCompoundShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int BoxMesh(const eBoxShape &, const eMeshShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int BoxHeightmap(const eBoxShape &, const eHeightmapShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    static int CapsuleCapsule(const eCapsuleShape &, const eCapsuleShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CapsuleConvexHull(const eCapsuleShape &, const eConvexHullShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CapsuleCompound(const eCapsuleShape &, const eCompoundShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int CapsuleMesh(const eCapsuleShape &, const eMeshShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);

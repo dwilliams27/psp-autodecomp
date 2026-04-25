@@ -1,5 +1,7 @@
 #include "eCapsuleShape.h"
 #include "eBoxShape.h"
+#include "eSphereShape.h"
+#include "eMultiSphereShape.h"
 #include "eSimulatedController.h"
 #include "eCollision.h"
 #include "mVec3.h"
@@ -195,25 +197,7 @@ void eCapsuleShape::Write(cFile &file) const {
 #pragma control sched=2
 
 // eCapsuleShape::~eCapsuleShape(void) — 0x0006a11c
-#pragma control sched=1
-extern "C" void eCapsuleShape___dtor_eCapsuleShape_void(eCapsuleShape *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eCapsuleShapevirtualtable;
-        eShape___dtor_eShape_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr_Cap(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
-}
-#pragma control sched=2
+// Definition lives in src/eCapsuleShape_dtor.cpp (canonical C++ form).
 
 // eCapsuleShape::New(cMemPool *, cBase *) static — 0x00209728
 #pragma control sched=1
@@ -238,7 +222,6 @@ eCapsuleShape *eCapsuleShape::New(cMemPool *pool, cBase *parent) {
 // eCapsuleShape::Collide(const eBoxShape *, ...) const — 0x0006ab28
 // Delegates to eCollision::BoxCapsule with args swapped, then negates each
 // contact normal (at info+0x20, stride 0x40).
-#pragma control sched=1
 int eCapsuleShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     int hit = eCollision::BoxCapsule(*shape, *this, ocs2, ocs1, info);
     int i = 0;
@@ -260,4 +243,72 @@ int eCapsuleShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, c
     }
     return 0;
 }
-#pragma control sched=2
+
+// eCapsuleShape::Collide(const eSphereShape *, ...) const — 0x0006abb4
+int eCapsuleShape::Collide(const eSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    int hit = eCollision::SphereCapsule(*shape, *this, ocs2, ocs1, info);
+    int i = 0;
+    if (hit != 0) {
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+
+// eCapsuleShape::Collide(const eMultiSphereShape *, ...) const — 0x0006ac40
+int eCapsuleShape::Collide(const eMultiSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    int hit = eCollision::MultiSphereCapsule(*shape, *this, ocs2, ocs1, info);
+    int i = 0;
+    if (hit != 0) {
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+
+// eCapsuleShape::Collide(const eCapsuleShape *, ...) const — 0x0006accc
+int eCapsuleShape::Collide(const eCapsuleShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    int hit = eCollision::CapsuleCapsule(*shape, *this, ocs2, ocs1, info);
+    int i = 0;
+    if (hit != 0) {
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
