@@ -31,6 +31,11 @@ class gcReplicationVisitor;
 
 class gcRegion {
 public:
+    ~gcRegion(void);
+    int Read(cFile &, cMemPool *);
+    int RemoveFromWorld(void);
+    const void *GetType(void) const;
+    int *GetGroups(int *);
     int AllowParentCreate(void) const;
     void MemCardReplicate(gcReplicationVisitor &);
     void Write(cFile &) const;
