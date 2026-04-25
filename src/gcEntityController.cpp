@@ -7,9 +7,25 @@ class cMemPool;
 class cType;
 class gcEntity;
 
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void gcStateInfo__gcStateInfo_void(void *);
+extern "C" void gcReplicationGroup__gcReplicationGroup_void(void *);
+
 class cTimeValue {
 public:
     int mTime;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
 };
 
 class cWriteBlock {
@@ -21,6 +37,7 @@ public:
 
 class cNamed {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -43,11 +60,79 @@ public:
     void QueryCollisions(gcEntity *, cTimeValue);
 };
 
+class gcEventParams {
+public:
+    char _data[0x58];
+};
+
+class gcEventStackData {
+public:
+    char _data[0x1C];
+};
+
+class gcEntity {
+public:
+    enum gcDesiredStateMachine {
+        DESIRED_STATE_MACHINE_2 = 2
+    };
+};
+
+extern "C" void gcEntity_Send_SystemMessage(
+    gcEntity *, bool, int, int, const gcEventStackData &, const gcEventParams &)
+    __asm__("__0fIgcEntityESendb65IgcEntityi__5IgcEntityVgcDesiredStateMachine65PgcStateMessagesj__5PgcStateMessagesPgcSystemMessageRC6NgcEventParamsRC6QgcEventStackData");
+
 struct gcEntityControllerEntData {
     char pad0[0x65];
     signed char idx;
     char pad66[0x1E0 - 0x66];
     void **arr;
+};
+
+struct gcEntityControllerNavData {
+    char pad0[0x4C];
+    volatile int flags;
+    char pad50[0xA4 - 0x50];
+    void *path;
+    char padA8[0xC0 - 0xA8];
+    void *follow;
+    char padC4[0xE0 - 0xC4];
+    unsigned char current;
+};
+
+struct gcEntityControllerNavDataPlain {
+    char pad0[0x4C];
+    int flags;
+};
+
+struct gcEntityControllerEntFull {
+    char pad0[0x65];
+    signed char idx;
+    char pad66[0x1E0 - 0x66];
+    void **arr;
+    char pad1E4[0x1F8 - 0x1E4];
+    gcEntityControllerNavData *nav;
+};
+
+struct EntityActivatedScratch {
+    int words0[4];
+    int zero10;
+    int zero14;
+    unsigned char flag18;
+    char pad19[3];
+    int word1C;
+    float floats20[10];
+    int word48;
+    int word4C;
+    int word50;
+    int word54;
+    int word58;
+    int word5C;
+    int word60;
+    int word64;
+    int word68;
+    int word6C;
+    int word70;
+    int vec74[4];
 };
 
 class gcEntityController {
@@ -62,9 +147,15 @@ public:
     gcEntityAttackState *m_attack;      // offset 0x7C
 
     bool IsCurrentController(void) const;
+    gcEntityController(cBase *);
+    int Read(cFile &, cMemPool *);
+    void CancelFollowPath(void);
+    void ClearCurrentNavMeshPosition(void);
     void Write(cFile &) const;
     void SetPhysicsController(const cType *);
     void OnMemPoolReset(const cMemPool *, unsigned int);
+    void ValidateNavMeshPos(void);
+    void OnActivated(void);
     void PostUpdateFinal(void);
 };
 
@@ -95,6 +186,39 @@ void gcEntityController::Write(cFile &file) const {
     wb.End();
 }
 
+// ── Read (0x00110804) ──
+
+int gcEntityController::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1 || ((cNamed *)this)->cNamed::Read(file, pool) == 0) {
+        ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+        return 0;
+    }
+    return result;
+}
+
+// ── gcEntityController (0x001108c0) ──
+
+gcEntityController::gcEntityController(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(unsigned short *)((char *)this + 0x1C) = 0;
+    *(unsigned short *)((char *)this + 0x1E) = 0;
+    *(unsigned char *)((char *)this + 8) = 0;
+    *(void **)((char *)this + 4) = (void *)0x3887B0;
+    *(void **)((char *)this + 0x20) = 0;
+    *(unsigned char *)((char *)this + 0x24) = 0;
+    *(unsigned char *)((char *)this + 0x25) = 0;
+    __vec_new((char *)this + 0x28, 2, 0x24, gcStateInfo__gcStateInfo_void);
+    *(void **)((char *)this + 0x70) = 0;
+    *(void **)((char *)this + 0x74) = 0;
+    *(void **)((char *)this + 0x78) = 0;
+    *(void **)((char *)this + 0x7C) = 0;
+    __vec_new((char *)this + 0x80, 1, 6, gcReplicationGroup__gcReplicationGroup_void);
+    *(void **)((char *)this + 0x8C) = 0;
+    *(float *)((char *)this + 0x88) = 0.0f;
+}
+
 // ── SetPhysicsController (0x00113a58) ──
 
 void gcEntityController::SetPhysicsController(const cType *type) {
@@ -107,6 +231,47 @@ void gcEntityController::SetPhysicsController(const cType *type) {
             *((unsigned char *)this + 0x24) |= 1;
         }
     }
+}
+
+// ── CancelFollowPath (0x001113ec) ──
+
+void gcEntityController::CancelFollowPath(void) {
+    gcEntityControllerEntFull *ent = *(gcEntityControllerEntFull **)this;
+    gcEntityControllerNavData *nav = ent->nav;
+    int flags = nav->flags & ~1;
+    flags &= ~0x10;
+    nav->flags = flags;
+    nav->flags = flags;
+    nav->path = 0;
+    if (flags & 4) {
+        flags = nav->flags | 4;
+        nav->follow = 0;
+        nav->current = 0xFF;
+        nav->flags = flags;
+        nav->flags = flags & ~8;
+        void *current = 0;
+        int idx = ent->idx;
+        if (idx >= 0) {
+            int count = 0;
+            void **arr = ent->arr;
+            if (arr != 0) {
+                count = ((int *)arr)[-1];
+            }
+            if (idx < count) {
+                current = arr[idx];
+            }
+        }
+        ((gcEntityController *)current)->ValidateNavMeshPos();
+    }
+}
+
+// ── ClearCurrentNavMeshPosition (0x001114b0) ──
+
+void gcEntityController::ClearCurrentNavMeshPosition(void) {
+    gcEntityControllerNavDataPlain *nav =
+        (gcEntityControllerNavDataPlain *)(*(gcEntityControllerEntFull **)this)->nav;
+    int flags = nav->flags;
+    nav->flags = flags & ~8;
 }
 
 // ── OnMemPoolReset (0x00110c58) ──
@@ -124,6 +289,43 @@ void gcEntityController::OnMemPoolReset(const cMemPool *pool, unsigned int flags
     if (attack != 0) {
         attack->OnMemPoolReset(*(gcEntity **)this, pool, flags);
     }
+}
+
+// ── OnActivated (0x00111904) ──
+
+void gcEntityController::OnActivated(void) {
+    gcEntity *entity = *(gcEntity **)this;
+    EntityActivatedScratch scratch;
+
+    scratch.zero10 = 0;
+    scratch.zero14 = 0;
+    scratch.flag18 = 1;
+    scratch.words0[0] = 0;
+    scratch.words0[1] = 0;
+    scratch.words0[2] = 0;
+    scratch.words0[3] = 0;
+    scratch.word1C = 0;
+    scratch.floats20[0] = 0.0f;
+    scratch.word58 = 0;
+    __vec_new(scratch.vec74, 2, 8, (void (*)(void *))0x2275F0);
+    scratch.floats20[1] = 0.0f;
+    scratch.floats20[2] = 0.0f;
+    scratch.floats20[3] = 0.0f;
+    scratch.floats20[4] = 0.0f;
+    scratch.floats20[5] = 0.0f;
+    scratch.floats20[6] = 0.0f;
+    scratch.floats20[7] = 0.0f;
+    scratch.floats20[8] = 0.0f;
+    scratch.floats20[9] = 0.0f;
+    scratch.word5C = 0;
+    scratch.word60 = 0;
+    scratch.word64 = 0;
+    scratch.word68 = 0;
+    scratch.word6C = 0;
+    scratch.word70 = 0;
+    gcEntity_Send_SystemMessage(entity, true, gcEntity::DESIRED_STATE_MACHINE_2, 10,
+                                *(gcEventStackData *)&scratch.words0[0],
+                                *(gcEventParams *)&scratch.word1C);
 }
 
 // ── PostUpdateFinal (0x001110fc) ──
