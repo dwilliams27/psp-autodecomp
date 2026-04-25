@@ -13,16 +13,21 @@ Usage:
 """
 
 import argparse
+import concurrent.futures
 import glob
 import importlib
 import json
 import os
 import random
+import re
 import subprocess
 import sys
+import threading
 import time
 import uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import List, Optional, Set
 
 from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     canonical_method_pattern, load_db, save_db,
@@ -30,6 +35,88 @@ from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     fix_vfpu_disassembly, strip_cpp_comments)
 from byte_match import CompileFailed, check_byte_match
 from backends import AgentRefused, AVAILABLE_BACKENDS, get_backend, run_session
+
+# db_lock: every DB read/write goes through this; workers never touch
+# the DB directly. git_lock: serializes git subprocess calls — git's
+# index.lock collides under concurrent mutations. See
+# docs/direction/003-multi-agent-ab-architecture.md.
+db_lock = threading.Lock()
+git_lock = threading.Lock()
+
+# Sentinel class key for free-function batches (no class_name in the DB).
+# Uses a value that can't collide with a real class name.
+FREE_CLASS_KEY = "<free>"
+
+# apply_outcome return-kind constants. The coordinator dispatch reads
+# these to drive the circuit breaker and backoff. Constants beat raw
+# strings because typos here become silent miscategorization.
+OUTCOME_SUCCESS = "success"
+OUTCOME_GIT_ERROR = "git_error"
+OUTCOME_REFUSAL = "refusal"
+OUTCOME_AGENT_FAIL = "agent_fail"
+OUTCOME_SYSTEM_ERROR = "system_error"
+OUTCOME_PREP_ERROR = "prep_error"
+
+
+@dataclass
+class FunctionDecision:
+    """Worker's final verdict for one batch address — post-verify,
+    post-quality-gates. None-valued fields mean "don't update", not
+    "set to None"; apply_outcome only writes fields that are not None.
+    """
+    address: str
+    status: str
+    src_file: Optional[str] = None
+    symbol_name: Optional[str] = None
+    failure_note: Optional[str] = None
+
+
+@dataclass
+class WorkContext:
+    """Inputs handed to a worker thread. `peer_query` is queried at
+    partition time (not captured at submit) so peers that join mid-
+    session are still observed — without it, two concurrent workers
+    each classify the other's still-dirty `src/Bar.cpp` as out-of-scope
+    and revert it (bug #4 reborn under multi-agent).
+    """
+    batch: list
+    backend: object
+    variant: str
+    classes: set
+    session_id: str
+    log_path: str
+    session_timeout: int
+    functions: list
+    exact_paths: set
+    sibling_prefixes: tuple
+    peer_query: object = None
+
+
+@dataclass
+class SessionOutcome:
+    """Worker → coordinator return payload. Worker is read-only on the
+    DB; the coordinator applies `decisions` under db_lock and runs the
+    git commit.
+    """
+    session_id: str
+    backend_name: str
+    variant: str
+    batch: List[dict]
+    classes: Set[str]
+    success: bool = False
+    error_msg: Optional[str] = None
+    refused: bool = False
+    refusal_reason: Optional[str] = None
+    prep_error: Optional[str] = None
+    system_error: Optional[str] = None
+    session_duration: float = 0.0
+    claimed_matched: int = 0
+    claimed_failed: int = 0
+    decisions: List[FunctionDecision] = field(default_factory=list)
+    matched_funcs: List[dict] = field(default_factory=list)
+    matched_files: Set[str] = field(default_factory=set)
+    ledger_paths: Set[str] = field(default_factory=set)
+    out_of_scope_paths: Set[str] = field(default_factory=set)
 
 BATCH_SIZE = 5
 TARGETS_BATCH_SIZE = 2
@@ -160,13 +247,145 @@ def _group_and_fill_batch(candidates, batch_size):
     return batch
 
 
-def pick_next_batch_targeted(functions, targets, addr_index, batch_size):
+def _class_key(func):
+    """Return the lock-key for a function (class name or FREE_CLASS_KEY)."""
+    cls = func.get("class_name") or ""
+    return cls if cls else FREE_CLASS_KEY
+
+
+def compute_batch_classes(batch):
+    """Set of class keys to lock for this batch.
+
+    Free functions collapse to a single FREE_CLASS_KEY so any free-function
+    batch blocks any other free-function batch (they all share
+    src/free_functions.c).
+    """
+    return {_class_key(f) for f in batch}
+
+
+def _safe_class_filename(class_name):
+    """Convert a C++ class name to its src/include base filename."""
+    cs = class_name.replace("::", "_")
+    return "".join(c for c in cs if c.isalnum() or c in "_-")
+
+
+def compute_allowed_paths(batch):
+    """Per-session file ledger: paths the agent is allowed to modify.
+
+    Phase 1 minimum (no call-graph callee headers) per the direction doc:
+    `{src/<Class>.cpp, include/<Class>.h, src/<Class>_*.cpp}` for each
+    class in the batch, or `src/free_functions.c` for free-function
+    batches.
+
+    Returned as (exact_paths, sibling_prefixes). The sibling pattern
+    `src/<Class>_*.cpp` is matched at partition time, not enumerated at
+    pick time, so files the agent creates mid-session are still in scope.
+    """
+    classes = {f.get("class_name") for f in batch}
+    classes.discard(None)
+    classes.discard("")
+    if not classes:
+        return ({"src/free_functions.c"}, ())
+    exact = set()
+    prefixes = []
+    for cls in classes:
+        cs = _safe_class_filename(cls)
+        exact.add(f"src/{cs}.cpp")
+        exact.add(f"include/{cs}.h")
+        prefixes.append(f"src/{cs}_")
+    return (exact, tuple(prefixes))
+
+
+def is_path_allowed(path, exact_paths, sibling_prefixes):
+    """Predicate matching the (exact_paths, sibling_prefixes) ledger."""
+    if path in exact_paths:
+        return True
+    if path.endswith(".cpp") and path.startswith(sibling_prefixes):
+        return True
+    return False
+
+
+def partition_dirty_paths(exact_paths, sibling_prefixes, peer_query=None):
+    """Returns (ledger_paths, out_of_scope_paths) over dirty `src/` and
+    `include/` paths only. Non-src/non-include paths (config/, logs/,
+    tools/) are skipped: the coordinator legitimately mutates
+    config/functions.json during the same session and reverting it
+    would clobber the in-progress DB; agent overstepping into tools/ or
+    Makefile is caught by the next pre-flight build instead.
+
+    `peer_query` returns other in-flight workers' allowed-set tuple.
+    Paths matching a peer's set are dropped, not classified as
+    out-of-scope — they're a peer's still-in-flight ledger.
+    """
+    # --untracked-files=all: git's default `normal` collapses a fully-
+    # untracked dir to one `?? dir/` line, hiding the individual files
+    # the partition needs to see.
+    ok, out, err = git_run("status", "--porcelain", "--untracked-files=all")
+    if not ok:
+        raise RuntimeError(
+            f"git status failed — can't determine dirty paths: {err}"
+        )
+    if peer_query is not None:
+        peer_exact, peer_prefixes = peer_query()
+    else:
+        peer_exact, peer_prefixes = set(), ()
+    ledger = set()
+    out_of_scope = set()
+    for line in out.splitlines():
+        if len(line) < 4:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if not path.startswith(("src/", "include/")):
+            continue
+        if is_path_allowed(path, exact_paths, sibling_prefixes):
+            ledger.add(path)
+        elif is_path_allowed(path, peer_exact, peer_prefixes):
+            # Peer's still-in-flight ledger — leave it alone.
+            continue
+        else:
+            out_of_scope.add(path)
+    return ledger, out_of_scope
+
+
+def revert_paths(paths):
+    """Revert dirty paths. Tracked → `git checkout`; untracked → unlink.
+    Raises RuntimeError on any failure: a stuck out-of-scope path
+    survives into the next session's partition and risks committing
+    cross-session contamination — the exact failure Phase 1 is meant
+    to prevent.
+    """
+    for p in paths:
+        ok, _, _ = git_run("ls-files", "--error-unmatch", "--", p)
+        if ok:
+            ok2, out, err = git_run("checkout", "--", p)
+            if not ok2:
+                raise RuntimeError(
+                    f"revert_paths: git checkout -- {p} failed: {err or out}"
+                )
+        else:
+            if not os.path.exists(p):
+                continue
+            try:
+                os.remove(p)
+            except OSError as e:
+                raise RuntimeError(
+                    f"revert_paths: os.remove({p}) failed: {e}"
+                ) from e
+
+
+def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
+                             excluded_classes=None):
     """Select the next batch from a specific targets list.
 
     Only picks targets that are untried in the database.
     Priority order matches the targets file order (critical first).
     Warns about target addresses not found in the database.
+    `excluded_classes` filters out functions whose class is currently
+    locked by another in-flight session.
     """
+    excluded_classes = excluded_classes or set()
     candidates = []
     for t in targets:
         addr = t["address"]
@@ -174,8 +393,11 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size):
         if not func:
             log(f"  WARNING: target {addr} ({t.get('name', '?')}) not in database — skipping")
             continue
-        if func["match_status"] == "untried":
-            candidates.append(func)
+        if func["match_status"] != "untried":
+            continue
+        if _class_key(func) in excluded_classes:
+            continue
+        candidates.append(func)
 
     if not candidates:
         return []
@@ -183,7 +405,8 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size):
     return _group_and_fill_batch(candidates, batch_size)
 
 
-def pick_next_batch(functions, args, batch_size=BATCH_SIZE):
+def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
+                    excluded_classes=None):
     """Select the next batch of functions to attempt.
 
     Priority:
@@ -191,7 +414,11 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE):
     2. Untried leaf functions ≤64 bytes
     3. Untried functions in classes with existing matches (context available)
     4. Untried functions by ascending size
+
+    `excluded_classes` filters out functions whose class is currently
+    locked by another in-flight session.
     """
+    excluded_classes = excluded_classes or set()
     candidates = filter_functions(
         functions,
         status="untried",
@@ -204,6 +431,12 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE):
 
     if not candidates:
         return []
+
+    if excluded_classes:
+        candidates = [c for c in candidates
+                      if _class_key(c) not in excluded_classes]
+        if not candidates:
+            return []
 
     matched_classes = {f["class_name"] for f in functions
                        if f["match_status"] == "matched" and f["class_name"]}
@@ -311,10 +544,7 @@ def get_matched_neighbors(functions, func):
 def determine_source_file(batch):
     first = batch[0]
     if first["class_name"]:
-        class_safe = first["class_name"].replace("::", "_")
-        # Remove any chars that are problematic in filenames
-        class_safe = "".join(c for c in class_safe if c.isalnum() or c in "_-")
-        return f"src/{class_safe}.cpp"
+        return f"src/{_safe_class_filename(first['class_name'])}.cpp"
     return "src/free_functions.c"
 
 
@@ -348,18 +578,26 @@ def build_prompt(batch, functions, session_id, variant):
     return module.build_prompt(batch, functions, session_id)
 
 
-def process_session_results(session_id, batch, functions, log_path, variant):
-    """Read the results file written by Claude and update the database.
+def parse_session_results(session_id, batch, log_path, variant, backend_name):
+    """Read the session's results JSON and produce per-function decisions.
 
-    Also reverts any batch functions not mentioned in results back to untried.
-    Returns (matched_count, failed_count, results_list) or raises on error.
+    Phase 1 split: parsing + per-result decision building runs in the
+    worker thread without touching the DB. Coordinator applies the
+    returned `decisions` (and any `unreported_addrs` reverts) under
+    `db_lock`. Logs warnings/events for missing notes + unreported
+    entries directly (logging is append-only and thread-safe).
+
+    Returns (claimed_matched, claimed_failed, results, decisions,
+             unreported_addrs).
+
+    Raises FileNotFoundError / ValueError on system / schema errors.
     """
     results_path = os.path.join(SESSION_RESULTS_DIR, f"{session_id}.json")
 
     if not os.path.exists(results_path):
         raise FileNotFoundError(
             f"Session {session_id} did not produce results file at {results_path}. "
-            f"This is a system error — Claude failed to write the expected output."
+            f"This is a system error — the agent failed to write the expected output."
         )
 
     with open(results_path, "r") as f:
@@ -377,10 +615,11 @@ def process_session_results(session_id, batch, functions, log_path, variant):
             f"Session {session_id} results file is not a JSON array: {type(results)}"
         )
 
-    addr_index = build_addr_map(functions)
+    batch_addrs = {f["address"] for f in batch}
     matched = 0
     failed = 0
     reported_addrs = set()
+    decisions = {}  # addr -> FunctionDecision
     VALID_STATUSES = {"matched", "failed"}
 
     for i, entry in enumerate(results):
@@ -399,59 +638,342 @@ def process_session_results(session_id, batch, functions, log_path, variant):
                 f"(expected 'matched' or 'failed') for address {addr}"
             )
 
-        if addr in addr_index:
-            reported_addrs.add(addr)
-            addr_index[addr]["match_status"] = status
-            if status == "matched":
-                matched += 1
-            else:
-                failed += 1
-                notes = entry.get("notes", "")
-                if not notes:
-                    log(f"  WARNING: {addr} reported failed with no notes (agent ignored REQUIRED field)")
-                    if log_path:
-                        log_event(log_path, {
-                            "event": "missing_failure_notes",
-                            "session_id": session_id,
-                            "variant": variant,
-                            "address": addr,
-                        })
-                if notes:
-                    if "failure_notes" not in addr_index[addr]:
-                        addr_index[addr]["failure_notes"] = []
-                    addr_index[addr]["failure_notes"].append({
-                        "session": session_id,
-                        "notes": notes,
-                    })
-                    # Keep only the most recent 5 to bound prompt/DB size
-                    addr_index[addr]["failure_notes"] = addr_index[addr]["failure_notes"][-5:]
+        if addr not in batch_addrs:
+            continue
 
-    # Log and revert any batch functions NOT mentioned in results
-    for func in batch:
-        if func["address"] not in reported_addrs:
-            target = addr_index.get(func["address"])
-            if target and target["match_status"] == "in_progress":
-                log(f"  WARNING: {func['name']} not reported in session results — reverting to untried")
+        reported_addrs.add(addr)
+        if status == "matched":
+            matched += 1
+            decisions[addr] = FunctionDecision(
+                address=addr, status="matched",
+                src_file=entry.get("file"),
+            )
+        else:
+            failed += 1
+            notes = entry.get("notes", "")
+            if not notes:
+                log(f"  WARNING: {addr} reported failed with no notes (agent ignored REQUIRED field)")
                 if log_path:
                     log_event(log_path, {
-                        "event": "unreported_function",
+                        "event": "missing_failure_notes",
                         "session_id": session_id,
                         "variant": variant,
-                        "address": func["address"],
-                        "name": func["name"],
+                        "backend": backend_name,
+                        "address": addr,
                     })
-                target["match_status"] = "untried"
+            decisions[addr] = FunctionDecision(
+                address=addr, status="failed",
+                failure_note=(notes or None),
+            )
 
-    return matched, failed, results
+    unreported = []
+    for func in batch:
+        if func["address"] not in reported_addrs:
+            log(f"  WARNING: {func['name']} not reported in session results — reverting to untried")
+            if log_path:
+                log_event(log_path, {
+                    "event": "unreported_function",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend_name,
+                    "address": func["address"],
+                    "name": func["name"],
+                })
+            unreported.append(func["address"])
+
+    return matched, failed, results, decisions, unreported
+
+
+def run_one_session(ctx):
+    """Worker thread entry point. Runs one session end-to-end.
+
+    Owns: prompt building, agent invocation, result parsing,
+    verification, source-quality + extern-C gates, dirty-file
+    partitioning, out-of-scope reverts. Does NOT mutate the DB or run
+    git commits — those are coordinator-side under `db_lock`. Returns a
+    `SessionOutcome` describing what the coordinator should apply.
+    """
+    backend = ctx.backend
+    batch = ctx.batch
+    variant = ctx.variant
+    session_id = ctx.session_id
+    log_path = ctx.log_path
+
+    outcome = SessionOutcome(
+        session_id=session_id,
+        backend_name=backend.name,
+        variant=variant,
+        batch=batch,
+        classes=ctx.classes,
+    )
+
+    try:
+        for func in batch:
+            ensure_expected_o(func)
+    except RuntimeError as e:
+        outcome.prep_error = str(e)
+        return outcome
+
+    prompt, prompt_warnings = build_prompt(
+        batch, ctx.functions, session_id, variant=variant)
+    for w in prompt_warnings:
+        log(f"  {w['type'].upper()}: {w['name']} — {w['error']}")
+        log_event(log_path, {
+            "event": w["type"],
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "address": w["address"],
+            "name": w["name"],
+            "error": w["error"],
+        })
+
+    session_start = time.time()
+    try:
+        success, error_msg = run_session(
+            backend, prompt, session_id,
+            log_fn=lambda ev: log_event(log_path, ev),
+            variant=variant,
+            timeout=ctx.session_timeout,
+        )
+    except AgentRefused as e:
+        outcome.session_duration = time.time() - session_start
+        outcome.refused = True
+        outcome.refusal_reason = e.reason
+        return outcome
+
+    outcome.session_duration = time.time() - session_start
+
+    if not success:
+        outcome.error_msg = error_msg
+        return outcome
+
+    try:
+        claimed_matched, claimed_failed, results, decisions, unreported = (
+            parse_session_results(session_id, batch, log_path, variant, backend.name)
+        )
+    except (FileNotFoundError, ValueError) as e:
+        outcome.system_error = str(e)
+        return outcome
+
+    outcome.success = True
+    outcome.claimed_matched = claimed_matched
+    outcome.claimed_failed = claimed_failed
+
+    for addr in unreported:
+        decisions[addr] = FunctionDecision(address=addr, status="untried")
+
+    addr_to_src = {}
+    matched_files = set()
+    for entry in results:
+        if entry.get("status") == "matched" and entry.get("address") and entry.get("file"):
+            addr_to_src[entry["address"]] = entry["file"]
+            matched_files.add(entry["file"])
+
+    # Verify each claimed match independently. Reuses the canonical
+    # byte_match.check_byte_match path. Decisions are mutated in place.
+    for func in batch:
+        addr = func["address"]
+        d = decisions.get(addr)
+        if d is None or d.status != "matched":
+            continue
+        src_file = addr_to_src.get(addr)
+        if not src_file:
+            log(f"  VERIFY ERROR: {func['name']} — no src_file in session_results")
+            log_event(log_path, {
+                "event": "verify_error",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "address": addr,
+                "name": func["name"],
+                "error": "no src_file in session_results",
+            })
+            d.status = "untried"
+            d.src_file = None
+            continue
+
+        try:
+            result = check_byte_match(func, src_file)
+        except CompileFailed as e:
+            log(f"  VERIFY FAILED: {func['name']} — compile error: {e}")
+            log_event(log_path, {
+                "event": "verify_failed",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "address": addr,
+                "name": func["name"],
+                "size": func["size"],
+                "diff_count": 0,
+                "byte_diffs": [],
+                "reason": "compile_failed",
+            })
+            d.status = "failed"
+            d.src_file = None
+            continue
+        except RuntimeError as e:
+            log(f"  VERIFY ERROR: {func['name']} — {e}")
+            log_event(log_path, {
+                "event": "verify_error",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "address": addr,
+                "name": func["name"],
+                "error": str(e),
+            })
+            d.status = "untried"
+            d.src_file = None
+            continue
+
+        if result.ok:
+            d.src_file = src_file
+            d.symbol_name = result.sym_name
+            continue
+
+        diff_preview = ""
+        if result.byte_diffs:
+            first = result.byte_diffs[0]
+            diff_preview = (f" (first diff at {first.get('addr','?')}: "
+                            f"compiled={first.get('compiled','?')} "
+                            f"expected={first.get('expected','?')}, "
+                            f"{result.diff_count} total diffs)")
+        log(f"  VERIFY FAILED: {func['name']} — {result.reason}{diff_preview}")
+        log_event(log_path, {
+            "event": "verify_failed",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "address": addr,
+            "name": func["name"],
+            "size": func["size"],
+            "diff_count": result.diff_count,
+            "byte_diffs": result.byte_diffs,
+            "reason": result.reason,
+        })
+        d.status = "failed"
+        d.src_file = None
+
+    matched_funcs = [f for f in batch
+                     if decisions.get(f["address"]) is not None
+                     and decisions[f["address"]].status == "matched"]
+
+    if matched_funcs and matched_files:
+        asm_rejected = validate_source_quality(matched_files)
+        if asm_rejected:
+            log(f"  ASSEMBLY-ONLY REJECTION: {len(asm_rejected)} files are pure asm with no C/C++")
+            for asm_file in asm_rejected:
+                log(f"    Rejected: {asm_file}")
+                log_event(log_path, {
+                    "event": "rejected_assembly_only",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "file": asm_file,
+                    "reason": "File contains only __asm__() blocks — no C/C++ training data",
+                })
+            for func in list(matched_funcs):
+                func_files = {e["file"] for e in results
+                              if e.get("address") == func["address"]
+                              and e.get("file")}
+                if func_files and func_files.issubset(set(asm_rejected)):
+                    d = decisions[func["address"]]
+                    d.status = "failed"
+                    d.src_file = None
+                    d.symbol_name = None
+                    matched_funcs.remove(func)
+                    log(f"    Reverted: {func['name']} → failed (assembly-only source)")
+            matched_files -= set(asm_rejected)
+
+    if matched_funcs:
+        xc_rejected = reject_extern_c_class_methods(matched_funcs, addr_to_src)
+        if xc_rejected:
+            log(f"  EXTERN-C CLASS-METHOD REJECTION: "
+                f"{len(xc_rejected)} matches lack canonical Class::method form")
+            for func, reason in xc_rejected:
+                log(f"    Rejected: {func['name']} — {reason}")
+                log_event(log_path, {
+                    "event": "rejected_extern_c_class_method",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "address": func["address"],
+                    "name": func["name"],
+                    "reason": reason,
+                })
+                d = decisions[func["address"]]
+                d.status = "failed"
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = reason
+                matched_funcs.remove(func)
+
+    # Phase 1: per-session file ledger replaces _session_dirty_paths().
+    # Capture dirty files, partition into in-set / out-of-set, revert
+    # out-of-set, reject any matches whose declared src is out-of-set.
+    try:
+        ledger, out_of_scope = partition_dirty_paths(
+            ctx.exact_paths, ctx.sibling_prefixes,
+            peer_query=ctx.peer_query)
+    except RuntimeError as e:
+        log(f"  PARTITION ERROR: {e}")
+        log_event(log_path, {
+            "event": "partition_error",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "error": str(e),
+        })
+        outcome.system_error = str(e)
+        return outcome
+
+    if out_of_scope:
+        log(f"  OUT-OF-SCOPE EDITS: reverting {len(out_of_scope)} path(s)")
+        for p in sorted(out_of_scope):
+            log(f"    {p}")
+        log_event(log_path, {
+            "event": "out_of_scope_edits",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "paths": sorted(out_of_scope),
+        })
+        revert_paths(out_of_scope)
+        for func in list(matched_funcs):
+            func_files = {e["file"] for e in results
+                          if e.get("address") == func["address"] and e.get("file")}
+            if func_files and not func_files.isdisjoint(out_of_scope):
+                d = decisions[func["address"]]
+                d.status = "failed"
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = (
+                    "match wrote to out-of-scope path; reverted by Phase 1 ledger"
+                )
+                matched_funcs.remove(func)
+        matched_files -= out_of_scope
+
+    outcome.decisions = list(decisions.values())
+    outcome.matched_funcs = matched_funcs
+    outcome.matched_files = matched_files
+    outcome.ledger_paths = ledger
+    outcome.out_of_scope_paths = out_of_scope
+    return outcome
 
 
 def git_run(*args):
-    """Run a git command. Returns (success, stdout, stderr)."""
-    result = subprocess.run(
-        [GIT] + list(args),
-        capture_output=True, text=True
-    )
-    return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
+    """Run a git command serialized through `git_lock`. Returns
+    (success, stdout, stderr). stdout is unstripped: porcelain lines
+    can begin with a meaningful space, so a global strip would corrupt
+    the first line.
+    """
+    with git_lock:
+        result = subprocess.run(
+            [GIT] + list(args),
+            capture_output=True, text=True
+        )
+    return result.returncode == 0, result.stdout, result.stderr.strip()
 
 
 def create_overnight_branch():
@@ -461,8 +983,12 @@ def create_overnight_branch():
     Returns the branch name.
     """
     # Verify no uncommitted changes to tracked files (untracked files are fine)
-    ok, staged, _ = git_run("diff", "--cached", "--name-only")
-    ok2, unstaged, _ = git_run("diff", "--name-only")
+    ok, staged, err = git_run("diff", "--cached", "--name-only")
+    if not ok:
+        raise RuntimeError(f"git diff --cached failed: {err}")
+    ok, unstaged, err = git_run("diff", "--name-only")
+    if not ok:
+        raise RuntimeError(f"git diff failed: {err}")
     dirty = (staged + "\n" + unstaged).strip()
     if dirty:
         raise RuntimeError(
@@ -471,6 +997,7 @@ def create_overnight_branch():
 
     # Verify we're on main
     ok, current, _ = git_run("branch", "--show-current")
+    current = current.strip()
     if ok and current != "main":
         raise RuntimeError(
             f"Expected to be on 'main' branch, but on '{current}'. "
@@ -484,31 +1011,6 @@ def create_overnight_branch():
 
     log(f"Created branch: {branch}")
     return branch
-
-
-def _session_dirty_paths():
-    """Return the set of include/** and src/** paths currently dirty in
-    git (modified, deleted, or untracked). Auto-staged alongside the
-    explicit matched_files so header edits and sibling src files land
-    in the same commit as the matches they belong to.
-    """
-    ok, out, err = git_run("status", "--porcelain")
-    if not ok:
-        raise RuntimeError(
-            f"git status failed — can't determine dirty paths: {err}"
-        )
-    paths = set()
-    for line in out.splitlines():
-        if len(line) < 4:
-            continue
-        # porcelain v1: "XY path" with X/Y being status codes
-        path = line[3:]
-        # Rename uses "orig -> new"; we only care about the destination
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        if path.startswith(("include/", "src/")):
-            paths.add(path)
-    return paths
 
 
 def _collect_compile_failures(src_paths):
@@ -553,21 +1055,21 @@ def verify_tree_compiles():
         raise RuntimeError("\n".join(msg_lines))
 
 
-def git_commit_batch(session_id, matched_funcs, matched_files):
+def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
     """Commit matched source files and updated functions.json after a batch.
 
-    Auto-stages any include/** or src/** the session touched (not just
-    the files named in session_results), compiles before staging, and
-    refuses to commit on any compile failure. Raises on git failure —
-    matched work must be persisted.
+    Phase 1: stages exactly the session's pre-computed `ledger_paths`
+    (in-set dirty paths) plus the DB. The old global `_session_dirty_paths`
+    sweep is gone — under multi-agent it could absorb other sessions'
+    in-flight files into this commit (bug #4 in docs/bugs.md). Compiles
+    before staging; refuses to commit on any compile failure. Raises on
+    git failure — matched work must be persisted.
     """
     if not matched_funcs:
         return
 
     files_to_commit = set(matched_files)
-    # Sweep in header edits, sibling src files, and any other
-    # include/** or src/** the session dirtied.
-    files_to_commit |= _session_dirty_paths()
+    files_to_commit |= set(ledger_paths)
     files_to_commit.add(DB_PATH)
 
     # Compile-check BEFORE staging. If any src in the set fails, we
@@ -601,7 +1103,9 @@ def git_commit_batch(session_id, matched_funcs, matched_files):
     msg += "\n".join(f"  - {name}" for name in func_names)
 
     # Check if there's actually anything staged before committing
-    ok, staged, _ = git_run("diff", "--cached", "--name-only")
+    ok, staged, err = git_run("diff", "--cached", "--name-only")
+    if not ok:
+        raise RuntimeError(f"git diff --cached failed: {err}")
     if not staged.strip():
         log(f"  No changes to commit (source files unchanged from prior batch)")
         return
@@ -781,6 +1285,10 @@ def main():
                              "Comma-separated for A/B (e.g. claude,codex); "
                              "each session picks one at random. "
                              f"Available: {', '.join(AVAILABLE_BACKENDS)}.")
+    parser.add_argument("--workers", type=int, default=None,
+                        help="Number of concurrent worker sessions "
+                             "(default: max(1, len(--backend list))). Phase 1 "
+                             "of docs/direction/003-multi-agent-ab-architecture.md.")
 
     args = parser.parse_args()
 
@@ -815,6 +1323,12 @@ def main():
     if len(args.backends) > 1:
         log(f"Backend A/B: {len(args.backends)} backends ({', '.join(args.backends)}) — "
             f"each session picks one randomly")
+
+    if args.workers is None:
+        args.workers = max(1, len(args.backends))
+    if args.workers < 1:
+        log(f"ERROR: --workers must be >= 1 (got {args.workers})")
+        sys.exit(1)
 
     # Load targets file if specified
     targets_list = None
@@ -865,6 +1379,7 @@ def main():
         "backend": primary,
         "model": backends[primary].model,
         "backends": [{"name": n, "model": backends[n].model} for n in args.backends],
+        "workers": args.workers,
         "batch_size": args.batch_size,
         "session_timeout": session_timeout,
         "mode": mode,
@@ -886,6 +1401,7 @@ def main():
     mode_label = f"targeted ({len(targets_list)} targets)" if targets_list else "general pool"
     log(f"Starting overnight run: {args.hours}h time limit, deadline {deadline.strftime('%H:%M')}")
     log(f"Backend: {backend_summary}")
+    log(f"Workers: {args.workers}")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
 
     # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
@@ -906,19 +1422,52 @@ def main():
 
     print_progress(functions, start_time, log_path)
 
-    while datetime.now() < deadline:
-        if targets_list:
-            batch = pick_next_batch_targeted(functions, targets_list, addr_index,
-                                             batch_size=args.batch_size)
-        else:
-            batch = pick_next_batch(functions, args, batch_size=args.batch_size)
-        if not batch:
-            log("No more untried functions matching criteria. Done.")
-            break
+    held_classes: set = set()
+    in_flight: dict = {}
+    next_pick_time = 0.0
+    done_picking = False
 
-        if args.limit and total_attempted >= args.limit:
-            log(f"Reached limit of {args.limit} functions. Done.")
-            break
+    counters = {
+        "total_attempted": 0,
+        "total_matched": 0,
+        "total_failed": 0,
+        "total_errors": 0,
+        "consecutive_failures": 0,
+        "consecutive_refusals": 0,
+    }
+
+    def try_pick_and_submit(executor):
+        """Pick one batch under db_lock, acquire its class locks, submit it.
+
+        Returns True if a worker was submitted, False if no candidate
+        batch is available (either all classes locked or pool empty).
+        """
+        with db_lock:
+            if args.limit and counters["total_attempted"] >= args.limit:
+                return False
+            if targets_list:
+                batch = pick_next_batch_targeted(
+                    functions, targets_list, addr_index,
+                    batch_size=args.batch_size,
+                    excluded_classes=held_classes,
+                )
+            else:
+                batch = pick_next_batch(
+                    functions, args, batch_size=args.batch_size,
+                    excluded_classes=held_classes,
+                )
+            if not batch:
+                return False
+
+            classes = compute_batch_classes(batch)
+            assert not (classes & held_classes)
+            held_classes.update(classes)
+
+            exact_paths, sibling_prefixes = compute_allowed_paths(batch)
+
+            set_batch_status(functions, batch, "in_progress", addr_index)
+            save_db(functions)
+            counters["total_attempted"] += len(batch)
 
         session_id = str(uuid.uuid4())[:8]
         selected_variant = random.choice(args.variants)
@@ -943,318 +1492,120 @@ def main():
             ],
         })
 
-        # Pre-generate expected .o files
-        try:
-            for func in batch:
-                ensure_expected_o(func)
-        except RuntimeError as e:
-            log(f"Session {session_id} PREP ERROR: {e}")
-            log_event(log_path, {
-                "event": "prep_error",
-                "session_id": session_id,
-                "variant": selected_variant,
-                "backend": backend.name,
-                "error": str(e),
-            })
-            total_errors += 1
-            consecutive_failures += 1
-            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                log(f"Too many consecutive failures ({consecutive_failures}). Stopping.")
-                break
-            continue
+        ctx = WorkContext(
+            batch=batch,
+            backend=backend,
+            variant=selected_variant,
+            classes=classes,
+            session_id=session_id,
+            log_path=log_path,
+            session_timeout=session_timeout,
+            functions=functions,
+            exact_paths=exact_paths,
+            sibling_prefixes=sibling_prefixes,
+        )
 
-        # Mark as in_progress
-        set_batch_status(functions, batch, "in_progress", addr_index)
-        save_db(functions)
+        def peer_query(my_ctx=ctx):
+            with db_lock:
+                peer_exact = set()
+                peer_prefixes = []
+                for other_ctx in in_flight.values():
+                    if other_ctx is my_ctx:
+                        continue
+                    peer_exact |= other_ctx.exact_paths
+                    peer_prefixes.extend(other_ctx.sibling_prefixes)
+                return peer_exact, tuple(peer_prefixes)
 
-        # Build prompt and run Claude
-        prompt, prompt_warnings = build_prompt(batch, functions, session_id,
-                                               variant=selected_variant)
-        for w in prompt_warnings:
-            log(f"  {w['type'].upper()}: {w['name']} — {w['error']}")
-            log_event(log_path, {
-                "event": w["type"],
-                "session_id": session_id,
-                "variant": selected_variant,
-                "address": w["address"],
-                "name": w["name"],
-                "error": w["error"],
-            })
-        session_start = time.time()
-        try:
-            success, error_msg = run_session(
-                backend, prompt, session_id,
-                log_fn=lambda ev: log_event(log_path, ev),
-                variant=selected_variant,
-                timeout=session_timeout,
-            )
-        except AgentRefused as e:
-            session_duration = time.time() - session_start
-            log(f"Session {session_id} REFUSED ({session_duration:.0f}s): {e}")
-            log_event(log_path, {
-                "event": "session_error",
-                "session_id": session_id,
-                "variant": selected_variant,
-                "backend": backend.name,
-                "error": str(e),
-                "functions": [f["address"] for f in batch],
-                "duration_s": session_duration,
-                "kind": "refusal",
-                "refusal_reason": e.reason,
-            })
-            revert_in_progress(functions, batch, addr_index)
+        ctx.peer_query = peer_query
+        future = executor.submit(run_one_session, ctx)
+        in_flight[future] = ctx
+        return True
+
+    def _abort(outcome, kind, log_msg, event):
+        """Shared error-path: log, emit event, revert in_progress, return kind."""
+        log(log_msg)
+        log_event(log_path, event)
+        with db_lock:
+            revert_in_progress(functions, outcome.batch, addr_index)
+            counters["total_attempted"] -= len(outcome.batch)
             save_db(functions)
-            total_errors += 1
-            consecutive_refusals += 1
-            if consecutive_refusals >= MAX_CONSECUTIVE_REFUSALS:
-                log(
-                    f"Hit {consecutive_refusals} consecutive refusals — the "
-                    f"anti-refusal mitigations aren't holding. Stopping; a "
-                    f"human needs to review the prompt/system-prompt-append."
-                )
-                break
-            log(f"Refusal #{consecutive_refusals} — short pause, continuing.")
-            time.sleep(REFUSAL_BACKOFF_S)
-            continue
+        return kind
 
-        session_duration = time.time() - session_start
+    def apply_outcome(outcome, ctx):
+        """Apply a worker's outcome to coordinator state. Returns one of
+        the OUTCOME_* string constants below (used by the caller to
+        update circuit-breaker counters + backoff).
+        """
+        session_id = outcome.session_id
+        backend_name = outcome.backend_name
+        variant = outcome.variant
+        batch = outcome.batch
+        functions_addrs = [f["address"] for f in batch]
 
-        if not success:
-            log(f"Session {session_id} FAILED ({session_duration:.0f}s): {error_msg}")
-            log_event(log_path, {
-                "event": "session_error",
-                "session_id": session_id,
-                "variant": selected_variant,
-                "backend": backend.name,
-                "error": error_msg,
-                "functions": [f["address"] for f in batch],
-                "duration_s": session_duration,
-                "kind": "other",
-            })
+        if outcome.prep_error:
+            return _abort(outcome, OUTCOME_PREP_ERROR,
+                f"Session {session_id} PREP ERROR: {outcome.prep_error}",
+                {"event": "prep_error",
+                 "session_id": session_id, "variant": variant,
+                 "backend": backend_name, "error": outcome.prep_error})
 
-            revert_in_progress(functions, batch, addr_index)
-            save_db(functions)
+        if outcome.refused:
+            return _abort(outcome, OUTCOME_REFUSAL,
+                f"Session {session_id} REFUSED ({outcome.session_duration:.0f}s): "
+                f"agent refused mid-session ({outcome.refusal_reason})",
+                {"event": "session_error",
+                 "session_id": session_id, "variant": variant,
+                 "backend": backend_name,
+                 "error": f"agent refused mid-session ({outcome.refusal_reason})",
+                 "functions": functions_addrs,
+                 "duration_s": outcome.session_duration,
+                 "kind": "refusal",
+                 "refusal_reason": outcome.refusal_reason})
 
-            total_errors += 1
-            consecutive_failures += 1
-            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                log(f"Too many consecutive failures ({consecutive_failures}). Stopping.")
-                break
-            backoff = min(30 * (2 ** consecutive_failures), 960)
-            log(f"Backing off {backoff}s...")
-            time.sleep(backoff)
-            continue
+        if not outcome.success and outcome.error_msg is not None:
+            return _abort(outcome, OUTCOME_AGENT_FAIL,
+                f"Session {session_id} FAILED ({outcome.session_duration:.0f}s): "
+                f"{outcome.error_msg}",
+                {"event": "session_error",
+                 "session_id": session_id, "variant": variant,
+                 "backend": backend_name, "error": outcome.error_msg,
+                 "functions": functions_addrs,
+                 "duration_s": outcome.session_duration,
+                 "kind": "other"})
 
-        # Process results
-        try:
-            matched, failed, session_results = process_session_results(session_id, batch, functions, log_path, variant=selected_variant)
-            total_matched += matched
-            total_failed += failed
-            total_attempted += len(batch)
-            consecutive_failures = 0
-            consecutive_refusals = 0
+        if outcome.system_error:
+            return _abort(outcome, OUTCOME_SYSTEM_ERROR,
+                f"Session {session_id} SYSTEM ERROR: {outcome.system_error}",
+                {"event": "system_error",
+                 "session_id": session_id, "variant": variant,
+                 "backend": backend_name, "error": outcome.system_error,
+                 "functions": functions_addrs,
+                 "duration_s": outcome.session_duration})
 
-            log(f"Session {session_id} done ({session_duration:.0f}s): "
-                f"{matched} claimed matched, {failed} failed (pre-verify)")
+        log(f"Session {session_id} done ({outcome.session_duration:.0f}s): "
+            f"{outcome.claimed_matched} claimed matched, {outcome.claimed_failed} failed (pre-verify)")
 
-            # Build matched_funcs from the DB; function_result + session_done
-            # events are deferred until after verify + quality gate so they
-            # reflect the authoritative post-verification status.
-            matched_funcs = []
-            matched_files = set()
-            for func in batch:
-                target = addr_index.get(func["address"])
-                if target and target["match_status"] == "matched":
-                    matched_funcs.append(func)
-
-            # Build per-function src_file mapping from session_results so
-            # verify_match checks each claimed match against exactly the file
-            # the agent wrote it to. Also populate `matched_files` for the
-            # downstream quality gate and git commit.
-            addr_to_src = {}
-            for entry in session_results:
-                if (entry.get("status") == "matched"
-                        and entry.get("address") and entry.get("file")):
-                    addr_to_src[entry["address"]] = entry["file"]
-                if entry.get("status") == "matched" and entry.get("file"):
-                    matched_files.add(entry["file"])
-
-            # Orchestrator verification: independently verify each claimed
-            # match via the canonical byte_match.check_byte_match. Policy:
-            #   - Verified   → record src_file + symbol_name on the DB entry
-            #   - Byte mismatch / no matching sym / ambiguous → mark `failed`
-            #   - Compile failure (src the agent wrote won't build) → `failed`
-            #     (evidence the claim was bogus)
-            #   - Other tooling error (system issue) → `untried` for retry
-            if matched_funcs:
-                reverted = 0
-                for func in list(matched_funcs):
-                    src_file = addr_to_src.get(func["address"])
-                    if not src_file:
-                        log(f"  VERIFY ERROR: {func['name']} — no src_file in session_results")
-                        log_event(log_path, {
-                            "event": "verify_error",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "backend": backend.name,
-                            "address": func["address"],
-                            "name": func["name"],
-                            "error": "no src_file in session_results",
-                        })
-                        target = addr_index.get(func["address"])
-                        if target:
-                            target["match_status"] = "untried"
-                        matched_funcs.remove(func)
-                        reverted += 1
-                        total_matched -= 1
-                        continue
-
-                    try:
-                        result = check_byte_match(func, src_file)
-                    except CompileFailed as e:
-                        log(f"  VERIFY FAILED: {func['name']} — compile error: {e}")
-                        log_event(log_path, {
-                            "event": "verify_failed",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "backend": backend.name,
-                            "address": func["address"],
-                            "name": func["name"],
-                            "size": func["size"],
-                            "diff_count": 0,
-                            "byte_diffs": [],
-                            "reason": "compile_failed",
-                        })
-                        target = addr_index.get(func["address"])
-                        if target:
-                            target["match_status"] = "failed"
-                        matched_funcs.remove(func)
-                        reverted += 1
-                        total_matched -= 1
-                        total_failed += 1
-                        continue
-                    except RuntimeError as e:
-                        log(f"  VERIFY ERROR: {func['name']} — {e}")
-                        log_event(log_path, {
-                            "event": "verify_error",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "backend": backend.name,
-                            "address": func["address"],
-                            "name": func["name"],
-                            "error": str(e),
-                        })
-                        target = addr_index.get(func["address"])
-                        if target:
-                            target["match_status"] = "untried"
-                        matched_funcs.remove(func)
-                        reverted += 1
-                        total_matched -= 1
-                        continue
-
-                    if result.ok:
-                        target = addr_index.get(func["address"])
-                        if target:
-                            target["src_file"] = src_file
-                            target["symbol_name"] = result.sym_name
-                        continue
-
-                    diff_preview = ""
-                    if result.byte_diffs:
-                        first = result.byte_diffs[0]
-                        diff_preview = (f" (first diff at {first.get('addr','?')}: "
-                                        f"compiled={first.get('compiled','?')} "
-                                        f"expected={first.get('expected','?')}, "
-                                        f"{result.diff_count} total diffs)")
-                    log(f"  VERIFY FAILED: {func['name']} — {result.reason}{diff_preview}")
-                    log_event(log_path, {
-                        "event": "verify_failed",
-                        "session_id": session_id,
-                        "variant": selected_variant,
-                        "backend": backend.name,
-                        "address": func["address"],
-                        "name": func["name"],
-                        "size": func["size"],
-                        "diff_count": result.diff_count,
-                        "byte_diffs": result.byte_diffs,
-                        "reason": result.reason,
+        with db_lock:
+            for d in outcome.decisions:
+                target = addr_index.get(d.address)
+                if target is None:
+                    raise RuntimeError(
+                        f"apply_outcome: decision references unknown address "
+                        f"{d.address} — addr_index desync (decisions are built "
+                        f"from batch addrs, so this should be unreachable)"
+                    )
+                target["match_status"] = d.status
+                if d.src_file is not None:
+                    target["src_file"] = d.src_file
+                if d.symbol_name is not None:
+                    target["symbol_name"] = d.symbol_name
+                if d.failure_note:
+                    target.setdefault("failure_notes", []).append({
+                        "session": session_id,
+                        "notes": d.failure_note,
                     })
-                    target = addr_index.get(func["address"])
-                    if target:
-                        target["match_status"] = "failed"
-                    matched_funcs.remove(func)
-                    reverted += 1
-                    total_matched -= 1
-                    total_failed += 1
-                if reverted > 0:
-                    log(f"  Orchestrator verification rejected {reverted} matches")
+                    target["failure_notes"] = target["failure_notes"][-5:]
 
-            # Source quality gate: reject pure-assembly matches
-            if matched_funcs and matched_files:
-                asm_rejected = validate_source_quality(matched_files)
-                if asm_rejected:
-                    log(f"  ASSEMBLY-ONLY REJECTION: {len(asm_rejected)} files are pure asm with no C/C++")
-                    for asm_file in asm_rejected:
-                        log(f"    Rejected: {asm_file}")
-                        log_event(log_path, {
-                            "event": "rejected_assembly_only",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "backend": backend.name,
-                            "file": asm_file,
-                            "reason": "File contains only __asm__() blocks — no C/C++ training data",
-                        })
-                    # Revert match status for functions whose ONLY source is a rejected file
-                    for func in list(matched_funcs):
-                        func_files = {e["file"] for e in session_results
-                                      if e.get("address") == func["address"]
-                                      and e.get("file")}
-                        if func_files and func_files.issubset(set(asm_rejected)):
-                            target = addr_index.get(func["address"])
-                            if target:
-                                target["match_status"] = "failed"
-                            matched_funcs.remove(func)
-                            total_matched -= 1
-                            total_failed += 1
-                            log(f"    Reverted: {func['name']} → failed (assembly-only source)")
-                    # Remove rejected files from commit set
-                    matched_files -= set(asm_rejected)
-
-            # Quality gate: class-method must be reconstructed in canonical
-            # C++ form, not extern-C / safe-name. See fix_plan Phase 2.
-            if matched_funcs:
-                xc_rejected = reject_extern_c_class_methods(
-                    matched_funcs, addr_to_src,
-                )
-                if xc_rejected:
-                    log(f"  EXTERN-C CLASS-METHOD REJECTION: "
-                        f"{len(xc_rejected)} matches lack canonical Class::method form")
-                    for func, reason in xc_rejected:
-                        log(f"    Rejected: {func['name']} — {reason}")
-                        log_event(log_path, {
-                            "event": "rejected_extern_c_class_method",
-                            "session_id": session_id,
-                            "variant": selected_variant,
-                            "backend": backend.name,
-                            "address": func["address"],
-                            "name": func["name"],
-                            "reason": reason,
-                        })
-                        target = addr_index.get(func["address"])
-                        if target:
-                            target["match_status"] = "failed"
-                            target.setdefault("failure_notes", []).append({
-                                "session": session_id,
-                                "notes": reason,
-                            })
-                            target["failure_notes"] = target["failure_notes"][-5:]
-                        matched_funcs.remove(func)
-                        total_matched -= 1
-                        total_failed += 1
-
-            # Emit authoritative per-function + session outcomes AFTER verify
-            # and the quality gate. Earlier events would report stale status
-            # for functions the agent claimed matched but verification rejected.
             final_matched = 0
             final_failed = 0
             for func in batch:
@@ -1263,8 +1614,8 @@ def main():
                 log_event(log_path, {
                     "event": "function_result",
                     "session_id": session_id,
-                    "variant": selected_variant,
-                    "backend": backend.name,
+                    "variant": variant,
+                    "backend": backend_name,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
@@ -1278,58 +1629,152 @@ def main():
             log_event(log_path, {
                 "event": "session_done",
                 "session_id": session_id,
-                "variant": selected_variant,
-                "backend": backend.name,
+                "variant": variant,
+                "backend": backend_name,
                 "matched": final_matched,
                 "failed": final_failed,
-                "claimed_matched": matched,
-                "claimed_failed": failed,
-                "duration_s": session_duration,
+                "claimed_matched": outcome.claimed_matched,
+                "claimed_failed": outcome.claimed_failed,
+                "duration_s": outcome.session_duration,
             })
 
-            # Auto-commit matched work
-            # Git errors are loud but non-fatal — matched work is saved in
-            # functions.json and source files on disk regardless of git state
-            if matched_funcs:
-                save_db(functions)
+            counters["total_matched"] += final_matched
+            counters["total_failed"] += final_failed
+
+            save_db(functions)
+
+            commit_kind = OUTCOME_SUCCESS
+            if outcome.matched_funcs:
                 try:
-                    git_commit_batch(session_id, matched_funcs, matched_files)
+                    git_commit_batch(session_id, outcome.matched_funcs,
+                                     outcome.matched_files, outcome.ledger_paths)
                 except RuntimeError as e:
                     log(f"  GIT COMMIT ERROR (matching still saved): {e}")
                     log_event(log_path, {
                         "event": "git_error",
                         "session_id": session_id,
-                        "variant": selected_variant,
-                        "backend": backend.name,
+                        "variant": variant,
+                        "backend": backend_name,
                         "error": str(e),
                     })
-                    total_errors += 1
+                    commit_kind = OUTCOME_GIT_ERROR
 
-        except (FileNotFoundError, ValueError) as e:
-            log(f"Session {session_id} SYSTEM ERROR: {e}")
-            log_event(log_path, {
-                "event": "system_error",
-                "session_id": session_id,
-                "variant": selected_variant,
-                "backend": backend.name,
-                "error": str(e),
-                "functions": [f["address"] for f in batch],
-                "duration_s": session_duration,
-            })
+        return commit_kind
 
-            revert_in_progress(functions, batch, addr_index)
+    executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=args.workers,
+        thread_name_prefix="orch-worker",
+    )
+    try:
+        while True:
+            deadline_hit = datetime.now() >= deadline
+            limit_hit = (args.limit is not None
+                         and counters["total_attempted"] >= args.limit)
+            cb_hit = (counters["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES
+                      or counters["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS)
 
-            total_errors += 1
-            consecutive_failures += 1
-            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                log(f"Too many consecutive failures ({consecutive_failures}). Stopping.")
+            can_submit = (not deadline_hit and not limit_hit and not cb_hit
+                          and not done_picking
+                          and time.time() >= next_pick_time)
+
+            while can_submit and len(in_flight) < args.workers:
+                if try_pick_and_submit(executor):
+                    continue
+                # No candidate this round: either pool empty, or every
+                # eligible class is currently locked. If nothing's in
+                # flight, no class will ever release — pool is empty.
+                if not in_flight:
+                    done_picking = True
+                    log("No more untried functions matching criteria. Done.")
                 break
-            backoff = min(30 * (2 ** consecutive_failures), 960)
-            log(f"Backing off {backoff}s...")
-            time.sleep(backoff)
 
-        save_db(functions)
-        print_progress(functions, start_time, log_path)
+            if not in_flight:
+                if done_picking or deadline_hit or limit_hit or cb_hit:
+                    if limit_hit:
+                        log(f"Reached limit of {args.limit} functions. Done.")
+                    if cb_hit and counters["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
+                        log(f"Too many consecutive failures "
+                            f"({counters['consecutive_failures']}). Stopping.")
+                    if cb_hit and counters["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
+                        log(f"Hit {counters['consecutive_refusals']} consecutive refusals — "
+                            f"the anti-refusal mitigations aren't holding. Stopping; a "
+                            f"human needs to review the prompt/system-prompt-append.")
+                    break
+                # Idle — likely waiting on backoff timer.
+                time.sleep(min(1.0, max(0.1, next_pick_time - time.time())))
+                continue
+
+            done, _ = concurrent.futures.wait(
+                list(in_flight.keys()),
+                timeout=2.0,
+                return_when=concurrent.futures.FIRST_COMPLETED,
+            )
+
+            if not done:
+                continue
+
+            for future in done:
+                ctx = in_flight.pop(future)
+                try:
+                    outcome = future.result()
+                except BaseException as e:
+                    log(f"WORKER EXCEPTION: {ctx.session_id} — {e!r}")
+                    log_event(log_path, {
+                        "event": "worker_exception",
+                        "session_id": ctx.session_id,
+                        "variant": ctx.variant,
+                        "backend": ctx.backend.name,
+                        "error": repr(e),
+                    })
+                    with db_lock:
+                        revert_in_progress(functions, ctx.batch, addr_index)
+                        counters["total_attempted"] -= len(ctx.batch)
+                        save_db(functions)
+                    held_classes.difference_update(ctx.classes)
+                    counters["total_errors"] += 1
+                    counters["consecutive_failures"] += 1
+                    if counters["consecutive_failures"] < MAX_CONSECUTIVE_FAILURES:
+                        backoff = min(30 * (2 ** counters["consecutive_failures"]), 960)
+                        log(f"Backing off {backoff}s before next pick...")
+                        next_pick_time = time.time() + backoff
+                    continue
+
+                kind = apply_outcome(outcome, ctx)
+                held_classes.difference_update(ctx.classes)
+
+                if kind == OUTCOME_REFUSAL:
+                    counters["total_errors"] += 1
+                    counters["consecutive_refusals"] += 1
+                    if counters["consecutive_refusals"] < MAX_CONSECUTIVE_REFUSALS:
+                        log(f"Refusal #{counters['consecutive_refusals']} — short pause, continuing.")
+                        next_pick_time = max(next_pick_time, time.time() + REFUSAL_BACKOFF_S)
+                elif kind in (OUTCOME_PREP_ERROR, OUTCOME_AGENT_FAIL, OUTCOME_SYSTEM_ERROR):
+                    counters["total_errors"] += 1
+                    counters["consecutive_failures"] += 1
+                    if counters["consecutive_failures"] < MAX_CONSECUTIVE_FAILURES:
+                        backoff = min(30 * (2 ** counters["consecutive_failures"]), 960)
+                        log(f"Backing off {backoff}s before next pick...")
+                        next_pick_time = max(next_pick_time, time.time() + backoff)
+                elif kind == OUTCOME_GIT_ERROR:
+                    counters["total_errors"] += 1
+                    counters["consecutive_failures"] = 0
+                    counters["consecutive_refusals"] = 0
+                elif kind == OUTCOME_SUCCESS:
+                    counters["consecutive_failures"] = 0
+                    counters["consecutive_refusals"] = 0
+                else:
+                    raise RuntimeError(
+                        f"apply_outcome returned unknown kind {kind!r}"
+                    )
+
+            print_progress(functions, start_time, log_path)
+    finally:
+        executor.shutdown(wait=True)
+
+    total_attempted = counters["total_attempted"]
+    total_matched = counters["total_matched"]
+    total_failed = counters["total_failed"]
+    total_errors = counters["total_errors"]
 
     # Final summary
     elapsed = datetime.now() - start_time

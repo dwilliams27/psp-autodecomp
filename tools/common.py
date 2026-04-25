@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 
 DB_PATH = "config/functions.json"
 EBOOT_PATH = "extern/iso_extract/PSP_GAME/SYSDIR/EBOOT.BIN.dec"
@@ -92,10 +93,23 @@ def load_db():
 
 
 def save_db(functions):
-    """Save functions.json."""
+    """Atomically save functions.json (tmp + os.replace). Tmp lives in
+    the same dir so the rename is same-filesystem. Caller still owns
+    write serialization — atomicity here is about torn writes, not
+    lost updates.
+    """
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    with open(DB_PATH, "w") as f:
-        json.dump(functions, f, indent=2)
+    dir_path = os.path.dirname(DB_PATH) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=".functions.", suffix=".json",
+                                    dir=dir_path)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(functions, f, indent=2)
+        os.replace(tmp_path, DB_PATH)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
 
 
 def find_function(functions, query, strict=True):
