@@ -3,7 +3,6 @@
 //   0x0022757c cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> >::~cHandlePairT(void)
 //   0x0025aa9c gcEntityAnimationConfigSet::GetSize(void) const
 //   0x0025c880 gcEntityAttackSet::GetSize(void) const
-//   0x00271288 gcTableColumnByte::Set(int, float)
 
 struct DeleteRecord {
     short offset;
@@ -58,12 +57,6 @@ int gcEntityAttackSet__GetSize_voidconst__0025C880(const void *self) {
         size = arr[-1];
     }
     return size;
-}
-
-// 0x00271288 — Set(int row, float value): store truncated float as byte
-void gcTableColumnByte__Set_int_float__00271288(void *self, int row, float value) {
-    char *data = *(char **)((char *)self + 8);
-    data[row] = (char)(int)value;
 }
 
 }
