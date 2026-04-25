@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import shlex
 from typing import List
 
 from common import CODEX, CODEX_MODEL
+
+_VALID_REASONING_EFFORTS = ("minimal", "low", "medium", "high", "xhigh")
 
 from .base import (
     AgentEvent,
@@ -56,6 +59,18 @@ class CodexBackend(Backend):
         # safety addendum to the user prompt so it leads the context.
         full_prompt = (f"{self.system_append}\n\n---\n\n{prompt}"
                        if self.system_append else prompt)
+        # `model_reasoning_effort=high` is the budget tier we want for
+        # match attempts — they're chunky reasoning tasks, not quick
+        # lookups, and the flag-time cost difference is tiny vs. the
+        # value of an actual match. Override via CODEX_REASONING_EFFORT
+        # env (validated against the codex-accepted set so a typo
+        # fails loud rather than silently passing through as garbage).
+        effort = os.environ.get("CODEX_REASONING_EFFORT") or "high"
+        if effort not in _VALID_REASONING_EFFORTS:
+            raise ValueError(
+                f"CODEX_REASONING_EFFORT={effort!r} is not in "
+                f"{_VALID_REASONING_EFFORTS}; codex would reject the flag."
+            )
         return [
             CODEX, "exec",
             "--json",
@@ -63,6 +78,7 @@ class CodexBackend(Backend):
             "--dangerously-bypass-approvals-and-sandbox",
             "--ephemeral",
             "-m", self.model,
+            "-c", f"model_reasoning_effort={effort}",
             full_prompt,
         ]
 
