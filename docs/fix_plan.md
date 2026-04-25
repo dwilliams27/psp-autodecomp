@@ -87,21 +87,48 @@ where the original binary has X as a real C++ type.
 **Result**: 11 entries flipped matched → untried. matched count
 1269 → 1258.
 
-## Phase 4 — Safe-name / self-arg retirement
+## Phase 4 — Safe-name / self-arg retirement [done]
 
-The ~31 stable-but-structurally-wrong matches: methods written as
-extern-C functions with explicit `void *self` first-arg, or as
-`Class__method` / `Class_method` safe-names. Reset to untried so the
-next overnight pass produces proper C++.
+Stable-but-structurally-wrong matches: methods written as extern-C
+functions with explicit `void *self` first-arg, as `Class__method` /
+`Class_method` safe-names, or as `Class___dtor_Class_void` patched
+dtors. Reset to untried so the next overnight pass produces proper C++.
 
-- [ ] Use `tools/audit_symbol_signatures.py` to enumerate the entries
-      whose reconstruction matches the safe-name / self-arg pattern.
-- [ ] Reset all to untried with `failure_notes` referencing Phase 2's
-      quality gate so the next attempt won't reproduce the anti-pattern.
-- [ ] Commit.
+- [x] Identified targets by running Phase 2's gate
+      (`reject_extern_c_class_methods`) over every currently-matched
+      entry. 84 hits — broader than the original "~31" estimate because
+      the gate also catches the 40 patched-dtors and other safe-name
+      shapes the earlier param-count heuristic missed. Sanity-checked
+      that known-canonical recent matches (cWriteBlock::Write
+      overloads) are NOT on the list.
+- [x] Reset all 84 to untried with detailed `failure_notes` referencing
+      Phase 2's gate. Future reattempts that reproduce the anti-pattern
+      will be auto-rejected.
+- [x] Audit-tool fix: ctors with member-init lists (`: cObject(parent)`)
+      were spuriously reported as src-not-found because the brace-check
+      didn't skip past the init list. Fixed; now walks past `:` and
+      nested-paren depth to find the opening `{`.
+- [x] Commit.
 
-## Done criteria
+**Result**: 84 entries flipped matched → untried. matched count
+1258 → 1174. Final audit:
+- ok: 1149
+- parse-error: 25 (libc + operator overloads — known audit gap)
+- param-count: **0**
+- param-types: **0**
+- src-not-found: **0**
 
-All four phases marked complete. `python3 tools/audit_symbol_signatures.py`
-shows zero entries in `param-types` and `param-count` (modulo audit-tool
-edge cases the tool itself documents). Then resume matching runs.
+## Done criteria — met (2026-04-24)
+
+All four phases complete. Final audit:
+- 1149 ok, 25 parse-error (libc + operator overloads), 0 in every
+  other bucket.
+- The Phase 2 gate is in place to keep the same anti-patterns from
+  re-landing.
+
+Total remediation: 119 entries flipped from matched → untried (24 in
+Phase 1, 11 in Phase 3, 84 in Phase 4). matched count 1293 → 1174.
+These are all queued for re-attempt; future overnight runs will pick
+them up and the new gate will hold them to canonical C++ form.
+
+Matching runs may resume.

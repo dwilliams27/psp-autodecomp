@@ -206,6 +206,25 @@ def find_all_function_defs(src_path, class_name, method_name):
                     break
             if not matched:
                 break
+        # Ctors (and a few odd cases) have a member-initializer list
+        # introduced by `:` between the params and the body. Skip past
+        # the init list — nested parens — to find the opening brace.
+        # A `;` at depth 0 means we never found a body; fall through and
+        # let the outer brace-check reject this candidate.
+        if i < len(src) and src[i] == ":":
+            depth = 0
+            i += 1
+            while i < len(src):
+                ch = src[i]
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+                elif ch == "{" and depth == 0:
+                    break
+                elif ch == ";" and depth == 0:
+                    break
+                i += 1
         if i >= len(src) or src[i] != "{":
             continue
 
