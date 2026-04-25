@@ -123,6 +123,7 @@ class RunningScreen(Screen):
             else "(waiting)"
         )
         state.agent_log.clear()
+        state.agent_narrative_log.clear()
         state.orch_log.append(
             _ts()
             + f"session {sid} [{variant}] started · batch={len(funcs)}"
@@ -201,33 +202,37 @@ class RunningScreen(Screen):
         text = (event.get("text") or "").strip()
         if not text:
             return
-        # Infer current working function from `compare_func.py ... 0xADDR`.
         if kind == "tool_use":
             m = _COMPARE_RE.search(text)
             if m:
                 addr = m.group(1).lower()
                 name = state.current_addr_to_name.get(addr)
                 state.current_working = name or f"@{addr}"
-        # Format the display line by kind.
+
+        # text + thinking go to the narrative panel — these are the
+        # agent's verbose reasoning, kept whole so a multi-sentence
+        # rationale stays readable.
+        if kind in ("text", "thinking"):
+            prefix = "~ " if kind == "thinking" else ""
+            line = prefix + text
+            if len(line) > 400:
+                line = line[:397] + "..."
+            state.agent_narrative_log.append(line)
+            return
+
+        # tool_use / tool_result / raw / unknown go to the compact tool
+        # log — narrow lines, one per call/result.
         if kind == "tool_use":
             line = text
         elif kind == "tool_result":
-            # The orchestrator's formatter sometimes already prepends "→"
-            # when it pulls a "→ MATCH" line out of compare_func output.
-            # Avoid emitting "  → → ..." in that case.
             body = text.lstrip()
             if body.startswith("\u2192"):
                 body = body[1:].lstrip()
             line = f"  \u2192 {body}"
-        elif kind == "thinking":
-            line = f"~ {text}"
-        elif kind == "text":
-            line = text
         elif kind == "raw":
             line = f"(raw) {text}"
         else:
             line = text
-        # Cap per-line length so the panel stays readable at narrow widths.
         if len(line) > 120:
             line = line[:117] + "..."
         state.agent_log.append(line)
@@ -244,17 +249,50 @@ class RunningScreen(Screen):
             Layout(name="mid", ratio=1),
             Layout(name="outcomes", size=12),
         )
-        layout["mid"].split_row(
+        # Top of mid: full-width agent narrative (text + thinking) — the
+        # agent's verbose reasoning. Bottom: existing orch + tool stream
+        # side-by-side.
+        layout["mid"].split_column(
+            Layout(name="narrative", ratio=1),
+            Layout(name="bottom", ratio=1),
+        )
+        layout["mid"]["bottom"].split_row(
             Layout(name="orchestrator", ratio=1),
             Layout(name="agent", ratio=1),
         )
         status_inner = max(40, console.width - 4)
         layout["header"].update(header_panel("autodecomp"))
         layout["status"].update(self._status_panel(app, status_inner))
-        layout["orchestrator"].update(self._orch_panel(app))
-        layout["agent"].update(self._agent_panel(app))
+        layout["mid"]["narrative"].update(self._narrative_panel(app))
+        layout["mid"]["bottom"]["orchestrator"].update(self._orch_panel(app))
+        layout["mid"]["bottom"]["agent"].update(self._agent_panel(app))
         layout["outcomes"].update(self._outcomes_panel(app))
         return layout
+
+    def _narrative_panel(self, app):
+        state = app.state
+        if not state.agent_narrative_log:
+            content = Text("(waiting for agent narrative)", style=DIM)
+        else:
+            t = Text()
+            lines = list(state.agent_narrative_log)
+            last = len(lines) - 1
+            for i, line in enumerate(lines):
+                is_latest = (i == last)
+                if line.startswith("~ "):
+                    style = (f"italic {LEAF}" if is_latest
+                             else f"italic {DIM}")
+                else:
+                    style = BODY if is_latest else DIM
+                suffix = "" if is_latest else "\n"
+                t.append(line + suffix, style=style)
+            content = t
+        return Panel(
+            Align(content, vertical="bottom"),
+            border_style=MOSS, box=ROUNDED,
+            title=Text(" agent narrative ", style=f"bold {LEAF}"),
+            title_align="left", padding=(0, 1),
+        )
 
     def _status_panel(self, app, panel_inner_width):
         state = app.state

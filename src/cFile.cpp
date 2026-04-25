@@ -1,6 +1,18 @@
 #include "cFile.h"
 #include "cFileSystem.h"
 
+class nwMsg;
+
+struct nwMsgBuffer {
+    char _pad[0x4B0];
+    int mOffset;
+};
+
+class gcMsgRequestLoadedState {
+public:
+    static nwMsg *New(nwMsgBuffer &);
+};
+
 cFile::cFile() {
     mHandle = 0;
     mMode = 0;
@@ -16,4 +28,18 @@ unsigned int cFile::GetCurrentPos(void) const {
 
 void cFile::SetCurrentPos(unsigned int offset) {
     cFileSystem::SetCurrentPos(mHandle, offset);
+}
+
+void cFile::OnClosed(void) {
+}
+
+nwMsg *gcMsgRequestLoadedState::New(nwMsgBuffer &buf) {
+    buf.mOffset += 4;
+    char *p = (char *)&buf + buf.mOffset;
+    nwMsg *result = 0;
+    if (p) {
+        *(int *)p = 0x389050;
+        result = (nwMsg *)p;
+    }
+    return result;
 }

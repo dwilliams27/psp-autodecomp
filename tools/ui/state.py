@@ -41,6 +41,11 @@ class RunState:
         # available when the terminal is resized larger.
         self.orch_log = deque(maxlen=120)
         self.agent_log = deque(maxlen=120)
+        # Top-of-screen narrative panel: text + thinking events. The
+        # agent's "out-loud" reasoning, separated from the compact
+        # tool_use/tool_result stream so verbose narrative doesn't crowd
+        # the per-call log.
+        self.agent_narrative_log = deque(maxlen=200)
         self.outcomes = deque(maxlen=40)
 
     # -- convenience accessors --
