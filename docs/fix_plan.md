@@ -59,23 +59,33 @@ reconstructions of class methods will be flagged and reverted, just like
 pure-asm matches today. Existing matched safe-name entries are left
 untouched here — Phase 4 retires them.
 
-## Phase 3 — Typedef-int header audit
+## Phase 3 — Typedef-int header audit [done]
 
 Migrate weak `typedef int X;` declarations to proper class/struct decls
 where the original binary has X as a real C++ type.
 
-- [ ] Enumerate every `typedef (unsigned )?int X;` in `include/`.
-- [ ] For each, query `mangled_symbol` data: does any function in the
-      original binary mention X as a class type (`6X` style) in its
-      mangled signature? If yes, X is a real type, not a numeric alias.
-- [ ] For X identified as a real type: produce a list of affected
-      matched DB entries (functions whose original signature uses X).
-- [ ] Reset affected entries to untried with notes.
-- [ ] Leave the header migration itself for a follow-up — Phase 3
-      ends when the affected entries are queued for retry. Header
-      changes happen organically when codex/claude re-attempts them
-      with a corrected header.
-- [ ] Commit.
+- [x] Enumerated `typedef int X` / `typedef unsigned int X` in `include/`
+      and `src/`. Found four real-but-collapsed types:
+      `nwSocketHandle`, `nwConnectionHandle`, `cTimeValue`, `eColor`.
+      Confirmed each is a class/struct in the original via mangled-name
+      search (`6OnwSocketHandle`, `6SnwConnectionHandle`, `6KcTimeValue`,
+      `6GeColor`).
+- [x] Cross-referenced matched DB entries by mangled-symbol substring.
+      Found 28 candidate matches; bisected by `symbol_name !=
+      mangled_symbol` evidence (whose .o demonstrably produced a
+      primitive-encoded mangled name where the original has the class
+      form). 11 confirmed-collapsed; 17 already produce the right
+      mangled (their reconstructions must declare the type properly).
+- [x] Reset the 11 confirmed entries to untried with detailed notes
+      that point at the typedef-collapse mechanism and recommend
+      replacing the typedef with a `struct X { int handle; };` so SNC
+      mangling produces `6OX` / `6SX`.
+- [x] Header migration itself deferred — happens organically when an
+      agent reattempts these functions with the corrected header.
+- [x] Commit.
+
+**Result**: 11 entries flipped matched → untried. matched count
+1269 → 1258.
 
 ## Phase 4 — Safe-name / self-arg retirement
 
