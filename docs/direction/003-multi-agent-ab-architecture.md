@@ -108,20 +108,79 @@ The current `Backend.run_session` shape stays unchanged. Workers call
 it directly; it already uses 2 reader threads + a queue, all
 thread-local.
 
-### 2. Disjoint vs overlapping batches
+### 2. Three operating modes
 
-**Default mode: disjoint.** The `class_lock` mechanism guarantees two
-agents never work on the same class file at the same time. `in_progress`
-status guarantees two agents never claim the same function. This is
-what production overnight runs should use.
+The framework supports three distinct configurations. They share the
+same orchestrator, worker pool, and reporting tool — only the function-
+to-backend assignment policy and the git-isolation strategy differ.
 
-**Separate `--shootout` mode** for paired A/B: the same fixed function
-list is given to each backend, in isolated git worktrees, so they don't
-see each other's commits. Results are written to backend-tagged
-session-results files, **not committed to the same branch**. Shootout
-output is consumed only by the A/B reporting tool, never merged to
-main. This is the only way to get a McNemar-valid paired comparison
-on per-function quality.
+#### Mode A — pure disjoint (max throughput)
+
+```bash
+./tools/run_overnight.sh --backend claude,codex
+```
+
+Every function is attempted by **exactly one** backend. The `class_lock`
+mechanism guarantees two agents never work on the same class file at
+the same time; `in_progress` status guarantees no double-claim. With
+stratified random assignment (§4), each backend gets a matched workload
+mix — same tier × size × class-context distribution — so per-backend
+throughput numbers are fair.
+
+**Use when:** routine overnight production. Doubles total coverage vs
+single-backend; fair throughput comparison; no API spend doubling.
+
+**Statistical signal:** rate-difference and CI on independent samples
+(two-proportion z, Welch's t on per-session times). NOT McNemar-valid
+because no per-function pairing.
+
+#### Mode B — pure shootout (max signal)
+
+```bash
+./tools/run_overnight.sh --backend claude,codex --shootout
+```
+
+The **same** function list is given to **every** backend. Each backend
+runs in its own git worktree (isolated index, isolated working tree)
+so neither sees the other's commits. Each function attempted by **both**
+→ McNemar's exact test on per-function disagreements.
+
+Results from shootout sessions are written to backend-tagged
+`session_results/<sid>.json` files and recorded in `logs/attempts.jsonl`,
+but **not committed to a shared branch**. The reporting tool picks the
+winning match (or neither, or both) per function offline. Optionally
+the operator can merge the chosen winner into the main `overnight/<ts>`
+branch with `tools/ab_promote.py` (Phase 3).
+
+**Use when:** benchmark days, model promotion decisions, regression
+testing a new backend release.
+
+**API cost:** doubles per function. Not for routine production.
+
+**Statistical signal:** McNemar's exact + per-function effect sizes
++ paired bootstrap on cost/duration.
+
+#### Mode C — hybrid (recommended steady state)
+
+```bash
+./tools/run_overnight.sh --backend claude,codex --paired-reserve 50
+```
+
+Most of the run is Mode A (stratified-disjoint, max throughput). A
+reserved slice of N functions (e.g., 50, stratified across the same
+strata as the disjoint pool) is split off and run shootout-style in
+isolated worktrees. Each run accumulates ~50 paired data points; over
+3-5 runs the McNemar n is enough for promotion-grade verdicts.
+
+**Use when:** routine production AND ongoing benchmark accumulation.
+The default once Phase 3 lands.
+
+**API cost:** ~10% overhead vs Mode A (50 paired functions × 2 backends
+inside a ~500-function run).
+
+**Statistical signal:** Mode A on the disjoint slice + Mode B on the
+reserved slice. The report combines both — disjoint-slice CIs answer
+"throughput?", reserved-slice McNemar answers "head-to-head quality?".
 
 ### 3. A/B data model
 
@@ -160,19 +219,32 @@ unmeasurable.
 
 ### 4. A/B sampling strategy
 
-**Default: stratified random assignment.** At run start, partition the
-candidate pool into strata: `(tier ∈ {0,1,2,3}) × (size_bucket) ×
+The picker is mode-aware. At run start it builds an assignment schedule
+based on the chosen mode.
+
+**Mode A (disjoint):** stratified random assignment. Partition the
+candidate pool into strata `(tier ∈ {0,1,2,3}) × (size_bucket) ×
 (has_class_context)`. Within each stratum, batches are alternately
 assigned to each `(backend, model)` identity. Each identity gets a
 matched workload mix — no Simpson's-paradox unfairness from one backend
 getting all the easy small leaves.
 
-**Plus: paired hard-set**. A small reserved slice (~50 functions,
-stratified) is run by *both* identities in shootout mode. This is the
-McNemar-valid paired-comparison input.
+**Mode B (shootout):** the same input list (either all-untried, or
+loaded from `--targets` or `--paired-reserve`) is fanned out to every
+identity. Each identity gets the *full* list, not a slice; the picker
+returns batches in a deterministic order so each backend sees the
+batches in the same sequence (controls for any ordering effects in
+the agents' context-building).
 
-**Reject pure random (current):** correlated batches make a single 4h
-run uninterpretable.
+**Mode C (hybrid):** the picker holds out N functions (`--paired-reserve N`)
+as the shootout reserved set, stratified to match the overall pool's
+distribution. The remaining pool is scheduled per Mode A. Workers
+draw from whichever queue is non-empty; Mode B's worktree-isolated
+workers run only against the reserved queue.
+
+**Reject pure random (the current `--backend claude,codex`):**
+correlated batches make a single run uninterpretable. The current mode
+becomes a fallback once Mode A is the default.
 
 ### 5. Statistical reporting
 
@@ -246,19 +318,43 @@ Outcome: 2 concurrent agents (claude + codex), provably race-free DB
 
 Outcome: per-attempt history exists, cost data flows. Safe at N=3-4.
 
-### Phase 3 — stratified sampling + reporting tool
+### Phase 3 — sampling modes + worktrees + reporting tool
 
-- `tools/ab_schedule.py` produces a stratified-paired schedule at
-  run start.
-- `pick_next_batch` gains a `(backend, model)` filter that respects the
-  schedule.
-- `tools/ab_report.py` consumes `attempts.jsonl`, produces end-of-run
-  markdown summary + multi-run aggregate.
-- `--shootout` flag wires up the paired hard-set in isolated git
-  worktrees.
+This phase delivers the A/B framework end-to-end: all three operating
+modes (disjoint, shootout, hybrid), the schedule pre-computer, the
+isolation primitive that shootout requires, and the reporting tool.
 
-Outcome: rigorous A/B numbers from a single run; promotion-quality
-data from a 3-run aggregate.
+- `tools/ab_schedule.py` produces the assignment schedule at run start
+  (Mode A stratified, Mode B fan-out, Mode C hold-out + stratify).
+- `pick_next_batch` becomes mode-aware: takes a `(backend, model)`
+  filter, draws from disjoint queue OR shootout queue depending on
+  the worker's assignment.
+- **Per-worker git worktrees, gated by mode.** Disjoint runs (Mode A)
+  share the main worktree as today (one commit thread serializes the
+  writes; class_locks prevent file races). Shootout runs (Mode B) and
+  the reserved-slice workers in Mode C **must** have isolated worktrees
+  — otherwise both backends' edits to the same `Class.cpp` collide.
+  Implemented via `git worktree add overnight-worktree-<slot> <branch>`
+  at run start; torn down on run end. The commit thread becomes
+  worktree-aware.
+- `--shootout` and `--paired-reserve N` CLI flags select Modes B and C.
+- `tools/ab_report.py` consumes `attempts.jsonl`. Per-mode analysis:
+  - Disjoint slice → two-proportion z, Welch's t, Wilson CIs.
+  - Shootout slice → McNemar's exact + paired bootstrap.
+  - Mode C combines both reports.
+- `tools/ab_promote.py` (optional, ships with this phase) inspects
+  shootout results and writes the chosen winner's match into the main
+  branch. Manual default — no auto-promote.
+
+Outcome: rigorous A/B numbers from a single run; promotion-grade
+verdicts from a 3-5 run aggregate; production throughput preserved by
+defaulting to Mode C.
+
+**Why worktrees moved from Phase 5 to here:** shootout is the explicit
+trigger. Mode B at N=2 already needs them — two backends both writing
+`src/Class.cpp` in the same tree clobber each other regardless of how
+many workers there are. The "scale-driven" worktree need (Phase 5
+below) is a separate concern.
 
 ### Phase 4 — multi-agent TUI
 
@@ -267,14 +363,19 @@ data from a 3-run aggregate.
 - Identity 2-axis coloring (backend×model).
 - Per-slot live indicators with Wilson CIs.
 - `tools/ui/dev/demo_stream.py` multi-agent variant for development.
+- Mode-aware status: indicator in the run-status panel showing whether
+  this run is disjoint / shootout / hybrid.
 
 Outcome: TUI matches what the backend is actually doing.
 
-### Phase 5 — git worktrees if needed
+### Phase 5 — scale-driven worktree generalization (only if needed)
 
-Defer until concurrency >4 reveals real contention. `git worktree add`
-gives each worker an isolated index sharing one repo. Largest change in
-the plan; only land if the simpler model demonstrably bottlenecks.
+Phase 3 introduced worktrees for shootout's correctness need. This
+phase extends them to ALL workers as a contention-relief measure if
+N>4 disjoint runs reveal real lock pressure on the shared worktree's
+index. `git worktree add` per worker; commit thread becomes a fan-in
+across worktrees. Largest change in the plan; only land if the simpler
+shared-tree model demonstrably bottlenecks at higher N.
 
 ## Risks
 
