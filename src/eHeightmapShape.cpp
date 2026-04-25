@@ -82,9 +82,49 @@ struct CollideVtableEntry {
 
 extern "C" void eHeightmapShape_eHeightmapShape(eHeightmapShape *, cBase *);
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                  const cType *, cBase *(*)(cMemPool *, cBase *),
+                                  const char *, const char *, unsigned int);
+};
+
+extern const char eHeightmapShape_type_name[];
+extern const char eHeightmapShape_type_desc[];
+
+static cType *type_eHeightmapShape_root;    // 0x385DC (shared base)
+static cType *type_eHeightmapShape_parent;  // 0x40FE4
+static cType *type_eHeightmapShape;         // 0x46A08
+
 float eHeightmapShape::GetVolume(void) const {
     return 0.0f;
 }
+
+// eHeightmapShape::GetProjectedMinMax — 0x001f4d94 (8B stub)
+void eHeightmapShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const {
+}
+
+#pragma control sched=1
+
+// eHeightmapShape::GetType(void) const — 0x001f4cbc
+const cType *eHeightmapShape::GetType(void) const {
+    if (!type_eHeightmapShape) {
+        if (!type_eHeightmapShape_parent) {
+            if (!type_eHeightmapShape_root) {
+                type_eHeightmapShape_root = cType::InitializeType(
+                    eHeightmapShape_type_name, eHeightmapShape_type_desc, 1, 0, 0, 0, 0, 0);
+            }
+            type_eHeightmapShape_parent = cType::InitializeType(
+                0, 0, 0x227, type_eHeightmapShape_root, 0, 0, 0, 0);
+        }
+        type_eHeightmapShape = cType::InitializeType(
+            0, 0, 0x2E7, type_eHeightmapShape_parent,
+            (cBase *(*)(cMemPool *, cBase *))&eHeightmapShape::New, 0, 0, 0);
+    }
+    return type_eHeightmapShape;
+}
+
+#pragma control sched=2
 
 // eHeightmapShape::eHeightmapShape(cBase *) — 0x00050684
 eHeightmapShape::eHeightmapShape(cBase *parent) {

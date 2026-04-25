@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eBoxShape;
 class eCapsuleShape;
 class eCollisionContactInfo;
@@ -21,6 +22,8 @@ class eHeightmapShape {
 public:
     eHeightmapShape(cBase *);
 
+    const cType *GetType(void) const;
+    void GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
