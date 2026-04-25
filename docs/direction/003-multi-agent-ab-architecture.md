@@ -41,9 +41,17 @@ Not exhaustive but representative:
 - **`save_db` is a full-file rewrite** of a ~206K-line JSON. No locking;
   two concurrent saves clobber each other. Typical loss: most-recent
   match-status flip silently reverts.
-- **`git_commit_batch` walks the working tree.** Two sessions writing to
-  the same `Class.cpp` race on the file before either commits; the
-  first session's edits are lost when the second writes.
+- **`_session_dirty_paths()` sweeps the global tree.** This is the
+  current mechanism for catching header edits the agent made. Under
+  concurrent sessions sharing a worktree it's catastrophic: session A
+  finishes, sweeps all dirty `src/**`/`include/**` files, picks up
+  session B's still-in-flight `src/Baz.cpp`, stages and commits it
+  under A's session message. B's work is misattributed and B's
+  subsequent commit may find its files already clean. Bug #4 (operator
+  staged-changes absorbed) is a milder symptom of the same mechanism.
+  The `git_commit_batch` staging itself is fine — it uses explicit
+  `git add -- <path>` per file. The hazard is that the *path list*
+  comes from a global tree-walk, not a per-session ledger.
 - **In-loop counters** (`consecutive_failures`, `total_matched`,
   `consecutive_refusals`) are not atomic; under concurrency, the
   circuit breaker reads stale values and may never trip.
@@ -83,9 +91,9 @@ touch the DB, the git working tree, or the JSONL log file directly.
 
 Three resources, three coordination mechanisms:
 
-- **DB (`config/functions.json`)**: single `threading.RLock`
-  (`db_lock`) on the coordinator thread. `pick_next_batch` +
-  `set_batch_status("in_progress")` runs under the lock. Workers
+- **DB (`config/functions.json`)**: single `threading.Lock` (`db_lock`)
+  on the coordinator thread. Plain `Lock`, not `RLock`: only the
+  coordinator touches the DB, no recursive acquisition. Workers
   receive an immutable snapshot of the batch and the relevant fields;
   on completion they hand a results payload back to the coordinator,
   which applies status changes under the lock. Replace the current
@@ -94,15 +102,36 @@ Three resources, three coordination mechanisms:
 
 - **Git commits**: dedicated commit thread drains a `commit_queue`.
   Workers never call `git_run` mutators. Commit thread runs serially —
-  one commit at a time, in completion order. Documented bug #4
-  (operator-staged-changes absorbed into session commits) is fixed
-  here too: commit thread uses `git commit -- <explicit paths>` rather
-  than `git commit` with an implicit staged set.
+  one commit at a time, in completion order. Each commit stages
+  exactly the files in the session's *declared file ledger* (see
+  below) and runs `git commit -- <ledger paths>`. The
+  `_session_dirty_paths()` global tree-walk goes away; bug #4 is
+  closed by removing the offending mechanism, not by tweaking the
+  commit command.
 
-- **Source files**: `class_locks: dict[str, threading.Lock]`. Each
-  batch holds its class lock for the full lifetime (pick → spawn →
-  verify → commit). The picker filters out classes whose lock is
-  currently held — no spinning, no livelock.
+- **Source-file ownership: per-session file ledger**. The picker
+  computes an *allowed file set* for each batch when it picks the
+  batch — `{src/<Class>.cpp, include/<Class>.h, src/<Class>_*.cpp}`,
+  optionally extended by inspecting the function's call-graph
+  callees' headers if the agent's prompt indicates it'll need to edit
+  them. The worker is told (in the prompt) that it may only modify
+  files in this set. After the agent completes, the worker captures
+  `git status --porcelain` and partitions:
+  - **Files in the allowed set, dirty** → ledger; pass to commit thread.
+  - **Files outside the allowed set, dirty** → quality-gate rejection.
+    Either the agent strayed or the session collided with another
+    worker's allowed set (which class_locks should prevent). Match is
+    marked `failed` with a clear note; out-of-scope edits are reverted.
+
+- **Class-level lock** (`class_locks: dict[str, threading.Lock]`):
+  derived from the allowed file set. Picker filters out classes whose
+  lock is currently held — no spinning, no livelock. Headers in the
+  `include/` set need their own locks so two batches that both depend
+  on `include/cBase.h` don't write it concurrently. In practice
+  `cBase.h`, `cMemPool.h`, and a few other broadly-used headers
+  become contention hot-spots; the worker that holds the lock first
+  wins, the other worker either waits (for short edits) or gets
+  rejected by the file-ledger check (for collisions).
 
 The current `Backend.run_session` shape stays unchanged. Workers call
 it directly; it already uses 2 reader threads + a queue, all
@@ -201,10 +230,30 @@ This is the substrate for all A/B analytics. Not stored in
 `tools/ab_attempts_extract.py` rebuilds it from existing logs as a
 one-time migration; orchestrator writes to it going forward.
 
-**`functions.json` does gain three small fields** for fast queries:
-`matched_by_backend`, `matched_by_session_id`, `matched_at`. These
-reflect *who currently owns the match in main*, not the full attempt
-history.
+**`functions.json` does gain four small fields** for fast queries:
+`matched_by_backend`, `matched_by_session_id`, `matched_by_model`,
+`matched_at`. These reflect *who currently owns the match in main*,
+not the full attempt history.
+
+**Migration backfill** for the ~1240 already-matched entries:
+- All matched entries that pre-date the codex backend get
+  `matched_by_backend = "claude"` (codex commits are date-bounded;
+  trivial to identify by author/`Co-Authored-By` line).
+- Model attribution uses the git history of `tools/common.py` /
+  `tools/orchestrator.py`. Commit `41a4601` (2026-04-20) pinned
+  the orchestrator to opus-4-7 with the title *"Pin overnight
+  orchestrator to Opus 4.7"*. Matches committed before that → best-guess
+  `matched_by_model = "claude-opus-4-6"` (Anthropic's default at the
+  time, no explicit pin). Matches committed at-or-after → `claude-opus-4-7`.
+- `matched_by_session_id` and `matched_at` come from the commit
+  message (`session XXXX`) and commit timestamp.
+- Codex matches: backend `codex`, model `gpt-5.5`, identified by
+  `41a4601`-or-later commits whose committer is `autodecomp` and whose
+  date is after the codex backend landed (`777bf8e`, 2026-04-23).
+
+The migration script (`tools/migrations/backfill_match_attribution.py`)
+walks the git log, parses commit messages, and writes the four fields
+into `functions.json` with one final atomic save.
 
 **`failure_notes` schema enrichment**: each entry adds `backend`,
 `model`, `timestamp`, `variant` alongside the existing
@@ -290,33 +339,72 @@ each:
 
 ### Phase 1 — concurrent dual-backend (smallest end-to-end win)
 
-- Refactor inner loop into `run_one_session(batch, backend)` callable.
-- Add `db_lock: RLock` around every read/write of `functions`. The
-  current `save_db` becomes write-to-tmp + `os.replace`.
-- Wrap picker so it filters out in-progress *classes* (not just
-  functions) — `class_locks` dict.
+This phase is the prerequisite for everything else. Race-freedom is
+the gate, not throughput.
+
+- Refactor the inner session loop into `run_one_session(batch, backend)`
+  callable.
+- Add `db_lock: Lock` around every read/write of `functions`.
+  Replace `save_db` (full-file rewrite) with write-to-tmp +
+  `os.replace`.
+- **Per-session file ledger replaces `_session_dirty_paths()`.** When
+  the picker assigns a batch, it computes the allowed file set
+  (`{src/<Class>.cpp, include/<Class>.h, src/<Class>_*.cpp}`). The
+  worker captures `git status --porcelain` after the agent finishes,
+  partitions dirty files into in-set (the ledger) and out-of-set
+  (rejection). Only the ledger gets staged + committed. Out-of-set
+  edits are reverted (`git checkout -- <path>`) and the match is
+  marked `failed` with a clear note.
+- `class_locks` dict: per-class lock acquired by the picker for each
+  batch's lifetime (pick → spawn → verify → commit → release). Picker
+  filters out classes whose lock is currently held.
+- **Header lock pool**: same `class_locks` dict also keys the headers
+  in the allowed file set. `include/cBase.h` and a few other widely-
+  shared headers will be contended; the picker holds them per-batch
+  and other batches needing them wait or get filtered.
 - `ThreadPoolExecutor(max_workers=2)` with `submit()` + `as_completed()`.
-- Commits stay on the coordinator thread (serialized by the call site,
-  no commit thread yet).
-- Keep TUI single-panel; multi-agent events still tagged with
-  session_id, just fewer renders.
+- Commits stay on the coordinator thread for now (serialized by the
+  call site; commit thread arrives in Phase 2).
+- TUI stays single-panel; multi-agent events still tagged by
+  session_id, the rendering layer just sees one session at a time
+  visually (Phase 4 fixes that).
+
+**Phase 1 race-freedom invariants** (these are the testable claims):
+1. Every modification of `functions.json` happens under `db_lock`.
+2. Every modification of `src/<Class>.cpp` or `include/<Class>.h`
+   happens by exactly one worker, the one holding `class_locks[Class]`
+   for the duration.
+3. Every `git commit` covers exactly one session's ledger; no
+   cross-session attribution leakage.
+4. Out-of-scope file modifications are detected and rejected; they
+   never reach a commit.
 
 Outcome: 2 concurrent agents (claude + codex), provably race-free DB
-+ class file, zero TUI changes. ~150 lines of refactor.
++ class files, zero TUI changes. ~250 lines of refactor (revised up
+from ~150 — the file-ledger work is non-trivial).
 
-### Phase 2 — commit thread + per-attempt log
+### Phase 2 — commit thread + per-attempt log + cost capture
 
-- Extract commit into a thread draining `commit_queue`. Use explicit
-  `git commit -- <paths>` (also closes bug #4).
+- Extract commit into a thread draining `commit_queue`. Each commit
+  stages exactly the session's file ledger (Phase 1) via
+  `git commit -- <ledger paths>`. Bug #4 is fully closed: there's no
+  global tree-walk anymore.
 - Add `logs/attempts.jsonl` writes inside `process_session_results`
   and the verify loop.
 - Backend layer: `usage` AgentEvent kind + `session_usage` log event.
-  `claude.py` reads from the `result` event in stream-JSON;
-  `codex.py` reads from its `token_count` event.
+  `claude.py` reads from the `result` event in stream-JSON
+  (`usage.input_tokens`, `usage.output_tokens`,
+  `usage.cache_read_input_tokens`, `total_cost_usd`); `codex.py` reads
+  from its `token_count` event. Multi-turn sessions accumulate token
+  counts across turns; the final `session_usage` event is the sum.
+- `tools/migrations/backfill_match_attribution.py` writes the four
+  new `matched_by_*` fields onto existing matched DB entries, using
+  git history (commit `41a4601` as the opus-4-6 → opus-4-7 cutoff).
 - One-shot `tools/ab_attempts_extract.py` to backfill historical
-  attempts.jsonl from existing logs.
+  `attempts.jsonl` from existing `match_*.jsonl` logs.
 
-Outcome: per-attempt history exists, cost data flows. Safe at N=3-4.
+Outcome: per-attempt history exists, cost data flows, attribution is
+queryable in the DB without log mining. Safe at N=3-4.
 
 ### Phase 3 — sampling modes + worktrees + reporting tool
 
@@ -331,20 +419,45 @@ isolation primitive that shootout requires, and the reporting tool.
   the worker's assignment.
 - **Per-worker git worktrees, gated by mode.** Disjoint runs (Mode A)
   share the main worktree as today (one commit thread serializes the
-  writes; class_locks prevent file races). Shootout runs (Mode B) and
-  the reserved-slice workers in Mode C **must** have isolated worktrees
-  — otherwise both backends' edits to the same `Class.cpp` collide.
-  Implemented via `git worktree add overnight-worktree-<slot> <branch>`
-  at run start; torn down on run end. The commit thread becomes
-  worktree-aware.
+  writes; class_locks + the file ledger prevent file races). Shootout
+  runs (Mode B) and the reserved-slice workers in Mode C **must** have
+  isolated worktrees — otherwise both backends' edits to the same
+  `Class.cpp` collide.
+
+  **Branch layout for shootout:**
+  - Main run branch: `overnight/<ts>` (as today).
+  - Per-`(backend, model)` shootout branch: `overnight/<ts>/<backend>-<modeltag>`,
+    e.g. `overnight/20260425-220000/codex-gpt-5_5`. Created from the
+    main run-branch HEAD at run start.
+  - Each shootout worker's worktree:
+    `overnight-worktree-<backend>-<modeltag>` checked out at the
+    shootout branch.
+  - Shootout commits land on the shootout branches only — never on
+    the main run-branch. The main run-branch only ever sees disjoint
+    commits and (later) promoted winners.
+
+  Worktrees are torn down on run end (`git worktree remove`).
 - `--shootout` and `--paired-reserve N` CLI flags select Modes B and C.
 - `tools/ab_report.py` consumes `attempts.jsonl`. Per-mode analysis:
   - Disjoint slice → two-proportion z, Welch's t, Wilson CIs.
   - Shootout slice → McNemar's exact + paired bootstrap.
   - Mode C combines both reports.
-- `tools/ab_promote.py` (optional, ships with this phase) inspects
-  shootout results and writes the chosen winner's match into the main
-  branch. Manual default — no auto-promote.
+- `tools/ab_promote.py` (ships with this phase). Reads shootout
+  results from `attempts.jsonl` and the per-backend shootout branches.
+  For each function in the reserved/shootout set:
+  - Both backends matched → operator picks (or `--prefer claude`
+    flag); chosen backend's commit is `git cherry-pick`-ed onto the
+    main run-branch.
+  - Exactly one backend matched → that one's commit is cherry-picked.
+  - Neither matched → function stays untried; both shootout branches
+    keep their `failed` records for analytics.
+  - The cherry-pick brings both the src changes AND the
+    `functions.json` updates the shootout commit produced. The
+    coordinator re-applies its `db_lock`-guarded merge to ensure no
+    duplicate `matched_by_*` writes if the function got cherry-picked
+    twice. Default operation: manual; the tool prints a summary and
+    asks for confirmation. `--auto-prefer <backend>` flag for batched
+    promotion when the operator is okay with a default winner.
 
 Outcome: rigorous A/B numbers from a single run; promotion-grade
 verdicts from a 3-5 run aggregate; production throughput preserved by
@@ -358,10 +471,19 @@ below) is a separate concern.
 
 ### Phase 4 — multi-agent TUI
 
+Phase 4 has no hard dependency on Phase 3 — it could ship before
+or in parallel with it. The dependency is on Phase 1 only (the
+backend emits per-session events). Order based on whichever is the
+operator-visibility bottleneck at the time.
+
 - `RunState.slots` + per-slot deques.
-- Tiled layout for N=2..4; spotlight for N≥5.
+- Tiled layout for N=1..4. The first 4 slots get tiles; if N>4, slots
+  5+ are pooled into a single one-line "+N more" status strip at the
+  bottom of the tile area, listing each as
+  `[A5 codex/5.5] on: foo() · 2m12s`. No spotlight mode in this phase
+  per direction; revisit only if operators ask.
 - Identity 2-axis coloring (backend×model).
-- Per-slot live indicators with Wilson CIs.
+- Per-slot live indicators with Wilson CIs under each scoreboard row.
 - `tools/ui/dev/demo_stream.py` multi-agent variant for development.
 - Mode-aware status: indicator in the run-status panel showing whether
   this run is disjoint / shootout / hybrid.
@@ -381,12 +503,38 @@ shared-tree model demonstrably bottlenecks at higher N.
 
 - **API rate limits cluster the failures across workers.** Per-backend
   semaphore (start at 1 for codex, 2 for claude); on rate-limit
-  detection, mark the backend "cooling" for 60s and skip in the picker.
+  detection, mark the backend "cooling" for 60s and skip in the
+  picker. Simpler-is-better resolution adopted: when one backend
+  cools, its share drops and `ab_report.py` weights its metrics by
+  attempts attempted, not by allocated share. No re-balancing logic.
 - **Same-class livelock**: picker filters out locked classes *before*
   candidate sort, not after. Sleep 5s if no eligible batch.
 - **Worker hangs on a stuck child**: outer future timeout
-  (`session_timeout + 60s`) force-cancels, releases class lock, reverts
-  in_progress.
+  (`session_timeout + 60s`) force-cancels, releases class + header
+  locks, reverts in_progress, reverts any uncommitted ledger files.
+- **Cross-class header dependencies.** `Foo::method` may need to add
+  a forward decl to `include/Bar.h`. Class-level locking on Bar
+  doesn't protect because the active worker holds Foo's lock.
+  Mitigation: the file ledger includes `include/Bar.h` if it's in
+  Foo's call-graph callees' header set (computed at pick time), and
+  the corresponding header lock is acquired alongside the class lock.
+  Headers shared by many classes (`include/cBase.h`, `include/cMemPool.h`)
+  become serialization points — acceptable, since header edits are
+  rare in matched sessions.
+- **Thin strata in stratified assignment.** A stratum with 1 function
+  can't be split between backends; it'd go to whichever drew first.
+  Mitigation: at schedule-build time, merge any stratum with <4
+  functions into the next-larger size_bucket. Documented as a
+  schedule-builder behavior, not a separate fix.
+- **Multi-turn cost capture**. Both backends emit per-turn token
+  usage. The orchestrator accumulates across turns in
+  `Backend.run_session` and emits one `session_usage` event at
+  session end with the sum. `cost_usd` is computed from the model's
+  rate card (claude: $/Mtok input + $/Mtok output + cache discount;
+  codex: similar). Rate cards live in `tools/backends/<name>.py` as a
+  small const. Multi-turn detail isn't preserved in `attempts.jsonl`
+  — only the summed totals. If per-turn analysis is later needed, a
+  separate `turns.jsonl` can be added.
 - **TUI sees interleaved sessions**: ring buffers per slot solve
   narrative chaos; orch_note prefixed `[A#]` when its text references a
   session_id detectable by regex.
@@ -399,24 +547,37 @@ shared-tree model demonstrably bottlenecks at higher N.
 These are the things this plan doesn't yet answer; flag them as the
 implementation goes.
 
-1. **Schedule fairness when one backend rate-limits.** If codex cools
-   for 60s mid-run, its share of the schedule drops. Should the picker
-   re-balance to keep the comparison fair, or accept the imbalance and
-   weight the analytics by attempt count?
+1. **Phase 4 vs Phase 3 ordering.** Phase 4 (TUI) has no technical
+   dependency on Phase 3 (modes + worktrees). They can ship in either
+   order or in parallel. Decide based on whichever is the
+   operator-visibility bottleneck at the time.
 
-2. **Shootout cost vs value.** Paired runs double API spend on the
-   reserved slice. Is 50 functions × 3 runs/week worth ~$X/week for
-   McNemar-quality data? Set a budget threshold.
+2. **Header lock granularity in practice.** Whether `include/cBase.h`
+   becomes a contention bottleneck at N=2 or whether class-method
+   matches rarely touch it. Re-evaluate after Phase 1 is running for a
+   few sessions; if shared-header contention is rare in real workload,
+   the plan stands. If common, consider a finer-grained mechanism
+   (per-symbol locks within a header, or copy-on-write headers per
+   session merged at commit).
 
-3. **DB schema migration on the running tree.** Adding
-   `matched_by_backend` to `functions.json` is a one-time backfill.
-   The migration script needs to handle the case where a function
-   matched in 2025 doesn't have backend attribution available — leave
-   `null`, or assign `claude` (the only backend used pre-codex)?
+3. **`ab_promote.py` cherry-pick conflicts.** A cherry-pick from a
+   shootout branch could conflict if the same function was also
+   matched on the disjoint slice (shouldn't normally happen — schedule
+   keeps them disjoint — but defensive). On conflict, the tool aborts
+   with a clear error and asks the operator to pick manually.
 
-4. **TUI N>4 ergonomics**: spotlight + collapsed strips is one option;
-   tabbed (number-key to switch) is another. No live data on which
-   operators actually need yet.
+### Decisions made (resolved by operator, not yet implemented)
+
+- **Schedule fairness on rate-limit**: simpler — accept imbalance,
+  weight analytics by attempts attempted.
+- **Shootout cost**: not a constraint; subscriptions cover usage.
+  Drop the budget threshold concern.
+- **DB migration null backend**: backfill all pre-codex matches as
+  `claude`. For model attribution, use commit `41a4601` (2026-04-20
+  "Pin overnight orchestrator to Opus 4.7") as the cutoff: pre-cutoff
+  matches → `claude-opus-4-6`, post-cutoff → `claude-opus-4-7`.
+- **TUI N>4**: show first 4 in tiles, additional slots collapse into
+  a single one-line "+N more" strip. No spotlight, no tabs.
 
 ## What this doc replaces / supersedes
 
