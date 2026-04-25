@@ -83,3 +83,15 @@ for f in db:
     if stored and sym and stored != sym:
         print(f['address'], f['name'], '|', stored, 'vs', sym)
 ```
+
+## 4. Orchestrator's git_commit_batch absorbs operator-staged changes into session commits
+
+**Found:** 2026-04-24 during fix_plan UI work — codex session was running while operator staged unrelated TUI changes. The orchestrator's per-session commit landed with title "Match 2 functions (session XXXX)" but the diff included `tools/ui/state.py` and `tools/ui/screens/running.py` changes that had nothing to do with the matched functions.
+
+**Mechanism:** `tools/orchestrator.py:git_commit_batch` builds a set of files-to-commit (`matched_files | _session_dirty_paths()`), runs `git add` on each, then does a plain `git commit -m "..."`. Anything else the operator had staged at that moment (or files that became staged via `git add` of a file that overlapped with their work) ends up in the same commit.
+
+**Impact:** silent. The matched-function commit includes drive-by changes the agent didn't make. The commit message lies. Two real cases observed in `4972e53` and `481a283` on `overnight/20260424-201228`. No data loss — the changes are persisted, just attributed wrong.
+
+**Fix:** scope the commit to the explicit file list. Replace `git commit -m MSG` with `git commit -m MSG -- <each path>`, OR `git stash --keep-index` before staging + `git stash pop` after committing to isolate the session's staging area.
+
+**Workaround for operators**: don't stage code changes while an overnight run is active. If you must, `git stash` first.
