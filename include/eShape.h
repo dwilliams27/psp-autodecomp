@@ -25,6 +25,12 @@ public:
 
     eShape(cBase *);
 
+    int GetNumSubShapes(void) const;
+    const eShape *GetSubShape(int) const;
+    int IsSubShape(void) const;
+    void *GetSurface(void) const;
+    int CanSweep(void) const;
+
     void Write(cFile &) const;
 
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

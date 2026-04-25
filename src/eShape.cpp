@@ -24,6 +24,26 @@ extern "C" {
     void free(void *);
 }
 
+int eShape::GetNumSubShapes(void) const {
+    return 1;
+}
+
+const eShape *eShape::GetSubShape(int) const {
+    return this;
+}
+
+int eShape::IsSubShape(void) const {
+    return *((const unsigned char *)this + 0x50);
+}
+
+void *eShape::GetSurface(void) const {
+    return *(void **)((const char *)this + 0x6C);
+}
+
+int eShape::CanSweep(void) const {
+    return 0;
+}
+
 int eShape::Collide(const eSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::GenericConvexCollide(this, (const eShape *)shape, ocs1, ocs2, info);
 }
