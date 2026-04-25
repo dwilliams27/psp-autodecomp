@@ -2,9 +2,16 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cName;
 class cType;
+
+// Forward decl with the static method so operator delete can call it inline.
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+extern "C" void free(void *);
 class eCamera;
 class eDynamicGeom;
 class mFrustum;
@@ -37,14 +44,29 @@ template <class T> class cHandleT;
 // Struct size: at least 0xCC (from last VFPU store at +0xC0)
 class eGeom {
 public:
+    static eGeom *s_pFirstUpdate;
     eGeom(cBase *);
+    ~eGeom();
+    void SetGeomFlagsOnOff(unsigned int, unsigned int);
+    int Read(cFile &, cMemPool *);
     char _eGeomPad[0x90];
 };
 
 class eDynamicGeom : public eGeom {
 public:
+    struct _DelRec { short offset; short pad; void (*fn)(void *, void *); };
     eDynamicGeom(cBase *);
     ~eDynamicGeom();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            _DelRec *rec = (_DelRec *)(((char **)block)[7] + 0x30);
+            rec->fn(block + rec->offset, p);
+        } else {
+            free(p);
+        }
+    }
 
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);

@@ -25,11 +25,82 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 void eGeom_Write(const void *, cFile &);
+
+int eDynamicGeom::GetSubObjectIndex(const cName &, int) const {
+    return -1;
+}
 
 void eDynamicGeom::SetDynamicGeomFlagsOnOff(unsigned int on, unsigned int off) {
     mGeomType |= on;
     mGeomType &= ~off;
+}
+
+void eDynamicGeom::SetGeomFlagsOnOff(unsigned int on, unsigned int off) {
+    eGeom::SetGeomFlagsOnOff(on, off);
+    eDynamicGeom *child = (eDynamicGeom *)mFieldE0;
+    if (on & 4) {
+        mGeomType |= 0x10;
+    }
+    if (child != 0) {
+        do {
+            UpdateChildFlags(child, on, off);
+            child = (eDynamicGeom *)child->mFieldE8;
+        } while (child != (eDynamicGeom *)mFieldE0);
+    }
+}
+
+void eDynamicGeom::InvalidateChildrenLocalToWorld(void) {
+    eDynamicGeom *child = (eDynamicGeom *)mFieldE0;
+    do {
+        unsigned char flag = *(unsigned char *)((char *)child + 0x8C);
+        if (!(flag & 4)) {
+            *(unsigned char *)((char *)child + 0x8C) = (unsigned char)(flag | 4);
+            if (*(int *)((char *)child + 0x64) != 0
+                && (*(void **)((char *)child + 0x80) == 0
+                    || *(void **)((char *)child + 0x84) == 0)) {
+                eGeom *head = eGeom::s_pFirstUpdate;
+                if (head != 0) {
+                    *(void **)((char *)child + 0x80) = *(void **)((char *)head + 0x80);
+                    *(void **)((char *)child + 0x84) = eGeom::s_pFirstUpdate;
+                    (*(void ***)((char *)child + 0x80))[33] = child;
+                    (*(void ***)((char *)child + 0x84))[32] = child;
+                } else {
+                    eGeom::s_pFirstUpdate = (eGeom *)child;
+                    *(void **)((char *)child + 0x84) = child;
+                    *(void **)((char *)child + 0x80) = child;
+                }
+            }
+        }
+        *(unsigned char *)((char *)child + 0xD2) = (unsigned char)(*(unsigned char *)((char *)child + 0xD2) | 0x10);
+        child = (eDynamicGeom *)child->mFieldE8;
+    } while (child != (eDynamicGeom *)mFieldE0);
+}
+
+eDynamicGeom::~eDynamicGeom() {
+    *(void **)((char *)this + 4) = eDynamicGeomvirtualtable;
+    Detach();
+    DetachChildren();
+}
+
+int eDynamicGeom::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || !((eGeom *)this)->Read(file, pool)) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    return result;
 }
 
 void eDynamicGeom::DetachChildren(void) {
