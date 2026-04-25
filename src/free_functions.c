@@ -112,10 +112,6 @@ void *cType_cType(void *self) {
     return self;
 }
 
-int eSoundData_GetNumExternalDependencies(const void *self) {
-    return ((_Bool)(*(const short *)((const char *)self + 28) == 0)) == 0;
-}
-
 void *eInput_eButtonState_eButtonState(int *self) {
     self[3] = 0;
     self[4] = 0;
