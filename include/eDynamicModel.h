@@ -1,6 +1,7 @@
 #ifndef EDYNAMICMODEL_H
 #define EDYNAMICMODEL_H
 
+class cBase;
 class cMemPool;
 class cFile;
 class cTimeValue;
@@ -17,6 +18,8 @@ struct mOCS;
 
 class eDynamicModel {
 public:
+    eDynamicModel(cBase *);
+    static cBase *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
     void OnRemovedFromWorld(void);
     bool NeedsSkinning(const eDynamicMesh *, int, int *) const;
@@ -29,7 +32,8 @@ public:
     void CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
     void *GetAnimationState(void) const;
     void ClearPartialAnimationController(int);
-    void SetSkin(cHandleT<eSkin>, int, cHandleT<eSkin>, cTimeValue);
+    int GetSkinIndex(void) const;
+    void SetSkin(cHandleT<eSkin>, int, int, cTimeValue);
     void SetMaterialSet(int, cTimeValue);
     void SetSurfaceSet(int);
 };

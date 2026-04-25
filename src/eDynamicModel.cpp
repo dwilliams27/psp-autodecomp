@@ -16,6 +16,18 @@ public:
 };
 
 class cFile;
+class cBase;
+class cMemPool;
+
+extern "C" {
+    void eDynamicModel__eDynamicModel_cBaseptr(void *self, cBase *parent);
+}
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 void eDynamicGeom_Write(const void *, cFile &);
 
@@ -72,11 +84,34 @@ void eDynamicModel::Write(cFile &file) const {
     wb.End();
 }
 
-void eDynamicModel::SetSkin(cHandleT<eSkin> skin1, int type, cHandleT<eSkin> skin2, cTimeValue time) {
+void eDynamicModel::SetSkin(cHandleT<eSkin> skin1, int type, int skin2, cTimeValue time) {
     *(cHandleT<eSkin> *)((char *)this + 0xFC) = skin1;
     SetMaterialSet(type, time);
-    SetSurfaceSet(skin2.mHandle);
+    SetSurfaceSet(skin2);
 }
+
+#pragma control sched=2
+
+int eDynamicModel::GetSkinIndex(void) const {
+    void *obj = *(void **)((char *)this + 0x60);
+    if (obj == 0) return -1;
+    int i = 0;
+    __asm__ volatile("" ::: "memory");
+    int *arr = *(int **)((char *)obj + 0x4C);
+    int byteOff = 0;
+    while (1) {
+        int len = 0;
+        if (arr != 0) len = *((int *)((char *)arr - 4)) & 0x3FFFFFFF;
+        if (i >= len) return -1;
+        if ((unsigned char)(*(int *)((char *)arr + byteOff) == *(int *)((char *)this + 0xFC))) {
+            return i;
+        }
+        ++i;
+        byteOff += 4;
+    }
+}
+
+#pragma control sched=1
 
 void *eDynamicModel::GetAnimationState(void) const {
     void *p = *(void **)((char *)this + 0x124);
@@ -192,4 +227,21 @@ eDynamicMesh::eDynamicMesh(cBase *parent) : cObject(parent) {
     *(float *)((char *)this + 0x50) = 1024.0f;
     __asm__ volatile("" ::: "memory");
     *(float *)((char *)this + 0x54) = 0.0009765625f;
+}
+
+#pragma control sched=2
+
+cBase *eDynamicModel::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    eDynamicModel *obj = (eDynamicModel *)rec->fn(base, 0x150, 0x10, 0, 0);
+    eDynamicModel *result = 0;
+    if (obj != 0) {
+        eDynamicModel__eDynamicModel_cBaseptr(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
