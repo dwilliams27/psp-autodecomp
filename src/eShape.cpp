@@ -44,6 +44,24 @@ int eShape::CanSweep(void) const {
     return 0;
 }
 
+int eShape::GetCollisionHandler(const mCollideInfo &) const {
+    return 0;
+}
+
+int eShape::GetCollisionHandler(const mVec3 &) const {
+    return 0;
+}
+
+void eShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *min, float *max) const {
+    *max = 0.0f;
+    *min = 0.0f;
+}
+
+int eShape::NeedsRollingFriction(float *out) const {
+    *out = 0.0f;
+    return 0;
+}
+
 int eShape::Collide(const eSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::GenericConvexCollide(this, (const eShape *)shape, ocs1, ocs2, info);
 }

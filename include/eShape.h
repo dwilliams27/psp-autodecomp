@@ -13,6 +13,8 @@ class eMeshShape;
 class eHeightmapShape;
 class eCollisionContactInfo;
 class mOCS;
+class mVec3;
+class mCollideInfo;
 
 // eShape base class for all collision shapes.
 // Layout inferred from eShape::GetSurface (+0x6C), eCompoundShape ctor
@@ -30,6 +32,11 @@ public:
     int IsSubShape(void) const;
     void *GetSurface(void) const;
     int CanSweep(void) const;
+
+    int GetCollisionHandler(const mCollideInfo &) const;
+    int GetCollisionHandler(const mVec3 &) const;
+    void GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const;
+    int NeedsRollingFriction(float *) const;
 
     void Write(cFile &) const;
 
