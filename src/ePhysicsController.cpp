@@ -25,6 +25,8 @@ public:
     ~cReadBlock(void);
 };
 
+struct mVec3;
+
 class ePhysicsController {
 public:
     cBase *mOwner;
@@ -36,6 +38,12 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+
+    void ApplyUnembedImpulse(int, const mVec3 &);
+    void SnapConstraints(void);
+    void OnSnappedTo(void);
+    int GetCollisionMask(void) const;
+    void SetCollisionMask(unsigned int);
 };
 
 extern char ePhysicsControllerclassdesc[];
@@ -98,6 +106,23 @@ extern "C" void ePhysicsController___dtor_ePhysicsController_void(ePhysicsContro
             }
         }
     }
+}
+
+// --- trivial virtual stubs ---
+void ePhysicsController::ApplyUnembedImpulse(int, const mVec3 &) {
+}
+
+void ePhysicsController::SnapConstraints(void) {
+}
+
+void ePhysicsController::OnSnappedTo(void) {
+}
+
+int ePhysicsController::GetCollisionMask(void) const {
+    return 0;
+}
+
+void ePhysicsController::SetCollisionMask(unsigned int) {
 }
 
 // --- GetType ---
