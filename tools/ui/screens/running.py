@@ -139,6 +139,14 @@ class RunningScreen(Screen):
         state.orch_log.append(
             _ts() + f"session {sid} done · {m} matched, {f} failed · {mm}m{ss:02d}s"
         )
+        # Backfill the per-function duration on outcomes from this session
+        # — orchestrator emits function_result before session_done so the
+        # outcomes are already in the deque at this point. With batch_size=1
+        # this is per-function; for larger batches every function from the
+        # batch shares the session duration.
+        for o in state.outcomes:
+            if o.get("session_id") == sid and o.get("duration_s") is None:
+                o["duration_s"] = dur_s
         state.current_session_sid = None
         state.current_session_variant = None
         state.current_addr_to_name = {}
@@ -153,6 +161,10 @@ class RunningScreen(Screen):
             "name": event.get("name", "?"),
             "size": event.get("size", 0),
             "variant": variant,
+            "session_id": event.get("session_id"),
+            # Stamped by _on_session_done since orchestrator emits
+            # function_result before session_done in the same batch.
+            "duration_s": None,
         }
         state.outcomes.appendleft(outcome)
 
@@ -173,6 +185,8 @@ class RunningScreen(Screen):
             "name": event.get("name", "?"),
             "size": event.get("size", 0),
             "variant": variant,
+            "session_id": event.get("session_id"),
+            "duration_s": None,
         })
         state.orch_log.append(
             _ts()
@@ -500,6 +514,7 @@ class RunningScreen(Screen):
             tbl.add_column(style=BODY, ratio=1)
             tbl.add_column(justify="left", width=40)
             tbl.add_column(style=MOSS, justify="right", width=10)
+            tbl.add_column(style=DIM, justify="right", width=4)
             for o in state.outcomes:
                 st = o["status"]
                 if st == "matched":
@@ -510,12 +525,15 @@ class RunningScreen(Screen):
                     glyph, label, color = "\u26A0", "verify", WARN
                 else:
                     glyph, label, color = "\u00b7", st, DIM
+                dur_s = o.get("duration_s")
+                dur_cell = f"{round(dur_s / 60)}m" if dur_s is not None else ""
                 tbl.add_row(
                     Text(glyph, style=f"bold {color}"),
                     Text(label, style=color),
                     o["name"],
                     size_cell(o["size"]),
                     o["variant"],
+                    dur_cell,
                 )
             content = tbl
         return Panel(content, border_style=MOSS, box=ROUNDED,
