@@ -11,6 +11,32 @@ class eCollisionContactInfo;
 
 extern char eCylinderShapevirtualtable[];
 
+// dcast template, used by AssignCopy (linker-resolved per-type instantiation).
+template <class T> T *dcast(const cBase *);
+
+// cType — class registry entry; lazy-initialized via cType::InitializeType.
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                  const cType *, cBase *(*)(cMemPool *, cBase *),
+                                  const char *, const char *, unsigned int);
+};
+
+extern const char eCylinderShape_type_name[];
+extern const char eCylinderShape_type_desc[];
+
+static cType *type_eCylinderShape_root;    // 0x385DC (shared cBase root string)
+static cType *type_eCylinderShape_parent;  // 0x40FE4 (shared eShape parent)
+static cType *type_eCylinderShape;         // 0x46BE8 (this class)
+
+// Joint vtable entry — joint cleanup in ~eCylinderShape() dispatches via
+// joint->vtable[0x50] passing the joint adjusted-this and a fixed kind=3.
+struct JointVtableEntry {
+    short adjust;
+    short pad;
+    void (*fn)(void *self, int kind);
+};
+
 // cWriteBlock helper — same layout as used by other shape Write() functions
 class cWriteBlock {
 public:
@@ -147,3 +173,133 @@ eCylinderShape *eCylinderShape::New(cMemPool *pool, cBase *parent) {
     return result;
 }
 #pragma control sched=2
+
+// eCylinderShape::AssignCopy(const cBase *) — 0x0020db2c
+struct ecs_block_18 { int _[6]; };  // 24-byte block at offset 0x54
+#pragma control sched=1
+void eCylinderShape::AssignCopy(const cBase *src) {
+    eCylinderShape *other = dcast<eCylinderShape>(src);
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(v4sf_t *)((char *)other + 0x30);
+    *(unsigned char *)((char *)this + 0x50) = *(unsigned char *)((char *)other + 0x50);
+    __asm__ volatile("" ::: "memory");
+    *(ecs_block_18 *)((char *)this + 0x54) = *(ecs_block_18 *)((char *)other + 0x54);
+    *(int *)((char *)this + 0x6C) = *(int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(float *)((char *)other + 0x78);
+    mRadius = other->mRadius;
+    mHalfHeight = other->mHalfHeight;
+    _unk88 = other->_unk88;
+}
+#pragma control sched=2
+
+// eCylinderShape::GetType(void) const — 0x0020dc68
+#pragma control sched=1
+const cType *eCylinderShape::GetType(void) const {
+    if (!type_eCylinderShape) {
+        if (!type_eCylinderShape_parent) {
+            if (!type_eCylinderShape_root) {
+                type_eCylinderShape_root = cType::InitializeType(
+                    eCylinderShape_type_name, eCylinderShape_type_desc, 1, 0, 0, 0, 0, 0);
+            }
+            type_eCylinderShape_parent = cType::InitializeType(
+                0, 0, 0x227, type_eCylinderShape_root, 0, 0, 0, 0);
+        }
+        type_eCylinderShape = cType::InitializeType(
+            0, 0, 0x22B, type_eCylinderShape_parent,
+            (cBase *(*)(cMemPool *, cBase *))&eCylinderShape::New, 0, 0, 0);
+    }
+    return type_eCylinderShape;
+}
+#pragma control sched=2
+
+// eCylinderShape::NeedsRollingFriction(float *) const — 0x0020de04
+#pragma control sched=1
+int eCylinderShape::NeedsRollingFriction(float *out) const {
+    *out = mRadius;
+    __asm__ volatile("" ::: "memory");
+    return 1;
+}
+#pragma control sched=2
+
+// eCylinderShape::GetProjectedMinMax(...) const — 0x0020dd40
+//
+// Computes [outMin, outMax] = projection of this cylinder onto axis (in world
+// space) given its OCS. The cylinder axis is ocs.row2; origin is ocs.position.
+// Half-extent along axis ⋅ outAxis comes from h * (ocsZ · axis); radial
+// half-extent from r * |axis - ocsZ * (ocsZ · axis)|. Combine: min/max of
+// the two cap-center projections ± r * perp.
+void eCylinderShape::GetProjectedMinMax(const mVec3 &axis, const mOCS &ocs,
+                                        float *outMin, float *outMax) const {
+    float perp;
+    int   bits;
+    float top_proj;
+    float bot_proj;
+    float r = mRadius;
+    float h = mHalfHeight;
+
+    __asm__ volatile(
+        "lv.q    C120, 0(%2)\n"
+        "lv.q    C130, 0x20(%3)\n"
+        "vdot.t  S100, C120, C130\n"
+        "mfv     %1, S100\n"
+        "mtc1    %1, $f12\n"
+        "mfc1    %1, $f12\n"
+        "mtv     %1, S100\n"
+        "vscl.t  C120, C130, S100\n"
+        "lv.q    C200, 0(%2)\n"
+        "vsub.t  C120, C200, C120\n"
+        "vdot.t  S100, C120, C120\n"
+        "vsqrt.s S100, S100\n"
+        "mfv     %0, S100\n"
+        : "=r"(perp), "=&r"(bits)
+        : "r"(&axis), "r"(&ocs)
+        : "memory", "$f12"
+    );
+
+    float r_perp = perp * r;
+
+    __asm__ volatile(
+        "mfc1    %0, %2\n"
+        "mtv     %0, S100\n"
+        "lv.q    C120, 0x30(%3)\n"
+        "vscl.t  C210, C130, S100\n"
+        "vadd.t  C210, C120, C210\n"
+        "vdot.t  S100, C210, C200\n"
+        "mfv     %0, S100\n"
+        "mtc1    %0, %1\n"
+        : "=&r"(bits), "=f"(top_proj)
+        : "f"(h), "r"(&ocs)
+        : "memory"
+    );
+
+    float topMin = top_proj - r_perp;
+    float topMax = top_proj + r_perp;
+
+    __asm__ volatile(
+        "neg.s   $f12, %2\n"
+        "mfc1    %0, $f12\n"
+        "mtv     %0, S100\n"
+        "vscl.t  C130, C130, S100\n"
+        "vadd.t  C120, C120, C130\n"
+        "vdot.t  S100, C120, C200\n"
+        "mfv     %0, S100\n"
+        "mtc1    %0, %1\n"
+        : "=&r"(bits), "=f"(bot_proj)
+        : "f"(h)
+        : "memory", "$f12"
+    );
+
+    float botMin = bot_proj - r_perp;
+    float botMax = bot_proj + r_perp;
+
+    float lo = botMin;
+    if (topMin < botMin) lo = topMin;
+    *outMin = lo;
+    float hi = botMax;
+    if (!(topMax <= botMax)) hi = topMax;
+    *outMax = hi;
+}
