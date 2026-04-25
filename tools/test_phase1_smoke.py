@@ -128,7 +128,7 @@ def _make_fake_run_session(observed_classes, lock,
         # session_id so the stub can look up what to claim.
         info = _PENDING_BATCHES.get(session_id)
         if info is None:
-            return False, "test stub: no pending batch info for session"
+            return False, "test stub: no pending batch info for session", {}
 
         batch, allowed_paths = info["batch"], info["allowed_paths"]
         # Write each allowed src/.cpp file with a single fake C++ method
@@ -185,7 +185,7 @@ def _make_fake_run_session(observed_classes, lock,
         with lock:
             observed_classes.pop(session_id, None)
 
-        return True, None
+        return True, None, {"had_usage_data": False}
 
     return fake
 

@@ -18,6 +18,26 @@ from .base import (
 class ClaudeBackend(Backend):
     name = "claude"
 
+    # Per-Mtok USD pricing. Fallback when `result` lacks
+    # total_cost_usd; normally the CLI's native cost wins.
+    RATE_CARD = {
+        "claude-opus-4-7": {
+            "input_per_mtok": 15.0,
+            "output_per_mtok": 75.0,
+            "cache_read_per_mtok": 1.50,
+        },
+        "claude-opus-4-6": {
+            "input_per_mtok": 15.0,
+            "output_per_mtok": 75.0,
+            "cache_read_per_mtok": 1.50,
+        },
+        "claude-sonnet-4-6": {
+            "input_per_mtok": 3.0,
+            "output_per_mtok": 15.0,
+            "cache_read_per_mtok": 0.30,
+        },
+    }
+
     def __init__(self, model: str = CLAUDE_MODEL, system_append: str = ""):
         super().__init__(model=model, system_append=system_append)
 
@@ -77,4 +97,21 @@ class ClaudeBackend(Backend):
                             is_error=is_error,
                             text=text,
                         ))
+        elif mtype == "result":
+            # Claude bills uncached input at the full rate and
+            # cache-read tokens at a discount; we forward the sum as
+            # input_tokens so compute_cost can split the bill via the
+            # cached_tokens carve-out when total_cost_usd is missing.
+            usage = msg.get("usage") or {}
+            uncached = int(usage.get("input_tokens") or 0)
+            cached = int(usage.get("cache_read_input_tokens") or 0)
+            output = int(usage.get("output_tokens") or 0)
+            cost = msg.get("total_cost_usd")
+            events.append(AgentEvent(
+                kind="usage",
+                input_tokens=uncached + cached,
+                output_tokens=output,
+                cached_tokens=cached,
+                cost_usd=float(cost) if cost is not None else None,
+            ))
         return events

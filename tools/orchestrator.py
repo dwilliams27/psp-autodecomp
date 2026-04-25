@@ -18,6 +18,7 @@ import glob
 import importlib
 import json
 import os
+import queue
 import random
 import re
 import subprocess
@@ -26,7 +27,7 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Set
 
 from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
@@ -51,7 +52,6 @@ FREE_CLASS_KEY = "<free>"
 # these to drive the circuit breaker and backoff. Constants beat raw
 # strings because typos here become silent miscategorization.
 OUTCOME_SUCCESS = "success"
-OUTCOME_GIT_ERROR = "git_error"
 OUTCOME_REFUSAL = "refusal"
 OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
@@ -69,6 +69,9 @@ class FunctionDecision:
     src_file: Optional[str] = None
     symbol_name: Optional[str] = None
     failure_note: Optional[str] = None
+    claimed_status: Optional[str] = None
+    verify_reason: Optional[str] = None
+    rejected_extern_c: bool = False
 
 
 @dataclass
@@ -96,10 +99,12 @@ class WorkContext:
 class SessionOutcome:
     """Worker → coordinator return payload. Worker is read-only on the
     DB; the coordinator applies `decisions` under db_lock and runs the
-    git commit.
+    git commit. `session_usage` is empty when no usage events were
+    captured (prep_error, agent crash before first turn).
     """
     session_id: str
     backend_name: str
+    backend_model: str
     variant: str
     batch: List[dict]
     classes: Set[str]
@@ -117,6 +122,7 @@ class SessionOutcome:
     matched_files: Set[str] = field(default_factory=set)
     ledger_paths: Set[str] = field(default_factory=set)
     out_of_scope_paths: Set[str] = field(default_factory=set)
+    session_usage: dict = field(default_factory=dict)
 
 BATCH_SIZE = 5
 TARGETS_BATCH_SIZE = 2
@@ -136,6 +142,7 @@ TRANSITION_ZONE_START = 0x040000
 TRANSITION_ZONE_END = 0x06e000
 LOGS_DIR = "logs"
 SESSION_RESULTS_DIR = "logs/session_results"
+ATTEMPTS_LOG = "logs/attempts.jsonl"
 GIT = "git"
 
 
@@ -188,6 +195,116 @@ def log_event(log_path, event):
     event["timestamp"] = datetime.now().isoformat()
     with open(log_path, "a") as f:
         f.write(json.dumps(event) + "\n")
+
+
+# Lock guards a single open(..., "a") write so concurrent workers'
+# attempts.jsonl appends interleave on whole records, not on bytes.
+_ATTEMPTS_LOCK = threading.Lock()
+
+
+def append_attempts(records, path=ATTEMPTS_LOG):
+    """Append per-(session, function) records to logs/attempts.jsonl
+    (direction-003 §3). The lock makes concurrent appends line-atomic.
+    """
+    if not records:
+        return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with _ATTEMPTS_LOCK, open(path, "a") as f:
+        for rec in records:
+            f.write(json.dumps(rec) + "\n")
+
+
+def _utc_now_iso():
+    """ISO-8601 UTC timestamp with explicit `Z` for migration parity."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _build_attempt_base(session_id, run_id, backend_name, model, variant,
+                       func, session_duration, batch_size):
+    """Common header fields shared by every attempts.jsonl record for a
+    given (session, function). Per-status fields are layered in by the
+    caller — this just centralizes the identity columns so backend/model
+    /variant attribution can't drift between code paths.
+    """
+    return {
+        "ts": _utc_now_iso(),
+        "run_id": run_id,
+        "session_id": session_id,
+        "backend": backend_name,
+        "model": model,
+        "variant": variant,
+        "address": func["address"],
+        "name": func["name"],
+        "class_name": func.get("class_name") or "",
+        "size": func.get("size", 0),
+        "is_leaf": bool(func.get("is_leaf", False)),
+        "obj_file": func.get("obj_file") or "",
+        "session_duration_s": round(session_duration, 3),
+        "session_share_s": round(session_duration / max(1, batch_size), 3),
+    }
+
+
+def _per_attempt_usage_share(session_usage, batch_size):
+    """Split the session's summed token counts evenly across attempts so
+    each attempts.jsonl row carries its share, not the session total.
+    When the backend never emitted usage (refused before first turn,
+    prep_error, etc.), tokens come through as None — distinct from a
+    real-zero session, which the report tool needs to tell apart.
+    """
+    n = max(1, batch_size)
+    had_usage = bool(session_usage.get("had_usage_data"))
+    if not had_usage:
+        return {
+            "input_tokens": None,
+            "output_tokens": None,
+            "cached_tokens": None,
+            "cost_usd": None,
+            "had_usage_data": False,
+        }
+    in_t = int(session_usage.get("input_tokens", 0))
+    out_t = int(session_usage.get("output_tokens", 0))
+    cached_t = int(session_usage.get("cached_tokens", 0))
+    cost = session_usage.get("cost_usd")
+    return {
+        "input_tokens": in_t // n,
+        "output_tokens": out_t // n,
+        "cached_tokens": cached_t // n,
+        "cost_usd": (cost / n) if isinstance(cost, (int, float)) else None,
+        "had_usage_data": True,
+    }
+
+
+def emit_attempts_for_outcome(outcome, run_id, error_kind=None,
+                              path=ATTEMPTS_LOG):
+    """Append one attempts.jsonl record per (session_id, function).
+    `error_kind` (set on the abort path) is the OUTCOME_* string the
+    coordinator attributed the session-level failure to; success sets
+    it None.
+    """
+    decision_by_addr = {d.address: d for d in outcome.decisions}
+    usage_share = _per_attempt_usage_share(
+        outcome.session_usage, len(outcome.batch))
+
+    records = []
+    for func in outcome.batch:
+        rec = _build_attempt_base(
+            outcome.session_id, run_id, outcome.backend_name,
+            outcome.backend_model, outcome.variant, func,
+            outcome.session_duration, len(outcome.batch),
+        )
+        rec.update(usage_share)
+
+        d = decision_by_addr.get(func["address"])
+        rec["claimed_status"] = d.claimed_status if d else None
+        rec["verified_status"] = d.status if d else None
+        rec["verify_reason"] = d.verify_reason if d else None
+        rec["rejected_extern_c"] = bool(d and d.rejected_extern_c)
+        rec["agent_refused"] = bool(outcome.refused)
+        rec["prep_error"] = outcome.prep_error
+        rec["session_error_kind"] = error_kind
+        records.append(rec)
+
+    append_attempts(records, path=path)
 
 
 def set_batch_status(functions, batch, status, addr_index=None):
@@ -647,6 +764,7 @@ def parse_session_results(session_id, batch, log_path, variant, backend_name):
             decisions[addr] = FunctionDecision(
                 address=addr, status="matched",
                 src_file=entry.get("file"),
+                claimed_status="matched",
             )
         else:
             failed += 1
@@ -664,6 +782,8 @@ def parse_session_results(session_id, batch, log_path, variant, backend_name):
             decisions[addr] = FunctionDecision(
                 address=addr, status="failed",
                 failure_note=(notes or None),
+                claimed_status="failed",
+                verify_reason="agent_self_reported_failure",
             )
 
     unreported = []
@@ -702,6 +822,7 @@ def run_one_session(ctx):
     outcome = SessionOutcome(
         session_id=session_id,
         backend_name=backend.name,
+        backend_model=backend.model,
         variant=variant,
         batch=batch,
         classes=ctx.classes,
@@ -730,7 +851,7 @@ def run_one_session(ctx):
 
     session_start = time.time()
     try:
-        success, error_msg = run_session(
+        success, error_msg, session_usage = run_session(
             backend, prompt, session_id,
             log_fn=lambda ev: log_event(log_path, ev),
             variant=variant,
@@ -740,7 +861,9 @@ def run_one_session(ctx):
         outcome.session_duration = time.time() - session_start
         outcome.refused = True
         outcome.refusal_reason = e.reason
+        outcome.session_usage = e.session_usage
         return outcome
+    outcome.session_usage = session_usage
 
     outcome.session_duration = time.time() - session_start
 
@@ -791,6 +914,7 @@ def run_one_session(ctx):
             })
             d.status = "untried"
             d.src_file = None
+            d.verify_reason = "no_src_file_in_session_results"
             continue
 
         try:
@@ -811,6 +935,7 @@ def run_one_session(ctx):
             })
             d.status = "failed"
             d.src_file = None
+            d.verify_reason = "compile_failed"
             continue
         except RuntimeError as e:
             log(f"  VERIFY ERROR: {func['name']} — {e}")
@@ -825,6 +950,7 @@ def run_one_session(ctx):
             })
             d.status = "untried"
             d.src_file = None
+            d.verify_reason = "verify_tooling_error"
             continue
 
         if result.ok:
@@ -854,6 +980,7 @@ def run_one_session(ctx):
         })
         d.status = "failed"
         d.src_file = None
+        d.verify_reason = result.reason
 
     matched_funcs = [f for f in batch
                      if decisions.get(f["address"]) is not None
@@ -882,6 +1009,7 @@ def run_one_session(ctx):
                     d.status = "failed"
                     d.src_file = None
                     d.symbol_name = None
+                    d.verify_reason = "rejected_assembly_only"
                     matched_funcs.remove(func)
                     log(f"    Reverted: {func['name']} → failed (assembly-only source)")
             matched_files -= set(asm_rejected)
@@ -907,6 +1035,8 @@ def run_one_session(ctx):
                 d.src_file = None
                 d.symbol_name = None
                 d.failure_note = reason
+                d.verify_reason = "rejected_extern_c_class_method"
+                d.rejected_extern_c = True
                 matched_funcs.remove(func)
 
     # Phase 1: per-session file ledger replaces _session_dirty_paths().
@@ -951,6 +1081,7 @@ def run_one_session(ctx):
                 d.failure_note = (
                     "match wrote to out-of-scope path; reverted by Phase 1 ledger"
                 )
+                d.verify_reason = "out_of_scope_path"
                 matched_funcs.remove(func)
         matched_files -= out_of_scope
 
@@ -1358,6 +1489,10 @@ def main():
     set_log_path(log_path)
     log(f"Log: {log_path}")
 
+    # run_id groups attempts.jsonl rows back to one orchestrator
+    # invocation — distinct from session_id and the run-branch name.
+    run_id = uuid.uuid4().hex[:12]
+
     functions = load_db()
     addr_index = build_addr_map(functions)
     start_time = datetime.now()
@@ -1372,6 +1507,7 @@ def main():
     primary = args.backends[0]
     log_event(log_path, {
         "event": "run_start",
+        "run_id": run_id,
         "hours": args.hours,
         "deadline": deadline.isoformat(),
         "start_time": start_time.isoformat(),
@@ -1521,14 +1657,54 @@ def main():
         in_flight[future] = ctx
         return True
 
+    # Dedicated commit thread drains commit_queue FIFO. Workers never
+    # hold db_lock while waiting on git, so the next batch can be
+    # picked + verified concurrently with the previous batch's commit.
+    # The thread MUST keep draining on any exception — its death
+    # would silently block shutdown forever via commit_thread.join().
+    commit_queue: queue.Queue = queue.Queue()
+
+    def commit_worker():
+        while True:
+            item = commit_queue.get()
+            try:
+                if item is None:
+                    return
+                sid, mfuncs, mfiles, ledger = item
+                try:
+                    git_commit_batch(sid, mfuncs, mfiles, ledger)
+                except BaseException as e:
+                    import traceback
+                    log(f"  COMMIT THREAD ERROR (matching saved, commit deferred): "
+                        f"{type(e).__name__}: {e}")
+                    log_event(log_path, {
+                        "event": "commit_thread_error",
+                        "session_id": sid,
+                        "error_type": type(e).__name__,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    })
+            finally:
+                commit_queue.task_done()
+
+    commit_thread = threading.Thread(
+        target=commit_worker, name="orch-commit", daemon=False)
+    commit_thread.start()
+
     def _abort(outcome, kind, log_msg, event):
-        """Shared error-path: log, emit event, revert in_progress, return kind."""
+        """Shared error-path: log, emit event, revert in_progress,
+        record per-function attempts.jsonl rows, return kind.
+
+        `kind` is also the attempts.jsonl `session_error_kind` value:
+        the OUTCOME_* constants are the canonical strings.
+        """
         log(log_msg)
         log_event(log_path, event)
         with db_lock:
             revert_in_progress(functions, outcome.batch, addr_index)
             counters["total_attempted"] -= len(outcome.batch)
             save_db(functions)
+        emit_attempts_for_outcome(outcome, run_id, error_kind=kind)
         return kind
 
     def apply_outcome(outcome, ctx):
@@ -1585,6 +1761,9 @@ def main():
         log(f"Session {session_id} done ({outcome.session_duration:.0f}s): "
             f"{outcome.claimed_matched} claimed matched, {outcome.claimed_failed} failed (pre-verify)")
 
+        backend_model = outcome.backend_model
+        matched_at = _utc_now_iso()
+
         with db_lock:
             for d in outcome.decisions:
                 target = addr_index.get(d.address)
@@ -1599,10 +1778,21 @@ def main():
                     target["src_file"] = d.src_file
                 if d.symbol_name is not None:
                     target["symbol_name"] = d.symbol_name
+                if d.status == "matched":
+                    # DB tracks the *current* owner; on re-match these
+                    # are overwritten. attempts.jsonl preserves history.
+                    target["matched_by_backend"] = backend_name
+                    target["matched_by_session_id"] = session_id
+                    target["matched_by_model"] = backend_model
+                    target["matched_at"] = matched_at
                 if d.failure_note:
                     target.setdefault("failure_notes", []).append({
                         "session": session_id,
                         "notes": d.failure_note,
+                        "backend": backend_name,
+                        "model": backend_model,
+                        "variant": variant,
+                        "timestamp": matched_at,
                     })
                     target["failure_notes"] = target["failure_notes"][-5:]
 
@@ -1616,6 +1806,7 @@ def main():
                     "session_id": session_id,
                     "variant": variant,
                     "backend": backend_name,
+                    "model": backend_model,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
@@ -1631,6 +1822,7 @@ def main():
                 "session_id": session_id,
                 "variant": variant,
                 "backend": backend_name,
+                "model": backend_model,
                 "matched": final_matched,
                 "failed": final_failed,
                 "claimed_matched": outcome.claimed_matched,
@@ -1643,23 +1835,19 @@ def main():
 
             save_db(functions)
 
-            commit_kind = OUTCOME_SUCCESS
-            if outcome.matched_funcs:
-                try:
-                    git_commit_batch(session_id, outcome.matched_funcs,
-                                     outcome.matched_files, outcome.ledger_paths)
-                except RuntimeError as e:
-                    log(f"  GIT COMMIT ERROR (matching still saved): {e}")
-                    log_event(log_path, {
-                        "event": "git_error",
-                        "session_id": session_id,
-                        "variant": variant,
-                        "backend": backend_name,
-                        "error": str(e),
-                    })
-                    commit_kind = OUTCOME_GIT_ERROR
+        # Outside db_lock: attempts.jsonl has its own lock; commits
+        # are async via commit_queue.
+        emit_attempts_for_outcome(outcome, run_id, error_kind=None)
 
-        return commit_kind
+        if outcome.matched_funcs:
+            commit_queue.put((
+                session_id,
+                outcome.matched_funcs,
+                outcome.matched_files,
+                outcome.ledger_paths,
+            ))
+
+        return OUTCOME_SUCCESS
 
     executor = concurrent.futures.ThreadPoolExecutor(
         max_workers=args.workers,
@@ -1755,10 +1943,6 @@ def main():
                         backoff = min(30 * (2 ** counters["consecutive_failures"]), 960)
                         log(f"Backing off {backoff}s before next pick...")
                         next_pick_time = max(next_pick_time, time.time() + backoff)
-                elif kind == OUTCOME_GIT_ERROR:
-                    counters["total_errors"] += 1
-                    counters["consecutive_failures"] = 0
-                    counters["consecutive_refusals"] = 0
                 elif kind == OUTCOME_SUCCESS:
                     counters["consecutive_failures"] = 0
                     counters["consecutive_refusals"] = 0
@@ -1769,7 +1953,12 @@ def main():
 
             print_progress(functions, start_time, log_path)
     finally:
+        # Order matters: workers finish first so the last apply_outcome
+        # calls reach commit_queue, then drain. Reverse order would
+        # silently drop commits queued during shutdown.
         executor.shutdown(wait=True)
+        commit_queue.put(None)
+        commit_thread.join()
 
     total_attempted = counters["total_attempted"]
     total_matched = counters["total_matched"]

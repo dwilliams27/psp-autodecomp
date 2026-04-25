@@ -38,6 +38,16 @@ def _unwrap_shell(cmd: str) -> str:
 class CodexBackend(Backend):
     name = "codex"
 
+    # Per-Mtok USD pricing. Codex never emits native cost, so this
+    # table is the only source.
+    RATE_CARD = {
+        "gpt-5.5": {
+            "input_per_mtok": 5.0,
+            "output_per_mtok": 20.0,
+            "cache_read_per_mtok": 0.50,
+        },
+    }
+
     def __init__(self, model: str = CODEX_MODEL, system_append: str = ""):
         super().__init__(model=model, system_append=system_append)
 
@@ -69,6 +79,25 @@ class CodexBackend(Backend):
 
         if mtype in ("thread.started", "turn.started", "turn.completed"):
             return []
+
+        if mtype == "token_count":
+            # `last_token_usage` is the just-completed turn's delta;
+            # `total_token_usage` is cumulative. Forward deltas so the
+            # base accumulator's per-turn sum is correct across both
+            # backends.
+            info = msg.get("info") or {}
+            usage = info.get("last_token_usage") or info.get("usage") or {}
+            uncached = int(usage.get("input_tokens") or 0)
+            cached = int(usage.get("cached_input_tokens")
+                         or usage.get("cache_read_input_tokens") or 0)
+            output = int(usage.get("output_tokens") or 0)
+            return [AgentEvent(
+                kind="usage",
+                input_tokens=uncached + cached,
+                output_tokens=output,
+                cached_tokens=cached,
+                cost_usd=None,
+            )]
 
         # Failures outside the item stream: still stream over JSONL, don't
         # raise on their own. Surface as error-flagged tool_result so

@@ -37,7 +37,8 @@ _RESULT_KEYWORDS = ("match", "mismatch", "fail", "error", "permuter",
                     "diff", "verify", "byte", "segfault", "exit")
 
 
-EventKind = Literal["text", "thinking", "tool_use", "tool_result", "raw", "status"]
+EventKind = Literal["text", "thinking", "tool_use", "tool_result", "raw",
+                    "status", "usage"]
 
 
 def format_tool_use(tool_name: str, tool_input) -> str:
@@ -103,6 +104,12 @@ class AgentEvent:
     tool: Optional[str] = None
     tool_use_id: Optional[str] = None
     is_error: bool = False
+    # kind == "usage" only. cost_usd=None means the backend doesn't
+    # report cost natively; the base layer computes from RATE_CARD.
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cached_tokens: int = 0
+    cost_usd: Optional[float] = None
 
     def to_log_fields(self) -> dict:
         d = {"kind": self.kind, "text": self.text[:500]}
@@ -119,16 +126,25 @@ class AgentRefused(RuntimeError):
     """Agent produced refusal text matching a safety-classifier misfire.
     Distinct from generic failure so the outer loop can short-backoff +
     separate ceiling instead of the standard exponential.
+
+    `session_usage` carries whatever tokens were captured before the
+    refusal so the attempts.jsonl row still gets cost attribution —
+    refusals shouldn't look free.
     """
-    def __init__(self, reason: str):
+    def __init__(self, reason: str, session_usage: Optional[dict] = None):
         super().__init__(f"agent refused mid-session ({reason})")
         self.reason = reason
+        self.session_usage = session_usage or {}
 
 
 class Backend(ABC):
     """Interface every headless CLI adapter implements."""
 
     name: str = "base"
+
+    # Per-Mtok USD pricing keyed by model name. compute_cost() falls
+    # back to this when the backend's stream-JSON doesn't carry cost.
+    RATE_CARD: dict = {}
 
     def __init__(self, model: str, system_append: str):
         self.model = model
@@ -162,6 +178,22 @@ class Backend(ABC):
             return f"refusal_in_{event.kind}"
         return None
 
+    def compute_cost(self, input_tokens: int, output_tokens: int,
+                     cached_tokens: int) -> Optional[float]:
+        """USD cost from RATE_CARD. None when the card has no entry for
+        this model — `.get` is deliberately not used on the inner keys:
+        a partially-populated card is a bug, not a free model.
+        """
+        card = self.RATE_CARD.get(self.model)
+        if card is None:
+            return None
+        billed_in = max(0, input_tokens - cached_tokens)
+        return (
+            billed_in * card["input_per_mtok"]
+            + cached_tokens * card["cache_read_per_mtok"]
+            + output_tokens * card["output_per_mtok"]
+        ) / 1_000_000
+
 
 def run_session(
     backend: Backend,
@@ -170,17 +202,22 @@ def run_session(
     log_fn: Callable[[dict], None],
     variant: str,
     timeout: int,
-) -> Tuple[bool, Optional[str]]:
+) -> Tuple[bool, Optional[str], dict]:
     """Spawn the backend's CLI and stream its output to log_fn.
 
-    Returns (success, error_msg). Raises AgentRefused on safety-classifier
-    misfire so the outer loop can treat it separately.
+    Returns (success, error_msg, session_usage). `session_usage` is the
+    same dict shape that's logged as the `session_usage` event so the
+    caller doesn't need to scrape it back from the log stream.
+    Raises AgentRefused on safety-classifier misfire so the outer loop
+    can treat it separately.
     """
     cmd = backend.spawn_cmd(prompt, session_id)
 
     child_env = os.environ.copy()
     for k, v in backend.env().items():
         child_env[k] = v
+
+    session_usage: dict = {}
 
     try:
         proc = subprocess.Popen(
@@ -189,7 +226,7 @@ def run_session(
             text=True, bufsize=1, env=child_env,
         )
     except OSError as e:
-        return False, f"failed to spawn {backend.name}: {e}"
+        return False, f"failed to spawn {backend.name}: {e}", session_usage
 
     q: queue.Queue = queue.Queue()
 
@@ -211,58 +248,114 @@ def run_session(
     eof_count = 0
     stderr_tail: List[str] = []
 
-    while eof_count < 2:
-        elapsed = time.time() - start
-        remaining = timeout - elapsed
-        if remaining <= 0:
-            proc.kill()
-            return False, f"session timed out after {timeout}s"
-        try:
-            tag, line = q.get(timeout=min(remaining, 1.0))
-        except queue.Empty:
-            if proc.poll() is not None and q.empty():
-                break
-            continue
-        if line is None:
-            eof_count += 1
-            continue
-        if tag == "out":
-            events = backend.parse_line(line)
-            for ev in events:
-                fields = ev.to_log_fields()
-                fields["event"] = "agent_event"
-                fields["session_id"] = session_id
-                fields["variant"] = variant
-                fields["backend"] = backend.name
-                log_fn(fields)
-                reason = backend.is_refusal(ev)
-                if reason:
-                    proc.kill()
-                    log_fn({
-                        "event": "agent_refused",
-                        "session_id": session_id,
-                        "variant": variant,
-                        "backend": backend.name,
-                        "reason": reason,
-                    })
-                    raise AgentRefused(reason)
-        elif tag == "err":
-            stderr_tail.append(line)
-            if len(stderr_tail) > 20:
-                stderr_tail = stderr_tail[-20:]
+    usage_in = 0
+    usage_out = 0
+    usage_cached = 0
+    usage_cost = 0.0
+    usage_cost_native = False
+    saw_usage = False
+
+    def emit_session_usage():
+        if saw_usage:
+            cost = usage_cost if usage_cost_native else backend.compute_cost(
+                usage_in, usage_out, usage_cached)
+        else:
+            cost = None
+        # Loud signal for stale/missing rate cards: we have token data
+        # but no cost — A/B reporting needs to know that null is
+        # "rate card miss," not "free session."
+        if saw_usage and cost is None:
+            log_fn({
+                "event": "rate_card_missing",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "model": backend.model,
+            })
+        session_usage.update({
+            "event": "session_usage",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "model": backend.model,
+            "input_tokens": usage_in,
+            "output_tokens": usage_out,
+            "cached_tokens": usage_cached,
+            "cost_usd": cost,
+            "had_usage_data": saw_usage,
+        })
+        log_fn(dict(session_usage))
 
     try:
-        proc.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        proc.kill()
+        while eof_count < 2:
+            elapsed = time.time() - start
+            remaining = timeout - elapsed
+            if remaining <= 0:
+                proc.kill()
+                return False, f"session timed out after {timeout}s", session_usage
+            try:
+                tag, line = q.get(timeout=min(remaining, 1.0))
+            except queue.Empty:
+                if proc.poll() is not None and q.empty():
+                    break
+                continue
+            if line is None:
+                eof_count += 1
+                continue
+            if tag == "out":
+                events = backend.parse_line(line)
+                for ev in events:
+                    if ev.kind == "usage":
+                        usage_in += ev.input_tokens
+                        usage_out += ev.output_tokens
+                        usage_cached += ev.cached_tokens
+                        if ev.cost_usd is not None:
+                            usage_cost += ev.cost_usd
+                            usage_cost_native = True
+                        saw_usage = True
+                        continue
+                    fields = ev.to_log_fields()
+                    fields["event"] = "agent_event"
+                    fields["session_id"] = session_id
+                    fields["variant"] = variant
+                    fields["backend"] = backend.name
+                    log_fn(fields)
+                    reason = backend.is_refusal(ev)
+                    if reason:
+                        proc.kill()
+                        log_fn({
+                            "event": "agent_refused",
+                            "session_id": session_id,
+                            "variant": variant,
+                            "backend": backend.name,
+                            "reason": reason,
+                        })
+                        raise AgentRefused(reason, session_usage=session_usage)
+            elif tag == "err":
+                stderr_tail.append(line)
+                if len(stderr_tail) > 20:
+                    stderr_tail = stderr_tail[-20:]
 
-    if proc.returncode != 0:
-        # Surface the full tail (capped above at 20 lines) so silent-exit
-        # bugs are diagnosable from the run log alone. "(no stderr)" is
-        # itself a useful signal — narrows the failure to "child did not
-        # write to its stderr" rather than "we lost the message".
-        err = ("".join(stderr_tail).strip()
-               if stderr_tail else "(no stderr)")
-        return False, f"{backend.name} exited {proc.returncode}: {err}"
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
 
-    return True, None
+        if proc.returncode != 0:
+            # Surface the full tail (capped at 20 lines above) so
+            # silent-exit bugs are diagnosable from the run log.
+            # "(no stderr)" itself is signal — child wrote nothing.
+            err = ("".join(stderr_tail).strip()
+                   if stderr_tail else "(no stderr)")
+            return False, f"{backend.name} exited {proc.returncode}: {err}", session_usage
+
+        if not saw_usage:
+            return False, (
+                f"{backend.name} exited 0 but emitted no usage events — "
+                f"stream-JSON shape may have drifted (expected `result` "
+                f"for claude, `token_count` for codex)"
+            ), session_usage
+
+        return True, None, session_usage
+    finally:
+        emit_session_usage()
