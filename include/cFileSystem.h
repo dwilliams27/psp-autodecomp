@@ -15,6 +15,7 @@ class cFileSystemPlatform;
 
 class cFileSystem {
 public:
+    static int Create(const char *name);
     static void SetCurrentPos(cFileHandle *handle, unsigned int offset);
     static unsigned int GetCurrentPos(cFileHandle *handle);
     static int Exists(const char *name);
