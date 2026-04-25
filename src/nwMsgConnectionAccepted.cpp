@@ -16,9 +16,10 @@ void nwMsgConnectionAccepted::Write(cOutStream &, nwSocketHandle, const nwAddres
 }
 
 void nwMsgConnectionAccepted::Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle handle) {
-    volatile nwConnectionHandle vols[2];
-    nwConnectionHandle h = vols[1];
-    vols[1] = handle;
+    volatile int vols[2];
+    nwConnectionHandle h;
+    h.mValue = vols[1];
+    vols[1] = handle.mValue;
     if (nwSocket::GetConnection(h) != 0) {
         nwSocket::GetConnection(h)->OnConnectionAccepted();
     }
@@ -81,11 +82,31 @@ void cListSubscriber::GetName(char *dst) const {
 // Function 4: gcBoolSet::AssignCopy @ 0x00239d88
 // Function 5: gcFloatSet::AssignCopy @ 0x0024932c
 // ============================================================
+class cMemPool;
+
 class cBase {
 public:
     void *_parent;
     void *_vtable;
+    void SetDirty(void);
+    int IsEditable(void) const;
+    void Reset(cMemPool *, bool);
+    void GetName(char *) const;
 };
+
+void cBase::SetDirty(void) {
+}
+
+int cBase::IsEditable(void) const {
+    return 0;
+}
+
+void cBase::Reset(cMemPool *, bool) {
+}
+
+void cBase::GetName(char *name) const {
+    *name = 0;
+}
 
 template <class T>
 class cArrayBase {

@@ -7,8 +7,8 @@ class nwAddress;
 class nwMsg;
 class nwMsgBuffer;
 class nwMsgType;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
 
 class nwMsgConnectionAccepted {
 public:
