@@ -113,7 +113,7 @@ def _make_multi_turn_run_session():
     *pre-summing* on its side and emitting the final combined event
     directly — same shape as the real backend's session_usage emission.
     """
-    def fake(backend, prompt, session_id, log_fn, variant, timeout):
+    def fake(backend, prompt, session_id, log_fn, variant, timeout, cwd=None):
         info = _PENDING_BATCHES.get(session_id)
         assert info is not None, "test stub: missing pending batch info"
         batch = info["batch"]
@@ -226,7 +226,7 @@ def main():
             real_commit = orchestrator.git_commit_batch
 
             def tracking_commit(session_id, matched_funcs, matched_files,
-                                ledger_paths):
+                                ledger_paths, **kwargs):
                 # Defer to a no-op (we don't actually want to compile in
                 # this test); record what *would* have been committed.
                 with commit_lock:
@@ -234,6 +234,7 @@ def main():
                         "session_id": session_id,
                         "matched_addrs": [f["address"] for f in matched_funcs],
                         "ledger_paths": sorted(ledger_paths),
+                        "worktree": kwargs.get("worktree"),
                     })
                 # Simulate slight commit work so we exercise the queue
                 # actually serializing rather than each apply_outcome

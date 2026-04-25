@@ -36,6 +36,9 @@ from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     fix_vfpu_disassembly, strip_cpp_comments)
 from byte_match import CompileFailed, check_byte_match
 from backends import AgentRefused, AVAILABLE_BACKENDS, get_backend, run_session
+from ab_schedule import (Schedule, build_schedule, identity_key,
+                         safe_identity_tag,
+                         MODE_DISJOINT, MODE_SHOOTOUT, MODE_HYBRID)
 
 # db_lock: every DB read/write goes through this; workers never touch
 # the DB directly. git_lock: serializes git subprocess calls — git's
@@ -56,6 +59,46 @@ OUTCOME_REFUSAL = "refusal"
 OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
 OUTCOME_PREP_ERROR = "prep_error"
+
+
+def apply_decisions_to_funcs(addr_index, decisions, session_id,
+                              backend_name, backend_model,
+                              matched_at, variant):
+    """Mutate `addr_index`-resolved DB rows in-place per session
+    decisions. Used both for the in-memory DB (disjoint sessions) and
+    the worktree's on-disk DB (shootout commits) so the two paths
+    can't drift on what `matched_by_*` looks like.
+
+    Raises if `addr_index` is missing a decision's address — that's
+    desync between batch and DB and should fail loud.
+    """
+    for d in decisions:
+        target = addr_index.get(d.address)
+        if target is None:
+            raise RuntimeError(
+                f"apply_decisions_to_funcs: decision references unknown "
+                f"address {d.address}"
+            )
+        target["match_status"] = d.status
+        if d.src_file is not None:
+            target["src_file"] = d.src_file
+        if d.symbol_name is not None:
+            target["symbol_name"] = d.symbol_name
+        if d.status == "matched":
+            target["matched_by_backend"] = backend_name
+            target["matched_by_session_id"] = session_id
+            target["matched_by_model"] = backend_model
+            target["matched_at"] = matched_at
+        if d.failure_note:
+            target.setdefault("failure_notes", []).append({
+                "session": session_id,
+                "notes": d.failure_note,
+                "backend": backend_name,
+                "model": backend_model,
+                "variant": variant,
+                "timestamp": matched_at,
+            })
+            target["failure_notes"] = target["failure_notes"][-5:]
 
 
 @dataclass
@@ -81,6 +124,18 @@ class WorkContext:
     session are still observed — without it, two concurrent workers
     each classify the other's still-dirty `src/Bar.cpp` as out-of-scope
     and revert it (bug #4 reborn under multi-agent).
+
+    Phase 3 fields:
+    `worktree` — None for shared main tree (Mode A), or absolute path
+    for shootout worktrees (Mode B/C reserved slice). Threaded into
+    every git op + the agent's spawn cwd so isolated trees don't
+    leak edits into main.
+    `identity` — `"backend/model"` string the schedule uses as a key
+    so attempts.jsonl and ab_report can group consistently.
+    `queue_kind` — "disjoint" | "shootout"; tells apply_outcome
+    whether to update the in-memory `functions` (disjoint, main DB)
+    or skip the in-memory write (shootout — DB write is committed
+    inside the worktree by the commit thread).
     """
     batch: list
     backend: object
@@ -93,6 +148,9 @@ class WorkContext:
     exact_paths: set
     sibling_prefixes: tuple
     peer_query: object = None
+    worktree: Optional[str] = None
+    identity: str = ""
+    queue_kind: str = "disjoint"
 
 
 @dataclass
@@ -123,6 +181,9 @@ class SessionOutcome:
     ledger_paths: Set[str] = field(default_factory=set)
     out_of_scope_paths: Set[str] = field(default_factory=set)
     session_usage: dict = field(default_factory=dict)
+    worktree: Optional[str] = None
+    identity: str = ""
+    queue_kind: str = "disjoint"
 
 BATCH_SIZE = 5
 TARGETS_BATCH_SIZE = 2
@@ -422,7 +483,8 @@ def is_path_allowed(path, exact_paths, sibling_prefixes):
     return False
 
 
-def partition_dirty_paths(exact_paths, sibling_prefixes, peer_query=None):
+def partition_dirty_paths(exact_paths, sibling_prefixes, peer_query=None,
+                          worktree=None):
     """Returns (ledger_paths, out_of_scope_paths) over dirty `src/` and
     `include/` paths only. Non-src/non-include paths (config/, logs/,
     tools/) are skipped: the coordinator legitimately mutates
@@ -433,11 +495,16 @@ def partition_dirty_paths(exact_paths, sibling_prefixes, peer_query=None):
     `peer_query` returns other in-flight workers' allowed-set tuple.
     Paths matching a peer's set are dropped, not classified as
     out-of-scope — they're a peer's still-in-flight ledger.
+
+    `worktree` (Phase 3 shootout) scopes the dirty-paths read to a
+    specific worktree. Without it, the read is from the orchestrator's
+    CWD — the shared main worktree — exactly the Phase 1 behavior.
     """
     # --untracked-files=all: git's default `normal` collapses a fully-
     # untracked dir to one `?? dir/` line, hiding the individual files
     # the partition needs to see.
-    ok, out, err = git_run("status", "--porcelain", "--untracked-files=all")
+    ok, out, err = git_run("status", "--porcelain", "--untracked-files=all",
+                           cwd=worktree)
     if not ok:
         raise RuntimeError(
             f"git status failed — can't determine dirty paths: {err}"
@@ -466,34 +533,41 @@ def partition_dirty_paths(exact_paths, sibling_prefixes, peer_query=None):
     return ledger, out_of_scope
 
 
-def revert_paths(paths):
+def revert_paths(paths, worktree=None):
     """Revert dirty paths. Tracked → `git checkout`; untracked → unlink.
     Raises RuntimeError on any failure: a stuck out-of-scope path
     survives into the next session's partition and risks committing
     cross-session contamination — the exact failure Phase 1 is meant
     to prevent.
+
+    `worktree` (Phase 3 shootout) targets a specific worktree's index
+    + working tree; untracked-file removal also resolves against that
+    tree. None means the orchestrator's CWD, today's behavior.
     """
     for p in paths:
-        ok, _, _ = git_run("ls-files", "--error-unmatch", "--", p)
+        ok, _, _ = git_run("ls-files", "--error-unmatch", "--", p,
+                           cwd=worktree)
         if ok:
-            ok2, out, err = git_run("checkout", "--", p)
+            ok2, out, err = git_run("checkout", "--", p, cwd=worktree)
             if not ok2:
                 raise RuntimeError(
                     f"revert_paths: git checkout -- {p} failed: {err or out}"
                 )
         else:
-            if not os.path.exists(p):
+            full = os.path.join(worktree, p) if worktree else p
+            if not os.path.exists(full):
                 continue
             try:
-                os.remove(p)
+                os.remove(full)
             except OSError as e:
                 raise RuntimeError(
-                    f"revert_paths: os.remove({p}) failed: {e}"
+                    f"revert_paths: os.remove({full}) failed: {e}"
                 ) from e
 
 
 def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
-                             excluded_classes=None):
+                             excluded_classes=None, allowed_addrs=None,
+                             check_status=True):
     """Select the next batch from a specific targets list.
 
     Only picks targets that are untried in the database.
@@ -501,6 +575,16 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
     Warns about target addresses not found in the database.
     `excluded_classes` filters out functions whose class is currently
     locked by another in-flight session.
+
+    `allowed_addrs` (Phase 3) restricts the candidate pool to the
+    schedule-assigned subset for the calling identity. None means no
+    restriction — the disjoint queue's allowed-set ⊇ untried in
+    Mode A, so passing None preserves Phase 1/2 behavior.
+
+    `check_status` toggles the `match_status == "untried"` filter.
+    Shootout queries pass False because shootout DB rows stay
+    `untried` in main while still being attempted in worktrees —
+    the schedule's `shootout_done` is the per-identity authority.
     """
     excluded_classes = excluded_classes or set()
     candidates = []
@@ -510,9 +594,11 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
         if not func:
             log(f"  WARNING: target {addr} ({t.get('name', '?')}) not in database — skipping")
             continue
-        if func["match_status"] != "untried":
+        if check_status and func["match_status"] != "untried":
             continue
         if _class_key(func) in excluded_classes:
+            continue
+        if allowed_addrs is not None and addr not in allowed_addrs:
             continue
         candidates.append(func)
 
@@ -523,7 +609,8 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
 
 
 def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
-                    excluded_classes=None):
+                    excluded_classes=None, allowed_addrs=None,
+                    check_status=True):
     """Select the next batch of functions to attempt.
 
     Priority:
@@ -534,17 +621,26 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
 
     `excluded_classes` filters out functions whose class is currently
     locked by another in-flight session.
+
+    `allowed_addrs` (Phase 3) restricts to schedule-assigned addrs for
+    the calling identity. None preserves pre-Phase-3 behavior.
+    `check_status` toggles the `untried` filter — shootout queries
+    pass False since their DB stays `untried` while attempts happen
+    in isolated worktrees.
     """
     excluded_classes = excluded_classes or set()
     candidates = filter_functions(
         functions,
-        status="untried",
+        status=("untried" if check_status else None),
         class_name=getattr(args, 'class_name', None),
         name=getattr(args, 'func_name', None),
         obj=getattr(args, 'obj', None),
         size_min=getattr(args, 'size_min', None) if getattr(args, 'size_min', None) is not None else 4,
         size_max=getattr(args, 'size_max', None),
     )
+
+    if allowed_addrs is not None:
+        candidates = [c for c in candidates if c["address"] in allowed_addrs]
 
     if not candidates:
         return []
@@ -826,6 +922,9 @@ def run_one_session(ctx):
         variant=variant,
         batch=batch,
         classes=ctx.classes,
+        worktree=ctx.worktree,
+        identity=ctx.identity,
+        queue_kind=ctx.queue_kind,
     )
 
     try:
@@ -856,6 +955,7 @@ def run_one_session(ctx):
             log_fn=lambda ev: log_event(log_path, ev),
             variant=variant,
             timeout=ctx.session_timeout,
+            cwd=ctx.worktree,
         )
     except AgentRefused as e:
         outcome.session_duration = time.time() - session_start
@@ -1045,7 +1145,7 @@ def run_one_session(ctx):
     try:
         ledger, out_of_scope = partition_dirty_paths(
             ctx.exact_paths, ctx.sibling_prefixes,
-            peer_query=ctx.peer_query)
+            peer_query=ctx.peer_query, worktree=ctx.worktree)
     except RuntimeError as e:
         log(f"  PARTITION ERROR: {e}")
         log_event(log_path, {
@@ -1069,7 +1169,7 @@ def run_one_session(ctx):
             "backend": backend.name,
             "paths": sorted(out_of_scope),
         })
-        revert_paths(out_of_scope)
+        revert_paths(out_of_scope, worktree=ctx.worktree)
         for func in list(matched_funcs):
             func_files = {e["file"] for e in results
                           if e.get("address") == func["address"] and e.get("file")}
@@ -1093,18 +1193,139 @@ def run_one_session(ctx):
     return outcome
 
 
-def git_run(*args):
+def git_run(*args, cwd=None):
     """Run a git command serialized through `git_lock`. Returns
     (success, stdout, stderr). stdout is unstripped: porcelain lines
     can begin with a meaningful space, so a global strip would corrupt
     the first line.
+
+    `cwd` targets a specific worktree (Phase 3 shootout). When None
+    git uses the orchestrator's CWD — the main worktree, today's
+    behavior. We invoke `git -C <cwd>` rather than passing cwd= to
+    subprocess.run so the lock is around exactly the same kind of
+    invocation regardless of target tree (auditability).
     """
+    cmd = [GIT]
+    if cwd is not None:
+        cmd += ["-C", cwd]
+    cmd += list(args)
     with git_lock:
         result = subprocess.run(
-            [GIT] + list(args),
-            capture_output=True, text=True
+            cmd, capture_output=True, text=True
         )
     return result.returncode == 0, result.stdout, result.stderr.strip()
+
+
+def setup_shootout_worktrees(identities, run_branch):
+    """Create one worktree + branch per shootout identity.
+
+    Returns `{identity: worktree_abspath}`. Each worktree is created
+    from `run_branch` HEAD so all shootout paths share a parent commit
+    with the disjoint slice — cherry-picks downstream apply cleanly.
+
+    Symlinks the shared, gitignored `extern/`, `expected/`, and `logs/`
+    directories from the orchestrator CWD into each worktree so the
+    agent can use the SDK and dump session_results to a single
+    physical location across trees. `build/` is intentionally NOT
+    symlinked: each worktree gets its own so concurrent compiles
+    don't race on .o file writes.
+
+    On partial failure (some worktrees created, then one fails) we
+    tear down the already-created ones before re-raising. Otherwise
+    a failed run leaves stale worktrees on disk that block the next
+    run's setup with "already exists".
+    """
+    repo_root = os.getcwd()
+    worktrees: dict = {}
+    shared_dirs = ("extern", "expected", "logs")
+    try:
+        _setup_shootout_worktrees_inner(identities, run_branch, repo_root,
+                                         worktrees, shared_dirs)
+    except BaseException:
+        if worktrees:
+            log(f"setup_shootout_worktrees: failed mid-build, tearing down "
+                f"{len(worktrees)} partial worktree(s)...")
+            teardown_shootout_worktrees(worktrees)
+        raise
+    return worktrees
+
+
+def _setup_shootout_worktrees_inner(identities, run_branch, repo_root,
+                                     worktrees, shared_dirs):
+    for ident in identities:
+        tag = safe_identity_tag(ident)
+        wt_path = os.path.abspath(f"overnight-worktree-{tag}")
+        # Sibling, not nested: git can't have both `overnight/<ts>`
+        # (a ref) and `overnight/<ts>/<tag>` (a sub-namespace), so we
+        # flatten the shootout branch as a sibling of the base run-
+        # branch with the same prefix. Operators searching `git branch
+        # -l 'overnight/20260425*'` still see all related branches.
+        branch = f"{run_branch}-{tag}"
+        if os.path.exists(wt_path):
+            raise RuntimeError(
+                f"setup_shootout_worktrees: {wt_path} already exists. "
+                f"Stale worktree from a prior run? Remove with "
+                f"`git worktree remove {wt_path}` and retry."
+            )
+        ok, out, err = git_run("worktree", "add", "-b", branch,
+                                wt_path, run_branch)
+        if not ok:
+            raise RuntimeError(
+                f"setup_shootout_worktrees: `git worktree add -b {branch} "
+                f"{wt_path} {run_branch}` failed: {err or out}"
+            )
+        for d in shared_dirs:
+            target = os.path.join(repo_root, d)
+            link = os.path.join(wt_path, d)
+            if not os.path.exists(target):
+                # logs/ may not exist yet; create empty so the symlink
+                # resolves. extern/ missing is operator misconfig — we
+                # raise so it surfaces immediately, not at first session.
+                if d == "logs":
+                    os.makedirs(target, exist_ok=True)
+                else:
+                    raise RuntimeError(
+                        f"setup_shootout_worktrees: shared dir {target} "
+                        f"missing — required for shootout worker to run. "
+                        f"This is operator setup, not something the "
+                        f"orchestrator should auto-create."
+                    )
+            if os.path.lexists(link):
+                os.remove(link)
+            os.symlink(target, link)
+        # Per-worktree build/ — kept isolated so two backends compiling
+        # the same Class.cpp don't race on build/src/Class.cpp.o.
+        os.makedirs(os.path.join(wt_path, "build"), exist_ok=True)
+        worktrees[ident] = wt_path
+        log(f"Shootout worktree: {ident} → {wt_path} (branch {branch})")
+
+
+def teardown_shootout_worktrees(worktrees):
+    """Best-effort worktree removal. Logs but doesn't raise on
+    individual failures — at shutdown we want to clean up as much as
+    possible even if one tree is in a weird state. Operators can
+    finish manually with `git worktree remove --force`.
+    """
+    for ident, path in (worktrees or {}).items():
+        if not os.path.exists(path):
+            continue
+        ok, out, err = git_run("worktree", "remove", "--force", path)
+        if not ok:
+            log(f"  worktree remove failed for {ident} ({path}): {err or out}")
+        else:
+            log(f"  removed worktree: {path}")
+
+
+@dataclass
+class WorkerSlot:
+    """One executor lane. Mode A's main pool produces `kind='main'`
+    slots that draw from any identity's disjoint queue; shootout adds
+    `kind='shootout'` slots, one per identity, each pinned to its own
+    worktree.
+    """
+    kind: str  # "main" | "shootout"
+    identity: Optional[str] = None  # required for kind="shootout"
+    worktree: Optional[str] = None  # required for kind="shootout"
 
 
 def create_overnight_branch():
@@ -1186,7 +1407,10 @@ def verify_tree_compiles():
         raise RuntimeError("\n".join(msg_lines))
 
 
-def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
+def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
+                     worktree=None, db_updates=None,
+                     backend_name="", backend_model="", matched_at="",
+                     variant=""):
     """Commit matched source files and updated functions.json after a batch.
 
     Phase 1: stages exactly the session's pre-computed `ledger_paths`
@@ -1195,9 +1419,34 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
     in-flight files into this commit (bug #4 in docs/bugs.md). Compiles
     before staging; refuses to commit on any compile failure. Raises on
     git failure — matched work must be persisted.
+
+    Phase 3 worktree path: when `worktree` is set the DB at the
+    *worktree's* config/functions.json is read, mutated by `db_updates`
+    (a list of FunctionDecision), and written back before staging.
+    The main DB is untouched — shootout decisions are isolated to the
+    shootout branches by design and only land in main via
+    `tools/ab_promote.py`.
     """
     if not matched_funcs:
         return
+
+    db_path = (os.path.join(worktree, DB_PATH) if worktree else DB_PATH)
+
+    if worktree is not None and db_updates:
+        # Mode B/C path: rewrite the worktree's DB so the commit's
+        # diff carries the matched_by_* fields the cherry-pick will
+        # later re-apply onto main. Same mutator as apply_outcome's
+        # in-memory path so the two trees can't drift on schema.
+        with open(db_path, "r") as f:
+            wt_funcs = json.load(f)
+        apply_decisions_to_funcs(
+            build_addr_map(wt_funcs), db_updates, session_id,
+            backend_name, backend_model, matched_at, variant,
+        )
+        tmp = db_path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(wt_funcs, f, indent=2)
+        os.replace(tmp, db_path)
 
     files_to_commit = set(matched_files)
     files_to_commit |= set(ledger_paths)
@@ -1206,7 +1455,14 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
     # Compile-check BEFORE staging. If any src in the set fails, we
     # raise and the operator's tree is left exactly as the session left
     # it — no half-staged half-unstaged mess to untangle.
-    compile_failures = _collect_compile_failures(files_to_commit)
+    compile_check_paths = files_to_commit
+    if worktree is not None:
+        # Compile from inside the worktree so build artifacts and
+        # include lookups don't leak across trees.
+        compile_check_paths = {os.path.join(worktree, p)
+                               for p in files_to_commit
+                               if p != DB_PATH}
+    compile_failures = _collect_compile_failures(compile_check_paths)
     if compile_failures:
         lines = [f"{p}: {e[:120]}" for p, e in compile_failures[:5]]
         raise RuntimeError(
@@ -1218,14 +1474,15 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
 
     # Stage (deletions included via git add on missing files).
     for path in files_to_commit:
+        full = os.path.join(worktree, path) if worktree else path
         if path == DB_PATH:
             pass
-        elif path in matched_files and not os.path.exists(path):
+        elif path in matched_files and not os.path.exists(full):
             raise RuntimeError(
-                f"Matched file not found on disk: {path}. "
+                f"Matched file not found on disk: {full}. "
                 f"Claude reported a match but didn't write the source file."
             )
-        ok, _, err = git_run("add", "--", path)
+        ok, _, err = git_run("add", "--", path, cwd=worktree)
         if not ok:
             raise RuntimeError(f"git add failed for {path}: {err}")
 
@@ -1234,14 +1491,14 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths):
     msg += "\n".join(f"  - {name}" for name in func_names)
 
     # Check if there's actually anything staged before committing
-    ok, staged, err = git_run("diff", "--cached", "--name-only")
+    ok, staged, err = git_run("diff", "--cached", "--name-only", cwd=worktree)
     if not ok:
         raise RuntimeError(f"git diff --cached failed: {err}")
     if not staged.strip():
         log(f"  No changes to commit (source files unchanged from prior batch)")
         return
 
-    ok, out, err = git_run("commit", "-m", msg)
+    ok, out, err = git_run("commit", "-m", msg, cwd=worktree)
     if not ok:
         raise RuntimeError(
             f"git commit failed after matching {len(matched_funcs)} functions: "
@@ -1420,6 +1677,18 @@ def main():
                         help="Number of concurrent worker sessions "
                              "(default: max(1, len(--backend list))). Phase 1 "
                              "of docs/direction/003-multi-agent-ab-architecture.md.")
+    parser.add_argument("--shootout", action="store_true",
+                        help="Mode B: every backend attempts every function "
+                             "in its own worktree, no shared commits. "
+                             "Mutually exclusive with --paired-reserve.")
+    parser.add_argument("--paired-reserve", type=int, default=0,
+                        help="Mode C: reserve N functions (stratified) for "
+                             "shootout while the rest runs disjoint. "
+                             "Mutually exclusive with --shootout.")
+    parser.add_argument("--schedule-seed", type=int, default=42,
+                        help="RNG seed for stratified assignment. Same seed "
+                             "+ same input pool reproduces the schedule "
+                             "exactly — useful for debugging fairness.")
 
     args = parser.parse_args()
 
@@ -1460,6 +1729,20 @@ def main():
     if args.workers < 1:
         log(f"ERROR: --workers must be >= 1 (got {args.workers})")
         sys.exit(1)
+
+    # Mode resolution. Mode A is the default, Mode B is --shootout
+    # alone, Mode C is --paired-reserve N (with N > 0). Combining
+    # both is a contradiction (paired-reserve already mixes shootout
+    # with disjoint).
+    if args.shootout and args.paired_reserve > 0:
+        log("ERROR: --shootout and --paired-reserve are mutually exclusive")
+        sys.exit(1)
+    if args.shootout:
+        ab_mode = MODE_SHOOTOUT
+    elif args.paired_reserve > 0:
+        ab_mode = MODE_HYBRID
+    else:
+        ab_mode = MODE_DISJOINT
 
     # Load targets file if specified
     targets_list = None
@@ -1505,6 +1788,8 @@ def main():
         f"{n}/{backends[n].model}" for n in args.backends
     )
     primary = args.backends[0]
+    identities = [identity_key(n, backends[n].model) for n in args.backends]
+
     log_event(log_path, {
         "event": "run_start",
         "run_id": run_id,
@@ -1515,10 +1800,14 @@ def main():
         "backend": primary,
         "model": backends[primary].model,
         "backends": [{"name": n, "model": backends[n].model} for n in args.backends],
+        "identities": identities,
         "workers": args.workers,
         "batch_size": args.batch_size,
         "session_timeout": session_timeout,
         "mode": mode,
+        "ab_mode": ab_mode,
+        "paired_reserve_n": args.paired_reserve,
+        "schedule_seed": args.schedule_seed,
         "targets_count": len(targets_list) if targets_list else 0,
         "dry_run": args.dry_run,
     })
@@ -1558,10 +1847,99 @@ def main():
 
     print_progress(functions, start_time, log_path)
 
+    # Phase 3 schedule build. The candidate pool we hand to the
+    # schedule is the args-filtered untried slice for general-mode
+    # runs, or the untried subset of the targets list for targeted
+    # runs. Stratified assignment is computed once at run start —
+    # not re-balanced as the run progresses (per direction-003 §risks
+    # "rate-limit imbalance: weight metrics by attempts attempted").
+    if targets_list:
+        target_addrs = {t["address"] for t in targets_list}
+        candidate_pool = [f for f in functions
+                          if f["address"] in target_addrs
+                          and f["match_status"] == "untried"]
+    else:
+        candidate_pool = filter_functions(
+            functions,
+            status="untried",
+            class_name=getattr(args, "class_name", None),
+            name=getattr(args, "func_name", None),
+            obj=getattr(args, "obj", None),
+            size_min=(getattr(args, "size_min", None)
+                      if getattr(args, "size_min", None) is not None else 4),
+            size_max=getattr(args, "size_max", None),
+        )
+    matched_classes_set = {f["class_name"] for f in functions
+                            if f["match_status"] == "matched"
+                            and f.get("class_name")}
+    schedule: Schedule = build_schedule(
+        candidate_pool, identities, ab_mode,
+        paired_reserve_n=args.paired_reserve,
+        seed=args.schedule_seed,
+        matched_classes=matched_classes_set,
+    )
+    log(f"Schedule: mode={ab_mode}, "
+        f"disjoint={schedule.to_summary_dict()['disjoint_counts']}, "
+        f"shootout={schedule.to_summary_dict()['shootout_count']}")
+    log_event(log_path, {
+        "event": "schedule_built",
+        **schedule.to_summary_dict(),
+    })
+
+    # Shootout worktrees: created once at run start, torn down in
+    # finally. Mode A skips this entirely. Dry-run skips because no
+    # branch exists to fork from.
+    shootout_worktrees: dict = {}
+    if ab_mode in (MODE_SHOOTOUT, MODE_HYBRID) and not args.dry_run:
+        shootout_worktrees = setup_shootout_worktrees(identities, branch)
+
+    # Build the slot list. Main slots share the orchestrator CWD (the
+    # main run-branch worktree); shootout slots are 1-per-identity
+    # and pinned to that identity's worktree.
+    slots: list = []
+    if ab_mode != MODE_SHOOTOUT:
+        for _ in range(args.workers):
+            slots.append(WorkerSlot(kind="main"))
+    if ab_mode in (MODE_SHOOTOUT, MODE_HYBRID):
+        for ident in identities:
+            slots.append(WorkerSlot(
+                kind="shootout",
+                identity=ident,
+                worktree=shootout_worktrees.get(ident),
+            ))
+
+    if not slots:
+        log("ERROR: no worker slots configured (mode/workers/identities mismatch)")
+        sys.exit(1)
+
+    log(f"Slots: {len(slots)} total — "
+        f"{sum(1 for s in slots if s.kind == 'main')} main, "
+        f"{sum(1 for s in slots if s.kind == 'shootout')} shootout")
+
     held_classes: set = set()
+    # `in_flight` maps future → (ctx, slot_idx). Phase 1 just tracked
+    # ctx; Phase 3 also needs the slot so completion releases the
+    # right slot for re-pick. Mode A's lookup-by-ctx still works
+    # because ctx is the second tuple element.
     in_flight: dict = {}
+    busy_slots: set = set()
+    # `pending_commits[session_id] = {worktree, exact_paths,
+    # sibling_prefixes}` for sessions whose commits are queued but
+    # not yet executed. peer_query consults this so the next session
+    # in the same worktree doesn't classify the to-be-committed
+    # ledger as out-of-scope and revert it before the commit thread
+    # runs. (A previously-latent race in Phase 1/2: same-tree
+    # back-to-back batches across different classes could lose a
+    # match if the partition raced ahead of the commit.)
+    pending_commits: dict = {}
+    pending_lock = threading.Lock()
     next_pick_time = 0.0
     done_picking = False
+    # Round-robin starting identity for main-slot picking. Bumped
+    # each pick-attempt so two main slots don't both ask claude
+    # first (which would empty claude's queue while codex's stays
+    # full).
+    main_pick_rotation = [0]
 
     counters = {
         "total_attempted": 0,
@@ -1572,45 +1950,112 @@ def main():
         "consecutive_refusals": 0,
     }
 
-    def try_pick_and_submit(executor):
-        """Pick one batch under db_lock, acquire its class locks, submit it.
+    def _identity_to_backend(ident: str):
+        bname = ident.split("/", 1)[0]
+        return backends[bname]
 
-        Returns True if a worker was submitted, False if no candidate
-        batch is available (either all classes locked or pool empty).
+    def _pick_main_slot_batch(slot_idx):
+        """Mode A / Mode C main-slot pick. Rotates through identities,
+        returns (batch, identity) for the first non-empty disjoint
+        queue, or (None, None) when none has eligible work.
         """
-        with db_lock:
-            if args.limit and counters["total_attempted"] >= args.limit:
-                return False
+        n = len(identities)
+        for offset in range(n):
+            ident_idx = (main_pick_rotation[0] + offset) % n
+            ident = identities[ident_idx]
+            allowed = schedule.disjoint_addrs_for(ident)
+            if not allowed:
+                continue
             if targets_list:
                 batch = pick_next_batch_targeted(
                     functions, targets_list, addr_index,
                     batch_size=args.batch_size,
                     excluded_classes=held_classes,
+                    allowed_addrs=allowed,
                 )
             else:
                 batch = pick_next_batch(
                     functions, args, batch_size=args.batch_size,
                     excluded_classes=held_classes,
+                    allowed_addrs=allowed,
                 )
-            if not batch:
+            if batch:
+                main_pick_rotation[0] = (ident_idx + 1) % n
+                return batch, ident
+        return None, None
+
+    def _pick_shootout_slot_batch(slot):
+        """Mode B / Mode C shootout-slot pick. Slot is identity-bound;
+        candidates are shootout funcs the identity hasn't yet attempted.
+        match_status check is skipped (the shootout DB lives in the
+        worktree, not main).
+        """
+        ident = slot.identity
+        allowed = schedule.shootout_remaining(ident)
+        if not allowed:
+            return None
+        if targets_list:
+            batch = pick_next_batch_targeted(
+                functions, targets_list, addr_index,
+                batch_size=args.batch_size,
+                excluded_classes=set(),  # shootout slots have no shared class lock
+                allowed_addrs=allowed,
+                check_status=False,
+            )
+        else:
+            batch = pick_next_batch(
+                functions, args, batch_size=args.batch_size,
+                excluded_classes=set(),
+                allowed_addrs=allowed,
+                check_status=False,
+            )
+        return batch
+
+    def try_pick_and_submit(executor, slot_idx):
+        """Pick one batch for `slot_idx` under db_lock, acquire its
+        class locks (main slots only), submit it.
+
+        Returns True if a worker was submitted. False if the slot's
+        queue has no eligible work right now (caller decides whether
+        that means "permanently done" or "wait for in-flight to
+        finish a class").
+        """
+        slot = slots[slot_idx]
+        with db_lock:
+            if args.limit and counters["total_attempted"] >= args.limit:
                 return False
-
-            classes = compute_batch_classes(batch)
-            assert not (classes & held_classes)
-            held_classes.update(classes)
-
+            if slot.kind == "main":
+                batch, picked_ident = _pick_main_slot_batch(slot_idx)
+                if not batch:
+                    return False
+                classes = compute_batch_classes(batch)
+                assert not (classes & held_classes)
+                held_classes.update(classes)
+                set_batch_status(functions, batch, "in_progress", addr_index)
+                save_db(functions)
+                identity = picked_ident
+                queue_kind = "disjoint"
+            else:  # shootout
+                batch = _pick_shootout_slot_batch(slot)
+                if not batch:
+                    return False
+                classes = compute_batch_classes(batch)
+                # Shootout: per-identity attempt set is the lock; main
+                # DB stays untouched so no in-progress flip + no
+                # save_db.
+                schedule.mark_shootout_attempted(
+                    slot.identity, [f["address"] for f in batch])
+                identity = slot.identity
+                queue_kind = "shootout"
             exact_paths, sibling_prefixes = compute_allowed_paths(batch)
-
-            set_batch_status(functions, batch, "in_progress", addr_index)
-            save_db(functions)
             counters["total_attempted"] += len(batch)
+            busy_slots.add(slot_idx)
 
+        backend = _identity_to_backend(identity)
         session_id = str(uuid.uuid4())[:8]
         selected_variant = random.choice(args.variants)
-        backend = random.choice(list(backends.values()))
-        tag = (f"[{selected_variant}/{backend.name}]"
-               if len(args.backends) > 1
-               else f"[{selected_variant}]")
+        kind_tag = "" if slot.kind == "main" else "·shootout"
+        tag = f"[{selected_variant}/{backend.name}{kind_tag}]"
         log(f"Session {session_id} {tag}: {len(batch)} functions — "
             f"{', '.join(f['name'].split('(')[0] for f in batch)}")
 
@@ -1620,10 +2065,14 @@ def main():
             "variant": selected_variant,
             "backend": backend.name,
             "model": backend.model,
+            "identity": identity,
+            "queue_kind": queue_kind,
+            "worktree": slot.worktree,
             "class_name": batch[0].get("class_name"),
             "functions": [
                 {"address": f["address"], "name": f["name"],
-                 "size": f["size"], "obj_file": f.get("obj_file")}
+                 "size": f["size"], "obj_file": f.get("obj_file"),
+                 "class_name": f.get("class_name") or ""}
                 for f in batch
             ],
         })
@@ -1639,22 +2088,41 @@ def main():
             functions=functions,
             exact_paths=exact_paths,
             sibling_prefixes=sibling_prefixes,
+            worktree=slot.worktree,
+            identity=identity,
+            queue_kind=queue_kind,
         )
 
         def peer_query(my_ctx=ctx):
+            peer_exact = set()
+            peer_prefixes = []
             with db_lock:
-                peer_exact = set()
-                peer_prefixes = []
-                for other_ctx in in_flight.values():
+                for other_pair in in_flight.values():
+                    other_ctx, _ = other_pair
                     if other_ctx is my_ctx:
+                        continue
+                    # Peers in different worktrees don't collide on the
+                    # filesystem; only same-worktree peers can step on
+                    # each other's still-in-flight ledger.
+                    if other_ctx.worktree != my_ctx.worktree:
                         continue
                     peer_exact |= other_ctx.exact_paths
                     peer_prefixes.extend(other_ctx.sibling_prefixes)
-                return peer_exact, tuple(peer_prefixes)
+            with pending_lock:
+                # Queued-commit sessions are out of `in_flight` but
+                # their ledger files still sit dirty in the worktree;
+                # treat them as peers so we don't revert someone
+                # else's pending ledger.
+                for entry in pending_commits.values():
+                    if entry.get("worktree") != my_ctx.worktree:
+                        continue
+                    peer_exact |= entry.get("exact_paths") or set()
+                    peer_prefixes.extend(entry.get("sibling_prefixes") or ())
+            return peer_exact, tuple(peer_prefixes)
 
         ctx.peer_query = peer_query
         future = executor.submit(run_one_session, ctx)
-        in_flight[future] = ctx
+        in_flight[future] = (ctx, slot_idx)
         return True
 
     # Dedicated commit thread drains commit_queue FIFO. Workers never
@@ -1662,6 +2130,14 @@ def main():
     # picked + verified concurrently with the previous batch's commit.
     # The thread MUST keep draining on any exception — its death
     # would silently block shutdown forever via commit_thread.join().
+    #
+    # Phase 3 fan-in: the queue still serializes through one thread,
+    # but each payload carries a worktree path so commits land in the
+    # right tree. Single-thread fan-in (vs one thread per worktree)
+    # is the chosen strategy because git's index.lock is per-tree,
+    # ordering is deterministic, and the work each commit does is
+    # fast (a few `git add` + one `git commit`) — parallel commit
+    # threads would buy little.
     commit_queue: queue.Queue = queue.Queue()
 
     def commit_worker():
@@ -1670,20 +2146,54 @@ def main():
             try:
                 if item is None:
                     return
-                sid, mfuncs, mfiles, ledger = item
+                commit_failed = False
                 try:
-                    git_commit_batch(sid, mfuncs, mfiles, ledger)
+                    git_commit_batch(
+                        item["session_id"],
+                        item["matched_funcs"],
+                        item["matched_files"],
+                        item["ledger_paths"],
+                        worktree=item.get("worktree"),
+                        db_updates=item.get("db_updates"),
+                        backend_name=item.get("backend_name", ""),
+                        backend_model=item.get("backend_model", ""),
+                        matched_at=item.get("matched_at", ""),
+                        variant=item.get("variant", ""),
+                    )
                 except BaseException as e:
+                    commit_failed = True
                     import traceback
-                    log(f"  COMMIT THREAD ERROR (matching saved, commit deferred): "
-                        f"{type(e).__name__}: {e}")
+                    log(f"  COMMIT THREAD ERROR (matching dropped, "
+                        f"reverting worktree): {type(e).__name__}: {e}")
                     log_event(log_path, {
                         "event": "commit_thread_error",
-                        "session_id": sid,
+                        "session_id": item.get("session_id"),
+                        "worktree": item.get("worktree"),
                         "error_type": type(e).__name__,
                         "error": str(e),
                         "traceback": traceback.format_exc(),
                     })
+                    # Revert this session's ledger paths so the next
+                    # session in the same worktree doesn't inherit a
+                    # half-committed state. Without this, peer_query
+                    # would clear from pending_commits below and the
+                    # next partition would either revert the matched
+                    # files (silent loss) or absorb them into an
+                    # unrelated session's ledger (cross-session leak).
+                    try:
+                        revert_paths(item.get("ledger_paths") or set(),
+                                     worktree=item.get("worktree"))
+                    except BaseException as re:
+                        log(f"  COMMIT-FAILURE CLEANUP ERROR: "
+                            f"{type(re).__name__}: {re}")
+                        log_event(log_path, {
+                            "event": "commit_cleanup_failed",
+                            "session_id": item.get("session_id"),
+                            "worktree": item.get("worktree"),
+                            "error": str(re),
+                        })
+                with pending_lock:
+                    pending_commits.pop(item.get("session_id"), None)
             finally:
                 commit_queue.task_done()
 
@@ -1697,13 +2207,24 @@ def main():
 
         `kind` is also the attempts.jsonl `session_error_kind` value:
         the OUTCOME_* constants are the canonical strings.
+
+        Shootout abort path (outcome.queue_kind == "shootout"): the
+        main DB was never flipped, so revert_in_progress is a no-op
+        on the actual rows. We still drop the schedule's
+        `shootout_done` membership so the function returns to the
+        per-identity queue for retry.
         """
         log(log_msg)
         log_event(log_path, event)
         with db_lock:
-            revert_in_progress(functions, outcome.batch, addr_index)
+            if outcome.queue_kind == "disjoint":
+                revert_in_progress(functions, outcome.batch, addr_index)
+                save_db(functions)
+            else:
+                schedule.unmark_shootout_attempted(
+                    outcome.identity,
+                    [f["address"] for f in outcome.batch])
             counters["total_attempted"] -= len(outcome.batch)
-            save_db(functions)
         emit_attempts_for_outcome(outcome, run_id, error_kind=kind)
         return kind
 
@@ -1763,50 +2284,42 @@ def main():
 
         backend_model = outcome.backend_model
         matched_at = _utc_now_iso()
+        is_shootout = (outcome.queue_kind == "shootout")
 
         with db_lock:
-            for d in outcome.decisions:
-                target = addr_index.get(d.address)
-                if target is None:
-                    raise RuntimeError(
-                        f"apply_outcome: decision references unknown address "
-                        f"{d.address} — addr_index desync (decisions are built "
-                        f"from batch addrs, so this should be unreachable)"
-                    )
-                target["match_status"] = d.status
-                if d.src_file is not None:
-                    target["src_file"] = d.src_file
-                if d.symbol_name is not None:
-                    target["symbol_name"] = d.symbol_name
-                if d.status == "matched":
-                    # DB tracks the *current* owner; on re-match these
-                    # are overwritten. attempts.jsonl preserves history.
-                    target["matched_by_backend"] = backend_name
-                    target["matched_by_session_id"] = session_id
-                    target["matched_by_model"] = backend_model
-                    target["matched_at"] = matched_at
-                if d.failure_note:
-                    target.setdefault("failure_notes", []).append({
-                        "session": session_id,
-                        "notes": d.failure_note,
-                        "backend": backend_name,
-                        "model": backend_model,
-                        "variant": variant,
-                        "timestamp": matched_at,
-                    })
-                    target["failure_notes"] = target["failure_notes"][-5:]
+            # Disjoint sessions update the in-memory DB so the picker
+            # sees the new status. Shootout sessions DO NOT — their
+            # DB writes happen inside the worktree, on the shootout
+            # branch, via the commit thread. Touching the in-memory
+            # DB here would land shootout matches on the main run-
+            # branch's DB, defeating the entire isolation guarantee.
+            if not is_shootout:
+                apply_decisions_to_funcs(
+                    addr_index, outcome.decisions, session_id,
+                    backend_name, backend_model, matched_at, variant,
+                )
 
             final_matched = 0
             final_failed = 0
             for func in batch:
-                target = addr_index.get(func["address"])
-                final_status = target["match_status"] if target else "unknown"
+                if is_shootout:
+                    # Use the per-decision verdict directly; the main
+                    # DB still says "untried" so addr_index lookup
+                    # would mislabel this as untried for the log.
+                    d = next((x for x in outcome.decisions
+                              if x.address == func["address"]), None)
+                    final_status = (d.status if d else "unknown")
+                else:
+                    target = addr_index.get(func["address"])
+                    final_status = target["match_status"] if target else "unknown"
                 log_event(log_path, {
                     "event": "function_result",
                     "session_id": session_id,
                     "variant": variant,
                     "backend": backend_name,
                     "model": backend_model,
+                    "identity": outcome.identity,
+                    "queue_kind": outcome.queue_kind,
                     "address": func["address"],
                     "name": func["name"],
                     "size": func["size"],
@@ -1823,6 +2336,9 @@ def main():
                 "variant": variant,
                 "backend": backend_name,
                 "model": backend_model,
+                "identity": outcome.identity,
+                "queue_kind": outcome.queue_kind,
+                "worktree": outcome.worktree,
                 "matched": final_matched,
                 "failed": final_failed,
                 "claimed_matched": outcome.claimed_matched,
@@ -1833,24 +2349,37 @@ def main():
             counters["total_matched"] += final_matched
             counters["total_failed"] += final_failed
 
-            save_db(functions)
+            if not is_shootout:
+                save_db(functions)
 
         # Outside db_lock: attempts.jsonl has its own lock; commits
         # are async via commit_queue.
         emit_attempts_for_outcome(outcome, run_id, error_kind=None)
 
         if outcome.matched_funcs:
-            commit_queue.put((
-                session_id,
-                outcome.matched_funcs,
-                outcome.matched_files,
-                outcome.ledger_paths,
-            ))
+            with pending_lock:
+                pending_commits[session_id] = {
+                    "worktree": outcome.worktree,
+                    "exact_paths": set(ctx.exact_paths),
+                    "sibling_prefixes": tuple(ctx.sibling_prefixes),
+                }
+            commit_queue.put({
+                "session_id": session_id,
+                "matched_funcs": outcome.matched_funcs,
+                "matched_files": outcome.matched_files,
+                "ledger_paths": outcome.ledger_paths,
+                "worktree": outcome.worktree,
+                "db_updates": (outcome.decisions if is_shootout else None),
+                "backend_name": backend_name,
+                "backend_model": backend_model,
+                "matched_at": matched_at,
+                "variant": variant,
+            })
 
         return OUTCOME_SUCCESS
 
     executor = concurrent.futures.ThreadPoolExecutor(
-        max_workers=args.workers,
+        max_workers=len(slots),
         thread_name_prefix="orch-worker",
     )
     try:
@@ -1865,16 +2394,24 @@ def main():
                           and not done_picking
                           and time.time() >= next_pick_time)
 
-            while can_submit and len(in_flight) < args.workers:
-                if try_pick_and_submit(executor):
-                    continue
-                # No candidate this round: either pool empty, or every
-                # eligible class is currently locked. If nothing's in
-                # flight, no class will ever release — pool is empty.
-                if not in_flight:
+            if can_submit:
+                progressed = False
+                stalled_idle_slots = 0
+                idle_slot_indices = [i for i in range(len(slots))
+                                      if i not in busy_slots]
+                for slot_idx in idle_slot_indices:
+                    if try_pick_and_submit(executor, slot_idx):
+                        progressed = True
+                    else:
+                        stalled_idle_slots += 1
+                # Done-picking detection: every idle slot was stalled
+                # AND nothing's in flight that could release a class
+                # lock or fill a queue. (In flight could in principle
+                # backfill via class-lock release.)
+                if (not progressed and stalled_idle_slots == len(idle_slot_indices)
+                        and not in_flight):
                     done_picking = True
                     log("No more untried functions matching criteria. Done.")
-                break
 
             if not in_flight:
                 if done_picking or deadline_hit or limit_hit or cb_hit:
@@ -1902,7 +2439,8 @@ def main():
                 continue
 
             for future in done:
-                ctx = in_flight.pop(future)
+                ctx, slot_idx = in_flight.pop(future)
+                busy_slots.discard(slot_idx)
                 try:
                     outcome = future.result()
                 except BaseException as e:
@@ -1912,12 +2450,19 @@ def main():
                         "session_id": ctx.session_id,
                         "variant": ctx.variant,
                         "backend": ctx.backend.name,
+                        "identity": ctx.identity,
+                        "queue_kind": ctx.queue_kind,
                         "error": repr(e),
                     })
                     with db_lock:
-                        revert_in_progress(functions, ctx.batch, addr_index)
+                        if ctx.queue_kind == "disjoint":
+                            revert_in_progress(functions, ctx.batch, addr_index)
+                            save_db(functions)
+                        else:
+                            schedule.unmark_shootout_attempted(
+                                ctx.identity,
+                                [f["address"] for f in ctx.batch])
                         counters["total_attempted"] -= len(ctx.batch)
-                        save_db(functions)
                     held_classes.difference_update(ctx.classes)
                     counters["total_errors"] += 1
                     counters["consecutive_failures"] += 1
@@ -1928,7 +2473,12 @@ def main():
                     continue
 
                 kind = apply_outcome(outcome, ctx)
-                held_classes.difference_update(ctx.classes)
+                # class_locks only matter for the shared (main)
+                # worktree. Shootout slots run alone in their own
+                # tree, so class_locks were never acquired and there's
+                # nothing to release.
+                if ctx.queue_kind == "disjoint":
+                    held_classes.difference_update(ctx.classes)
 
                 if kind == OUTCOME_REFUSAL:
                     counters["total_errors"] += 1
@@ -1955,10 +2505,16 @@ def main():
     finally:
         # Order matters: workers finish first so the last apply_outcome
         # calls reach commit_queue, then drain. Reverse order would
-        # silently drop commits queued during shutdown.
+        # silently drop commits queued during shutdown. Worktree
+        # teardown happens last, after commits have flushed —
+        # `git worktree remove` on a tree with uncommitted changes
+        # would lose work otherwise.
         executor.shutdown(wait=True)
         commit_queue.put(None)
         commit_thread.join()
+        if shootout_worktrees:
+            log("Tearing down shootout worktrees...")
+            teardown_shootout_worktrees(shootout_worktrees)
 
     total_attempted = counters["total_attempted"]
     total_matched = counters["total_matched"]

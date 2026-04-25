@@ -118,7 +118,7 @@ def _make_fake_run_session(observed_classes, lock,
       - Writes a fake session_results JSON declaring all batch funcs matched.
       - Optionally writes an out-of-scope file to test invariant 4.
     """
-    def fake(backend, prompt, session_id, log_fn, variant, timeout):
+    def fake(backend, prompt, session_id, log_fn, variant, timeout, cwd=None):
         # Extract the batch addresses from the prompt by looking at the
         # results-file path the prompt instructs the agent to write.
         # We re-derive batch addresses from the session_results file
@@ -251,13 +251,15 @@ def main():
             # Stub git_commit_batch: record what would be committed
             # (invariant 3 — each commit covers exactly one session's
             # ledger, and the ledger is what we recorded).
-            def fake_commit(session_id, matched_funcs, matched_files, ledger_paths):
+            def fake_commit(session_id, matched_funcs, matched_files,
+                            ledger_paths, **kwargs):
                 with commits_lock:
                     commits_observed.append({
                         "session_id": session_id,
                         "matched_addrs": [f["address"] for f in matched_funcs],
                         "matched_files": sorted(matched_files),
                         "ledger_paths": sorted(ledger_paths),
+                        "worktree": kwargs.get("worktree"),
                     })
             orchestrator.git_commit_batch = fake_commit
 

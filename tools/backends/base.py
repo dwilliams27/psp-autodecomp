@@ -202,6 +202,7 @@ def run_session(
     log_fn: Callable[[dict], None],
     variant: str,
     timeout: int,
+    cwd: Optional[str] = None,
 ) -> Tuple[bool, Optional[str], dict]:
     """Spawn the backend's CLI and stream its output to log_fn.
 
@@ -210,6 +211,10 @@ def run_session(
     caller doesn't need to scrape it back from the log stream.
     Raises AgentRefused on safety-classifier misfire so the outer loop
     can treat it separately.
+
+    `cwd` (Phase 3 shootout): when set the agent CLI runs inside that
+    directory so its file edits land in the right git worktree, not
+    the orchestrator's main tree. None preserves Phase 1/2 behavior.
     """
     cmd = backend.spawn_cmd(prompt, session_id)
 
@@ -224,6 +229,7 @@ def run_session(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             stdin=subprocess.DEVNULL,
             text=True, bufsize=1, env=child_env,
+            cwd=cwd,
         )
     except OSError as e:
         return False, f"failed to spawn {backend.name}: {e}", session_usage

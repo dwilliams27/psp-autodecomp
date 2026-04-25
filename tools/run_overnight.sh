@@ -8,6 +8,10 @@
 #   ./tools/run_overnight.sh --hours 8 --class eWorld         # target specific class
 #   ./tools/run_overnight.sh --dry-run --limit 3              # test with 3 functions, no sandbox
 #   ./tools/run_overnight.sh --hours 8 --backend codex        # drive sessions with OpenAI Codex
+#   ./tools/run_overnight.sh --hours 8 --backend claude,codex --shootout
+#                                                             # Mode B: every backend attempts every function
+#   ./tools/run_overnight.sh --hours 8 --backend claude,codex --paired-reserve 50
+#                                                             # Mode C: 50 functions reserved for shootout
 #
 # Auth: --backend claude uses the autodecomp user's Keychain (unlocked below).
 #       --backend codex uses the autodecomp user's ~/.codex/auth.json
