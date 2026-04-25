@@ -11,11 +11,25 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from tools.ui.palette import (BAD, BODY, DIM, LEAF, MOSS, OK, SUN, SUNLIT, WARN)
+from tools.ui.palette import (BAD, BODY, DIM, FOREST, LEAF, MOSS, OK, SUN,
+                              SUNLIT, WARN)
 from tools.ui.screens.base import Screen
 from tools.ui.widgets import helix
 from tools.ui.widgets.header import header_panel
 from tools.ui.widgets.primitives import fmt_hhmm, progress_bar, size_cell
+
+
+# Backend → color/style map for the outcomes panel + scoreboard. Claude
+# wears SUN orange, codex wears FOREST dark green, anything else falls
+# back to MOSS so unknown backends are still legible.
+_BACKEND_STYLE = {
+    "claude": SUN,
+    "codex": FOREST,
+}
+
+
+def _backend_style(name):
+    return _BACKEND_STYLE.get(name, MOSS)
 
 
 # Patterns in orch_note lines that duplicate a structured event we already
@@ -73,6 +87,7 @@ class RunningScreen(Screen):
                 + f"{event.get('error','')[:100]}")
             state.current_session_sid = None
             state.current_session_variant = None
+            state.current_session_backend = None
             state.current_working = "(waiting)"
         elif ev == "progress_tick":
             self._on_progress_tick(state, event)
@@ -99,10 +114,14 @@ class RunningScreen(Screen):
         state.model = event.get("model") or ""
         for b in event.get("backends") or []:
             state.ensure_backend(b.get("name", ""))
-        # In an A/B run the left-panel "backend" line should still show
-        # something — surface the full set joined since each session picks
-        # a different one. The per-backend scoreboard rows below carry
-        # the actual head-to-head numbers.
+        # Old logs predate the `backends` list — register the singular
+        # `backend` so the scoreboard always has at least one row to
+        # render.
+        if not state.backends and state.backend:
+            state.ensure_backend(state.backend)
+        # In an A/B run the left-panel "backend" line shows the joined
+        # set since each session picks a different one. The scoreboard
+        # carries the actual head-to-head numbers.
         if len(state.backends) > 1:
             state.backend = "/".join(state.backends)
             state.model = ""
@@ -117,10 +136,14 @@ class RunningScreen(Screen):
     def _on_session_start(self, state, event):
         sid = event.get("session_id", "?")
         variant = event.get("variant", "?")
+        backend = event.get("backend") or ""
         funcs = event.get("functions", []) or []
         state.ensure_variant(variant)
+        if backend:
+            state.ensure_backend(backend)
         state.current_session_sid = sid
         state.current_session_variant = variant
+        state.current_session_backend = backend or None
         state.current_batch_names = [_short_name(f.get("name", "?")) for f in funcs]
         state.current_addr_to_name = {
             (f.get("address") or "").lower():
@@ -158,6 +181,7 @@ class RunningScreen(Screen):
                 o["duration_s"] = dur_s
         state.current_session_sid = None
         state.current_session_variant = None
+        state.current_session_backend = None
         state.current_addr_to_name = {}
         state.current_working = "(waiting)"
 
@@ -173,6 +197,7 @@ class RunningScreen(Screen):
             "name": event.get("name", "?"),
             "size": event.get("size", 0),
             "variant": variant,
+            "backend": backend,
             "session_id": event.get("session_id"),
             # Stamped by _on_session_done since orchestrator emits
             # function_result before session_done in the same batch.
@@ -198,13 +223,17 @@ class RunningScreen(Screen):
 
     def _on_verify_failed(self, state, event):
         variant = event.get("variant", "?")
+        backend = event.get("backend") or ""
         state.ensure_variant(variant)
+        if backend:
+            state.ensure_backend(backend)
         state.this_run_verify_fail += 1
         state.outcomes.appendleft({
             "status": "verify",
             "name": event.get("name", "?"),
             "size": event.get("size", 0),
             "variant": variant,
+            "backend": backend,
             "session_id": event.get("session_id"),
             "duration_s": None,
         })
@@ -365,8 +394,11 @@ class RunningScreen(Screen):
 
         l = Text()
         l.append("now        ", style=LEAF)
-        if state.current_session_variant:
-            l.append(state.current_session_variant, style=f"bold {SUN}")
+        if state.current_session_backend:
+            l.append(state.current_session_backend,
+                     style=f"bold {_backend_style(state.current_session_backend)}")
+        elif state.current_session_variant:
+            l.append(state.current_session_variant, style=f"bold {LEAF}")
         else:
             l.append("(idle)", style=DIM)
         left_lines.append(l)
@@ -401,11 +433,11 @@ class RunningScreen(Screen):
         MAX_M_BARS = 8
         MAX_F_BARS = 4
 
-        def _scoreboard_row(label, m, f):
+        def _scoreboard_row(label, m, f, label_style):
             total = m + f
             rate = (100.0 * m / total) if total else 0.0
             l = Text()
-            l.append(f"{label[:7]:<7}", style=f"bold {MOSS}")
+            l.append(f"{label[:7]:<7}", style=f"bold {label_style}")
             l.append("\u25B0" * min(m, MAX_M_BARS), style=f"bold {OK}")
             if m > MAX_M_BARS:
                 l.append("+", style=DIM)
@@ -417,19 +449,13 @@ class RunningScreen(Screen):
             return l
 
         right_lines = []
-        for v in state.variants:
+        for b in state.backends:
             right_lines.append(_scoreboard_row(
-                v,
-                state.this_run_matched.get(v, 0),
-                state.this_run_failed.get(v, 0),
+                b,
+                state.this_run_matched_by_backend.get(b, 0),
+                state.this_run_failed_by_backend.get(b, 0),
+                _backend_style(b),
             ))
-        if len(state.backends) > 1:
-            for b in state.backends:
-                right_lines.append(_scoreboard_row(
-                    b,
-                    state.this_run_matched_by_backend.get(b, 0),
-                    state.this_run_failed_by_backend.get(b, 0),
-                ))
         while len(right_lines) < helix.HELIX_H:
             right_lines.append(Text(""))
 
@@ -546,7 +572,7 @@ class RunningScreen(Screen):
             tbl.add_column(style=BODY, width=10)
             tbl.add_column(style=BODY, ratio=1)
             tbl.add_column(justify="left", width=40)
-            tbl.add_column(style=MOSS, justify="right", width=10)
+            tbl.add_column(justify="right", width=10)
             tbl.add_column(style=DIM, justify="right", width=4)
             for o in state.outcomes:
                 st = o["status"]
@@ -560,12 +586,16 @@ class RunningScreen(Screen):
                     glyph, label, color = "\u00b7", st, DIM
                 dur_s = o.get("duration_s")
                 dur_cell = f"{round(dur_s / 60)}m" if dur_s is not None else ""
+                # Prefer backend (the new identity); fall back to variant
+                # for older logs that pre-date backend tagging.
+                tag = o.get("backend") or o.get("variant", "")
+                tag_cell = Text(tag, style=f"bold {_backend_style(tag)}")
                 tbl.add_row(
                     Text(glyph, style=f"bold {color}"),
                     Text(label, style=color),
                     o["name"],
                     size_cell(o["size"]),
-                    o["variant"],
+                    tag_cell,
                     dur_cell,
                 )
             content = tbl

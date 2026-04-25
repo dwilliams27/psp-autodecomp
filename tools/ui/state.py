@@ -31,6 +31,7 @@ class RunState:
 
         self.current_session_sid = None
         self.current_session_variant = None
+        self.current_session_backend = None
         self.current_batch_names = []
         # address (lowercase hex) → short function name, populated by
         # session_start so compare_func.py 0xADDR tool_use events can
