@@ -3,6 +3,7 @@
 class cFile;
 class cMemPool;
 class cBase;
+class cType;
 class eCollisionInfo;
 class mRay;
 class mCollideHit;
@@ -10,6 +11,10 @@ class mSphere;
 class mCollideInfo;
 class eContactCollector;
 class eSurface;
+class eGeomTemplate;
+class eWorld;
+class eGeom;
+template <class T> class cHandleT;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 typedef int v16sf_t __attribute__((mode(V16SF)));
@@ -30,6 +35,23 @@ public:
 
 void cFile_SetCurrentPos(void *, unsigned int);
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cMemPool_shim {
+public:
+    static void *GetPoolFromPtr(const void *);
+};
+
+class eWorld {
+public:
+    void UpdateGeomLocation(eGeom *);
+};
+
 class eGeom {
 public:
     static eGeom *s_pFirstUpdate;
@@ -40,6 +62,12 @@ public:
     void ApplyLocalToWorld(const mOCS &);
     eGeom(cBase *base);
 
+    void OnAddedToWorld(void);
+    void OnRemovedFromWorld(void);
+    const cType *GetType(void) const;
+    void SetTemplate(cHandleT<eGeomTemplate>, bool);
+    void UpdateLocalToWorld(void);
+
     bool CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
     bool CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const;
     int GetSweptContacts(const eCollisionInfo &, int, const mSphere *,
@@ -49,7 +77,19 @@ public:
     eSurface *GetSurface(int) const;
 };
 
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
 extern char eGeomvirtualtable[];
+
+extern const char eGeom_cBase_name[];   // 0x36CD74 = "cBase"
+extern const char eGeom_cBase_desc[];   // 0x36CD7C = "Base"
+
+static cType *type_base;
+static cType *type_eGeom;
 
 // ── Write ──
 void eGeom::Write(cFile &file) const {
@@ -152,4 +192,77 @@ int eGeom::GetEmbedContacts(const eCollisionInfo &, int, const mSphere *,
 // ── GetSurface ──
 eSurface *eGeom::GetSurface(int) const {
     return 0;
+}
+
+// ── OnAddedToWorld ──
+void eGeom::OnAddedToWorld(void) {
+}
+
+// ── OnRemovedFromWorld ──
+void eGeom::OnRemovedFromWorld(void) {
+}
+
+// ── GetType ──
+const cType *eGeom::GetType(void) const {
+    if (!type_eGeom) {
+        if (!type_base) {
+            type_base = cType::InitializeType(eGeom_cBase_name, eGeom_cBase_desc, 1, 0, 0, 0, 0, 0);
+        }
+        type_eGeom = cType::InitializeType(0, 0, 0x16, type_base, 0, 0, 0, 0);
+    }
+    return type_eGeom;
+}
+
+// ── SetTemplate ──
+struct VirtCallEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *, int);
+};
+
+void eGeom::SetTemplate(cHandleT<eGeomTemplate> templ, bool reset) {
+    void *templPtr;
+    if (templ.mIndex == 0) {
+        templPtr = 0;
+    } else {
+        templPtr = 0;
+        void *entry = ((void **)0x38890)[(unsigned int)templ.mIndex & 0xFFFF];
+        if (entry != 0 && *(int *)((char *)entry + 0x30) == templ.mIndex) {
+            templPtr = entry;
+        }
+    }
+    *(void **)((char *)this + 0x60) = templPtr;
+    if (reset) {
+        VirtCallEntry *e = (VirtCallEntry *)((char *)*(void **)((char *)this + 4) + 0x38);
+        short adj = e->offset;
+        void *base = (char *)this + adj;
+        void *pool = cMemPool_shim::GetPoolFromPtr(this);
+        e->fn(base, pool, 1);
+    }
+}
+
+// ── UpdateLocalToWorld ──
+void eGeom::UpdateLocalToWorld(void) {
+    *((unsigned char *)this + 0x8C) = *((unsigned char *)this + 0x8C) & ~4;
+    if ((*(eGeom **)((char *)this + 0x80) != 0 || *(eGeom **)((char *)this + 0x84) != 0)
+        && this != 0 && *(eGeom **)((char *)this + 0x80) != 0) {
+        if (*(eGeom **)((char *)this + 0x84) != 0) {
+            if (s_pFirstUpdate == this) {
+                s_pFirstUpdate = *(eGeom **)((char *)this + 0x84);
+            }
+            *(eGeom **)((char *)*(eGeom **)((char *)this + 0x80) + 0x84) = *(eGeom **)((char *)this + 0x84);
+            *(eGeom **)((char *)*(eGeom **)((char *)this + 0x84) + 0x80) = *(eGeom **)((char *)this + 0x80);
+            *(eGeom **)((char *)this + 0x80) = 0;
+            *(eGeom **)((char *)this + 0x84) = 0;
+            if (s_pFirstUpdate == this) {
+                s_pFirstUpdate = 0;
+            }
+        }
+    }
+    if (*((unsigned char *)this + 0x8C) & 1) {
+        eWorld *world = *(eWorld **)((char *)this + 0x64);
+        if (world != 0) {
+            world->UpdateGeomLocation(this);
+        }
+    }
 }
