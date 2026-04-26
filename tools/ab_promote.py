@@ -80,10 +80,16 @@ def current_branch() -> str:
     return out.strip()
 
 
-def scan_branch_promotions(branch: str
+def scan_branch_promotions(branch: str,
+                            base: Optional[str] = None
                             ) -> Dict[str, Tuple[str, str]]:
     """Scan one shootout branch once: returns `{address: (sha, session_id)}`
     for every match commit whose DB diff promotes that address.
+
+    `base` restricts the scan to commits unique to `branch` (i.e.,
+    `branch ^base`). Without it the scan walks the full history
+    including inherited commits from the run-branch/main — those are
+    already on main and cherry-picking them again would conflict.
 
     Single `git log -p` scan rather than per-address `git log` + per-
     candidate `git show` (which was K×M subprocesses for K addresses
@@ -91,11 +97,14 @@ def scan_branch_promotions(branch: str
     one commit promoting multiple addresses still attributes each
     address correctly.
     """
+    range_spec = [branch]
+    if base:
+        range_spec.append(f"^{base}")
     rc, out, err = git_run(
         "log", "-p", "--no-color", "--unified=15",
         "--format=__commit__%x1f%H%x1f%s%x1e",
         "--diff-filter=M",
-        branch, "--", "config/functions.json",
+        *range_spec, "--", "config/functions.json",
     )
     if rc != 0:
         raise RuntimeError(
@@ -278,7 +287,8 @@ def cherry_pick_one(sha: str, branch: str, dry_run: bool = False
 
 def plan(attempts: List[dict], identities: List[str],
          shootout_branches: Dict[str, str],
-         prefer: Optional[str] = None) -> List[dict]:
+         prefer: Optional[str] = None,
+         base_branch: Optional[str] = None) -> List[dict]:
     """Build the list of cherry-pick actions.
 
     `attempts` is the parsed attempts.jsonl record list (so callers
@@ -316,7 +326,8 @@ def plan(attempts: List[dict], identities: List[str],
     # by orders of magnitude on real runs.
     branch_promotions: Dict[str, Dict[str, Tuple[str, str]]] = {}
     for suffix, branch in shootout_branches.items():
-        branch_promotions[branch] = scan_branch_promotions(branch)
+        branch_promotions[branch] = scan_branch_promotions(
+            branch, base=base_branch)
 
     actions: List[dict] = []
     for addr in sorted(by_addr):
@@ -477,7 +488,7 @@ def main():
     print()
 
     actions = plan(attempts, identities, shootout_branches,
-                    prefer=prefer)
+                    prefer=prefer, base_branch=args.branch)
     if not actions:
         print("Nothing to promote.")
         return
