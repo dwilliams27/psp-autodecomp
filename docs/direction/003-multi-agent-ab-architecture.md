@@ -1,8 +1,7 @@
 # Multi-agent concurrent matching + robust A/B benchmarking
 
-**Status:** plan, not yet implemented. Begun 2026-04-25 from a single-agent
-single-backend orchestrator with ad-hoc backend A/B (random per-session
-backend pick).
+**Status:** Phases 1-3 complete and in production. Phase 4 (TUI) is next.
+Begun 2026-04-25; Phase 3 landed 2026-04-26.
 
 ## Goals
 
@@ -23,62 +22,21 @@ The goal is NOT to reach "match every function as fast as possible" — at
 the cost of poisoned training data or unreproducible benchmarks. Quality
 of the matched corpus and quality of the comparison data are first-class.
 
-## Current state
+## Current state (updated 2026-04-26)
 
-Single-threaded orchestrator (`tools/orchestrator.py`). One agent at a
-time, sequential session loop. Backend A/B added 2026-04-24 picks
-(claude or codex) randomly per session but races head-to-head only by
-chance — and from the existing pool, not a controlled split.
+Phases 1-3 are implemented and running in production. The orchestrator
+runs N concurrent workers via `ThreadPoolExecutor`, with `db_lock`,
+per-session file ledgers, class locks, a commit thread, per-attempt
+logging (`logs/attempts.jsonl`), cost capture, and all three operating
+modes (A/B/C). First Mode C production run: 2026-04-26
+(`--paired-reserve 50`, claude + codex, 2 workers + 2 shootout slots).
 
-### Concurrency-unsafe assumptions in the current code
+Per-backend circuit breaker landed 2026-04-26: one dying backend no
+longer kills a healthy run. Verifier bug affecting 9.9% of functions
+(templates, nested classes) fixed same day.
 
-Mapped in detail by an exploration agent against `tools/orchestrator.py`.
-Not exhaustive but representative:
-
-- **Batch picking is not atomic with status mutation.** `pick_next_batch`
-  → `set_batch_status("in_progress")` → `save_db` is three separate
-  steps. Two concurrent threads pick the same batch.
-- **`save_db` is a full-file rewrite** of a ~206K-line JSON. No locking;
-  two concurrent saves clobber each other. Typical loss: most-recent
-  match-status flip silently reverts.
-- **`_session_dirty_paths()` sweeps the global tree.** This is the
-  current mechanism for catching header edits the agent made. Under
-  concurrent sessions sharing a worktree it's catastrophic: session A
-  finishes, sweeps all dirty `src/**`/`include/**` files, picks up
-  session B's still-in-flight `src/Baz.cpp`, stages and commits it
-  under A's session message. B's work is misattributed and B's
-  subsequent commit may find its files already clean. Bug #4 (operator
-  staged-changes absorbed) is a milder symptom of the same mechanism.
-  The `git_commit_batch` staging itself is fine — it uses explicit
-  `git add -- <path>` per file. The hazard is that the *path list*
-  comes from a global tree-walk, not a per-session ledger.
-- **In-loop counters** (`consecutive_failures`, `total_matched`,
-  `consecutive_refusals`) are not atomic; under concurrency, the
-  circuit breaker reads stale values and may never trip.
-- **Single overnight branch shared by all sessions.** Today fine; under
-  multi-agent it's still fine if commits go through a single
-  serialization point.
-
-### What's missing for A/B analytics
-
-- DB has no `matched_by_backend` / `matched_by_session_id` /
-  `matched_at`; the only attribution is the commit message and the
-  `match_*.jsonl` event stream. Reconstructing per-attempt history
-  requires log mining.
-- `failure_notes` lacks backend/model/timestamp.
-- No cost/token capture from either backend's stream-JSON output.
-- No statistical reporting tool. The TUI scoreboard shows raw counts
-  with no confidence intervals, no significance test.
-
-### What works today and shouldn't be broken
-
-- `Backend` ABC + `run_session()` shared loop. Stays.
-- Quality gates (pure-asm rejection, extern-C class-method rejection).
-  Stay; both extend cleanly to multi-agent.
-- The `audit_symbol_signatures.py` framework. Stays; per-attempt
-  attribution will plug into its existing flow.
-- The TUI's event-stream consumption model. Stays; only the rendering
-  layer expands to N panels.
+**Remaining:** Phase 4 (multi-agent TUI) and Phase 5 (scale-driven
+worktree generalization, only if needed).
 
 ## Architecture
 
@@ -337,7 +295,7 @@ read happens post-run.
 The path from where we are to the full design, smallest credible step
 each:
 
-### Phase 1 — concurrent dual-backend (smallest end-to-end win)
+### Phase 1 — concurrent dual-backend (smallest end-to-end win) [x]
 
 This phase is the prerequisite for everything else. Race-freedom is
 the gate, not throughput.
@@ -383,7 +341,7 @@ Outcome: 2 concurrent agents (claude + codex), provably race-free DB
 + class files, zero TUI changes. ~250 lines of refactor (revised up
 from ~150 — the file-ledger work is non-trivial).
 
-### Phase 2 — commit thread + per-attempt log + cost capture
+### Phase 2 — commit thread + per-attempt log + cost capture [x]
 
 - Extract commit into a thread draining `commit_queue`. Each commit
   stages exactly the session's file ledger (Phase 1) via
@@ -406,7 +364,7 @@ from ~150 — the file-ledger work is non-trivial).
 Outcome: per-attempt history exists, cost data flows, attribution is
 queryable in the DB without log mining. Safe at N=3-4.
 
-### Phase 3 — sampling modes + worktrees + reporting tool
+### Phase 3 — sampling modes + worktrees + reporting tool [x]
 
 This phase delivers the A/B framework end-to-end: all three operating
 modes (disjoint, shootout, hybrid), the schedule pre-computer, the

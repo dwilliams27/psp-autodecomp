@@ -38,6 +38,7 @@ FUNCTION_EVENTS = frozenset({
     "rejected_assembly_only", "missing_failure_notes", "unreported_function",
 })
 
-STREAM_EVENTS = frozenset({"orch_note", "agent_event", "progress_tick"})
+STREAM_EVENTS = frozenset({"orch_note", "agent_event", "progress_tick",
+                           "backend_dead"})
 
 ALL_EVENTS = RUN_EVENTS | SESSION_EVENTS | FUNCTION_EVENTS | STREAM_EVENTS

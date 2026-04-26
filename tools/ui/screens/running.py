@@ -1,7 +1,10 @@
-"""Running-overnight dashboard. Port of launcher_demos/v11 with real data."""
+"""Running-overnight dashboard. Port of launcher_demos/v11 with real data.
+
+Phase 4: multi-agent TUI — each concurrent worker gets its own tile.
+"""
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from rich.align import Align
 from rich.box import HEAVY, ROUNDED
@@ -12,7 +15,7 @@ from rich.table import Table
 from rich.text import Text
 
 from tools.ui.palette import (BAD, BODY, DIM, FOREST, LEAF, MOSS, OK, SUN,
-                              SUNLIT, WARN)
+                              SUNLIT, WARN, identity_style, wilson_ci)
 from tools.ui.screens.base import Screen
 from tools.ui.widgets import helix
 from tools.ui.widgets.header import header_panel
@@ -48,10 +51,57 @@ _ORCH_NOTE_SUPPRESS = (
 # the agent is currently working on from its Bash tool_use events.
 _COMPARE_RE = re.compile(r"compare_func\.py\s+\S+\s+(0x[0-9a-fA-F]+)")
 
+# Maximum tiles rendered in the grid. Overflow slots get a compact strip.
+_MAX_TILES = 4
+
 
 def _short_name(full_name):
     """Strip the argument list off `Class::Method(args...)` for compact display."""
     return full_name.split("(", 1)[0]
+
+
+def _styled_narrative(log_deque):
+    """Build a Rich Text from a narrative_log deque (text + thinking lines)."""
+    t = Text()
+    lines = list(log_deque)
+    last = len(lines) - 1
+    for i, line in enumerate(lines):
+        is_latest = (i == last)
+        if line.startswith("~ "):
+            style = f"italic {LEAF}" if is_latest else f"italic {DIM}"
+        else:
+            style = BODY if is_latest else DIM
+        suffix = "" if is_latest else "\n"
+        t.append(line + suffix, style=style)
+    return t
+
+
+def _styled_toollog(log_deque):
+    """Build a Rich Text from an agent_log deque (tool_use + tool_result lines)."""
+    t = Text()
+    lines = list(log_deque)
+    last = len(lines) - 1
+    for i, line in enumerate(lines):
+        is_latest = (i == last)
+        if line.startswith("$"):
+            style = SUNLIT if is_latest else SUN
+        elif line.lstrip().startswith("\u2192"):
+            lower = line.lower()
+            if "mismatch" in lower or "fail" in lower or "error" in lower:
+                style = BAD if is_latest else f"dim {BAD}"
+            elif "match" in lower:
+                style = OK if is_latest else f"dim {OK}"
+            else:
+                style = WARN if is_latest else DIM
+        elif line.startswith("~"):
+            style = f"italic {LEAF}" if is_latest else f"italic {DIM}"
+        elif line.startswith("read ") or line.startswith("grep "):
+            style = LEAF if is_latest else DIM
+        else:
+            style = BODY if is_latest else DIM
+        suffix = "" if is_latest else "\n"
+        t.append(line + suffix, style=style)
+    return t
 
 
 class RunningScreen(Screen):
@@ -82,19 +132,22 @@ class RunningScreen(Screen):
         elif ev == "verify_failed":
             self._on_verify_failed(state, event)
         elif ev == "session_error":
+            sid = event.get("session_id", "?")
             state.orch_log.append(_ts()
-                + f"session {event.get('session_id','?')} ERROR · "
+                + f"session {sid} ERROR · "
                 + f"{event.get('error','')[:100]}")
-            state.current_session_sid = None
-            state.current_session_variant = None
-            state.current_session_backend = None
-            state.current_working = "(waiting)"
+            state.release_session(sid)
         elif ev == "progress_tick":
             self._on_progress_tick(state, event)
         elif ev == "orch_note":
             self._on_orch_note(state, event)
         elif ev == "agent_event":
             self._on_agent_event(state, event)
+        elif ev == "backend_dead":
+            backend = event.get("backend", "?")
+            reason = event.get("reason", "?")
+            state.orch_log.append(
+                _ts() + f"BACKEND DEAD: {backend} ({reason})")
         elif ev == "malformed":
             state.orch_log.append(
                 _ts() + "MALFORMED LOG LINE: " + (event.get("raw") or "")[:80]
@@ -112,16 +165,14 @@ class RunningScreen(Screen):
         state.session_timeout_s = event.get("session_timeout", 1800)
         state.backend = event.get("backend") or ""
         state.model = event.get("model") or ""
+        state.ab_mode = event.get("ab_mode") or ""
+        state.worker_count = event.get("workers", 1)
+        # Pre-allocate slots from the worker count
+        state.ensure_slots(state.worker_count)
         for b in event.get("backends") or []:
             state.ensure_backend(b.get("name", ""))
-        # Old logs predate the `backends` list — register the singular
-        # `backend` so the scoreboard always has at least one row to
-        # render.
         if not state.backends and state.backend:
             state.ensure_backend(state.backend)
-        # In an A/B run the left-panel "backend" line shows the joined
-        # set since each session picks a different one. The scoreboard
-        # carries the actual head-to-head numbers.
         if len(state.backends) > 1:
             state.backend = "/".join(state.backends)
             state.model = ""
@@ -137,28 +188,29 @@ class RunningScreen(Screen):
         sid = event.get("session_id", "?")
         variant = event.get("variant", "?")
         backend = event.get("backend") or ""
+        model = event.get("model") or ""
+        identity = event.get("identity") or ""
+        queue_kind = event.get("queue_kind") or ""
         funcs = event.get("functions", []) or []
         state.ensure_variant(variant)
         if backend:
             state.ensure_backend(backend)
-        state.current_session_sid = sid
-        state.current_session_variant = variant
-        state.current_session_backend = backend or None
-        state.current_batch_names = [_short_name(f.get("name", "?")) for f in funcs]
-        state.current_addr_to_name = {
+        # Ensure at least 1 slot exists (old logs without run_start.workers)
+        if not state.slots:
+            state.ensure_slots(1)
+        slot = state.assign_session(sid, backend, model, identity, queue_kind)
+        slot.batch_names = [_short_name(f.get("name", "?")) for f in funcs]
+        slot.addr_to_name = {
             (f.get("address") or "").lower():
                 _short_name(f.get("name") or "?")
             for f in funcs if f.get("address")
         }
-        state.current_working = (
-            state.current_batch_names[0] if state.current_batch_names
-            else "(waiting)"
+        slot.current_working = (
+            slot.batch_names[0] if slot.batch_names else "(waiting)"
         )
-        state.agent_log.clear()
-        state.agent_narrative_log.clear()
         state.orch_log.append(
             _ts()
-            + f"session {sid} [{variant}] started · batch={len(funcs)}"
+            + f"session {sid} [{backend or variant}] started · batch={len(funcs)}"
         )
 
     def _on_session_done(self, state, event):
@@ -171,19 +223,10 @@ class RunningScreen(Screen):
         state.orch_log.append(
             _ts() + f"session {sid} done · {m} matched, {f} failed · {mm}m{ss:02d}s"
         )
-        # Backfill the per-function duration on outcomes from this session
-        # — orchestrator emits function_result before session_done so the
-        # outcomes are already in the deque at this point. With batch_size=1
-        # this is per-function; for larger batches every function from the
-        # batch shares the session duration.
         for o in state.outcomes:
             if o.get("session_id") == sid and o.get("duration_s") is None:
                 o["duration_s"] = dur_s
-        state.current_session_sid = None
-        state.current_session_variant = None
-        state.current_session_backend = None
-        state.current_addr_to_name = {}
-        state.current_working = "(waiting)"
+        state.release_session(sid)
 
     def _on_function_result(self, state, event):
         status = event.get("status")
@@ -199,8 +242,6 @@ class RunningScreen(Screen):
             "variant": variant,
             "backend": backend,
             "session_id": event.get("session_id"),
-            # Stamped by _on_session_done since orchestrator emits
-            # function_result before session_done in the same batch.
             "duration_s": None,
         }
         state.outcomes.appendleft(outcome)
@@ -257,10 +298,14 @@ class RunningScreen(Screen):
             return
         if any(p.search(text) for p in _ORCH_NOTE_SUPPRESS):
             return
-        # Truncate to ~90 chars to stay within the panel width
         state.orch_log.append(_ts() + text[:100])
 
     def _on_agent_event(self, state, event):
+        sid = event.get("session_id")
+        slot = state.slot_for_session(sid) if sid else None
+        if not slot:
+            return
+
         kind = event.get("kind", "?")
         text = (event.get("text") or "").strip()
         if not text:
@@ -269,22 +314,17 @@ class RunningScreen(Screen):
             m = _COMPARE_RE.search(text)
             if m:
                 addr = m.group(1).lower()
-                name = state.current_addr_to_name.get(addr)
-                state.current_working = name or f"@{addr}"
+                name = slot.addr_to_name.get(addr)
+                slot.current_working = name or f"@{addr}"
 
-        # text + thinking go to the narrative panel — these are the
-        # agent's verbose reasoning, kept whole so a multi-sentence
-        # rationale stays readable.
         if kind in ("text", "thinking"):
             prefix = "~ " if kind == "thinking" else ""
             line = prefix + text
             if len(line) > 400:
                 line = line[:397] + "..."
-            state.agent_narrative_log.append(line)
+            slot.narrative_log.append(line)
             return
 
-        # tool_use / tool_result / raw / unknown go to the compact tool
-        # log — narrow lines, one per call/result.
         if kind == "tool_use":
             line = text
         elif kind == "tool_result":
@@ -298,23 +338,32 @@ class RunningScreen(Screen):
             line = text
         if len(line) > 120:
             line = line[:117] + "..."
-        state.agent_log.append(line)
+        slot.agent_log.append(line)
 
     # ------------------------------------------------------------------
     # rendering
     # ------------------------------------------------------------------
 
     def render(self, app, console):
+        state = app.state
+        n_slots = len(state.slots)
+
         layout = Layout()
+        if n_slots <= 1:
+            return self._render_single(app, console, layout)
+        return self._render_multi(app, console, layout, n_slots)
+
+    def _render_single(self, app, console, layout):
+        """N=1 layout — identical to the pre-Phase-4 layout."""
+        state = app.state
+        slot = state.slots[0] if state.slots else None
+
         layout.split_column(
             Layout(name="header", size=7),
             Layout(name="status", size=9),
             Layout(name="mid", ratio=1),
             Layout(name="outcomes", size=12),
         )
-        # Top of mid: full-width agent activity (text + thinking) — the
-        # agent's verbose reasoning. Bottom: orchestrator events + agent
-        # actions (compact tool calls + results) side-by-side.
         layout["mid"].split_column(
             Layout(name="narrative", ratio=1),
             Layout(name="bottom", ratio=1),
@@ -326,30 +375,142 @@ class RunningScreen(Screen):
         status_inner = max(40, console.width - 4)
         layout["header"].update(header_panel("autodecomp"))
         layout["status"].update(self._status_panel(app, status_inner))
-        layout["mid"]["narrative"].update(self._narrative_panel(app))
+        layout["mid"]["narrative"].update(self._narrative_panel(slot))
         layout["mid"]["bottom"]["orchestrator"].update(self._orch_panel(app))
-        layout["mid"]["bottom"]["agent"].update(self._agent_panel(app))
+        layout["mid"]["bottom"]["agent"].update(self._agent_panel(slot))
         layout["outcomes"].update(self._outcomes_panel(app))
         return layout
 
-    def _narrative_panel(self, app):
+    def _render_multi(self, app, console, layout, n_slots):
+        """N>1 layout — tiled agent slots above shared orch + outcomes."""
         state = app.state
-        if not state.agent_narrative_log:
+        tile_slots = state.slots[:_MAX_TILES]
+        overflow_slots = state.slots[_MAX_TILES:]
+        n_tiles = len(tile_slots)
+
+        layout.split_column(
+            Layout(name="header", size=7),
+            Layout(name="status", size=9),
+            Layout(name="tiles_zone", ratio=1),
+            Layout(name="orchestrator", size=8),
+            Layout(name="outcomes", size=12),
+        )
+
+        # Build tile rows
+        if n_tiles <= 3:
+            # Single row of tiles
+            tile_row = Layout(name="tile_row")
+            parts = []
+            for i, slot in enumerate(tile_slots):
+                l = Layout(name=f"tile{i}", ratio=1)
+                l.update(self._render_tile(slot))
+                parts.append(l)
+            tile_row.split_row(*parts)
+
+            if overflow_slots:
+                layout["tiles_zone"].split_column(
+                    tile_row,
+                    Layout(name="overflow", size=len(overflow_slots) + 2),
+                )
+                layout["tiles_zone"]["overflow"].update(
+                    self._overflow_strip(overflow_slots))
+            else:
+                layout["tiles_zone"].update(tile_row)
+        else:
+            # 2x2 grid
+            row0 = Layout(name="tile_row0")
+            r0_parts = []
+            for i in range(min(2, n_tiles)):
+                l = Layout(name=f"tile{i}", ratio=1)
+                l.update(self._render_tile(tile_slots[i]))
+                r0_parts.append(l)
+            row0.split_row(*r0_parts)
+
+            row1 = Layout(name="tile_row1")
+            r1_parts = []
+            for i in range(2, n_tiles):
+                l = Layout(name=f"tile{i}", ratio=1)
+                l.update(self._render_tile(tile_slots[i]))
+                r1_parts.append(l)
+            row1.split_row(*r1_parts)
+
+            if overflow_slots:
+                layout["tiles_zone"].split_column(
+                    row0, row1,
+                    Layout(name="overflow", size=len(overflow_slots) + 2),
+                )
+                layout["tiles_zone"]["overflow"].update(
+                    self._overflow_strip(overflow_slots))
+            else:
+                layout["tiles_zone"].split_column(row0, row1)
+
+        status_inner = max(40, console.width - 4)
+        layout["header"].update(header_panel("autodecomp"))
+        layout["status"].update(self._status_panel(app, status_inner))
+        layout["orchestrator"].update(self._orch_panel(app))
+        layout["outcomes"].update(self._outcomes_panel(app))
+        return layout
+
+    def _render_tile(self, slot):
+        """Render a single agent slot as a bordered panel with narrative + tools."""
+        border, label_sty, dim_sty = identity_style(slot.backend, slot.model)
+        tag = slot.identity or slot.backend or f"slot-{slot.index}"
+
+        narr_text = (_styled_narrative(slot.narrative_log)
+                     if slot.narrative_log else Text("(waiting)", style=DIM))
+        tool_text = (_styled_toollog(slot.agent_log)
+                     if slot.agent_log else Text("(waiting)", style=DIM))
+
+        # Compose the two halves
+        inner = Layout()
+        inner.split_column(
+            Layout(name="narr", ratio=1),
+            Layout(name="tools", ratio=1),
+        )
+        inner["narr"].update(Align(narr_text, vertical="bottom"))
+        inner["tools"].update(Align(tool_text, vertical="bottom"))
+
+        w = slot.current_working or "(idle)"
+        if len(w) > 30:
+            w = w[:27] + "..."
+        subtitle = Text(w, style=DIM) if w != "(idle)" else None
+
+        return Panel(
+            inner,
+            border_style=border,
+            box=ROUNDED,
+            title=Text(f" {tag} ", style=label_sty),
+            title_align="left",
+            subtitle=subtitle,
+            subtitle_align="left",
+            padding=(0, 1),
+        )
+
+    def _overflow_strip(self, slots):
+        """Render overflow slots (index >= MAX_TILES) as compact one-liners."""
+        t = Text()
+        for i, slot in enumerate(slots):
+            if i > 0:
+                t.append("  \u2502  ", style=DIM)
+            _, label_sty, _ = identity_style(slot.backend, slot.model)
+            tag = slot.identity or slot.backend or f"A{slot.index}"
+            t.append(f"[{tag}]", style=label_sty)
+            w = slot.current_working or "(idle)"
+            if len(w) > 20:
+                w = w[:17] + "..."
+            t.append(f" on: {w}", style=BODY if w != "(idle)" else DIM)
+        return Panel(t, border_style=DIM, box=ROUNDED,
+                     title=Text(f" +{len(slots)} more ", style=DIM),
+                     title_align="left", padding=(0, 1))
+
+    # -- shared panels (used by both single and multi layouts) --
+
+    def _narrative_panel(self, slot):
+        """Full-width narrative panel for N=1 layout."""
+        if not slot or not slot.narrative_log:
             content = Text("(waiting for agent activity)", style=DIM)
         else:
-            t = Text()
-            lines = list(state.agent_narrative_log)
-            last = len(lines) - 1
-            for i, line in enumerate(lines):
-                is_latest = (i == last)
-                if line.startswith("~ "):
-                    style = (f"italic {LEAF}" if is_latest
-                             else f"italic {DIM}")
-                else:
-                    style = BODY if is_latest else DIM
-                suffix = "" if is_latest else "\n"
-                t.append(line + suffix, style=style)
-            content = t
+            content = _styled_narrative(slot.narrative_log)
         return Panel(
             Align(content, vertical="bottom"),
             border_style=MOSS, box=ROUNDED,
@@ -365,6 +526,7 @@ class RunningScreen(Screen):
 
         matched_run = sum(state.this_run_matched.values())
         failed_run = sum(state.this_run_failed.values())
+        n_slots = len(state.slots)
 
         left_lines = []
         l = Text()
@@ -392,24 +554,44 @@ class RunningScreen(Screen):
             l.append(f"{state.this_run_verify_fail}v", style=WARN)
         left_lines.append(l)
 
-        l = Text()
-        l.append("now        ", style=LEAF)
-        if state.current_session_backend:
-            l.append(state.current_session_backend,
-                     style=f"bold {_backend_style(state.current_session_backend)}")
-        elif state.current_session_variant:
-            l.append(state.current_session_variant, style=f"bold {LEAF}")
-        else:
-            l.append("(idle)", style=DIM)
-        left_lines.append(l)
+        if n_slots > 1:
+            # Multi-agent: show mode + workers instead of now/on
+            l = Text()
+            l.append("mode       ", style=LEAF)
+            mode_label = {
+                "disjoint": "A\u00b7disjoint",
+                "shootout": "B\u00b7shootout",
+                "hybrid": "C\u00b7hybrid",
+            }.get(state.ab_mode, state.ab_mode or "single")
+            l.append(mode_label, style=BODY)
+            left_lines.append(l)
 
-        l = Text()
-        l.append("on         ", style=LEAF)
-        w = state.current_working or "(waiting)"
-        if len(w) > 22:
-            w = w[:19] + "..."
-        l.append(w, style=BODY if w not in ("(waiting)", "-") else DIM)
-        left_lines.append(l)
+            l = Text()
+            l.append("workers    ", style=LEAF)
+            active = sum(1 for s in state.slots if s.session_id is not None)
+            l.append(f"{active}/{n_slots} active", style=BODY if active else DIM)
+            left_lines.append(l)
+        else:
+            # N=1: show now/on as before
+            slot0 = state.slots[0] if state.slots else None
+            l = Text()
+            l.append("now        ", style=LEAF)
+            if slot0 and slot0.backend and slot0.session_id:
+                l.append(slot0.backend,
+                         style=f"bold {_backend_style(slot0.backend)}")
+            elif slot0 and slot0.session_id:
+                l.append("active", style=f"bold {LEAF}")
+            else:
+                l.append("(idle)", style=DIM)
+            left_lines.append(l)
+
+            l = Text()
+            l.append("on         ", style=LEAF)
+            w = (slot0.current_working if slot0 else "(waiting)") or "(waiting)"
+            if len(w) > 22:
+                w = w[:19] + "..."
+            l.append(w, style=BODY if w not in ("(waiting)", "(idle)", "-") else DIM)
+            left_lines.append(l)
 
         if state.backend:
             l = Text()
@@ -446,6 +628,9 @@ class RunningScreen(Screen):
                 l.append("+", style=DIM)
             l.append(f"  {m}m\u00b7{f}f", style=DIM)
             l.append(f"  {rate:.0f}%", style=f"bold {BODY}" if total else DIM)
+            if total >= 5:
+                lo, hi = wilson_ci(m, total)
+                l.append(f"  [{lo*100:.0f}-{hi*100:.0f}]", style=DIM)
             return l
 
         right_lines = []
@@ -461,19 +646,16 @@ class RunningScreen(Screen):
 
         body = Text()
         for i in range(helix.HELIX_H):
-            # LEFT
             lhs = left_lines[i]
             pad_left = max(0, LEFT_W_fixed - len(lhs.plain))
             body.append(lhs)
             body.append(" " * pad_left)
             body.append(" \u2502 ", style=MOSS)
-            # MIDDLE
             mid = middle_lines[i]
             body.append(mid)
             pad_mid = max(0, helix_w - len(mid.plain))
             body.append(" " * pad_mid)
             body.append(" \u2502 ", style=MOSS)
-            # RIGHT
             r = right_lines[i]
             pad_right = max(0, RIGHT_W_fixed - len(r.plain))
             body.append(r)
@@ -495,7 +677,7 @@ class RunningScreen(Screen):
             for i, line in enumerate(lines):
                 is_latest = (i == last)
                 lower = line.lower()
-                if "failed" in lower or "verify" in lower or "error" in lower:
+                if "failed" in lower or "verify" in lower or "error" in lower or "dead" in lower:
                     style = BAD if is_latest else f"dim {BAD}"
                 elif "matched" in lower or "run done" in lower:
                     style = OK if is_latest else f"dim {OK}"
@@ -503,54 +685,26 @@ class RunningScreen(Screen):
                     style = LEAF if is_latest else DIM
                 else:
                     style = BODY if is_latest else DIM
-                # No trailing newline on the final line — with Align(vertical=
-                # "bottom") a trailing \n would leave a blank row under the text.
                 suffix = "" if is_latest else "\n"
                 t.append(line + suffix, style=style)
             content = t
         return Panel(
-            # Bottom-align so new lines pile up from the bottom (tail -f),
-            # not from the top. Without this a deque shorter than the panel
-            # height leaves the lower half empty.
             Align(content, vertical="bottom"),
             border_style=MOSS, box=ROUNDED,
             title=Text(" orchestrator ", style=f"bold {LEAF}"),
             title_align="left", padding=(0, 1),
         )
 
-    def _agent_panel(self, app):
-        state = app.state
-        if not state.agent_log:
+    def _agent_panel(self, slot):
+        """Agent actions panel for N=1 layout."""
+        if not slot or not slot.agent_log:
             content = Text("(waiting for session)", style=DIM)
         else:
-            t = Text()
-            lines = list(state.agent_log)
-            last = len(lines) - 1
-            for i, line in enumerate(lines):
-                is_latest = (i == last)
-                if line.startswith("$"):
-                    style = SUNLIT if is_latest else SUN
-                elif line.lstrip().startswith("\u2192"):  # "  → ..."
-                    lower = line.lower()
-                    if "mismatch" in lower or "fail" in lower or "error" in lower:
-                        style = BAD if is_latest else f"dim {BAD}"
-                    elif "match" in lower:
-                        style = OK if is_latest else f"dim {OK}"
-                    else:
-                        style = WARN if is_latest else DIM
-                elif line.startswith("~"):
-                    style = f"italic {LEAF}" if is_latest else f"italic {DIM}"
-                elif line.startswith("read ") or line.startswith("grep "):
-                    style = LEAF if is_latest else DIM
-                else:
-                    style = BODY if is_latest else DIM
-                suffix = "" if is_latest else "\n"
-                t.append(line + suffix, style=style)
-            content = t
+            content = _styled_toollog(slot.agent_log)
         subtitle = None
-        if state.current_batch_names:
+        if slot and slot.batch_names:
             subtitle = Text(
-                ", ".join(state.current_batch_names)[:120],
+                ", ".join(slot.batch_names)[:120],
                 style=DIM, overflow="ellipsis",
             )
         return Panel(
@@ -586,8 +740,6 @@ class RunningScreen(Screen):
                     glyph, label, color = "\u00b7", st, DIM
                 dur_s = o.get("duration_s")
                 dur_cell = f"{round(dur_s / 60)}m" if dur_s is not None else ""
-                # Prefer backend (the new identity); fall back to variant
-                # for older logs that pre-date backend tagging.
                 tag = o.get("backend") or o.get("variant", "")
                 tag_cell = Text(tag, style=f"bold {_backend_style(tag)}")
                 tbl.add_row(

@@ -1,7 +1,30 @@
 """Mutable state the running-dashboard screen derives from the event stream."""
 
+import time
 from collections import deque
+from dataclasses import dataclass, field
 from datetime import datetime
+
+
+@dataclass
+class AgentSlot:
+    """Per-concurrent-session state. Each worker slot in the orchestrator
+    maps to one AgentSlot in the TUI. Slots are reused: when a session
+    ends, the slot retains its logs until a new session binds (so the
+    tile shows the last session's trail rather than going blank).
+    """
+    index: int
+    session_id: str | None = None
+    backend: str = ""
+    model: str = ""
+    identity: str = ""
+    queue_kind: str = ""
+    current_working: str = "(idle)"
+    batch_names: list = field(default_factory=list)
+    addr_to_name: dict = field(default_factory=dict)
+    agent_log: deque = field(default_factory=lambda: deque(maxlen=80))
+    narrative_log: deque = field(default_factory=lambda: deque(maxlen=120))
+    idle_since: float | None = None
 
 
 class RunState:
@@ -29,28 +52,69 @@ class RunState:
         self.this_run_matched_by_backend = {}
         self.this_run_failed_by_backend = {}
 
-        self.current_session_sid = None
-        self.current_session_variant = None
-        self.current_session_backend = None
-        self.current_batch_names = []
-        # address (lowercase hex) → short function name, populated by
-        # session_start so compare_func.py 0xADDR tool_use events can
-        # resolve to a name for the "on" status field.
-        self.current_addr_to_name = {}
-        self.current_working = "(waiting)"
+        # Per-worker agent slots (populated on run_start or first session_start)
+        self.slots: list[AgentSlot] = []
+        self.session_to_slot: dict[str, int] = {}
+        self.ab_mode = ""
+        self.worker_count = 1
 
         # Caps generous enough to fill tall terminals (120+ rows) without
         # unbounded memory growth. Panels clip to the visible height at
         # render time, but a bigger deque means scroll-back history is
         # available when the terminal is resized larger.
         self.orch_log = deque(maxlen=120)
-        self.agent_log = deque(maxlen=120)
-        # Top-of-screen narrative panel: text + thinking events. The
-        # agent's "out-loud" reasoning, separated from the compact
-        # tool_use/tool_result stream so verbose narrative doesn't crowd
-        # the per-call log.
-        self.agent_narrative_log = deque(maxlen=200)
         self.outcomes = deque(maxlen=40)
+
+    # -- slot management --
+
+    def ensure_slots(self, n):
+        """Pre-allocate n slots if not already present."""
+        while len(self.slots) < n:
+            self.slots.append(AgentSlot(index=len(self.slots)))
+
+    def slot_for_session(self, session_id):
+        """Look up the slot bound to a session_id, or None."""
+        idx = self.session_to_slot.get(session_id)
+        if idx is not None and idx < len(self.slots):
+            return self.slots[idx]
+        return None
+
+    def assign_session(self, session_id, backend="", model="",
+                       identity="", queue_kind=""):
+        """Bind a new session to an idle slot (or create one). Returns the slot."""
+        # Prefer an idle slot
+        for s in self.slots:
+            if s.session_id is None:
+                self._bind(s, session_id, backend, model, identity, queue_kind)
+                return s
+        # All busy — create a new slot
+        s = AgentSlot(index=len(self.slots))
+        self.slots.append(s)
+        self._bind(s, session_id, backend, model, identity, queue_kind)
+        return s
+
+    def release_session(self, session_id):
+        """Unbind a session from its slot. Logs are retained for display."""
+        idx = self.session_to_slot.pop(session_id, None)
+        if idx is not None and idx < len(self.slots):
+            slot = self.slots[idx]
+            slot.session_id = None
+            slot.current_working = "(idle)"
+            slot.idle_since = time.time()
+
+    def _bind(self, slot, session_id, backend, model, identity, queue_kind):
+        slot.session_id = session_id
+        slot.backend = backend
+        slot.model = model
+        slot.identity = identity
+        slot.queue_kind = queue_kind
+        slot.current_working = "(waiting)"
+        slot.batch_names = []
+        slot.addr_to_name = {}
+        slot.idle_since = None
+        slot.agent_log.clear()
+        slot.narrative_log.clear()
+        self.session_to_slot[session_id] = slot.index
 
     # -- convenience accessors --
     def elapsed_s(self, now=None):
