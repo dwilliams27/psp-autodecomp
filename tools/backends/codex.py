@@ -93,16 +93,20 @@ class CodexBackend(Backend):
 
         mtype = msg.get("type")
 
-        if mtype in ("thread.started", "turn.started", "turn.completed"):
+        if mtype in ("thread.started", "turn.started"):
             return []
 
-        if mtype == "token_count":
-            # `last_token_usage` is the just-completed turn's delta;
-            # `total_token_usage` is cumulative. Forward deltas so the
-            # base accumulator's per-turn sum is correct across both
-            # backends.
-            info = msg.get("info") or {}
-            usage = info.get("last_token_usage") or info.get("usage") or {}
+        if mtype in ("turn.completed", "token_count"):
+            # Two known shapes — current codex CLI (gpt-5.x) emits
+            # `turn.completed` with `usage` directly on the message;
+            # older versions emit a separate `token_count` event with
+            # `info.last_token_usage`. Handle both.
+            usage = (msg.get("usage")
+                     or (msg.get("info") or {}).get("last_token_usage")
+                     or (msg.get("info") or {}).get("usage")
+                     or {})
+            if not usage:
+                return []
             uncached = int(usage.get("input_tokens") or 0)
             cached = int(usage.get("cached_input_tokens")
                          or usage.get("cache_read_input_tokens") or 0)

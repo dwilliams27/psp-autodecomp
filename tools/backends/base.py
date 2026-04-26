@@ -356,11 +356,29 @@ def run_session(
             return False, f"{backend.name} exited {proc.returncode}: {err}", session_usage
 
         if not saw_usage:
-            return False, (
-                f"{backend.name} exited 0 but emitted no usage events — "
-                f"stream-JSON shape may have drifted (expected `result` "
-                f"for claude, `token_count` for codex)"
-            ), session_usage
+            # Loud warning, not a hard failure. The agent exited 0,
+            # which means its work landed (session_results.json, src
+            # edits) — failing the session here would throw away a
+            # successful match because of an instrumentation gap.
+            # attempts.jsonl will carry None for cost and
+            # had_usage_data=False, so ab_report can surface
+            # "X% of sessions have no cost" as a quality signal
+            # without losing the match.
+            log_fn({
+                "event": "usage_missing",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "model": backend.model,
+                "warning": (
+                    f"{backend.name} exited 0 but emitted no usage "
+                    f"events. Stream-JSON shape may have drifted "
+                    f"(expected `result` for claude, "
+                    f"`turn.completed`/`token_count` for codex). "
+                    f"Match (if any) is preserved; cost attribution "
+                    f"is None for this session."
+                ),
+            })
 
         return True, None, session_usage
     finally:
