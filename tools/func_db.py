@@ -348,6 +348,14 @@ def cmd_query(args):
     """Query functions with filters."""
     functions = load_db()
 
+    # --address filter: exact match on hex address (agents use this
+    # heavily to look up a specific function by address).
+    if args.address:
+        addr = args.address.lower()
+        if not addr.startswith("0x"):
+            addr = "0x" + addr
+        functions = [f for f in functions if f["address"].lower() == addr]
+
     results = filter_functions(functions, class_name=args.class_name, name=args.name,
                                obj=args.obj, size_min=args.size_min, size_max=args.size_max,
                                status=args.status, leaf=args.leaf, limit=args.limit)
@@ -480,6 +488,7 @@ def main():
     sub.add_parser("build", help="Parse linker map into functions.json")
 
     q = sub.add_parser("query", help="Query functions")
+    q.add_argument("--address", help="Filter by exact hex address (e.g. 0x00005ac8)")
     q.add_argument("--class", dest="class_name", help="Filter by class name (substring)")
     q.add_argument("--name", help="Filter by function name (substring)")
     q.add_argument("--obj", help="Filter by .obj file (substring)")

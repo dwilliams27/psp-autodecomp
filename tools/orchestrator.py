@@ -1658,23 +1658,46 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
     files_to_commit |= set(ledger_paths)
     files_to_commit.add(DB_PATH)
 
-    # Compile-check BEFORE staging. If any src in the set fails, we
-    # raise and the operator's tree is left exactly as the session left
-    # it — no half-staged half-unstaged mess to untangle.
+    # Compile-check BEFORE staging. If any src fails, exclude it from
+    # the commit rather than dropping the whole batch — a single
+    # cross-class-header dependency shouldn't lose 4 good matches.
     compile_check_paths = {p for p in files_to_commit if p != DB_PATH}
     compile_failures = _collect_compile_failures(compile_check_paths,
                                                   cwd=worktree)
     if compile_failures:
-        lines = [f"{p}: {e[:120]}" for p, e in compile_failures[:5]]
-        raise RuntimeError(
-            f"Commit-time build failed for {len(compile_failures)} files. "
-            f"Session produced src that doesn't compile cleanly; refusing "
-            f"to commit. Tree left dirty for operator inspection. "
-            f"Failing files: {'; '.join(lines)}"
-        )
+        failed_paths = {p for p, _ in compile_failures}
+        for p, e in compile_failures:
+            log(f"  COMMIT-TIME COMPILE FAIL (excluding from commit): "
+                f"{p}: {e[:120]}")
+        # Remove failed src files + any matched_funcs whose src is in
+        # the failed set.  Functions without a known src_file are also
+        # dropped — we can't verify they compiled, so keeping them
+        # would be a silent fallback.
+        surviving_funcs = []
+        for func in matched_funcs:
+            src = func.get("src_file")
+            if not src:
+                log(f"    Dropping {func['name']} from commit "
+                    f"(no src_file — cannot verify against compile failures)")
+                continue
+            if src in failed_paths:
+                log(f"    Dropping {func['name']} from commit "
+                    f"(src in failed set)")
+                continue
+            surviving_funcs.append(func)
+        matched_funcs = surviving_funcs
+        files_to_commit -= failed_paths
+        matched_files -= failed_paths
+        if not matched_funcs:
+            raise RuntimeError(
+                f"Commit-time build failed for ALL {len(compile_failures)} "
+                f"src files — nothing left to commit. "
+                f"Failing files: "
+                f"{'; '.join(f'{p}: {e[:80]}' for p, e in compile_failures)}"
+            )
 
     # Stage (deletions included via git add on missing files).
-    for path in files_to_commit:
+    for path in list(files_to_commit):
         full = os.path.join(worktree, path) if worktree else path
         if path == DB_PATH:
             pass
@@ -2019,8 +2042,6 @@ def main():
     })
     total_failed = 0
     total_errors = 0
-    consecutive_failures = 0
-    consecutive_refusals = 0
 
     # Create a branch for this run so main stays clean (skip for dry runs)
     if args.dry_run:
@@ -2161,7 +2182,6 @@ def main():
     # match if the partition raced ahead of the commit.)
     pending_commits: dict = {}
     pending_lock = threading.Lock()
-    next_pick_time = 0.0
     done_picking = False
     # Round-robin starting identity for main-slot picking. Bumped
     # each pick-attempt so two main slots don't both ask claude
@@ -2174,9 +2194,28 @@ def main():
         "total_matched": 0,
         "total_failed": 0,
         "total_errors": 0,
-        "consecutive_failures": 0,
-        "consecutive_refusals": 0,
     }
+    # Per-backend health tracking for circuit breaker.  Each backend
+    # gets its own consecutive-failure / refusal counter so one dying
+    # backend can't kill a healthy run.
+    backend_health = {}
+    for _bn in backends:
+        backend_health[_bn] = {
+            "consecutive_failures": 0,
+            "consecutive_refusals": 0,
+            "next_pick_time": 0.0,
+        }
+    dead_backends: set = set()
+
+    def _mark_backend_dead(bname, reason, count):
+        dead_backends.add(bname)
+        log(f"Backend {bname}: {count} consecutive {reason} — marking dead.")
+        log_event(log_path, {
+            "event": "backend_dead",
+            "backend": bname,
+            "reason": reason,
+            "count": count,
+        })
 
     def _identity_to_backend(ident: str):
         bname = ident.split("/", 1)[0]
@@ -2191,6 +2230,11 @@ def main():
         for offset in range(n):
             ident_idx = (main_pick_rotation[0] + offset) % n
             ident = identities[ident_idx]
+            bname = ident.split("/", 1)[0]
+            if bname in dead_backends:
+                continue
+            if time.time() < backend_health[bname]["next_pick_time"]:
+                continue
             allowed = schedule.disjoint_addrs_for(ident)
             if not allowed:
                 continue
@@ -2221,6 +2265,11 @@ def main():
         worktree, not main).
         """
         ident = slot.identity
+        bname = ident.split("/", 1)[0]
+        if bname in dead_backends:
+            return None
+        if time.time() < backend_health[bname]["next_pick_time"]:
+            return None
         allowed = schedule.shootout_remaining(ident)
         if not allowed:
             return None
@@ -2620,12 +2669,11 @@ def main():
             deadline_hit = datetime.now() >= deadline
             limit_hit = (args.limit is not None
                          and counters["total_attempted"] >= args.limit)
-            cb_hit = (counters["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES
-                      or counters["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS)
+            all_backends_dead = (len(dead_backends) >= len(backends))
 
-            can_submit = (not deadline_hit and not limit_hit and not cb_hit
-                          and not done_picking
-                          and time.time() >= next_pick_time)
+            can_submit = (not deadline_hit and not limit_hit
+                          and not all_backends_dead
+                          and not done_picking)
 
             if can_submit:
                 progressed = False
@@ -2647,19 +2695,26 @@ def main():
                     log("No more untried functions matching criteria. Done.")
 
             if not in_flight:
-                if done_picking or deadline_hit or limit_hit or cb_hit:
+                if done_picking or deadline_hit or limit_hit or all_backends_dead:
                     if limit_hit:
                         log(f"Reached limit of {args.limit} functions. Done.")
-                    if cb_hit and counters["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
-                        log(f"Too many consecutive failures "
-                            f"({counters['consecutive_failures']}). Stopping.")
-                    if cb_hit and counters["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
-                        log(f"Hit {counters['consecutive_refusals']} consecutive refusals — "
-                            f"the anti-refusal mitigations aren't holding. Stopping; a "
-                            f"human needs to review the prompt/system-prompt-append.")
+                    if all_backends_dead:
+                        for bn, bh in backend_health.items():
+                            if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
+                                log(f"Backend {bn}: hit {bh['consecutive_failures']} "
+                                    f"consecutive failures.")
+                            if bh["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
+                                log(f"Backend {bn}: hit {bh['consecutive_refusals']} "
+                                    f"consecutive refusals.")
+                        log("All backends dead. Stopping.")
                     break
-                # Idle — likely waiting on backoff timer.
-                time.sleep(min(1.0, max(0.1, next_pick_time - time.time())))
+                # Idle — likely waiting on per-backend backoff timer.
+                # Sleep until the earliest backend becomes eligible.
+                alive_times = [bh["next_pick_time"]
+                               for bn, bh in backend_health.items()
+                               if bn not in dead_backends]
+                earliest = min(alive_times) if alive_times else time.time() + 1.0
+                time.sleep(min(1.0, max(0.1, earliest - time.time())))
                 continue
 
             done, _ = concurrent.futures.wait(
@@ -2674,6 +2729,8 @@ def main():
             for future in done:
                 ctx, slot_idx = in_flight.pop(future)
                 busy_slots.discard(slot_idx)
+                bname = ctx.backend.name
+                bh = backend_health[bname]
                 try:
                     outcome = future.result()
                 except BaseException as e:
@@ -2682,7 +2739,7 @@ def main():
                         "event": "worker_exception",
                         "session_id": ctx.session_id,
                         "variant": ctx.variant,
-                        "backend": ctx.backend.name,
+                        "backend": bname,
                         "identity": ctx.identity,
                         "queue_kind": ctx.queue_kind,
                         "error": repr(e),
@@ -2698,11 +2755,14 @@ def main():
                         counters["total_attempted"] -= len(ctx.batch)
                     held_classes.difference_update(ctx.classes)
                     counters["total_errors"] += 1
-                    counters["consecutive_failures"] += 1
-                    if counters["consecutive_failures"] < MAX_CONSECUTIVE_FAILURES:
-                        backoff = min(30 * (2 ** counters["consecutive_failures"]), 960)
-                        log(f"Backing off {backoff}s before next pick...")
-                        next_pick_time = time.time() + backoff
+                    bh["consecutive_failures"] += 1
+                    if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
+                        _mark_backend_dead(bname, "failures",
+                                           bh["consecutive_failures"])
+                    else:
+                        backoff = min(30 * (2 ** bh["consecutive_failures"]), 960)
+                        log(f"Backing off {backoff}s before next {bname} pick...")
+                        bh["next_pick_time"] = time.time() + backoff
                     continue
 
                 kind = apply_outcome(outcome, ctx)
@@ -2715,20 +2775,28 @@ def main():
 
                 if kind == OUTCOME_REFUSAL:
                     counters["total_errors"] += 1
-                    counters["consecutive_refusals"] += 1
-                    if counters["consecutive_refusals"] < MAX_CONSECUTIVE_REFUSALS:
-                        log(f"Refusal #{counters['consecutive_refusals']} — short pause, continuing.")
-                        next_pick_time = max(next_pick_time, time.time() + REFUSAL_BACKOFF_S)
+                    bh["consecutive_refusals"] += 1
+                    if bh["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
+                        _mark_backend_dead(bname, "refusals",
+                                           bh["consecutive_refusals"])
+                    else:
+                        log(f"Refusal #{bh['consecutive_refusals']} ({bname}) — short pause.")
+                        bh["next_pick_time"] = max(
+                            bh["next_pick_time"], time.time() + REFUSAL_BACKOFF_S)
                 elif kind in (OUTCOME_PREP_ERROR, OUTCOME_AGENT_FAIL, OUTCOME_SYSTEM_ERROR):
                     counters["total_errors"] += 1
-                    counters["consecutive_failures"] += 1
-                    if counters["consecutive_failures"] < MAX_CONSECUTIVE_FAILURES:
-                        backoff = min(30 * (2 ** counters["consecutive_failures"]), 960)
-                        log(f"Backing off {backoff}s before next pick...")
-                        next_pick_time = max(next_pick_time, time.time() + backoff)
+                    bh["consecutive_failures"] += 1
+                    if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
+                        _mark_backend_dead(bname, "failures",
+                                           bh["consecutive_failures"])
+                    else:
+                        backoff = min(30 * (2 ** bh["consecutive_failures"]), 960)
+                        log(f"Backing off {backoff}s before next {bname} pick...")
+                        bh["next_pick_time"] = max(
+                            bh["next_pick_time"], time.time() + backoff)
                 elif kind == OUTCOME_SUCCESS:
-                    counters["consecutive_failures"] = 0
-                    counters["consecutive_refusals"] = 0
+                    bh["consecutive_failures"] = 0
+                    bh["consecutive_refusals"] = 0
                 else:
                     raise RuntimeError(
                         f"apply_outcome returned unknown kind {kind!r}"
@@ -2764,6 +2832,12 @@ def main():
     log(f"Matched: {total_matched}")
     log(f"Failed: {total_failed}")
     log(f"System errors: {total_errors}")
+    if dead_backends:
+        log(f"Dead backends: {', '.join(sorted(dead_backends))}")
+    for bn, bh in sorted(backend_health.items()):
+        status = "DEAD" if bn in dead_backends else "alive"
+        log(f"  {bn}: {status} (failures={bh['consecutive_failures']}, "
+            f"refusals={bh['consecutive_refusals']})")
     print_progress(functions, start_time, log_path)
     log(f"Full log: {log_path}")
     log(f"")
@@ -2778,6 +2852,10 @@ def main():
         "matched": total_matched,
         "failed": total_failed,
         "errors": total_errors,
+        "backend_health": {bn: {"dead": bn in dead_backends,
+                                "consecutive_failures": bh["consecutive_failures"],
+                                "consecutive_refusals": bh["consecutive_refusals"]}
+                           for bn, bh in backend_health.items()},
     })
 
 
