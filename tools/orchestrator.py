@@ -1185,6 +1185,68 @@ def run_one_session(ctx):
                 matched_funcs.remove(func)
         matched_files -= out_of_scope
 
+        # Post-revert re-verification: a match that passed
+        # check_byte_match before the out-of-scope revert may now
+        # reference symbols whose declarations got reverted (cross-
+        # class header dependency, e.g. `cFilePlatform::PollAsync`
+        # added to include/cFile.h instead of include/cFilePlatform.h
+        # — the revert removes the declaration, the .cpp no longer
+        # compiles). Re-run check_byte_match on every surviving
+        # match. The compile/byte cost is bounded by the number of
+        # matches (small), and a re-verify that passes is
+        # confirmation the match was truly self-contained.
+        for func in list(matched_funcs):
+            d = decisions[func["address"]]
+            if d.status != "matched" or not d.src_file:
+                continue
+            try:
+                result = check_byte_match(func, d.src_file)
+            except CompileFailed as e:
+                log(f"  POST-REVERT VERIFY FAILED: {func['name']} no longer "
+                    f"compiles after out-of-scope revert — "
+                    f"{str(e)[:120]}")
+                log_event(log_path, {
+                    "event": "post_revert_verify_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "address": func["address"],
+                    "name": func["name"],
+                    "reason": "compile_failed_after_out_of_scope_revert",
+                    "error": str(e)[:500],
+                })
+                d.status = "failed"
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = (
+                    "match relied on out-of-scope header edits; "
+                    "post-revert recompile failed"
+                )
+                d.verify_reason = "post_revert_compile_failed"
+                matched_funcs.remove(func)
+                continue
+            if not result.ok:
+                log(f"  POST-REVERT VERIFY FAILED: {func['name']} bytes "
+                    f"diverged after revert ({result.reason})")
+                log_event(log_path, {
+                    "event": "post_revert_verify_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "address": func["address"],
+                    "name": func["name"],
+                    "reason": result.reason,
+                    "diff_count": result.diff_count,
+                })
+                d.status = "failed"
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = (
+                    f"post-revert byte diff: {result.reason}"
+                )
+                d.verify_reason = "post_revert_byte_mismatch"
+                matched_funcs.remove(func)
+
     outcome.decisions = list(decisions.values())
     outcome.matched_funcs = matched_funcs
     outcome.matched_files = matched_files
