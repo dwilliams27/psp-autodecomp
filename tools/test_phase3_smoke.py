@@ -282,12 +282,12 @@ def test_phase3_end_to_end():
                 diff_count = 0
                 byte_diffs: list = []
 
-            orchestrator.check_byte_match = lambda func, src: _OkResult()
+            orchestrator.check_byte_match = lambda func, src, **kw: _OkResult()
             orchestrator.validate_source_quality = lambda files: []
             orchestrator.reject_extern_c_class_methods = lambda funcs, m: []
             # Compile-check is shell-out to SNC; no compiler in this
             # test env, so short-circuit to "no failures".
-            orchestrator._collect_compile_failures = lambda paths: []
+            orchestrator._collect_compile_failures = lambda paths, **kw: []
             orchestrator.build_prompt = (
                 lambda batch, functions, session_id, variant: ("prompt", []))
 

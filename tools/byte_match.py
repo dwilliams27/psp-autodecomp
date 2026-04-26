@@ -140,8 +140,14 @@ class VerifyResult:
 # ---------------------------------------------------------------------------
 
 
-def compile_src(src_file: str, build_dir: str = "build/src") -> str:
+def compile_src(src_file: str, build_dir: str = "build/src",
+                cwd: str = None) -> str:
     """Compile src_file via make; return the .o path.
+
+    `cwd` runs make inside a specific directory (Phase 3 shootout
+    worktrees where the agent's src lives in an isolated checkout,
+    not the orchestrator's main tree). None preserves pre-Phase-3
+    behavior (make runs in the process's CWD).
 
     Raises CompileFailed when make exits non-zero (src/agent problem).
     Raises RuntimeError for other tooling issues (missing .o after
@@ -155,17 +161,19 @@ def compile_src(src_file: str, build_dir: str = "build/src") -> str:
 
     result = subprocess.run(
         ["make", o_path], capture_output=True, text=True,
+        cwd=cwd,
     )
     if result.returncode != 0:
         stderr = (result.stderr or result.stdout or "").strip()
         raise CompileFailed(
             f"compile failed for {src_file}: {stderr[:500]}"
         )
-    if not os.path.exists(o_path):
+    full_o = os.path.join(cwd, o_path) if cwd else o_path
+    if not os.path.exists(full_o):
         raise RuntimeError(
-            f"make succeeded for {src_file} but {o_path} not found"
+            f"make succeeded for {src_file} but {full_o} not found"
         )
-    return o_path
+    return full_o
 
 
 def nm_symbols(path: str, *, defined_only: bool = False) -> list[tuple[int, str, str]]:
@@ -305,8 +313,12 @@ def find_db_func_for_sym(sym_name: str, functions: list[dict]) -> Optional[dict]
 # ---------------------------------------------------------------------------
 
 
-def check_byte_match(func: dict, src_file: str) -> VerifyResult:
+def check_byte_match(func: dict, src_file: str,
+                     cwd: str = None) -> VerifyResult:
     """Verify `func` against the bytes produced by compiling `src_file`.
+
+    `cwd` (Phase 3 shootout): compile inside a worktree where the
+    agent's src lives. None = compile in process CWD (Phase 1/2).
 
     Algorithm (name-gated, no silent fallback):
       1. Compile src_file (raise on failure).
@@ -329,7 +341,7 @@ def check_byte_match(func: dict, src_file: str) -> VerifyResult:
     addr = int(func["address"], 16)
     size = int(func["size"])
 
-    o_path = compile_src(src_file)
+    o_path = compile_src(src_file, cwd=cwd)
     syms = _cached_symbols_with_bytes(o_path, _mtime(o_path))
     if not syms:
         return VerifyResult(ok=False, reason=REASON_NO_SYMBOLS, o_file=o_path)

@@ -1140,7 +1140,7 @@ def run_one_session(ctx):
             continue
 
         try:
-            result = check_byte_match(func, src_file)
+            result = check_byte_match(func, src_file, cwd=ctx.worktree)
         except CompileFailed as e:
             log(f"  VERIFY FAILED: {func['name']} — compile error: {e}")
             log_event(log_path, {
@@ -1333,7 +1333,7 @@ def run_one_session(ctx):
                     log(f"  POST-REVERT ERROR: cannot remove {o_path}: {e}")
                     raise
             try:
-                result = check_byte_match(func, d.src_file)
+                result = check_byte_match(func, d.src_file, cwd=ctx.worktree)
             except CompileFailed as e:
                 log(f"  POST-REVERT VERIFY FAILED: {func['name']} no longer "
                     f"compiles after out-of-scope revert — "
@@ -1564,19 +1564,24 @@ def create_overnight_branch():
     return branch
 
 
-def _collect_compile_failures(src_paths):
+def _collect_compile_failures(src_paths, cwd=None):
     """Compile each src path via byte_match.compile_src. Returns list of
     (path, error_message) tuples for failures. Skips non-.cpp/.c paths
-    and deleted files (no-op for those, not failure)."""
+    and deleted files (no-op for those, not failure).
+
+    `cwd` (Phase 3 shootout): run make inside a worktree. Paths must
+    be relative to `cwd` when set (e.g. `src/foo.cpp`, not absolute).
+    """
     from byte_match import compile_src, CompileFailed
     failures = []
     for p in src_paths:
         if not p.endswith((".cpp", ".c")):
             continue
-        if not os.path.exists(p):
+        full = os.path.join(cwd, p) if cwd else p
+        if not os.path.exists(full):
             continue  # deletion in the change set, not a failure
         try:
-            compile_src(p)
+            compile_src(p, cwd=cwd)
         except CompileFailed as e:
             failures.append((p, str(e)))
     return failures
@@ -1654,14 +1659,9 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
     # Compile-check BEFORE staging. If any src in the set fails, we
     # raise and the operator's tree is left exactly as the session left
     # it — no half-staged half-unstaged mess to untangle.
-    compile_check_paths = files_to_commit
-    if worktree is not None:
-        # Compile from inside the worktree so build artifacts and
-        # include lookups don't leak across trees.
-        compile_check_paths = {os.path.join(worktree, p)
-                               for p in files_to_commit
-                               if p != DB_PATH}
-    compile_failures = _collect_compile_failures(compile_check_paths)
+    compile_check_paths = {p for p in files_to_commit if p != DB_PATH}
+    compile_failures = _collect_compile_failures(compile_check_paths,
+                                                  cwd=worktree)
     if compile_failures:
         lines = [f"{p}: {e[:120]}" for p, e in compile_failures[:5]]
         raise RuntimeError(

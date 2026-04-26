@@ -200,7 +200,7 @@ def main():
                 diff_count = 0
                 byte_diffs: list = []
 
-            orchestrator.check_byte_match = lambda func, src: _OkResult()
+            orchestrator.check_byte_match = lambda func, src, **kw: _OkResult()
             orchestrator.validate_source_quality = lambda files: []
             orchestrator.reject_extern_c_class_methods = lambda funcs, m: []
 
