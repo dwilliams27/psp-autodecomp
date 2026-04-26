@@ -1,4 +1,5 @@
 #include "eShape.h"
+#include "cFile.h"
 #include "eCollision.h"
 #include "eCompoundShape.h"
 #include "eMeshShape.h"
@@ -6,6 +7,11 @@
 
 class cBase;
 class cMemPool;
+
+class cFileSystemPlatform {
+public:
+    static int Read(cFilePlatform *, unsigned int, unsigned int, void *, bool);
+};
 
 extern char eShapevirtualtable[];
 
@@ -95,6 +101,14 @@ int eShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1, const
 // eShape::Collide(const eHeightmapShape *, ...) — 0x0002bb18
 int eShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::ShapeHeightmap(*this, *shape, b, ocs1, ocs2, info);
+}
+
+// cFilePlatform::ReadAsync(void *, unsigned int, unsigned int) — 0x0000e28c
+void cFilePlatform::ReadAsync(void *buf, unsigned int offset, unsigned int size) {
+    *(unsigned int *)((char *)this + 0x114) = offset;
+    *(unsigned int *)((char *)this + 0x118) = size;
+    *(void **)((char *)this + 0x11C) = buf;
+    cFileSystemPlatform::Read(this, offset, size, buf, true);
 }
 
 // eShape::eShape(cBase *) — 0x0002b92c
