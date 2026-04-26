@@ -1209,7 +1209,8 @@ def run_one_session(ctx):
                      and decisions[f["address"]].status == "matched"]
 
     if matched_funcs and matched_files:
-        asm_rejected = validate_source_quality(matched_files)
+        asm_rejected = validate_source_quality(matched_files,
+                                                     root_dir=ctx.worktree)
         if asm_rejected:
             log(f"  ASSEMBLY-ONLY REJECTION: {len(asm_rejected)} files are pure asm with no C/C++")
             for asm_file in asm_rejected:
@@ -1237,7 +1238,8 @@ def run_one_session(ctx):
             matched_files -= set(asm_rejected)
 
     if matched_funcs:
-        xc_rejected = reject_extern_c_class_methods(matched_funcs, addr_to_src)
+        xc_rejected = reject_extern_c_class_methods(matched_funcs, addr_to_src,
+                                                           root_dir=ctx.worktree)
         if xc_rejected:
             log(f"  EXTERN-C CLASS-METHOD REJECTION: "
                 f"{len(xc_rejected)} matches lack canonical Class::method form")
@@ -1707,7 +1709,7 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
 
 
 
-def reject_extern_c_class_methods(matched_funcs, addr_to_src):
+def reject_extern_c_class_methods(matched_funcs, addr_to_src, root_dir=None):
     """Flag class-method matches whose reconstruction is extern-C / safe-name.
 
     Returns list of (func, reason) for entries where DB has a class_name
@@ -1730,10 +1732,11 @@ def reject_extern_c_class_methods(matched_funcs, addr_to_src):
         # matched_funcs has a real src file. Assert to fail loudly if
         # that invariant is ever broken — silent skip would let bad
         # entries bypass the gate.
-        assert src_path and os.path.exists(src_path), (
+        full_src = os.path.join(root_dir, src_path) if root_dir else src_path
+        assert src_path and os.path.exists(full_src), (
             f"reject_extern_c_class_methods: invariant violation — "
             f"matched_funcs entry {func['address']} has no readable "
-            f"src_file (addr_to_src={src_path!r})"
+            f"src_file (addr_to_src={src_path!r}, root_dir={root_dir!r})"
         )
 
         method = (func.get("method_name") or "").split("(", 1)[0]
@@ -1744,7 +1747,7 @@ def reject_extern_c_class_methods(matched_funcs, addr_to_src):
                 f"DB before retrying."
             )
 
-        with open(src_path) as f:
+        with open(full_src) as f:
             stripped = strip_cpp_comments(f.read())
 
         canonical = canonical_method_pattern(cls, method) + r"\s*\("
@@ -1757,23 +1760,27 @@ def reject_extern_c_class_methods(matched_funcs, addr_to_src):
     return rejected
 
 
-def validate_source_quality(matched_files):
+def validate_source_quality(matched_files, root_dir=None):
     """Reject matches that are pure assembly — no C/C++ training data value.
 
     A source file is rejected if it contains ONLY file-scope __asm__() blocks
     and no real C/C++ function bodies. Small inline __asm__ volatile() inside
     C/C++ functions is fine — the C/C++ surrounding code has training value.
 
+    `root_dir` (Phase 3 shootout): resolve relative src paths against
+    the worktree where the agent wrote them. None = CWD (Mode A).
+
     Returns a list of rejected file paths with reasons.
     """
     import re
     rejected = []
     for src_file in matched_files:
-        if not os.path.exists(src_file):
+        full = os.path.join(root_dir, src_file) if root_dir else src_file
+        if not os.path.exists(full):
             raise RuntimeError(
-                f"validate_source_quality: {src_file} does not exist"
+                f"validate_source_quality: {full} does not exist"
             )
-        with open(src_file) as f:
+        with open(full) as f:
             content = f.read()
 
         # Strip comments and preprocessor

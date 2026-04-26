@@ -233,8 +233,8 @@ def main():
                 byte_diffs: list = []
 
             orchestrator.check_byte_match = lambda func, src, **kw: _OkResult()
-            orchestrator.validate_source_quality = lambda files: []
-            orchestrator.reject_extern_c_class_methods = lambda funcs, m: []
+            orchestrator.validate_source_quality = lambda files, **kw: []
+            orchestrator.reject_extern_c_class_methods = lambda funcs, m, **kw: []
 
             # Stub build_prompt to a trivial no-op (we're not actually
             # running an agent; the fake run_session writes results

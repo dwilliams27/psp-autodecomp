@@ -201,8 +201,8 @@ def main():
                 byte_diffs: list = []
 
             orchestrator.check_byte_match = lambda func, src, **kw: _OkResult()
-            orchestrator.validate_source_quality = lambda files: []
-            orchestrator.reject_extern_c_class_methods = lambda funcs, m: []
+            orchestrator.validate_source_quality = lambda files, **kw: []
+            orchestrator.reject_extern_c_class_methods = lambda funcs, m, **kw: []
 
             orchestrator.build_prompt = (
                 lambda batch, functions, session_id, variant: ("prompt", []))
