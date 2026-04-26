@@ -23,6 +23,7 @@ public:
 class gcProfileSubscriber {
 public:
     void Attach(void);
+    int GetIndex(void *) const;
 };
 
 void gcProfileSubscriber::Attach(void) {
@@ -35,6 +36,7 @@ void gcProfileSubscriber::Attach(void) {
 class gcSaveGameSubscriber {
 public:
     void Detach(void);
+    int GetIndex(void *) const;
 };
 
 void gcSaveGameSubscriber::Detach(void) {
@@ -103,3 +105,61 @@ ePath::ePath(cBase *parent) : cObject(parent) {
     *(float *)((char *)this + 0x48) = 0.0f;
     __asm__ volatile("" : : "r"(this) : "memory");
 }
+
+// ── gcProfileSubscriber::GetIndex(void *) const @ 0x00287BF0 ──
+int gcProfileSubscriber::GetIndex(void *p) const {
+    gcGameSettings::Get();
+    int v = -1;
+    if (p) v = (int)p - 1;
+    return v;
+}
+
+// ── gcSaveGameSubscriber::GetIndex(void *) const @ 0x0028867C ──
+int gcSaveGameSubscriber::GetIndex(void *p) const {
+    gcGameSettings::Get();
+    int v = -1;
+    if (p) v = (int)p - 1;
+    return v;
+}
+
+// ── gcValLobbySessionStatus::AssignCopy(const cBase *) @ 0x0034E4CC ──
+class gcValLobbySessionStatus {
+public:
+    void AssignCopy(const cBase *);
+};
+
+void gcValLobbySessionStatus::AssignCopy(const cBase *base) {
+    gcValLobbySessionStatus *other = dcast<gcValLobbySessionStatus>(base);
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+}
+
+// ── gcVariableGroup::AssignCopy(const cBase *) @ 0x002361B4 ──
+class gcVariableGroup {
+public:
+    void AssignCopy(const cBase *);
+};
+
+void gcVariableGroup::AssignCopy(const cBase *base) {
+    gcVariableGroup *other = dcast<gcVariableGroup>(base);
+    *(unsigned char *)((char *)this + 8) = *(unsigned char *)((char *)other + 8);
+    *(int *)((char *)this + 12) = *(int *)((char *)other + 12);
+}
+
+// ── gcDesiredObjectT<gcDesiredEntity, gcDesiredEntityHelper, gcEntity>::GetObject(bool) const @ 0x0025FA84 ──
+class gcDesiredEntity;
+class gcDesiredEntityHelper;
+class gcEntity;
+
+template <class T, class H, class O>
+class gcDesiredObjectT {
+public:
+    H *Get(bool) const;
+    cBase *GetObject(bool) const;
+};
+
+template <class T, class H, class O>
+cBase *gcDesiredObjectT<T, H, O>::GetObject(bool b) const {
+    return (cBase *)Get(b);
+}
+
+template class gcDesiredObjectT<gcDesiredEntity, gcDesiredEntityHelper, gcEntity>;
