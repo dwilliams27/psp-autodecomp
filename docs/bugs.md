@@ -151,27 +151,30 @@ for f in db:
 
 ## Resolved
 
-### ~~4. Repo files became operator-unreadable after each overnight run~~
+### ~~4. Operator locked out of `config/functions.json` after each overnight run~~
 
 **Found:** 2026-04-25 sanity test for Phase 3.
-**Resolved:** same day. `tools/run_overnight.sh` cleanup trap now
-runs `sudo chown -R $OPERATOR config src include logs` after the
-sandboxed run exits (commit on the same patch as this bugs.md
-update).
+**Resolved:** same day at the source — `tools/common.py:save_db`
+now preserves the existing DB's mode and ownership when atomically
+replacing it, falling back to 0644 only when the file doesn't exist
+yet.
 
-The orchestrator runs as the sandboxed `autodecomp` user; any file
-it writes (the DB via atomic replace, new src/include files matched
-during the run, JSONL logs in `logs/`) ends up owned
-`autodecomp:staff 600`. Without the chown-back, the operator's
-subsequent `tools/func_db.py query`, `git status`, or even reading
-the run log fails with `PermissionError`. The cleanup step un-roots
-the perms back to whoever owns the repo root.
+Root cause was Phase 1's atomic save (commit `9ce49df`):
+`tempfile.mkstemp` defaults to mode **0600** (Python's secure-by-
+default for tempfiles), and `os.replace` promotes that 0600 tmp to
+be the new `config/functions.json` — owned by `autodecomp` from
+inside the sandbox. The pre-Phase-1 `save_db` was a plain in-place
+`open(path, 'w')` write, which leaves the existing file's
+ownership and mode untouched, so the operator could always read.
 
-Limitations: if `sudo` credentials expire mid-run (long overnights),
-the cleanup falls back to a clear "run this manually" warning rather
-than silently failing. `chown -R` deliberately does NOT follow
-symlinks, so an orphaned shootout-worktree symlink (if teardown
-failed) doesn't accidentally chown the symlink target.
+Other autodecomp-written files (newly-created `src/<Class>.cpp`,
+`logs/match_*.jsonl`) were never affected — they go through plain
+`open()` and inherit the user's umask 022, ending up `644`. The DB
+was the only file that regressed. An earlier fix in
+`tools/run_overnight.sh` did a broad `sudo chown -R` of
+`config/`, `src/`, `include/`, `logs/` in the cleanup trap; with
+the source fix in `save_db`, that broad chown is no longer
+necessary and was removed.
 
 ---
 

@@ -97,6 +97,11 @@ def save_db(functions):
     the same dir so the rename is same-filesystem. Caller still owns
     write serialization — atomicity here is about torn writes, not
     lost updates.
+
+    `tempfile.mkstemp` defaults to 0600 for security. Without
+    explicit chmod, every save inside a sandboxed run would lock the
+    operator out of the DB (fixed: copy mode + ownership from the
+    existing file when present, fall back to 0644 when not).
     """
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     dir_path = os.path.dirname(DB_PATH) or "."
@@ -105,6 +110,19 @@ def save_db(functions):
     try:
         with os.fdopen(fd, "w") as f:
             json.dump(functions, f, indent=2)
+        if os.path.exists(DB_PATH):
+            st = os.stat(DB_PATH)
+            os.chmod(tmp_path, st.st_mode & 0o777)
+            try:
+                os.chown(tmp_path, st.st_uid, st.st_gid)
+            except PermissionError:
+                # Non-root writer can't chown to a different uid.
+                # Mode is the access-control axis; ownership matches
+                # the writer (acceptable since the file is still
+                # group/other-readable).
+                pass
+        else:
+            os.chmod(tmp_path, 0o644)
         os.replace(tmp_path, DB_PATH)
     except Exception:
         if os.path.exists(tmp_path):
