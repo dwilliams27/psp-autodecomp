@@ -457,3 +457,8 @@ void abort(void) {
         _exit(1);
     }
 }
+
+extern int sceKernelLibcTime(int *t);
+int time(int *t) {
+    return sceKernelLibcTime(t);
+}
