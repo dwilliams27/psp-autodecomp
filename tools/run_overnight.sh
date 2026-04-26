@@ -76,17 +76,49 @@ sudo -i -u "$SANDBOX_USER" security unlock-keychain -p "" /Users/$SANDBOX_USER/L
 # Prevent auto-lock during the overnight run
 sudo -i -u "$SANDBOX_USER" security set-keychain-settings /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
 
-# Cleanup: disable PF on exit (Ctrl-C, crash, normal exit)
+# Cleanup: disable PF on exit (Ctrl-C, crash, normal exit). Also
+# return ownership of files the autodecomp user touched back to the
+# operator — without this, config/functions.json (and any newly-
+# created src/include files) end up `autodecomp:staff 600` and the
+# operator's `tools/func_db.py query` fails with PermissionError
+# until a manual chown.
 cleanup() {
     echo ""
     echo "Flushing PF sandbox rules..."
-    # sudo credentials may have expired during long run — use -n (non-interactive)
-    # If it fails, tell user to run manually
     if ! sudo -n pfctl -a autodecomp -F all 2>/dev/null; then
         echo "WARNING: Could not flush PF rules (sudo expired). Run manually:"
         echo "  sudo pfctl -a autodecomp -F all"
     else
         echo "PF sandbox rules flushed."
+    fi
+    # Re-own anything the run touched. We scope to config/, src/,
+    # include/, and logs/ — never broader, since extern/ is shared
+    # SDK + tools the operator may have set up with specific perms.
+    # `chown -R` (no -H/-L) does not follow symlinks during traversal,
+    # so the in-logs match_latest.jsonl symlink and any orphaned
+    # shootout-worktree symlinks (if teardown failed) only have their
+    # own ownership changed, not the target's.
+    OPERATOR_USER="$(stat -f '%Su' "$REPO_DIR" 2>/dev/null || echo '')"
+    OPERATOR_GROUP="$(stat -f '%Sg' "$REPO_DIR" 2>/dev/null || echo '')"
+    if [ -z "$OPERATOR_USER" ]; then
+        echo "WARNING: could not stat $REPO_DIR to determine operator; "
+        echo "         skipping chown. Run manually if needed."
+    elif ! sudo -n true 2>/dev/null; then
+        echo "WARNING: Could not chown back to $OPERATOR_USER (sudo expired)."
+        echo "  Run manually: sudo chown -R $OPERATOR_USER:$OPERATOR_GROUP \\"
+        echo "    $REPO_DIR/{config,src,include,logs}"
+    else
+        # Sudo is valid — let chown's own stderr surface so a real
+        # filesystem error (e.g. an EXDEV on a weird symlink) doesn't
+        # get misattributed to "sudo expired" by a swallowed pipe.
+        if sudo chown -R "$OPERATOR_USER:$OPERATOR_GROUP" \
+                "$REPO_DIR/config" "$REPO_DIR/src" "$REPO_DIR/include" \
+                "$REPO_DIR/logs"; then
+            echo "Ownership returned to $OPERATOR_USER."
+        else
+            echo "WARNING: chown failed — see error above. Repo paths may "
+            echo "         still be owned by autodecomp."
+        fi
     fi
 }
 trap cleanup EXIT

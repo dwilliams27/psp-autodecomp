@@ -1,74 +1,126 @@
 # Known Bugs
 
-Bugs discovered during development that haven't been fixed yet. Fix these before they bite.
+Bugs discovered during development. Status reflects 2026-04-25 audit.
+Active bugs first; resolved bugs at the bottom for history.
 
-## 1. Orchestrator can mark verified matches as "failed" on retry
+## Active
 
-**Found:** 2026-04-11 overnight run
+### 1. Three pre-Phase-1 entries marked "failed" despite verified-byte commits
 
-When a function is matched and verified in session A, then the same source file is modified by session B (which targets a different function in the same file), session B can overwrite the source, breaking the previously matched function. If session B reports that function as "failed", the database is updated to "failed" even though a verified match existed in an earlier commit.
+**Found:** 2026-04-11 overnight run.
+**Status:** **partially mitigated** by Phase 1 (commit `9ce49df`); the
+mechanism that produced these entries can no longer trigger under
+multi-agent. Historical data poisoning persists in the DB.
 
-**Impact:** 3 functions (eAudioChannel::CalcPanning, cRedBlackTree::FindNode, gcCamera::gcEntityFollowState) were verified byte-exact against EBOOT but show as "failed" in functions.json.
+**Mechanism (now blocked):** session A matched function X in file F
+and committed; session B targeted a different function in F,
+overwrote the source, reported X as `failed`, and the picker accepted
+the downgrade. Phase 1's `class_locks` + per-session file ledger
+prevent two sessions from sharing the same `Class.cpp` concurrently,
+and the picker no longer overwrites a `matched` row's `match_status`
+without a fresh decision specific to that address. The pre-existing
+poisoned rows remain because no audit pass has rolled them back.
 
-**Root cause:** The orchestrator doesn't protect previously-matched functions when a later session writes to the same source file.
+**DB rows still poisoned (verified 2026-04-25):**
+- `0x0001d224 eAudioChannel::CalcPanning(int, const mOCS *, float *) const` → `failed`
+- `0x001e5bc4 cRedBlackTree<eCollisionPair, ...>::FindNode(...)` → `failed`
+- one or more `gcCamera::gcEntityFollowState::*` rows (specific addr unclear from original bug; spot-check shows `0x000fc640..0x000fc89c` are now `untried`)
 
-**Possible fixes:**
-- Before marking a function as "failed", check if it was previously "matched" and re-verify against EBOOT before downgrading
-- Use separate source files per function (already mostly done, but some agents put multiple functions in one file)
-- Lock matched source files from further modification
+**Fix needed:** re-run `tools/byte_match.py check_byte_match` against
+each poisoned address. Where the verified bytes still match the
+EBOOT slice, flip `match_status` back to `matched` and re-populate
+`matched_by_*`. Where the matching src file is missing (FindNode's
+`src/cRedBlackTree_FindNode_eCollisionPair.cpp` no longer exists —
+see Bug #2), the row stays `failed`/`untried` and a fresh attempt
+is needed.
 
-## 2. ~20 matched source files are pure assembly with zero C/C++ training data
+---
 
-**Found:** 2026-04-14 pre-commit review
+### 2. Pure-assembly matched files inherited from before quality gates
 
-Multiple agents have submitted file-scope `__asm__()` blocks as "matches" — wrapping raw disassembly in `.cpp` files. These produce zero training data value and violate the "C/C++ source only" norm. The orchestrator now rejects new submissions like this, but existing ones remain.
+**Found:** 2026-04-14 pre-commit review.
+**Status:** new submissions are blocked by `validate_source_quality`
+in the orchestrator (commit history pre-dates Phase 1). 8 of the
+original 15 problem files have already been removed; **7 remain in
+the repo as of 2026-04-25** and continue to inflate the matched
+count.
 
-**Affected files:**
-- `src/eCompoundShape.cpp` (295 lines, 2 functions)
-- `src/cRedBlackTree_FindNode_eCollisionPair.cpp` (187 lines)
-- `src/gcEntityFollowState_ctor.cpp` (174 lines)
-- `src/eAudioChannel.cpp` (155 lines)
-- `src/mQuat.cpp` (136 lines, mQuat::Mult + mBasis::Orthonormalize)
-- `src/eCompoundShape_GetEmbedContacts.cpp` (115 lines)
-- `src/mBox.cpp` (75 lines)
-- `src/mBasis_Orthonormalize.cpp` (75 lines, duplicate of symbol in mQuat.cpp)
-- `src/eStaticSkyLight_GetDirectLight.cpp` (67 lines)
-- `src/eSimulatedController_GetVelocity.cpp` (64 lines)
-- `src/eBipedController_GetVelocity.cpp` (59 lines)
-- `src/eMultiSphereShape_GetProjectedMinMax.cpp` (54 lines)
-- `src/eCapsuleShape.cpp` (41 lines)
-- `src/eHeightmapShape_GetInertialTensor.cpp` (15 lines)
-- `src/eHeightmapShape_GetAABB.cpp` (14 lines)
+**Still in the tree (need triage):**
+- `src/eCompoundShape.cpp`
+- `src/eAudioChannel.cpp`
+- `src/mQuat.cpp` (mQuat::Mult + mBasis::Orthonormalize)
+- `src/mBox.cpp`
+- `src/eCapsuleShape.cpp`
 
-**Impact:** These files are counted as "matched" (inflating the 709 count) but provide zero value for fine-tuning. Some may be reworkable as C++ with minimal inline asm; others (dense VFPU) should be re-marked as `failed`.
+**Already cleaned up (no action):**
+- `src/cRedBlackTree_FindNode_eCollisionPair.cpp`
+- `src/gcEntityFollowState_ctor.cpp`
+- `src/eCompoundShape_GetEmbedContacts.cpp`
+- `src/mBasis_Orthonormalize.cpp`
+- `src/eStaticSkyLight_GetDirectLight.cpp`
+- `src/eSimulatedController_GetVelocity.cpp`
+- `src/eBipedController_GetVelocity.cpp`
+- `src/eMultiSphereShape_GetProjectedMinMax.cpp`
+- `src/eHeightmapShape_GetInertialTensor.cpp`
+- `src/eHeightmapShape_GetAABB.cpp`
 
-**Fix:** Each file needs human triage — determine if it's C++-expressible (rework) or genuinely VFPU-only (mark `failed`). The duplicate mBasis::Orthonormalize in mQuat.cpp will cause link errors if both files are included.
+**Fix needed:** for each surviving file, decide:
+1. **Reworkable** (mostly C++ wrapping a small `__asm__ volatile()`
+   for VFPU primitives that have no C equivalent) → rewrite it,
+   re-verify byte-exact, keep `matched`.
+2. **Genuinely VFPU-only** (100% inline asm, no C++ structure to
+   recover) → revert the addr's `match_status` to `failed`, delete
+   the src file, leave a `failure_notes` entry recording the
+   classification.
 
+Reworking is preferred over reverting because the same source maps
+to several matched addresses; reverting one row strands the others.
 
-## 3. Substring symbol gate has accepted ~80 wrong-signature matches over the project's history
+---
 
-**Found:** 2026-04-24 while fixing the AMBIGUOUS-overload bug
+### 3. Symbol-name mismatches between stored DB symbol and authoritative .sym
 
-The verifier's name gate (`tools/byte_match.py:sym_encodes_func`) matches a compiled symbol against a DB entry by class+method substring with a 1–3 character gap, ignoring the parameter-type suffix of SNC mangling. For overloaded methods that compile to identical bytes (common for trivial 28–44 byte stubs that delegate to shared template machinery), this is fine for the AMBIGUOUS rejection case (loud failure, fixed in a separate commit by adding `mangled_symbol` disambiguation).
+**Found:** 2026-04-24 while fixing the AMBIGUOUS-overload bug.
+**Status:** active. 33 mismatches remain (down from 80 in original
+bug) — 19 benign (naming-style only) and **14 concerning** (the
+mangled symbol's parameter type sequence differs, indicating the
+reconstructed source has the wrong signature even though the bytes
+match).
 
-The deeper issue: when the substring gate yields a **single** byte-matching candidate that happens to be the wrong overload (or a function with reordered/wrong parameter types that still compiles to identical MIPS bytes because all parameters live in registers), it has been silently accepted as a verified match.
+**Why this happens:** the verifier's name gate
+(`tools/byte_match.py:sym_encodes_func`) accepts a class+method
+substring match with a 1–3 character gap, ignoring the
+parameter-type suffix of SNC mangling. For trivial 28–44 byte stubs
+that delegate to shared template machinery, two different overloads
+can compile to byte-identical MIPS — the gate happily picks
+whichever happens to match by name.
 
-**Evidence:** Of 1293 currently-matched DB entries, 80 have a stored `symbol_name` that disagrees with the `.sym` authoritative `mangled_symbol`. Most disagreements are benign:
-- `cFile__OnCreated` vs `__0fFcFileJOnCreatedv` (our .o uses safe_name; .sym uses mangled — same function, different naming style)
-- `eShape___dtor_eShape_void` vs `__0oGeShapedtv` (our patched-post-splat dtor name vs original `dt` form)
+**Categorization (2026-04-25 audit):**
+- *Benign — naming-style only:* `cFile__OnCreated` vs `__0fFcFileJOnCreatedv`,
+  `eShape___dtor_eShape_void` vs `__0oGeShapedtv`, etc. Same
+  function, different naming convention (safe-name post-splat patch
+  vs canonical SNC mangling). 19 entries.
+- *Concerning — different parameter mangling:* the mangled-prefix
+  characters disagree on type back-references or primitive codes.
+  14 entries.
 
-But several are concerning, e.g.:
-- `0x00047f80 eDynamicModel::SetSkin(...)`: stored `__0fNeDynamicModelHSetSkin6IcHandleT76FeSkin_iTB6KcTimeValue` vs .sym `...iTC6KcTimeValue` — type back-reference index differs, indicating a different parameter-type sequence.
-- `0x0003b4ec eInputMouse::BeginDrag(...)`: stored `__0fLeInputMouseJBeginDragRC6FmVec2iTCT` vs .sym `...RC6FmVec26GeColor6IcHandleT76JeMaterial_T` — substantially different parameter encodings.
+**Worked example, confirmed by codex 2026-04-25 audit:**
+`0x00047f80 eDynamicModel::SetSkin(...)` is byte-correct but the
+header at `include/eDynamicModel.h:36` and the source at
+`src/eDynamicModel.cpp:87` declare:
+```cpp
+void SetSkin(cHandleT<eSkin>, int, int, cTimeValue);
+```
+The `.sym` mangled symbol indicates the third parameter should also
+be `cHandleT<eSkin>`, not `int`:
+- stored: `__0fNeDynamicModelHSetSkin6IcHandleT76FeSkin_iTB6KcTimeValue`
+- .sym:   `__0fNeDynamicModelHSetSkin6IcHandleT76FeSkin_iTC6KcTimeValue`
 
-These look like real wrong-signature matches: the bytes happened to align under MIPS register-passing, but the C++ signature in our reconstruction differs from the original.
-
-**Impact:** Up to 80 entries in functions.json may be marked "matched" with a source file that doesn't accurately reflect the original function's signature. Training data poisoning risk — a fine-tune would learn incorrect parameter mappings.
-
-**Possible fix:**
-- Audit the 80 mismatches, classify each as "naming-style only" (benign) vs "wrong signature" (must re-verify)
-- For the wrong-signature subset, revert match status to `failed` and rework the source
-- Long-term: tighten the verifier's gate to require exact `mangled_symbol` match for `.cpp` reconstructions (currently only used as an AMBIGUOUS tie-breaker)
+The `TB` → `TC` shift is a back-reference index difference: in the
+.sym version `cTimeValue` references the *third* prior type
+(implying an extra `cHandleT<eSkin>` parameter), in our version it
+references the *second*. This is exactly the "bytes match, training
+data lies" failure the quality system is designed to catch.
 
 **Detection script** (one-shot, addr-list output):
 ```python
@@ -79,19 +131,68 @@ out = subprocess.run(['mipsel-linux-gnu-nm','--defined-only','extern/extracted_s
 sym_map = {int(p[0],16): p[2] for ln in out.splitlines()
            if (p := ln.split(None, 2)) and len(p)==3 and p[1] in ('T','t','W','w')}
 for f in db:
+    if f.get('match_status') != 'matched':
+        continue
     addr = int(f['address'],16); stored = f.get('symbol_name'); sym = sym_map.get(addr)
     if stored and sym and stored != sym:
         print(f['address'], f['name'], '|', stored, 'vs', sym)
 ```
 
-## 4. Orchestrator's git_commit_batch absorbs operator-staged changes into session commits
+**Fix needed:**
+- Audit the 14 concerning rows. For each, work out the correct
+  signature from the .sym demangling and rewrite the source. Verify
+  it still compiles to identical bytes.
+- Long-term: tighten the verifier's gate to require exact
+  `mangled_symbol` equality on `.cpp` reconstructions where both the
+  DB and .sym carry one (currently exact-mangled is only used as an
+  AMBIGUOUS-overload tie-breaker).
 
-**Found:** 2026-04-24 during fix_plan UI work — codex session was running while operator staged unrelated TUI changes. The orchestrator's per-session commit landed with title "Match 2 functions (session XXXX)" but the diff included `tools/ui/state.py` and `tools/ui/screens/running.py` changes that had nothing to do with the matched functions.
+---
 
-**Mechanism:** `tools/orchestrator.py:git_commit_batch` builds a set of files-to-commit (`matched_files | _session_dirty_paths()`), runs `git add` on each, then does a plain `git commit -m "..."`. Anything else the operator had staged at that moment (or files that became staged via `git add` of a file that overlapped with their work) ends up in the same commit.
+## Resolved
 
-**Impact:** silent. The matched-function commit includes drive-by changes the agent didn't make. The commit message lies. Two real cases observed in `4972e53` and `481a283` on `overnight/20260424-201228`. No data loss — the changes are persisted, just attributed wrong.
+### ~~4. Repo files became operator-unreadable after each overnight run~~
 
-**Fix:** scope the commit to the explicit file list. Replace `git commit -m MSG` with `git commit -m MSG -- <each path>`, OR `git stash --keep-index` before staging + `git stash pop` after committing to isolate the session's staging area.
+**Found:** 2026-04-25 sanity test for Phase 3.
+**Resolved:** same day. `tools/run_overnight.sh` cleanup trap now
+runs `sudo chown -R $OPERATOR config src include logs` after the
+sandboxed run exits (commit on the same patch as this bugs.md
+update).
 
-**Workaround for operators**: don't stage code changes while an overnight run is active. If you must, `git stash` first.
+The orchestrator runs as the sandboxed `autodecomp` user; any file
+it writes (the DB via atomic replace, new src/include files matched
+during the run, JSONL logs in `logs/`) ends up owned
+`autodecomp:staff 600`. Without the chown-back, the operator's
+subsequent `tools/func_db.py query`, `git status`, or even reading
+the run log fails with `PermissionError`. The cleanup step un-roots
+the perms back to whoever owns the repo root.
+
+Limitations: if `sudo` credentials expire mid-run (long overnights),
+the cleanup falls back to a clear "run this manually" warning rather
+than silently failing. `chown -R` deliberately does NOT follow
+symlinks, so an orphaned shootout-worktree symlink (if teardown
+failed) doesn't accidentally chown the symlink target.
+
+---
+
+### ~~5. Orchestrator's git_commit_batch absorbed operator-staged changes~~
+
+**Found:** 2026-04-24 during fix_plan UI work.
+**Resolved:** 2026-04-25 by Phase 1 (commit `9ce49df`), Direction #003.
+
+The pre-Phase-1 `git_commit_batch` built a set of files-to-commit
+from `matched_files | _session_dirty_paths()`, where
+`_session_dirty_paths()` was a global tree-walk of `git status`.
+Concurrent sessions and operator edits during a run got absorbed
+into whichever session committed next.
+
+Phase 1 replaced `_session_dirty_paths()` with a **per-session file
+ledger**: when the picker assigns a batch, it computes the allowed
+file set (`{src/<Class>.cpp, include/<Class>.h, src/<Class>_*.cpp}`).
+The worker captures `git status --porcelain` after the agent
+finishes, partitions dirty files into in-set (the ledger) and
+out-of-set (rejected + reverted). Only the ledger gets staged; the
+commit message exclusively reflects that session's work.
+
+Tested by `tools/test_phase1_smoke.py` (invariant 3) and the
+Phase 3 smoke (per-worktree fan-in verifies cross-tree leakage too).
