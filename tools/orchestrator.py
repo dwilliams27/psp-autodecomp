@@ -1486,7 +1486,11 @@ def _setup_shootout_worktrees_inner(identities, run_branch, repo_root,
                         f"orchestrator should auto-create."
                     )
             if os.path.lexists(link):
-                os.remove(link)
+                if os.path.isdir(link) and not os.path.islink(link):
+                    import shutil
+                    shutil.rmtree(link)
+                else:
+                    os.remove(link)
             os.symlink(target, link)
         # Per-worktree build/ — kept isolated so two backends compiling
         # the same Class.cpp don't race on build/src/Class.cpp.o.
