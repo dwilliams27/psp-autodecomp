@@ -70,8 +70,12 @@ _OP_CODES = {
 def sym_encodes_func(sym_name: str, func: dict) -> bool:
     """True iff sym_name mangles to the (class, method) pair in `func`.
 
-    Uses DB's `class_name` and `method_name` fields. Follows SNC mangling
-    positional rules from docs/research/snc-name-mangling.md:
+    First checks for an exact match against the DB's authoritative
+    `mangled_symbol` field (populated from the .sym file). Falls back
+    to heuristic class/method substring matching for the rare entries
+    without a mangled_symbol.
+
+    Heuristic rules (SNC mangling from docs/research/snc-name-mangling.md):
       - Regular method: `<class><lenLetter><method>` with 1-3 char gap
       - Ctor: `<class>ct`
       - Dtor (patched post-splat): `<class>___dtor_<class>`
@@ -82,6 +86,13 @@ def sym_encodes_func(sym_name: str, func: dict) -> bool:
     Unknown operators return False (we'd rather mark unverifiable than
     silently accept the wrong symbol).
     """
+    # Exact match against authoritative mangled_symbol from .sym file.
+    # Handles templates, nested classes, and other names the heuristic
+    # can't substring-match.
+    mangled = func.get("mangled_symbol")
+    if mangled and sym_name == mangled:
+        return True
+
     cls = func.get("class_name") or ""
     method = (func.get("method_name") or "").split("(", 1)[0]
     if not method:
