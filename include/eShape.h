@@ -2,6 +2,7 @@
 #define ESHAPE_H
 
 class cBase;
+class cType;
 class eBoxShape;
 class eSphereShape;
 class eMultiSphereShape;
@@ -39,6 +40,8 @@ public:
     int NeedsRollingFriction(float *) const;
 
     void Write(cFile &) const;
+
+    const cType *GetType(void) const;
 
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

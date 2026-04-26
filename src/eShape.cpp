@@ -6,29 +6,38 @@
 #include "eHeightmapShape.h"
 
 class cBase;
-class cMemPool;
 
 class cFileSystemPlatform {
 public:
     static int Read(cFilePlatform *, unsigned int, unsigned int, void *, bool);
 };
 
-extern char eShapevirtualtable[];
-
-class cMemPool_shim {
+class cWriteBlock {
 public:
-    static void *GetPoolFromPtr(const void *);
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(int, const float *);
+    void End(void);
 };
 
-struct DeleteRec {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
+class cName {
+public:
+    void Write(cWriteBlock &) const;
 };
 
-extern "C" {
-    void free(void *);
-}
+class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_00040FE4;
+
+extern char eShapevirtualtable[];
 
 int eShape::GetNumSubShapes(void) const {
     return 1;
@@ -103,6 +112,31 @@ int eShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, 
     return eCollision::ShapeHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }
 
+// eShape::GetType(void) const — 0x001e0f00
+const cType *eShape::GetType(void) const {
+    if (D_00040FE4 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36CD74, (const char *)0x36CD7C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00040FE4 = cType::InitializeType(0, 0, 0x227, D_000385DC, 0, 0, 0, 0);
+    }
+    return D_00040FE4;
+}
+
+// eShape::Write(cFile &) const — 0x0002b788
+void eShape::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const cName *)((const char *)this + 0x54))->Write(wb);
+    wb.Write(*(const int *)((const char *)this + 0x6C));
+    wb.Write(*(const int *)((const char *)this + 0x70));
+    wb.Write(3, (const float *)((const char *)this + 0x40));
+    wb.Write(3, (const float *)((const char *)this + 0x10));
+    wb.Write(3, (const float *)((const char *)this + 0x20));
+    wb.Write(3, (const float *)((const char *)this + 0x30));
+    wb.End();
+}
+
 // cFilePlatform::ReadAsync(void *, unsigned int, unsigned int) — 0x0000e28c
 void cFilePlatform::ReadAsync(void *buf, unsigned int offset, unsigned int size) {
     *(unsigned int *)((char *)this + 0x114) = offset;
@@ -129,22 +163,10 @@ eShape::eShape(cBase *parent) {
 }
 
 // eShape::~eShape(void) — 0x0002b970
-// Sets vtable to cDynamicMemAllocatorvirtualtable-8 (0x37E6A8), then if flags & 1,
-// delegates to mempool alloc-table destroy fn, falling back to free().
-extern "C" void eShape___dtor_eShape_void(void *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = (void *)0x37E6A8;
-        if (flags & 1) {
-            void *pool = cMemPool_shim::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                char *allocTable = *(char **)((char *)block + 0x1C);
-                DeleteRec *rec = (DeleteRec *)(allocTable + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
-    }
-}
+// Canonical C++ destructor. SNC's ABI auto-generates the (this != 0) guard
+// and the deleting-tail dispatch through operator delete. The body just
+// resets the vtable to the cDynamicMemAllocator slot at 0x37E6A8 (which
+// SNC stamps for objects whose dtor is currently executing). The deleting
+// tail (operator delete with pool-lookup + free fallback) lives in
+// src/eShape_dtor.cpp where it can be defined inline alongside a local
+// eShape declaration that exposes operator delete to the compiler.
