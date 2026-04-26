@@ -5,6 +5,48 @@ Active bugs first; resolved bugs at the bottom for history.
 
 ## Active
 
+### 0. Cross-session .o staleness — Makefile lacks header dep tracking
+
+**Found:** 2026-04-25 during Phase 3 Step 2 sanity run.
+**Status:** active, narrow workaround in place; root cause unfixed.
+
+The Makefile's `$(BUILD_DIR)/src/%.cpp.o: src/%.cpp` rule has no
+header dependency tracking (no `-MMD -MP` or SNC equivalent).
+`make build/src/foo.cpp.o` returns "up to date" whenever `.cpp`
+mtime ≤ `.o` mtime — even when an included header was modified
+since the last compile.
+
+This bites when an agent's session writes to a header that's
+classified out-of-scope by the per-session file ledger; the revert
+silently invalidates any `.o` whose source includes that header,
+but `make` doesn't know. Subsequent `compare_func.py` /
+`check_byte_match` calls happily use the stale `.o`, accepting
+matches whose current source no longer compiles.
+
+**Workaround landed:** the orchestrator's post-revert re-verify
+explicitly removes the `.o` for each surviving matched src before
+calling `check_byte_match`, forcing a fresh compile (commit lands
+with this bugs.md update). This handles the immediate
+within-session case.
+
+**Real fix needed:**
+1. Confirm whether SNC supports `-MMD`/`-MD`/`--depend` or similar
+   for emitting `.d` dep files. If yes, add it to `CFLAGS`/`ECFLAGS`
+   and `-include $(ALL_OBJS:.o=.d)` so make tracks header deps
+   properly.
+2. If SNC has no native dep-gen flag, run `cpp` (GCC's preprocessor)
+   in a sidecar pass to emit `.d` files, OR have the orchestrator
+   rm any `.o` whose source includes a reverted header at the end
+   of a session that did out-of-scope reverts. (Approximation:
+   conservatively rm `build/src/<Class>*.o` for every reverted
+   header's class; correct but over-eager.)
+
+The narrow within-session workaround handles the most-likely
+poisoning vector (the just-rewritten match). Cross-session
+poisoning where a prior session's revert leaves a stale `.o` that
+a later unrelated session's `check_byte_match` happily accepts is
+still possible — but harder to trigger and has not been observed.
+
 ### 1. Three pre-Phase-1 entries marked "failed" despite verified-byte commits
 
 **Found:** 2026-04-11 overnight run.

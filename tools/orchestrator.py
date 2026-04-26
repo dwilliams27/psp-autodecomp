@@ -447,6 +447,24 @@ def _safe_class_filename(class_name):
     return "".join(c for c in cs if c.isalnum() or c in "_-")
 
 
+def _src_to_o_path(src_file, worktree=None):
+    """Mirror byte_match.compile_src's mapping for `src/`-prefixed
+    paths only: `src/foo.cpp` → `build/src/foo.cpp.o` (worktree-
+    relative when set). Returns None for any other prefix —
+    intentionally narrower than `compile_src`'s basename fallback,
+    since the re-verify only ever invalidates `src/*` files (the
+    file ledger restricts agent writes to `src/` and `include/`,
+    and `include/*` produces no .o).
+    """
+    rel = src_file.lstrip("./")
+    if not rel.startswith("src/"):
+        return None
+    o_rel = "build/src/" + rel[len("src/"):] + ".o"
+    if worktree:
+        return os.path.join(worktree, o_rel)
+    return o_rel
+
+
 def compute_allowed_paths(batch):
     """Per-session file ledger: paths the agent is allowed to modify.
 
@@ -1191,14 +1209,25 @@ def run_one_session(ctx):
         # class header dependency, e.g. `cFilePlatform::PollAsync`
         # added to include/cFile.h instead of include/cFilePlatform.h
         # — the revert removes the declaration, the .cpp no longer
-        # compiles). Re-run check_byte_match on every surviving
-        # match. The compile/byte cost is bounded by the number of
-        # matches (small), and a re-verify that passes is
-        # confirmation the match was truly self-contained.
+        # compiles).
+        #
+        # Stale-cache hazard: the Makefile's `.cpp.o : .cpp` rule
+        # has no header dep tracking, so `make build/src/foo.cpp.o`
+        # returns "up to date" if the .cpp mtime is unchanged — even
+        # when an included header was just reverted. We must remove
+        # the .o explicitly to force a fresh compile that sees the
+        # post-revert header state.
         for func in list(matched_funcs):
             d = decisions[func["address"]]
             if d.status != "matched" or not d.src_file:
                 continue
+            o_path = _src_to_o_path(d.src_file, ctx.worktree)
+            if o_path and os.path.exists(o_path):
+                try:
+                    os.remove(o_path)
+                except OSError as e:
+                    log(f"  POST-REVERT ERROR: cannot remove {o_path}: {e}")
+                    raise
             try:
                 result = check_byte_match(func, d.src_file)
             except CompileFailed as e:
