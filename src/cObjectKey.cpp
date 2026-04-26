@@ -1,22 +1,34 @@
 // -----------------------------------------------------------------------------
 // cObjectKey::Read(cInStream &)  @ 0x00009b04 (cAll_psp.obj, 44B)
+// cObjectKey::Write(cOutStream &) const  @ 0x00009ad8 (cAll_psp.obj, 44B)
 // -----------------------------------------------------------------------------
 
 class cInStream;
+class cOutStream;
 
 class cInStreamRef {
 public:
     void Read(unsigned int &, int, bool);
 };
 
+class cOutStreamRef {
+public:
+    void Write(unsigned int, int, bool);
+};
+
 class cObjectKey {
 public:
     unsigned int mKey;
     void Read(cInStream &);
+    void Write(cOutStream &) const;
 };
 
 void cObjectKey::Read(cInStream &s) {
     ((cInStreamRef *)&s)->Read((unsigned int &)mKey, 0x20, true);
+}
+
+void cObjectKey::Write(cOutStream &s) const {
+    ((cOutStreamRef *)&s)->Write(mKey, 0x20, true);
 }
 
 // -----------------------------------------------------------------------------
