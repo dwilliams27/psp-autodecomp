@@ -431,20 +431,108 @@ def _class_key(func):
     return cls if cls else FREE_CLASS_KEY
 
 
-def compute_batch_classes(batch):
-    """Set of class keys to lock for this batch.
+def compute_batch_classes(batch, class_to_header=None):
+    """Set of lock keys to acquire for this batch.
 
-    Free functions collapse to a single FREE_CLASS_KEY so any free-function
-    batch blocks any other free-function batch (they all share
-    src/free_functions.c).
+    Pre-Phase-3 this returned only class names. Phase 3 expands to
+    include each class's *declaring header* (when known) so two
+    concurrent batches on classes sharing a header
+    (e.g., cFilePlatform + cBufferedFile both in include/cFile.h)
+    are mutually exclusive — without this, both batches would
+    legitimately need to edit the same file and race.
+
+    Free functions collapse to a single FREE_CLASS_KEY so any
+    free-function batch blocks any other free-function batch (they
+    all share src/free_functions.c).
     """
-    return {_class_key(f) for f in batch}
+    keys = {_class_key(f) for f in batch}
+    if class_to_header:
+        for f in batch:
+            cls = f.get("class_name") or ""
+            if not cls:
+                continue
+            hdr = class_to_header.get(cls)
+            if hdr:
+                keys.add(hdr)
+    return keys
+
+
+def _candidate_lock_keys(func, class_to_header=None):
+    """Lock keys a candidate function would need to acquire — used
+    by the picker to filter candidates whose declaring header is
+    already in flight.
+    """
+    keys = {_class_key(func)}
+    cls = func.get("class_name") or ""
+    if cls and class_to_header:
+        hdr = class_to_header.get(cls)
+        if hdr:
+            keys.add(hdr)
+    return keys
 
 
 def _safe_class_filename(class_name):
     """Convert a C++ class name to its src/include base filename."""
     cs = class_name.replace("::", "_")
     return "".join(c for c in cs if c.isalnum() or c in "_-")
+
+
+# Matches `class Foo {`, `class Foo : public Bar`, `struct Foo {`,
+# `struct Foo : Bar`. Skips forward declarations (`class Foo;`) by
+# requiring `:` or `{` immediately following the name. Multi-line
+# definitions where `{` lands on the next line are caught by an
+# alternate match below; we run both passes per file.
+_CLASS_DEF_RE = re.compile(
+    r'^\s*(?:class|struct)\s+(\w+)\s*[:{]', re.MULTILINE)
+# Same intent but for the multi-line case: `class Foo\n{`. The
+# negative lookahead `(?!\s*;)` filters `class Foo /* ... */;`
+# forward decls that span lines.
+_CLASS_DEF_NEWLINE_RE = re.compile(
+    r'^\s*(?:class|struct)\s+(\w+)\s*$\s*\{',
+    re.MULTILINE)
+
+
+def scan_class_headers(include_dir="include"):
+    """Return `{class_name: relative_header_path}` for every class
+    *definition* found under `include_dir`. Forward declarations are
+    skipped — we want the file where the class body lives so the
+    file ledger can include it as in-scope when an agent's match
+    needs to add a member declaration.
+
+    On a class declared in multiple headers (genuine duplicate
+    definition, rare in this codebase), first-found wins. Operator-
+    visible: a warning is logged when a duplicate is detected so
+    the operator notices structural ambiguity before it bites.
+    """
+    mapping: dict = {}
+    duplicates: list = []
+    for path in sorted(glob.glob(os.path.join(include_dir, "*.h"))):
+        try:
+            with open(path) as f:
+                content = f.read()
+        except OSError:
+            continue
+        rel = path
+        seen_in_file: set = set()
+        for m in _CLASS_DEF_RE.finditer(content):
+            cls = m.group(1)
+            if cls in seen_in_file:
+                continue
+            seen_in_file.add(cls)
+            if cls in mapping and mapping[cls] != rel:
+                duplicates.append((cls, mapping[cls], rel))
+            else:
+                mapping.setdefault(cls, rel)
+        for m in _CLASS_DEF_NEWLINE_RE.finditer(content):
+            cls = m.group(1)
+            if cls in seen_in_file:
+                continue
+            seen_in_file.add(cls)
+            if cls in mapping and mapping[cls] != rel:
+                duplicates.append((cls, mapping[cls], rel))
+            else:
+                mapping.setdefault(cls, rel)
+    return mapping, duplicates
 
 
 def _src_to_o_path(src_file, worktree=None):
@@ -465,17 +553,26 @@ def _src_to_o_path(src_file, worktree=None):
     return o_rel
 
 
-def compute_allowed_paths(batch):
+def compute_allowed_paths(batch, class_to_header=None):
     """Per-session file ledger: paths the agent is allowed to modify.
 
-    Phase 1 minimum (no call-graph callee headers) per the direction doc:
-    `{src/<Class>.cpp, include/<Class>.h, src/<Class>_*.cpp}` for each
-    class in the batch, or `src/free_functions.c` for free-function
-    batches.
+    Conventional set: `{src/<Class>.cpp, include/<Class>.h,
+    src/<Class>_*.cpp}` for each class in the batch.
+
+    Phase-3 expansion via `class_to_header` (built once per run by
+    `scan_class_headers`): if a class's body actually lives in a
+    differently-named header — `cFilePlatform` declared in
+    `include/cFile.h`, `eRigidBodyState` in `include/eRigidBody.h`,
+    etc. — that file is added too so the agent can legitimately add
+    a member declaration without the partition reverting it as out-
+    of-scope. Without this, ~half of "secondary" classes (whose
+    declaration shares a header with their parent class) couldn't
+    match without falsely tripping the post-revert re-verify.
 
     Returned as (exact_paths, sibling_prefixes). The sibling pattern
-    `src/<Class>_*.cpp` is matched at partition time, not enumerated at
-    pick time, so files the agent creates mid-session are still in scope.
+    `src/<Class>_*.cpp` is matched at partition time, not enumerated
+    at pick time, so files the agent creates mid-session are still
+    in scope.
     """
     classes = {f.get("class_name") for f in batch}
     classes.discard(None)
@@ -489,6 +586,12 @@ def compute_allowed_paths(batch):
         exact.add(f"src/{cs}.cpp")
         exact.add(f"include/{cs}.h")
         prefixes.append(f"src/{cs}_")
+        # Add the actual declaring header (could be the same as
+        # include/<Class>.h, in which case the set absorbs it).
+        if class_to_header:
+            actual = class_to_header.get(cls)
+            if actual:
+                exact.add(actual)
     return (exact, tuple(prefixes))
 
 
@@ -585,7 +688,7 @@ def revert_paths(paths, worktree=None):
 
 def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
                              excluded_classes=None, allowed_addrs=None,
-                             check_status=True):
+                             check_status=True, class_to_header=None):
     """Select the next batch from a specific targets list.
 
     Only picks targets that are untried in the database.
@@ -614,7 +717,7 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
             continue
         if check_status and func["match_status"] != "untried":
             continue
-        if _class_key(func) in excluded_classes:
+        if _candidate_lock_keys(func, class_to_header) & excluded_classes:
             continue
         if allowed_addrs is not None and addr not in allowed_addrs:
             continue
@@ -628,7 +731,7 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
 
 def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
                     excluded_classes=None, allowed_addrs=None,
-                    check_status=True):
+                    check_status=True, class_to_header=None):
     """Select the next batch of functions to attempt.
 
     Priority:
@@ -665,7 +768,8 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
 
     if excluded_classes:
         candidates = [c for c in candidates
-                      if _class_key(c) not in excluded_classes]
+                      if not (_candidate_lock_keys(c, class_to_header)
+                              & excluded_classes)]
         if not candidates:
             return []
 
@@ -1938,6 +2042,28 @@ def main():
 
     print_progress(functions, start_time, log_path)
 
+    # Build the class → declaring-header map once at run start.
+    # compute_allowed_paths uses this to add the actual header
+    # where a class's body lives (so an agent matching
+    # cFilePlatform::PollAsync can edit include/cFile.h legitimately
+    # rather than hitting an out-of-scope revert). Duplicates
+    # (mostly templates redeclared in many headers — cHandleT,
+    # cMemPool, cTimeValue) are recorded in the log event but not
+    # surfaced as a console warning since they're expected noise.
+    class_header_map, _dup_classes = scan_class_headers("include")
+    log(f"Class header map: {len(class_header_map)} classes mapped to "
+        f"declaring header"
+        + (f" ({len(_dup_classes)} duplicates noted)" if _dup_classes else ""))
+    log_event(log_path, {
+        "event": "class_header_map_built",
+        "class_count": len(class_header_map),
+        "duplicate_count": len(_dup_classes),
+        "duplicates": [
+            {"class": c, "kept": k, "ignored": i}
+            for c, k, i in _dup_classes[:50]
+        ],
+    })
+
     # Phase 3 schedule build. The candidate pool we hand to the
     # schedule is the args-filtered untried slice for general-mode
     # runs, or the untried subset of the targets list for targeted
@@ -2063,12 +2189,14 @@ def main():
                     batch_size=args.batch_size,
                     excluded_classes=held_classes,
                     allowed_addrs=allowed,
+                    class_to_header=class_header_map,
                 )
             else:
                 batch = pick_next_batch(
                     functions, args, batch_size=args.batch_size,
                     excluded_classes=held_classes,
                     allowed_addrs=allowed,
+                    class_to_header=class_header_map,
                 )
             if batch:
                 main_pick_rotation[0] = (ident_idx + 1) % n
@@ -2092,6 +2220,7 @@ def main():
                 excluded_classes=set(),  # shootout slots have no shared class lock
                 allowed_addrs=allowed,
                 check_status=False,
+                class_to_header=class_header_map,
             )
         else:
             batch = pick_next_batch(
@@ -2099,6 +2228,7 @@ def main():
                 excluded_classes=set(),
                 allowed_addrs=allowed,
                 check_status=False,
+                class_to_header=class_header_map,
             )
         return batch
 
@@ -2119,7 +2249,7 @@ def main():
                 batch, picked_ident = _pick_main_slot_batch(slot_idx)
                 if not batch:
                     return False
-                classes = compute_batch_classes(batch)
+                classes = compute_batch_classes(batch, class_header_map)
                 assert not (classes & held_classes)
                 held_classes.update(classes)
                 set_batch_status(functions, batch, "in_progress", addr_index)
@@ -2130,7 +2260,7 @@ def main():
                 batch = _pick_shootout_slot_batch(slot)
                 if not batch:
                     return False
-                classes = compute_batch_classes(batch)
+                classes = compute_batch_classes(batch, class_header_map)
                 # Shootout: per-identity attempt set is the lock; main
                 # DB stays untouched so no in-progress flip + no
                 # save_db.
@@ -2138,7 +2268,8 @@ def main():
                     slot.identity, [f["address"] for f in batch])
                 identity = slot.identity
                 queue_kind = "shootout"
-            exact_paths, sibling_prefixes = compute_allowed_paths(batch)
+            exact_paths, sibling_prefixes = compute_allowed_paths(
+                batch, class_to_header=class_header_map)
             counters["total_attempted"] += len(batch)
             busy_slots.add(slot_idx)
 
