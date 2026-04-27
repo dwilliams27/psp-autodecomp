@@ -1,4 +1,36 @@
 class cBase;
+class cFile;
+class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class cNamed {
+public:
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+struct gcProfile_AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+extern "C" void gcProfile__gcProfile_cBaseptr(void *self, cBase *parent);
 
 class gcProfile {
 public:
@@ -8,7 +40,45 @@ public:
     gcProfile(cBase *);
     unsigned int CalcCRC(void) const;
     bool IsDirty(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    static cBase *New(cMemPool *, cBase *);
 };
+
+// ── gcProfile::Write(cFile &) const @ 0x000FECDC ──
+void gcProfile::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const cNamed *)this)->Write(file);
+    wb.End();
+}
+
+// ── gcProfile::Read(cFile &, cMemPool *) @ 0x000FED28 ──
+int gcProfile::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && ((cNamed *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+// ── gcProfile::New(cMemPool *, cBase *) static @ 0x0024A848 ──
+cBase *gcProfile::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    gcProfile_AllocRec *rec = (gcProfile_AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcProfile *result = 0;
+    gcProfile *obj = (gcProfile *)rec->fn(base, 0x240, 4, 0, 0);
+    if (obj != 0) {
+        gcProfile__gcProfile_cBaseptr(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 bool gcProfile::IsDirty(void) const {
     unsigned int crc = m_crc;
