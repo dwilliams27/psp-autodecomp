@@ -46,6 +46,7 @@ public:
     gcRegionBase(cBase *);
     void Write(cFile &) const;
     void OnMemPoolReset(const cMemPool *, unsigned int);
+    void MemCardReplicate(gcReplicationVisitor &);
 };
 
 struct TypeDispatchEntry {
@@ -76,16 +77,16 @@ extern "C" {
 }
 
 // ============================================================
-// 0x000ef394 — MemCardReplicate
-// Free-function form because gcRegion::MemCardReplicate forwards `this` as a
-// pointer that may be null (compiler emits an explicit null guard).
+// 0x000ef394 — MemCardReplicate(gcReplicationVisitor &)
+// Compiler emits an explicit null guard on `this`, then dispatches via the
+// classdesc[0xD0] TypeDispatchEntry (offset + fn).
 // ============================================================
-void gcRegionBase_MemCardReplicate(void *self, gcReplicationVisitor &v) {
-    if (self != 0) {
-        char *classdesc = *(char **)((char *)self + 4);
+void gcRegionBase::MemCardReplicate(gcReplicationVisitor &v) {
+    if (this != 0) {
+        char *classdesc = *(char **)((char *)this + 4);
         TypeDispatchEntry *entry = (TypeDispatchEntry *)(classdesc + 0xD0);
         ((void (*)(void *, gcReplicationVisitor &))entry->fn)(
-            (char *)self + entry->offset, v);
+            (char *)this + entry->offset, v);
     }
 }
 

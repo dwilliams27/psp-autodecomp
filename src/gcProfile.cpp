@@ -5,6 +5,7 @@ public:
     unsigned char m_pad[0x23C];
     unsigned int m_crc;
 
+    gcProfile(cBase *);
     unsigned int CalcCRC(void) const;
     bool IsDirty(void) const;
 };
@@ -12,6 +13,23 @@ public:
 bool gcProfile::IsDirty(void) const {
     unsigned int crc = m_crc;
     return crc != CalcCRC();
+}
+
+// ── gcProfile::gcProfile(cBase *) @ 0x000FEDE4 ──
+gcProfile::gcProfile(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(short *)((char *)this + 0x1C) = 0;
+    *(short *)((char *)this + 0x1E) = 0;
+    *(unsigned char *)((char *)this + 0x8) = 0;
+    *(void **)((char *)this + 0x4) = (void *)0x387F98;
+    *(int *)((char *)this + 0x220) = 0;
+    *(int *)((char *)this + 0x224) = 0;
+    *(int *)((char *)this + 0x228) = 0;
+    *(int *)((char *)this + 0x22C) = 0;
+    *(int *)((char *)this + 0x23C) = 0;
+    *(short *)((char *)this + 0x20) = 0;
+    *(short *)((char *)this + 0x120) = 0;
+    *(unsigned char *)((char *)this + 0x230) = 0;
 }
 
 extern "C" unsigned long _strtoul_r(void *, const char *, char **, int);
