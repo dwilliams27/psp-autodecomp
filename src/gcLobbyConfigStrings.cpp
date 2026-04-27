@@ -9,10 +9,22 @@ public:
 };
 
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 template <class T> T *dcast(const cBase *);
 void cStrCopy(wchar_t *, const char *, int);
+void cStrCopy(char *, const wchar_t *, int);
 
 class cWriteBlock {
 public:
@@ -22,16 +34,54 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 extern char gcLobbyConfigStringsvirtualtable[];
+extern char cBaseclassdesc[];                               // @ 0x37E6A8
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, int);
+};
 
 class gcStringValue : public cBase {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcStringLValue : public gcStringValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
 };
 
 class gcLobbyConfigStrings : public gcStringLValue {
@@ -40,13 +90,20 @@ public:
 
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void Get(wchar_t *, int) const;
+    void Set(const wchar_t *) const;
     static gcLobbyConfigStrings *New(cMemPool *, cBase *);
-};
 
-class nwNetwork {
-public:
-    static void *GetLobby(void);
+    ~gcLobbyConfigStrings(void);
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteEntry *rec = (DeleteEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 class gcTableTemplateGroup {
@@ -86,6 +143,22 @@ void gcLobbyConfigStrings::Write(cFile &file) const {
     wb.End();
 }
 
+// ── gcLobbyConfigStrings::Read(cFile &, cMemPool *)  @ 0x002805dc, 208B ──
+int gcLobbyConfigStrings::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcStringLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 8, 4);
+    }
+    return result;
+}
+
 // ── gcLobbyConfigStrings::Get(wchar_t *, int) const  @ 0x002806ac, 124B ──
 struct gcLobbyTypeNameEntry {
     short offset;
@@ -102,18 +175,31 @@ void gcLobbyConfigStrings::Get(wchar_t *buf, int size) const {
     }
 }
 
+// ── gcLobbyConfigStrings::Set(const wchar_t *) const  @ 0x00280728, 128B ──
+void gcLobbyConfigStrings::Set(const wchar_t *src) const {
+    char buf[256];
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0) {
+        buf[0] = 0;
+        cStrCopy(buf, src, 0xff);
+        if (this->mText == 0) {
+            DispatchEntry *e = (DispatchEntry *)(*(char **)lobby + 0x20);
+            e->fn((char *)lobby + e->offset, buf, e->offset);
+        }
+    }
+}
+
+// ── gcLobbyConfigStrings::~gcLobbyConfigStrings(void)  @ 0x002807d8, 100B ──
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// (flag & 1) deleting-tail dispatch through inline operator delete, and the
+// classdesc reset. Body just reverts the classdesc pointer at offset 4 to
+// cBase (no intermediate dtors in the chain).
+gcLobbyConfigStrings::~gcLobbyConfigStrings(void) {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
 // ── gcLobbyConfigStrings::New(cMemPool *, cBase *) static  @ 0x002803e4, 136B ──
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
-};
-
 gcLobbyConfigStrings *gcLobbyConfigStrings::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
     char *allocTable = ((PoolBlock *)block)->allocTable;
