@@ -6,6 +6,7 @@ class eCamera;
 class eColor;
 template <class T> class cHandleT;
 class eMaterial;
+class eRect;
 
 class eInputMouse {
 public:
@@ -18,7 +19,9 @@ public:
     static void PlatformUpdate();
     static int PlatformPresent();
     static void RecheckPresent();
-    static void BeginDrag(const mVec2 &pos, int color, int material);
+    static void BeginDrag(const mVec2 &pos, eColor color, cHandleT<eMaterial> material);
+    static int IsDragEmpty();
+    static void GetDragRect(eRect *rect);
     static void UpdateDrag(const mVec2 &drag);
     static void EndDrag();
     static void Reset();
