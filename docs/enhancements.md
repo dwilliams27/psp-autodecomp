@@ -4,6 +4,72 @@ Ideas for improvements and future directions. Ordered roughly by impact.
 
 ---
 
+## Speed Enhancements (2026-04-26)
+
+Identified after deep analysis of overnight run throughput. Goal: 2-3 week completion for remaining ~7,500 functions. Mode C (worktrees, 4 workers) already proved 5x throughput (93-109 m/hr vs 20 m/hr Mode A). These stack on top.
+
+| # | Enhancement | Priority | Status | Est. Impact |
+|---|------------|----------|--------|-------------|
+| S1 | Inject matched source exemplars in prompt | P1 | **DONE** | +30-50% first-attempt hit rate |
+| S2 | Template-first batch scheduling | P1 | **DONE** | Clears 1,250 easy funcs fast |
+| S3 | Mid-session checkpoint writes | P2 | **DONE** | Saves ~15% wasted compute |
+| S4 | Reduce default batch size to 3 | P2 | **DONE** | Less timeout risk |
+| S5 | Embed CLAUDE.md in agent prompt | P3 | **DONE** | Minor per-session savings |
+
+### S1. Inject matched source exemplars in prompt
+
+**Problem**: Agent prompt lists matched siblings (name + size) but not their source code. Agent wastes 3-5 tool calls to grep/cat and find them. Cross-class exemplars (same method, different class) are not surfaced at all.
+
+**Solution**: In `render_context_blocks()` (`tools/prompt_variants/_common.py`), for each target function's method signature, find the closest-size matched exemplar across all classes and inline its source. ~200 extra tokens per function.
+
+**Data**: 1,250 functions have exact (signature + byte size) matches in `src/`. 2,672 more have same-method-different-size templates.
+
+**Files**: `tools/prompt_variants/_common.py`, `tools/orchestrator.py` (new `get_method_exemplar`)
+
+**Implementation (2026-04-26)**: Added `_extract_method_name()`, `_extract_function_source()`, and `get_method_exemplar()` to orchestrator.py. `render_function_block()` in `_common.py` now accepts `all_functions` param and injects a `MATCHED EXEMPLAR` block per function. All three variants updated to pass `all_functions=functions`.
+
+### S2. Template-first batch scheduling
+
+**Problem**: Orchestrator picks batches semi-randomly by class/size tiers, missing the opportunity to prioritize functions with known-working templates.
+
+**Solution**: Add tier -1 to `pick_next_batch()` priority: functions whose (method_name, byte_size) pair already has a matched exemplar. These 1,250 functions are near-guaranteed copy-paste-rename jobs.
+
+**Files**: `tools/orchestrator.py` — `pick_next_batch()` priority_key
+
+**Implementation (2026-04-26)**: Added `matched_method_sizes` set built from all matched functions. New tier -1 in `priority_key()` fires when `(method_name, byte_size)` already exists in the matched set. Destructors normalized to `~dtor` for cross-class matching.
+
+### S3. Mid-session checkpoint writes
+
+**Problem**: Session timeout (1800s) loses ALL work — no results file written. Two timeouts this run = 1 hour wasted.
+
+**Solution**: Change prompt to instruct agents to write partial results after EACH function, not only at the end.
+
+**Files**: `tools/prompt_variants/base.py`, `tier12.py`, `tier12b.py`
+
+**Implementation (2026-04-26)**: Changed results instruction header from "When done with ALL functions" to "CHECKPOINT RESULTS AFTER EACH FUNCTION" in all three variants. Also modified orchestrator's timeout handler to attempt checkpoint recovery: when a session times out AND a results file exists, it falls through to normal result parsing instead of returning immediately.
+
+### S4. Reduce default batch size to 3
+
+**Problem**: batch=5 means one hard function drags the session. 17min median session, timeouts waste all 5 functions.
+
+**Solution**: `BATCH_SIZE = 5` → `BATCH_SIZE = 3`. Input caching ~100%, prompt overhead negligible.
+
+**Files**: `tools/orchestrator.py` line 188
+
+**Implementation (2026-04-26)**: Changed `BATCH_SIZE = 5` → `BATCH_SIZE = 3`. `TARGETS_BATCH_SIZE = 2` unchanged.
+
+### S5. Embed CLAUDE.md in agent prompt
+
+**Problem**: Every session the agent re-reads CLAUDE.md via a tool call.
+
+**Solution**: Read CLAUDE.md at prompt build time and inline its content. Agent no longer needs to tool-call for it.
+
+**Files**: `tools/prompt_variants/_common.py`, all variant files
+
+**Implementation (2026-04-26)**: Added `_load_claude_md()` and `CLAUDE_MD_CONTENT` constant to `_common.py` (reads CLAUDE.md once at import time). All three variants import it and inject as `== REPO NORMS (from CLAUDE.md) ==` block. Falls back to the old "Read CLAUDE.md" instruction if the file is missing.
+
+---
+
 ## 0. Session Notes (carry progress between attempts)
 
 When a function times out or fails, the next session starts from scratch with zero knowledge of what was tried. A per-function notes file would let agents build on previous work:

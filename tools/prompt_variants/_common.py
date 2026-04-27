@@ -5,14 +5,32 @@ the actual A/B knob) and calls these helpers for the mechanical per-function
 rendering so we don't duplicate the loop across N variants.
 """
 
+import os
+
 from common import build_addr_map
 from orchestrator import (
     disassemble_function,
     get_class_header,
     get_m2c_output,
     get_matched_neighbors,
+    get_method_exemplar,
     get_sched_hint,
 )
+
+
+def _load_claude_md():
+    """Read CLAUDE.md once at import time so agents don't need a tool call."""
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "CLAUDE.md")
+    path = os.path.normpath(path)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"CLAUDE.md not found at {path} — repo checkout is incomplete"
+        )
+    with open(path) as f:
+        return f.read()
+
+
+CLAUDE_MD_CONTENT = _load_claude_md()
 
 
 PROJECT_CONTEXT = (
@@ -64,12 +82,16 @@ def render_context_blocks(batch, functions, class_name,
 
 
 def render_function_block(func, func_num, addr_map, source_file, warnings,
+                          all_functions=None,
                           prior_notes_guidance=None,
                           m2c_unavailable_note="// m2c unavailable — see orchestrator log"):
     """Emit one == FUNCTION N: ... == block.
 
     Returns (list_of_parts, ok). ok=False means disasm failed and caller
     should skip this function.
+
+    If `all_functions` is provided, injects a cross-class matched exemplar
+    for the same method signature (closest by byte size).
     """
     parts = []
     addr = int(func["address"], 16)
@@ -104,6 +126,18 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     sched_hint = get_sched_hint(func)
     if sched_hint:
         parts.append(f"\n{sched_hint}\n")
+
+    # Cross-class matched exemplar for the same method signature
+    if all_functions is not None:
+        exemplar, exemplar_src = get_method_exemplar(all_functions, func)
+        if exemplar and exemplar_src:
+            parts.append(
+                f"\nMATCHED EXEMPLAR ({exemplar['name']}, "
+                f"{exemplar['size']}B — same method, different class):\n"
+                f"```\n{exemplar_src}```\n"
+                f"Adapt this pattern: change class name, offsets, type IDs. "
+                f"The structure should be very similar.\n"
+            )
 
     prior_notes = func.get("failure_notes", [])
     if prior_notes:

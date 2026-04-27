@@ -8,6 +8,7 @@ from common import build_addr_map
 from orchestrator import determine_source_file
 
 from prompt_variants._common import (
+    CLAUDE_MD_CONTENT,
     PROJECT_CONTEXT,
     render_context_blocks,
     render_function_block,
@@ -27,10 +28,11 @@ def build_prompt(batch, functions, session_id):
     prompt_parts = [
         "You are a PSP decompilation agent working on Days of Thunder. "
         "Your job is to produce C/C++ source that compiles to byte-identical "
-        "machine code for each function below.\n\n"
-        "Read CLAUDE.md for repo norms and the matching workflow.\n\n",
+        "machine code for each function below.\n\n",
 
         PROJECT_CONTEXT,
+
+        f"== REPO NORMS (from CLAUDE.md) ==\n{CLAUDE_MD_CONTENT}\n\n",
 
         "HARD RULES:\n"
         "- Only write .c/.cpp/.h files in src/ and include/. "
@@ -80,8 +82,11 @@ def build_prompt(batch, functions, session_id):
         "incremental changes aren't working.\n"
         "   - Only report failure after you've genuinely exhausted your ideas.\n\n",
 
-        f"CRITICAL: When done with ALL functions, write results to this exact file:\n"
-        f"  {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
+        f"CRITICAL — CHECKPOINT RESULTS AFTER EACH FUNCTION:\n"
+        f"  Results file: {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
+        f"After completing EACH function (matched or failed), immediately write/update "
+        f"this file with the full JSON array of all functions processed so far. This "
+        f"ensures that if the session times out, work on completed functions is saved.\n\n"
         f"The file must contain a JSON array, one entry per function:\n"
         f'[{{"address": "0x...", "status": "matched|failed", "attempts": N, '
         f'"file": "src/...", "notes": "..."}}]\n\n'
@@ -98,7 +103,8 @@ def build_prompt(batch, functions, session_id):
     func_num = 0
     for func in batch:
         parts, ok = render_function_block(
-            func, func_num + 1, addr_map, source_file, warnings
+            func, func_num + 1, addr_map, source_file, warnings,
+            all_functions=functions,
         )
         if ok:
             func_num += 1

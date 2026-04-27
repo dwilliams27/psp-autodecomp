@@ -185,7 +185,7 @@ class SessionOutcome:
     identity: str = ""
     queue_kind: str = "disjoint"
 
-BATCH_SIZE = 5
+BATCH_SIZE = 3
 TARGETS_BATCH_SIZE = 2
 MAX_CONSECUTIVE_FAILURES = 5
 # Refusals get their own counter (not lumped with generic failures) so a
@@ -773,15 +773,28 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
         if not candidates:
             return []
 
-    matched_classes = {f["class_name"] for f in functions
-                       if f["match_status"] == "matched" and f["class_name"]}
+    matched_classes = set()
+    matched_method_sizes = set()
+    for f in functions:
+        if f["match_status"] == "matched":
+            if f["class_name"]:
+                matched_classes.add(f["class_name"])
+            method = _extract_method_name(f["name"])
+            if method:
+                matched_method_sizes.add((method, f["size"]))
 
     def priority_key(f):
         size = f["size"]
         is_leaf = f.get("is_leaf", False)
         has_class_context = f["class_name"] in matched_classes if f["class_name"] else False
 
-        if size <= 8:
+        # Tier -1: exact (method, size) template exists in another class
+        method = _extract_method_name(f["name"])
+        has_template = method and (method, size) in matched_method_sizes
+
+        if has_template:
+            tier = -1
+        elif size <= 8:
             tier = 0
         elif is_leaf and size <= 64:
             tier = 1
@@ -874,6 +887,112 @@ def get_matched_neighbors(functions, func):
             if f["class_name"] == func["class_name"]
             and f["match_status"] == "matched"
             and f["address"] != func["address"]][:5]
+
+
+def _extract_method_name(name):
+    """Extract method name from 'ClassName::MethodName(args)'.
+
+    Normalizes destructors to '~dtor' so all dtors match each other.
+    Returns None for free functions (no '::').
+    """
+    if "::" not in name:
+        return None
+    method_part = name.split("::")[-1]
+    paren = method_part.find("(")
+    if paren >= 0:
+        method_part = method_part[:paren]
+    if method_part.startswith("~"):
+        return "~dtor"
+    return method_part
+
+
+def _extract_function_source(filepath, class_name, method_name):
+    """Extract a single function's source from a .cpp file.
+
+    Searches for 'ClassName::MethodName(' and grabs until the matching
+    closing brace.  Returns the source text, or None if not found.
+    """
+    if not os.path.exists(filepath):
+        return None
+    with open(filepath) as f:
+        lines = f.readlines()
+
+    # For destructors, search for the actual class destructor name
+    if method_name == "~dtor":
+        pattern = f"{class_name}::~{class_name}("
+    else:
+        pattern = f"{class_name}::{method_name}("
+
+    start = None
+    for i, line in enumerate(lines):
+        if pattern in line:
+            start = i
+            break
+    if start is None:
+        return None
+
+    depth = 0
+    result = []
+    found_open = False
+    for i in range(start, len(lines)):
+        line = lines[i]
+        result.append(line)
+        depth += line.count("{") - line.count("}")
+        if "{" in line:
+            found_open = True
+        if found_open and depth <= 0:
+            break
+
+    return "".join(result)
+
+
+def get_method_exemplar(functions, func):
+    """Find the best cross-class exemplar for a function.
+
+    Returns (exemplar_func, source_text) or (None, None).
+    Picks the matched function from a DIFFERENT class with the same
+    method name and closest byte size.
+    """
+    method = _extract_method_name(func["name"])
+    if not method:
+        return None, None
+
+    target_size = func["size"]
+    target_class = func.get("class_name", "")
+
+    best = None
+    best_diff = float("inf")
+
+    for f in functions:
+        if f["match_status"] != "matched":
+            continue
+        if f.get("class_name") == target_class:
+            continue
+        f_method = _extract_method_name(f["name"])
+        if f_method != method:
+            continue
+        diff = abs(f["size"] - target_size)
+        if diff < best_diff:
+            best = f
+            best_diff = diff
+
+    if best is None:
+        return None, None
+
+    src_file = best.get("src_file")
+    if not src_file:
+        src_file = f"src/{_safe_class_filename(best['class_name'])}.cpp"
+
+    source = _extract_function_source(
+        src_file, best["class_name"],
+        _extract_method_name(best["name"]),
+    )
+    if not source:
+        log(f"  WARNING: exemplar source extraction failed for matched "
+            f"function {best['name']} (file: {src_file})")
+        return None, None
+
+    return best, source
 
 
 def determine_source_file(batch):
@@ -1090,8 +1209,20 @@ def run_one_session(ctx):
     outcome.session_duration = time.time() - session_start
 
     if not success:
-        outcome.error_msg = error_msg
-        return outcome
+        # On timeout, still try to recover checkpoint results (enhancement S3).
+        # The agent may have written partial results before being killed.
+        results_path = os.path.join(SESSION_RESULTS_DIR, f"{session_id}.json")
+        if "timed out" in (error_msg or "") and os.path.exists(results_path):
+            log(f"  Timeout with checkpoint: attempting to recover partial results")
+            log_event(log_path, {
+                "event": "timeout_checkpoint_recovery",
+                "session_id": session_id,
+                "backend": backend.name,
+            })
+            # Fall through to normal result parsing below
+        else:
+            outcome.error_msg = error_msg
+            return outcome
 
     try:
         claimed_matched, claimed_failed, results, decisions, unreported = (

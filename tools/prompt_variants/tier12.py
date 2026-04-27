@@ -16,7 +16,11 @@ See docs/postmortems/2026-04-20-overnight.md and 2026-04-20-overnight-2.md.
 from common import build_addr_map
 from orchestrator import determine_source_file
 
-from prompt_variants._common import render_context_blocks, render_function_block
+from prompt_variants._common import (
+    CLAUDE_MD_CONTENT,
+    render_context_blocks,
+    render_function_block,
+)
 
 
 SESSION_RESULTS_DIR = "logs/session_results"
@@ -45,8 +49,9 @@ def build_prompt(batch, functions, session_id):
     prompt_parts = [
         "You are a PSP decompilation agent working on Days of Thunder. "
         "Your job is to produce C/C++ source that compiles to byte-identical "
-        "machine code for each function below.\n\n"
-        "Read CLAUDE.md for repo norms and the matching workflow.\n\n"
+        "machine code for each function below.\n\n",
+
+        f"== REPO NORMS (from CLAUDE.md) ==\n{CLAUDE_MD_CONTENT}\n\n",
 
         "HARD RULES:\n"
         "- Only write .c/.cpp/.h files in src/ and include/. "
@@ -173,8 +178,11 @@ def build_prompt(batch, functions, session_id):
         "bnel issues — they are source/flag issues you have not solved yet. "
         "See docs/decisions/006.\n\n",
 
-        f"CRITICAL: When done with ALL functions, write results to this exact file:\n"
-        f"  {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
+        f"CRITICAL — CHECKPOINT RESULTS AFTER EACH FUNCTION:\n"
+        f"  Results file: {SESSION_RESULTS_DIR}/{session_id}.json\n\n"
+        f"After completing EACH function (matched or failed), immediately write/update "
+        f"this file with the full JSON array of all functions processed so far. This "
+        f"ensures that if the session times out, work on completed functions is saved.\n\n"
         f"The file must be a JSON ARRAY (top-level []), one entry per function. "
         f"NEVER a dict. NEVER wrapped in another key. Example with 1 matched + 1 failed:\n\n"
         f"[\n"
@@ -205,6 +213,7 @@ def build_prompt(batch, functions, session_id):
     for func in batch:
         parts, ok = render_function_block(
             func, func_num + 1, addr_map, source_file, warnings,
+            all_functions=functions,
             prior_notes_guidance=_PRIOR_NOTES_GUIDANCE,
             m2c_unavailable_note="// m2c unavailable — work from disassembly only",
         )
