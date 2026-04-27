@@ -1,14 +1,64 @@
-// IsManagedTypeExternal trampolines and AssignCopy.
-// Each IsManagedTypeExternal is a non-leaf wrapper around the class's
-// static IsManagedTypeExternalStatic() implementation.
+// eMeshGroup methods, plus IsManagedTypeExternal trampolines for related groups.
 
-class eMeshGroup {
+class cBase;
+class cFile;
+class cMemPool;
+class cType;
+
+template <class T> T *dcast(const cBase *);
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+class cMemPool {
 public:
-    char _pad0[8];
-    unsigned char mFlag;
-    char _pad1[3];
-    int mField;
-    void AssignCopy(const class cBase *);
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void End();
+};
+
+class cGroup {
+public:
+    cBase *m_parent;        // 0x00
+    void *m_vtbl;           // 0x04
+    unsigned char mFlag;    // 0x08
+    char _pad[3];
+    int mField;             // 0x0C
+    cGroup(cBase *);
+    ~cGroup();
+    void Write(cFile &) const;
+};
+
+class eMeshGroup : public cGroup {
+public:
+    eMeshGroup(cBase *);
+    ~eMeshGroup();
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    static bool IsManagedTypeExternalStatic();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class eSkinGroup {
@@ -35,14 +85,51 @@ public:
     bool IsManagedTypeExternal() const;
 };
 
-class cBase;
-
-template <class T> T *dcast(const cBase *);
+extern char eMeshGroupvirtualtable[];
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
 
 void eMeshGroup::AssignCopy(const cBase *base) {
     eMeshGroup *src = dcast<eMeshGroup>(base);
     mFlag = src->mFlag;
     mField = src->mField;
+}
+
+// ── eMeshGroup::Write(cFile &) const @ 0x00014858 ──
+void eMeshGroup::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    cGroup::Write(file);
+    wb.End();
+}
+
+// ── eMeshGroup::~eMeshGroup(void) @ 0x001DC0E8 ──
+// SNC's deleting variant auto-generates the (this != 0) guard, the chain
+// call to ~cGroup(), and the deleting-tail dispatch through operator delete.
+eMeshGroup::~eMeshGroup() {
+    *(void **)((char *)this + 4) = eMeshGroupvirtualtable;
+}
+
+// ── eMeshGroup::New(cMemPool *, cBase *) static @ 0x001DBF34 ──
+cBase *eMeshGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    eMeshGroup *result = 0;
+    eMeshGroup *obj = (eMeshGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = eMeshGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 bool eSkinGroup::IsManagedTypeExternal() const {
