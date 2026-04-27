@@ -89,6 +89,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Ensure build/src/ exists and is writable by both users.
+# If an agent nukes build/src/ mid-run and recreates it as autodecomp,
+# the repo owner can't compile afterward (POSIX perms override ACL on mkdir).
+mkdir -p "$REPO_DIR/build/src"
+chmod a+rwx "$REPO_DIR/build/src"
+
 # Run orchestrator as sandboxed user
 echo "Starting orchestrator as '$SANDBOX_USER'..."
 echo ""

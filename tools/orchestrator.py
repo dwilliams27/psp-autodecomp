@@ -1081,16 +1081,35 @@ def parse_session_results(session_id, batch, log_path, variant, backend_name):
         status = entry.get("status")
 
         if not addr or not status:
-            raise ValueError(
-                f"Session {session_id} result entry {i} missing required keys "
-                f"(need 'address' and 'status'): {entry}"
-            )
+            log(f"  WARNING: session {session_id} result entry {i} missing "
+                f"required keys (need 'address' and 'status'): {entry}")
+            if log_path:
+                log_event(log_path, {
+                    "event": "invalid_result_entry",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend_name,
+                    "entry_index": i,
+                    "entry": str(entry)[:500],
+                    "reason": "missing_keys",
+                })
+            continue
 
         if status not in VALID_STATUSES:
-            raise ValueError(
-                f"Session {session_id} result entry {i} has invalid status '{status}' "
-                f"(expected 'matched' or 'failed') for address {addr}"
-            )
+            log(f"  WARNING: session {session_id} result entry {i} has invalid "
+                f"status '{status}' for {addr} — skipping (expected 'matched' or 'failed')")
+            if log_path:
+                log_event(log_path, {
+                    "event": "invalid_result_entry",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend_name,
+                    "entry_index": i,
+                    "address": addr,
+                    "invalid_status": status,
+                    "reason": "invalid_status",
+                })
+            continue
 
         if addr not in batch_addrs:
             continue

@@ -40,6 +40,8 @@ def build_prompt(batch, functions, session_id):
         "- NEVER modify files in tools/, the Makefile, or config/ "
         "(except the results JSON you're asked to write). "
         "If a tool seems broken, report failure — do not patch it.\n"
+        "- NEVER run rm -rf on build/, build/src/, or any build directory. "
+        "If you need a clean rebuild for one file, delete only that specific .o file.\n"
         "- If a function can't be matched in C (e.g., dense VFPU with no scalar "
         "equivalent), report it as failed. Do not bypass.\n"
         "- CLASS METHOD FILE RULE: Every class method MUST go in "
