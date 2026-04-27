@@ -1,11 +1,22 @@
 // gcEntityRumbleConfig: rumble configuration entity.
 // 28-byte struct: parent, classdesc, cHandle, cHandle, 3 floats.
+//
+// Functions:
+//   gcEntityRumbleConfig::Write(cFile &) const           @ 0x00125e58
+//   gcEntityRumbleConfig::Read(cFile &, cMemPool *)      @ 0x00125ec8
+//   gcEntityRumbleConfig::gcEntityRumbleConfig(cBase *)  @ 0x00125fb0
+//   gcEntityRumbleConfig::AssignCopy(const cBase *)      @ 0x00267f4c
+//   gcEntityRumbleConfig::New(cMemPool *, cBase *)       @ 0x00267fac
+//   gcEntityRumbleConfig::GetType(void) const            @ 0x00268028
+//   gcEntityRumbleConfig::~gcEntityRumbleConfig(void)    @ 0x002680c8
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+struct cFileHandle;
 
 class cWriteBlock {
 public:
@@ -16,9 +27,28 @@ public:
     void End(void);
 };
 
-void *cMemPool_GetPoolFromPtr(const void *);
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class gcEntityRumbleConfigPoolNS {
+public:
+    static gcEntityRumbleConfigPoolNS *GetPoolFromPtr(const void *);
+};
 
 extern char cBaseclassdesc[];
+extern const char gcEntityRumbleConfig_type_name[];
+extern const char gcEntityRumbleConfig_type_desc[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -41,17 +71,38 @@ struct cHandle {
     int mIndex;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcEntityRumbleConfig {
 public:
     gcEntityRumbleConfig(cBase *);
+    ~gcEntityRumbleConfig();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        gcEntityRumbleConfigPoolNS *pool =
+            gcEntityRumbleConfigPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 gcEntityRumbleConfig *dcast(const cBase *);
 
-// ── Constructor ──
+// ── Constructor ──  @ 0x00125fb0, 64B
 
 gcEntityRumbleConfig::gcEntityRumbleConfig(cBase *parent) {
     ((cBase **)this)[0] = parent;
@@ -63,7 +114,7 @@ gcEntityRumbleConfig::gcEntityRumbleConfig(cBase *parent) {
     *(float *)((char *)this + 0x18) = 0.0f;
 }
 
-// ── Write ──
+// ── Write ──  @ 0x00125e58, 112B
 
 void gcEntityRumbleConfig::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
@@ -75,7 +126,25 @@ void gcEntityRumbleConfig::Write(cFile &file) const {
     wb.End();
 }
 
-// ── AssignCopy ──
+// ── Read ──  @ 0x00125ec8, 232B
+
+int gcEntityRumbleConfig::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x10, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x14, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x18, 4);
+    return result;
+}
+
+// ── AssignCopy ──  @ 0x00267f4c, 96B
 
 void gcEntityRumbleConfig::AssignCopy(const cBase *base) {
     gcEntityRumbleConfig *other = dcast(base);
@@ -94,7 +163,7 @@ void gcEntityRumbleConfig::AssignCopy(const cBase *base) {
     *(float *)((char *)this + 0x18) = *(float *)((char *)other + 0x18);
 }
 
-// ── New ──
+// ── New ──  @ 0x00267fac, 124B
 
 cBase *gcEntityRumbleConfig::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -112,21 +181,32 @@ cBase *gcEntityRumbleConfig::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
-// ── Destructor ──
+// ── GetType ──  @ 0x00268028, 160B
 
-extern "C" {
+static cType *type_base;
+static cType *type_gcEntityRumbleConfig;
 
-void gcEntityRumbleConfig___dtor_gcEntityRumbleConfig_void(gcEntityRumbleConfig *self, int flags) {
-    if (self != 0) {
-        *(char **)((char *)self + 4) = cBaseclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
+const cType *gcEntityRumbleConfig::GetType(void) const {
+    if (!type_gcEntityRumbleConfig) {
+        if (!type_base) {
+            type_base = cType::InitializeType(
+                gcEntityRumbleConfig_type_name,
+                gcEntityRumbleConfig_type_desc, 1,
+                0, 0, 0, 0, 0);
         }
+        type_gcEntityRumbleConfig = cType::InitializeType(
+            0, 0, 0xA2, type_base, &gcEntityRumbleConfig::New,
+            0, 0, 0);
     }
+    return type_gcEntityRumbleConfig;
 }
 
+// ── Destructor ──  @ 0x002680c8, 100B
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain (cBase has none), and the deleting-
+// tail dispatch through operator delete on (flag & 1). Body just resets the
+// classdesc pointer at offset 4 to the parent (cBase) classdesc.
+gcEntityRumbleConfig::~gcEntityRumbleConfig() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
