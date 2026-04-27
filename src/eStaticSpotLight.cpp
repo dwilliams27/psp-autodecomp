@@ -1,39 +1,104 @@
 // Mixed small functions routed into this TU by the orchestrator.
 // Functions:
-//   0x0005f788 eStaticSpotLight::eStaticSpotLight(cBase *)        eAll_psp.obj
+//   0x0005f660 eStaticSpotLight::Write(cFile &) const               eAll_psp.obj
+//   0x0005f788 eStaticSpotLight::eStaticSpotLight(cBase *)          eAll_psp.obj
+//   0x0005f7c8 eStaticSpotLight::~eStaticSpotLight(void)             eAll_psp.obj
 //   0x0005f9ac eStaticSpotLight::GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const eAll_psp.obj
-//   0x000d4d4c gcNamedSet::Write(cFile &) const                   gcAll_psp.obj
+//   0x00206320 eStaticSpotLight::New(cMemPool *, cBase *) static     eAll_psp.obj
+//   0x000d4d4c gcNamedSet::Write(cFile &) const                      gcAll_psp.obj
 //   0x00155eb0 gcRigidBodyControllerTemplate::gcRigidBodyControllerTemplate(cBase *) gcAll_psp.obj
 
 class cBase;
 class cFile;
+class cMemPool;
 class mRay;
 class mVec3;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
 // ============================================================
-// 0x0005f788 — eStaticSpotLight::eStaticSpotLight(cBase *)
+// eStaticSpotLight class declaration
 // ============================================================
 
 class eStaticLight {
 public:
     eStaticLight(cBase *);
+    ~eStaticLight();
+    void Write(cFile &) const;
 };
 
 class eStaticSpotLight : public eStaticLight {
 public:
     eStaticSpotLight(cBase *);
+    ~eStaticSpotLight();
+    void Write(cFile &) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
+    static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 extern char eStaticSpotLightvirtualtable[];
 
+// ============================================================
+// 0x0005f660 — eStaticSpotLight::Write(cFile &) const
+// 0x0005f788 — eStaticSpotLight::eStaticSpotLight(cBase *)
+// 0x0005f7c8 — eStaticSpotLight::~eStaticSpotLight(void)
+// 0x0005f9ac — eStaticSpotLight::GetSampleRay(...)
+// ============================================================
+
 #pragma control sched=1
+void eStaticSpotLight::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    eStaticLight::Write(file);
+    wb.Write(*(float *)((char *)this + 0x90));
+    wb.End();
+}
+
 eStaticSpotLight::eStaticSpotLight(cBase *parent) : eStaticLight(parent) {
     *(void **)((char *)this + 4) = eStaticSpotLightvirtualtable;
     *(float *)((char *)this + 0x90) = 90.0f;
     __asm__ volatile("" ::: "memory");
+}
+
+eStaticSpotLight::~eStaticSpotLight() {
+    *(void **)((char *)this + 4) = eStaticSpotLightvirtualtable;
 }
 
 void eStaticSpotLight::GetSampleRay(mRay *ray, mVec3 *, const mVec3 &p1, const mVec3 &) const {
@@ -60,15 +125,30 @@ void eStaticSpotLight::GetSampleRay(mRay *ray, mVec3 *, const mVec3 &p1, const m
 #pragma control sched=2
 
 // ============================================================
+// 0x00206320 — eStaticSpotLight::New(cMemPool *, cBase *) static
+// ============================================================
+#pragma control sched=1
+cBase *eStaticSpotLight::New(cMemPool *pool, cBase *parent) {
+    eStaticSpotLight *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eStaticSpotLight *obj = (eStaticSpotLight *)rec->fn(base, 0xA0, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) eStaticSpotLight(parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+#pragma control sched=2
+
+// ============================================================
 // 0x000d4d4c — gcNamedSet::Write(cFile &) const
 // ============================================================
-
-class cWriteBlock {
-public:
-    int _data[2];
-    cWriteBlock(cFile &, unsigned int);
-    void End(void);
-};
 
 class cHandle {
 public:
