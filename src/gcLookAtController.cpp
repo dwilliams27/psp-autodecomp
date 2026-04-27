@@ -1,4 +1,27 @@
 class ePoint;
+class cBase;
+class cMemPool;
+class cFile;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void End();
+};
+
+class gcPartialEntityController {
+public:
+    void Write(cFile &) const;
+};
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+extern "C" void gcLookAtController__gcLookAtController_cBaseptr(void *self, cBase *parent);
 
 template <class T>
 class cHandleT {
@@ -57,6 +80,8 @@ public:
     float GetPitch() const;
     float GetRoll() const;
     void OnDeactivated();
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 void gcLookAtController::LookAt(cHandleT<ePoint> p) {
@@ -212,4 +237,27 @@ void gcLookAtController::SetHPR(float heading, float pitch, float roll, bool sna
         flags = *(unsigned short *)(e + 0x1C);
         *(unsigned short *)((int)e + 0x1C) = (unsigned short)(flags & ~4);
     }
+}
+
+// gcLookAtController::Write(cFile &) const — 0x00146f9c
+void gcLookAtController::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const gcPartialEntityController *)this)->Write(file);
+    wb.End();
+}
+
+// gcLookAtController::New(cMemPool *, cBase *) static — 0x002c6cfc
+cBase *gcLookAtController::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcLookAtController *result = 0;
+    gcLookAtController *obj = (gcLookAtController *)rec->fn(base, 0x4C, 4, 0, 0);
+    if (obj != 0) {
+        gcLookAtController__gcLookAtController_cBaseptr(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
