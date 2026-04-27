@@ -1,8 +1,11 @@
 // gcEntityAttackHelper — gcAll_psp.obj.
 // Decompiled functions:
 //   0x0010edb8  gcEntityAttackHelper::Write(cFile &) const                 (88B)
-//   0x0025b92c  gcEntityAttackHelper::GetType(void) const                  (160B)
+//   0x0010ee10  gcEntityAttackHelper::Read(cFile &, cMemPool *)            (200B)
+//   0x0025b818  gcEntityAttackHelper::AssignCopy(const cBase *)            (112B)
 //   0x0025b888  gcEntityAttackHelper::New(cMemPool *, cBase *) static      (164B)
+//   0x0025b92c  gcEntityAttackHelper::GetType(void) const                  (160B)
+//   0x0025b9cc  gcEntityAttackHelper::~gcEntityAttackHelper(void)          (100B)
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -28,29 +31,38 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
 class cName {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
-class gcEntityAttackHelper {
-public:
-    cBase *m_parent;          // 0x00
-    void  *m_vtable;          // 0x04
-    char   _name_pad[0x18];   // 0x08 .. 0x1F (cName)
-    float  mField20;          // 0x20
-    bool   mField24;          // 0x24
+template <class T> T *dcast(const cBase *);
 
-    void Write(cFile &) const;
-    static cBase *New(cMemPool *, cBase *);
-    const cType *GetType(void) const;
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
-
-extern char gcEntityAttackHelper_cBase_vtable[];   // 0x37E6A8
-extern char gcEntityAttackHelpervirtualtable[];    // 0x3885D8
-
-extern cType *D_000385DC;
-extern cType *D_00099A3F4;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -62,6 +74,36 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+class gcEntityAttackHelper {
+public:
+    cBase *m_parent;          // 0x00
+    void  *m_vtable;          // 0x04
+    char   _name_pad[0x18];   // 0x08 .. 0x1F (cName)
+    float  mField20;          // 0x20
+    bool   mField24;          // 0x24
+
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    ~gcEntityAttackHelper();
+
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
+};
+
+extern char gcEntityAttackHelper_cBase_vtable[];   // 0x37E6A8
+extern char gcEntityAttackHelpervirtualtable[];    // 0x3885D8
+
+extern cType *D_000385DC;
+extern cType *D_00099A3F4;
 
 // ============================================================
 // 0x0010edb8 — Write(cFile &) const
@@ -115,4 +157,49 @@ const cType *gcEntityAttackHelper::GetType(void) const {
                                             0, 0, 0);
     }
     return D_00099A3F4;
+}
+
+// ============================================================
+// 0x0025b9cc — ~gcEntityAttackHelper(void)  (deleting destructor)
+// ============================================================
+gcEntityAttackHelper::~gcEntityAttackHelper() {
+    *(void **)((char *)this + 4) = gcEntityAttackHelper_cBase_vtable;
+}
+
+// ============================================================
+// 0x0010ee10 — Read(cFile &, cMemPool *)
+// ============================================================
+int gcEntityAttackHelper::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if (rb._data[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((cName *)((char *)this + 8))->Read(rb);
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x20, 4);
+    }
+    char b;
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, &b, 1);
+    }
+    *(unsigned char *)((char *)this + 0x24) = (b != 0) ? 1 : 0;
+    return result;
+}
+
+// ============================================================
+// 0x0025b818 — AssignCopy(const cBase *)
+// ============================================================
+void gcEntityAttackHelper::AssignCopy(const cBase *base) {
+    struct cNameData { int _w[6]; };
+    gcEntityAttackHelper *other = dcast<gcEntityAttackHelper>(base);
+    cNameData *src = (cNameData *)((char *)other + 8);
+    cNameData *dst = (cNameData *)((char *)this + 8);
+    *dst = *src;
+    *(float *)((char *)this + 0x20) = *(const float *)((char *)other + 0x20);
+    *(unsigned char *)((char *)this + 0x24) = *(const unsigned char *)((char *)other + 0x24);
 }
