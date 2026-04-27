@@ -1,6 +1,7 @@
 // Multi-class wrapper file for small leaf GetName/GetText methods.
 // Functions:
 //   eDynamicModelLookAtTemplate::eDynamicModelLookAtTemplate(cBase *)  @ 0x0004b3a4
+//   eDynamicModelLookAtTemplate::~eDynamicModelLookAtTemplate(void)    @ 0x0004b3e8
 //   eDynamicModelLookAtTemplate::GetName(char *) const           @ 0x001f0fdc
 //   gcStateHandlerBase::GetName(char *) const                    @ 0x002571a8
 //   gcEvent::GetName(char *) const                               @ 0x0023a7e0
@@ -19,16 +20,51 @@ extern const char gcValLobbyConnectionStatus_fmt[];         // @ 0x36F4AC
 extern const char gcValGetText_text[];                      // @ 0x36DAF0
 
 extern char eDynamicModelLookAtTemplatevirtualtable[];      // @ 0x3813A8
+extern char cBaseclassdesc[];                               // @ 0x37E6A8
+
+// Pool-block layout used by the deleting-destructor tail.
+struct eDynamicModelLookAtTemplate_PoolBlock {
+    char  pad[0x1C];
+    char *allocTable;
+};
+
+struct eDynamicModelLookAtTemplate_DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class eDynamicModelLookAtTemplate_cMemPoolNS {
+public:
+    static eDynamicModelLookAtTemplate_cMemPoolNS *GetPoolFromPtr(const void *);
+};
 
 // ──────────────────────────────────────────────────────────────────────────
 // eDynamicModelLookAtTemplate::eDynamicModelLookAtTemplate(cBase *)  @ 0x0004b3a4
+// eDynamicModelLookAtTemplate::~eDynamicModelLookAtTemplate(void)    @ 0x0004b3e8
 // eDynamicModelLookAtTemplate::GetName(char *) const  @ 0x001f0fdc
 // ──────────────────────────────────────────────────────────────────────────
 
 class eDynamicModelLookAtTemplate {
 public:
     eDynamicModelLookAtTemplate(cBase *);
+    ~eDynamicModelLookAtTemplate();
     void GetName(char *) const;
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        eDynamicModelLookAtTemplate_cMemPoolNS *pool =
+            eDynamicModelLookAtTemplate_cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        eDynamicModelLookAtTemplate_DeleteRecord *rec =
+            (eDynamicModelLookAtTemplate_DeleteRecord *)
+            (((eDynamicModelLookAtTemplate_PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 eDynamicModelLookAtTemplate::eDynamicModelLookAtTemplate(cBase *parent) {
@@ -48,6 +84,16 @@ eDynamicModelLookAtTemplate::eDynamicModelLookAtTemplate(cBase *parent) {
 
 void eDynamicModelLookAtTemplate::GetName(char *buf) const {
     cStrCopy(buf, (const char *)((char *)this + 32));
+}
+
+// ── ~eDynamicModelLookAtTemplate ── @ 0x0004b3e8, 100B
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain (cBase has none), and the deleting-
+// tail dispatch through operator delete on (flag & 1). Body just resets the
+// classdesc pointer at offset 4 to the parent (cBase) classdesc.
+eDynamicModelLookAtTemplate::~eDynamicModelLookAtTemplate() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 #pragma control sched=2
