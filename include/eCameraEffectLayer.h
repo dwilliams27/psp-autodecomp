@@ -22,9 +22,11 @@ public:
     cHandle mField10;
 
     eCameraEffectLayer(cBase *);
+    ~eCameraEffectLayer();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     const cType *GetType(void) const;
 };
 
