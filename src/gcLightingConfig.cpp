@@ -1,0 +1,108 @@
+// gcLightingConfig — lighting configuration class.
+// Functions matched here:
+//   gcLightingConfig::Write(cFile &) const         @ 0x000f0ba4  (gcAll_psp.obj)
+//   gcLightingConfig::GetType(void) const          @ 0x00246980  (gcAll_psp.obj)
+//   gcLightingConfig::~gcLightingConfig(void)      @ 0x00246a20  (gcAll_psp.obj)
+
+class cFile;
+class cMemPool;
+class cType;
+class cBase;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+extern const char gcLightingConfig_base_name[];     // @ 0x36D894
+extern const char gcLightingConfig_base_desc[];     // @ 0x36D89C
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+struct gcLC_PoolBlock {
+    char  pad[0x1C];
+    char *allocTable;
+};
+
+struct gcLC_DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class gcLightingConfig_cMemPoolNS {
+public:
+    static gcLightingConfig_cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
+class gcLightingConfig {
+public:
+    ~gcLightingConfig();
+    void Write(cFile &) const;
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        gcLightingConfig_cMemPoolNS *pool =
+            gcLightingConfig_cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        gcLC_DeleteRecord *rec =
+            (gcLC_DeleteRecord *)(((gcLC_PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
+};
+
+// ── Write ──  @ 0x000f0ba4, 136B
+void gcLightingConfig::Write(cFile &file) const {
+    cWriteBlock wb(file, 5);
+    wb.Write(*(int *)((char *)this + 0x08));
+    wb.Write(*(float *)((char *)this + 0x0C));
+    wb.Write(*(int *)((char *)this + 0x10));
+    wb.Write(*(float *)((char *)this + 0x14));
+    wb.Write(*(int *)((char *)this + 0x18));
+    wb.Write(*(float *)((char *)this + 0x1C));
+    wb.Write(*(unsigned int *)((char *)this + 0x20));
+    wb.End();
+}
+
+// ── GetType ──  @ 0x00246980, 160B
+static cType *type_base;
+static cType *type_gcLightingConfig;
+
+const cType *gcLightingConfig::GetType(void) const {
+    if (!type_gcLightingConfig) {
+        if (!type_base) {
+            type_base = cType::InitializeType(gcLightingConfig_base_name,
+                                              gcLightingConfig_base_desc, 1,
+                                              0, 0, 0, 0, 0);
+        }
+        type_gcLightingConfig = cType::InitializeType(0, 0, 0xFC, type_base,
+                                                       &gcLightingConfig::New,
+                                                       0, 0, 0);
+    }
+    return type_gcLightingConfig;
+}
+
+// ── ~gcLightingConfig ── @ 0x00246a20, 100B
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain (cBase has none), and the deleting-
+// tail dispatch through operator delete on (flag & 1). Body just resets the
+// classdesc pointer at offset 4 to the parent (cBase) classdesc.
+gcLightingConfig::~gcLightingConfig() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
