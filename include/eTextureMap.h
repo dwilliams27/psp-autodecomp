@@ -159,6 +159,9 @@ class eShadowVolumeModelMtl {
 public:
     void PlatformFree(void);
     void CreateData(void);
+    void Write(cFile &) const;
+    void PlatformRead(cFile &, cMemPool *);
+    static eShadowVolumeModelMtl *New(cMemPool *, cBase *);
 };
 
 class eExtrudedShadowVolumeModelMtl {
