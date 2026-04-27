@@ -106,6 +106,9 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static eProjectedDynamicMtl *New(cMemPool *, cBase *);
 };
 
 class eProjectedHeightmapMtl {
