@@ -3,11 +3,16 @@
 //   0x0013e768 gcPartialEntityController::gcPartialEntityController(cBase *)
 //   0x0013e7c8 gcPartialEntityController::~gcPartialEntityController(void)
 //   0x0013e82c gcPartialEntityController::Reset(cMemPool *, bool)
+//   0x002a0878 gcPartialEntityController::AssignCopy(const cBase *)
 //   0x002a0964 gcPartialEntityController::New(cMemPool *, cBase *) static
+//   0x002a09e0 gcPartialEntityController::GetType(void) const
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class gcStateMachine;
 class gcState;
 
@@ -39,7 +44,6 @@ public:
 
 extern "C" {
     void gcStateInfo__gcStateInfo_void(void *);
-    void gcPartialEntityController__gcPartialEntityController_cBaseptr(void *, void *);
 }
 
 class cReadBlock {
@@ -51,27 +55,66 @@ public:
 
 extern "C" {
     void cFile_SetCurrentPos(void *, unsigned int);
-    void *cMemPool_GetPoolFromPtr(void *);
     void *__vec_new(void *, int, int, void (*)(void *));
     void gcReplicationGroup__gcReplicationGroup_void(void *);
 }
 
-struct DeleteRecord {
+// Pool-block layout used by the deleting-destructor tail.
+struct gcPEC_PoolBlock {
+    char  pad[0x1C];
+    char *allocTable;
+};
+
+struct gcPEC_DeleteRecord {
     short offset;
-    short _pad;
+    short pad;
     void (*fn)(void *, void *);
+};
+
+class gcPEC_cMemPoolNS {
+public:
+    static gcPEC_cMemPoolNS *GetPoolFromPtr(const void *);
 };
 
 extern char gcPartialEntityControllerclassdesc[];
 extern char gcPartialEntityControllerbasevtable[];
+extern char cBaseclassdesc[];
+
+extern const char gcPartialEntityController_base_name[];
+extern const char gcPartialEntityController_base_desc[];
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class gcPartialEntityController {
 public:
     gcPartialEntityController(cBase *);
+    ~gcPartialEntityController();
     void Reset(cMemPool *, bool);
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        gcPEC_cMemPoolNS *pool = gcPEC_cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        gcPEC_DeleteRecord *rec =
+            (gcPEC_DeleteRecord *)
+            (((gcPEC_PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+gcPartialEntityController *dcast(const cBase *);
 
 // 0x0013e768 — ctor
 gcPartialEntityController::gcPartialEntityController(cBase *parent) {
@@ -84,18 +127,12 @@ gcPartialEntityController::gcPartialEntityController(cBase *parent) {
 }
 
 // 0x0013e7c8 — dtor
-extern "C" void gcPartialEntityController___dtor_gcPartialEntityController_void(
-        gcPartialEntityController *self, int flags) {
-    if (self != 0) {
-        *(char **)((char *)self + 4) = gcPartialEntityControllerbasevtable;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard,
+// the absence of a parent-destructor chain (cBase has no virtual dtor here),
+// and the deleting-tail dispatch through operator delete on (flag & 1).
+gcPartialEntityController::~gcPartialEntityController() {
+    *(void **)((char *)this + 4) = gcPartialEntityControllerbasevtable;
 }
 
 // 0x0013e82c — Reset
@@ -139,8 +176,69 @@ cBase *gcPartialEntityController::New(cMemPool *pool, cBase *parent) {
     gcPartialEntityController *obj =
         (gcPartialEntityController *)entry->fn(base, 0x38, 4, 0, 0);
     if (obj != 0) {
-        gcPartialEntityController__gcPartialEntityController_cBaseptr(obj, parent);
+        new (obj) gcPartialEntityController(parent);
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x002a09e0 — GetType
+static cType *type_base;
+static cType *type_gcPartialEntityController;
+
+const cType *gcPartialEntityController::GetType(void) const {
+    if (!type_gcPartialEntityController) {
+        if (!type_base) {
+            type_base = cType::InitializeType(gcPartialEntityController_base_name,
+                                              gcPartialEntityController_base_desc, 1,
+                                              0, 0, 0, 0, 0);
+        }
+        type_gcPartialEntityController = cType::InitializeType(0, 0, 0x105, type_base,
+                                                               &gcPartialEntityController::New,
+                                                               0, 0, 0);
+    }
+    return type_gcPartialEntityController;
+}
+
+// 0x002a0878 — AssignCopy
+struct gcReplicationGroupShorts { short a, b, c; };
+
+void gcPartialEntityController::AssignCopy(const cBase *base) {
+    gcPartialEntityController *other = dcast(base);
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+    *(int *)((char *)this + 12) = *(int *)((char *)other + 12);
+    *(unsigned char *)((char *)this + 16) = *(unsigned char *)((char *)other + 16);
+    *(unsigned char *)((char *)this + 17) = *(unsigned char *)((char *)other + 17);
+    {
+        int *d = (int *)((char *)this + 20);
+        int *s = (int *)((char *)other + 20);
+        *d = *s;
+        d = (int *)((char *)this + 24);
+        s = (int *)((char *)other + 24);
+        *d = *s;
+        d = (int *)((char *)this + 28);
+        s = (int *)((char *)other + 28);
+        *d = *s;
+        d = (int *)((char *)this + 32);
+        s = (int *)((char *)other + 32);
+        *d = *s;
+        d = (int *)((char *)this + 36);
+        s = (int *)((char *)other + 36);
+        *d = *s;
+        d = (int *)((char *)this + 40);
+        s = (int *)((char *)other + 40);
+        *d = *s;
+    }
+    *(int *)((char *)this + 44) = *(int *)((char *)other + 44);
+    *(unsigned short *)((char *)this + 48) = *(unsigned short *)((char *)other + 48);
+
+    int i = 0;
+    gcReplicationGroupShorts *dst = (gcReplicationGroupShorts *)((char *)this + 50);
+    gcReplicationGroupShorts *src = (gcReplicationGroupShorts *)((char *)other + 50);
+    do {
+        *dst = *src;
+        ++i;
+        ++dst;
+        ++src;
+    } while (i <= 0);
 }
