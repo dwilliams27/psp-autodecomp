@@ -2,6 +2,8 @@
 //
 // Functions matched here:
 //   cNamed::Write(cFile &) const                  @ 0x00008e64  (cAll_psp.obj)
+//   cNamed::Read(cFile &, cMemPool *)             @ 0x00008ea4  (cAll_psp.obj)
+//   cNamed::GenerateName(const char *)            @ 0x00008f50  (cAll_psp.obj)
 //   cNamed::AssignCopy(const cBase *)             @ 0x001c6dd4  (cAll_psp.obj)
 //   cNamed::GetType(void) const                   @ 0x001c6e34  (cAll_psp.obj)
 //   cNamed::~cNamed(void)                         @ 0x001c6f00  (cAll_psp.obj)
@@ -21,18 +23,33 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cName {
 public:
+    void Read(cReadBlock &);
+    void Set(const char *, ...);
     void Write(cWriteBlock &) const;
 };
 
-extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+void cFile_SetCurrentPos(void *, unsigned int);
+
+unsigned int cIRand(void);
+int cStrLength(const char *);
+void cStrCopy(char *, const char *, int);
+void cStrAppend(char *, const char *, ...);
 
 extern char cBaseclassdesc[];
 extern char cNamedclassdesc[];
 
 extern const char cNamed_base_name[];
 extern const char cNamed_base_desc[];
+extern const char cNamed_genname_fmt[];   // @ 0x36CA64
 
 struct PoolBlock {
     char pad[0x1C];
@@ -49,6 +66,12 @@ struct DeleteRecord {
     short offset;
     short _pad;
     void (*fn)(void *, void *);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *);
 };
 
 class cType {
@@ -72,6 +95,11 @@ public:
 
 struct cNameData { int _w[6]; };  // 24-byte name buffer at cNamed+8
 
+class cNamedPoolNS {
+public:
+    static cNamedPoolNS *GetPoolFromPtr(const void *);
+};
+
 class cNamed : public cBase {
 public:
     cNameData mName;        // 8..0x20
@@ -83,10 +111,22 @@ public:
         *(short *)((char *)this + 0x1E) = 0;
         *((char *)this + 0x08) = 0;
     }
+    ~cNamed();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void GenerateName(const char *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        cNamedPoolNS *pool = cNamedPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 cNamed *dcast(const cBase *);
@@ -96,6 +136,40 @@ void cNamed::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const cName *)((const char *)this + 8))->Write(wb);
     wb.End();
+}
+
+// ── Read ──  @ 0x00008ea4, 172B
+int cNamed::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((cName *)((char *)this + 8))->Read(rb);
+    DispatchEntry *e = (DispatchEntry *)(*(char **)((char *)this + 4) + 0x70);
+    e->fn((char *)this + e->offset);
+    return result;
+}
+
+// ── GenerateName ──  @ 0x00008f50, 224B
+void cNamed::GenerateName(const char *src) {
+    char buf[256];
+    int n = cStrLength(src) - 1;
+    while (n >= 0) {
+        signed char c = src[n];
+        if (!(((c >= '0') & (c < ':')) & 0xff)) break;
+        n--;
+    }
+    n += 2;
+    int len = (n < 18) ? n : 18;
+    buf[0] = 0;
+    cStrCopy(buf, src, len);
+    cStrAppend(buf, cNamed_genname_fmt, cIRand() % 100);
+    ((cName *)((char *)this + 8))->Set(buf);
+    DispatchEntry *e = (DispatchEntry *)(*(char **)((char *)this + 4) + 0x70);
+    e->fn((char *)this + e->offset);
 }
 
 // ── AssignCopy ──  @ 0x001c6dd4, 96B
@@ -139,19 +213,11 @@ const cType *cNamed::GetType(void) const {
 }
 
 // ── Destructor ──  @ 0x001c6f00, 100B
-extern "C" {
-
-void cNamed___dtor_cNamed_void(cNamed *self, int flags) {
-    if (self != 0) {
-        *(char **)((char *)self + 4) = cBaseclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
-}
-
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain (cBase has none), and the deleting-
+// tail dispatch through operator delete on (flag & 1). Body just resets the
+// classdesc pointer at offset 4 to the parent (cBase) classdesc.
+cNamed::~cNamed() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
