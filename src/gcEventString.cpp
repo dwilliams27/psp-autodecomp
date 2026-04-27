@@ -8,6 +8,7 @@ public:
 };
 
 class cFile;
+class cMemPool;
 
 class cWriteBlock {
 public:
@@ -17,19 +18,74 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
 class gcStringValue : public cBase {
 public:
+    gcStringValue(cBase *parent);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcEventString : public gcStringValue {
 public:
+    gcEventString(cBase *parent);
+    ~gcEventString();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Get(wchar_t *, int) const;
     void GetName(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    int Read(cFile &, cMemPool *);
+    static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
+
+extern char cBaseclassdesc[];
+extern char gcEventStringvirtualtable[];
+
+inline gcStringValue::gcStringValue(cBase *parent) {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+    *(cBase **)((char *)this + 0) = parent;
+}
+
+inline gcEventString::gcEventString(cBase *parent) : gcStringValue(parent) {
+    *(void **)((char *)this + 4) = gcEventStringvirtualtable;
+}
+
+inline void *operator new(unsigned, void *p) { return p; }
 
 gcEventString *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
@@ -77,4 +133,42 @@ void gcEventString::VisitReferences(unsigned int arg0, cBase *arg1,
     if (arg2 != 0) {
         arg2(arg1, (unsigned int)(void *)this, arg3);
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcEventString::~gcEventString(void)  @ 0x0027bf28, 100B
+// ─────────────────────────────────────────────────────────────────────────
+gcEventString::~gcEventString() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcEventString::New(cMemPool *, cBase *) static  @ 0x0027bc20, 132B
+// ─────────────────────────────────────────────────────────────────────────
+cBase *gcEventString::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcEventString *result = 0;
+    gcEventString *obj = (gcEventString *)e->fn(base, 8, 4, 0, 0);
+    if (obj != 0) {
+        new (obj) gcEventString(parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcEventString::Read(cFile &, cMemPool *)  @ 0x0027bdcc, 188B
+// ─────────────────────────────────────────────────────────────────────────
+int gcEventString::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcStringValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
