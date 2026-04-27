@@ -1,9 +1,12 @@
 // gcTableColumnStringTable — string-table-typed table column.
 //
 // Functions matched here:
-//   gcTableColumnStringTable::Write(cFile &) const           @ 0x0012b05c (gcAll_psp.obj)
-//   gcTableColumnStringTable::New(cMemPool *, cBase *) static @ 0x00272178 (gcAll_psp.obj)
-//   gcTableColumnStringTable::GetType(void) const            @ 0x00272200 (gcAll_psp.obj)
+//   gcTableColumnStringTable::Write(cFile &) const            @ 0x0012b05c (gcAll_psp.obj)
+//   gcTableColumnStringTable::New(cMemPool *, cBase *) static  @ 0x00272178 (gcAll_psp.obj)
+//   gcTableColumnStringTable::GetType(void) const             @ 0x00272200 (gcAll_psp.obj)
+//   gcTableColumnStringTable::IsValid(void) const             @ 0x002727dc (gcAll_psp.obj)
+//   gcTableColumnStringTable::GetContainer(void) const        @ 0x00272828 (gcAll_psp.obj)
+//   gcTableColumnStringTable::~gcTableColumnStringTable(void) @ 0x00272b8c (gcAll_psp.obj)
 //
 // (AssignCopy and Set(int,float) for this class live in other TUs and are
 // already matched.)
@@ -51,6 +54,17 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class gcTableColumnStringTablePoolNS {
+public:
+    static gcTableColumnStringTablePoolNS *GetPoolFromPtr(const void *);
+};
+
 struct gcTableColumn {
     void *mOwner;
     void *mClassDesc;
@@ -68,9 +82,23 @@ struct gcTableColumnStringTable : public gcTableColumn {
         mHandle.mIndex = 0;
     }
 
+    ~gcTableColumnStringTable();
+
     void Write(cFile &file) const;
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
+    int IsValid(void) const;
+    void *GetContainer(void) const;
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        gcTableColumnStringTablePoolNS *pool =
+            gcTableColumnStringTablePoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 static cType *type_base;
@@ -99,6 +127,47 @@ cBase *gcTableColumnStringTable::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x002727dc — handle table validity check for the bound string-table handle.
+// NOT YET MATCHING — shape is right but SNC differs in register allocation
+// (uses a1 for mIndex instead of a0) and basic-block ordering (early-return
+// at top vs at end). Diff ~53/76 bytes structural.
+int gcTableColumnStringTable::IsValid(void) const {
+    int idx = mHandle.mIndex;
+    if (idx) {
+        void **table = (void **)0x38890;
+        void *cand = table[idx & 0xFFFF];
+        void *r = 0;
+        if (cand != 0 && *(int *)((char *)cand + 0x30) == idx) {
+            r = cand;
+        }
+        return r != 0;
+    }
+    return 0;
+}
+
+// 0x00272828 — handle table lookup; returns the resolved entry or 0.
+// NOT YET MATCHING — same structural issue as IsValid above.
+void *gcTableColumnStringTable::GetContainer(void) const {
+    int idx = mHandle.mIndex;
+    if (idx) {
+        void **table = (void **)0x38890;
+        void *cand = table[idx & 0xFFFF];
+        void *r = 0;
+        if (cand != 0 && *(int *)((char *)cand + 0x30) == idx) {
+            r = cand;
+        }
+        return r;
+    }
+    return 0;
+}
+
+// 0x00272b8c — destructor; resets classdesc to gcTableColumn (parent class).
+// SNC's ABI auto-emits the (this != 0) guard and the deleting-tail dispatch
+// through operator delete on (flag & 1).
+gcTableColumnStringTable::~gcTableColumnStringTable() {
+    mClassDesc = gcTableColumnclassdesc;
 }
 
 // 0x00272200 — lazily-initialized cType chain (base -> intermediate -> derived).
