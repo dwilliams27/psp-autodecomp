@@ -130,37 +130,6 @@ void eBroadphase::UpdateRigidBody(eRigidBodyState *body) {
     UpdatePairs(body);
 }
 
-// ---- F3: eInputMouse::BeginDrag(const mVec2 &, eColor, cHandleT<eMaterial>) static — 0x0003b4ec, 68B ----
-// Writes drag state to global struct at 0x45338; clears a byte flag at 0x37C120.
-// Two copies of the mVec2 are stored (start/end) — compiler reloads pos.x/pos.y
-// between the two stores because it can't prove `pos` doesn't alias the globals.
-
-struct MouseDragState {
-    char _pad0[0x7F];
-    char active;          // +0x7F
-    char _pad1[0x20];
-    float startX;         // +0xA0
-    float startY;         // +0xA4
-    float endX;           // +0xA8
-    float endY;           // +0xAC
-    int color;            // +0xB0
-    int material;         // +0xB4
-};
-
-extern MouseDragState gMouseDragState;
-extern char gMouseDragClearFlag;
-
-void eInputMouse::BeginDrag(const mVec2 &pos, int color, int material) {
-    gMouseDragState.active = 1;
-    gMouseDragState.color = color;
-    gMouseDragState.material = material;
-    gMouseDragState.startX = pos.x;
-    gMouseDragState.startY = pos.y;
-    gMouseDragState.endX = pos.x;
-    gMouseDragState.endY = pos.y;
-    gMouseDragClearFlag = 0;
-}
-
 // ---- F4: eMultiSphereShape::eMultiSphereShape(cBase *) — 0x00068b74, 68B ----
 // Transition zone (sched=2 default). Pattern identical to eCapsuleShape ctor:
 // call eShape base ctor (via extern "C" shim), install vtable at +0x04,
