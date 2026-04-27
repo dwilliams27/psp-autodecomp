@@ -1,19 +1,118 @@
+// eSimpleMotor — derives from eSimulatedMotor (size 0x20).
+//
+// Functions matched here:
+//   eSimpleMotor::eSimpleMotor(cBase *)         @ 0x0006b840  56B
+//   eSimpleMotor::Write(cFile &) const          @ 0x0006b738  76B
+//   eSimpleMotor::~eSimpleMotor(void)           @ 0x0006b878  124B
+//   eSimpleMotor::New(cMemPool *, cBase *)      @ 0x00209bd0  124B
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class cBase;
+class cFile;
+class cMemPool;
 
-extern char eSimulatedMotorclassdesc[];
-
-extern "C" void eSimulatedMotor__eSimulatedMotor_cBaseptr__0006B694(void *, cBase *);
-
-class eSimpleMotor {
+class cWriteBlock {
 public:
-    eSimpleMotor(cBase *);
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void End(void);
 };
 
-eSimpleMotor::eSimpleMotor(cBase *parent) {
-    eSimulatedMotor__eSimulatedMotor_cBaseptr__0006B694(this, parent);
-    *(void **)((char *)this + 4) = eSimulatedMotorclassdesc;
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class eSimulatedMotor {
+public:
+    char _pad[0x20];
+    eSimulatedMotor(cBase *);
+    ~eSimulatedMotor();
+    void Write(cFile &) const;
+};
+
+extern char eSimpleMotorvirtualtable[];
+
+class eSimpleMotor : public eSimulatedMotor {
+public:
+    eSimpleMotor(cBase *);
+    ~eSimpleMotor();
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
+};
+
+// ── eSimpleMotor::eSimpleMotor(cBase *) @ 0x0006b840 ──
+eSimpleMotor::eSimpleMotor(cBase *parent) : eSimulatedMotor(parent) {
+    *(void **)((char *)this + 4) = eSimpleMotorvirtualtable;
     *(int *)((char *)this + 0x1C) = 0;
 }
+
+#pragma control sched=1
+
+// ── eSimpleMotor::Write(cFile &) const @ 0x0006b738 ──
+void eSimpleMotor::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    eSimulatedMotor::Write(file);
+    wb.End();
+}
+
+// ── eSimpleMotor::~eSimpleMotor(void) @ 0x0006b878 ──
+// Canonical C++ destructor. SNC's ABI auto-generates the (this != 0) guard,
+// the chain call to ~eSimulatedMotor(this, 0), and the deleting-tail dispatch
+// through operator delete (pool/block lookup + slot fn).
+eSimpleMotor::~eSimpleMotor() {
+    *(void **)((char *)this + 4) = eSimpleMotorvirtualtable;
+}
+
+// ── eSimpleMotor::New(cMemPool *, cBase *) static @ 0x00209bd0 ──
+cBase *eSimpleMotor::New(cMemPool *pool, cBase *parent) {
+    eSimpleMotor *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eSimpleMotor *obj = (eSimpleMotor *)entry->fn(base, 0x20, 4, 0, 0);
+    if (obj != 0) {
+        new (obj) eSimpleMotor(parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+#pragma control sched=2
+
+// ── unrelated free-function bag (kept from prior session) ──
 
 struct gcExternalVariableGroup {
     char pad0[8];
