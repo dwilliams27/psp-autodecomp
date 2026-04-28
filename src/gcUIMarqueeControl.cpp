@@ -4,6 +4,14 @@ class cBase;
 class cFile;
 class cMemPool;
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
+struct AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -38,9 +46,13 @@ public:
 
 class gcUIMarqueeControl : public gcUITextControl {
 public:
+    gcUIMarqueeControl(cBase *);
+
     bool IsUpdateEmpty(bool, bool) const;
     void Write(cFile &) const;
     ~gcUIMarqueeControl();
+
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPoolHelper::GetPoolFromPtr(p);
@@ -60,6 +72,23 @@ bool gcUIMarqueeControl::IsUpdateEmpty(bool a, bool b) const {
         return false;
     }
     return gcUIWidget::IsUpdateEmpty(a, b);
+}
+
+// -- gcUIMarqueeControl::New(cMemPool *, cBase *) static @ 0x0029171c --
+cBase *gcUIMarqueeControl::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcUIMarqueeControl *result = 0;
+    gcUIMarqueeControl *obj =
+        (gcUIMarqueeControl *)rec->fn(base, 0x124, 4, 0, 0);
+    if (obj != 0) {
+        new (obj) gcUIMarqueeControl(parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── gcUIMarqueeControl::Write(cFile &) const @ 0x0013bdf0 ──
