@@ -65,6 +65,7 @@ struct gcDoSwitchCaseData {
 
 class gcDoSwitchCase {
 public:
+    gcDoSwitchCase(cBase *);
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
     int GetExprFlags(void) const;
@@ -73,6 +74,8 @@ public:
     void SetChild(int, gcExpression *);
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 struct gcValCaseRangeData {
