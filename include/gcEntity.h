@@ -3,8 +3,16 @@
 
 #include "mVec3.h"
 
+class cBase;
+class cMemPool;
+class gcPlayer;
+
 class gcEntity {
 public:
+    gcEntity(cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    static void OnFullscreenCinematicStarting(void);
+    gcPlayer *GetPlayer(void) const;
     void SetInitialControllerIndex(int);
     void SetVelocity(const mVec3 &);
     void *GetSubGeomController(int);
