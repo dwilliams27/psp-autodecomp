@@ -20,6 +20,7 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | ML10 | Cross-class method template library | Prompt | Scoped | ~50-100 |
 | ML11 | Static analysis pre-pass for prompt enrichment | Prompt | **Deprioritized** | <1% overall improvement |
 | ML12 | Diff-guided agent retries | Orchestrator | Idea | ~10-30 |
+| ML13 | Binary patch pspcor.exe bnel heuristic | Compiler | Designed | ~2-7 |
 
 ---
 
@@ -59,30 +60,49 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 
 ## ML2. Binary patch pspcor.exe prologue scheduler
 
-**Status: Scoping.** This is the single highest-ROI research investment.
+**Status: Researching.** This is the single highest-ROI research investment.
 
-**The problem:** 48 confirmed failures at 188B (all `Read(cFile &, cMemPool *)` in sched=2 zone) plus an estimated 50+ failures at other sizes — all caused by the same prologue scheduling divergence. The original compiler interleaves `sw s3,32(sp)` and `li s3,1` into the prologue before a `jal cReadBlock::ctor`; our SNC defers both until after. The function body matches perfectly — only the prologue is wrong.
+**The problem:** 48 confirmed failures at 188B (all `Read(cFile &, cMemPool *)` in sched=2 zone) plus 46 failed at other sizes — all caused by the same prologue scheduling divergence. The original compiler interleaves `sw s3,32(sp)` and `li s3,1` into the prologue before a `jal cReadBlock::ctor`; our SNC defers both until after. The function body matches perfectly — only the prologue is wrong.
+
+**Concrete divergence** (verified identical across all 48 failing 188B Read functions):
+
+```
+          Our SNC (wrong)              Original (correct)
+off 24:   move s1, a1                  sw s3, 32(sp)
+off 28:   move a0, sp                  move s1, a1
+off 32:   li a2, 1                     li s3, 1
+off 36:   sw s3, 32(sp)               move a0, sp
+off 40:   sw ra, 36(sp)               li a2, 1
+off 44:   jal cReadBlock [R_MIPS_26]   sw ra, 36(sp)
+off 48:   li a3, 1 (delay slot)        jal cReadBlock [R_MIPS_26]
+off 52:   li s3, 1                     li a3, 1 (delay slot)
+```
+
+8 contiguous instructions, same words, different order. One R_MIPS_26 relocation shifts from func offset 44→48. Pattern is mechanically identical across all 48 functions.
 
 **What's been tried and failed:**
 - All 18 `-Xmopt`/`-Xxopt` flag combinations
 - `__asm__` placement before/after cReadBlock (either forces `li s3,1` early but de-interleaves saves, or defers it)
-- `#pragma sched=0/1/2` (all produce the wrong ordering for sched=2 functions)
+- `#pragma sched=0/1/2` (sched=0 kills all scheduling; sched=1 produces different but also-wrong prologue for sched=2 zone)
 - `register asm("$s3") = 1` / `volatile int result = 1` (wrong codegen)
 - Permuter: 9,600+ candidates across multiple sessions, zero improvement
 
 **Why the 4 matching Read functions work:** They're in the sched=1 zone. Sched=1 produces a different (non-interleaved) prologue that happens to match the original.
 
-**Approach:** Same methodology as decision 011 (bnel patch). `docs/decisions/010-pspcor-experiments.md` already mapped `del_slot.c` (the delay-slot filler). The prologue scheduling likely lives in the register allocator or instruction scheduler pass. A surgical binary patch to the scheduling heuristic for callee-save write + immediate-load ordering could fix ~100+ functions at once.
+**Post-compilation rewriter considered and rejected:** Violates build-pipeline-integrity norm (see CLAUDE.md). The correct fix is patching the compiler.
+
+**Approach:** Patch pspcor.exe's instruction scheduler. Same methodology as decision 011 (bnel patch) and `docs/decisions/010-compiler-internals-experiments.md`. The prologue scheduling likely lives in CG_sched or CG_LRA — NOT in the del_slot cluster (which handles delay-slot filling, a separate concern).
 
 **Research needed:**
-1. Map the prologue scheduler in pspcor.exe — which pass decides when to emit `sw sN,off(sp)` relative to argument setup?
-2. Compare the scheduling decision for sched=1 vs sched=2 — what parameter controls interleaving?
-3. Find the specific branch/comparison that decides "defer `li s3,1` until after jal" vs "emit before jal"
-4. Design a patch that changes that decision to match the original compiler
+1. Use SNC's `-tr<N>` debug tracing to dump IR after each pass — identify which pass introduces the ordering divergence
+2. Compile a minimal test function with sched=1 vs sched=2, compare `-tr` output to find the diverging pass
+3. Map CG_sched at `0x41589a` — find the instruction priority/scheduling function
+4. Find the specific heuristic that controls "interleave saves with moves" vs "group saves then moves"
+5. Design a patch that changes the heuristic to match the original compiler
 
-**Alternative approach:** Post-compilation binary rewrite tool. The transformation is mechanical: 5 specific instructions reordered deterministically. A tool could detect this pattern in our compiled .o and patch it. Unlike bnel (which changes instruction encoding), this is pure reordering.
+**Shares infrastructure with ML13:** Both patches need `tools/patch_pspcor.py` scaffolding and PE section extension. Implement ML13 first (design is complete) so the scaffolding is ready.
 
-**Files:** `docs/decisions/010-pspcor-experiments.md`, `docs/decisions/011-bnel-compiler-patch-design.md` (for methodology)
+**Files:** `docs/decisions/010-compiler-internals-experiments.md`, `docs/decisions/011-bnel-compiler-patch-design.md` (for methodology)
 
 ---
 
@@ -314,3 +334,34 @@ When a function fails with a small byte diff, parse the diff to identify the spe
 **Estimated impact:** 10-30 additional matches from functions that currently fail on retry because agents repeat the same approaches without understanding why they failed.
 
 **Files:** New `tools/diagnose_diff.py`, updates to `tools/orchestrator.py` (failure handling)
+
+---
+
+## ML13. Binary patch pspcor.exe bnel heuristic
+
+**Status: Designed.** Full design in `docs/decisions/011-bnel-compiler-patch-design.md`.
+
+**The problem:** Our SNC compiler (pspsnc 1.2.7503.0) promotes `bne`→`bnel` (branch-likely) more aggressively than the original compiler in certain delay-slot patterns. When the delay-slot candidate is a scheduling-filler move with no register overlap with the branch's compare registers, the original rejects promotion; ours accepts.
+
+**What's designed (decision 011):**
+- Target: `del_slot_can_fill` at VA `0x43afbc` in pspcor.exe (387 bytes, the eligibility checker for delay-slot filling)
+- Patch option α (recommended): ~55-70 byte trampoline appended to end of `.text`, reached via 5-byte `jmp` overwriting `0x43b095`. Implements the full "scheduling-filler move with no cmp-register overlap → reject" rule.
+- PE section extension to grow `.text` for the trampoline
+- Regression test: all existing matches must still match
+
+**Confirmed impact:**
+- `gcStateVTableEntry::Set` (96B, 4-instr diff): clean bnel divergence, would match after patch
+- `cOutStream::WriteBits` (296B): mixed — patch fixes 3 of 4 divergent positions
+- Spot survey of 12 untested HAS_BNEL candidates may reveal additional cases
+- Estimated 2-7 additional matches
+
+**Why do it now:** This is the first of two pspcor.exe patches — ML2 (prologue) will reuse the scaffolding built here. Both need `tools/patch_pspcor.py` and PE section extension. ML13's design is complete (decision 011), making it the natural starting point.
+
+**Implementation sequence:**
+1. Build `tools/patch_pspcor.py` (PE parser, section extender, patch applicator)
+2. Implement option α trampoline per decision 011 §Phase 2
+3. Store patched compiler at `extern/snc/pspcor.patched.exe`
+4. Add Makefile `USE_PATCHED_PSPCOR=1` switch
+5. Regression test full match suite
+
+**Files:** `tools/patch_pspcor.py` (new), `Makefile` (USE_PATCHED_PSPCOR switch), `docs/decisions/011-bnel-compiler-patch-design.md` (status update)

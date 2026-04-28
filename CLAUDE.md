@@ -125,6 +125,7 @@ Results are in `config/functions.json` (match_status field) and `logs/`.
 
 - All decompilation work is done by agents. Humans provide direction and unblock.
 - Byte-exact matching is the only standard. A function is done when it compiles to identical bytes.
+- **Build pipeline integrity.** The build must be `source → compiler → identical bytes` with no intermediary steps. No post-compilation .o rewriters, no binary patching of compiled output, no tools that rearrange instructions after SNC is done. This is the standard every serious decomp project (Mario 64, Zelda OoT, Paper Mario) maintains. When our compiler diverges from the original, the correct fix is **patching pspcor.exe** to bring its heuristics closer to the original SNC version — not adding post-processing that papers over the difference. The Makefile's `make` must produce matching .o files directly.
 - **Maximum effort. No shortcuts.** Every function gets your best attempt at real C/C++ decompilation. Iterate with `compare_func.py` extensively. Try multiple source restructurings. Run the permuter for last-mile matching. Only mark a function `failed` after exhausting all approaches — not after one attempt. Lazy work (wrapping disassembly in `__asm__()`) is worse than no work because it inflates match counts with zero training value.
 - Research before action. Investigate tooling and compiler behavior before writing code.
 - Decisions go in `docs/decisions/` with numbered filenames (001, 002, ...).

@@ -180,6 +180,48 @@ for f in db:
 
 ---
 
+### 6. Source files using `.word` for VFPU instructions instead of native types
+
+**Found:** 2026-04-27 during build-pipeline-integrity audit.
+**Status:** active. 9 source files use `.word 0x...` to hand-encode VFPU
+instructions as raw hex instead of SNC's native VFPU type system
+(`v4sf_t`, `v16sf_t`). This violates both the CLAUDE.md VFPU norm
+("Do NOT use `.word` for VFPU") and the build-pipeline-integrity
+norm (`.word` is hand-assembled bytes pretending to be C).
+
+**Affected files (by severity):**
+- `src/mSphere.cpp` — 40 `.word` lines / 88 total (45%). Worst offender.
+- `src/eStaticPointLight.cpp` — 15 / 88 (17%)
+- `src/eCapsuleShape.cpp` — 43 / 314 (13%)
+- `src/eCamera.cpp` — 9 / 97 (9%)
+- `src/eStaticSpotLight.cpp` — 15 / 193 (7%)
+- `src/eAudioChannel.cpp` — 7 / 250 (2%)
+- `src/eRayCast.cpp` — 1 / 55 (1%)
+- `src/mBasis.cpp` — 1 / 93 (1%)
+- `src/eSphereShape.cpp` — 3 / 321 (<1%)
+
+Note: 5 `__PSP*__.c` files also use `.word` but these are PSP module
+metadata stubs (not VFPU), so they are excluded.
+
+**Overlap with Bug #2:** `eAudioChannel.cpp`, `eCapsuleShape.cpp`,
+and `mBasis.cpp` (via `mQuat.cpp`) also appear in Bug #2's
+pure-assembly survivor list. Fixing both bugs simultaneously for
+these files is the right move.
+
+**Fix needed:** For each file, replace `.word 0x...` VFPU encodings
+with either:
+1. Native VFPU types (`v4sf_t`/`v16sf_t`) for loads/stores so SNC
+   generates the instructions directly, or
+2. VFPU mnemonics in `__asm__ volatile()` blocks for operations
+   without C equivalents (vmidt.q, vpfxs, etc.)
+
+Both approaches keep the build pipeline clean — SNC handles the
+encoding. See `docs/decisions/007-vfpu-native-types.md` for the
+type system details. 18 other source files already use native VFPU
+types correctly and can serve as exemplars.
+
+---
+
 ## Resolved
 
 ### ~~4. Operator locked out of `config/functions.json` after each overnight run~~
