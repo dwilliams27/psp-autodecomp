@@ -15,10 +15,17 @@ public:
 
 extern char gcValMapLoadingvirtualtable[];
 extern char gcValMapLoadingDerivedvtable[];
+extern char cBaseclassdesc[];                       // 0x37E6A8
+
+extern const char gcValMapLoading_fmt[];            // 0x36E4F8
+extern const char gcValGetText_text[];              // 0x36DAF0
+extern const char gcValMapLoading_text_true[];      // 0x36F580
+extern const char gcValMapLoading_text_false[];     // 0x36D944
 
 template <class T> T *dcast(const cBase *);
 void gcValue_Write(const gcValMapLoading *, cFile &);
 void *cMemPool_GetPoolFromPtr(void *);
+void cStrAppend(char *, const char *, ...);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -31,6 +38,12 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcValMapLoading {
 public:
     int pad0;
@@ -41,6 +54,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    void GetText(char *) const;
 };
 
 // -----------------------------------------------------------------------------
@@ -83,4 +97,29 @@ void gcValMapLoading::Write(cFile &file) const {
     wb.Write(this->mField);
     wb.Write(this->mFlag);
     wb.End();
+}
+
+// -----------------------------------------------------------------------------
+// gcValMapLoading::GetText(char *) const  @ 0x0034ff18, 84B
+// -----------------------------------------------------------------------------
+void gcValMapLoading::GetText(char *buf) const {
+    cStrAppend(buf, gcValMapLoading_fmt, gcValGetText_text,
+               mFlag ? gcValMapLoading_text_true : gcValMapLoading_text_false);
+}
+
+// -----------------------------------------------------------------------------
+// gcValMapLoading::~gcValMapLoading(void)  @ 0x0034ff6c, 100B
+// -----------------------------------------------------------------------------
+extern "C" void gcValMapLoading___dtor_gcValMapLoading_void(void *self, int flags) {
+    if (self != 0) {
+        ((char **)self)[1] = cBaseclassdesc;
+        if (flags & 1) {
+            void *pool = cMemPool_GetPoolFromPtr(self);
+            void *block = *(void **)((char *)pool + 0x24);
+            DeleteRecord *rec =
+                (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+            short off = rec->offset;
+            rec->fn((char *)block + off, self);
+        }
+    }
 }
