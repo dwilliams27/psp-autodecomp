@@ -1,11 +1,14 @@
 // src/eStaticPointLight.cpp
 // Functions:
 //   0x0005eec4  eStaticPointLight::Write(cFile &) const                       eAll_psp.obj
+//   0x0005f000  eStaticPointLight::~eStaticPointLight(void)                    eAll_psp.obj
 //   0x0005f15c  eStaticPointLight::GetSampleRay(mRay*, mVec3*, const mVec3&, const mVec3&) const   eAll_psp.obj
 //   0x00205df0  eStaticPointLight::AssignCopy(const cBase *)                  eAll_psp.obj
+//   0x00205e68  eStaticPointLight::New(cMemPool *, cBase *) static            eAll_psp.obj
 
 class cBase;
 class cFile;
+class cMemPool;
 class mRay;
 class mVec3;
 
@@ -23,16 +26,51 @@ public:
     cObject &operator=(const cObject &);
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class eStaticLight {
 public:
+    eStaticLight(cBase *);
+    ~eStaticLight();
     void Write(cFile &) const;
 };
 
 class eStaticPointLight : public eStaticLight {
 public:
+    eStaticPointLight(cBase *);
+    ~eStaticPointLight();
     void Write(cFile &) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 template <class T> T *dcast(const cBase *);
@@ -41,12 +79,19 @@ struct cHandle {
     int mIndex;
 };
 
+extern char eStaticPointLightvirtualtable[];
+
 #pragma control sched=1
 // ── 0x0005eec4 — Write(cFile &) const ──
 void eStaticPointLight::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eStaticLight *)this)->Write(file);
     wb.End();
+}
+
+// ── 0x0005f000 — ~eStaticPointLight(void) ──
+eStaticPointLight::~eStaticPointLight() {
+    *(void **)((char *)this + 4) = eStaticPointLightvirtualtable;
 }
 
 // ── 0x00205df0 — AssignCopy(const cBase *) ──
@@ -84,5 +129,25 @@ void eStaticPointLight::GetSampleRay(mRay *ray, mVec3 *, const mVec3 &p1, const 
         ::: "memory"
     );
     *(v4sf_t *)ray = *(v4sf_t *)&p1;
+}
+#pragma control sched=2
+
+// ── 0x00205e68 — New(cMemPool *, cBase *) static ──
+#pragma control sched=1
+cBase *eStaticPointLight::New(cMemPool *pool, cBase *parent) {
+    eStaticPointLight *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eStaticPointLight *obj = (eStaticPointLight *)rec->fn(base, 0x90, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) eStaticPointLight(parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
 #pragma control sched=2
