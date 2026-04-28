@@ -12,19 +12,13 @@ public:
 };
 
 extern char gcValCameraValuevirtualtable[];
+extern char cBaseclassdesc[];                           // @ 0x37E6A8
 
 gcValCameraValue *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcValue_Write(const gcValCameraValue *, cFile &);
-void *cMemPool_GetPoolFromPtr(void *);
 
 extern const char gcValCameraValue_text[];
-
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
 
 // -----------------------------------------------------------------------------
 // Function: gcValCameraValue::VisitReferences(...)
@@ -62,20 +56,12 @@ void gcValCameraValue::Write(cFile &file) const {
 
 // -----------------------------------------------------------------------------
 // Function: gcValCameraValue::~gcValCameraValue(void)
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain, and the deleting-tail dispatch through
+// operator delete on (flag & 1). Body just resets the classdesc pointer at
+// offset 4 to the parent (cBase) classdesc.
 // -----------------------------------------------------------------------------
-extern "C" {
-
-void gcValCameraValue___dtor_gcValCameraValue_void(gcValCameraValue *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = gcValCameraValuevirtualtable;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
-}
-
+gcValCameraValue::~gcValCameraValue(void) {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }

@@ -26,6 +26,7 @@ public:
 
 extern char gcValCameraFollowEntity3rdVariablevirtualtable[];
 extern char gcValCameraFollowEntity3rdVariableDerivedvtable[];
+extern char cBaseclassdesc[];                           // @ 0x37E6A8
 
 extern const char gcValCameraFollowEntity3rdVariable_text[];
 extern const char gcValCameraFollowEntity3rdVariable_base_name[];
@@ -34,25 +35,19 @@ extern const char gcValCameraFollowEntity3rdVariable_base_desc[];
 gcValCameraFollowEntity3rdVariable *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcLValue_Write(const gcValCameraFollowEntity3rdVariable *, cFile &);
-void *cMemPool_GetPoolFromPtr(void *);
 void cFile_SetCurrentPos(void *, unsigned int);
 int gcLValue_Read(void *, cFile &, cMemPool *);
-
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
 
 struct AllocEntry {
     short offset;
     short pad;
     int (*fn)(void *, int, int, int, int);
+};
+
+// Pool-block layout used by the New allocator path.
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
 };
 
 // -----------------------------------------------------------------------------
@@ -162,20 +157,12 @@ float gcValCameraValue::Evaluate(void) const {
 
 // -----------------------------------------------------------------------------
 // Function: gcValCameraFollowEntity3rdVariable::~gcValCameraFollowEntity3rdVariable(void)
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard, the
+// absence of a parent-destructor chain, and the deleting-tail dispatch through
+// operator delete on (flag & 1). Body just resets the classdesc pointer at
+// offset 4 to the parent (cBase) classdesc.
 // -----------------------------------------------------------------------------
-extern "C" {
-
-void gcValCameraFollowEntity3rdVariable___dtor_gcValCameraFollowEntity3rdVariable_void(gcValCameraFollowEntity3rdVariable *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = gcValCameraFollowEntity3rdVariablevirtualtable;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
-}
-
+gcValCameraFollowEntity3rdVariable::~gcValCameraFollowEntity3rdVariable(void) {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
