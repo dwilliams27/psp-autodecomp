@@ -4,9 +4,12 @@
 // floats, then two 16-byte (V4SF) blocks at 0x20 and 0x30.
 //
 // Functions matched here:
+//   eBodyWorldConstraint::Read(cFile &, cMemPool *)        @ 0x0006b384  (eAll_psp.obj)
 //   eBodyWorldConstraint::Write(cFile &) const           @ 0x0006b338  (eAll_psp.obj)
 //   eBodyWorldConstraint::AssignCopy(const cBase *)      @ 0x0020992c  (eAll_psp.obj)
 //   eBodyWorldConstraint::~eBodyWorldConstraint(void)    @ 0x0006b49c  (eAll_psp.obj)
+//   eBodyWorldConstraint::OnPositionChanged(void)        @ 0x0006b5b0  (eAll_psp.obj)
+//   eBodyWorldConstraint::New(cMemPool *, cBase *)       @ 0x0020998c  (eAll_psp.obj)
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
@@ -22,6 +25,21 @@ public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+struct AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
 };
 
 // Pool delete-slot record — same shape as in other shape destructors.
@@ -49,6 +67,7 @@ public:
     eSimulatedConstraint(cBase *);
     ~eSimulatedConstraint();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eBodyWorldConstraint : public eSimulatedConstraint {
@@ -57,7 +76,11 @@ public:
     ~eBodyWorldConstraint();
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
+    void OnPositionChanged(void);
+
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -70,6 +93,24 @@ public:
         fn(base, p);
     }
 };
+
+extern "C" {
+    void eBodyWorldConstraint__eBodyWorldConstraint_cBaseptr(void *self, cBase *parent);
+}
+
+// ── eBodyWorldConstraint::Read(cFile &, cMemPool *) ──  @ 0x0006b384, 188B
+#pragma control sched=1
+int eBodyWorldConstraint::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eSimulatedConstraint::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+#pragma control sched=2
 
 // ── eBodyWorldConstraint::Write(cFile &) const ──  @ 0x0006b338, 76B
 #pragma control sched=1
@@ -100,6 +141,37 @@ void eBodyWorldConstraint::AssignCopy(const cBase *src) {
 }
 #pragma control sched=2
 
+// ── eBodyWorldConstraint::OnPositionChanged(void) ──  @ 0x0006b5b0, 68B
+#pragma control sched=1
+void eBodyWorldConstraint::OnPositionChanged(void) {
+    char *base = *(char **)((char *)this + 0x10);
+    char *firstMat;
+    __asm__ volatile(
+        "lw %0, 0x20(%1)\n"
+        "lv.q C120, 0x30(%0)\n"
+        "sv.q C120, 0x30(%2)\n"
+        : "=r"(firstMat)
+        : "r"(base), "r"(this)
+        : "memory");
+    char *bodyPos = *(char **)((char *)this + 0x08) + 0x30;
+    char *mat;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "lw %0, 0x20(%2)\n"
+        "lv.q C000, 0(%0)\n"
+        "lv.q C010, 0x10(%0)\n"
+        "lv.q C020, 0x20(%0)\n"
+        "lv.q C030, 0x30(%0)\n"
+        "vtfm3.t C130, E000, C120\n"
+        : "=r"(mat)
+        : "r"(bodyPos), "r"(base)
+        : "memory");
+    v4sf_t out = *(v4sf_t *)((char *)this + 0x30);
+    __asm__ volatile("vadd.t %0, %0, C130" : "+v"(out));
+    *(v4sf_t *)((char *)this + 0x30) = out;
+}
+#pragma control sched=2
+
 // ── eBodyWorldConstraint::~eBodyWorldConstraint(void) ──  @ 0x0006b49c, 124B
 //
 // Canonical C++ destructor. SNC's ABI auto-generates the (this != 0) guard,
@@ -110,5 +182,25 @@ void eBodyWorldConstraint::AssignCopy(const cBase *src) {
 #pragma control sched=1
 eBodyWorldConstraint::~eBodyWorldConstraint() {
     *(void **)((char *)this + 4) = eBodyWorldConstraintvirtualtable;
+}
+#pragma control sched=2
+
+// ── eBodyWorldConstraint::New(cMemPool *, cBase *) static ──  @ 0x0020998c, 124B
+#pragma control sched=1
+cBase *eBodyWorldConstraint::New(cMemPool *pool, cBase *parent) {
+    eBodyWorldConstraint *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eBodyWorldConstraint *obj = (eBodyWorldConstraint *)rec->fn(base, 0x40, 0x10, 0, 0);
+    if (obj != 0) {
+        eBodyWorldConstraint__eBodyWorldConstraint_cBaseptr(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
 #pragma control sched=2
