@@ -156,6 +156,10 @@ def compile_src(src_file: str, build_dir: str = "build/src",
                 cwd: str = None) -> str:
     """Compile src_file via make; return the .o path.
 
+    Verification must rebuild the target object even when Make thinks it
+    is up to date. Otherwise a stale .o can make an old matched attempt
+    pass after the committed source no longer emits matching bytes.
+
     `cwd` runs make inside a specific directory (Phase 3 shootout
     worktrees where the agent's src lives in an isolated checkout,
     not the orchestrator's main tree). None preserves pre-Phase-3
@@ -172,7 +176,7 @@ def compile_src(src_file: str, build_dir: str = "build/src",
         o_path = build_dir + "/" + os.path.basename(rel) + ".o"
 
     result = subprocess.run(
-        ["make", o_path], capture_output=True, text=True,
+        ["make", "-B", o_path], capture_output=True, text=True,
         cwd=cwd,
     )
     if result.returncode != 0:
@@ -401,14 +405,16 @@ def find_db_func_for_sym(sym_name: str, functions: list[dict]) -> Optional[dict]
 
 
 def check_byte_match(func: dict, src_file: str,
-                     cwd: str = None) -> VerifyResult:
+                     cwd: str = None,
+                     o_path: str = None) -> VerifyResult:
     """Verify `func` against the bytes produced by compiling `src_file`.
 
     `cwd` (Phase 3 shootout): compile inside a worktree where the
     agent's src lives. None = compile in process CWD (Phase 1/2).
 
     Algorithm (name-gated, no silent fallback):
-      1. Compile src_file (raise on failure).
+      1. Compile src_file (raise on failure), unless caller passed a fresh
+         o_path already built for this src_file.
       2. Read every text symbol's bytes from the resulting .o.
       3. Filter to symbols whose mangled form encodes func's (class, method)
          per sym_encodes_func. This is the key gate against the old
@@ -428,7 +434,8 @@ def check_byte_match(func: dict, src_file: str,
     addr = int(func["address"], 16)
     size = int(func["size"])
 
-    o_path = compile_src(src_file, cwd=cwd)
+    if o_path is None:
+        o_path = compile_src(src_file, cwd=cwd)
     syms = _cached_symbols_with_bytes_and_relocs(o_path, _mtime(o_path))
     if not syms:
         return VerifyResult(ok=False, reason=REASON_NO_SYMBOLS, o_file=o_path)

@@ -9,6 +9,7 @@ Usage:
     python3 tools/verify_matches.py              # report only
     python3 tools/verify_matches.py --verbose    # per-function output
     python3 tools/verify_matches.py --fix        # flip mismatches to 'untried'
+    python3 tools/verify_matches.py --fix --fix-compile-failures
 """
 
 import argparse
@@ -16,10 +17,11 @@ import os
 import sys
 
 from common import load_db, save_db
-from byte_match import CompileFailed, check_byte_match
+from byte_match import CompileFailed, check_byte_match, compile_src
 
 
-def verify_all(verbose: bool = False, fix: bool = False) -> int:
+def verify_all(verbose: bool = False, fix: bool = False,
+               fix_compile_failures: bool = False) -> int:
     """Returns a non-zero code when the DB is in a state the operator
     needs to fix (mismatches found, or tooling errors that prevent a
     clean audit). 0 means "everything verified, no action needed.\""""
@@ -33,6 +35,8 @@ def verify_all(verbose: bool = False, fix: bool = False) -> int:
     problems: list[tuple[dict, str]] = []
     compile_failures: list[tuple[dict, str]] = []
     tooling_errors: list[tuple[dict, str]] = []
+    compiled_objects: dict[str, str] = {}
+    compile_errors: dict[str, str] = {}
 
     for func in matched:
         src_file = func.get("src_file")
@@ -44,13 +48,21 @@ def verify_all(verbose: bool = False, fix: bool = False) -> int:
             continue
 
         try:
-            result = check_byte_match(func, src_file)
+            if src_file in compile_errors:
+                raise CompileFailed(compile_errors[src_file])
+            o_path = compiled_objects.get(src_file)
+            if o_path is None:
+                o_path = compile_src(src_file)
+                compiled_objects[src_file] = o_path
+            result = check_byte_match(func, src_file, o_path=o_path)
         except CompileFailed as e:
             # Compile failure means the current source the DB points at
             # won't build. That's a per-function failure — the match is
             # no longer verifiable from this source. Collect separately
-            # so the fix loop can flip these to `failed` (not `untried`).
-            compile_failures.append((func, str(e)[:200]))
+            # so the fix loop can flip these to `failed` when the operator
+            # explicitly opts into compile-failure repair.
+            compile_errors[src_file] = str(e)[:200]
+            compile_failures.append((func, compile_errors[src_file]))
             print(f"  ✗ {func['address']}  {func['size']:>4}B  {func['name']} — compile_failed")
             continue
         except RuntimeError as e:
@@ -103,12 +115,20 @@ def verify_all(verbose: bool = False, fix: bool = False) -> int:
         for func, _ in problems:
             func["match_status"] = "untried"
             changed += 1
-        for func, _ in compile_failures:
-            func["match_status"] = "failed"
-            changed += 1
+        fixed_compile = 0
+        if fix_compile_failures:
+            for func, _ in compile_failures:
+                func["match_status"] = "failed"
+                changed += 1
+                fixed_compile += 1
         if changed or verified:
             save_db(functions)
-        print(f"\n--fix: {len(problems)} → untried, {len(compile_failures)} → failed.")
+        print(f"\n--fix: {len(problems)} → untried, {fixed_compile} → failed.")
+        if compile_failures and not fix_compile_failures:
+            print(
+                f"--fix: left {len(compile_failures)} compile failures unchanged; "
+                "pass --fix-compile-failures to mark them failed."
+            )
 
     # Exit code: non-zero whenever the operator has work to do.
     return 1 if (problems or compile_failures or tooling_errors) else 0
@@ -120,9 +140,18 @@ def main() -> int:
                     help="Show each matched function as it's verified.")
     ap.add_argument("--fix", action="store_true",
                     help="Flip mismatches to 'untried' and compile-failures "
-                         "to 'failed' (refuses if tooling errors exist).")
+                         "to 'failed' only with --fix-compile-failures "
+                         "(refuses if tooling errors exist).")
+    ap.add_argument("--fix-compile-failures", action="store_true",
+                    help="With --fix, also flip compile failures to 'failed'. "
+                         "Omit for narrow repairs that should only unmatch "
+                         "byte/provenance problems.")
     args = ap.parse_args()
-    return verify_all(verbose=args.verbose, fix=args.fix)
+    return verify_all(
+        verbose=args.verbose,
+        fix=args.fix,
+        fix_compile_failures=args.fix_compile_failures,
+    )
 
 
 if __name__ == "__main__":
