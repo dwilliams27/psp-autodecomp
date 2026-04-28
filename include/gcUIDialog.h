@@ -2,6 +2,7 @@
 #define GCUIDIALOG_H
 
 class gcUI;
+class cBase;
 class cMemPool;
 class gcUIWidgetGroup;
 class gcDoUIShowDialog;
@@ -24,7 +25,11 @@ public:
     int mEvent3;                   // 0x244
     int mEvent4;                   // 0x248
 
+    gcUIDialog(cBase *);
+    static cBase *New(cMemPool *, cBase *);
     void CalcInstanceSize(void);
+    void OnMemPoolReset(const cMemPool *, unsigned int);
+    int PausesGame(void) const;
     void OnFinalOpen(void);
     void OnFinalClose(void);
     int IsNextMouseOver(gcUIWidget *, int) const;

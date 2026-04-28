@@ -1,4 +1,6 @@
 #include "gcUIDialog.h"
+#include "cBase.h"
+#include "gcGame.h"
 #include "gcUI.h"
 #include "gcUIWidgetGroup.h"
 
@@ -14,6 +16,13 @@ public:
     void GenerateName(const char *);
 };
 
+class cObject {
+public:
+    static int WillBeDeleted(const cBase *, const cMemPool *, unsigned int);
+};
+
+extern "C" void gcUIDialog__gcUIDialog_cBaseptr__0015E47C(gcUIDialog *, cBase *);
+
 template <class T>
 class cSubHandleT {
 public:
@@ -22,6 +31,82 @@ public:
     cSubHandleT(const cSubHandleT &);
     ~cSubHandleT();
 };
+
+struct gcUIDialog_AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+cBase *gcUIDialog::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    gcUIDialog_AllocRec *rec = (gcUIDialog_AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcUIDialog *result = 0;
+    gcUIDialog *obj = (gcUIDialog *)rec->fn(base, 0x258, 4, 0, 0);
+    if (obj != 0) {
+        gcUIDialog__gcUIDialog_cBaseptr__0015E47C(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
+    if (cObject::WillBeDeleted((cBase *)mEvent0, pool, flags)) {
+        mEvent0 = 0;
+    }
+    if (cObject::WillBeDeleted((cBase *)mEvent1, pool, flags)) {
+        mEvent1 = 0;
+    }
+    if (cObject::WillBeDeleted((cBase *)mEvent2, pool, flags)) {
+        mEvent2 = 0;
+    }
+    if (cObject::WillBeDeleted((cBase *)mEvent3, pool, flags)) {
+        mEvent3 = 0;
+    }
+    if (cObject::WillBeDeleted((cBase *)mEvent4, pool, flags)) {
+        mEvent4 = 0;
+    }
+}
+
+int gcUIDialog::PausesGame(void) const {
+    int flags = mFlags;
+    int pauses = (unsigned char)((flags & 2) != 0);
+    if (pauses == 0) {
+        goto return_false;
+    }
+    int network_limited = (unsigned char)((flags & 0x4000) != 0);
+    if (network_limited == 0) {
+        goto return_true;
+    }
+    if ((*(int *)0x37D858 & 1) != 0) {
+        if (gcNetGame::GetMaxConnections() > 0) {
+            goto return_false;
+        }
+    }
+
+    int active = 0;
+    int i = 0;
+    int *connectionStates = (int *)0x37D884;
+    do {
+        if (*connectionStates >= 0) {
+            active++;
+        }
+        i++;
+        connectionStates++;
+    } while (i < 8);
+    if (active >= 2) {
+        goto return_false;
+    }
+
+return_true:
+    return 1;
+
+return_false:
+    return 0;
+}
 
 void gcUIDialog::CalcInstanceSize(void) {
 }
