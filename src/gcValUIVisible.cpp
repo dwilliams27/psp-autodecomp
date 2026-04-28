@@ -17,11 +17,21 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -29,21 +39,14 @@ void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 extern char gcLValuevirtualtable[];
 extern char gcValUIVisiblevirtualtable[];
+extern char cBaseclassdesc[];
 
 class gcLValue {
 public:
     cBase *mParent;
     void *mVtable;
     void Write(cFile &) const;
-};
-
-class gcValUIVisible : public gcLValue {
-public:
-    gcDesiredUIWidgetHelper mHelper;
-
-    void Write(cFile &) const;
-    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
-    static cBase *New(cMemPool *, cBase *);
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -55,6 +58,39 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
+class gcValUIVisible : public gcLValue {
+public:
+    gcDesiredUIWidgetHelper mHelper;
+
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    static cBase *New(cMemPool *, cBase *);
+    ~gcValUIVisible();
+
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 // ── gcValUIVisible::New(cMemPool *, cBase *) static @ 0x00369B44 ──
@@ -79,7 +115,7 @@ cBase *gcValUIVisible::New(cMemPool *pool, cBase *parent) {
 void gcValUIVisible::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
     gcLValue::Write(file);
-    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Write(wb);
+    ((gcDesiredUIWidgetHelper *)((unsigned char *)this + 8))->Write(wb);
     wb.End();
 }
 
@@ -89,4 +125,22 @@ void gcValUIVisible::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(
         cb(ctx, (unsigned int)(void *)this, user);
     }
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
+}
+
+// ── gcValUIVisible::Read(cFile &, cMemPool *) @ 0x00369D88 ──
+int gcValUIVisible::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 2 && ((gcLValue *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(rb);
+    return result;
+}
+
+// ── gcValUIVisible::~gcValUIVisible(void) @ 0x0036A1A4 ──
+gcValUIVisible::~gcValUIVisible() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
