@@ -1,6 +1,52 @@
-#include "cObject.h"
-
+class cBase;
 class cFile;
+class cMemPool;
+
+class cObject {
+public:
+    cObject(cBase *);
+    ~cObject(void);
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    int Load(void);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFactory : public cObject {
+public:
+    char _pad0[72];
+    unsigned int mField48;
+
+    ~cFactory(void);
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void Clean(bool flag);
+    void LoadLocalized(void);
+    void LoadLocalized(const char *);
+    int Load(void);
+    void ClearVisitedReferences(unsigned int);
+    void MarkForClean(unsigned int);
+    void DeleteMarkedForClean(unsigned int, bool);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+};
 
 class cWriteBlock {
 public:
@@ -8,6 +54,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ── cFactory::Write(cFile &) const ──
 void cFactory::Write(cFile &file) const {
@@ -77,27 +132,18 @@ int cFactory::Load(void) {
 // ── cFactory::~cFactory(void) ──
 extern char cFactoryvirtualtable[];
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-extern "C" {
-void cObject___dtor_cObject_void(void *self, int flags);
-void *cMemPool_GetPoolFromPtr(const void *);
-
-void cFactory___dtor_cFactory_void(cFactory *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = cFactoryvirtualtable;
-        cObject___dtor_cObject_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
+cFactory::~cFactory() {
+    *(void **)((char *)this + 4) = cFactoryvirtualtable;
 }
+
+// ── cFactory::Read(cFile &, cMemPool *) ──
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
