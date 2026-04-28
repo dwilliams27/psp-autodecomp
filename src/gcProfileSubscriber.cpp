@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -22,6 +23,14 @@ public:
     void Unsubscribe(gcSubscription, cListSubscriber *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -30,13 +39,30 @@ public:
 };
 
 extern char gcProfileSubscribervirtualtable[];   // 0x37E6A8
+extern char gcSaveGameSubscribervirtualtable[];
 void *cMemPool_GetPoolFromPtr(void *);
+
+extern const char gcProfileSubscriber_cBase_name[];
+extern const char gcProfileSubscriber_cBase_desc[];
 
 struct DeleteRecord {
     short offset;
     short _pad;
     void (*fn)(void *, void *);
 };
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+extern "C" void cListSubscriber_cListSubscriber(void *, cBase *);
 
 // ── gcProfileSubscriber::Attach(void) @ 0x00287B78 ──
 class gcProfileSubscriber {
@@ -47,7 +73,50 @@ public:
     int GetIndex(void *) const;
     int GetItem(int) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType() const;
 };
+
+static cType *type_cBase;
+static cType *type_cListSubscriber;
+static cType *type_gcProfileSubscriber;
+
+// ── gcProfileSubscriber::New(cMemPool *, cBase *) static @ 0x0028790C ──
+cBase *gcProfileSubscriber::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcProfileSubscriber *result = 0;
+    gcProfileSubscriber *obj = (gcProfileSubscriber *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        cListSubscriber_cListSubscriber(obj, parent);
+        *(void **)((char *)obj + 4) = gcProfileSubscribervirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// ── gcProfileSubscriber::GetType(void) const @ 0x00287994 ──
+const cType *gcProfileSubscriber::GetType() const {
+    if (!type_gcProfileSubscriber) {
+        if (!type_cListSubscriber) {
+            if (!type_cBase) {
+                type_cBase = cType::InitializeType(
+                    gcProfileSubscriber_cBase_name, gcProfileSubscriber_cBase_desc,
+                    1, 0, 0, 0, 0, 0);
+            }
+            type_cListSubscriber = cType::InitializeType(
+                0, 0, 0x187, type_cBase, 0, 0, 0, 0);
+        }
+        type_gcProfileSubscriber = cType::InitializeType(
+            0, 0, 0x1EF, type_cListSubscriber,
+            (cBase *(*)(cMemPool *, cBase *))&gcProfileSubscriber::New,
+            0, 0, 0);
+    }
+    return type_gcProfileSubscriber;
+}
 
 void gcProfileSubscriber::Attach(void) {
     ((cListSubscriber *)this)->Attach();
@@ -116,9 +185,27 @@ extern "C" void gcProfileSubscriber___dtor_gcProfileSubscriber_void(void *self, 
 // ── gcSaveGameSubscriber::Detach(void) @ 0x00288640 ──
 class gcSaveGameSubscriber {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void Detach(void);
     int GetIndex(void *) const;
 };
+
+// ── gcSaveGameSubscriber::New(cMemPool *, cBase *) static @ 0x00288398 ──
+cBase *gcSaveGameSubscriber::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcSaveGameSubscriber *result = 0;
+    gcSaveGameSubscriber *obj = (gcSaveGameSubscriber *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        cListSubscriber_cListSubscriber(obj, parent);
+        *(void **)((char *)obj + 4) = gcSaveGameSubscribervirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 void gcSaveGameSubscriber::Detach(void) {
     gcGameSettings::Get()->Unsubscribe(
