@@ -9,6 +9,8 @@
 //   gcValLobbyConnectionStatus::GetText(char *) const            @ 0x00347c9c
 
 class cBase;
+class cFile;
+class cMemPool;
 
 void cStrCopy(char *, const char *);
 void cStrAppend(char *, const char *, ...);
@@ -34,6 +36,27 @@ struct eDynamicModelLookAtTemplate_DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+// AllocRec used by ::New through allocTable+0x28 (size, alignment, ...).
+struct eDynamicModelLookAtTemplate_AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(float);
+    void End(void);
+};
+
+// Constructor invoked from ::New via safe-name wrapper. The actual symbol is
+// the canonical C++ ctor defined below; the relocation is target-name-agnostic
+// for byte-level compare.
+extern "C" void eDynamicModelLookAtTemplate_eDynamicModelLookAtTemplate(void *self, cBase *parent);
+
 class eDynamicModelLookAtTemplate_cMemPoolNS {
 public:
     static eDynamicModelLookAtTemplate_cMemPoolNS *GetPoolFromPtr(const void *);
@@ -50,6 +73,8 @@ public:
     eDynamicModelLookAtTemplate(cBase *);
     ~eDynamicModelLookAtTemplate();
     void GetName(char *) const;
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 
     // Inline so SNC inlines it into the deleting-destructor variant.
     static void operator delete(void *p) {
@@ -96,6 +121,45 @@ eDynamicModelLookAtTemplate::~eDynamicModelLookAtTemplate() {
     *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
+// ── eDynamicModelLookAtTemplate::Write(cFile &) const  @ 0x0004b220, 124B ──
+//
+// Type-2 cWriteBlock: one bool flag (offset 8) followed by five floats
+// (offsets 0xC..0x1C), then End().
+void eDynamicModelLookAtTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    wb.Write(*(const bool *)((const char *)this + 8));
+    wb.Write(*(const float *)((const char *)this + 0xC));
+    wb.Write(*(const float *)((const char *)this + 0x10));
+    wb.Write(*(const float *)((const char *)this + 0x14));
+    wb.Write(*(const float *)((const char *)this + 0x18));
+    wb.Write(*(const float *)((const char *)this + 0x1C));
+    wb.End();
+}
+
+// ── eDynamicModelLookAtTemplate::New(cMemPool *, cBase *) static  @ 0x001f0ec4, 124B ──
+//
+// Pool-driven allocation through allocTable+0x28: size 0x38, alignment 4.
+// On success, runs the constructor and returns the new object cast to cBase*.
+// `result = 0` first + memory barrier locks `li s2,0` at the prologue position
+// (matched-exemplar pattern from eDynamicFluidTemplate::New).
+#pragma control sched=1
+cBase *eDynamicModelLookAtTemplate::New(cMemPool *pool, cBase *parent) {
+    eDynamicModelLookAtTemplate *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    eDynamicModelLookAtTemplate_AllocRec *rec =
+        (eDynamicModelLookAtTemplate_AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    eDynamicModelLookAtTemplate *obj =
+        (eDynamicModelLookAtTemplate *)rec->fn(base, 0x38, 4, 0, 0);
+    if (obj != 0) {
+        eDynamicModelLookAtTemplate_eDynamicModelLookAtTemplate(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
 #pragma control sched=2
 
 // ──────────────────────────────────────────────────────────────────────────
