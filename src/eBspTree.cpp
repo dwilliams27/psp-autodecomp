@@ -1,6 +1,11 @@
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
+class eShape;
+class mOCS;
+class mPlane;
+class eBspNode;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -15,8 +20,35 @@ public:
 class eBspTree {
 public:
     eBspTree(cBase *);
+    void AssignCopy(const cBase *);
+    void PlatformRead(cFile &, cMemPool *);
+    int Contains(const eShape *, const mOCS &) const;
+    void Contains(int, const eShape *, const mOCS &, bool *, bool *) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+};
+
+template <class T> T *dcast(const cBase *);
+
+template <class T>
+class cArrayBase {
+public:
+    T *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
 };
 
 struct PoolBlock {
@@ -32,6 +64,44 @@ struct AllocEntry {
 
 extern cType *D_000385DC;
 extern cType *D_00040F78;
+
+void cFile_SetCurrentPos(void *, unsigned int);
+void eBspTree::AssignCopy(const cBase *base) {
+    eBspTree *other = dcast<eBspTree>(base);
+    const cArrayBase<eBspNode> *otherNodes =
+        (const cArrayBase<eBspNode> *)((char *)other + 8);
+    __asm__ volatile("" :: "r"(otherNodes) : "memory");
+    ((cArrayBase<eBspNode> *)((char *)this + 8))->operator=(*otherNodes);
+    ((cArrayBase<mPlane> *)((char *)this + 0xC))->operator=(
+        *(const cArrayBase<mPlane> *)((char *)other + 0xC));
+    *(int *)((char *)this + 0x10) = *(int *)((char *)other + 0x10);
+}
+
+void eBspTree::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    return;
+}
+
+int eBspTree::Contains(const eShape *shape, const mOCS &ocs) const {
+    bool flags[2];
+    flags[0] = false;
+    flags[1] = false;
+    Contains(0, shape, ocs, &flags[1], &flags[0]);
+    if (flags[0]) {
+        if (flags[1]) {
+            return 1;
+        }
+        goto outside;
+    }
+    return 2;
+outside:
+    return 0;
+}
 
 cBase *eBspTree::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
