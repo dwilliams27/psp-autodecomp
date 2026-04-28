@@ -1,3 +1,24 @@
+// src/gcParticleSystemConfig.cpp
+//
+// Methods of gcParticleSystemConfig (gcAll_psp.obj). Sibling layout to
+// gcDynamicModelConfig — same 0x60-byte body, same VFPU quads at 0x30/0x40,
+// same dcast → struct-copy AssignCopy and same operator-delete-dispatch dtor.
+//
+//   - Write(cFile &) const                          @ 0x001555f8
+//   - Read(cFile &, cMemPool *)                     @ 0x00155644
+//   - gcParticleSystemConfig(cBase *)               @ (matched in eVolume.cpp)
+//   - New(cMemPool *, cBase *) static               @ 0x0031dd14
+//   - AssignCopy(const cBase *)                     @ 0x0031dc7c
+//   - ~gcParticleSystemConfig(void)                 @ 0x0031df50
+//
+// Patterns:
+//   - AssignCopy : gcDynamicModelConfig::AssignCopy — dcast then struct-copy
+//             groups of contiguous fields. Layout includes int @8, 6 ints
+//             at 0xC..0x20, int @0x24, two 16-byte VFPU quads at 0x30/0x40,
+//             and an unsigned char at 0x50.
+//   - ~Dtor : eDynamicModelLookAtTemplate::~ — write cBaseclassdesc at offset
+//             4, then on (flag & 1) call operator delete (inlined).
+
 class cBase;
 class cFile;
 class cMemPool;
@@ -26,11 +47,45 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+template <class T> T *dcast(const cBase *);
+
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
+struct gcPSC_PoolBlock {
+    char  pad[0x1C];
+    char *allocTable;
+};
+
+struct gcPSC_DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcParticleSystemConfig : public gcEntityGeomConfig {
 public:
+    ~gcParticleSystemConfig();
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+
+    // Inline so SNC inlines it into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        gcPSC_DeleteRecord *rec =
+            (gcPSC_DeleteRecord *)
+            (((gcPSC_PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern "C" {
@@ -76,4 +131,32 @@ cBase *gcParticleSystemConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcParticleSystemConfig::AssignCopy(const cBase *) @ 0x0031dc7c ──
+//
+// NOT YET MATCHED — 19/152 bytes differ. Same shape as gcDynamicModelConfig::
+// AssignCopy (also unmatched, also 19/152). Layout and field types are
+// correct (sizes line up) but our SNC's scheduler hoists the next addiu
+// before the previous sw, forcing it into a different register (a2 instead
+// of reusing a0). Memory barriers, operator= dispatch, and 180s of permuter
+// search all failed to recover the original register-allocation pattern.
+struct gcPSC_W4 { int v; };
+struct gcPSC_B24 { int v[6]; };
+
+typedef int gcPSC_v4sf_t __attribute__((mode(V4SF)));
+
+void gcParticleSystemConfig::AssignCopy(const cBase *src) {
+    gcParticleSystemConfig *other = dcast<gcParticleSystemConfig>(src);
+    *(gcPSC_W4 *)((char *)this + 8) = *(const gcPSC_W4 *)((const char *)other + 8);
+    *(gcPSC_B24 *)((char *)this + 0xC) = *(const gcPSC_B24 *)((const char *)other + 0xC);
+    *(gcPSC_W4 *)((char *)this + 0x24) = *(const gcPSC_W4 *)((const char *)other + 0x24);
+    *(gcPSC_v4sf_t *)((char *)this + 0x30) = *(const gcPSC_v4sf_t *)((const char *)other + 0x30);
+    *(gcPSC_v4sf_t *)((char *)this + 0x40) = *(const gcPSC_v4sf_t *)((const char *)other + 0x40);
+    *(unsigned char *)((char *)this + 0x50) = *(const unsigned char *)((const char *)other + 0x50);
+}
+
+// ── gcParticleSystemConfig::~gcParticleSystemConfig(void) @ 0x0031df50 ──
+gcParticleSystemConfig::~gcParticleSystemConfig() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
