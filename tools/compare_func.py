@@ -20,30 +20,18 @@ import sys
 
 from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
                     load_db, save_db,
-                    get_text_relocations, mask_relocation_bytes)
+                    mask_relocation_bytes)
 from byte_match import (
     CompileFailed,
     compile_src,
-    extract_text_section,
     find_db_func_for_sym,
-    nm_text_symbols,
+    symbols_with_bytes_and_relocs,
 )
 
 
 def load_eboot():
     with open(EBOOT_PATH, "rb") as f:
         return f.read()
-
-
-def get_symbol_layout(o_path, text_size):
-    """Return [(offset, size, name)] sorted by offset. Size is computed
-    from the next symbol's offset (or text_size for the last one)."""
-    symbols = nm_text_symbols(o_path)
-    layout = []
-    for i, (off, name) in enumerate(symbols):
-        next_off = symbols[i + 1][0] if i + 1 < len(symbols) else text_size
-        layout.append((off, next_off - off, name))
-    return layout
 
 
 def compare_sym_bytes(compiled_bytes, func_relocs, func, eboot_data):
@@ -92,20 +80,20 @@ def compare_file(src_path, symbol_filter=None, functions=None, eboot_data=None,
         print(f"Compilation failed for {src_path}: {e}", file=sys.stderr)
         return []
 
-    text_bytes = extract_text_section(o_path)
+    # Use the unified symbol extractor that handles both T (.text) and
+    # W (.gnu.linkonce.t.*) symbols — the latter are template instantiations.
+    all_syms = symbols_with_bytes_and_relocs(o_path)
 
-    layout = get_symbol_layout(o_path, len(text_bytes))
     if symbol_filter:
-        layout = [(off, sz, name) for off, sz, name in layout if name == symbol_filter]
+        all_syms = {n: v for n, v in all_syms.items() if n == symbol_filter}
 
-    if not layout:
+    if not all_syms:
         print(f"No text symbols found in {o_path}")
         return []
 
-    relocations = get_text_relocations(o_path)
-
     results = []
-    for sym_off, sym_size, sym_name in layout:
+    for sym_name, (sym_bytes, sym_off, sym_relocs) in all_syms.items():
+        sym_size = len(sym_bytes)
         # Name-first: resolve the emitted sym to ONE DB entry via mangling.
         # Without this step, 8-byte trivial wrappers byte-match any other
         # 8-byte trivial wrapper and we'd report false matches.
@@ -123,9 +111,10 @@ def compare_file(src_path, symbol_filter=None, functions=None, eboot_data=None,
             results.append((sym_name, False, func, msg))
             continue
 
-        compiled = text_bytes[sym_off:sym_off + sym_size]
-        func_relocs = [(off - sym_off, rtype) for off, rtype in relocations
-                       if sym_off <= off < sym_off + func["size"]]
+        compiled = sym_bytes[:func["size"]]
+        # sym_relocs are already function-relative; filter to func size.
+        func_relocs = [(off, rtype) for off, rtype in sym_relocs
+                       if 0 <= off < func["size"]]
         diff_count = compare_sym_bytes(compiled, func_relocs, func, eboot_data)
 
         if diff_count == 0:

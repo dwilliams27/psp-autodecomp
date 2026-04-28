@@ -274,6 +274,17 @@ def get_text_relocations(o_path):
 
     Returns a list of (offset, reloc_type) tuples.
     """
+    return get_all_code_relocations(o_path).get(".rel.text", [])
+
+
+def get_all_code_relocations(o_path):
+    """Get relocations from all code sections (.text and .gnu.linkonce.t.*).
+
+    Returns a dict mapping section name to list of (offset, reloc_type) tuples.
+    Section names are as they appear in readelf output, e.g.:
+      ".rel.text" -> [(offset, reloc_type), ...]
+      ".rel.gnu.linkonce.t.<sym>" -> [(offset, reloc_type), ...]
+    """
     import subprocess
     result = subprocess.run(
         [READELF, "-r", o_path], capture_output=True, text=True
@@ -284,24 +295,38 @@ def get_text_relocations(o_path):
         )
 
     if "no relocations" in result.stdout.lower():
-        return []
+        return {}
 
-    relocs = []
-    in_text = False
+    all_relocs = {}
+    current_section = None
     for line in result.stdout.split("\n"):
-        if ".rel.text" in line:
-            in_text = True
+        # Detect start of a relocation section we care about
+        if ".rel.text" in line or ".rel.gnu.linkonce.t." in line:
+            # Extract section name from the header line, e.g.:
+            # "Relocation section '.rel.text' at offset 0x3f0 contains 5 entries:"
+            quote_start = line.find("'")
+            quote_end = line.find("'", quote_start + 1) if quote_start >= 0 else -1
+            if quote_start >= 0 and quote_end >= 0:
+                current_section = line[quote_start + 1:quote_end]
+            else:
+                raise RuntimeError(
+                    f"Cannot parse relocation section name from readelf output "
+                    f"(no quotes found): {line!r}"
+                )
+            if current_section:
+                all_relocs.setdefault(current_section, [])
             continue
-        if in_text and line.strip() == "":
-            break
-        if in_text and line.strip() and not line.startswith("Relocation") and not line.startswith(" Offset"):
+        if current_section and line.strip() == "":
+            current_section = None
+            continue
+        if current_section and line.strip() and not line.startswith("Relocation") and not line.startswith(" Offset"):
             parts = line.split()
             if len(parts) >= 3:
                 offset = int(parts[0], 16)
                 info = int(parts[1], 16)
                 reloc_type = info & 0xFF
-                relocs.append((offset, reloc_type))
-    return relocs
+                all_relocs[current_section].append((offset, reloc_type))
+    return all_relocs
 
 
 def mask_relocation_bytes(data, relocations):

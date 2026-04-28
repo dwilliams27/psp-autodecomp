@@ -27,7 +27,9 @@ import time
 from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
                     OBJCOPY, NM,
                     load_db, find_function,
-                    get_text_relocations, mask_relocation_bytes)
+                    get_text_relocations, get_all_code_relocations,
+                    mask_relocation_bytes)
+from byte_match import extract_section, nm_symbols
 from mutations import mutate
 
 
@@ -84,19 +86,8 @@ def compile_source(src_path, o_path, cflags):
 
 def extract_text_bytes(o_path):
     """Extract raw .text section bytes from a compiled .o file."""
-    with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as tmp:
-        bin_path = tmp.name
-    try:
-        result = subprocess.run(
-            [OBJCOPY, "-O", "binary", "-j", ".text", o_path, bin_path],
-            capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            return None
-        with open(bin_path, "rb") as f:
-            return f.read()
-    finally:
-        os.unlink(bin_path)
+    data = extract_section(o_path, ".text")
+    return data or None
 
 
 def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=False):
@@ -104,6 +95,8 @@ def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=F
 
     If .text is exactly target_size, returns all of it (fast path).
     Otherwise uses nm to find the right symbol.
+    Also checks W (weak) symbols in .gnu.linkonce.t.* sections for template
+    instantiations.
 
     Returns (func_bytes, relocations) or (None, None).
     """
@@ -116,25 +109,25 @@ def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=F
         return text_bytes, relocs
 
     # Multi-function .o — find the right symbol via nm
-    result = subprocess.run([NM, o_path], capture_output=True, text=True)
-    if result.returncode != 0:
-        if warn:
-            print(f"WARNING: nm failed on {o_path}: {result.stderr.strip()}", file=sys.stderr)
-        return None, None
-
-    symbols = []
-    for line in result.stdout.strip().split("\n"):
-        parts = line.split()
-        if len(parts) == 3 and parts[1] == "T":
-            symbols.append((int(parts[0], 16), parts[2]))
-    symbols.sort()
+    all_nm = nm_symbols(o_path)
+    t_symbols = sorted([(a, n) for a, typ, n in all_nm if typ == "T"])
+    w_symbols = [(a, n) for a, typ, n in all_nm if typ == "W"]
 
     text_size = len(text_bytes)
     layout = []
-    for j, (off, name) in enumerate(symbols):
-        next_off = symbols[j + 1][0] if j + 1 < len(symbols) else text_size
+    for j, (off, name) in enumerate(t_symbols):
+        next_off = t_symbols[j + 1][0] if j + 1 < len(t_symbols) else text_size
         size = next_off - off
         layout.append((off, size, name))
+
+    # Also add W symbols from their individual linkonce sections
+    w_section_cache = {}
+    for _addr, name in w_symbols:
+        section = f".gnu.linkonce.t.{name}"
+        sec_bytes = extract_section(o_path, section)
+        if sec_bytes:
+            w_section_cache[name] = sec_bytes
+            layout.append((0, len(sec_bytes), name))
 
     # Find target by symbol name or by size
     match = None
@@ -156,13 +149,29 @@ def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=F
     if match is None:
         return None, None
 
-    sym_off, sym_size, _ = match
-    func_bytes = text_bytes[sym_off:sym_off + sym_size]
+    sym_off, sym_size, matched_name = match
 
-    # Adjust relocations to be function-relative
-    all_relocs = get_text_relocations(o_path)
-    func_relocs = [(off - sym_off, rtype) for off, rtype in all_relocs
-                   if sym_off <= off < sym_off + sym_size]
+    # Check if this is a W (weak/linkonce) symbol
+    is_weak = any(n == matched_name for _, n in w_symbols)
+
+    if is_weak:
+        # For W symbols, reuse cached bytes from layout-building pass
+        func_bytes = w_section_cache.get(matched_name)
+        if func_bytes is None:
+            raise RuntimeError(
+                f"W symbol {matched_name!r} was in layout but not in cache for {o_path}"
+            )
+        # Get relocations from the linkonce relocation section
+        section = f".gnu.linkonce.t.{matched_name}"
+        all_code_relocs = get_all_code_relocations(o_path)
+        rel_section = f".rel.{section}"
+        func_relocs = all_code_relocs.get(rel_section, [])
+    else:
+        func_bytes = text_bytes[sym_off:sym_off + sym_size]
+        # Adjust relocations to be function-relative
+        all_relocs = get_text_relocations(o_path)
+        func_relocs = [(off - sym_off, rtype) for off, rtype in all_relocs
+                       if sym_off <= off < sym_off + sym_size]
 
     return func_bytes, func_relocs
 

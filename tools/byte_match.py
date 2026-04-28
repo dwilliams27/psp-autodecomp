@@ -26,6 +26,7 @@ from common import (
     NM,
     OBJCOPY,
     TEXT_FILE_OFFSET,
+    get_all_code_relocations,
     get_text_relocations,
     mask_relocation_bytes,
 )
@@ -217,7 +218,12 @@ def nm_symbols(path: str, *, defined_only: bool = False) -> list[tuple[int, str,
 
 
 def nm_text_symbols(o_path: str) -> list[tuple[int, str]]:
-    """Return sorted (offset, sym_name) for T-type symbols in o_path."""
+    """Return sorted (offset, sym_name) for T-type symbols in o_path.
+
+    Note: does NOT include W (weak) symbols from .gnu.linkonce.t.* sections.
+    Use symbols_with_bytes_and_relocs() for the full picture including
+    template instantiations.
+    """
     syms = [(addr, name) for addr, t, name in nm_symbols(o_path) if t == "T"]
     syms.sort()
     return syms
@@ -226,18 +232,35 @@ def nm_text_symbols(o_path: str) -> list[tuple[int, str]]:
 def extract_text_section(o_path: str) -> bytes:
     """Extract raw .text section bytes from an .o file via objcopy.
 
-    Raises RuntimeError on objcopy failure.
+    Returns empty bytes if the .text section does not exist (e.g., W-only .o).
+    Raises RuntimeError on other objcopy failures.
+    """
+    return extract_section(o_path, ".text")
+
+
+def extract_section(o_path: str, section_name: str) -> bytes:
+    """Extract raw bytes of a named section from an .o file via objcopy.
+
+    Returns empty bytes if the section doesn't exist.
+    Raises RuntimeError on objcopy failure (other than missing section).
     """
     with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as tmp:
         tmp_path = tmp.name
     try:
         result = subprocess.run(
-            [OBJCOPY, "-O", "binary", "-j", ".text", o_path, tmp_path],
+            [OBJCOPY, "-O", "binary", "-j", section_name, o_path, tmp_path],
             capture_output=True, text=True,
         )
         if result.returncode != 0:
+            # objcopy exits non-zero when the section doesn't exist; return
+            # empty bytes rather than raising (the caller may be probing for
+            # optional linkonce sections).
+            if "can't find" in (result.stderr or "").lower() or \
+               "no such" in (result.stderr or "").lower():
+                return b""
             raise RuntimeError(
-                f"objcopy failed on {o_path}: {result.stderr.strip()}"
+                f"objcopy failed on {o_path} section {section_name}: "
+                f"{result.stderr.strip()}"
             )
         with open(tmp_path, "rb") as f:
             return f.read()
@@ -250,6 +273,8 @@ def symbols_with_bytes(o_path: str) -> dict[str, tuple[bytes, int]]:
     """Return {sym_name: (bytes_from_sym_start_to_next, start_offset)}.
 
     Thin wrapper combining nm + objcopy. Callers usually want this shape.
+    Only includes T (text) symbols; use symbols_with_bytes_and_relocs()
+    for the full picture including W (weak / template) symbols.
     """
     text_bytes = extract_text_section(o_path)
     syms = nm_text_symbols(o_path)
@@ -259,6 +284,60 @@ def symbols_with_bytes(o_path: str) -> dict[str, tuple[bytes, int]]:
     for i, (off, name) in enumerate(syms):
         end = syms[i + 1][0] if i + 1 < len(syms) else len(text_bytes)
         out[name] = (text_bytes[off:end], off)
+    return out
+
+
+def symbols_with_bytes_and_relocs(
+    o_path: str,
+) -> dict[str, tuple[bytes, int, list[tuple[int, int]]]]:
+    """Return {sym_name: (func_bytes, start_offset, relocations)}.
+
+    Like symbols_with_bytes but also:
+      - Includes W (weak) symbols from .gnu.linkonce.t.* sections (template
+        instantiations that SNC places in their own linkonce sections).
+      - Returns per-symbol relocations already adjusted to be function-relative.
+
+    For T symbols:  bytes come from .text, relocs from .rel.text.
+    For W symbols:  bytes come from .gnu.linkonce.t.<sym>, relocs from the
+                    corresponding .rel.gnu.linkonce.t.<sym>.
+    """
+    all_nm = nm_symbols(o_path)
+
+    # -- T symbols from .text --
+    t_syms = sorted([(addr, name) for addr, t, name in all_nm if t == "T"])
+    text_bytes = extract_text_section(o_path) if t_syms else b""
+    all_relocs = get_all_code_relocations(o_path)
+    text_relocs = all_relocs.get(".rel.text", [])
+
+    out: dict[str, tuple[bytes, int, list[tuple[int, int]]]] = {}
+
+    for i, (off, name) in enumerate(t_syms):
+        end = t_syms[i + 1][0] if i + 1 < len(t_syms) else len(text_bytes)
+        sym_bytes = text_bytes[off:end]
+        sym_size = end - off
+        sym_relocs = [
+            (r_off - off, r_type)
+            for r_off, r_type in text_relocs
+            if off <= r_off < off + sym_size
+        ]
+        out[name] = (sym_bytes, off, sym_relocs)
+
+    # -- W symbols from .gnu.linkonce.t.* sections --
+    w_syms = [(addr, name) for addr, t, name in all_nm if t == "W"]
+    for _addr, name in w_syms:
+        section = f".gnu.linkonce.t.{name}"
+        section_bytes = extract_section(o_path, section)
+        if not section_bytes:
+            import sys
+            print(f"WARNING: W symbol {name!r} has no {section} in {o_path}; skipping",
+                  file=sys.stderr)
+            continue
+        rel_section = f".rel.gnu.linkonce.t.{name}"
+        sym_relocs = all_relocs.get(rel_section, [])
+        # W symbols always start at offset 0 within their section;
+        # relocations are already function-relative.
+        out[name] = (section_bytes, 0, sym_relocs)
+
     return out
 
 
@@ -289,13 +368,10 @@ def read_eboot_bytes(addr: int, size: int) -> bytes:
 # Per-.o caches keyed by (path, mtime) so re-verifying many functions in
 # the same .o (bulk audit) doesn't re-run nm/objcopy/readelf for each.
 @functools.lru_cache(maxsize=None)
-def _cached_symbols_with_bytes(o_path: str, _mtime: float) -> dict[str, tuple[bytes, int]]:
-    return symbols_with_bytes(o_path)
-
-
-@functools.lru_cache(maxsize=None)
-def _cached_relocations(o_path: str, _mtime: float) -> list:
-    return get_text_relocations(o_path)
+def _cached_symbols_with_bytes_and_relocs(
+    o_path: str, _mtime: float,
+) -> dict[str, tuple[bytes, int, list[tuple[int, int]]]]:
+    return symbols_with_bytes_and_relocs(o_path)
 
 
 def _mtime(path: str) -> float:
@@ -353,14 +429,14 @@ def check_byte_match(func: dict, src_file: str,
     size = int(func["size"])
 
     o_path = compile_src(src_file, cwd=cwd)
-    syms = _cached_symbols_with_bytes(o_path, _mtime(o_path))
+    syms = _cached_symbols_with_bytes_and_relocs(o_path, _mtime(o_path))
     if not syms:
         return VerifyResult(ok=False, reason=REASON_NO_SYMBOLS, o_file=o_path)
 
     # Name gate: only consider symbols that could legitimately be `func`.
     named_candidates = {
-        sn: (sb, so)
-        for sn, (sb, so) in syms.items()
+        sn: (sb, so, sr)
+        for sn, (sb, so, sr) in syms.items()
         if sym_encodes_func(sn, func)
     }
     if not named_candidates:
@@ -371,21 +447,22 @@ def check_byte_match(func: dict, src_file: str,
         )
 
     expected = read_eboot_bytes(addr, size)
-    relocations = _cached_relocations(o_path, _mtime(o_path))
 
     matches: list[str] = []
     best: Optional[tuple[str, int, list[dict]]] = None
 
-    for sym_name, (sym_bytes, sym_off) in named_candidates.items():
+    for sym_name, (sym_bytes, sym_off, sym_relocs) in named_candidates.items():
         if len(sym_bytes) < size:
             continue
 
         compiled = sym_bytes[:size]
 
+        # sym_relocs are already function-relative for W symbols (offset 0).
+        # For T symbols they were pre-adjusted in symbols_with_bytes_and_relocs.
+        # Filter to only those within this function's size.
         func_relocs = [
-            (off - sym_off, rtype)
-            for off, rtype in relocations
-            if 0 <= off - sym_off < size
+            (off, rtype) for off, rtype in sym_relocs
+            if 0 <= off < size
         ]
         if func_relocs:
             compiled_m = mask_relocation_bytes(compiled, func_relocs)

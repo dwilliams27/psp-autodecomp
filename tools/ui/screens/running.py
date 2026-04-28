@@ -15,7 +15,7 @@ from rich.table import Table
 from rich.text import Text
 
 from tools.ui.palette import (BAD, BODY, DIM, FOREST, LEAF, MOSS, OK, SUN,
-                              SUNLIT, WARN, identity_style, wilson_ci)
+                              SUNLIT, WARN, identity_style)
 from tools.ui.screens.base import Screen
 from tools.ui.widgets import helix
 from tools.ui.widgets.header import header_panel
@@ -628,9 +628,6 @@ class RunningScreen(Screen):
                 l.append("+", style=DIM)
             l.append(f"  {m}m\u00b7{f}f", style=DIM)
             l.append(f"  {rate:.0f}%", style=f"bold {BODY}" if total else DIM)
-            if total >= 5:
-                lo, hi = wilson_ci(m, total)
-                l.append(f"  [{lo*100:.0f}-{hi*100:.0f}]", style=DIM)
             return l
 
         right_lines = []

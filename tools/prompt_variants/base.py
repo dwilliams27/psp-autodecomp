@@ -47,6 +47,8 @@ def build_prompt(batch, functions, session_id):
         "- CLASS METHOD FILE RULE: Every class method MUST go in "
         "src/<ClassName>.cpp and MUST use canonical C++ syntax: "
         "`ReturnType ClassName::MethodName(args) { ... }`. "
+        "DESTRUCTORS: use `ClassName::~ClassName() { ... }` — "
+        "never `extern \"C\" void __0o...` wrappers. "
         "Do NOT put class methods in free_functions.c or in a different "
         "class's .cpp file. Do NOT use extern-C safe-name wrappers for "
         "class methods — the quality gate rejects them.\n"
