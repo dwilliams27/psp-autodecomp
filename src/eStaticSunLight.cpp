@@ -5,6 +5,13 @@
 class cBase;
 class cFile;
 class cMemPool;
+class mVec3;
+class mRay;
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
 
 class cWriteBlock {
 public:
@@ -31,6 +38,19 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+template <class T> T *dcast(const cBase *);
+
+struct AllocEntry {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
 // ============================================================
 // eStaticSunLight class declaration
 // ============================================================
@@ -44,8 +64,12 @@ public:
 
 class eStaticSunLight : public eStaticLight {
 public:
+    eStaticSunLight(cBase *);
     ~eStaticSunLight();
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    void GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const;
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool_helper::GetPoolFromPtr(p);
@@ -60,6 +84,8 @@ public:
 };
 
 extern char eStaticSunLightvirtualtable[];
+
+extern "C" void eStaticSunLight_eStaticSunLight(eStaticSunLight *, cBase *);
 
 // ============================================================
 // 0x0005f9f4 — eStaticSunLight::Write(cFile &) const
@@ -79,4 +105,95 @@ void eStaticSunLight::Write(cFile &file) const {
 eStaticSunLight::~eStaticSunLight() {
     *(void **)((char *)this + 4) = eStaticSunLightvirtualtable;
 }
+#pragma control sched=2
+
+void eStaticSunLight::GetDirectLight(mVec3 *out, const mVec3 &, const mVec3 &normal, const mRay &ray, const mVec3 &) const {
+    volatile float color[8];
+
+    float zero, dot;
+    __asm__ volatile(
+        "lv.q C120, 0x10(%2)\n"
+        "lv.q C130, 0(%3)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a2, S100\n"
+        "mtc1 $a2, %1\n"
+        "mtc1 $zero, %0\n"
+        : "=f"(zero), "=f"(dot)
+        : "r"(&ray), "r"(&normal)
+        : "$a2"
+    );
+
+    if (dot > zero) {
+        float scale = 1.0f / 255.0f;
+        color[0] = (float)*(const unsigned char *)((const char *)this + 0x4A) * scale;
+        color[1] = (float)*(const unsigned char *)((const char *)this + 0x49) * scale;
+        color[2] = (float)*(const unsigned char *)((const char *)this + 0x48) * scale;
+        float factor = dot * *(const float *)((const char *)this + 0x44);
+
+        __asm__ volatile(
+            "mfc1 $a0, %0\n"
+            "mtv $a0, S100\n"
+            "lv.q C120, 0($sp)\n"
+            "vscl.t C120, C120, S100\n"
+            "sv.q C120, 0(%1)\n"
+            :: "f"(factor), "r"(out)
+            : "$a0", "memory"
+        );
+        return;
+    }
+
+    __asm__ volatile(
+        "mfc1 $a0, %0\n"
+        "mfc1 $a2, %0\n"
+        "mfc1 $a3, %0\n"
+        "mtv $a0, S120\n"
+        "mtv $a2, S121\n"
+        "mtv $a3, S122\n"
+        "sv.q C120, 0(%1)\n"
+        :: "f"(zero), "r"(out)
+        : "$a0", "$a2", "$a3", "memory"
+    );
+}
+
+#pragma control sched=1
+
+void eStaticSunLight::AssignCopy(const cBase *base) {
+    eStaticSunLight *other = dcast<eStaticSunLight>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(float *)((char *)this + 0x44) = *(const float *)((const char *)other + 0x44);
+    *(cHandle *)((char *)this + 0x48) = *(const cHandle *)((const char *)other + 0x48);
+    __asm__ volatile(
+        "lv.q C120, 0x80(%1)\n"
+        "sv.q C120, 0x80(%0)\n"
+        "lv.q C120, 0x50(%1)\n"
+        "sv.q C120, 0x50(%0)\n"
+        "lv.q C120, 0x60(%1)\n"
+        "sv.q C120, 0x60(%0)\n"
+        "lv.q C120, 0x70(%1)\n"
+        "sv.q C120, 0x70(%0)\n"
+        :: "r"(this), "r"(other) : "memory"
+    );
+    *(float *)((char *)this + 0x90) = *(const float *)((const char *)other + 0x90);
+    *(float *)((char *)this + 0x94) = *(const float *)((const char *)other + 0x94);
+    *(cHandle *)((char *)this + 0x98) = *(const cHandle *)((const char *)other + 0x98);
+    *(unsigned char *)((char *)this + 0x9C) = *(const unsigned char *)((const char *)other + 0x9C);
+}
+
+cBase *eStaticSunLight::New(cMemPool *pool, cBase *parent) {
+    eStaticSunLight *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eStaticSunLight *obj = (eStaticSunLight *)entry->fn(base, 0xA0, 0x10, 0, 0);
+    if (obj != 0) {
+        eStaticSunLight_eStaticSunLight(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
 #pragma control sched=2
