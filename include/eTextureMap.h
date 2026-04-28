@@ -100,6 +100,8 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    static eOnePassModelMtl *New(cMemPool *, cBase *);
 };
 
 class eProjectedDynamicMtl {
