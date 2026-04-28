@@ -33,11 +33,17 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
+class gcEnumeration {
+public:
+    int GetSize(void) const;
+};
+
 class gcTableTemplate : public cObject {
 public:
     gcTableTemplate(cBase *);
     int GetNumRows(void) const;
     void AssignCopy(const cBase *);
+    void Reset(cMemPool *, bool);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
 };
@@ -46,6 +52,10 @@ gcTableTemplate *dcast(const cBase *);
 
 void gcTableTemplate_gcTableTemplate(gcTableTemplate *, cBase *);
 void cObject_Write(const gcTableTemplate *, cFile &);
+
+void cBaseArray_SetSize(void *, int);
+
+extern void *D_00038890[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -83,6 +93,38 @@ void gcTableTemplate::AssignCopy(const cBase *base) {
     ((cBaseArray *)((char *)this + 0x48))->operator=(*(cBaseArray *)((char *)other + 0x48));
     ((cArrayBase<int> *)((char *)this + 0x50))->operator=(*(cArrayBase<int> *)((char *)other + 0x50));
     *(int *)((char *)this + 0x54) = *(int *)((char *)other + 0x54);
+}
+
+void gcTableTemplate::Reset(cMemPool *pool, bool flag) {
+    int handle = *(int *)((char *)this + 0x44);
+    cBaseArray *arr = (cBaseArray *)((char *)this + 0x48);
+    void *enum_ptr;
+    if (handle == 0) {
+        enum_ptr = (void *)0;
+    } else {
+        void *e = D_00038890[handle & 0xFFFF];
+        enum_ptr = (void *)0;
+        if (e != (void *)0 && *(int *)((char *)e + 0x30) == handle) {
+            enum_ptr = e;
+        }
+    }
+
+    if (enum_ptr != (gcEnumeration *)0) {
+        gcEnumeration *e2 = (gcEnumeration *)0;
+        if (handle != 0) {
+            e2 = (gcEnumeration *)D_00038890[handle & 0xFFFF];
+        }
+        cBaseArray_SetSize(arr, e2->GetSize());
+    } else {
+        cBaseArray_SetSize(arr, 0);
+    }
+
+    int sz = 0;
+    int *data = *(int **)((char *)this + 0x50);
+    if (data != (int *)0) {
+        sz = data[-1] & 0x3FFFFFFF;
+    }
+    *(int *)((char *)this + 0x54) = sz;
 }
 
 cBase *gcTableTemplate::New(cMemPool *pool, cBase *parent) {
