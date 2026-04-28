@@ -12,6 +12,17 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -32,7 +43,16 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 extern char gcLookAtControllerTemplatevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_0009F5DC;
+extern cType *D_0009F644;
 
 class cHandle {
 public:
@@ -61,6 +81,8 @@ public:
     ~gcLookAtControllerTemplate();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 
     // Inlined into the deleting-destructor tail. No null-pool guard
     // matches the 0x00146e7c-0x00146ea0 pool-dispatch sequence.
@@ -110,4 +132,39 @@ void gcLookAtControllerTemplate::AssignCopy(const cBase *base) {
 // `if (flags & 1) operator delete(this)` epilogue around this body.
 gcLookAtControllerTemplate::~gcLookAtControllerTemplate() {
     *(void **)((char *)this + 4) = gcLookAtControllerTemplatevirtualtable;
+}
+
+// ── gcLookAtControllerTemplate::New(cMemPool *, cBase *) static @ 0x002C6914 ──
+cBase *gcLookAtControllerTemplate::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcLookAtControllerTemplate *result = 0;
+    gcLookAtControllerTemplate *obj = (gcLookAtControllerTemplate *)rec->fn(base, 0x18, 4, 0, 0);
+    if (obj != 0) {
+        new (obj) gcLookAtControllerTemplate(parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// ── gcLookAtControllerTemplate::GetType(void) const @ 0x002C6990 ──
+const cType *gcLookAtControllerTemplate::GetType(void) const {
+    if (D_0009F644 == 0) {
+        if (D_0009F5DC == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F5DC = cType::InitializeType(0, 0, 0x104, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F644 = cType::InitializeType(0, 0, 0x10D, D_0009F5DC,
+                                           &gcLookAtControllerTemplate::New,
+                                           0, 0, 0);
+    }
+    return D_0009F644;
 }
