@@ -5,6 +5,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -26,6 +27,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class eTextureFilter {
 public:
     eTextureFilter(cBase *);
@@ -33,11 +40,23 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class eBlurFilter : public eTextureFilter {
 public:
     eBlurFilter(cBase *);
     ~eBlurFilter();
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -52,6 +71,69 @@ public:
 };
 
 extern char eBlurFiltervirtualtable[];
+
+static cType *type_cBase;
+static cType *type_eTextureFilter;
+static cType *type_eBlurFilter;
+
+#pragma control sched=1
+
+eBlurFilter::eBlurFilter(cBase *parent) : eTextureFilter(parent) {
+    *(void **)((char *)this + 4) = eBlurFiltervirtualtable;
+    *(float *)((char *)this + 0x10) = 0.5f;
+    __asm__ volatile("" ::: "memory");
+    *(float *)((char *)this + 0x14) = 1.0f;
+    *(int *)((char *)this + 0x18) = -1;
+}
+
+#pragma control sched=2
+
+#pragma control sched=1
+
+cBase *eBlurFilter::New(cMemPool *pool, cBase *parent) {
+    eBlurFilter *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eBlurFilter *obj = (eBlurFilter *)rec->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        new (obj) eBlurFilter(parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+#pragma control sched=2
+
+#pragma control sched=1
+
+const cType *eBlurFilter::GetType(void) const {
+    if (!type_eBlurFilter) {
+        if (!type_eTextureFilter) {
+            if (!type_cBase) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                type_cBase = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            type_eTextureFilter =
+                cType::InitializeType(0, 0, 0x13B, type_cBase, 0, 0, 0, 0);
+        }
+        const cType *parentType = type_eTextureFilter;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x217580;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        type_eBlurFilter =
+            cType::InitializeType(0, 0, 0x13D, parentType, factory, 0, 0, 0);
+    }
+    return type_eBlurFilter;
+}
+
+#pragma control sched=2
 
 #pragma control sched=1
 void eBlurFilter::Write(cFile &file) const {
