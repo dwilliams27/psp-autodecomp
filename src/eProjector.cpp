@@ -14,7 +14,7 @@ public:
 
 class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *);
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class eGeom {
@@ -26,16 +26,47 @@ public:
 class eDynamicGeom : public eGeom {
 public:
     eDynamicGeom(cBase *);
+    ~eDynamicGeom();
     void Write(cFile &) const;
     char _dynPad[0x58];
 };
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+inline void *operator new(unsigned int, void *p) {
+    return p;
+}
+
 class eProjector : public eDynamicGeom {
 public:
     eProjector(cBase *);
+    ~eProjector();
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
     void Update(cTimeValue);
+    static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        void *block = *(void **)((char *)pool + 0x24);
+        char *allocTable = *(char **)((char *)block + 0x1C);
+        DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        void *base = (char *)block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 class cWriteBlock {
@@ -47,41 +78,32 @@ public:
 
 extern char eProjectorvirtualtable[];
 
-// Extern C-style destructors (SNC direct symbol calls)
-extern "C" void eDynamicGeom___dtor_eDynamicGeom_void(void *, int);
-
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
 // ── Constructor ──
 eProjector::eProjector(cBase *base) : eDynamicGeom(base) {
     *(void **)((char *)this + 4) = eProjectorvirtualtable;
 }
 
 // ── Destructor ──
-extern "C" {
-
-void eProjector___dtor_eProjector_void(eProjector *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eProjectorvirtualtable;
-        eDynamicGeom___dtor_eDynamicGeom_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
+eProjector::~eProjector() {
+    *(void **)((char *)this + 4) = eProjectorvirtualtable;
 }
 
+// ── New ──
+cBase *eProjector::New(cMemPool *pool, cBase *parent) {
+    eProjector *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eProjector *obj = (eProjector *)rec->fn(base, 0xF0, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) eProjector(parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── Reset ──
