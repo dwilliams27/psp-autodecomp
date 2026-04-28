@@ -1,6 +1,8 @@
 // gcValUIVar — decompiled from gcAll_psp.obj
 // Methods in this file:
 //   0x00368484  Write(cFile &) const
+//   0x003699c0  GetText(char *) const
+//   0x00369a10  VisitReferences(...)
 //   0x00369a90  ~gcValUIVar(void)
 //
 // Class layout:
@@ -26,7 +28,13 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
+
+void cStrAppend(char *, const char *, ...);
+extern const char gcValUIVar_fmt[];
+extern const char gcValUIVar_str2[];
 
 extern char cBaseclassdesc[];
 
@@ -54,6 +62,8 @@ public:
     int mField14;
 
     void Write(cFile &) const;
+    void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcValUIVar();
 
     static void operator delete(void *p) {
@@ -73,6 +83,22 @@ void gcValUIVar::Write(cFile &file) const {
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Write(wb);
     wb.Write(mField14);
     wb.End();
+}
+
+// ── gcValUIVar::GetText @ 0x003699c0 ──
+void gcValUIVar::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrAppend(buf, gcValUIVar_fmt, local, gcValUIVar_str2);
+}
+
+// ── gcValUIVar::VisitReferences @ 0x00369a10 ──
+void gcValUIVar::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    this->mHelper.VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
 
 // ── gcValUIVar::~gcValUIVar @ 0x00369a90 ──
