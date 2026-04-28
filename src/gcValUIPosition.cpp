@@ -30,7 +30,12 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
 };
+
+void cStrAppend(char *, const char *, ...);
+extern const char gcValUIPosition_fmt[];     // 0x0036DF34
+extern const char gcValGetText_text[];       // 0x0036DAF0
 
 extern char gcLValuevirtualtable[];
 extern char gcValUIPositionvirtualtable[];
@@ -63,6 +68,7 @@ public:
 
     ~gcValUIPosition();
     void Write(cFile &) const;
+    void GetText(char *) const;
 
     static void operator delete(void *p) {
         cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
@@ -83,6 +89,14 @@ void gcValUIPosition::Write(cFile &file) const {
     wb.Write(this->mField18);
     wb.Write(this->mField1C);
     wb.End();
+}
+
+// ── gcValUIPosition::GetText(char *) const @ 0x00365130 ──
+void gcValUIPosition::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrAppend(buf, gcValUIPosition_fmt, local, gcValGetText_text);
 }
 
 // ── gcValUIPosition::~gcValUIPosition(void) @ 0x00365200 ──

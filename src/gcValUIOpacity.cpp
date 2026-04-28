@@ -38,7 +38,11 @@ struct gcDesiredUIWidgetHelper {
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    void GetText(char *) const;
 };
+
+extern "C" char *strcat(char *, const char *);
+extern const char gcValUIOpacity_str2[];  // 0x0036F7C8
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 
@@ -75,6 +79,7 @@ public:
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -159,6 +164,15 @@ void gcValUIOpacity::AssignCopy(const cBase *base) {
     *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
     *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
     *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+}
+
+// ── gcValUIOpacity::GetText(char *) const @ 0x00363b78 ──
+void gcValUIOpacity::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    strcat(buf, local);
+    strcat(buf, gcValUIOpacity_str2);
 }
 
 // ── gcValUIOpacity::VisitReferences @ 0x00363bc8 ──
