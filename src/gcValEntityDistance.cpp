@@ -1,4 +1,5 @@
-#include "gcValTrinaryOp.h"
+class cBase;
+class cMemPool;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -8,21 +9,23 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
-gcExpression *gcValTrinaryOp::GetChild(int index) const {
-    gcValTrinaryOpData *self = (gcValTrinaryOpData *)this;
-    return self->mChildren[index];
-}
+class gcValEntityDistance {
+public:
+    gcValEntityDistance(cBase *);
+    static cBase *New(cMemPool *, cBase *);
+};
 
-cBase *gcValTrinaryOp::New(cMemPool *pool, cBase *parent) {
+cBase *gcValEntityDistance::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
     char *allocTable = *(char **)((char *)block + 0x1C);
     AllocRec *rec = (AllocRec *)(allocTable + 0x28);
     short off = rec->offset;
     void *base = (char *)block + off;
-    gcValTrinaryOp *result = 0;
-    gcValTrinaryOp *obj = (gcValTrinaryOp *)rec->fn(base, 0x18, 4, 0, 0);
+    gcValEntityDistance *result = 0;
+    gcValEntityDistance *obj =
+        (gcValEntityDistance *)rec->fn(base, 0xB8, 4, 0, 0);
     if (obj != 0) {
-        new (obj) gcValTrinaryOp(parent);
+        new (obj) gcValEntityDistance(parent);
         result = obj;
     }
     return (cBase *)result;
