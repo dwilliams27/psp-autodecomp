@@ -8,7 +8,21 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cMemPool;
+class cFile;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void End(void);
+};
 
 class cType {
 public:
@@ -38,6 +52,12 @@ public:
     int mIndex;
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcAnimationEvent {
 public:
     cBase *m_parent;                  // 0x00
@@ -48,10 +68,25 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void Write(cFile &) const;
+    void GetName(char *) const;
+    ~gcAnimationEvent(void);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 gcAnimationEvent *dcast(const cBase *);
 void gcEvent_ctor(gcEvent *self, cBase *parent, const char *name);
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
+void cStrCopy(char *, const char *);
+void cStrCopy(char *, const char *, int);
+extern "C" void *memcpy(void *, const void *, unsigned int);
 
 extern char gcAnimationEvent_cBase_vtable[];   // 0x37E6A8
 extern char gcAnimationEventvirtualtable[];    // 0x387278
@@ -73,6 +108,18 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct EventWriteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile &);
+};
+
+struct EventNameSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
 };
 
 // ============================================================
@@ -121,4 +168,46 @@ const cType *gcAnimationEvent::GetType(void) const {
                                            &gcAnimationEvent::New, 0, 0, 0);
     }
     return D_00099AB4;
+}
+
+// ============================================================
+// 0x000e8e2c — Write(cFile &) const
+// ============================================================
+void gcAnimationEvent::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    wb.Write(mName.mIndex);
+    void *event = (char *)this + 0x0C;
+    void *vtable = *(void **)((char *)this + 0x10);
+    EventWriteSlot *slot = (EventWriteSlot *)((char *)vtable + 0x28);
+    short offset = slot->offset;
+    void (*fn)(void *, cFile &) = slot->fn;
+    fn((char *)event + offset, *(cFile *)wb._data[0]);
+    wb.End();
+}
+
+// ============================================================
+// 0x000e8f6c — GetName(char *) const
+// ============================================================
+void gcAnimationEvent::GetName(char *dst) const {
+    if (*(void **)((char *)this + 0x14) != 0) {
+        char buf[0x1000];
+        memcpy(buf, (const void *)0x36D944, 1);
+        void *expr = *(void **)((char *)this + 0x14);
+        EventNameSlot *slot = (EventNameSlot *)((char *)*(void **)((char *)expr + 4) + 0xD0);
+        short offset = slot->offset;
+        void (*fn)(void *, char *) = slot->fn;
+        fn((char *)expr + offset, buf);
+        cStrCopy(dst, buf, 0x50);
+    } else {
+        cStrCopy(dst, (const char *)0x36DB38);
+    }
+}
+
+// ============================================================
+// 0x0023f460 — ~gcAnimationEvent(void)
+// ============================================================
+gcAnimationEvent::~gcAnimationEvent(void) {
+    *(void **)((char *)this + 4) = gcAnimationEventvirtualtable;
+    gcEvent___dtor_gcEvent_void((char *)this + 0x0C, 2);
+    *(void **)((char *)this + 4) = gcAnimationEvent_cBase_vtable;
 }
