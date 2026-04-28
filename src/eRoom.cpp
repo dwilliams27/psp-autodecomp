@@ -1,5 +1,19 @@
 class cFile;
+class cBase;
+class cMemPool;
 class eVolume;
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int, void *, short);
+};
 
 class cWriteBlock {
 public:
@@ -10,9 +24,16 @@ public:
 
 class eRoom {
 public:
+    static cBase *New(cMemPool *, cBase *);
+    eRoom(cBase *);
+    void Free();
     void RemoveVolume(eVolume *);
     void ClearRoomVolumeList(eVolume *);
 };
+
+extern "C" {
+    void eRoom__eRoom_cBaseptr__0003D5D4(void *self, cBase *parent);
+}
 
 class eVolumeBody {
 public:
@@ -29,6 +50,51 @@ class gcViewport {
 public:
     void Write(cFile &) const;
 };
+
+cBase *eRoom::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    eRoom *result = 0;
+    eRoom *obj = (eRoom *)rec->fn(base, 0x120, 0x10, 0, 0);
+    if (obj != 0) {
+        eRoom__eRoom_cBaseptr__0003D5D4(obj, parent);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+void eRoom::Free() {
+    void *obj = *(void **)((char *)this + 0x118);
+    if (obj != 0) {
+        register DeleteRec *rec __asm__("a2") =
+            (DeleteRec *)((char *)(*(void **)((char *)obj + 4)) + 0x50);
+        short off = rec->offset;
+        void (*fn)(void *, int, void *, short) = rec->fn;
+        fn((char *)obj + off, 3, (void *)fn, off);
+        *(void **)((char *)this + 0x118) = 0;
+    }
+    obj = *(void **)((char *)this + 0x104);
+    if (obj != 0) {
+        register DeleteRec *rec __asm__("a2") =
+            (DeleteRec *)((char *)(*(void **)((char *)obj + 4)) + 0x50);
+        short off = rec->offset;
+        void (*fn)(void *, int, void *, short) = rec->fn;
+        fn((char *)obj + off, 3, (void *)fn, off);
+        *(void **)((char *)this + 0x104) = 0;
+    }
+    obj = *(void **)((char *)this + 0xC0);
+    if (obj != 0) {
+        register DeleteRec *rec __asm__("a2") =
+            (DeleteRec *)((char *)(*(void **)((char *)obj + 4)) + 0x50);
+        short off = rec->offset;
+        void (*fn)(void *, int, void *, short) = rec->fn;
+        fn((char *)obj + off, 3, (void *)fn, off);
+        *(void **)((char *)this + 0xC0) = 0;
+    }
+}
 
 void eRoom::RemoveVolume(eVolume *volume) {
     ClearRoomVolumeList(volume);
