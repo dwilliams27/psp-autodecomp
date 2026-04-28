@@ -4,6 +4,8 @@
 
 extern char eShadowvirtualtable[];
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -11,13 +13,10 @@ public:
     void End(void);
 };
 
-void eDynamicGeom___dtor_eDynamicGeom_void(void *, int);
-void *cMemPool_GetPoolFromPtr(void *);
-
-struct DeleteRecord {
+struct AllocRecord {
     short offset;
     short _pad;
-    void (*fn)(void *, void *);
+    void *(*fn)(void *, int, int, int, int);
 };
 
 // eShadow::eShadow(cBase *)
@@ -58,24 +57,23 @@ void eShadow::Update(cTimeValue) {
 }
 
 // eShadow::~eShadow(void)
-extern "C" {
-
-void eShadow___dtor_eShadow_void(eShadow *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eShadowvirtualtable;
-        eDynamicGeom___dtor_eDynamicGeom_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
+eShadow::~eShadow() {
+    *(void **)((char *)this + 4) = eShadowvirtualtable;
 }
 
+cBase *eShadow::New(cMemPool *pool, cBase *parent) {
+    eShadow *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRecord *rec = (AllocRecord *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eShadow *obj = (eShadow *)rec->fn(base, 0xF0, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) eShadow(parent);
+        result = obj;
+    }
+    return (cBase *)result;
 }
