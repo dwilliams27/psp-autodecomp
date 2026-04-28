@@ -61,6 +61,7 @@ public:
     gcDoUISetFont(cBase *);
     ~gcDoUISetFont();
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -71,6 +72,38 @@ public:
 };
 
 extern char gcDoUISetFontvirtualtable[];
+void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
+void gcDesiredUIWidgetHelper_ctor(void *, int);
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+// ── gcDoUISetFont::New @ 0x0030f288 ──
+cBase *gcDoUISetFont::New(cMemPool *pool, cBase *parent) {
+    gcDoUISetFont *result = 0;
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoUISetFont *obj = (gcDoUISetFont *)entry->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        gcAction__gcAction_cBaseptr__0012F4C8(obj, parent);
+        ((void **)obj)[1] = gcDoUISetFontvirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 0xC, 1);
+        *(int *)((char *)obj + 0x18) = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ── gcDoUISetFont::Write @ 0x0030f438 ──
 void gcDoUISetFont::Write(cFile &file) const {

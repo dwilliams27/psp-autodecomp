@@ -1,6 +1,7 @@
 #include "cBase.h"
 
 class cFile;
+class cMemPool;
 
 class cWriteBlock {
 public:
@@ -16,6 +17,7 @@ struct gcDesiredUIWidgetHelper {
     int _c;
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 class gcDoUISetFocus {
@@ -23,13 +25,48 @@ public:
     void GetText(char *) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 void cStrAppend(char *, const char *, ...);
 void gcAction_Write(const gcDoUISetFocus *, cFile &);
 gcDoUISetFocus *dcast(const cBase *);
+void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
+void gcDesiredUIWidgetHelper_ctor(void *, int);
 
+extern char gcDoUISetFocusvirtualtable[];
 extern const char gcDoUISetFocus_fmt[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+// 0x0030c580, 152B
+cBase *gcDoUISetFocus::New(cMemPool *pool, cBase *parent) {
+    gcDoUISetFocus *result = 0;
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoUISetFocus *obj = (gcDoUISetFocus *)entry->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        gcAction__gcAction_cBaseptr__0012F4C8(obj, parent);
+        ((void **)obj)[1] = gcDoUISetFocusvirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 0xC, 1);
+        *(unsigned char *)((char *)obj + 0x18) = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // 0x0030ca34, 72B
 void gcDoUISetFocus::GetText(char *buf) const {
@@ -64,4 +101,12 @@ void gcDoUISetFocus::AssignCopy(const cBase *other) {
     *d1 = *s1;
     *d2 = *s2;
     *(unsigned char *)((char *)this + 0x18) = *(const unsigned char *)((char *)src + 0x18);
+}
+
+// 0x0030ca7c, 128B
+void gcDoUISetFocus::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
