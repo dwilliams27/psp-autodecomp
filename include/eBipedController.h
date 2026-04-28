@@ -2,12 +2,20 @@
 #define EBIPEDCONTROLLER_H
 
 class mVec3;
+class cBase;
+class cFile;
+class cMemPool;
 class eGeom;
 class eContact;
 class eContactCollector;
 
 class eBipedController {
 public:
+    static cBase *New(cMemPool *, cBase *);
+
+    int Read(cFile &, cMemPool *);
+
+    void ApplyImpulse(int, const mVec3 &, const mVec3 &);
     void ApplyForce(int, const mVec3 &, const mVec3 &);
     void ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &);
     void ApplyPositionedForce(int, const mVec3 &, const mVec3 &);
