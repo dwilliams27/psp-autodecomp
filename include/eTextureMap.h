@@ -24,6 +24,8 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void Write(cFile &) const;
+    static eProjectedModelMtl *New(cMemPool *, cBase *);
 };
 
 class eCamera;
