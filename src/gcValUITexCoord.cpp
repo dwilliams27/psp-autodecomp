@@ -1,0 +1,92 @@
+// gcValUITexCoord — gcAll_psp.obj
+// Decompiled functions:
+//   0x0036655c  gcValUITexCoord::AssignCopy(const cBase *)            (112B)
+//   0x003670f0  gcValUITexCoord::~gcValUITexCoord(void)               (100B)
+//
+// Class layout (36 bytes, alloc size 0x24):
+//   [0x00] mParent (cBase *)             ─┐ gcLValue base
+//   [0x04] mVtable                        ┘
+//   [0x08] mHelper (gcDesiredUIWidgetHelper, 12 bytes)
+//   [0x14] mField14 (int)
+//   [0x18] mField18 (int)
+//   [0x1C] mField1C (bool)
+//   [0x20] mField20 (float)
+
+class cBase;
+class cMemPool;
+
+template <class T> T *dcast(const cBase *);
+
+extern char cBaseclassdesc[];   // @ 0x37E6A8
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char  pad[0x1C];
+    char *allocTable;
+};
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
+
+class gcValUITexCoord {
+public:
+    cBase *m_parent;     // 0x00
+    void  *m_vtable;     // 0x04
+    int    m_helper[3];  // 0x08, 0x0C, 0x10
+    int    mField14;     // 0x14
+    int    mField18;     // 0x18
+    bool   mField1C;     // 0x1C
+    float  mField20;     // 0x20
+
+    void AssignCopy(const cBase *);
+    ~gcValUITexCoord();
+
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec =
+            (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
+};
+
+// ============================================================
+// 0x0036655c — AssignCopy(const cBase *)
+// ============================================================
+struct cHandle {
+    int mId;
+};
+
+struct gcDesiredUIWidgetHelperData {
+    int mField0;
+    cHandle mField4;
+    unsigned int mField8;
+};
+
+void gcValUITexCoord::AssignCopy(const cBase *base) {
+    gcValUITexCoord *other = dcast<gcValUITexCoord>(base);
+    __asm__ volatile("" ::: "memory");
+    gcDesiredUIWidgetHelperData *dst_h = (gcDesiredUIWidgetHelperData *)((char *)this + 8);
+    const gcDesiredUIWidgetHelperData *src_h = (const gcDesiredUIWidgetHelperData *)((const char *)other + 8);
+    dst_h->mField4 = src_h->mField4;
+    dst_h->mField0 = src_h->mField0;
+    dst_h->mField8 = src_h->mField8;
+    *(int *)((char *)this + 0x14) = *(const int *)((char *)other + 0x14);
+    *(int *)((char *)this + 0x18) = *(const int *)((char *)other + 0x18);
+    *(unsigned char *)((char *)this + 0x1C) = *(const unsigned char *)((char *)other + 0x1C);
+    *(float *)((char *)this + 0x20) = *(const float *)((char *)other + 0x20);
+}
+
+// ============================================================
+// 0x003670f0 — ~gcValUITexCoord(void)  (deleting destructor)
+// ============================================================
+gcValUITexCoord::~gcValUITexCoord() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
