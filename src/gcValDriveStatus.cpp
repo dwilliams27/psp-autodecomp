@@ -4,6 +4,7 @@
 //   0x00325b40  New(cMemPool *, cBase *) static
 //   0x00325ce4  Write(cFile &) const
 //   0x00325d3c  Read(cFile &, cMemPool *)
+//   0x00325fdc  ~gcValDriveStatus(void)
 //
 // Class layout (12 bytes, alloc size 0xC):
 //   [0x00] parent (cBase *)
@@ -13,6 +14,11 @@
 class cBase;
 class cFile;
 class cMemPool;
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -42,22 +48,9 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
-class gcValDriveStatus : public gcValue {
-public:
-    int pad0;
-    int pad4;
-    int f8;
-
-    void AssignCopy(const cBase *);
-    void Write(cFile &) const;
-    int Read(cFile &, cMemPool *);
-    static cBase *New(cMemPool *, cBase *);
-};
-
-gcValDriveStatus *dcast(const cBase *);
-
 extern char gcValDriveStatusvirtualtable[];
 extern char gcValDriveStatus_cBase_vtable[];
+extern char cBaseclassdesc[];                                   // @ 0x37E6A8
 
 struct PoolBlock {
     char pad[0x1C];
@@ -69,6 +62,32 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+class gcValDriveStatus : public gcValue {
+public:
+    int pad0;
+    int pad4;
+    int f8;
+
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    static cBase *New(cMemPool *, cBase *);
+    ~gcValDriveStatus();
+
+    // Inlined into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
+};
+
+gcValDriveStatus *dcast(const cBase *);
 
 // ── gcValDriveStatus::AssignCopy(const cBase *) @ 0x00325B10 ──
 void gcValDriveStatus::AssignCopy(const cBase *base) {
@@ -118,4 +137,13 @@ success:
         cFileSystem::Read(h, (char *)this + 8, 4);
     }
     return result;
+}
+
+// ── gcValDriveStatus::~gcValDriveStatus(void) @ 0x00325FDC, 100B ──
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard and
+// the deleting-tail dispatch through operator delete on (flag & 1). Body
+// resets the classdesc pointer at offset 4 to the parent (cBase) classdesc.
+gcValDriveStatus::~gcValDriveStatus() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }

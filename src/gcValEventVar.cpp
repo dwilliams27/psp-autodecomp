@@ -4,11 +4,17 @@
 //   gcValEventVar::AssignCopy(const cBase *)             @ 0x0034282c  (gcAll_psp.obj)
 //   gcValEventVar::Write(cFile &) const                  @ 0x00342aac  (gcAll_psp.obj)
 //   gcValEventVar::New(cMemPool *, cBase *) static       @ 0x00342864  (gcAll_psp.obj)
+//   gcValEventVar::~gcValEventVar(void)                  @ 0x00342a48  (gcAll_psp.obj)
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cMemPool;
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -59,9 +65,21 @@ public:
         mField08 = 1;
         mFieldC = 0;
     }
+    ~gcValEventVar();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static gcValEventVar *New(cMemPool *, cBase *);
+
+    // Inlined into the deleting-destructor variant.
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 template <class T> T *dcast(const cBase *);
@@ -80,6 +98,15 @@ void gcValEventVar::Write(cFile &file) const {
     wb.Write(mField08);
     wb.Write(mFieldC);
     wb.End();
+}
+
+// ── ~gcValEventVar ──  @ 0x00342a48, 100B
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard and
+// the deleting-tail dispatch through operator delete on (flag & 1). Body
+// resets the classdesc pointer at offset 4 to the parent (cBase) classdesc.
+gcValEventVar::~gcValEventVar() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 // ── New ──  @ 0x00342864, 144B
