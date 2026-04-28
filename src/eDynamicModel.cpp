@@ -127,6 +127,8 @@ void *eDynamicModel::GetAnimationState(void) const {
     return ret;
 }
 
+#pragma control sched=2
+
 void eDynamicModel::CastRay(const eCollisionInfo &info, const mRay &ray, mCollideHit *hit) const {
     char *shape = ((char **)&info)[1];
     int *entry = (int *)(((char **)shape)[1] + 0x98);

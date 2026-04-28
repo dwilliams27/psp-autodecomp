@@ -64,6 +64,11 @@ public:
     static void Read(void *handle, void *buf, unsigned int size);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *, cBase *(*)(cMemPool *, cBase *), const char *, const char *, unsigned int);
+};
+
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcValue {
@@ -83,6 +88,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     float Evaluate(void) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -100,11 +106,13 @@ gcValLobbyConnectionStatus *dcast(const cBase *);
 
 extern char gcValLobbyConnectionStatusvirtualtable[];
 extern char gcValLobbyConnectionStatus_cBase_vtable[];
+extern const char gcValLobbyConnectionStatus_base_name[];
+extern const char gcValLobbyConnectionStatus_base_desc[];
 
 // ── gcValLobbyConnectionStatus::AssignCopy(const cBase *) @ 0x003478F8 ──
 void gcValLobbyConnectionStatus::AssignCopy(const cBase *base) {
     gcValLobbyConnectionStatus *other = dcast(base);
-    this->f8 = other->f8;
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
 }
 
 // ── gcValLobbyConnectionStatus::New(cMemPool *, cBase *) static @ 0x00347928 ──
@@ -131,8 +139,30 @@ cBase *gcValLobbyConnectionStatus::New(cMemPool *pool, cBase *parent) {
 void gcValLobbyConnectionStatus::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcValue *)this)->Write(file);
-    wb.Write(this->f8);
+    wb.Write(*(int *)((char *)this + 8));
     wb.End();
+}
+
+// ── gcValLobbyConnectionStatus::GetType(void) const @ 0x003479B4 ──
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValLobbyConnectionStatus;
+
+const cType *gcValLobbyConnectionStatus::GetType(void) const {
+    if (!type_gcValLobbyConnectionStatus) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(gcValLobbyConnectionStatus_base_name, gcValLobbyConnectionStatus_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+        }
+        type_gcValLobbyConnectionStatus = cType::InitializeType(0, 0, 0x182, type_value, gcValLobbyConnectionStatus::New, 0, 0, 0);
+    }
+    return type_gcValLobbyConnectionStatus;
 }
 
 // ── gcValLobbyConnectionStatus::Read(cFile &, cMemPool *) @ 0x00347B24 ──
