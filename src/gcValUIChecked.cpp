@@ -1,6 +1,8 @@
 // gcValUIChecked — decompiled from gcAll_psp.obj
 // Methods in this file:
+//   0x0036164c  AssignCopy(const cBase *)
 //   0x0036169c  New(cMemPool *, cBase *) static
+//   0x00361cac  GetText(char *) const
 //   0x00361cfc  Write(cFile &) const
 //   0x00361d54  Read(cFile &, cMemPool *)
 //   0x00361e1c  VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)
@@ -37,8 +39,12 @@ struct gcDesiredUIWidgetHelper {
     int _c;
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
+
+void cStrCat(char *, const char *);
+extern const char gcValUIChecked_suffix[];
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 
@@ -73,6 +79,8 @@ public:
     ~gcValUIChecked();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void GetText(char *) const;
+    void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 
@@ -145,6 +153,35 @@ success:
 // ── gcValUIChecked::~gcValUIChecked(void) @ 0x00361e9c ──
 gcValUIChecked::~gcValUIChecked() {
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+// ── gcValUIChecked::GetText(char *) const @ 0x00361cac ──
+void gcValUIChecked::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+    cStrCat(buf, gcValUIChecked_suffix);
+}
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+struct gcDesiredUIWidgetHelperData {
+    int mField0;
+    cHandle mField4;
+    unsigned int mField8;
+};
+
+// ── gcValUIChecked::AssignCopy(const cBase *) @ 0x0036164c ──
+void gcValUIChecked::AssignCopy(const cBase *base) {
+    gcValUIChecked *other = dcast<gcValUIChecked>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
 }
 
 // ── gcValUIChecked::VisitReferences @ 0x00361e1c ──
