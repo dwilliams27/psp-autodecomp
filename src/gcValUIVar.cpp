@@ -23,6 +23,17 @@ public:
     void End(void);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
@@ -33,9 +44,12 @@ struct gcDesiredUIWidgetHelper {
 };
 
 void cStrAppend(char *, const char *, ...);
+void gcDesiredUIWidgetHelper_ctor(void *, int);
 extern const char gcValUIVar_fmt[];
 extern const char gcValUIVar_str2[];
 
+extern char gcLValuevirtualtable[];
+extern char gcValUIVarvirtualtable[];
 extern char cBaseclassdesc[];
 
 struct DeleteRecord {
@@ -61,6 +75,7 @@ public:
     gcDesiredUIWidgetHelper mHelper;
     int mField14;
 
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -75,6 +90,25 @@ public:
         fn(block + off, p);
     }
 };
+
+// ── gcValUIVar::New @ 0x00368294 ──
+cBase *gcValUIVar::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcValUIVar *result = 0;
+    gcValUIVar *obj = (gcValUIVar *)e->fn(base, 0x18, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = gcLValuevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValUIVarvirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 8, 1);
+        obj->mField14 = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ── gcValUIVar::Write @ 0x00368484 ──
 void gcValUIVar::Write(cFile &file) const {
