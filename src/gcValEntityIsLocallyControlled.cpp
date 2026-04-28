@@ -2,24 +2,88 @@
 // Sections are independent.
 
 class cBase;
+class cFile;
 
 template <class T> T *dcast(const cBase *);
 
-// ── gcValEntityIsLocallyControlled::AssignCopy(const cBase *) @ 0x00334A64 ──
-class gcDesiredEntity {
+// ── gcValEntityIsLocallyControlled section ──
+class cWriteBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    cWriteBlock(cFile &, unsigned int);
+    void End(void);
+};
+
+struct cTypeMethod {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+class cType {
+public:
+    char _p0[0x28];
+    cTypeMethod write_m;    // 0x28
+    cTypeMethod read_m;     // 0x30
+    char _p1[0x40];         // to 0x78
+    cTypeMethod text_m;     // 0x78
+};
+
+class gcDesiredObject {
+public:
+    int _parent;
+    cType *mType;
+};
+
+class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
 };
 
-class gcValEntityIsLocallyControlled {
+class gcValue {
 public:
-    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
 };
 
+class gcValEntityIsLocallyControlled : public gcValue {
+public:
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+    void GetText(char *) const;
+};
+
+extern "C" void cStrCat(char *, const char *);
+
+extern const char gcValEntityIsLocallyControlled_text[];   // @ 0x36F334
+
+// ── gcValEntityIsLocallyControlled::AssignCopy(const cBase *) @ 0x00334A64 ──
 void gcValEntityIsLocallyControlled::AssignCopy(const cBase *base) {
     gcValEntityIsLocallyControlled *other = dcast<gcValEntityIsLocallyControlled>(base);
     gcDesiredEntity &srcDesired = *(gcDesiredEntity *)((char *)other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(srcDesired);
+}
+
+// ── gcValEntityIsLocallyControlled::Write(cFile &) const @ 0x00334CB0 (108B) ──
+void gcValEntityIsLocallyControlled::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcValue::Write(file);
+    const cTypeMethod *e =
+        (const cTypeMethod *)((char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 40);
+    char *base = (char *)this + 8;
+    typedef void (*WriteFn)(void *, cFile *);
+    ((WriteFn)e->fn)(base + e->offset, wb.file);
+    wb.End();
+}
+
+// ── gcValEntityIsLocallyControlled::GetText(char *) const @ 0x00334E58 (80B) ──
+void gcValEntityIsLocallyControlled::GetText(char *buf) const {
+    const cTypeMethod *e =
+        (const cTypeMethod *)((char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 120);
+    char *base = (char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)e->fn)(base + e->offset, buf);
+    cStrCat(buf, gcValEntityIsLocallyControlled_text);
 }
 
 // ── gcValStringIndex::AssignCopy(const cBase *) @ 0x0035E880 ──
