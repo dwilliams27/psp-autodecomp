@@ -3,6 +3,8 @@
 //   0x0034e4fc  New(cMemPool *, cBase *) static
 //   0x0034e69c  Write(cFile &) const
 //   0x0034e6f4  Read(cFile &, cMemPool *)
+//   0x0034e7c4  Evaluate(void) const
+//   0x0034e860  ~gcValLobbySessionStatus(void)
 //
 // Class layout (12 bytes, alloc size 0xC):
 //   [0x00] mParent (cBase *)
@@ -11,7 +13,35 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
+
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 class cWriteBlock {
 public:
@@ -50,20 +80,21 @@ class gcValLobbySessionStatus : public gcValue {
 public:
     int mField8;
 
+    ~gcValLobbySessionStatus();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
-};
 
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 // ── gcValLobbySessionStatus::New(cMemPool *, cBase *) static @ 0x0034e4fc ──
@@ -108,4 +139,22 @@ success:
         cFileSystem::Read(h, (char *)this + 8, 4);
     }
     return result;
+}
+
+// ── gcValLobbySessionStatus::Evaluate(void) const @ 0x0034e7c4 ──
+float gcValLobbySessionStatus::Evaluate(void) const {
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby == 0) {
+        return 0.0f;
+    }
+    DispatchEntry *e = (DispatchEntry *)(*(char **)lobby + 0x80);
+    short off = e->offset;
+    int (*fn)(void *) = e->fn;
+    int status = fn((char *)lobby + off);
+    return (float)(this->mField8 == status);
+}
+
+// ── gcValLobbySessionStatus::~gcValLobbySessionStatus(void) @ 0x0034e860 ──
+gcValLobbySessionStatus::~gcValLobbySessionStatus() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
