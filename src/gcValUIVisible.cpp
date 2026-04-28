@@ -33,6 +33,7 @@ struct gcDesiredUIWidgetHelper {
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    void GetText(char *) const;
 };
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
@@ -80,6 +81,8 @@ public:
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
     ~gcValUIVisible();
+    void AssignCopy(const cBase *);
+    void GetText(char *) const;
 
     static void operator delete(void *p) {
         cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
@@ -143,4 +146,29 @@ success:
 // ── gcValUIVisible::~gcValUIVisible(void) @ 0x0036A1A4 ──
 gcValUIVisible::~gcValUIVisible() {
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+template <class T> T *dcast(const cBase *);
+
+extern void cStrCat(char *, const char *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcValUIVisible::AssignCopy(const cBase *) @ 0x00369AF4 ──
+void gcValUIVisible::AssignCopy(const cBase *base) {
+    gcValUIVisible *other = dcast<gcValUIVisible>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+}
+
+// ── gcValUIVisible::GetText(char *) const @ 0x0036A0D4 ──
+void gcValUIVisible::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+    cStrCat(buf, (const char *)0x36F810);
 }
