@@ -6,6 +6,13 @@
 
 class cBase;
 class cFile;
+class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 class gcStringTable;
 class gcString;
 
@@ -76,9 +83,27 @@ public:
     cBaseArray mArray0;                                          // 0x10
     cBaseArray mArray1;                                          // 0x18
 
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void GetName(char *) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+};
+
+extern char gcFormatStringvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4C4;
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
 };
 
 void gcFormatString::AssignCopy(const cBase *src) {
@@ -88,6 +113,43 @@ void gcFormatString::AssignCopy(const cBase *src) {
     this->mPair.mSubHandle = o->mPair.mSubHandle;
     this->mArray0 = o->mArray0;
     this->mArray1 = o->mArray1;
+}
+
+cBase *gcFormatString::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    void *base = (char *)block + entry->offset;
+    gcFormatString *result = 0;
+    gcFormatString *obj = (gcFormatString *)entry->fn(base, 0x20, 4, 0, 0);
+    if (obj != 0) {
+        ((int *)obj)[1] = 0x37E6A8;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcFormatStringvirtualtable;
+        ((int *)obj)[2] = 0;
+        ((int *)obj)[3] = 0;
+        ((int *)obj)[4] = 0;
+        ((gcFormatString **)obj)[5] = obj;
+        ((int *)obj)[6] = 0;
+        ((gcFormatString **)obj)[7] = obj;
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+const cType *gcFormatString::GetType(void) const {
+    if (D_0009F4C4 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894, (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC, 0, 0, 0, 0);
+        }
+        D_0009F4C4 = cType::InitializeType(0, 0, 0xEA, D_0009F454,
+                                           gcFormatString::New, 0, 0, 0);
+    }
+    return D_0009F4C4;
 }
 
 void gcFormatString::Write(cFile &file) const {
