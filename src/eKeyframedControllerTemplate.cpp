@@ -1,6 +1,17 @@
 #include "cBase.h"
 #include "cFile.h"
-#include "eKeyframedControllerTemplate.h"
+
+class eMesh;
+
+inline void *operator new(unsigned int, void *p) {
+    return p;
+}
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
 
 class cMemPool {
 public:
@@ -14,6 +25,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cBaseArray {
 public:
     int mCount;
@@ -21,13 +41,12 @@ public:
     cBaseArray &operator=(const cBaseArray &);
 };
 
-extern "C" void ePhysicsControllerTemplate_ePhysicsControllerTemplate(void *, cBase *);
-extern "C" void ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_void(void *, int);
-extern "C" void eKeyframedControllerTemplate_eKeyframedControllerTemplate(void *, cBase *);
-
 class ePhysicsControllerTemplate {
 public:
+    ePhysicsControllerTemplate(cBase *);
+    ~ePhysicsControllerTemplate();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern char eKeyframedControllerTemplateclassdesc[];
@@ -53,6 +72,26 @@ struct AllocEntry {
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
+};
+
+class eKeyframedControllerTemplate : public ePhysicsControllerTemplate {
+public:
+    eKeyframedControllerTemplate(cBase *);
+    ~eKeyframedControllerTemplate();
+    void SetMesh(cHandleT<eMesh>);
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static eKeyframedControllerTemplate *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = (cMemPool *)cMemPool::GetPoolFromPtr(p);
+        void *block = *(void **)((char *)pool + 0x24);
+        __asm__ volatile("" ::: "memory");
+        DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        short off = rec->offset;
+        rec->fn((char *)block + off, p);
+    }
 };
 
 // ── SetMesh (already matched) ──
@@ -89,7 +128,7 @@ eKeyframedControllerTemplate *eKeyframedControllerTemplate::New(cMemPool *pool, 
     eKeyframedControllerTemplate *obj =
         (eKeyframedControllerTemplate *)entry->fn(base, 0x28, 4, 0, 0);
     if (obj != 0) {
-        eKeyframedControllerTemplate_eKeyframedControllerTemplate(obj, parent);
+        new (obj) eKeyframedControllerTemplate(parent);
         result = obj;
     }
     return result;
@@ -97,8 +136,9 @@ eKeyframedControllerTemplate *eKeyframedControllerTemplate::New(cMemPool *pool, 
 
 // ── Constructor (sched=1) ──
 
-eKeyframedControllerTemplate::eKeyframedControllerTemplate(cBase *b) {
-    ePhysicsControllerTemplate_ePhysicsControllerTemplate(this, b);
+eKeyframedControllerTemplate::eKeyframedControllerTemplate(cBase *b)
+    : ePhysicsControllerTemplate(b)
+{
     ((void **)this)[1] = eKeyframedControllerTemplateclassdesc;
 }
 
@@ -110,21 +150,21 @@ void eKeyframedControllerTemplate::Write(cFile &file) const {
     wb.End();
 }
 
+// ── Read (sched=1) ──
+
+int eKeyframedControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->ePhysicsControllerTemplate::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // ── Destructor (sched=1) ──
 
-extern "C" void eKeyframedControllerTemplate___dtor_eKeyframedControllerTemplate_void(
-    void *self, int flags)
-{
-    if (self != 0) {
-        ((void **)self)[1] = eKeyframedControllerTemplateclassdesc;
-        ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            __asm__ volatile("" ::: "memory");
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
+eKeyframedControllerTemplate::~eKeyframedControllerTemplate() {
+    ((void **)this)[1] = eKeyframedControllerTemplateclassdesc;
 }
