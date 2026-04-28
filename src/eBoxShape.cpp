@@ -11,6 +11,27 @@
 class eConvexHullShape;
 class cFile;
 class cBase;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
 
 class cWriteBlock {
 public:
@@ -21,6 +42,10 @@ public:
 };
 
 extern char eBoxShapevirtualtable[];
+
+inline void *operator new(unsigned int, void *p) {
+    return p;
+}
 
 int eBoxShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::BoxBox(*this, *shape, ocs1, ocs2, info);
@@ -61,6 +86,42 @@ int eBoxShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs
 eBoxShape::eBoxShape(cBase *parent) : eShape(parent) {
     *(void **)((char *)this + 4) = eBoxShapevirtualtable;
 }
+
+// eBoxShape::~eBoxShape(void) — 0x0006d4e8
+#pragma control sched=1
+inline void eBoxShape::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+    short off = rec->offset;
+    __asm__ volatile("" ::: "memory");
+    char *base = block + off;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(base, p);
+}
+
+eBoxShape::~eBoxShape() {
+    *(void **)((char *)this + 4) = eBoxShapevirtualtable;
+}
+
+// eBoxShape::New(cMemPool *, cBase *) static — 0x0020a394
+eBoxShape *eBoxShape::New(cMemPool *pool, cBase *parent) {
+    eBoxShape *result = 0;
+    __asm__ volatile("" ::: "memory");
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    __asm__ volatile("" ::: "memory");
+    eBoxShape *obj = (eBoxShape *)entry->fn(base, 0x90, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) eBoxShape(parent);
+        result = obj;
+    }
+    return result;
+}
+#pragma control sched=2
 
 // eBoxShape::Write(cFile &) const — 0x0006d368
 #pragma control sched=1
