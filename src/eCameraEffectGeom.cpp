@@ -1,6 +1,9 @@
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 extern char eCameraEffectGeomvirtualtable[];
 extern char eGeomvirtualtable[];
@@ -23,8 +26,6 @@ public:
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
-void *cMemPool_GetPoolFromPtr(const void *);
-
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -59,6 +60,7 @@ static cType *type_eCameraEffectGeom;            // 0x41004
 class eGeom {
 public:
     eGeom(cBase *);
+    ~eGeom();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -66,10 +68,20 @@ public:
 class eCameraEffectGeom : public eGeom {
 public:
     eCameraEffectGeom(cBase *parent);
+    ~eCameraEffectGeom();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static eCameraEffectGeom *New(cMemPool *pool, cBase *parent);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // ── eCameraEffectGeom::Write ── 0x0002d148
@@ -127,19 +139,6 @@ const cType *eCameraEffectGeom::GetType(void) const {
 }
 
 // ── eCameraEffectGeom::~eCameraEffectGeom ── 0x001e3058
-extern "C" void eCameraEffectGeom___dtor_eCameraEffectGeom_void(eCameraEffectGeom *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eCameraEffectGeomvirtualtable;
-        eGeom___dtor_eGeom_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
+eCameraEffectGeom::~eCameraEffectGeom() {
+    *(void **)((char *)this + 4) = eCameraEffectGeomvirtualtable;
 }
