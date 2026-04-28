@@ -1,16 +1,18 @@
-#include "eConfigBase.h"
-
 class cBase;
 class cMemPool;
+class cType;
 
-extern "C" {
-    int ePhysics__GetPhysicsMemPoolSize_voidstatic(void);
-    void eConfigBase__eConfigBase_cBaseptr(void *self, cBase *parent);
-}
-
-class cMemPool_shim {
+class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *);
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct AllocRec {
@@ -24,6 +26,38 @@ struct DeleteRec {
     short _pad;
     void (*fn)(void *, void *);
 };
+
+class eConfigBase {
+public:
+    eConfigBase(cBase *);
+    ~eConfigBase();
+
+    const char *GetImageFileFormatName(void) const;
+    int GetPhysicsMemPoolSize(void) const;
+    const cType *GetType(void) const;
+    unsigned int GetAudioFrequency(bool) const;
+    unsigned int GetAudioBytesPerSecond(unsigned int) const;
+    static int FindResolution(int, int);
+    static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+};
+
+extern "C" {
+    int ePhysics__GetPhysicsMemPoolSize_voidstatic(void);
+    void eConfigBase__eConfigBase_cBaseptr(void *self, cBase *parent);
+    int cGetCurrentPlatform(void);
+}
+
+extern cType *D_000385DC;
+extern cType *D_00040E78;
 
 // ── eConfigBase::GetPhysicsMemPoolSize(void) const @ 0x0001cb18 ──
 int eConfigBase::GetPhysicsMemPoolSize(void) const {
@@ -80,22 +114,60 @@ cBase *eConfigBase::New(cMemPool *pool, cBase *parent) {
 }
 
 // ── eConfigBase::~eConfigBase(void) @ 0x0001c918 ──
-extern "C" {
-
-void eConfigBase___dtor_eConfigBase_void(void *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = (void *)0x37F8B0;
-        *(int *)0x37D0C8 = 0;
-        *(void **)((char *)self + 4) = (void *)0x37E6A8;
-        if (flags & 1) {
-            void *pool = cMemPool_shim::GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRec *rec = (DeleteRec *)(allocTable + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
+eConfigBase::~eConfigBase() {
+    *(void **)((char *)this + 4) = (void *)0x37F8B0;
+    *(eConfigBase **)0x37D0C8 = 0;
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
 }
 
+// ── eConfigBase::GetType(void) const @ 0x001df400 ──
+const cType *eConfigBase::GetType(void) const {
+    if (D_00040E78 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                               (const char *)0x36CD7C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00040E78 = cType::InitializeType(0, 0, 0x28B, D_000385DC,
+                                           &eConfigBase::New, 0, 0, 0);
+    }
+    return D_00040E78;
+}
+
+// ── eConfigBase::GetAudioFrequency(bool) const @ 0x001df4a0 ──
+unsigned int eConfigBase::GetAudioFrequency(bool high) const {
+    int platform = cGetCurrentPlatform();
+    unsigned int flag = (unsigned char)high;
+    flag = (unsigned char)flag;
+    unsigned int result;
+    switch (platform) {
+    default:
+        result = 0xAC44;
+        break;
+    case 1:
+        result = 0x7D00;
+        break;
+    case 2:
+        result = 0xAC44;
+        break;
+    case 3:
+        result = 0xAC44;
+        break;
+    case 4:
+        result = 0xAC44;
+        break;
+    case 5:
+        result = 0xAC44;
+        break;
+    case 6:
+        result = flag ? 0xBB80 : 0xAC44;
+        break;
+    case 7:
+        result = 0xAC44;
+        break;
+    case 8:
+        result = 0x7D00;
+        break;
+    }
+    return result;
 }
