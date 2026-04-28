@@ -37,8 +37,12 @@ struct gcDesiredUIWidgetHelper {
     int _c;
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
+
+void cStrCat(char *, const char *);
+extern const char gcValUIEnabled_str2[];
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 
@@ -73,6 +77,7 @@ public:
     ~gcValUIEnabled();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 
@@ -139,6 +144,15 @@ int gcValUIEnabled::Read(cFile &file, cMemPool *pool) {
 success:
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(rb);
     return result;
+}
+
+// ── gcValUIEnabled::GetText(char *) const @ 0x003624e0 ──
+void gcValUIEnabled::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+    cStrCat(buf, gcValUIEnabled_str2);
 }
 
 // ── gcValUIEnabled::~gcValUIEnabled(void) @ 0x003625b0 ──
