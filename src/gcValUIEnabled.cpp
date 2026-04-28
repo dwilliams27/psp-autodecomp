@@ -2,7 +2,9 @@
 // Methods in this file:
 //   0x00361f50  New(cMemPool *, cBase *) static
 //   0x0036213c  Write(cFile &) const
+//   0x00362194  Read(cFile &, cMemPool *)
 //   0x00362530  VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)
+//   0x003625b0  ~gcValUIEnabled(void)
 //
 // Class layout (20 bytes, alloc size 0x14):
 //   [0x00] mParent (cBase *)
@@ -20,11 +22,21 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -32,6 +44,18 @@ void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 extern char gcLValuevirtualtable[];
 extern char gcValUIEnabledvirtualtable[];
+extern char cBaseclassdesc[];
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
 
 class gcLValue {
 public:
@@ -39,15 +63,27 @@ public:
     void *mVtable;
     gcLValue(cBase *parent);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValUIEnabled : public gcLValue {
 public:
     gcDesiredUIWidgetHelper mHelper;
 
+    ~gcValUIEnabled();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 inline gcLValue::gcLValue(cBase *parent) {
@@ -90,6 +126,24 @@ void gcValUIEnabled::Write(cFile &file) const {
     gcLValue::Write(file);
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Write(wb);
     wb.End();
+}
+
+// ── gcValUIEnabled::Read(cFile &, cMemPool *) @ 0x00362194 ──
+int gcValUIEnabled::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 2 && ((gcLValue *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(rb);
+    return result;
+}
+
+// ── gcValUIEnabled::~gcValUIEnabled(void) @ 0x003625b0 ──
+gcValUIEnabled::~gcValUIEnabled() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 // ── gcValUIEnabled::VisitReferences @ 0x00362530 ──
