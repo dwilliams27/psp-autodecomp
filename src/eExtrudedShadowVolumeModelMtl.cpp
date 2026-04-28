@@ -18,6 +18,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── Write ──
 
 void eExtrudedShadowVolumeModelMtl::Write(cFile &file) const {
@@ -40,31 +49,22 @@ eExtrudedShadowVolumeModelMtl::eExtrudedShadowVolumeModelMtl(cBase *parent) {
 
 // ── Destructor ──
 
-extern "C" void eShadowVolumeModelMtl___dtor_eShadowVolumeModelMtl_void(void *, int);
-extern "C" void *cMemPool_GetPoolFromPtr(void *);
+eExtrudedShadowVolumeModelMtl::~eExtrudedShadowVolumeModelMtl() {
+    *(void **)((char *)this + 4) = eExtrudedShadowVolumeModelMtlclassdesc;
+}
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
+// ── Read ──
 
-extern "C" void eExtrudedShadowVolumeModelMtl___dtor_eExtrudedShadowVolumeModelMtl_void(eExtrudedShadowVolumeModelMtl *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eExtrudedShadowVolumeModelMtlclassdesc;
-        eShadowVolumeModelMtl___dtor_eShadowVolumeModelMtl_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
+int eExtrudedShadowVolumeModelMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && eShadowVolumeModelMtl::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    CreateData();
+    return result;
 }
 
 // ── New ──

@@ -3,6 +3,12 @@
 
 #include "eRenderTarget.h"
 
+class cMemPool {
+public:
+    static float GetSizeScale(void);
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class eTextureMap : public eTexture {
 public:
     bool field_4C;
@@ -161,17 +167,37 @@ public:
 
 class eShadowVolumeModelMtl {
 public:
+    ~eShadowVolumeModelMtl();
     void PlatformFree(void);
     void CreateData(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void PlatformRead(cFile &, cMemPool *);
     static eShadowVolumeModelMtl *New(cMemPool *, cBase *);
 };
 
-class eExtrudedShadowVolumeModelMtl {
+class eExtrudedShadowVolumeModelMtl : public eShadowVolumeModelMtl {
 public:
     eExtrudedShadowVolumeModelMtl(cBase *);
+    ~eExtrudedShadowVolumeModelMtl();
+    static void operator delete(void *p) {
+        struct DeleteRecord {
+            short offset;
+            short pad;
+            void (*fn)(void *, void *);
+        };
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        void *block = ((void **)pool)[9];
+        char *allocTable = *(char **)((char *)block + 0x1C);
+        DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        void *base = (char *)block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
     void CreateData(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eExtrudedShadowVolumeModelMtl *New(cMemPool *, cBase *);
