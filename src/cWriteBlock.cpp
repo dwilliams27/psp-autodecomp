@@ -18,6 +18,7 @@ public:
     void Write(char);
     void Write(unsigned char);
     void Write(short);
+    void Write(float);
     void Write(int, const bool *);
     void Write(int, const char *);
     void Write(int, const unsigned char *);
@@ -61,6 +62,31 @@ void cWriteBlock::Write(short data) {
     }
     data = tmp;
     cFileSystem::Write(mFile->mHandle, &data, 2);
+}
+
+void cWriteBlock::Write(float data) {
+    unsigned int u = *(unsigned int *)&data;
+    if (gByteSwap) {
+        unsigned int hi = ((u & 0xFF000000) >> 24) | ((u & 0xFF0000) >> 8);
+        unsigned int lo = ((u & 0xFF00) << 8) | ((u & 0xFF) << 24);
+        u = hi | lo;
+    }
+    int bits = (int)u;
+    cFileSystem::Write(mFile->mHandle, &bits, 4);
+}
+
+void cWriteBlock::Write(int count, const short *data) {
+    if (!gByteSwap) {
+        cFileSystem::Write(mFile->mHandle, data, count * 2);
+    } else {
+        while (count > 0) {
+            int val = ((int)*data << 16) >> 16;
+            short tmp = (short)(((val & 0xff00) >> 8) | ((val & 0xff) << 8));
+            cFileSystem::Write(mFile->mHandle, &tmp, 2);
+            count--;
+            data++;
+        }
+    }
 }
 
 void cWriteBlock::Write(int count, const bool *data) {
