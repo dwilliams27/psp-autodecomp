@@ -4,6 +4,8 @@
 //   0x00347928  New(cMemPool *, cBase *) static
 //   0x00347ACC  Write(cFile &) const
 //   0x00347B24  Read(cFile &, cMemPool *)
+//   0x00347BF4  Evaluate(void) const
+//   0x00347CCC  ~gcValLobbyConnectionStatus(void)
 //
 // Class layout (12 bytes, alloc size 0xC):
 //   [0x00] parent (cBase *)
@@ -12,7 +14,35 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
+
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 class cWriteBlock {
 public:
@@ -48,27 +78,28 @@ public:
     int f8;
     int pad4;
 
+    ~gcValLobbyConnectionStatus();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 gcValLobbyConnectionStatus *dcast(const cBase *);
 
 extern char gcValLobbyConnectionStatusvirtualtable[];
 extern char gcValLobbyConnectionStatus_cBase_vtable[];
-
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
-};
 
 // ── gcValLobbyConnectionStatus::AssignCopy(const cBase *) @ 0x003478F8 ──
 void gcValLobbyConnectionStatus::AssignCopy(const cBase *base) {
@@ -118,4 +149,45 @@ success:
         cFileSystem::Read(h, (char *)this + 8, 4);
     }
     return result;
+}
+
+// ── gcValLobbyConnectionStatus::Evaluate(void) const @ 0x00347BF4 ──
+//
+// Returns 1.0f when the queried lobby connection status matches the
+// expected value stored at offset 8. Special-case: when the expected
+// value is 1, both lobby states 1 and 3 satisfy the predicate. The
+// goto labels at the bottom force SNC's block-layout pass to emit the
+// "lobby == 0" cold block before the "field8 != 1" cold block — that
+// matches the original codegen order (zero return at +0x74, neq
+// return at +0x88).
+float gcValLobbyConnectionStatus::Evaluate(void) const {
+    void *lobby = nwNetwork::GetLobby();
+    DispatchEntry *e;
+    short off;
+    int (*fn)(void *);
+    int status;
+    int field8;
+    if (lobby == 0) goto retZero;
+    e = (DispatchEntry *)(*(char **)lobby + 0x78);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    field8 = ((const int *)this)[2];
+    if (field8 != 1) goto retNeq;
+    return (float)((status == 1) | (status == 3));
+retZero:
+    return 0.0f;
+retNeq:
+    return (float)(field8 == status);
+}
+
+// ── gcValLobbyConnectionStatus::~gcValLobbyConnectionStatus(void) @ 0x00347CCC ──
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard,
+// the (in_chrg & 1) deleting-tail dispatch through the inline operator
+// delete, and the classdesc reset. Body just reverts the classdesc
+// pointer at offset 4 to cBase (no parent-class destructor in the chain
+// — gcValue has no destructor of its own).
+gcValLobbyConnectionStatus::~gcValLobbyConnectionStatus() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
