@@ -78,6 +78,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void GetText(char *) const;
+    void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 
@@ -158,6 +159,20 @@ void gcValUIEnabled::GetText(char *buf) const {
 // ── gcValUIEnabled::~gcValUIEnabled(void) @ 0x003625b0 ──
 gcValUIEnabled::~gcValUIEnabled() {
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcValUIEnabled::AssignCopy(const cBase *) @ 0x00361f00 ──
+void gcValUIEnabled::AssignCopy(const cBase *base) {
+    gcValUIEnabled *other = dcast<gcValUIEnabled>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
 }
 
 // ── gcValUIEnabled::VisitReferences @ 0x00362530 ──

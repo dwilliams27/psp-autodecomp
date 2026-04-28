@@ -73,6 +73,7 @@ public:
     ~gcValUIOpacity();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 
@@ -144,6 +145,20 @@ success:
 // ── gcValUIOpacity::~gcValUIOpacity(void) @ 0x00363c48 ──
 gcValUIOpacity::~gcValUIOpacity() {
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcValUIOpacity::AssignCopy(const cBase *) @ 0x0036352c ──
+void gcValUIOpacity::AssignCopy(const cBase *base) {
+    gcValUIOpacity *other = dcast<gcValUIOpacity>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
 }
 
 // ── gcValUIOpacity::VisitReferences @ 0x00363bc8 ──
