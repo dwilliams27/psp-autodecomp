@@ -24,6 +24,7 @@ public:
 class gcValCameraValue {
 public:
     ~gcValCameraValue(void);
+    static cBase *New(cMemPool *, cBase *);
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);

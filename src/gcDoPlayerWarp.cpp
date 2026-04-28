@@ -1,9 +1,22 @@
 #include "cBase.h"
 
 class cFile;
+class cMemPool;
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
 
 class gcDoPlayerWarp {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     float Evaluate(void) const;
     void GetText(char *) const;
@@ -23,8 +36,26 @@ public:
 };
 
 void cStrAppend(char *, const char *, ...);
+extern "C" void gcAction_gcAction(void *, cBase *);
 void gcAction_Write(const gcDoPlayerWarp *, cFile &);
 gcDoPlayerWarp *dcast(const cBase *);
+extern char gcDoPlayerWarpvirtualtable[];
+
+cBase *gcDoPlayerWarp::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoPlayerWarp *result = 0;
+    gcDoPlayerWarp *obj = (gcDoPlayerWarp *)entry->fn(base, 0xC, 4, 0, 0);
+    if (obj != 0) {
+        gcAction_gcAction(obj, parent);
+        *(void **)((char *)obj + 4) = gcDoPlayerWarpvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 void gcDoPlayerWarp::VisitReferences(unsigned int arg0, cBase *arg1,
     void (*arg2)(cBase *, unsigned int, void *),

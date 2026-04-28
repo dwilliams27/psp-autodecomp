@@ -1,5 +1,28 @@
 #include "gcMap.h"
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
+struct gcMap_AllocRec {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+cBase *gcMap::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    gcMap_AllocRec *rec = (gcMap_AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcMap *result = 0;
+    gcMap *obj = (gcMap *)rec->fn(base, 0x430, 0x10, 0, 0);
+    if (obj != 0) {
+        new (obj) gcMap(parent, 0);
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
 void gcMap::PostUpdate(void) {
     HandleCinematicSkip();
 }

@@ -3,6 +3,8 @@
 
 class gcRegion;
 class gcEntity;
+class cBase;
+class cMemPool;
 
 template <class T>
 class cHandleT {
@@ -20,6 +22,8 @@ public:
     };
 
     bool AreRegionsLoading(void) const;
+    gcMap(cBase *, int);
+    static cBase *New(cMemPool *, cBase *);
     void *GetGroups(int *) ;
     void *GetContainedFactories(int *);
     gcRegion *GetLoadedRegion(int) const;
