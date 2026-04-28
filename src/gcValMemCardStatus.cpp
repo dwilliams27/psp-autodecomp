@@ -1,6 +1,7 @@
 // gcValMemCardStatus.cpp — decompiled from gcAll_psp.obj.
 //
 // Functions:
+//   0x00350008 gcValMemCardStatus::New(cMemPool *, cBase *) static    140B
 //   0x003501ac gcValMemCardStatus::Write(cFile &) const             100B
 //   0x00350490 gcValMemCardStatus::~gcValMemCardStatus(void)         100B  (deleting)
 
@@ -32,6 +33,12 @@ struct gcValMemCardStatus_PoolBlock {
     char *allocTable;
 };
 
+struct gcValMemCardStatus_AllocRecord {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcValue {
 public:
     void Write(cFile &) const;
@@ -46,6 +53,7 @@ public:
 
     ~gcValMemCardStatus(void);
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -61,6 +69,29 @@ public:
 };
 
 extern char cBaseclassdesc[];   // @ 0x37E6A8
+extern char gcValMemCardStatusvirtualtable[];
+
+// ── gcValMemCardStatus::New @ 0x00350008 ──
+cBase *gcValMemCardStatus::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((gcValMemCardStatus_PoolBlock *)block)->allocTable;
+    gcValMemCardStatus_AllocRecord *rec =
+        (gcValMemCardStatus_AllocRecord *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcValMemCardStatus *result = 0;
+    gcValMemCardStatus *obj =
+        (gcValMemCardStatus *)rec->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = cBaseclassdesc;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValMemCardStatusvirtualtable;
+        ((int *)obj)[2] = 0;
+        ((int *)obj)[3] = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ── gcValMemCardStatus::Write @ 0x003501ac ──
 void gcValMemCardStatus::Write(cFile &file) const {
