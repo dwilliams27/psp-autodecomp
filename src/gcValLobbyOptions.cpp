@@ -2,7 +2,16 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -10,6 +19,13 @@ void cStrAppend(char *, const char *, ...);
 
 extern const char gcValLobbyOptions_fmt[];  // @ 0x36F50C
 extern const char gcValGetText_text[];      // @ 0x36DAF0
+extern char cBaseclassdesc[];               // @ 0x37E6A8
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *);
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // Support classes for gcValLobbyOptions Read/Write/New
@@ -40,6 +56,17 @@ extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern char gcLValuevirtualtable[];
 extern char gcValLobbyOptionsvirtualtable[];
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcLValue {
 public:
     cBase *mParent;
@@ -54,10 +81,22 @@ public:
     int mField8;
 
     gcValLobbyOptions(cBase *parent);
+    ~gcValLobbyOptions();
     void GetText(char *) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 inline gcLValue::gcLValue(cBase *parent) {
@@ -71,17 +110,6 @@ inline gcValLobbyOptions::gcValLobbyOptions(cBase *parent) : gcLValue(parent) {
 }
 
 inline void *operator new(unsigned, void *p) { return p; }
-
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
-};
 
 // ── gcValLobbyOptions::GetText(char *) const @ 0x0034ae98 ──
 void gcValLobbyOptions::GetText(char *buf) const {
@@ -126,6 +154,43 @@ success:
         cFileSystem::Read(h, bufp, 4);
     }
     return result;
+}
+
+// ── gcValLobbyOptions::Evaluate(void) const @ 0x0034acf8 ──
+float gcValLobbyOptions::Evaluate(void) const {
+    void *lobby = nwNetwork::GetLobby();
+    DispatchEntry *e;
+    short off;
+    int (*fn)(void *);
+    int field8;
+    int status;
+
+    if (lobby == 0) goto retZeroLobby;
+    field8 = ((const int *)this)[2];
+    if (field8 > 0) goto entryOne;
+    if (field8 >= 0) goto entryZero;
+retZeroNeg:
+    return 0.0f;
+retZeroLobby:
+    return 0.0f;
+entryOne:
+    if (field8 >= 2) goto retZeroNeg;
+    e = (DispatchEntry *)(*(char **)lobby + 0x4A0);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)status;
+entryZero:
+    e = (DispatchEntry *)(*(char **)lobby + 0x498);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)status;
+}
+
+// ── gcValLobbyOptions::~gcValLobbyOptions(void) @ 0x0034aec8 ──
+gcValLobbyOptions::~gcValLobbyOptions() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 // gcUIMarqueeControl::OnTextChanged(void) @ 0x0013c314
