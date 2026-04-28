@@ -11,7 +11,11 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 void cStrAppend(char *, const char *, ...);
 
@@ -22,6 +26,7 @@ extern const char gcValGetText_text[];              // @ 0x36DAF0
 
 extern char gcLValuevirtualtable[];
 extern char gcValHeadsetvirtualtable[];
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
 
 class cWriteBlock {
 public:
@@ -30,6 +35,20 @@ public:
     void Write(int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -55,16 +74,29 @@ public:
     void *mVtable;        // 0x4
     gcLValue(cBase *parent);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValHeadset : public gcLValue {
 public:
     int mField8;          // 0x8
     gcValHeadset(cBase *parent);
+    ~gcValHeadset();
     void GetText(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 inline gcLValue::gcLValue(cBase *parent) {
@@ -127,6 +159,33 @@ float gcValHeadset::Evaluate(void) const {
         case 2: return (float)nwHeadset::IsVoiceAllowed();
     }
     return 0.0f;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValHeadset::Read(cFile &, cMemPool *) @ 0x003470fc
+// ─────────────────────────────────────────────────────────────────────────
+
+int gcValHeadset::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && ((gcLValue *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 8, 4);
+    }
+    return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValHeadset::~gcValHeadset(void) @ 0x003472f8
+// ─────────────────────────────────────────────────────────────────────────
+
+gcValHeadset::~gcValHeadset() {
+    mVtable = cBaseclassdesc;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
