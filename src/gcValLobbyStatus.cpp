@@ -50,6 +50,7 @@ public:
     int f8;
     int fC;
 
+    static cBase *New(cMemPool *, cBase *);
     ~gcValLobbyStatus();
     void Write(cFile &) const;
 
@@ -63,6 +64,28 @@ public:
         ((void (*)(void *, void *))fn)(base, p);
     }
 };
+
+extern char gcValLobbyStatusvirtualtable[];
+
+// -- gcValLobbyStatus::New(cMemPool *, cBase *) static @ 0x0034e8fc --
+cBase *gcValLobbyStatus::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValLobbyStatus *result = 0;
+    gcValLobbyStatus *obj = (gcValLobbyStatus *)entry->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        *(void **)((char *)obj + 4) = cBaseclassdesc;
+        *(cBase **)((char *)obj + 0) = parent;
+        *(void **)((char *)obj + 4) = gcValLobbyStatusvirtualtable;
+        *(int *)((char *)obj + 8) = 0;
+        *(int *)((char *)obj + 0xC) = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ── gcValLobbyStatus::Write(cFile &) const @ 0x0034eaa0 ──
 void gcValLobbyStatus::Write(cFile &file) const {

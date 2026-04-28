@@ -1,5 +1,10 @@
 #include "gcGenericSubscriber.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *, cBase *(*)(cMemPool *, cBase *), const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -10,6 +15,7 @@ public:
 
 class cListSubscriber {
 public:
+    cListSubscriber(cBase *);
     void Attach(void);
     void Detach(void);
     void Write(cFile &) const;
@@ -22,6 +28,61 @@ public:
 };
 
 gcGenericSubscriber *dcast(const cBase *);
+
+extern char gcGenericSubscribervirtualtable[];
+extern const char gcGenericSubscriber_cBase_name[];
+extern const char gcGenericSubscriber_cBase_desc[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+extern "C" void cListSubscriber_cListSubscriber(void *, cBase *);
+
+cBase *gcGenericSubscriber::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcGenericSubscriber *result = 0;
+    gcGenericSubscriber *obj = (gcGenericSubscriber *)entry->fn(base, 0x28, 4, 0, 0);
+    if (obj != 0) {
+        cListSubscriber_cListSubscriber(obj, parent);
+        *(void **)((char *)obj + 4) = gcGenericSubscribervirtualtable;
+        *(int *)((char *)obj + 0x24) = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+static cType *type_cBase;
+static cType *type_cListSubscriber;
+static cType *type_gcGenericSubscriber;
+
+const cType *gcGenericSubscriber::GetType(void) const {
+    if (!type_gcGenericSubscriber) {
+        if (!type_cListSubscriber) {
+            if (!type_cBase) {
+                type_cBase = cType::InitializeType(
+                    gcGenericSubscriber_cBase_name, gcGenericSubscriber_cBase_desc,
+                    1, 0, 0, 0, 0, 0);
+            }
+            type_cListSubscriber = cType::InitializeType(
+                0, 0, 0x187, type_cBase, 0, 0, 0, 0);
+        }
+        type_gcGenericSubscriber = cType::InitializeType(
+            0, 0, 0x203, type_cListSubscriber, gcGenericSubscriber::New, 0, 0, 0);
+    }
+    return type_gcGenericSubscriber;
+}
 
 void gcGenericSubscriber::Attach(void) {
     ((cListSubscriber *)this)->Attach();
