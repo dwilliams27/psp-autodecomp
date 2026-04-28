@@ -3,6 +3,7 @@
 //   0x003496e4  New(cMemPool *, cBase *) static
 //   0x00349884  Write(cFile &) const
 //   0x003498dc  Read(cFile &, cMemPool *)
+//   0x00349de8  ~gcValLobbyInfo(void)
 //
 // Class layout (12 bytes, alloc size 0xC):
 //   [0x00] mParent (cBase *)
@@ -11,7 +12,13 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+extern char cBaseclassdesc[];                       // @ 0x37E6A8
 
 class cWriteBlock {
 public:
@@ -38,6 +45,17 @@ extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern char gcLValuevirtualtable[];
 extern char gcValLobbyInfovirtualtable[];
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcLValue {
 public:
     cBase *mParent;
@@ -52,9 +70,20 @@ public:
     int mField8;
 
     gcValLobbyInfo(cBase *parent);
+    ~gcValLobbyInfo();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 inline gcLValue::gcLValue(cBase *parent) {
@@ -68,17 +97,6 @@ inline gcValLobbyInfo::gcValLobbyInfo(cBase *parent) : gcLValue(parent) {
 }
 
 inline void *operator new(unsigned, void *p) { return p; }
-
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
-};
 
 // ── gcValLobbyInfo::New(cMemPool *, cBase *) static @ 0x003496e4 ──
 cBase *gcValLobbyInfo::New(cMemPool *pool, cBase *parent) {
@@ -118,4 +136,15 @@ success:
         cFileSystem::Read(h, bufp, 4);
     }
     return result;
+}
+
+// ── gcValLobbyInfo::~gcValLobbyInfo(void) @ 0x00349de8 ──
+//
+// Canonical C++ destructor. SNC's ABI auto-emits the (this != 0) guard,
+// the (in_chrg & 1) deleting-tail dispatch through the inline operator
+// delete, and the classdesc reset. Body just reverts the classdesc
+// pointer at offset 4 to cBase (no parent destructor — gcLValue has no
+// destructor of its own).
+gcValLobbyInfo::~gcValLobbyInfo() {
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
