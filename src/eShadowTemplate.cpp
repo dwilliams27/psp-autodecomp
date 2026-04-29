@@ -15,9 +15,31 @@ extern char eShadowTemplatevirtualtable[];
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+template <class T> T *dcast(const cBase *);
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cArrayBase {
+public:
+    void *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
+class eMaterial;
+
+struct WordCopy {
+    int value;
+};
+
 class eShadowTemplate : public cObject {
 public:
     eShadowTemplate(cBase *);
+    void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -54,6 +76,31 @@ eShadowTemplate::eShadowTemplate(cBase *parent) : cObject(parent) {
     __asm__ volatile("" ::: "memory");
     *(float *)((char *)this + 0x44) = 20.0f;
     __asm__ volatile("" ::: "memory");
+}
+
+void eShadowTemplate::AssignCopy(const cBase *base) {
+    eShadowTemplate *other = dcast<eShadowTemplate>(base);
+    cObject::operator=(*other);
+    *(float *)((char *)this + 0x44) =
+        *(const float *)((char *)other + 0x44);
+    __asm__ volatile("" ::: "memory");
+    *(unsigned char *)((char *)this + 0x48) =
+        *(const unsigned char *)((char *)other + 0x48);
+    __asm__ volatile("" ::: "memory");
+    *(WordCopy *)((char *)this + 0x4C) =
+        *(const WordCopy *)((char *)other + 0x4C);
+    __asm__ volatile("" ::: "memory");
+    *(WordCopy *)((char *)this + 0x50) =
+        *(const WordCopy *)((char *)other + 0x50);
+    __asm__ volatile("" ::: "memory");
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x54))->operator=(
+        *(const cArrayBase<cHandleT<eMaterial> > *)((char *)other + 0x54));
+    *(float *)((char *)this + 0x58) =
+        *(const float *)((char *)other + 0x58);
+    *(float *)((char *)this + 0x5C) =
+        *(const float *)((char *)other + 0x5C);
+    *(float *)((char *)this + 0x60) =
+        *(const float *)((char *)other + 0x60);
 }
 
 const cType *eShadowTemplate::GetInstanceType(void) const {

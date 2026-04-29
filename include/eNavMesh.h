@@ -11,6 +11,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     static eNavMesh *FindNavMeshFromPoint(const mVec3 *, unsigned char &);
     static int FindNavMeshFromPoint(eNavMeshPos *);
+    void AssignCopy(const cBase *);
     void Reset(cMemPool *, bool);
 };
 

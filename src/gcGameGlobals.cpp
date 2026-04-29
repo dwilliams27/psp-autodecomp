@@ -4,6 +4,11 @@ class cMemPool;
 class cFactory;
 class gcGameGlobals;
 
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -28,10 +33,41 @@ public:
 
 class gcGameGlobals : public cFactory {
 public:
+    char _pad0[0x54];
+    int mGroups[1];
+
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
+
+template <class T> T *dcast(const cBase *);
+
+struct WordCopy {
+    int value;
+};
+
+// ── gcGameGlobals::AssignCopy(const cBase *) @ 0x0024dbd4 ──
+void gcGameGlobals::AssignCopy(const cBase *base) {
+    gcGameGlobals *other = dcast<gcGameGlobals>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(int *)((char *)this + 0x44) = *(const int *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x48) = *(const int *)((char *)other + 0x48);
+    *(WordCopy *)((char *)this + 0x4C) =
+        *(const WordCopy *)((char *)other + 0x4C);
+    *(WordCopy *)((char *)this + 0x50) =
+        *(const WordCopy *)((char *)other + 0x50);
+    int i = 0;
+    gcGameGlobals *src = other;
+    gcGameGlobals *dst = this;
+    do {
+        ++i;
+        dst->mGroups[0] = src->mGroups[0];
+        src = (gcGameGlobals *)((char *)src + 4);
+        dst = (gcGameGlobals *)((char *)dst + 4);
+    } while (i <= 0);
+}
 
 extern "C" {
     void gcGameGlobals__gcGameGlobals_cBaseptr(void *self, cBase *parent);
