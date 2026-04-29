@@ -1,8 +1,12 @@
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 class ePoint;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 template <class T>
 class cHandleT {
@@ -26,19 +30,26 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
-// External helpers for base-class methods (resolved at link time;
-// compare_func.py masks the jal relocations so the unresolved target is fine).
-void gcSubGeomController_gcSubGeomController(void *self, cBase *parent);
-void gcSubGeomController_Reset(void *self, cMemPool *pool, bool flag);
-void gcSubGeomController_Write(const void *self, cFile &file);
-
 extern "C" void *__vec_new(void *arr, int count, int size, void (*ctor)(void *));
 
-class gcParticleSystemController {
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class gcSubGeomController {
 public:
-    void *m_parent;              // 0x00
-    void *m_vtable;              // 0x04
-    char m_pad08[0x1C];          // 0x08..0x23 (rest of gcSubGeomController state)
+    char _pad[0x24];
+
+    gcSubGeomController(cBase *parent);
+    ~gcSubGeomController();
+    void Reset(cMemPool *pool, bool flag);
+    void Write(cFile &file) const;
+};
+
+class gcParticleSystemController : public gcSubGeomController {
+public:
     cHandleT<ePoint> m_target;   // 0x24
     int m_pad28;                 // 0x28
     short m_flag;                // 0x2C
@@ -46,12 +57,21 @@ public:
     char m_arr30[8];             // 0x30..0x37
 
     gcParticleSystemController(cBase *parent);
+    ~gcParticleSystemController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
     void SetTarget(cHandleT<ePoint> p);
     void AssignCopy(const cBase *base);
     const cType *GetType(void) const;
     static gcParticleSystemController *New(cMemPool *pool, cBase *parent);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // Free-function wrapper declaration so New can call the ctor via an unresolved
@@ -79,6 +99,11 @@ extern cType *D_000385DC;
 extern cType *D_0009F64C;
 extern cType *D_0009F66C;
 
+gcParticleSystemController::~gcParticleSystemController() {
+    *(void **)((char *)this + 4) = (void *)0x38BFA0;
+    *(int *)((char *)this + 8) = 0;
+}
+
 void gcParticleSystemController::SetTarget(cHandleT<ePoint> p) {
     m_flag = 1;
     m_target = p;
@@ -88,18 +113,17 @@ void gcParticleSystemController::SetTarget(cHandleT<ePoint> p) {
 
 void gcParticleSystemController::Reset(cMemPool *pool, bool flag) {
     if (flag) {
-        gcSubGeomController_Reset(this, pool, flag);
+        gcSubGeomController::Reset(pool, flag);
     }
 }
 
 void gcParticleSystemController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
-    gcSubGeomController_Write(this, file);
+    gcSubGeomController::Write(file);
     wb.End();
 }
 
-gcParticleSystemController::gcParticleSystemController(cBase *parent) {
-    gcSubGeomController_gcSubGeomController(this, parent);
+gcParticleSystemController::gcParticleSystemController(cBase *parent) : gcSubGeomController(parent) {
     *(void **)((char *)this + 4) = (void *)0x38BFA0;
     m_target.mIndex = 0;
     m_pad28 = 0;

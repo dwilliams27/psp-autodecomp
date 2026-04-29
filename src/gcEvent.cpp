@@ -1,10 +1,25 @@
 // gcEvent::operator=(const gcEvent &) — 0x000d61d0
 
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 
 inline void *operator new(unsigned int, void *p) { return p; }
+
+struct cGUID {
+    int a;
+    int b;
+    static cGUID Generate(void);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(const cGUID &);
+    void End(void);
+};
 
 class cType {
 public:
@@ -14,15 +29,27 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 struct AllocRec {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcExpressionList {
 public:
     gcExpressionList &operator=(const gcExpressionList &other);
+    void Write(cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -32,21 +59,54 @@ public:
     gcExpressionList mExprList;     // +0x08
     char _pad1[4];                  // pad so mField10 lands at +0x10
     int mField10;                   // +0x10
+    mutable cGUID mGUID;            // +0x14
 
     gcEvent(cBase *, const char *);
+    ~gcEvent();
     gcEvent &operator=(const gcEvent &other);
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern cType *D_000385DC;
 extern cType *D_000998FC;
+extern char gcEventvirtualtable[];
+extern "C" void gcExpressionList_dtor(void *, int) __asm__("__0oQgcExpressionListdtv");
 
 gcEvent &gcEvent::operator=(const gcEvent &other) {
     mExprList = other.mExprList;
     mField10 = other.mField10;
     return *this;
+}
+
+gcEvent::~gcEvent() {
+    *(void **)((char *)this + 4) = gcEventvirtualtable;
+    gcExpressionList_dtor((char *)this + 8, 2);
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
+
+void gcEvent::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    bool valid = (mGUID.a != 0) || (mGUID.b != 0);
+    cGUID *guid = &mGUID;
+
+    if (!valid) {
+        mGUID = cGUID::Generate();
+    }
+    mExprList.Write(wb);
+    wb.Write(*guid);
+    wb.End();
 }
 
 cBase *gcEvent::New(cMemPool *pool, cBase *parent) {

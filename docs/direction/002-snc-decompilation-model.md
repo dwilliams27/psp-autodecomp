@@ -2,6 +2,33 @@
 
 A fine-tuned small model that serves as a specialized tool for the main Claude agent, providing SNC-specific codegen pattern knowledge that no existing model has.
 
+## 2026-04-29 Reassessment
+
+Fine-tuning is still credible, but it should be a bounded research lane rather than the next production blocker. The current matching frontier has moved from "we need more basic examples" to "we need category-specific leverage, compiler/tooling fixes, and better retry guidance." A local fine-tuned model can help there, but only if it is integrated as a narrow specialist with objective evaluation.
+
+Recommendation:
+
+- Do **not** pause match-lift work, compiler research, or targeted matching campaigns for fine-tuning.
+- Do build a small evaluation harness before training anything serious.
+- Treat the fine-tuned model as a local SNC codegen assistant, not as a replacement for Codex/Claude agents.
+- Continue only if it improves measured production metrics: byte-match rate, near-miss retry rate, tokens per match, cost per matched byte, or local top-K candidate success.
+
+Most promising uses:
+
+1. **Pattern oracle.** Given a short SNC/Allegrex instruction sequence, suggest the likely C idiom, source ordering, cast pattern, or temporary shape that emits it.
+2. **Diff-guided retry helper.** Given target asm, generated asm, current C, and a byte-diff summary, suggest source edits for common mismatch classes.
+3. **Local candidate generator.** Generate several cheap C variants for a small/medium function or narrow mismatch, then let the existing compiler/verifier choose winners.
+4. **Exemplar/template assistant.** Pick or summarize matched corpus exemplars for a target method family without bloating the main agent prompt.
+
+Less promising uses:
+
+- Full replacement for the agentic matching loop.
+- Blind decompilation of large functions without compile/verify feedback.
+- Fixing true compiler divergences such as the known `Read(cFile &, cMemPool *)` prologue scheduler issue.
+- Recovering missing class layouts without normal type/header work.
+
+The core research advantage remains strong: this project has the exact production compiler and a byte verifier. That means every model output can be compiled, scored, and folded back into the dataset. The risk is not "fine-tuning cannot work"; the risk is spending time training a general decompiler when the near-term bottleneck is narrower and more mechanical.
+
 ## Why
 
 Claude is excellent at reasoning about code but has no knowledge of SNC's specific compilation patterns. Generic decompilation models (LLM4Decompile, etc.) are trained on x86 GCC/Clang output. No one has published an SNC-specific or MIPS/Allegrex-specific model. We'd be building the first.
@@ -34,17 +61,36 @@ Key papers and projects:
 
 ## Target Model
 
-**Primary: Qwen3-Coder-30B-A3B** (MoE, 30B total / 3B active)
+Current recommendation: do not lock the target model before the evaluation harness exists. The first experiment should answer whether a local model can improve narrow SNC tasks, not whether it can beat frontier hosted models at full decompilation.
+
+**Candidate: Gemma 4 E4B**
+- Fastest practical local iteration target.
+- Good first model for harness, dataset, and integration tests.
+- Long context is useful for compact asm + C + diff examples.
+- Low enough cost to train multiple adapters while refining task format.
+
+**Candidate: Gemma 4 31B Dense**
+- Better quality target if the E4B experiment shows signal.
+- Dense architecture is simpler for adapter training than MoE.
+- Fits the "specialist oracle" role better than full autonomous matching.
+- More expensive/slower to train and serve; should be gated by E4B evidence.
+
+**Candidate: Gemma 4 26B A4B MoE**
+- Attractive inference speed/quality tradeoff.
+- Adapter training may be more finicky than dense models.
+- Consider after the harness exists, especially for inference-only oracle experiments.
+
+**Candidate: Qwen3-Coder-30B-A3B** (MoE, 30B total / 3B active)
 - Purpose-built code model with 262K context
 - QLoRA fine-tuning uses ~17.5GB — fits on 40GB Mac Mini with 22GB headroom
 - MLX-native 4-bit quantized versions already on HuggingFace
 - Unsloth supports QLoRA fine-tuning
 
-**Fallback: Gemma 4 31B Dense**
-- Better fine-tuning characteristics (dense > MoE for adapter training)
-- 31B dense at 4-bit ≈ 20GB, fits on 40GB Mac Mini
-- Unsloth has explicit Gemma 4 fine-tuning support
-- LiveCodeBench 80%, strong code understanding
+Gemma 4 status as of April 2026:
+- Hugging Face lists four Gemma 4 model sizes: E2B, E4B, 31B dense, and 26B A4B MoE.
+- The E2B/E4B variants have 128K context; 31B and 26B A4B have 256K context.
+- The ecosystem supports local inference through MLX, llama.cpp, mistral.rs, and Transformers, plus fine-tuning with TRL and Unsloth Studio.
+- The HF Gemma 4 launch notes report strong coding/reasoning benchmarks for 31B and 26B A4B, but this does not directly predict byte-exact SNC usefulness.
 
 **Pre-training base: LLM4Decompile weights** (if compatible)
 - Start from LLM4Decompile-Ref checkpoint if architecturally compatible
@@ -114,14 +160,17 @@ tools/generate_training_data.py
 ### Real data augmentation
 - Every overnight match adds another verified (asm, C) pair from the real binary
 - These are the highest-value training examples — real game code patterns
-- Currently at 649 matches, but 86% are <=32B trivial stubs
-- **Critical gap**: zero matches above 512B. Training data must include complex functions.
-- Pre-fine-tuning target: 50 strategic matches to fill coverage gaps (see above)
+- As of 2026-04-29, the corpus is around 3,055 matched functions and 300KB of matched code.
+- The corpus is no longer just tiny stubs, but it is still biased toward small functions: matched average size is about 98B, while untried average size is about 579B.
+- **Critical gap**: the byte-heavy 257B+ and 1KB+ pools remain underrepresented. Training data must include complex functions and mid-game categories, not only wrappers.
+- High-value real examples for training now include `Write`, `GetType`, `New`, `AssignCopy`, constructors/destructors, `VisitReferences`, and failed near-misses with known byte-diff diagnoses.
 
 ### Target dataset
-- **Phase 1**: 5,000 synthetic SNC pairs + 500 real matched pairs → first fine-tune
-- **Phase 2**: 20,000 synthetic + 1,000 real → refined model
-- **Phase 3**: Self-improving loop (sc2dec approach) — model decompiles, we verify, successful pairs become training data
+- **Phase 0**: Evaluation harness only. Build held-out tasks from real matched functions and known near-misses before training.
+- **Phase 1**: 2,000-5,000 synthetic SNC pairs + 500-1,000 real matched pairs for pattern-oracle and diff-retry tasks.
+- **Phase 2**: 10,000-20,000 synthetic pairs + 1,500+ real matched pairs, weighted toward real method families and current failure modes.
+- **Phase 3**: Self-improving loop (sc2dec approach) — model proposes candidates, the compiler/verifier scores them, successful pairs become training data.
+- **Do not train only on final matched source.** Include failed/near-miss attempts with labeled corrections where possible; those are exactly the cases where a local oracle could save hosted-agent time.
 
 ## Training Plan
 
@@ -131,11 +180,16 @@ tools/generate_training_data.py
 - QLoRA: 4-bit base + low-rank adapters
 
 ### Approach
-1. **Download base model**: `mlx_lm.convert` Qwen3-Coder-30B-A3B to MLX 4-bit format
-2. **Prepare training data**: JSONL format matching model's chat template
-3. **QLoRA fine-tune**: `mlx_lm.lora --model ./mlx_model --data ./training_data --train`
-4. **Evaluate**: test on held-out SNC pairs + failed overnight functions
-5. **Iterate**: add more synthetic patterns for failure modes, re-train
+0. **Build evaluation harness first**:
+   - held-out real matched functions by category and size
+   - known failed near-misses with byte-diff labels
+   - metrics for compile success, exact byte match, top-K candidate match, and diff improvement
+1. **Download base model**: start with Gemma 4 E4B or another small local model for fast iteration; promote to 31B dense only if the harness shows signal.
+2. **Prepare training data**: JSONL format matching model's chat template, with separate task formats for oracle, diff-retry, and source-refine modes.
+3. **QLoRA/LoRA fine-tune** using MLX/TRL/Unsloth depending on the chosen model and hardware.
+4. **Evaluate**: test on held-out SNC pairs, recent failed functions, and category-specific near-miss cases.
+5. **Integrate only if useful**: wire into the orchestrator as an optional local tool, not as a mandatory dependency.
+6. **Iterate**: add synthetic patterns for failure modes that the harness proves are learnable.
 
 ### Training data format
 ```json
@@ -154,6 +208,18 @@ tools/generate_training_data.py
 - Integration into orchestrator: 1 day
 
 ## Integration with Matching Pipeline
+
+### As diff-guided retry helper
+Best first integration target:
+
+```
+target asm + generated asm + current C + mismatch summary
+  -> local model suggests 3-10 source edits or variants
+  -> compiler/verifier scores each variant
+  -> successful candidate is kept, failures are logged as training data
+```
+
+This is narrower than full decompilation and directly targets the current failure shape: correct logic but wrong source ordering, temporaries, casts, branch form, or register allocation.
 
 ### As m2c replacement
 Replace or supplement m2c in `tools/decompile_func.py`:
@@ -179,12 +245,18 @@ these instructions.
 3. Compile and verify
 ```
 
+This should be evaluated later than pattern-oracle/diff-retry mode. It is more ambitious and may duplicate what frontier agents already do well.
+
 ## Open Questions
 
 1. **MoE fine-tuning stability**: Qwen3-Coder-30B-A3B is MoE — QLoRA on MoE models is newer and potentially less stable than on dense models. May need to use Gemma 4 31B Dense instead.
 2. **Cross-architecture transfer**: Will pre-training on x86 decompilation data (LLM4Decompile/Decompile-Bench) transfer usefully to MIPS/Allegrex? The Refined approach (Ghidra pseudo-C) should transfer better than raw asm.
 3. **VFPU patterns**: Can the model learn VFPU intrinsics from synthetic data? Need to generate sufficient VFPU training pairs.
 4. **Evaluation metrics**: Re-executability (standard in literature) vs byte-exact match (our requirement). Byte-exact is stricter — model may score well on re-executability but poorly on byte-exact.
+5. **Prompt and context shape**: Does the local model work better on raw asm, m2c output, source+diff, or exemplar-conditioned tasks?
+6. **Synthetic-to-real transfer**: Which synthetic patterns transfer to real game code, and which overfit to toy functions?
+7. **Economic value**: Does the model reduce hosted model tokens/cost enough to justify training and integration time?
+8. **Local throughput**: Can local inference generate enough candidate variants per minute to matter inside the compile/verify loop?
 
 ## References
 
@@ -196,5 +268,8 @@ these instructions.
 - [sc2dec](https://aclanthology.org/2024.findings-emnlp.385/) — EMNLP 2024
 - [Qwen3-Coder](https://qwenlm.github.io/blog/qwen3-coder/) — Qwen team
 - [Gemma 4](https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/) — Google
+- [Gemma 4 launch and model details](https://huggingface.co/blog/gemma4) — Hugging Face, 2026-04-02
+- [Gemma 4 E4B model card](https://huggingface.co/google/gemma-4-E4B-it) — Hugging Face / Google DeepMind
+- [Gemma 4 TRL fine-tuning on Vertex AI](https://huggingface.co/docs/google-cloud/examples/vertex-ai-notebooks-fine-tune-gemma-4) — Hugging Face
 - [Unsloth Gemma 4 fine-tuning](https://unsloth.ai/docs/models/gemma-4/train)
 - [MLX fine-tuning guide](https://github.com/ml-explore/mlx-examples/blob/main/lora/README.md)
