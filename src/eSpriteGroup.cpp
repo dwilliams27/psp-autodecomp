@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -43,6 +51,7 @@ public:
     eSpriteGroup(cBase *);
     ~eSpriteGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -58,6 +67,10 @@ public:
 extern char eSpriteGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E40;
 
 // ── eSpriteGroup::Write(cFile &) const @ 0x00017064 ──
 void eSpriteGroup::Write(cFile &file) const {
@@ -95,4 +108,23 @@ cBase *eSpriteGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSpriteGroup::GetType(void) const @ 0x001DD0C8 ──
+const cType *eSpriteGroup::GetType(void) const {
+    if (D_00040E40 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E40 = cType::InitializeType(0, 0, 0x3E, D_00040C94,
+                                           &eSpriteGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E40;
 }

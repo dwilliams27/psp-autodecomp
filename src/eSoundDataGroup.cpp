@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -45,6 +53,7 @@ public:
     eSoundDataGroup(cBase *);
     ~eSoundDataGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
@@ -100,6 +109,10 @@ template class gcDesiredObjectT<gcDesiredPoint, gcDesiredPointHelper, ePoint>;
 extern char eSoundDataGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E30;
 
 void eSoundDataGroup::AssignCopy(const cBase *base) {
     eSoundDataGroup *src = dcast<eSoundDataGroup>(base);
@@ -157,4 +170,23 @@ cBase *eSoundDataGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSoundDataGroup::GetType(void) const @ 0x001DC728 ──
+const cType *eSoundDataGroup::GetType(void) const {
+    if (D_00040E30 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E30 = cType::InitializeType(0, 0, 0x27, D_00040C94,
+                                           &eSoundDataGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E30;
 }

@@ -5,6 +5,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -47,6 +55,7 @@ public:
     eSkyGroup(cBase *);
     ~eSkyGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -62,6 +71,10 @@ public:
 extern char eSkyGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E60;
 
 // ── eSkyGroup::Write(cFile &) const @ 0x00019e74 ──
 void eSkyGroup::Write(cFile &file) const {
@@ -91,6 +104,25 @@ cBase *eSkyGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSkyGroup::GetType(void) const @ 0x001DE408 ──
+const cType *eSkyGroup::GetType(void) const {
+    if (D_00040E60 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E60 = cType::InitializeType(0, 0, 0x1DA, D_00040C94,
+                                           &eSkyGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E60;
 }
 
 // ── eSkyGroup::~eSkyGroup(void) @ 0x001de500 ──
