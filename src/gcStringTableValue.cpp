@@ -40,6 +40,10 @@ public:
     cTypeMethod write_m;   // 0x28
     char _p1[0x10];
     cTypeMethod name_m;    // 0x40
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class gcDesiredObject {
@@ -68,6 +72,7 @@ class gcStringTableValue : public gcStringValue {
 public:
     gcDesiredString mDesired;
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Get(wchar_t *, int) const;
@@ -88,6 +93,9 @@ void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern char cBasevirtualtable[];
 extern char gcStringValuevirtualtable[];
 extern char gcStringTableValuevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F56C;
 
 typedef void (*WriteFn)(void *, cFile *);
 typedef void (*NameFn)(void *, char *);
@@ -116,6 +124,23 @@ cBase *gcStringTableValue::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcStringTableValue::GetType(void) const {
+    if (D_0009F56C == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F56C = cType::InitializeType(0, 0, 0x17B, D_0009F454,
+                                           &gcStringTableValue::New, 0, 0, 0);
+    }
+    return D_0009F56C;
 }
 
 void gcStringTableValue::GetName(char *buf) const {

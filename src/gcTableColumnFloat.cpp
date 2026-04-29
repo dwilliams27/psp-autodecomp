@@ -2,6 +2,14 @@ class cBase;
 class cMemPool;
 class cInStream;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cArrayFloat {
@@ -13,6 +21,9 @@ public:
 
 extern char gcTableColumnclassdesc[];
 extern char gcTableColumnFloatclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009F478;
+extern cType *D_0009F484;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -48,6 +59,7 @@ struct gcTableColumnFloat {
     void Set(int row, const wchar_t *text, bool flag);
     int Compare(int row1, int row2) const;
     static cBase *New(cMemPool *pool, cBase *parent);
+    const cType *GetType(void) const;
 };
 
 cBase *gcTableColumnFloat::New(cMemPool *pool, cBase *parent) {
@@ -63,6 +75,23 @@ cBase *gcTableColumnFloat::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcTableColumnFloat::GetType(void) const {
+    if (D_0009F484 == 0) {
+        if (D_0009F478 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F478 = cType::InitializeType(0, 0, 0x241, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F484 = cType::InitializeType(0, 0, 0x244, D_0009F478,
+                                           &gcTableColumnFloat::New, 0, 0, 0);
+    }
+    return D_0009F484;
 }
 
 void gcTableColumnFloat::Set(int row, float value) {

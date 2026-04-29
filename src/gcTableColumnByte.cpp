@@ -19,6 +19,14 @@ class cFile;
 class cMemPool;
 class cInStream;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cArrayByte {
 public:
     unsigned char *mData;
@@ -32,6 +40,9 @@ extern "C" void cReadBlock_Read_cArrayByte(void *rb, cArrayByte *out);
 
 extern char gcTableColumnclassdesc[];      // 0x37e6a8
 extern char gcTableColumnByteclassdesc[];  // 0x389a80
+extern cType *D_000385DC;
+extern cType *D_0009F478;
+extern cType *D_0009F47C;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -91,6 +102,7 @@ struct gcTableColumnByte : public gcTableColumn {
     void Set(int row, const wchar_t *text, bool flag);
     void Set(int row, float value);
     static cBase *New(cMemPool *pool, cBase *parent);
+    const cType *GetType(void) const;
     void Write(cFile &file) const;
     void Write(cOutStream &os) const;
     int Read(cFile &file, cMemPool *pool);
@@ -141,6 +153,23 @@ cBase *gcTableColumnByte::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcTableColumnByte::GetType(void) const {
+    if (D_0009F47C == 0) {
+        if (D_0009F478 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F478 = cType::InitializeType(0, 0, 0x241, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F47C = cType::InitializeType(0, 0, 0x242, D_0009F478,
+                                           &gcTableColumnByte::New, 0, 0, 0);
+    }
+    return D_0009F47C;
 }
 
 // 0x0012ac3c — Write to cFile via cWriteBlock: header + count-prefixed bytes.
