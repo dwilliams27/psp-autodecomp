@@ -8,6 +8,15 @@ public:
 };
 
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class gcStringValue : public cBase {
 };
@@ -33,8 +42,31 @@ public:
     int mValue3;  // 0x14
     int mValue4;  // 0x18 - tagged self-pointer
 
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4FC;
+
+const cType *gcLobbyScoreboardStrings::GetType(void) const {
+    if (D_0009F4FC == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4FC = cType::InitializeType(0, 0, 0x125, D_0009F454,
+                                           &gcLobbyScoreboardStrings::New,
+                                           0, 0, 0);
+    }
+    return D_0009F4FC;
+}
 
 cBase *gcLobbyScoreboardStrings::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];

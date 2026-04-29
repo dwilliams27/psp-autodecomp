@@ -8,6 +8,7 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -47,6 +48,14 @@ public:
     }
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcStringValue : public cBase {
 public:
     gcStringValue(cBase *parent) : cBase(parent) {}
@@ -63,9 +72,34 @@ public:
         mField08 = (int)this | 1;
         mField0C = 0;
     }
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static gcLobbyMailStrings *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4F8;
+
+// ── GetType ──  @ 0x0028211c, 220B
+const cType *gcLobbyMailStrings::GetType(void) const {
+    if (D_0009F4F8 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4F8 = cType::InitializeType(
+            0, 0, 0x1F7, D_0009F454,
+            (cBase *(*)(cMemPool *, cBase *))&gcLobbyMailStrings::New,
+            0, 0, 0);
+    }
+    return D_0009F4F8;
+}
 
 // ── Write ──  @ 0x002821f8, 100B
 void gcLobbyMailStrings::Write(cFile &file) const {
