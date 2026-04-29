@@ -18,6 +18,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -59,6 +65,8 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static bool IsManagedTypeExternalStatic();
+    static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -70,6 +78,8 @@ public:
 };
 
 extern char gcConstantGroupvirtualtable[];
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
 
 // ── gcConstantGroup::AssignCopy(const cBase *) @ 0x0023641C ──
 void gcConstantGroup::AssignCopy(const cBase *base) {
@@ -95,6 +105,29 @@ int gcConstantGroup::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+// ── gcConstantGroup::New(cMemPool *, cBase *) static @ 0x00236454 ──
+cBase *gcConstantGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcConstantGroup *result = 0;
+    gcConstantGroup *obj = (gcConstantGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = gcConstantGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── gcConstantGroup::~gcConstantGroup(void) @ 0x00236608 ──
