@@ -5,6 +5,8 @@ class cFile;
 class cMemPool;
 class cType;
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
 template <class T> T *dcast(const cBase *);
 
 class cWriteBlock {
@@ -45,6 +47,7 @@ public:
 
     eVolume(cBase *);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     void UpdateLocalToWorld(void);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -79,6 +82,34 @@ void eVolume::Write(cFile &file) const {
     wb.Write(3, (const float *)((const char *)this + 0x40));
     wb.Write(3, (const float *)((const char *)this + 0x50));
     wb.End();
+}
+#pragma control sched=2
+
+// ============================================================
+// eVolume::AssignCopy(const cBase *) @ 0x0020502C
+// ============================================================
+
+#pragma control sched=1
+void eVolume::AssignCopy(const cBase *src) {
+    eVolume *other = dcast<eVolume>(src);
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+    *(float *)((char *)this + 0xC) = *(float *)((char *)other + 0xC);
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    *(int *)((char *)this + 0x20) = *(int *)((char *)other + 0x20);
+    *(int *)((char *)this + 0x24) = *(int *)((char *)other + 0x24);
+    *(v4sf_t *)((char *)this + 0x60) = *(v4sf_t *)((char *)other + 0x60);
+    *(v4sf_t *)((char *)this + 0x30) = *(v4sf_t *)((char *)other + 0x30);
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x50) = *(v4sf_t *)((char *)other + 0x50);
+    *(int *)((char *)this + 0x70) = *(int *)((char *)other + 0x70);
+    *(unsigned char *)((char *)this + 0x74) =
+        *(unsigned char *)((char *)other + 0x74);
+    *(unsigned char *)((char *)this + 0x75) =
+        *(unsigned char *)((char *)other + 0x75);
+    *(int *)((char *)this + 0x78) = *(int *)((char *)other + 0x78);
+    *(int *)((char *)this + 0x7C) = *(int *)((char *)other + 0x7C);
+    *(int *)((char *)this + 0x80) = *(int *)((char *)other + 0x80);
+    *(int *)((char *)this + 0x84) = *(int *)((char *)other + 0x84);
 }
 #pragma control sched=2
 

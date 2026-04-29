@@ -21,6 +21,10 @@ class cType;
 class eSound;
 class eWorld;
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+template <class T> T *dcast(const cBase *);
+
 extern char eSoundvirtualtable[];      // 0x37FB80
 extern char cObjectvirtualtable[];     // 0x37E990
 extern cType *D_000385DC;
@@ -118,6 +122,7 @@ public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -242,4 +247,28 @@ const cType *eSound::GetType(void) const {
             (cBase *(*)(cMemPool *, cBase *))&eSound::New, 0, 0, 0);
     }
     return D_00040F74;
+}
+
+// eSound::AssignCopy(const cBase *) @ 0x001e01a8
+void eSound::AssignCopy(const cBase *src) {
+    eSound *other = dcast<eSound>(src);
+    mWorld = other->mWorld;
+    *(unsigned short *)((char *)this + 0x0C) =
+        *(unsigned short *)((char *)other + 0x0C);
+    mPad14 = other->mPad14;
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    int *dst20 = (int *)((char *)this + 0x20);
+    int *src20 = (int *)((char *)other + 0x20);
+    *dst20 = *src20;
+    mField24 = other->mField24;
+    mField28 = other->mField28;
+    int *dst2C = (int *)((char *)this + 0x2C);
+    int *src2C = (int *)((char *)other + 0x2C);
+    *dst2C = *src2C;
+    mChannelIdx = other->mChannelIdx;
+    mField32 = other->mField32;
+    mField34 = other->mField34;
+    mField38 = other->mField38;
+    mField3C = other->mField3C;
+    mField40 = other->mField40;
 }

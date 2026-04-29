@@ -8,6 +8,8 @@
 #include "eCollision.h"
 #include "mOCS.h"
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
 class eConvexHullShape;
 class cFile;
 class cBase;
@@ -49,6 +51,8 @@ public:
     void End(void);
 };
 
+template <class T> T *dcast(const cBase *);
+
 extern char eBoxShapevirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_00040FE4;
@@ -57,6 +61,10 @@ extern cType *D_00046BD8;
 inline void *operator new(unsigned int, void *p) {
     return p;
 }
+
+struct eBoxShape_block_18 {
+    int _[6];
+};
 
 int eBoxShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::BoxBox(*this, *shape, ocs1, ocs2, info);
@@ -131,6 +139,25 @@ eBoxShape *eBoxShape::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// eBoxShape::AssignCopy(const cBase *) @ 0x0020a2e4
+void eBoxShape::AssignCopy(const cBase *src) {
+    eBoxShape *other = dcast<eBoxShape>(src);
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(v4sf_t *)((char *)other + 0x30);
+    *(unsigned char *)((char *)this + 0x50) =
+        *(unsigned char *)((char *)other + 0x50);
+    __asm__ volatile("" ::: "memory");
+    *(eBoxShape_block_18 *)((char *)this + 0x54) =
+        *(eBoxShape_block_18 *)((char *)other + 0x54);
+    *(int *)((char *)this + 0x6C) = *(int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(float *)((char *)other + 0x78);
+    *(v4sf_t *)((char *)this + 0x80) = *(v4sf_t *)((char *)other + 0x80);
 }
 #pragma control sched=2
 
