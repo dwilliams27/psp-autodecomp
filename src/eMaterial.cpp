@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cObject {
 public:
@@ -23,6 +24,18 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 struct DeleteRecord {
@@ -47,6 +60,7 @@ public:
 
     eMaterial(cBase *);
     ~eMaterial(void);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void PlatformFree(void);
 
@@ -57,6 +71,11 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FEC;
 
 // ── eMaterial::Write @ 0x0002BF4C ──
 void eMaterial::Write(cFile &file) const {
@@ -82,4 +101,27 @@ eMaterial::eMaterial(cBase *parent) : cObject(parent) {
 eMaterial::~eMaterial(void) {
     *(void **)((char *)this + 4) = eMaterialvirtualtable;
     PlatformFree();
+}
+
+const cType *eMaterial::GetType(void) const {
+    if (D_00040FEC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))&cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00040FEC = cType::InitializeType(0, 0, 0x10, D_000385E4,
+                                           0, (const char *)0x36CDCC,
+                                           (const char *)0x36CDD8, 5);
+    }
+    return D_00040FEC;
 }
