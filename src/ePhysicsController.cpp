@@ -3,7 +3,7 @@
 
 class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *);
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cType {
@@ -35,6 +35,7 @@ public:
     int mFieldC;
 
     ePhysicsController(cBase *);
+    ~ePhysicsController(void);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
@@ -44,6 +45,14 @@ public:
     void OnSnappedTo(void);
     int GetCollisionMask(void) const;
     void SetCollisionMask(unsigned int);
+
+    static void operator delete(void *p);
+};
+
+class eSimulatedMotor {
+public:
+    ~eSimulatedMotor(void);
+    static void operator delete(void *p);
 };
 
 extern char ePhysicsControllerclassdesc[];
@@ -91,22 +100,43 @@ struct DeleteRecord {
 
 extern "C" void free(void *);
 
-extern "C" void ePhysicsController___dtor_ePhysicsController_void(ePhysicsController *self, int flags) {
-    if (self != 0) {
-        self->mClassDesc = ePhysicsControllerclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
+inline void ePhysicsController::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
     }
 }
+
+ePhysicsController::~ePhysicsController(void) {
+    mClassDesc = ePhysicsControllerclassdesc;
+}
+
+#pragma control sched=1
+
+inline void eSimulatedMotor::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        char *base = block + rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    } else {
+        free(p);
+    }
+}
+
+eSimulatedMotor::~eSimulatedMotor(void) {
+    *(void **)((char *)this + 4) = ePhysicsControllerclassdesc;
+}
+
+#pragma control sched=2
 
 // --- trivial virtual stubs ---
 void ePhysicsController::ApplyUnembedImpulse(int, const mVec3 &) {
