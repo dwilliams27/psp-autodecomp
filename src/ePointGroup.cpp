@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -50,6 +58,7 @@ public:
     ePointGroup(cBase *);
     ~ePointGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -78,12 +87,26 @@ public:
     unsigned char mFlag;
     char _pad1[3];
     int mField;
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eRoomEnvironmentGroup {
+public:
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 extern char ePointGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E48;
+extern cType *D_00040E68;
+extern cType *D_00040E70;
 
 // ── ePointGroup::Write(cFile &) const @ 0x00017BEC ──
 void ePointGroup::Write(cFile &file) const {
@@ -115,6 +138,25 @@ cBase *ePointGroup::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+// ── ePointGroup::GetType(void) const @ 0x001DD598 ──
+const cType *ePointGroup::GetType(void) const {
+    if (D_00040E48 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E48 = cType::InitializeType(0, 0, 0x44, D_00040C94,
+                                           &ePointGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E48;
+}
+
 // ── ePointGroup::~ePointGroup(void) @ 0x001DD690 ──
 ePointGroup::~ePointGroup() {
     ((void **)this)[1] = ePointGroupvirtualtable;
@@ -136,6 +178,44 @@ void ePortalGroup::AssignCopy(const cBase *base) {
     ePortalGroup *src = dcast<ePortalGroup>(base);
     mFlag = src->mFlag;
     mField = src->mField;
+}
+
+// ── ePortalGroup::GetType(void) const @ 0x001DE8D8 ──
+const cType *ePortalGroup::GetType(void) const {
+    if (D_00040E68 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E68 = cType::InitializeType(0, 0, 0x21F, D_00040C94,
+                                           &ePortalGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E68;
+}
+
+// ── eRoomEnvironmentGroup::GetType(void) const @ 0x001DEDA8 ──
+const cType *eRoomEnvironmentGroup::GetType(void) const {
+    if (D_00040E70 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E70 = cType::InitializeType(0, 0, 0x236, D_00040C94,
+                                           &eRoomEnvironmentGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E70;
 }
 
 class gcDoConsoleOp {
