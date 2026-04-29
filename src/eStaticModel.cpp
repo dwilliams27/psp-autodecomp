@@ -1,6 +1,7 @@
 #include "eStaticModel.h"
 
 class cBase;
+class cFile;
 class cMemPool;
 class eCollisionInfo;
 class eContactCollector;
@@ -27,6 +28,24 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class cWriteBlock {
+public:
+    char _data[0x108];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void Write(int, const float *);
+    void End(void);
+};
+
+class eStaticGeom {
+public:
+    void Write(cFile &) const;
+};
+
+template <class T> T *dcast(const cBase *);
+
 // ── eStaticModel::OnRemovedFromWorld(void) @ 0x00043324 ──
 void eStaticModel::OnRemovedFromWorld(void) {
     ePhysics::Get()->InvalidateCacheEntries(this);
@@ -35,9 +54,21 @@ void eStaticModel::OnRemovedFromWorld(void) {
 // ── eStaticModel::eStaticModel(cBase *) @ 0x00041F14 ──
 eStaticModel::eStaticModel(cBase *base) : eGeom(base) {
     *(void **)((char *)this + 4) = eStaticModelvirtualtable;
-    *(int *)((char *)this + 0x90) = 0;
-    *(int *)((char *)this + 0x94) = 0;
-    *(int *)((char *)this + 0x98) = 0;
+    mNodeCullIdCount = 0;
+    mNodeCullIdLODs.mData = 0;
+    mField98 = 0;
+}
+
+// ── eStaticModel::Write(cFile &) const @ 0x00041AFC ──
+void eStaticModel::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    ((const eStaticGeom *)this)->Write(file);
+    wb.Write(3, (const float *)((const char *)this + 0x40));
+    wb.Write(3, (const float *)((const char *)this + 0x10));
+    wb.Write(3, (const float *)((const char *)this + 0x20));
+    wb.Write(3, (const float *)((const char *)this + 0x30));
+    wb.Write((unsigned int)mField98);
+    wb.End();
 }
 
 // ── eStaticModel::GetSweptContacts(...) const @ 0x0004271C ──
@@ -71,4 +102,38 @@ cBase *eStaticModel::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eStaticModel::AssignCopy(const cBase *) @ 0x001ECFD4 ──
+void eStaticModel::AssignCopy(const cBase *base) {
+    eStaticModel *other = dcast<eStaticModel>(base);
+    *(v4sf_t *)((char *)this + 0x40) = *(const v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(const v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(const v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(const v4sf_t *)((char *)other + 0x30);
+    float value5C = *(const float *)((char *)other + 0x5C);
+    *(v4sf_t *)((char *)this + 0x50) = *(const v4sf_t *)((char *)other + 0x50);
+    *(float *)((char *)this + 0x5C) = value5C;
+    *(int *)((char *)this + 0x60) = *(const int *)((char *)other + 0x60);
+    *(int *)((char *)this + 0x64) = *(const int *)((char *)other + 0x64);
+    *(int *)((char *)this + 0x68) = *(const int *)((char *)other + 0x68);
+    *(int *)((char *)this + 0x6C) = *(const int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(const int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(const float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(const float *)((char *)other + 0x78);
+    *(int *)((char *)this + 0x7C) = *(const int *)((char *)other + 0x7C);
+    *(int *)((char *)this + 0x80) = *(const int *)((char *)other + 0x80);
+    *(int *)((char *)this + 0x84) = *(const int *)((char *)other + 0x84);
+    *(int *)((char *)this + 0x88) = *(const int *)((char *)other + 0x88);
+    *(unsigned char *)((char *)this + 0x8C) =
+        *(const unsigned char *)((char *)other + 0x8C);
+    *(unsigned char *)((char *)this + 0x8D) =
+        *(const unsigned char *)((char *)other + 0x8D);
+
+    int value90 = other->mNodeCullIdCount;
+    cArrayBase<eStaticModelNodeCullIdLOD> *dstArray = &mNodeCullIdLODs;
+    const cArrayBase<eStaticModelNodeCullIdLOD> *srcArray = &other->mNodeCullIdLODs;
+    mNodeCullIdCount = value90;
+    *dstArray = *srcArray;
+    mField98 = other->mField98;
 }

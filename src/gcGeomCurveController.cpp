@@ -9,6 +9,8 @@ public:
     int mIndex;
 };
 
+template <class T> T *dcast(const cBase *);
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -39,6 +41,7 @@ public:
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
     void SetTarget(cHandleT<ePoint> p);
+    void AssignCopy(const cBase *base);
     static gcGeomCurveController *New(cMemPool *pool, cBase *parent);
 };
 
@@ -55,6 +58,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct gcc_half3 {
+    short a;
+    short b;
+    short c;
 };
 
 void gcGeomCurveController::SetTarget(cHandleT<ePoint> p) {
@@ -99,4 +108,57 @@ gcGeomCurveController *gcGeomCurveController::New(cMemPool *pool, cBase *parent)
         result = obj;
     }
     return result;
+}
+
+void gcGeomCurveController::AssignCopy(const cBase *base) {
+    gcGeomCurveController *other = dcast<gcGeomCurveController>(base);
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+    *(int *)((char *)this + 0xC) = *(int *)((char *)other + 0xC);
+    *(float *)((char *)this + 0x10) = *(float *)((char *)other + 0x10);
+    *(float *)((char *)this + 0x14) = *(float *)((char *)other + 0x14);
+
+    int i = 0;
+    gcc_half3 *dst = (gcc_half3 *)((char *)this + 0x1C);
+    gcc_half3 *src = (gcc_half3 *)((char *)other + 0x1C);
+    *(float *)((char *)this + 0x18) = *(float *)((char *)other + 0x18);
+    do {
+        short a = src->a;
+        short b = src->b;
+        short c = src->c;
+        __asm__ volatile("" ::: "memory");
+        dst->a = a;
+        dst->b = b;
+        dst->c = c;
+        i += 1;
+        dst += 1;
+        src += 1;
+    } while (i <= 0);
+
+    int *src24 = (int *)((char *)other + 0x24);
+    int value24 = *src24;
+    int *dst24 = (int *)((char *)this + 0x24);
+    int *src28 = (int *)((char *)other + 0x28);
+    int *dst28 = (int *)((char *)this + 0x28);
+    *dst24 = value24;
+    int value28 = *src28;
+    *dst28 = value28;
+    *(unsigned short *)((char *)this + 0x2C) =
+        *(unsigned short *)((char *)other + 0x2C);
+    *(short *)((char *)this + 0x2E) = *(short *)((char *)other + 0x2E);
+
+    int j = 0;
+    gcc_half3 *dst2 = (gcc_half3 *)((char *)this + 0x30);
+    gcc_half3 *src2 = (gcc_half3 *)((char *)other + 0x30);
+    do {
+        short a = src2->a;
+        short b = src2->b;
+        short c = src2->c;
+        __asm__ volatile("" ::: "memory");
+        dst2->a = a;
+        dst2->b = b;
+        dst2->c = c;
+        j += 1;
+        dst2 += 1;
+        src2 += 1;
+    } while (j <= 0);
 }
