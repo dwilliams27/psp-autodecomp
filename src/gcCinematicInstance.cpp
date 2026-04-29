@@ -4,6 +4,18 @@
 
 #define NULL 0
 
+class cInStream {
+public:
+    void Read(int &, int, bool);
+    void Read(float &, bool);
+};
+
+class cOutStream {
+public:
+    void Write(int, int, bool);
+    void Write(float, bool);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -38,6 +50,8 @@ struct AllocEntry {
 };
 
 extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0fKcTimeValueEReadR6JcInStream(void *, cInStream &);
+extern "C" void __0fKcTimeValueFWriteR6KcOutStreamK(const void *, cOutStream &);
 
 extern char *D_0037D7C8;
 extern gcStreamedCinematic *D_0037D7D4[2];
@@ -55,6 +69,18 @@ void gcCinematicInstance::Chain(cHandleT<gcCinematic> cinematic, cHandle handle,
 void gcCinematicInstance::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.End();
+}
+
+// Function 2a: 0x000ec27c, 152 bytes
+void gcCinematicInstance::Write(cOutStream &stream) const {
+    ((const cHandle *)((const char *)this + 8))->Write(stream);
+    stream.Write(*(const float *)((const char *)this + 0xC), true);
+    __0fKcTimeValueFWriteR6KcOutStreamK((const char *)this + 0x10, stream);
+    __0fKcTimeValueFWriteR6KcOutStreamK((const char *)this + 0x14, stream);
+    stream.Write(*(const int *)((const char *)this + 0x18), 0x20, true);
+    ((const cHandle *)((const char *)this + 0x3C))->Write(stream);
+    ((const cHandle *)((const char *)this + 0x40))->Write(stream);
+    stream.Write(*(const float *)((const char *)this + 0x44), true);
 }
 
 // Function 3: 0x000eb7dc, 92 bytes
@@ -115,6 +141,24 @@ int gcCinematicInstance::Read(cFile &file, cMemPool *pool) {
         return 0;
     }
     return result;
+}
+
+// Function 6a: 0x000ec314, 180 bytes
+void gcCinematicInstance::Read(cInStream &stream) {
+    ((cHandle *)((char *)this + 8))->Read(stream);
+    stream.Read(*(float *)((char *)this + 0xC), true);
+    __0fKcTimeValueEReadR6JcInStream((char *)this + 0x10, stream);
+    __0fKcTimeValueEReadR6JcInStream((char *)this + 0x14, stream);
+    stream.Read(*(int *)((char *)this + 0x18), 0x20, true);
+    ((cHandle *)((char *)this + 0x3C))->Read(stream);
+    ((cHandle *)((char *)this + 0x40))->Read(stream);
+    stream.Read(*(float *)((char *)this + 0x44), true);
+
+    int index = *(int *)((char *)this + 0x18) - 1;
+    if (index < 0) {
+        index = 0;
+    }
+    PlayVoiceOver(index);
 }
 
 // Function 7: 0x000ebdcc, 124 bytes — UpdateDialogs

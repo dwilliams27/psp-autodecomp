@@ -4,7 +4,9 @@
 #include "gcReplicationVisitor.h"
 
 class cFile;
+class cInStream;
 class cMemPool;
+class cOutStream;
 class gcStreamedCinematic;
 class gcUIDialog;
 
@@ -17,6 +19,8 @@ public:
 class cHandle {
 public:
     int mIndex;
+    void Read(cInStream &);
+    void Write(cOutStream &) const;
 };
 
 class cBase;
@@ -53,11 +57,14 @@ public:
     static void UpdateProfile(void);
     void Chain(cHandleT<gcCinematic>, cHandle, float);
     void Write(cFile &) const;
+    void Write(cOutStream &) const;
     int Read(cFile &, cMemPool *);
+    void Read(cInStream &);
     const cType *GetType(void) const;
     static void FreeDynamicInstances(void);
     void CloseDialogs(void);
     void HandleStreamedCinematicDelete(void);
+    void PlayVoiceOver(int);
     void UpdateDialogs(cTimeValue);
     static gcCinematicInstance *New(cMemPool *, cBase *);
 };
