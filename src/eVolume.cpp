@@ -3,6 +3,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -14,6 +15,13 @@ public:
     void Write(float);
     void Write(int, const float *);
     void End(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *), const char *,
+                                 const char *, unsigned int);
 };
 
 struct AllocRec {
@@ -38,6 +46,7 @@ public:
     eVolume(cBase *);
     void Write(cFile &) const;
     void UpdateLocalToWorld(void);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -92,6 +101,36 @@ cBase *eVolume::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+extern const char eVolume_base_name[];
+extern const char eVolume_base_desc[];
+
+static cType *type_base;
+static cType *type_eVolume;
+
+// ============================================================
+// eVolume::GetType(void) const @ 0x00205150
+// ============================================================
+
+#pragma control sched=1
+const cType *eVolume::GetType(void) const {
+    if (!type_eVolume) {
+        if (!type_base) {
+            const char *name = eVolume_base_name;
+            const char *desc = eVolume_base_desc;
+            __asm__ volatile("" : "+r"(name), "+r"(desc));
+            type_base = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *base = type_base;
+        __asm__ volatile("" : "+r"(base));
+        cBase *(*factory)(cMemPool *, cBase *) = &eVolume::New;
+        __asm__ volatile("" : "+r"(factory));
+        type_eVolume = cType::InitializeType(0, 0, 0x38, base, factory, 0, 0, 0);
+    }
+    return type_eVolume;
 }
 #pragma control sched=2
 

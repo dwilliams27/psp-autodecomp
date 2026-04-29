@@ -12,6 +12,7 @@ typedef int v4sf_t __attribute__((mode(V4SF)));
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 // dcast<T>(const cBase *) — linker-resolved per-type template instantiation
 // that downcasts via classdesc lookup.
@@ -44,12 +45,36 @@ public:
     static cMemPoolNS *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *), const char *,
+                                 const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(float);
+    void Write(int, const float *);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
 class eSkyGeomTemplate {
 public:
     char _pad[0x30];
 
     ~eSkyGeomTemplate();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
     // Inline so SNC inlines it into the deleting-destructor variant.
@@ -64,6 +89,12 @@ public:
         fn(base, p);
     }
 };
+
+extern const char eSkyGeomTemplate_base_name[];
+extern const char eSkyGeomTemplate_base_desc[];
+
+static cType *type_base;
+static cType *type_eSkyGeomTemplate;
 
 // ── ~eSkyGeomTemplate ──  @ 0x0005cbfc, 100B
 //
@@ -119,5 +150,41 @@ cBase *eSkyGeomTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+// ── GetType ──  @ 0x0020432c, 156B
+#pragma control sched=1
+const cType *eSkyGeomTemplate::GetType(void) const {
+    if (!type_eSkyGeomTemplate) {
+        if (!type_base) {
+            const char *name = eSkyGeomTemplate_base_name;
+            const char *desc = eSkyGeomTemplate_base_desc;
+            __asm__ volatile("" : "+r"(name), "+r"(desc));
+            type_base = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *base = type_base;
+        __asm__ volatile("" : "+r"(base));
+        cBase *(*factory)(cMemPool *, cBase *) = &eSkyGeomTemplate::New;
+        __asm__ volatile("" : "+r"(factory));
+        type_eSkyGeomTemplate = cType::InitializeType(0, 0, 0x1BB, base,
+                                                      factory, 0, 0, 0);
+    }
+    return type_eSkyGeomTemplate;
+}
+#pragma control sched=2
+
+// ── Write ──  @ 0x0005ca04, 128B
+#pragma control sched=1
+void eSkyGeomTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const cHandle *)((const char *)this + 0x08))->Write(wb);
+    wb.Write(*(const bool *)((const char *)this + 0x0C));
+    wb.Write(3, (const float *)((const char *)this + 0x10));
+    wb.Write(*(const float *)((const char *)this + 0x20));
+    wb.Write(*(const float *)((const char *)this + 0x24));
+    wb.Write(*(const float *)((const char *)this + 0x28));
+    wb.End();
 }
 #pragma control sched=2
