@@ -54,6 +54,7 @@ class cMemPool;
 class eShadowFillModelMtl {
 public:
     eShadowFillModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -209,6 +210,7 @@ public:
 class eShadowVolumeModelMtl {
 public:
     ~eShadowVolumeModelMtl();
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     int Read(cFile &, cMemPool *);
