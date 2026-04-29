@@ -2,6 +2,7 @@
 
 class cFile;
 class cMemPool;
+class cType;
 class gcDoSetEventObject;
 
 extern "C" void gcAction_gcAction(void *, cBase *);
@@ -19,9 +20,18 @@ public:
     void End(void);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcDoSetEventObject {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -29,6 +39,14 @@ class gcDoSetObjectRelationship {
 public:
     static cBase *New(cMemPool *, cBase *);
 };
+
+extern const char gcDoSetEventObject_base_name[] asm("D_0036D894");
+extern const char gcDoSetEventObject_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoSetEventObject asm("D_0009F6E8");
 
 struct PoolBlock {
     char pad[0x1C];
@@ -58,6 +76,28 @@ cBase *gcDoSetEventObject::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoSetEventObject::GetType(void) const {
+    if (!type_gcDoSetEventObject) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoSetEventObject_base_name,
+                        gcDoSetEventObject_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoSetEventObject = cType::InitializeType(
+            0, 0, 0xF6, type_action, gcDoSetEventObject::New, 0, 0, 0);
+    }
+    return type_gcDoSetEventObject;
 }
 
 void gcDoSetEventObject::Write(cFile &file) const {
