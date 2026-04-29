@@ -3,6 +3,11 @@
 class cFile;
 class cMemPool;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -20,13 +25,38 @@ struct gcDesiredUIWidgetHelper {
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
-class gcDoUISetFocus {
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cType {
 public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class gcDoUISetFocus : public gcAction {
+public:
+    ~gcDoUISetFocus();
     void GetText(char *) const;
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 void cStrAppend(char *, const char *, ...);
@@ -37,6 +67,8 @@ void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 extern char gcDoUISetFocusvirtualtable[];
 extern const char gcDoUISetFocus_fmt[];
+extern const char gcDoUISetFocus_base_name[];
+extern const char gcDoUISetFocus_base_desc[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -109,4 +141,37 @@ void gcDoUISetFocus::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(
         cb(ctx, (unsigned int)(void *)this, user);
     }
     ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->VisitReferences(flags, (cBase *)this, cb, user, mask);
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoUISetFocus;
+
+// 0x0030c618, 280B
+const cType *gcDoUISetFocus::GetType(void) const {
+    if (!type_gcDoUISetFocus) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(gcDoUISetFocus_base_name,
+                                                       gcDoUISetFocus_base_desc,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression,
+                                                0, 0, 0, 0);
+        }
+        type_gcDoUISetFocus = cType::InitializeType(0, 0, 0x151, type_action,
+                                                    gcDoUISetFocus::New,
+                                                    0, 0, 0);
+    }
+    return type_gcDoUISetFocus;
+}
+
+// 0x0030cafc, 124B
+gcDoUISetFocus::~gcDoUISetFocus() {
+    *(void **)((char *)this + 4) = gcDoUISetFocusvirtualtable;
 }
