@@ -17,13 +17,24 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eSound;
 class eWorld;
 
 extern char eSoundvirtualtable[];      // 0x37FB80
 extern char cObjectvirtualtable[];     // 0x37E990
+extern cType *D_000385DC;
+extern cType *D_00040F74;
 
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -104,6 +115,7 @@ public:
     eSound(cBase *);
     ~eSound();
     static eSound *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 
@@ -215,4 +227,19 @@ eSound *eSound::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// ── eSound::GetType(void) const @ 0x001e02cc ──
+const cType *eSound::GetType(void) const {
+    if (D_00040F74 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                               (const char *)0x36CD7C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00040F74 = cType::InitializeType(
+            0, 0, 0x5D, D_000385DC,
+            (cBase *(*)(cMemPool *, cBase *))&eSound::New, 0, 0, 0);
+    }
+    return D_00040F74;
 }

@@ -21,6 +21,7 @@ public:
 
 class cBase;
 class cTimeValue;
+class cType;
 
 class gcCinematic {
 public:
@@ -53,6 +54,7 @@ public:
     void Chain(cHandleT<gcCinematic>, cHandle, float);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
     static void FreeDynamicInstances(void);
     void CloseDialogs(void);
     void HandleStreamedCinematicDelete(void);

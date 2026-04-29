@@ -4,6 +4,14 @@
 
 #define NULL 0
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -33,6 +41,8 @@ extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
 
 extern char *D_0037D7C8;
 extern gcStreamedCinematic *D_0037D7D4[2];
+extern cType *D_000385DC;
+extern cType *D_00099AD0;
 
 // Function 1: 0x000ebdb4, 24 bytes
 void gcCinematicInstance::Chain(cHandleT<gcCinematic> cinematic, cHandle handle, float time) {
@@ -143,4 +153,20 @@ gcCinematicInstance *gcCinematicInstance::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// Function 9: 0x00243e74, 160 bytes — GetType
+const cType *gcCinematicInstance::GetType(void) const {
+    if (D_00099AD0 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                               (const char *)0x36D89C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00099AD0 = cType::InitializeType(
+            0, 0, 0x169, D_000385DC,
+            (cBase *(*)(cMemPool *, cBase *))&gcCinematicInstance::New,
+            0, 0, 0);
+    }
+    return D_00099AD0;
 }

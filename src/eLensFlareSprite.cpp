@@ -10,6 +10,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -63,6 +72,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 template <class T> T *dcast(const cBase *);
@@ -70,6 +80,9 @@ template <class T> T *dcast(const cBase *);
 // External constructor (defined elsewhere; eLensFlareSprite::eLensFlareSprite
 // @ 0x0003bbc8, not yet matched). Invoked from ::New via safe-name wrapper.
 extern "C" void eLensFlareSprite_eLensFlareSprite(void *self, cBase *parent);
+
+extern cType *D_000385DC;
+extern cType *D_000468C8;
 
 // ── 0x001e8378 — AssignCopy(const cBase *), 96B ──
 void eLensFlareSprite::AssignCopy(const cBase *base) {
@@ -138,4 +151,18 @@ cBase *eLensFlareSprite::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── 0x001e8454 — GetType(void) const, 160B ──
+const cType *eLensFlareSprite::GetType(void) const {
+    if (D_000468C8 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                               (const char *)0x36CD7C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_000468C8 = cType::InitializeType(0, 0, 0x19A, D_000385DC,
+                                           &eLensFlareSprite::New, 0, 0, 0);
+    }
+    return D_000468C8;
 }
