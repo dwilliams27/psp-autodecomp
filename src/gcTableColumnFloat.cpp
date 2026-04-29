@@ -1,6 +1,7 @@
 class cBase;
 class cMemPool;
 class cInStream;
+class cFile;
 
 class cType {
 public:
@@ -17,6 +18,21 @@ public:
     float *mData;
     cArrayFloat &operator=(const cArrayFloat &);
     void Read(cInStream &);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(int, const float *);
+    void End(void);
+};
+
+class cOutStream {
+public:
+    void Write(int, int, bool);
+    void Write(float, bool);
 };
 
 extern char gcTableColumnclassdesc[];
@@ -40,9 +56,14 @@ struct gcTableColumnFloat;
 float cAtoF(const wchar_t *);
 gcTableColumnFloat *dcast(const cBase *);
 
-struct gcTableColumnFloat {
+struct gcTableColumn {
     void *mOwner;
     void *mClassDesc;
+
+    void Write(cFile &) const;
+};
+
+struct gcTableColumnFloat : public gcTableColumn {
     cArrayFloat mValues;
 
     gcTableColumnFloat(cBase *parent) {
@@ -60,6 +81,8 @@ struct gcTableColumnFloat {
     int Compare(int row1, int row2) const;
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
+    void Write(cFile &file) const;
+    void Write(cOutStream &os) const;
 };
 
 cBase *gcTableColumnFloat::New(cMemPool *pool, cBase *parent) {
@@ -125,4 +148,23 @@ int gcTableColumnFloat::Compare(int row1, int row2) const {
         v = (a <= b) ? 0 : 1;
     }
     return v;
+}
+
+void gcTableColumnFloat::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcTableColumn::Write(file);
+    wb.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0);
+    wb.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0,
+             mValues.mData);
+    wb.End();
+}
+
+void gcTableColumnFloat::Write(cOutStream &os) const {
+    os.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0,
+             0x20, true);
+    int i = 0;
+    while (i < (mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0)) {
+        os.Write(mValues.mData[i], true);
+        i++;
+    }
 }
