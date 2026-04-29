@@ -3,6 +3,7 @@
 class cBase;
 class cFilename;
 class cMemPool;
+class eHeightmapTile;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -12,6 +13,12 @@ class cStr {
 public:
     char _data[256];
     void Set(const char *, ...);
+};
+
+template <class T>
+class cArrayBase {
+public:
+    cArrayBase &operator=(const cArrayBase &);
 };
 
 struct PoolBlock {
@@ -28,6 +35,7 @@ struct AllocEntry {
 class eHeightmapTemplate : public cObject {
 public:
     eHeightmapTemplate(cBase *);
+    void AssignCopy(const cBase *);
     void PlatformFree(void);
     float GetRadius(void) const;
     void GetExternalDependency(int, cFilename *) const;
@@ -36,6 +44,11 @@ public:
 };
 
 extern char eHeightmapTemplatevirtualtable[];
+
+template <class T> T *dcast(const cBase *);
+
+struct eHeightmapTemplate_block_24 { int _[6]; };
+struct eHeightmapTemplate_block_4 { int _[1]; };
 
 // ── PlatformFree @ 0x000520b8 ──
 void eHeightmapTemplate::PlatformFree(void) {
@@ -79,6 +92,34 @@ cBase *eHeightmapTemplate::New(cMemPool *pool, cBase *parent) {
     }
     return (cBase *)result;
 }
+
+// ── AssignCopy @ 0x001f55e8 ──
+#pragma control sched=1
+void eHeightmapTemplate::AssignCopy(const cBase *src) {
+    eHeightmapTemplate *other = dcast<eHeightmapTemplate>(src);
+    cObject::operator=(*other);
+    __asm__ volatile("" ::: "memory");
+    *(eHeightmapTemplate_block_24 *)((char *)this + 0x44) =
+        *(eHeightmapTemplate_block_24 *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x5C) = *(int *)((char *)other + 0x5C);
+    *(int *)((char *)this + 0x60) = *(int *)((char *)other + 0x60);
+    *(int *)((char *)this + 0x64) = *(int *)((char *)other + 0x64);
+    *(int *)((char *)this + 0x68) = *(int *)((char *)other + 0x68);
+    *(int *)((char *)this + 0x6C) = *(int *)((char *)other + 0x6C);
+    *(float *)((char *)this + 0x70) = *(float *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(float *)((char *)other + 0x78);
+    __asm__ volatile("" ::: "memory");
+    ((cArrayBase<eHeightmapTile> *)((char *)this + 0x7C))->operator=(
+        *(const cArrayBase<eHeightmapTile> *)((char *)other + 0x7C));
+    *(int *)((char *)this + 0x80) = *(int *)((char *)other + 0x80);
+    *(int *)((char *)this + 0x84) = *(int *)((char *)other + 0x84);
+    __asm__ volatile("" ::: "memory");
+    eHeightmapTemplate_block_4 *dst88 = (eHeightmapTemplate_block_4 *)((char *)this + 0x88);
+    eHeightmapTemplate_block_4 *src88 = (eHeightmapTemplate_block_4 *)((char *)other + 0x88);
+    *dst88 = *src88;
+}
+#pragma control sched=2
 
 // ── GetExternalDependency @ 0x001f58e0 ──
 void eHeightmapTemplate::GetExternalDependency(int, cFilename *out) const {

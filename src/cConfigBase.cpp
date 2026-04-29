@@ -49,6 +49,7 @@ public:
     cConfigBase(cBase *);
     ~cConfigBase();
 
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -73,6 +74,8 @@ extern char cListSubscribervirtualtable__0037E788[];
 extern char cBaseclassdesc[];
 extern cType *D_000385DC;
 extern cType *D_00038888;
+
+template <class T> T *dcast(const cBase *);
 
 // ── cConfigBase::cConfigBase(cBase *) @ 0x000086b4 ──
 cConfigBase::cConfigBase(cBase *parent) {
@@ -108,6 +111,32 @@ void cConfigBase::Write(cFile &file) const {
     wb.Write(0xC, (const bool *)((char *)this + 0x208));
     wb.Write(0xC, (const int *)((char *)this + 0x214));
     wb.End();
+}
+
+// ── cConfigBase::AssignCopy(const cBase *) @ 0x001c676c ──
+void cConfigBase::AssignCopy(const cBase *src) {
+    cConfigBase *other = dcast<cConfigBase>(src);
+
+    char *srcFirst = (char *)other + 8;
+    __asm__ volatile("" :: "r"(srcFirst));
+    *(cStr *)((char *)this + 8) = *(cStr *)((char *)other + 8);
+    *(cStr *)((char *)this + 0x108) = *(cStr *)((char *)other + 0x108);
+
+    int i = 0;
+    do {
+        *((unsigned char *)this + (0x208 + i)) = *((unsigned char *)other + (0x208 + i));
+        i += 1;
+    } while (i < 12);
+
+    int j = 0;
+    cConfigBase *srcObj = other;
+    cConfigBase *dstObj = this;
+    do {
+        j += 1;
+        *(int *)((char *)dstObj + 0x214) = *(int *)((char *)srcObj + 0x214);
+        srcObj = (cConfigBase *)((char *)srcObj + 4);
+        dstObj = (cConfigBase *)((char *)dstObj + 4);
+    } while (j < 12);
 }
 
 // ── cConfigBase::New(cMemPool *, cBase *) static @ 0x001c6848 ──
