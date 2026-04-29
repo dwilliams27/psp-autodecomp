@@ -75,6 +75,7 @@ public:
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
