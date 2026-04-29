@@ -249,6 +249,7 @@ public:
 class eSilhouetteModelMtl {
 public:
     eSilhouetteModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     void PlatformRead(cFile &, cMemPool *);
@@ -256,6 +257,7 @@ public:
     void Unapply(void) const;
     float GetSilhouetteOffset(const eDrawInfo &) const;
     void Write(cFile &) const;
+    eSilhouetteModelMtl &operator=(const eSilhouetteModelMtl &);
     static eSilhouetteModelMtl *New(cMemPool *, cBase *);
 };
 
