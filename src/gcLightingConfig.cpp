@@ -59,6 +59,7 @@ public:
 class gcLightingConfig {
 public:
     ~gcLightingConfig();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -73,6 +74,24 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcLightingConfig::AssignCopy(const cBase *) @ 0x00246854 ──
+void gcLightingConfig::AssignCopy(const cBase *base) {
+    gcLightingConfig *other = dcast<gcLightingConfig>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(float *)((char *)this + 12) = *(const float *)((char *)other + 12);
+    *(int *)((char *)this + 16) = *(const int *)((char *)other + 16);
+    *(float *)((char *)this + 20) = *(const float *)((char *)other + 20);
+    *(int *)((char *)this + 24) = *(const int *)((char *)other + 24);
+    *(float *)((char *)this + 28) = *(const float *)((char *)other + 28);
+    *(cHandle *)((char *)this + 32) = *(const cHandle *)((char *)other + 32);
+}
 
 // ── Write ──  @ 0x000f0ba4, 136B
 void gcLightingConfig::Write(cFile &file) const {

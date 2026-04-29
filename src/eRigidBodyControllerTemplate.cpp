@@ -9,6 +9,19 @@ public:
     void End(void);
 };
 
+class cBaseArray {
+public:
+    int mCount;
+    cBase *mOwner;
+    cBaseArray &operator=(const cBaseArray &);
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mIndex;
+};
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -49,6 +62,7 @@ public:
 
     eRigidBodyControllerTemplate(cBase *);
     ~eRigidBodyControllerTemplate();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -93,6 +107,22 @@ eRigidBodyControllerTemplate::eRigidBodyControllerTemplate(cBase *b)
 {
     ((void **)this)[1] = eRigidBodyControllerTemplateclassdesc;
 }
+
+// ── eRigidBodyControllerTemplate::AssignCopy(const cBase *) @ 0x0020fc28 ──
+#pragma control sched=1
+void eRigidBodyControllerTemplate::AssignCopy(const cBase *base) {
+    eRigidBodyControllerTemplate *other = dcast<eRigidBodyControllerTemplate>(base);
+    const cBaseArray &srcArr1 = *(const cBaseArray *)((char *)other + 8);
+    ((cBaseArray *)((char *)this + 8))->operator=(srcArr1);
+    ((cBaseArray *)((char *)this + 16))->operator=(*(const cBaseArray *)((char *)other + 16));
+    ((cBaseArray *)((char *)this + 24))->operator=(*(const cBaseArray *)((char *)other + 24));
+    __asm__ volatile("" ::: "memory");
+    *(cHandle *)((char *)this + 32) = *(cHandle *)((char *)other + 32);
+    __asm__ volatile("" ::: "memory");
+    *(cHandle *)((char *)this + 36) = *(cHandle *)((char *)other + 36);
+    *(float *)((char *)this + 40) = *(const float *)((char *)other + 40);
+}
+#pragma control sched=2
 
 // ── eRigidBodyControllerTemplate::Write(cFile &) const @ 0x000770f8 ──
 #pragma control sched=1

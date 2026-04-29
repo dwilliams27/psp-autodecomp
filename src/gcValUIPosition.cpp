@@ -68,6 +68,7 @@ public:
 
     ~gcValUIPosition();
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
 
@@ -79,6 +80,12 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
 };
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
@@ -93,6 +100,17 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+// ── gcValUIPosition::AssignCopy(const cBase *) @ 0x00363cac ──
+void gcValUIPosition::AssignCopy(const cBase *base) {
+    gcValUIPosition *other = dcast<gcValUIPosition>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+    mField14 = other->mField14;
+    mField18 = other->mField18;
+    mField1C = other->mField1C;
+}
 
 // ── gcValUIPosition::New(cMemPool *, cBase *) static @ 0x00363d14 ──
 cBase *gcValUIPosition::New(cMemPool *pool, cBase *parent) {
