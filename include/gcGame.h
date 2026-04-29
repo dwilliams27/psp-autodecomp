@@ -12,11 +12,14 @@ public:
 
 class cBase;
 class cMemPool;
+class cType;
 
 class gcGame {
 public:
     gcGame(cBase *);
     gcGame &operator=(const gcGame &);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void NetReplicate(bool);
     void ResetNetConnection(int);
     void *GetGroups(int *);

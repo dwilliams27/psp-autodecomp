@@ -1,5 +1,38 @@
 #include "gcGame.h"
 
+class cType {
+public:
+    char _pad[0x1C];
+    cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+struct gcGame_DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
+struct gcGame_ClassDesc {
+    char _pad[8];
+    gcGame_DispatchEntry dispatch;
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040C90;
+extern cType *D_0009A300;
+
 class gcGameSettings {
 public:
     void Reset(cMemPool *, bool);
@@ -95,4 +128,95 @@ cBase *gcGame::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0024edc8 — gcGame::GetType(void) const
+const cType *gcGame::GetType(void) const {
+    if (D_0009A300 == 0) {
+        if (D_00040C90 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        &cNamed::New, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(
+                    0, 0, 3, D_000385E0, 0, 0, 0, 0);
+            }
+            D_00040C90 = cType::InitializeType(
+                0, 0, 5, D_000385E4, 0, 0, 0, 0);
+        }
+        D_0009A300 = cType::InitializeType(
+            0, 0, 0x64, D_00040C90, &gcGame::New,
+            (const char *)0x36D948, (const char *)0x36D950, 1);
+    }
+    return D_0009A300;
+}
+
+// 0x0024eb5c — gcGame::AssignCopy(const cBase *)
+void gcGame::AssignCopy(const cBase *base) {
+    const gcGame *other = 0;
+
+    if (base != 0) {
+        if (D_0009A300 == 0) {
+            if (D_00040C90 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894,
+                                (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            &cNamed::New, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                D_00040C90 = cType::InitializeType(
+                    0, 0, 5, D_000385E4, 0, 0, 0, 0);
+            }
+            D_0009A300 = cType::InitializeType(
+                0, 0, 0x64, D_00040C90, &gcGame::New,
+                (const char *)0x36D948, (const char *)0x36D950, 1);
+        }
+
+        gcGame_ClassDesc *classDesc = *(gcGame_ClassDesc **)((char *)base + 4);
+        cType *target = D_0009A300;
+        short offset = classDesc->dispatch.offset;
+        cType *(*fn)(void *, short, void *) = classDesc->dispatch.fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            if (type != 0) {
+loop_cast:
+                if (type != target) {
+                    type = type->mParent;
+                    if (type != 0) {
+                        goto loop_cast;
+                    }
+                    goto invalid_cast;
+                }
+                isValid = 1;
+            } else {
+invalid_cast:
+                isValid = 0;
+            }
+        } else {
+            goto invalid_cast;
+        }
+
+        if (isValid != 0) {
+            other = (const gcGame *)base;
+        }
+    }
+    operator=(*other);
 }
