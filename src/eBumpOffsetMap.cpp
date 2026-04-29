@@ -22,11 +22,29 @@ public:
     };
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern "C" int cGetCurrentPlatform(void);
 extern int gSomePlatformDefault;
 extern "C" void eTexture___dtor_eTexture_void(void *, int);
 extern "C" void eBumpOffsetMap__GetRelativeFilename_unsignedint_cLanguage__cLanguagesconst(
     cStr *, const eBumpOffsetMap *, unsigned int, cLanguage::cLanguages);
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FE8;
+extern cType *D_00046C68;
 
 // ── GetNumExternalDependencies ──
 
@@ -111,6 +129,46 @@ eBumpOffsetMap *eBumpOffsetMap::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+const cType *eBumpOffsetMap::GetType(void) const {
+    if (D_00046C68 == 0) {
+        if (D_00040FE8 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        const char *name = (const char *)0x36CD74;
+                        const char *desc = (const char *)0x36CD7C;
+                        __asm__ volatile("" : "+r"(name), "+r"(desc));
+                        D_000385DC = cType::InitializeType(name, desc,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385DC;
+                    cBase *(*factory)(cMemPool *, cBase *) =
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                    D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                                                       0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            const cType *parentType = D_000385E4;
+            const char *kindName = (const char *)0x36CDA8;
+            const char *kindDesc = (const char *)0x36CDB4;
+            __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+            D_00040FE8 = cType::InitializeType(0, 0, 0xA, parentType,
+                                               0, kindName, kindDesc, 5);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00040FE8;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x21775C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C68 = cType::InitializeType(0, 0, 0x1E3, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C68;
 }
 
 // ── Destructor ──

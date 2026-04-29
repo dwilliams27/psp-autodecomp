@@ -41,6 +41,7 @@ class eWorld;
 class mOCS;
 class mVec3;
 class eTexture;
+class cType;
 class eDrawInfo;
 class eColor;
 class cBase;
@@ -71,6 +72,7 @@ public:
 
     eBumpOffsetMap(cBase *);
     ~eBumpOffsetMap(void);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     void Apply(int, const eCamera *, const eWorld *) const;
