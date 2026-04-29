@@ -1,6 +1,7 @@
 class cBase;
 class cMemPool;
 class gcState;
+class gcStateFunction;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -28,7 +29,9 @@ public:
     gcStateMachine(cBase *);
 
     static cBase *New(cMemPool *, cBase *);
+    gcState *GetSubObject(cSubHandleT<gcState>, int) const;
     int IsValid(cSubHandleT<gcState>, int) const;
+    int IsValid(cSubHandleT<gcStateFunction>, int) const;
 };
 
 // ── gcStateMachine::gcStateMachine(cBase *) @ 0x0010cc30 ──
@@ -101,6 +104,100 @@ int gcStateMachine::IsValid(cSubHandleT<gcState> handle, int offset) const {
     int result = 0;
     if (state != 0) {
         int valid = (*handleIndexPtr == *(int *)((char *)state + 0x20));
+        valid = (unsigned char)valid;
+        if (valid != 0 && states[nextIndex] != 0) {
+            result = 1;
+        }
+    }
+    return (unsigned char)result;
+}
+
+// ── gcStateMachine::GetSubObject(cSubHandleT<gcState>, int) const @ 0x0010d1d4 ──
+gcState *gcStateMachine::GetSubObject(cSubHandleT<gcState> handle, int offset) const {
+    if (offset < 0) {
+        return 0;
+    }
+
+    volatile int *handleIndexPtr = &handle.mIndex;
+    int stateIndex = *handleIndexPtr;
+    if (stateIndex == 0) {
+        return 0;
+    }
+
+    stateIndex = stateIndex & 0xFFFF;
+    int nextIndex = stateIndex;
+    nextIndex += offset;
+    void **states = *(void ***)((char *)this + 0x50);
+    int count = 0;
+    if (states != 0) {
+        count = ((int *)states)[-1];
+    }
+    if (nextIndex >= count) {
+        return 0;
+    }
+    if (stateIndex < 0) {
+        return 0;
+    }
+
+    count = 0;
+    if (states != 0) {
+        count = ((int *)states)[-1];
+    }
+    if (stateIndex >= count) {
+        return 0;
+    }
+
+    void *state = states[stateIndex];
+    gcState *result = 0;
+    if (state != 0) {
+        int valid = (*handleIndexPtr == *(int *)((char *)state + 0x20));
+        valid = (unsigned char)valid;
+        if (valid != 0) {
+            result = (gcState *)states[nextIndex];
+        }
+    }
+    return result;
+}
+
+// ── gcStateMachine::IsValid(cSubHandleT<gcStateFunction>, int) const @ 0x0010d3d4 ──
+int gcStateMachine::IsValid(cSubHandleT<gcStateFunction> handle, int offset) const {
+    if (offset < 0) {
+        return 0;
+    }
+
+    volatile int *handleIndexPtr = &handle.mIndex;
+    int stateIndex = *handleIndexPtr;
+    if (stateIndex == 0) {
+        return 0;
+    }
+
+    stateIndex = stateIndex & 0xFFFF;
+    int nextIndex = stateIndex;
+    nextIndex += offset;
+    void **states = *(void ***)((char *)this + 0x58);
+    int count = 0;
+    if (states != 0) {
+        count = ((int *)states)[-1];
+    }
+    if (nextIndex >= count) {
+        return 0;
+    }
+    if (stateIndex < 0) {
+        return 0;
+    }
+
+    count = 0;
+    if (states != 0) {
+        count = ((int *)states)[-1];
+    }
+    if (stateIndex >= count) {
+        return 0;
+    }
+
+    void *state = states[stateIndex];
+    int result = 0;
+    if (state != 0) {
+        int valid = (*handleIndexPtr == *(int *)((char *)state + 0x3C));
         valid = (unsigned char)valid;
         if (valid != 0 && states[nextIndex] != 0) {
             result = 1;
