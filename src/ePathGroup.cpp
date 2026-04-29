@@ -22,6 +22,13 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -47,6 +54,7 @@ public:
     ePathGroup(cBase *);
     ~ePathGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
@@ -90,6 +98,10 @@ public:
 extern char ePathGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E20;
 
 void ePathGroup::AssignCopy(const cBase *base) {
     ePathGroup *src = dcast<ePathGroup>(base);
@@ -143,6 +155,25 @@ cBase *ePathGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── ePathGroup::GetType(void) const @ 0x001DBD88 ──
+const cType *ePathGroup::GetType(void) const {
+    if (D_00040E20 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E20 = cType::InitializeType(0, 0, 0x19, D_00040C94,
+                                           &ePathGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E20;
 }
 
 // ── ePathGroup::~ePathGroup(void) @ 0x001DBE80 ──

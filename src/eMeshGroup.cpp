@@ -24,6 +24,13 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -49,6 +56,7 @@ public:
     ~eMeshGroup();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     static bool IsManagedTypeExternalStatic();
     static void operator delete(void *p) {
@@ -88,6 +96,10 @@ public:
 extern char eMeshGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E24;
 
 void eMeshGroup::AssignCopy(const cBase *base) {
     eMeshGroup *src = dcast<eMeshGroup>(base);
@@ -130,6 +142,25 @@ cBase *eMeshGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eMeshGroup::GetType(void) const @ 0x001DBFF0 ──
+const cType *eMeshGroup::GetType(void) const {
+    if (D_00040E24 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E24 = cType::InitializeType(0, 0, 0xF, D_00040C94,
+                                           &eMeshGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E24;
 }
 
 bool eSkinGroup::IsManagedTypeExternal() const {

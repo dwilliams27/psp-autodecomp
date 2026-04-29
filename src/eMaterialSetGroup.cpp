@@ -3,6 +3,7 @@
 
 class cBase;
 class cFile;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -21,6 +22,13 @@ struct AllocEntry {
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cWriteBlock {
@@ -48,6 +56,7 @@ public:
     ~eMaterialSetGroup();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -81,6 +90,10 @@ public:
 extern char eMaterialSetGroupvirtualtable[];
 extern char cBasevirtualtable[];
 extern char cGroupvirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E2C;
 
 void eMaterialSetGroup::AssignCopy(const cBase *base) {
     eMaterialSetGroup *src = dcast<eMaterialSetGroup>(base);
@@ -137,6 +150,25 @@ cBase *eMaterialSetGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eMaterialSetGroup::GetType(void) const @ 0x001DC4C0 ──
+const cType *eMaterialSetGroup::GetType(void) const {
+    if (D_00040E2C == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E2C = cType::InitializeType(0, 0, 0x28, D_00040C94,
+                                           &eMaterialSetGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E2C;
 }
 
 // ----------------------------------------------------------------------
