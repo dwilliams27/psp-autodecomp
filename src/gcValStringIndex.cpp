@@ -15,6 +15,7 @@
 
 class cFile;
 class cBase;
+class cMemPool;
 
 class cWriteBlock {
 public:
@@ -47,18 +48,62 @@ public:
 
 class gcValue {
 public:
+    cBase *mParent;
+    void *mVtable;
     void Write(cFile &) const;
 };
 
 class gcValStringIndex : public gcValue {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
 
 extern "C" void cStrCat(char *, const char *);
+void gcDesiredObject_gcDesiredObject(void *, cBase *);
 
 extern const char gcValStringIndex_text[];   // @ 0x36F79C
+extern char cBaseclassdesc[];
+extern char gcValuevirtualtable[];
+extern char gcDesiredString_cBase_vtable[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+// 0x0035e8b4 (192B) — New
+cBase *gcValStringIndex::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValStringIndex *result = 0;
+    gcValStringIndex *obj = (gcValStringIndex *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = cBaseclassdesc;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValuevirtualtable;
+        void *desired = (char *)obj + 8;
+        gcDesiredObject_gcDesiredObject(desired, (cBase *)obj);
+        ((void **)obj)[3] = gcDesiredString_cBase_vtable;
+        ((unsigned char *)obj)[0x14] = 0;
+        ((unsigned char *)obj)[0x15] = 0;
+        ((int *)obj)[6] = 0;
+        ((int *)obj)[7] = 0;
+        ((int *)obj)[8] = (int)((unsigned int)desired | 1);
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // 0x0035ea8c (108B) — Write
 void gcValStringIndex::Write(cFile &file) const {
