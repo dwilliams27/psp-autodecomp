@@ -9,10 +9,23 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cObject {
 public:
     cObject &operator=(const cObject &);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -60,6 +73,7 @@ public:
     ~eShadowVolumeTexture();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -73,6 +87,13 @@ public:
         fn(base, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FE8;
+extern cType *D_00046B98;
+extern cType *D_00046CA0;
 
 extern "C" void eShadowVolumeTexture__eShadowVolumeTexture_cBaseptr(void *self, cBase *parent);
 
@@ -120,4 +141,48 @@ cBase *eShadowVolumeTexture::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eShadowVolumeTexture::GetType(void) const @ 0x0021af50 ──
+const cType *eShadowVolumeTexture::GetType(void) const {
+    if (D_00046CA0 == 0) {
+        if (D_00046B98 == 0) {
+            if (D_00040FE8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            const char *name = (const char *)0x36CD74;
+                            const char *desc = (const char *)0x36CD7C;
+                            __asm__ volatile("" : "+r"(name), "+r"(desc));
+                            D_000385DC = cType::InitializeType(
+                                name, desc, 1, 0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385DC;
+                        cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, parentType, factory, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385E4;
+                __asm__ volatile("" : "+r"(parentType));
+                __asm__ volatile("" ::: "memory");
+                const char *kindName = (const char *)0x36CDA8;
+                const char *kindDesc = (const char *)0x36CDB4;
+                __asm__ volatile("" : "+r"(kindName), "+r"(kindDesc));
+                D_00040FE8 = cType::InitializeType(
+                    0, 0, 0xA, parentType, 0, kindName, kindDesc, 5);
+            }
+            D_00046B98 = cType::InitializeType(0, 0, 0x135, D_00040FE8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046B98;
+        cBase *(*factory)(cMemPool *, cBase *) = &eShadowVolumeTexture::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046CA0 = cType::InitializeType(0, 0, 0x214, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046CA0;
 }

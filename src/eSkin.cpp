@@ -5,12 +5,25 @@
 
 class cBase;
 class cMemPool;
+class cType;
 class eMaterialSet;
 class eSurfaceSet;
 
 class cObject {
 public:
     cObject &operator=(const cObject &);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T>
@@ -43,12 +56,17 @@ struct AllocEntry {
 class eSkin {
 public:
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
 extern "C" void cObject_cObject(void *self, cBase *parent);
 
 extern char eSkinclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469F8;
 
 #pragma control sched=1
 // -- eSkin::AssignCopy @ 0x001f16cc --
@@ -80,5 +98,37 @@ cBase *eSkin::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// -- eSkin::GetType(void) const @ 0x001f17b4 --
+const cType *eSkin::GetType(void) const {
+    if (D_000469F8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385DC;
+                cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000385E4;
+        cBase *(*factory)(cMemPool *, cBase *) = &eSkin::New;
+        const char *kindName = (const char *)0x36CE5C;
+        const char *kindDesc = (const char *)0x36CE64;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory), "+r"(kindName),
+                         "+r"(kindDesc));
+        D_000469F8 = cType::InitializeType(0, 0, 0x45, parentType, factory,
+                                           kindName, kindDesc, 5);
+    }
+    return D_000469F8;
 }
 #pragma control sched=2
