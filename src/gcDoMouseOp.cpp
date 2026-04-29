@@ -38,6 +38,10 @@ struct cTypeMethod {
 
 class cType {
 public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
     char pad[0x28];
     cTypeMethod write_m;
 };
@@ -61,6 +65,13 @@ extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern char gcDoMouseOpvirtualtable[];
 extern char D_000006F8[];
 extern char D_003898A0[];
+extern const char gcDoMouseOp_base_name[] asm("D_0036D894");
+extern const char gcDoMouseOp_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoMouseOp asm("D_0009F6A8");
 
 class gcDoMouseOp : public gcAction {
 public:
@@ -69,6 +80,7 @@ public:
     cHandle mHandle;
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -95,6 +107,28 @@ cBase *gcDoMouseOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x002e78dc - gcDoMouseOp::GetType(void) const
+const cType *gcDoMouseOp::GetType(void) const {
+    if (!type_gcDoMouseOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoMouseOp_base_name, gcDoMouseOp_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoMouseOp = cType::InitializeType(
+            0, 0, 0x20C, type_action, gcDoMouseOp::New, 0, 0, 0);
+    }
+    return type_gcDoMouseOp;
 }
 
 // 0x002e79f4 - gcDoMouseOp::Write(cFile &) const
