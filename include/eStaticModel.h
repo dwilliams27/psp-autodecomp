@@ -5,7 +5,7 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cType;
 class eCollisionInfo;
 class eContactCollector;
 class mCollideInfo;
@@ -24,9 +24,11 @@ public:
 class eStaticModel : public eGeom {
 public:
     eStaticModel(cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    void PlatformRead(cFile &, cMemPool *);
     void PlatformReset(cMemPool *, bool);
     void OnRemovedFromWorld(void);
     void CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
