@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -27,6 +28,13 @@ struct AllocEntry {
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cWriteBlock {
@@ -67,6 +75,7 @@ public:
     int Read(cFile &, cMemPool *);
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -89,6 +98,10 @@ public:
 extern char gcTriggerGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998C0;
 
 void gcTriggerGroup::AssignCopy(const cBase *base) {
     gcTriggerGroup *src = dcast<gcTriggerGroup>(base);
@@ -123,6 +136,25 @@ cBase *gcTriggerGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcTriggerGroup::GetType(void) const @ 0x00237118 ──
+const cType *gcTriggerGroup::GetType() const {
+    if (D_000998C0 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998C0 = cType::InitializeType(0, 0, 0x9C, D_00040C94,
+                                           &gcTriggerGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998C0;
 }
 
 // ── gcTriggerGroup::Write(cFile &) const @ 0x000CFE00 ──

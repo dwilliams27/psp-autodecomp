@@ -4,6 +4,7 @@
 //   0x000d3230 gcTableTemplateGroup::Read(cFile &, cMemPool *)
 //   0x002385cc gcTableTemplateGroup::AssignCopy(const cBase *)
 //   0x00238604 gcTableTemplateGroup::New(cMemPool *, cBase *) static
+//   0x002386c0 gcTableTemplateGroup::GetType(void) const
 //   0x002387b8 gcTableTemplateGroup::~gcTableTemplateGroup(void)
 
 class cBase;
@@ -14,6 +15,12 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -71,6 +78,7 @@ public:
     int Read(cFile &, cMemPool *);
     bool IsManagedTypeExternal() const;
     static bool IsManagedTypeExternalStatic();
+    const cType *GetType() const;
     ~gcTableTemplateGroup();
 
     static void operator delete(void *p) {
@@ -83,6 +91,10 @@ public:
         fn(base, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998E4;
 
 // ============================================================
 // 0x000d31e4 — Write(cFile &) const
@@ -139,6 +151,27 @@ cBase *gcTableTemplateGroup::New(cMemPool *pool, cBase *parent) {
         flag = (int)obj;
     }
     return (cBase *)flag;
+}
+
+// ============================================================
+// 0x002386c0 — GetType(void) const
+// ============================================================
+const cType *gcTableTemplateGroup::GetType() const {
+    if (D_000998E4 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998E4 = cType::InitializeType(0, 0, 0x217, D_00040C94,
+                                           &gcTableTemplateGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998E4;
 }
 
 // ============================================================

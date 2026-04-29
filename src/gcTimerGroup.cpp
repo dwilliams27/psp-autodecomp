@@ -3,6 +3,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 struct DeleteRecord {
     short offset;
@@ -19,6 +20,13 @@ struct AllocEntry {
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cReadBlock {
@@ -60,6 +68,7 @@ public:
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -75,6 +84,10 @@ template <class T> T *dcast(const cBase *);
 extern char gcTimerGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998CC;
 
 void gcTimerGroup::AssignCopy(const cBase *base) {
     gcTimerGroup *src = dcast<gcTimerGroup>(base);
@@ -123,6 +136,24 @@ cBase *gcTimerGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcTimerGroup::GetType() const {
+    if (D_000998CC == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998CC = cType::InitializeType(0, 0, 0xDE, D_00040C94,
+                                           &gcTimerGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998CC;
 }
 
 gcTimerGroup::~gcTimerGroup() {
