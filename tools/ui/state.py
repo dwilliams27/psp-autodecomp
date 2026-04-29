@@ -66,6 +66,26 @@ class RunState:
         self.orch_log = deque(maxlen=120)
         self.outcomes = deque(maxlen=40)
 
+    def reset_for_run(self):
+        """Clear run-scoped display state before applying a new run_start.
+
+        The TUI can stay open while match_latest.jsonl is replaced by a new
+        overnight run. In that case stale worker slots from the previous run
+        must not survive into the new run's slot count.
+        """
+        self.run_done = False
+        self.matched_total = 0
+        self.this_run_matched = {}
+        self.this_run_failed = {}
+        self.this_run_verify_fail = 0
+        self.backends = ()
+        self.this_run_matched_by_backend = {}
+        self.this_run_failed_by_backend = {}
+        self.slots = []
+        self.session_to_slot = {}
+        self.orch_log.clear()
+        self.outcomes.clear()
+
     # -- slot management --
 
     def ensure_slots(self, n):

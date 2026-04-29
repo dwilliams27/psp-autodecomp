@@ -186,6 +186,7 @@ class RunningScreen(Screen):
             )
 
     def _on_run_start(self, state, event):
+        state.reset_for_run()
         state.hours_total = event.get("hours")
         if event.get("start_time"):
             state.run_start_wall = datetime.fromisoformat(event["start_time"])
