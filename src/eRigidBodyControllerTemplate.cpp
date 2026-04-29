@@ -1,6 +1,13 @@
 #include "cBase.h"
 
 class cFile;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -63,6 +70,7 @@ public:
     eRigidBodyControllerTemplate(cBase *);
     ~eRigidBodyControllerTemplate();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -100,6 +108,11 @@ class gcShadowController {
 public:
     gcShadowController(cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000469F4;
+extern cType *D_00046C04;
+extern cType *D_00046C10;
 
 // ── eRigidBodyControllerTemplate::eRigidBodyControllerTemplate(cBase *) @ 0x00077288 ──
 eRigidBodyControllerTemplate::eRigidBodyControllerTemplate(cBase *b)
@@ -163,6 +176,37 @@ cBase *eRigidBodyControllerTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+#pragma control sched=1
+const cType *eRigidBodyControllerTemplate::GetType(void) const {
+    __asm__ volatile("" ::: "memory");
+    if (D_00046C10 == 0) {
+        if (D_00046C04 == 0) {
+            if (D_000469F4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                D_000469F4 = cType::InitializeType(0, 0, 0x22F, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_00046C04 = cType::InitializeType(0, 0, 0x230, D_000469F4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046C04;
+        __asm__ volatile("" : "+r"(parentType));
+        __asm__ volatile("" ::: "memory");
+        cBase *(*factory)(cMemPool *, cBase *) = eRigidBodyControllerTemplate::New;
+        __asm__ volatile("" : "+r"(factory));
+        D_00046C10 = cType::InitializeType(0, 0, 0x231, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C10;
 }
 #pragma control sched=2
 

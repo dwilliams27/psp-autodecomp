@@ -12,6 +12,13 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -51,6 +58,7 @@ public:
 
     eRigidBodyControllerConfig(cBase *);
     ~eRigidBodyControllerConfig();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -65,6 +73,11 @@ public:
         fn(base, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_000469E8;
+extern cType *D_00046BF8;
+extern cType *D_00046C0C;
 
 // ── Write ──  @ 0x00076f40, 76B
 #pragma control sched=1
@@ -101,5 +114,36 @@ cBase *eRigidBodyControllerConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+#pragma control sched=1
+const cType *eRigidBodyControllerConfig::GetType(void) const {
+    __asm__ volatile("" ::: "memory");
+    if (D_00046C0C == 0) {
+        if (D_00046BF8 == 0) {
+            if (D_000469E8 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                D_000469E8 = cType::InitializeType(0, 0, 0x23D, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_00046BF8 = cType::InitializeType(0, 0, 0x23E, D_000469E8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046BF8;
+        __asm__ volatile("" : "+r"(parentType));
+        __asm__ volatile("" ::: "memory");
+        cBase *(*factory)(cMemPool *, cBase *) = eRigidBodyControllerConfig::New;
+        __asm__ volatile("" : "+r"(factory));
+        D_00046C0C = cType::InitializeType(0, 0, 0x23F, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C0C;
 }
 #pragma control sched=2
