@@ -7,6 +7,13 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -52,6 +59,7 @@ class eStaticLightGroup : public cGroup {
 public:
     eStaticLightGroup(cBase *);
     ~eStaticLightGroup();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -68,6 +76,10 @@ public:
 extern char eStaticLightGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E50;
 
 // ── eStaticLightGroup::Write(cFile &) const @ 0x00018774 ──
 void eStaticLightGroup::Write(cFile &file) const {
@@ -105,4 +117,23 @@ cBase *eStaticLightGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eStaticLightGroup::GetType(void) const @ 0x001DDA68 ──
+const cType *eStaticLightGroup::GetType(void) const {
+    if (D_00040E50 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E50 = cType::InitializeType(0, 0, 0x50, D_00040C94,
+                                           &eStaticLightGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E50;
 }

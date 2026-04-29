@@ -1,8 +1,16 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -44,6 +52,7 @@ class eSurfacePropertyTableGroup : public cGroup {
 public:
     eSurfacePropertyTableGroup(cBase *);
     ~eSurfacePropertyTableGroup();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static bool IsManagedTypeExternalStatic();
@@ -86,6 +95,10 @@ public:
 extern char eSurfacePropertyTableGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E74;
 
 void eSurfacePropertyTableGroup::AssignCopy(const cBase *base) {
     eSurfacePropertyTableGroup *src = dcast<eSurfacePropertyTableGroup>(base);
@@ -145,4 +158,23 @@ cBase *eSurfacePropertyTableGroup::New(cMemPool *pool, cBase *parent) {
 // operator delete (which itself does pool/block lookup and calls the slot fn).
 eSurfacePropertyTableGroup::~eSurfacePropertyTableGroup() {
     ((void **)this)[1] = eSurfacePropertyTableGroupvirtualtable;
+}
+
+// ── eSurfacePropertyTableGroup::GetType(void) const @ 0x001DF010 ──
+const cType *eSurfacePropertyTableGroup::GetType(void) const {
+    if (D_00040E74 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E74 = cType::InitializeType(0, 0, 0x2B9, D_00040C94,
+                                           &eSurfacePropertyTableGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E74;
 }
