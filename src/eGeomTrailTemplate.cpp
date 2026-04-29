@@ -43,6 +43,7 @@ class cObject {
 public:
     char _pad[0x44];
     ~cObject(void);
+    cObject &operator=(const cObject &);
 };
 
 class eDynamicGeomTemplate : public cObject {
@@ -65,6 +66,7 @@ public:
 
     eGeomTrailTemplate(cBase *);
     ~eGeomTrailTemplate(void);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -85,6 +87,8 @@ extern "C" {
 }
 
 extern char eGeomTemplatevirtualtable[];
+
+template <class T> T *dcast(const cBase *);
 
 // -- eGeomTrailTemplate::Write(cFile &) const @ 0x00078f4c --
 void eGeomTrailTemplate::Write(cFile &file) const {
@@ -121,4 +125,24 @@ cBase *eGeomTrailTemplate::New(cMemPool *pool, cBase *parent) {
 // -- eGeomTrailTemplate::~eGeomTrailTemplate(void) @ 0x00211438 --
 eGeomTrailTemplate::~eGeomTrailTemplate(void) {
     *(void **)((char *)this + 4) = eGeomTemplatevirtualtable;
+}
+
+// -- eGeomTrailTemplate::AssignCopy(const cBase *) @ 0x0021118c --
+void eGeomTrailTemplate::AssignCopy(const cBase *src) {
+    eGeomTrailTemplate *other = dcast<eGeomTrailTemplate>(src);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    mDynamicField44 = other->mDynamicField44;
+    __asm__ volatile("" ::: "memory");
+    cHandle *dstHandle = &mHandle;
+    cHandle *srcHandle = &other->mHandle;
+    *(int *)dstHandle = *(int *)srcHandle;
+    mField4C = other->mField4C;
+    mField50 = other->mField50;
+    mField54 = other->mField54;
+    mField58 = other->mField58;
+    mField5C = other->mField5C;
+    mField60 = other->mField60;
+    int *dstField64 = &mField64;
+    int *srcField64 = &other->mField64;
+    *dstField64 = *srcField64;
 }
