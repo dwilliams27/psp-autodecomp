@@ -2,6 +2,15 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -25,7 +34,14 @@ public:
 class gcDoDecalSpawn {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+};
+
+class gcDoEntityApplyRigidBodyImpulse {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 struct PoolBlock {
@@ -42,6 +58,11 @@ struct AllocEntry {
 void gcAction_gcAction(gcDoDecalSpawn *, cBase *);
 void gcAction_Write(const gcDoDecalSpawn *, cFile &);
 extern char gcDoDecalSpawnvirtualtable[];
+extern cType *D_000385D4;
+extern cType *D_000385D8;
+extern cType *D_000385DC;
+extern cType *D_0009F5D4;
+extern cType *D_0009F5E8;
 
 cBase *gcDoDecalSpawn::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -63,6 +84,27 @@ cBase *gcDoDecalSpawn::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+const cType *gcDoDecalSpawn::GetType(void) const {
+    if (D_0009F5D4 == 0) {
+        if (D_000385D4 == 0) {
+            if (D_000385D8 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385D8 = cType::InitializeType(0, 0, 0x6A, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000385D4 = cType::InitializeType(0, 0, 0x6B, D_000385D8,
+                                               0, 0, 0, 0);
+        }
+        D_0009F5D4 = cType::InitializeType(0, 0, 0xA5, D_000385D4,
+                                           gcDoDecalSpawn::New, 0, 0, 0);
+    }
+    return D_0009F5D4;
+}
+
 void gcDoDecalSpawn::Write(cFile &file) const {
     cWriteBlock wb(file, 3);
     gcAction_Write(this, file);
@@ -71,4 +113,26 @@ void gcDoDecalSpawn::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x14))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+const cType *gcDoEntityApplyRigidBodyImpulse::GetType(void) const {
+    if (D_0009F5E8 == 0) {
+        if (D_000385D4 == 0) {
+            if (D_000385D8 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385D8 = cType::InitializeType(0, 0, 0x6A, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000385D4 = cType::InitializeType(0, 0, 0x6B, D_000385D8,
+                                               0, 0, 0, 0);
+        }
+        D_0009F5E8 = cType::InitializeType(
+            0, 0, 0x1C2, D_000385D4, gcDoEntityApplyRigidBodyImpulse::New,
+            0, 0, 0);
+    }
+    return D_0009F5E8;
 }
