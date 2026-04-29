@@ -42,15 +42,32 @@ public:
 class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
+    void *Get(bool) const;
 };
 
 gcValEntityPrimaryController *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcLValue_Write(const gcValEntityPrimaryController *, cFile &);
+void gcDesiredObject_ctor(void *, void *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
 
 extern const char gcValEntityPrimaryController_text_fmt[];
 extern const char gcValEntityPrimaryController_text_arg[];
 extern const char gcValEntityPrimaryController_text_suffix[];
+extern char cBaseclassdesc[];
+extern char D_00007C78[];
+extern char D_00000338[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 // 0x0033b0a0 (72B) — AssignCopy
 void gcValEntityPrimaryController::AssignCopy(const cBase *base) {
@@ -58,6 +75,39 @@ void gcValEntityPrimaryController::AssignCopy(const cBase *base) {
     gcDesiredEntity *srcptr = (gcDesiredEntity *)(other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(*srcptr);
     *(int *)((char *)this + 52) = *(const int *)((char *)other + 52);
+}
+
+// 0x0033b0e8 (260B) — New (static factory)
+cBase *gcValEntityPrimaryController::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValEntityPrimaryController *result = 0;
+    gcValEntityPrimaryController *obj =
+        (gcValEntityPrimaryController *)entry->fn(base, 0x38, 4, 0, 0);
+    if (obj != 0) {
+        ((char **)obj)[1] = cBaseclassdesc;
+        ((int *)obj)[0] = (int)parent;
+        ((char **)obj)[1] = D_00007C78;
+        char *sub = (char *)obj + 8;
+        gcDesiredObject_ctor(sub, obj);
+        ((char **)obj)[3] = D_00000338;
+        gcDesiredEntityHelper_ctor((char *)obj + 0x14, 1, 0, 0);
+        ((void **)obj)[3] = (void *)0x388A48;
+        ((char **)obj)[8] = cBaseclassdesc;
+        ((char **)obj)[7] = sub;
+        ((void **)obj)[8] = (void *)0x388568;
+        ((char *)obj)[0x24] = 1;
+        ((char *)obj)[0x25] = 0;
+        ((int *)obj)[10] = 0;
+        ((int *)obj)[11] = 0;
+        ((int *)obj)[12] = (int)sub | 1;
+        ((int *)obj)[13] = 0;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // 0x0033b304 (120B) — Write
@@ -84,4 +134,21 @@ void gcValEntityPrimaryController::GetText(char *buf) const {
                gcValEntityPrimaryController_text_fmt,
                gcValEntityPrimaryController_text_arg);
     cStrAppend(buf, gcValEntityPrimaryController_text_suffix);
+}
+
+// 0x0033b488 (168B) — Evaluate
+float gcValEntityPrimaryController::Evaluate(void) const {
+    float neg_one = -1.0f;
+    char *entity = (char *)((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
+    int selector;
+    if (entity == 0) goto retNegOne;
+    selector = *(const int *)((const char *)this + 52);
+    if (selector > 0) goto ret64;
+    if (selector < 0) goto retNegOne;
+    return (float)entity[0x65];
+retNegOne:
+    return neg_one;
+ret64:
+    if (selector < 2) return (float)entity[0x64];
+    goto retNegOne;
 }
