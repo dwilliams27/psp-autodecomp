@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -44,6 +52,7 @@ class eRoomGroup : public cGroup {
 public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     ~eRoomGroup();
     static bool IsManagedTypeExternalStatic();
@@ -83,6 +92,10 @@ public:
 extern char eRoomGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E64;
 
 void eRoomGroup::AssignCopy(const cBase *base) {
     eRoomGroup *src = dcast<eRoomGroup>(base);
@@ -136,6 +149,25 @@ cBase *eRoomGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eRoomGroup::GetType(void) const @ 0x001DE670 ──
+const cType *eRoomGroup::GetType(void) const {
+    if (D_00040E64 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E64 = cType::InitializeType(0, 0, 0x21D, D_00040C94,
+                                           &eRoomGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E64;
 }
 
 // ── eRoomGroup::~eRoomGroup(void) @ 0x001DE768 ──

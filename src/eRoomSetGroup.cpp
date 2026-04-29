@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -41,6 +49,7 @@ public:
 class eRoomSetGroup : public cGroup {
 public:
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     ~eRoomSetGroup();
     static bool IsManagedTypeExternalStatic();
@@ -57,6 +66,10 @@ public:
 extern char eRoomSetGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E6C;
 
 // ── eRoomSetGroup::Write(cFile &) const @ 0x0001AFC0 ──
 void eRoomSetGroup::Write(cFile &file) const {
@@ -86,6 +99,25 @@ cBase *eRoomSetGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eRoomSetGroup::GetType(void) const @ 0x001DEB40 ──
+const cType *eRoomSetGroup::GetType(void) const {
+    if (D_00040E6C == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E6C = cType::InitializeType(0, 0, 0x223, D_00040C94,
+                                           &eRoomSetGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E6C;
 }
 
 // ── eRoomSetGroup::~eRoomSetGroup(void) @ 0x001DEC38 ──

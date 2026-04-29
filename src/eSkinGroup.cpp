@@ -3,6 +3,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -48,6 +56,7 @@ public:
     ~eSkinGroup();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
     static cBase *New(cMemPool *, cBase *);
@@ -94,6 +103,10 @@ public:
 extern char eSkinGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E4C;
 
 void eSkinGroup::AssignCopy(const cBase *base) {
     eSkinGroup *src = dcast<eSkinGroup>(base);
@@ -146,6 +159,25 @@ cBase *eSkinGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSkinGroup::GetType(void) const @ 0x001DD800 ──
+const cType *eSkinGroup::GetType(void) const {
+    if (D_00040E4C == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E4C = cType::InitializeType(0, 0, 0x46, D_00040C94,
+                                           &eSkinGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E4C;
 }
 
 // ── eSkinGroup::~eSkinGroup(void) @ 0x001DD8F8 ──
