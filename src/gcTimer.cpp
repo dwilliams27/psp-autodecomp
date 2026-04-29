@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 class cMemPool;
 
 inline void *operator new(unsigned int, void *p) { return p; }
@@ -7,6 +8,23 @@ class cObject {
 public:
     cObject(cBase *);
     ~cObject(void);
+    cObject &operator=(const cObject &);
+    void Write(cFile &) const;
+};
+
+class cWriteBlock {
+public:
+    cFile *_file;
+    int _pos;
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void End(void);
+};
+
+class gcEvent {
+public:
+    gcEvent &operator=(const gcEvent &);
 };
 
 class cMemPool {
@@ -33,6 +51,8 @@ class gcTimer : public cObject {
 public:
     gcTimer(cBase *);
     ~gcTimer(void);
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -42,6 +62,14 @@ public:
         short off = rec->offset;
         rec->fn(block + off, p);
     }
+};
+
+typedef void (*WriteFn)(cBase *, cFile *);
+
+struct TypeMethod {
+    short offset;
+    short _pad;
+    WriteFn fn;
 };
 
 cBase *gcTimer::New(cMemPool *pool, cBase *parent) {
@@ -76,4 +104,48 @@ gcTimer::~gcTimer(void) {
     gcEvent_dtor((char *)this + 0x7C, 2);
     gcEvent_dtor((char *)this + 0x60, 2);
     gcEvent_dtor((char *)this + 0x44, 2);
+}
+
+extern "C" void *dcastdcast_gcTimerptr__constcBaseptr(const cBase *);
+
+void gcTimer::AssignCopy(const cBase *src) {
+    gcTimer *other = (gcTimer *)dcastdcast_gcTimerptr__constcBaseptr(src);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    ((gcEvent *)((char *)this + 0x44))->operator=(*(const gcEvent *)((char *)other + 0x44));
+    ((gcEvent *)((char *)this + 0x60))->operator=(*(const gcEvent *)((char *)other + 0x60));
+    ((gcEvent *)((char *)this + 0x7C))->operator=(*(const gcEvent *)((char *)other + 0x7C));
+    ((gcEvent *)((char *)this + 0x98))->operator=(*(const gcEvent *)((char *)other + 0x98));
+    int value0 = *(const int *)((char *)other + 0xB4);
+    const int *src1 = (const int *)((char *)other + 0xB8);
+    *(int *)((char *)this + 0xB4) = value0;
+    int *dst1 = (int *)((char *)this + 0xB8);
+    const int *src2 = (const int *)((char *)other + 0xBC);
+    int *dst2 = (int *)((char *)this + 0xBC);
+    *dst1 = *src1;
+    *dst2 = *src2;
+}
+
+void gcTimer::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    cObject::Write(file);
+    wb.Write(*(const unsigned int *)((const char *)this + 0xB4));
+    wb.Write(*(const int *)((const char *)this + 0xBC));
+
+    TypeMethod *slot0 = (TypeMethod *)((char *)*(void **)((char *)this + 0x48) + 0x28);
+    cBase *base0 = (cBase *)((char *)this + 0x44);
+    slot0->fn((cBase *)((char *)base0 + slot0->offset), wb._file);
+
+    TypeMethod *slot1 = (TypeMethod *)((char *)*(void **)((char *)this + 0x64) + 0x28);
+    cBase *base1 = (cBase *)((char *)this + 0x60);
+    slot1->fn((cBase *)((char *)base1 + slot1->offset), wb._file);
+
+    TypeMethod *slot2 = (TypeMethod *)((char *)*(void **)((char *)this + 0x80) + 0x28);
+    cBase *base2 = (cBase *)((char *)this + 0x7C);
+    slot2->fn((cBase *)((char *)base2 + slot2->offset), wb._file);
+
+    TypeMethod *slot3 = (TypeMethod *)((char *)*(void **)((char *)this + 0x9C) + 0x28);
+    cBase *base3 = (cBase *)((char *)this + 0x98);
+    slot3->fn((cBase *)((char *)base3 + slot3->offset), wb._file);
+
+    wb.End();
 }

@@ -28,6 +28,11 @@ public:
 
 void cFile_SetCurrentPos(void *, unsigned int);
 
+class cBaseArray {
+public:
+    cBaseArray &operator=(const cBaseArray &);
+};
+
 class gcEntityControllerTemplate {
 public:
     int base;
@@ -41,11 +46,13 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
 };
 
 extern "C" {
     void gcSimpleControllerTemplate__gcSimpleControllerTemplate_cBaseptr(void *self, cBase *parent);
+    void *dcastdcast_gcSimpleControllerTemplateptr__constcBaseptr(const cBase *);
 }
 
 struct AllocRec {
@@ -75,6 +82,37 @@ int gcSimpleControllerTemplate::Read(cFile &file, cMemPool *pool) {
         return 0;
     }
     return result;
+}
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+// ── gcSimpleControllerTemplate::AssignCopy(const cBase *) @ 0x0031fd50 ──
+void gcSimpleControllerTemplate::AssignCopy(const cBase *src) {
+    gcSimpleControllerTemplate *other =
+        (gcSimpleControllerTemplate *)dcastdcast_gcSimpleControllerTemplateptr__constcBaseptr(src);
+
+    const cBaseArray &srcArr0 = *(const cBaseArray *)((char *)other + 8);
+    ((cBaseArray *)((char *)this + 8))->operator=(srcArr0);
+
+    int i = 0;
+    int *dst = (int *)((char *)this + 16);
+    int *srcp = (int *)((char *)other + 16);
+    do {
+        i++;
+        *dst = *srcp;
+        dst++;
+        srcp++;
+    } while (i < 2);
+
+    *(int *)((char *)this + 24) = *(const int *)((char *)other + 24);
+
+    ((cBaseArray *)((char *)this + 28))->operator=(*(const cBaseArray *)((char *)other + 28));
+
+    *(v4sf_t *)((char *)this + 0x30) = *(const v4sf_t *)((char *)other + 0x30);
+
+    *(float *)((char *)this + 0x40) = *(const float *)((char *)other + 0x40);
+    *(float *)((char *)this + 0x44) = *(const float *)((char *)other + 0x44);
+    *(float *)((char *)this + 0x48) = *(const float *)((char *)other + 0x48);
 }
 
 // ── gcSimpleControllerTemplate::New(cMemPool *, cBase *) static @ 0x0031fdec ──
