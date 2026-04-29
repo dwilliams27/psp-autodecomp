@@ -38,6 +38,17 @@ _DEFAULT_REFUSAL_PATTERNS: Tuple[str, ...] = (
 _RESULT_KEYWORDS = ("match", "mismatch", "fail", "error", "permuter",
                     "diff", "verify", "byte", "segfault", "exit")
 
+# Bare "429" is too broad: normal tool output can contain line numbers
+# like "4297:" or data values. Only classify 429 as rate limiting when
+# the surrounding text looks like an HTTP/status-code error.
+_HTTP_429_RE = re.compile(
+    r"\b(?:http(?:\s+status)?|status(?:\s+code)?|error|response|request)"
+    r"\D{0,32}429\b"
+    r"|"
+    r"\b429\b\D{0,32}\b(?:too many requests|rate limit|usage limit|quota exceeded)\b",
+    re.IGNORECASE,
+)
+
 # Some CLIs keep returning the just-expired reset clock time for a few
 # seconds/minutes after the limit should have cleared. Treat that as a
 # short retry pause, not as the same wall-clock time tomorrow.
@@ -211,9 +222,8 @@ class Backend(ABC):
             "rate_limit",
             "too many requests",
             "quota exceeded",
-            "429",
         )
-        if not any(p in lower for p in patterns):
+        if not any(p in lower for p in patterns) and not _HTTP_429_RE.search(text):
             return None
         return {
             "reason": text[:500],
