@@ -1,5 +1,10 @@
 struct cFileHandle;
 
+struct cGUID {
+    int a;
+    int b;
+};
+
 class cFile {
 public:
     cFileHandle *mHandle;
@@ -20,7 +25,10 @@ public:
     void Write(short);
     void Write(unsigned short);
     void Write(wchar_t);
+    void Write(int);
+    void Write(unsigned int);
     void Write(float);
+    void Write(const cGUID &);
     void Write(int, const bool *);
     void Write(int, const char *);
     void Write(int, const unsigned char *);
@@ -96,6 +104,36 @@ void cWriteBlock::Write(wchar_t data) {
     cFileSystem::Write(mFile->mHandle, &data, 2);
 }
 
+void cWriteBlock::Write(int data) {
+    int tmp;
+    if (gByteSwap) {
+        int hi = ((data & 0xFF000000) >> 24) | ((data & 0xFF0000) >> 8);
+        int mid = (data & 0xFF00) << 8;
+        hi = hi | mid;
+        int lo = (data & 0xFF) << 24;
+        tmp = hi | lo;
+    } else {
+        tmp = data;
+    }
+    data = tmp;
+    cFileSystem::Write(mFile->mHandle, &data, 4);
+}
+
+void cWriteBlock::Write(unsigned int data) {
+    unsigned int tmp;
+    if (gByteSwap) {
+        unsigned int hi = ((data & 0xFF000000) >> 24) | ((data & 0xFF0000) >> 8);
+        unsigned int mid = (data & 0xFF00) << 8;
+        unsigned int lo = (data & 0xFF) << 24;
+        lo = mid | lo;
+        tmp = hi | lo;
+    } else {
+        tmp = data;
+    }
+    data = tmp;
+    cFileSystem::Write(mFile->mHandle, &data, 4);
+}
+
 void cWriteBlock::Write(float data) {
     unsigned int u = *(unsigned int *)&data;
     if (gByteSwap) {
@@ -105,6 +143,31 @@ void cWriteBlock::Write(float data) {
     }
     int bits = (int)u;
     cFileSystem::Write(mFile->mHandle, &bits, 4);
+}
+
+void cWriteBlock::Write(const cGUID &data) {
+    unsigned char swap = gByteSwap;
+    __asm__ volatile("" ::: "memory");
+    unsigned int w0 = (unsigned int)data.a;
+    __asm__ volatile("" : "+r"(w0) :: "memory");
+    unsigned int w1 = (unsigned int)data.b;
+    if (swap) {
+        unsigned int hi = ((w0 & 0xFF000000) >> 24) | ((w0 & 0xFF0000) >> 8);
+        unsigned int mid = (w0 & 0xFF00) << 8;
+        hi = hi | mid;
+        unsigned int lo = (w0 & 0xFF) << 24;
+        w0 = hi | lo;
+
+        hi = ((w1 & 0xFF000000) >> 24) | ((w1 & 0xFF0000) >> 8);
+        mid = (w1 & 0xFF00) << 8;
+        hi = hi | mid;
+        lo = (w1 & 0xFF) << 24;
+        w1 = hi | lo;
+    }
+    unsigned int a = w0;
+    unsigned int b = w1;
+    cFileSystem::Write(mFile->mHandle, &a, 4);
+    cFileSystem::Write(mFile->mHandle, &b, 4);
 }
 
 void cWriteBlock::Write(int count, const int *data) {
