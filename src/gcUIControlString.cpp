@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -31,6 +32,7 @@ struct gcDesiredUIWidgetHelper {
     cHandle mField4;
     cHandle mField8;
     void Write(cWriteBlock &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 struct PoolBlock {
@@ -49,6 +51,14 @@ public:
     static cMemPoolNS *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcStringValue {
 public:
     cBase *mParent;       // 0x0
@@ -64,6 +74,10 @@ public:
 extern char gcStringLValuevirtualtable[];
 extern char gcUIControlStringvirtualtable[];
 extern char cBaseclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F458;
+extern cType *D_0009F584;
 
 class gcUIControlString : public gcStringLValue {
 public:
@@ -72,8 +86,10 @@ public:
     int mField18;                      // 0x18
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcUIControlString();
 
     static void operator delete(void *p) {
@@ -138,8 +154,42 @@ void gcUIControlString::Write(cFile &file) const {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// gcUIControlString::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)  @ 0x00290108, 128B
+// ─────────────────────────────────────────────────────────────────────────
+void gcUIControlString::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // gcUIControlString::~gcUIControlString(void)  @ 0x00290188, 100B
 // ─────────────────────────────────────────────────────────────────────────
 gcUIControlString::~gcUIControlString() {
     *(void **)((char *)this + 4) = gcStringLValuevirtualtable;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcUIControlString::GetType(void) const  @ 0x0028f4d0, 280B
+// ─────────────────────────────────────────────────────────────────────────
+const cType *gcUIControlString::GetType(void) const {
+    if (D_0009F584 == 0) {
+        if (D_0009F458 == 0) {
+            if (D_0009F454 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F458 = cType::InitializeType(0, 0, 0x171, D_0009F454,
+                                               0, 0, 0, 0);
+        }
+        D_0009F584 = cType::InitializeType(0, 0, 0x17A, D_0009F458,
+                                           &gcUIControlString::New, 0, 0, 0);
+    }
+    return D_0009F584;
 }
