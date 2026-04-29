@@ -12,6 +12,12 @@ template <class T> T *dcast(const cBase *);
 
 struct copy_word { int v; };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cName {
 public:
     void Set(const char *, ...);
@@ -20,9 +26,15 @@ public:
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
     char _cObjectPad[0x44];
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cBaseArray {
@@ -38,10 +50,20 @@ public:
 class gcExternalCinematic : public cObject {
 public:
     gcExternalCinematic(cBase *);
+    ~gcExternalCinematic();
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class cWriteBlock {
@@ -61,6 +83,7 @@ struct AllocRec {
 
 extern char gcExternalCinematicvirtualtable[];
 extern void gcCinematic_gcCinematic(void *self, cBase *parent);
+extern "C" void gcCinematic___dtor_gcCinematic_void(void *, int);
 
 extern "C" {
     void gcExternalCinematic__gcExternalCinematic_cBaseptr(void *self, cBase *parent);
@@ -85,6 +108,12 @@ void gcExternalCinematic::Reset(cMemPool *, bool) {
     void (*func)(void *) = entry->func;
     char *cin = (char *)this + 0x44;
     func(cin + adj);
+}
+
+// ── gcExternalCinematic::~gcExternalCinematic(void) @ 0x000eae58 ──
+gcExternalCinematic::~gcExternalCinematic() {
+    *(void **)((char *)this + 4) = gcExternalCinematicvirtualtable;
+    gcCinematic___dtor_gcCinematic_void((char *)this + 0x44, 2);
 }
 
 // ── gcExternalCinematic::Write(cFile &) const @ 0x000eace0 ──

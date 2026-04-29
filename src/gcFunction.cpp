@@ -6,6 +6,17 @@ class cMemPool;
 
 template <class T> T *dcast(const cBase *);
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cWriteBlock {
 public:
     cFile *file;
@@ -16,6 +27,8 @@ public:
 
 class cObject {
 public:
+    char _pad[0x44];
+    ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
@@ -32,18 +45,29 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
-class gcFunction {
+class gcFunction : public cObject {
 public:
-    char _pad[0x44];
     gcEvent mEvent;
 
     gcFunction(cBase *);
+    ~gcFunction();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern "C" void gcFunction__gcFunction_cBaseptr(void *self, cBase *parent);
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
+extern char gcFunctionvirtualtable[];
 
 // ── gcFunction::AssignCopy(const cBase *) @ 0x0027D108 ──
 void gcFunction::AssignCopy(const cBase *base) {
@@ -85,4 +109,10 @@ cBase *gcFunction::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcFunction::~gcFunction(void) @ 0x0012F944 ──
+gcFunction::~gcFunction() {
+    *(void **)((char *)this + 4) = gcFunctionvirtualtable;
+    gcEvent___dtor_gcEvent_void((char *)this + 0x44, 2);
 }
