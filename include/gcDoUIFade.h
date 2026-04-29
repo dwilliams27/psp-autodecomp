@@ -36,6 +36,7 @@ public:
     char _pad[0x18];
     gcExpression *branch;
 
+    ~gcDoUIWidgetForEach(void);
     static cBase *New(cMemPool *, cBase *);
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;

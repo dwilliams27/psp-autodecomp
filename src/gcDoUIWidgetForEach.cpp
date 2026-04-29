@@ -55,6 +55,14 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+inline void operator delete(void *p) {
+    void *pool = cMemPool_GetPoolFromPtr(p);
+    void *block = *(void **)((char *)pool + 0x24);
+    DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+    short off = rec->offset;
+    rec->fn((char *)block + off, p);
+}
+
 // 0x00316388, 160B
 cBase *gcDoUIWidgetForEach::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -136,23 +144,10 @@ void gcDoUIWidgetForEach::VisitReferences(unsigned int flags, cBase *ctx, void (
 }
 
 // 0x00316c20, 136B
-extern "C" {
-
-void gcDoUIWidgetForEach___dtor_gcDoUIWidgetForEach_void(gcDoUIWidgetForEach *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = gcDoUIWidgetForEachvirtualtable;
-        ((gcExpressionList *)((char *)self + 0x18))->~gcExpressionList();
-        gcAction___dtor_gcAction_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
-}
-
+gcDoUIWidgetForEach::~gcDoUIWidgetForEach() {
+    ((void **)this)[1] = gcDoUIWidgetForEachvirtualtable;
+    ((gcExpressionList *)((char *)this + 0x18))->~gcExpressionList();
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 int gcDoWhile::GetMaxChildren(void) const {
