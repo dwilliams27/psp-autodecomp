@@ -5,6 +5,7 @@
 
 class cBase;
 class cMemPool;
+class cType;
 class eCollisionInfo;
 class eContactCollector;
 class mCollideInfo;
@@ -20,6 +21,7 @@ public:
     static eHeightmap *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
     void PlatformFree(void);
+    const cType *GetType(void) const;
     int GetSurface(int) const;
     void GetSweptContacts(const eCollisionInfo &, int, const mSphere *, const mCollideInfo *, eContactCollector *) const;
     void GetEmbedContacts(const eCollisionInfo &, int, const mSphere *, eContactCollector *) const;
