@@ -8,6 +8,8 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cMemPool;
+class cBase;
+class cType;
 
 class cWriteBlock {
 public:
@@ -22,8 +24,20 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 extern char cBaseclassdesc[];
 extern char gcLobbyGameStringsclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F458;
+extern cType *D_0009F4F4;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -72,6 +86,7 @@ public:
         mField10 = 0;
     }
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static gcLobbyGameStrings *New(cMemPool *, cBase *);
 };
 
@@ -83,6 +98,29 @@ void gcLobbyGameStrings::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 12))->Write(wb);
     wb.Write(mField10);
     wb.End();
+}
+
+const cType *gcLobbyGameStrings::GetType(void) const {
+    if (D_0009F4F4 == 0) {
+        if (D_0009F458 == 0) {
+            if (D_0009F454 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F458 = cType::InitializeType(0, 0, 0x171, D_0009F454,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4F4 = cType::InitializeType(
+            0, 0, 0x184, D_0009F458,
+            (cBase *(*)(cMemPool *, cBase *))&gcLobbyGameStrings::New,
+            0, 0, 0);
+    }
+    return D_0009F4F4;
 }
 
 // ── New ──  @ 0x00281400, 152B
