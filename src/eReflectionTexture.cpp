@@ -7,10 +7,24 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cObject {
 public:
     cObject &operator=(const cObject &);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -59,6 +73,7 @@ class eReflectionTexture : public eVirtualTexture {
 public:
     eReflectionTexture(cBase *);
     ~eReflectionTexture();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -74,6 +89,32 @@ public:
         fn(base, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FE8;
+extern cType *D_00046B98;
+extern cType *D_00046C90;
+
+// ── eReflectionTexture::eReflectionTexture(cBase *) @ 0x00084e50 ──
+eReflectionTexture::eReflectionTexture(cBase *parent) : eVirtualTexture(parent) {
+    *(void **)((char *)this + 4) = (void *)0x3857C8;
+    __asm__ volatile(
+        "mtc1 $zero, $f12\n"
+        "mfc1 $a0, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "lui $a2, 0x3f80\n"
+        "mtc1 $a2, $f13\n"
+        "mfc1 $a2, $f13\n"
+        "mtv $a0, S120\n"
+        "mtv $a1, S121\n"
+        "mtv $a2, S122\n"
+        "sv.q C120, 0x50($s0)\n"
+        "swc1 $f12, 0x60($s0)"
+        ::: "a0", "a1", "a2", "memory");
+    *(int *)((char *)this + 0x64) = 0xFF000000;
+}
 
 // ── eReflectionTexture::Write(cFile &) const @ 0x00084cc4 ──
 void eReflectionTexture::Write(cFile &file) const {
@@ -109,6 +150,49 @@ void eReflectionTexture::AssignCopy(const cBase *src) {
     int *dst64 = (int *)((char *)this + 0x64);
     int *src64 = (int *)((char *)other + 0x64);
     *dst64 = *src64;
+}
+
+// ── eReflectionTexture::GetType(void) const @ 0x00219e24 ──
+const cType *eReflectionTexture::GetType(void) const {
+    if (D_00046C90 == 0) {
+        if (D_00046B98 == 0) {
+            if (D_00040FE8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            const char *name = (const char *)0x36CD74;
+                            const char *desc = (const char *)0x36CD7C;
+                            __asm__ volatile("" : "+r"(name), "+r"(desc));
+                            D_000385DC = cType::InitializeType(
+                                name, desc, 1, 0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385DC;
+                        cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, parentType, factory, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                       0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385E4;
+                const char *kindName = (const char *)0x36CDA8;
+                const char *kindDesc = (const char *)0x36CDB4;
+                __asm__ volatile("" : "+r"(parentType), "+r"(kindName),
+                                 "+r"(kindDesc));
+                D_00040FE8 = cType::InitializeType(0, 0, 0xA, parentType,
+                                                   0, kindName, kindDesc, 5);
+            }
+            D_00046B98 = cType::InitializeType(0, 0, 0x135, D_00040FE8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046B98;
+        cBase *(*factory)(cMemPool *, cBase *) = &eReflectionTexture::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C90 = cType::InitializeType(0, 0, 0x120, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C90;
 }
 
 // ── eReflectionTexture::New(cMemPool *, cBase *) static @ 0x00219da8 ──
