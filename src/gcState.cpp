@@ -34,6 +34,7 @@ public:
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    cBaseArray &operator=(const cBaseArray &);
 };
 
 struct AllocRec {
@@ -51,12 +52,14 @@ public:
     cBaseArray mField2C;
 
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
 extern "C" {
     void gcState__gcState_cBaseptr(void *self, cBase *parent);
+    void *dcastdcast_gcStateptr__constcBaseptr(const cBase *);
 }
 
 extern cType *D_000385DC;
@@ -88,6 +91,42 @@ cBase *gcState::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcState::AssignCopy(const cBase *) @ 0x00258ff0 ──
+void gcState::AssignCopy(const cBase *src) {
+    gcState *other = (gcState *)dcastdcast_gcStateptr__constcBaseptr(src);
+
+    int *srcp = (int *)((char *)other + 8);
+    int *dst = (int *)((char *)this + 8);
+    int x0 = srcp[0];
+    int x1 = srcp[1];
+    int x2 = srcp[2];
+    dst[0] = x0;
+    int x3 = srcp[3];
+    dst[1] = x1;
+    int x4 = srcp[4];
+    dst[2] = x2;
+    int x5 = srcp[5];
+    dst[3] = x3;
+    dst[4] = x4;
+    dst[5] = x5;
+
+    int *src20 = (int *)((char *)other + 0x20);
+    int x20 = *src20;
+    int *dst20 = (int *)((char *)this + 0x20);
+    int *src24 = (int *)((char *)other + 0x24);
+    *dst20 = x20;
+    cHandle *dst24 = (cHandle *)((char *)this + 0x24);
+    cHandle *srcHandle = (cHandle *)src24;
+    int *src28 = (int *)((char *)other + 0x28);
+    *dst24 = *srcHandle;
+    int *dst28 = (int *)((char *)this + 0x28);
+    *dst28 = *src28;
+    __asm__ volatile("" ::: "memory");
+
+    ((cBaseArray *)((char *)this + 0x2C))->operator=(
+        *(const cBaseArray *)((char *)other + 0x2C));
 }
 
 // ── gcState::GetType(void) const @ 0x00259108 ──

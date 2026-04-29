@@ -28,6 +28,13 @@ public:
 
 void cFile_SetCurrentPos(void *, unsigned int);
 
+class cBaseArray {
+public:
+    int _count;
+    cBase *_owner;
+    cBaseArray &operator=(const cBaseArray &);
+};
+
 class gcEntityControllerTemplate {
 public:
     int base;
@@ -41,11 +48,13 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
 };
 
 extern "C" {
     void gcStationaryControllerTemplate__gcStationaryControllerTemplate_cBaseptr(void *self, cBase *parent);
+    void *dcastdcast_gcStationaryControllerTemplateptr__constcBaseptr(const cBase *);
 }
 
 extern cType *D_000385DC;
@@ -91,6 +100,37 @@ cBase *gcStationaryControllerTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcStationaryControllerTemplate::AssignCopy(const cBase *) @ 0x003203a8 ──
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+void gcStationaryControllerTemplate::AssignCopy(const cBase *src) {
+    gcStationaryControllerTemplate *other =
+        (gcStationaryControllerTemplate *)dcastdcast_gcStationaryControllerTemplateptr__constcBaseptr(src);
+
+    const cBaseArray &srcArr0 = *(const cBaseArray *)((char *)other + 8);
+    ((cBaseArray *)((char *)this + 8))->operator=(srcArr0);
+
+    int i = 0;
+    int *dst = (int *)((char *)this + 16);
+    int *srcp = (int *)((char *)other + 16);
+    do {
+        i++;
+        *dst = *srcp;
+        dst++;
+        srcp++;
+    } while (i < 2);
+
+    *(int *)((char *)this + 24) = *(const int *)((char *)other + 24);
+
+    ((cBaseArray *)((char *)this + 28))->operator=(*(const cBaseArray *)((char *)other + 28));
+
+    *(v4sf_t *)((char *)this + 0x30) = *(const v4sf_t *)((char *)other + 0x30);
+
+    *(float *)((char *)this + 0x40) = *(const float *)((char *)other + 0x40);
+    *(float *)((char *)this + 0x44) = *(const float *)((char *)other + 0x44);
+    *(float *)((char *)this + 0x48) = *(const float *)((char *)other + 0x48);
 }
 
 // ── gcStationaryControllerTemplate::GetType(void) const @ 0x003204c0 ──
