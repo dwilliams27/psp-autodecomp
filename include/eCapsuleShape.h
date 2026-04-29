@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 struct mVec3;
 struct mOCS;
 class eBoxShape;
@@ -23,6 +24,8 @@ public:
 
     eCapsuleShape(cBase *);
 
+    const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
     int CanSweep(void) const;
     float GetVolume(void) const;
     void Write(cFile &) const;

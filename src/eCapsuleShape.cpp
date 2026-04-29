@@ -7,9 +7,25 @@
 #include "mVec3.h"
 #include "mOCS.h"
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
 class cBase;
 class cFile;
 class cMemPool;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+template <class T> T *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_00040FE4;
+extern cType *D_00046BC0;
 
 extern "C" {
     void eShape___ct_eShape_cBaseptr(void *self, cBase *parent);
@@ -48,6 +64,8 @@ struct DeleteRecord {
 };
 
 void *cMemPool_GetPoolFromPtr_Cap(const void *);
+
+struct eCapsuleShape_block_18 { int _[6]; };
 
 // eCapsuleShape::eCapsuleShape(cBase *) — 0x0006a0d8
 // Calls eShape base ctor, installs vtable at +0x04, sets radius and halfHeight to 1.0.
@@ -216,6 +234,54 @@ eCapsuleShape *eCapsuleShape::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+#pragma control sched=2
+
+// eCapsuleShape::GetType(void) const — 0x002097a4
+#pragma control sched=1
+const cType *eCapsuleShape::GetType(void) const {
+    if (D_00046BC0 == 0) {
+        if (D_00040FE4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00040FE4 = cType::InitializeType(
+                0, 0, 0x227, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00040FE4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x209728;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BC0 = cType::InitializeType(
+            0, 0, 0x22A, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BC0;
+}
+#pragma control sched=2
+
+// eCapsuleShape::AssignCopy(const cBase *) — 0x00209670
+#pragma control sched=1
+void eCapsuleShape::AssignCopy(const cBase *src) {
+    eCapsuleShape *other = dcast<eCapsuleShape>(src);
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(v4sf_t *)((char *)other + 0x30);
+    *(unsigned char *)((char *)this + 0x50) = *(unsigned char *)((char *)other + 0x50);
+    __asm__ volatile("" ::: "memory");
+    *(eCapsuleShape_block_18 *)((char *)this + 0x54) =
+        *(eCapsuleShape_block_18 *)((char *)other + 0x54);
+    *(int *)((char *)this + 0x6C) = *(int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(float *)((char *)other + 0x78);
+    radius = other->radius;
+    halfHeight = other->halfHeight;
 }
 #pragma control sched=2
 

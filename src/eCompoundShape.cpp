@@ -3,6 +3,18 @@
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_00040FE4;
+extern cType *D_00046BE4;
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -52,6 +64,31 @@ eCompoundShape *eCompoundShape::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// ── eCompoundShape::GetType(void) const @ 0x0020b3e8 ──
+const cType *eCompoundShape::GetType(void) const {
+    if (D_00046BE4 == 0) {
+        if (D_00040FE4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00040FE4 = cType::InitializeType(
+                0, 0, 0x227, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00040FE4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20B36C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BE4 = cType::InitializeType(
+            0, 0, 0x22D, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BE4;
 }
 
 // ── eCompoundShape::Collide(const eSphereShape *, ...) @ 0x00073820 ──

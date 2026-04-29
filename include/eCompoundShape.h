@@ -5,6 +5,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eBoxShape;
 class eCapsuleShape;
 class eCollisionContactInfo;
@@ -45,6 +46,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     static eCompoundShape *New(cMemPool *, cBase *);
 
