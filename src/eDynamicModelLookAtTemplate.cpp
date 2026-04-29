@@ -11,6 +11,12 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 void cStrCopy(char *, const char *);
 void cStrAppend(char *, const char *, ...);
@@ -23,6 +29,8 @@ extern const char gcValGetText_text[];                      // @ 0x36DAF0
 
 extern char eDynamicModelLookAtTemplatevirtualtable[];      // @ 0x3813A8
 extern char cBaseclassdesc[];                               // @ 0x37E6A8
+extern cType *D_000385DC;
+extern cType *D_000469E4;
 
 // Pool-block layout used by the deleting-destructor tail.
 struct eDynamicModelLookAtTemplate_PoolBlock {
@@ -74,6 +82,7 @@ public:
     ~eDynamicModelLookAtTemplate();
     void GetName(char *) const;
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     // Inline so SNC inlines it into the deleting-destructor variant.
@@ -159,6 +168,27 @@ cBase *eDynamicModelLookAtTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+// ── eDynamicModelLookAtTemplate::GetType(void) const  @ 0x001f0f40 ──
+#pragma control sched=1
+const cType *eDynamicModelLookAtTemplate::GetType(void) const {
+    if (D_000469E4 == 0) {
+        if (D_000385DC == 0) {
+            const char *name = (const char *)0x36CD74;
+            const char *desc = (const char *)0x36CD7C;
+            __asm__ volatile("" : "+r"(name), "+r"(desc));
+            D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *base = D_000385DC;
+        __asm__ volatile("" : "+r"(base));
+        cBase *(*factory)(cMemPool *, cBase *) = &eDynamicModelLookAtTemplate::New;
+        __asm__ volatile("" : "+r"(factory));
+        D_000469E4 = cType::InitializeType(0, 0, 0x48, base, factory, 0, 0, 0);
+    }
+    return D_000469E4;
 }
 #pragma control sched=2
 
