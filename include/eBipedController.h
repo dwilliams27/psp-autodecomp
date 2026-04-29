@@ -5,6 +5,7 @@ class mVec3;
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eGeom;
 class eContact;
 class eContactCollector;
@@ -24,6 +25,7 @@ public:
     void GetVelocity(int, mVec3 *, mVec3 *) const;
     void InvalidateCacheEntries(eGeom *);
     void EnableWallWalk(bool);
+    const cType *GetType(void) const;
 
     void CollectContact(eContactCollector *, eContact *, int);
     void ProcessContact(eContactCollector *, eContact *, int);
