@@ -1,6 +1,7 @@
 // gcValUITexCoord — gcAll_psp.obj
 // Decompiled functions:
 //   0x0036655c  gcValUITexCoord::AssignCopy(const cBase *)            (112B)
+//   0x003665cc  gcValUITexCoord::New(cMemPool *, cBase *) static      (180B)
 //   0x003670f0  gcValUITexCoord::~gcValUITexCoord(void)               (100B)
 //
 // Class layout (36 bytes, alloc size 0x24):
@@ -18,6 +19,10 @@ class cMemPool;
 template <class T> T *dcast(const cBase *);
 
 extern char cBaseclassdesc[];   // @ 0x37E6A8
+extern char gcLValuevirtualtable[];
+extern char gcValUITexCoordvirtualtable[];
+
+void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 struct DeleteRecord {
     short offset;
@@ -28,6 +33,12 @@ struct DeleteRecord {
 struct PoolBlock {
     char  pad[0x1C];
     char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
 };
 
 class cMemPoolNS {
@@ -46,6 +57,7 @@ public:
     float  mField20;     // 0x20
 
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
     ~gcValUITexCoord();
 
     static void operator delete(void *p) {
@@ -82,6 +94,30 @@ void gcValUITexCoord::AssignCopy(const cBase *base) {
     *(int *)((char *)this + 0x18) = *(const int *)((char *)other + 0x18);
     *(unsigned char *)((char *)this + 0x1C) = *(const unsigned char *)((char *)other + 0x1C);
     *(float *)((char *)this + 0x20) = *(const float *)((char *)other + 0x20);
+}
+
+// ============================================================
+// 0x003665cc — New(cMemPool *, cBase *) static
+// ============================================================
+cBase *gcValUITexCoord::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *entry = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValUITexCoord *result = 0;
+    gcValUITexCoord *obj = (gcValUITexCoord *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = gcLValuevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValUITexCoordvirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 8, 1);
+        obj->mField14 = 0;
+        obj->mField18 = 0;
+        obj->mField1C = false;
+        obj->mField20 = 0.85f;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ============================================================

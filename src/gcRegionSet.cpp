@@ -3,6 +3,8 @@
 //
 // Functions matched here:
 //   gcRegionSet::Write(cFile &) const     @ 0x000ef7e0 (128B)
+//   gcRegionSet::AssignCopy(const cBase *) @ 0x00245bf8 (100B)
+//   gcRegionSet::New(cMemPool *, cBase *) static @ 0x00245c5c (180B)
 //   gcRegionSet::GetType(void) const      @ 0x00245d10 (160B)
 //   gcRegionSet::~gcRegionSet(void)       @ 0x0024602c (100B)
 
@@ -10,6 +12,8 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cWriteBlock {
 public:
@@ -31,9 +35,18 @@ extern char cBaseclassdesc[];                  // @ 0x37E6A8
 extern const char gcRegionSet_base_name[];     // @ 0x36D894
 extern const char gcRegionSet_base_desc[];     // @ 0x36D89C
 
+unsigned int cIRand(void);
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
 };
 
 struct DeleteRecord {
@@ -57,8 +70,14 @@ public:
 
 class gcRegionSet {
 public:
+    cBase *m_parent;
+    void *m_classdesc;
+    cGUID mRegions[2];
+    unsigned int mId;
+
     ~gcRegionSet();
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -71,6 +90,8 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+gcRegionSet *dcast(const cBase *);
 
 // ── Write ── @ 0x000ef7e0, 128B
 void gcRegionSet::Write(cFile &file) const {
@@ -85,6 +106,40 @@ void gcRegionSet::Write(cFile &file) const {
         off += 8;
     } while (i < 2);
     wb.End();
+}
+
+// ── AssignCopy ── @ 0x00245bf8, 100B
+void gcRegionSet::AssignCopy(const cBase *base) {
+    gcRegionSet *other = dcast(base);
+    int i = 0;
+    cGUID *dst = mRegions;
+    cGUID *src = other->mRegions;
+    do {
+        *dst = *src;
+        i++;
+        dst++;
+        src++;
+    } while (i < 2);
+    mId = other->mId;
+}
+
+// ── New ── @ 0x00245c5c, 180B
+cBase *gcRegionSet::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    void *base = (char *)block + entry->offset;
+    gcRegionSet *result = 0;
+    gcRegionSet *obj = (gcRegionSet *)entry->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        *(void **)((char *)obj + 4) = cBaseclassdesc;
+        obj->m_parent = parent;
+        *(int *)((char *)obj + 4) = 0x3879F8;
+        __vec_new((char *)obj + 8, 2, 8, (void (*)(void *))0x245578);
+        obj->mId = cIRand() | 1;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── GetType ── @ 0x00245d10, 160B
