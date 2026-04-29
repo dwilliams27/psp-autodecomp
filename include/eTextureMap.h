@@ -103,6 +103,8 @@ public:
 
 class eDynamicLightHeightmapMtl {
 public:
+    eDynamicLightHeightmapMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
