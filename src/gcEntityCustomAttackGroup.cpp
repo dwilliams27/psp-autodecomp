@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -35,6 +36,14 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cGroup {
 public:
     int _pad[2];
@@ -47,6 +56,7 @@ class gcEntityCustomAttackGroup : public cGroup {
 public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     ~gcEntityCustomAttackGroup();
@@ -58,9 +68,31 @@ public:
     }
 };
 
+class gcEntityGroup : public cGroup {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
+
+class gcObjectRelationship {
+};
+
+class gcEntityRelationship : public gcObjectRelationship {
+public:
+    static gcEntityRelationship *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
+
 extern char gcEntityCustomAttackGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998B8;
+extern cType *D_000998DC;
+extern cType *D_0009F3F0;
+extern cType *D_0009F774;
 
 cBase *gcEntityCustomAttackGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -83,6 +115,61 @@ cBase *gcEntityCustomAttackGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcEntityCustomAttackGroup::GetType(void) const {
+    if (D_000998DC == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998DC = cType::InitializeType(0, 0, 0x1CE, D_00040C94,
+                                           &gcEntityCustomAttackGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998DC;
+}
+
+const cType *gcEntityGroup::GetType(void) const {
+    if (D_000998B8 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998B8 = cType::InitializeType(0, 0, 0x8D, D_00040C94,
+                                           &gcEntityGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998B8;
+}
+
+const cType *gcEntityRelationship::GetType(void) const {
+    if (D_0009F774 == 0) {
+        if (D_0009F3F0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F3F0 = cType::InitializeType(0, 0, 0x131, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F774 = cType::InitializeType(
+            0, 0, 0x132, D_0009F3F0,
+            (cBase *(*)(cMemPool *, cBase *))&gcEntityRelationship::New,
+            0, 0, 0);
+    }
+    return D_0009F774;
 }
 
 // gcEntityCustomAttackGroup::Write(cFile &) const @ 0x000d265c
