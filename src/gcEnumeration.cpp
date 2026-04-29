@@ -10,6 +10,15 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -41,7 +50,17 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T> T *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000998F0;
 
 class gcEnumeration : public cObject {
 public:
@@ -53,6 +72,8 @@ public:
     cHandle mHandle;        // 0x54
 
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -64,6 +85,31 @@ void gcEnumeration::AssignCopy(const cBase *src) {
     mField4C = other->mField4C;
     mField50 = other->mField50;
     mHandle = other->mHandle;
+}
+
+// ── gcEnumeration::GetType(void) const @ 0x00238e0c ──
+const cType *gcEnumeration::GetType(void) const {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(0, 0, 0xAB, D_000385E4,
+                                           &gcEnumeration::New,
+                                           (const char *)0x36D8A4,
+                                           (const char *)0x36D8B4,
+                                           5);
+    }
+    return D_000998F0;
 }
 
 // ── gcEnumeration::Write(cFile &) const @ 0x000d3eb4 ──
