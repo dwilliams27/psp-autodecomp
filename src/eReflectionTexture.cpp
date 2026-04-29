@@ -5,6 +5,7 @@
 //   0x00219da8  eReflectionTexture::New(cMemPool *, cBase *) static
 
 class cBase;
+class cFile;
 class cMemPool;
 
 class cObject {
@@ -15,6 +16,16 @@ public:
 template <class T> T *dcast(const cBase *);
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void Write(float);
+    void Write(int, const float *);
+    void End(void);
+};
 
 struct AllocRec {
     short offset;
@@ -41,12 +52,14 @@ class eVirtualTexture {
 public:
     eVirtualTexture(cBase *);
     ~eVirtualTexture();
+    void Write(cFile &) const;
 };
 
 class eReflectionTexture : public eVirtualTexture {
 public:
     eReflectionTexture(cBase *);
     ~eReflectionTexture();
+    void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
@@ -61,6 +74,16 @@ public:
         fn(base, p);
     }
 };
+
+// ── eReflectionTexture::Write(cFile &) const @ 0x00084cc4 ──
+void eReflectionTexture::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    eVirtualTexture::Write(file);
+    wb.Write(3, (const float *)((const char *)this + 0x50));
+    wb.Write(*(const float *)((const char *)this + 0x60));
+    wb.Write(*(const unsigned int *)((const char *)this + 0x64));
+    wb.End();
+}
 
 // ── eReflectionTexture::~eReflectionTexture(void) @ 0x00084eb8 ──
 eReflectionTexture::~eReflectionTexture() {
