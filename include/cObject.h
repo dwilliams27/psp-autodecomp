@@ -13,6 +13,7 @@ class cObject {
 public:
     cObject(cBase *);
     ~cObject(void);
+    const cType *GetType(void) const;
     void SetDirty(void);
     void GetExternalDependency(int, cFilename *) const;
     int GetNumExternalDependencies(void) const;

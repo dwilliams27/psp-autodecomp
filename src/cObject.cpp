@@ -2,17 +2,25 @@
 
 // ─── helper classes (defined locally — not part of the cObject header) ───
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
+};
+
 class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void Write(unsigned short);
     void End(void);
-};
-
-class cNamed {
-public:
-    void Write(cFile &) const;
 };
 
 class cName_local {
@@ -30,6 +38,31 @@ char *cStrFormat(char *, const char *, ...);
 
 // Format string at 0x0036C89C in .rodata.
 extern const char cObject_guid_fmt[];
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+
+// ============================================================
+// cObject::GetType(void) const
+// @ 0x001c6f64, 220B
+// ============================================================
+const cType *cObject::GetType(void) const {
+    if (D_000385E4 == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36C830,
+                                                   (const char *)0x36C838,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                           0, 0, 0, 0);
+    }
+    return D_000385E4;
+}
 
 // ============================================================
 // cObject::SetDirty(void)

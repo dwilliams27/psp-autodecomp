@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -43,6 +51,7 @@ public:
     eCameraEffectGroup(cBase *);
     ~eCameraEffectGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -58,6 +67,10 @@ public:
 extern char eCameraEffectGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E5C;
 
 // ── eCameraEffectGroup::Write(cFile &) const @ 0x000198B0 ──
 void eCameraEffectGroup::Write(cFile &file) const {
@@ -87,6 +100,25 @@ cBase *eCameraEffectGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eCameraEffectGroup::GetType(void) const @ 0x001DE1A0 ──
+const cType *eCameraEffectGroup::GetType(void) const {
+    if (D_00040E5C == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E5C = cType::InitializeType(0, 0, 0x1B1, D_00040C94,
+                                           &eCameraEffectGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E5C;
 }
 
 // ── eCameraEffectGroup::~eCameraEffectGroup(void) @ 0x001DE298 ──
