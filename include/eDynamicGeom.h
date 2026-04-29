@@ -70,6 +70,7 @@ public:
 
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
     void SetGeomFlagsOnOff(unsigned int, unsigned int);
     void SetDynamicGeomFlagsOnOff(unsigned int, unsigned int);
     float GetOpacity(const eCamera &, float) const;

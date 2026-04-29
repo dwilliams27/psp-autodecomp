@@ -4,6 +4,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -68,9 +77,13 @@ public:
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 gcStreamedCinematicConfig *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_00099AD8;
 
 // ── Constructor ──
 
@@ -125,6 +138,21 @@ cBase *gcStreamedCinematicConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── GetType ──
+
+const cType *gcStreamedCinematicConfig::GetType(void) const {
+    if (D_00099AD8 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                               (const char *)0x36D89C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00099AD8 = cType::InitializeType(0, 0, 0x1BE, D_000385DC,
+                                           &gcStreamedCinematicConfig::New, 0, 0, 0);
+    }
+    return D_00099AD8;
 }
 
 // ── Destructor ──

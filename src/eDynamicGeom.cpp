@@ -32,9 +32,21 @@ public:
     ~cReadBlock(void);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 void eGeom_Write(const void *, cFile &);
+
+static cType *type_eDynamicGeom_base;
+static cType *type_eDynamicGeom_mid;
+static cType *type_eDynamicGeom;
 
 int eDynamicGeom::GetSubObjectIndex(const cName &, int) const {
     return -1;
@@ -117,6 +129,25 @@ void eDynamicGeom::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     eGeom_Write(this, file);
     wb.End();
+}
+
+const cType *eDynamicGeom::GetType(void) const {
+    if (type_eDynamicGeom == 0) {
+        if (type_eDynamicGeom_mid == 0) {
+            if (type_eDynamicGeom_base == 0) {
+                type_eDynamicGeom_base = cType::InitializeType((const char *)0x36CD74,
+                                                               (const char *)0x36CD7C,
+                                                               1, 0, 0, 0, 0, 0);
+            }
+            type_eDynamicGeom_mid = cType::InitializeType(0, 0, 0x16,
+                                                          type_eDynamicGeom_base,
+                                                          0, 0, 0, 0);
+        }
+        type_eDynamicGeom = cType::InitializeType(0, 0, 0x17,
+                                                  type_eDynamicGeom_mid,
+                                                  0, 0, 0, 0);
+    }
+    return type_eDynamicGeom;
 }
 
 // eDynamicGeom::UpdateChildFlags — STATUS: NEAR-MATCH (47/92 bytes differ)

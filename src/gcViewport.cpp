@@ -4,6 +4,15 @@
 
 class cBase;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class gcCamera {
 public:
@@ -15,12 +24,16 @@ public:
     void GetName(char *) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 template <class T> T *dcast(const cBase *);
 
 extern "C" int cStrFormat(char *, const char *, ...);
 extern "C" void gcViewport__gcViewport_cBaseptr(void *self, cBase *parent);
+
+extern cType *D_000385DC;
+extern cType *D_0009A2E8;
 
 struct AllocRec {
     short offset;
@@ -57,4 +70,18 @@ cBase *gcViewport::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcViewport::GetType(void) const @ 0x00249248 ──
+const cType *gcViewport::GetType(void) const {
+    if (D_0009A2E8 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                               (const char *)0x36D89C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_0009A2E8 = cType::InitializeType(0, 0, 0xEE, D_000385DC,
+                                           &gcViewport::New, 0, 0, 0);
+    }
+    return D_0009A2E8;
 }
