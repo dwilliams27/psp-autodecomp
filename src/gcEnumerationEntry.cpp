@@ -3,12 +3,23 @@
 //
 // Functions:
 //   0x000d3d6c gcEnumerationEntry::Write(cFile &) const                100B
+//   0x00238b14 gcEnumerationEntry::New(cMemPool *, cBase *) static     168B
+//   0x00238bbc gcEnumerationEntry::GetType(void) const                 228B
 //   0x00238a9c gcEnumerationEntry::AssignCopy(const cBase *)           120B
 //   0x00238ca0 gcEnumerationEntry::~gcEnumerationEntry(void)           100B
 
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -30,6 +41,17 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 struct cNameData { int _w[6]; };  // 24-byte name buffer at cNamed+8
 
 class cNamed {
@@ -37,6 +59,7 @@ public:
     char _pad[8];          // cBase header: parent (0), classdesc (4)
     cNameData mName;       // 8..0x20
     cNamed(cBase *);
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
 };
 
@@ -45,6 +68,7 @@ struct cHandle {
 };
 
 extern char cBaseclassdesc[];   // @ 0x37E6A8
+extern char cNamedclassdesc[];
 
 template <class T> T *dcast(const cBase *);
 
@@ -55,6 +79,8 @@ public:
 
     gcEnumerationEntry(cBase *);
     ~gcEnumerationEntry(void);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
 
@@ -67,6 +93,56 @@ public:
         fn(block + off, p);
     }
 };
+
+static cType *type_cBase;
+static cType *type_cNamed;
+static cType *type_gcEnumerationEntry;
+
+// ── gcEnumerationEntry::New @ 0x00238b14 ──
+cBase *gcEnumerationEntry::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcEnumerationEntry *result = 0;
+    gcEnumerationEntry *obj = (gcEnumerationEntry *)entry->fn(base, 0x28, 4, 0, 0);
+    if (obj != 0) {
+        *(void **)((char *)obj + 4) = cBaseclassdesc;
+        *(cBase **)((char *)obj + 0) = parent;
+        *(void **)((char *)obj + 4) = cNamedclassdesc;
+        *(short *)((char *)obj + 0x1C) = 0;
+        *(short *)((char *)obj + 0x1E) = 0;
+        *(char *)((char *)obj + 8) = 0;
+        *(void **)((char *)obj + 4) = (void *)0x386B40;
+        *(unsigned char *)((char *)obj + 0x20) = 1;
+        *(int *)((char *)obj + 0x24) = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
+// ── gcEnumerationEntry::GetType @ 0x00238bbc ──
+const cType *gcEnumerationEntry::GetType(void) const {
+    if (!type_gcEnumerationEntry) {
+        if (!type_cNamed) {
+            if (!type_cBase) {
+                type_cBase = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            type_cNamed = cType::InitializeType(0, 0, 2,
+                                                type_cBase,
+                                                cNamed::New,
+                                                0, 0, 0);
+        }
+        type_gcEnumerationEntry = cType::InitializeType(0, 0, 0xAA,
+                                                        type_cNamed,
+                                                        gcEnumerationEntry::New,
+                                                        0, 0, 0);
+    }
+    return type_gcEnumerationEntry;
+}
 
 // ── gcEnumerationEntry::Write @ 0x000d3d6c ──
 void gcEnumerationEntry::Write(cFile &file) const {
@@ -93,4 +169,50 @@ void gcEnumerationEntry::AssignCopy(const cBase *base) {
 // (cNamed→cBase) classdesc at offset 4.
 gcEnumerationEntry::~gcEnumerationEntry(void) {
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+extern char gcValLobbyScoreboardInfovirtualtable[];
+
+class gcValLobbyScoreboardInfo {
+public:
+    cBase *mParent;
+    void *mVtable;
+    int mField8;
+    int mFieldC;
+    int mDesired10;
+    int mDesired14;
+    int mDesired18;
+    int mDesired1C;
+    int mDesired20;
+    int mDesired24;
+
+    static cBase *New(cMemPool *, cBase *);
+};
+
+// ── gcValLobbyScoreboardInfo::New @ 0x0034b0d0 ──
+cBase *gcValLobbyScoreboardInfo::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValLobbyScoreboardInfo *result = 0;
+    gcValLobbyScoreboardInfo *obj =
+        (gcValLobbyScoreboardInfo *)entry->fn(base, 0x28, 4, 0, 0);
+    if (obj != 0) {
+        *(void **)((char *)obj + 4) = cBaseclassdesc;
+        *(cBase **)((char *)obj + 0) = parent;
+        *(void **)((char *)obj + 4) = gcValLobbyScoreboardInfovirtualtable;
+        *(int *)((char *)obj + 8) = 0;
+        int tagged = (int)obj | 1;
+        *(int *)((char *)obj + 0xC) = 0;
+        *(int *)((char *)obj + 0x10) = tagged;
+        *(int *)((char *)obj + 0x14) = tagged;
+        *(int *)((char *)obj + 0x18) = tagged;
+        *(int *)((char *)obj + 0x1C) = tagged;
+        *(int *)((char *)obj + 0x20) = tagged;
+        *(int *)((char *)obj + 0x24) = tagged;
+        result = obj;
+    }
+    return (cBase *)result;
 }
