@@ -4,6 +4,27 @@ class cType;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+template <class T> T *dcast(const cBase *);
+
+template <class T> class cHandleT {
+public:
+    int mIndex;
+};
+
+class eGeomTemplate;
+
+template <class T>
+class cArrayBase {
+public:
+    void *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
+class cBaseArray {
+public:
+    cBaseArray &operator=(const cBaseArray &);
+};
+
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cType {
@@ -25,6 +46,7 @@ public:
     void *mClassDesc;
 
     eWeatherSystem(cBase *);
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };
@@ -86,6 +108,40 @@ eWeatherSystem::eWeatherSystem(cBase *parent) {
     *(float *)((char *)this + 0x64) = zero;
     *(eWeatherSystem **)0x37D31C = this;
 }
+
+// ── eWeatherSystem::AssignCopy(const cBase *) @ 0x00207e70 ──
+#pragma control sched=1
+void eWeatherSystem::AssignCopy(const cBase *src) {
+    eWeatherSystem *other = dcast<eWeatherSystem>(src);
+    const cArrayBase<cHandleT<eGeomTemplate> > &srcArr =
+        *(const cArrayBase<cHandleT<eGeomTemplate> > *)((char *)other + 0x08);
+    ((cArrayBase<cHandleT<eGeomTemplate> > *)((char *)this + 0x08))->operator=(
+        srcArr);
+    ((cBaseArray *)((char *)this + 0x0C))->operator=(
+        *(const cBaseArray *)((char *)other + 0x0C));
+    *(float *)((char *)this + 0x14) = *(float *)((char *)other + 0x14);
+    *(float *)((char *)this + 0x18) = *(float *)((char *)other + 0x18);
+    *(float *)((char *)this + 0x1C) = *(float *)((char *)other + 0x1C);
+    *(float *)((char *)this + 0x20) = *(float *)((char *)other + 0x20);
+    *(float *)((char *)this + 0x24) = *(float *)((char *)other + 0x24);
+    *(float *)((char *)this + 0x28) = *(float *)((char *)other + 0x28);
+    __asm__ volatile("" ::: "memory");
+    int *dst2C = (int *)((char *)this + 0x2C);
+    int *src2C = (int *)((char *)other + 0x2C);
+    int v2C = *src2C;
+    *dst2C = v2C;
+    *(float *)((char *)this + 0x30) = *(float *)((char *)other + 0x30);
+    __asm__ volatile("" ::: "memory");
+    int *dst34 = (int *)((char *)this + 0x34);
+    int *src34 = (int *)((char *)other + 0x34);
+    int v34 = *src34;
+    *dst34 = v34;
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x50) = *(v4sf_t *)((char *)other + 0x50);
+    *(float *)((char *)this + 0x60) = *(float *)((char *)other + 0x60);
+    *(float *)((char *)this + 0x64) = *(float *)((char *)other + 0x64);
+}
+#pragma control sched=2
 
 // ── eWeatherSystem::New(cMemPool *, cBase *) static @ 0x00207f34 ──
 #pragma control sched=1

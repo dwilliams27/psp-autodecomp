@@ -12,6 +12,15 @@ class cBase;
 class cFile;
 class cMemPool;
 
+template <class T> T *dcast(const cBase *);
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+struct copy_word { int v; };
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -61,6 +70,7 @@ public:
     gcVoiceOver(cBase *);
     ~gcVoiceOver(void);
     int IsVoiceOver(void) const;
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -77,6 +87,32 @@ extern char gcVoiceOvervirtualtable[];
 // ── gcVoiceOver::IsVoiceOver(void) const ──
 int gcVoiceOver::IsVoiceOver(void) const {
     return 1;
+}
+
+void gcVoiceOver::AssignCopy(const cBase *src) {
+    gcVoiceOver *other = dcast<gcVoiceOver>(src);
+    ((cObject *)this)->operator=(*(cObject *)other);
+    *(int *)((char *)this + 0x44) = *(int *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x48) = *(int *)((char *)other + 0x48);
+    *(float *)((char *)this + 0x4C) = *(float *)((char *)other + 0x4C);
+    *(unsigned char *)((char *)this + 0x50) = *(unsigned char *)((char *)other + 0x50);
+    *(unsigned char *)((char *)this + 0x51) = *(unsigned char *)((char *)other + 0x51);
+    *(unsigned char *)((char *)this + 0x52) = *(unsigned char *)((char *)other + 0x52);
+    *(float *)((char *)this + 0x54) = *(float *)((char *)other + 0x54);
+    *(float *)((char *)this + 0x58) = *(float *)((char *)other + 0x58);
+    *(unsigned char *)((char *)this + 0x5C) = *(unsigned char *)((char *)other + 0x5C);
+    *(int *)((char *)this + 0x60) = *(int *)((char *)other + 0x60);
+    int *src64 = (int *)((char *)other + 0x64);
+    int v64 = *src64;
+    int *dst64 = (int *)((char *)this + 0x64);
+    int *src68 = (int *)((char *)other + 0x68);
+    *dst64 = v64;
+    int *dst68 = (int *)((char *)this + 0x68);
+    int *src6C = (int *)((char *)other + 0x6C);
+    *dst68 = *src68;
+    copy_word *src6CW = (copy_word *)src6C;
+    copy_word *dst6C = (copy_word *)((char *)this + 0x6C);
+    *dst6C = *src6CW;
 }
 
 // ── gcVoiceOver::Write @ 0x001211c4 ──

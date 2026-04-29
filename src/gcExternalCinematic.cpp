@@ -8,6 +8,10 @@ class cBase;
 class cMemPool;
 class cFile;
 
+template <class T> T *dcast(const cBase *);
+
+struct copy_word { int v; };
+
 class cName {
 public:
     void Set(const char *, ...);
@@ -16,14 +20,26 @@ public:
 class cObject {
 public:
     cObject(cBase *);
+    cObject &operator=(const cObject &);
     void Write(cFile &) const;
     char _cObjectPad[0x44];
+};
+
+class cBaseArray {
+public:
+    cBaseArray &operator=(const cBaseArray &);
+};
+
+class gcEvent {
+public:
+    gcEvent &operator=(const gcEvent &);
 };
 
 class gcExternalCinematic : public cObject {
 public:
     gcExternalCinematic(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
 };
@@ -87,6 +103,34 @@ void gcExternalCinematic::Write(cFile &file) const {
     func(cin + adj, file);
 
     wb.End();
+}
+
+void gcExternalCinematic::AssignCopy(const cBase *src) {
+    gcExternalCinematic *other = dcast<gcExternalCinematic>(src);
+    cObject::operator=(*other);
+    ((cObject *)((char *)this + 0x44))->operator=(*(cObject *)((char *)other + 0x44));
+    ((cBaseArray *)((char *)this + 0x88))->operator=(
+        *(const cBaseArray *)((char *)other + 0x88));
+    *(unsigned char *)((char *)this + 0x90) = *(unsigned char *)((char *)other + 0x90);
+    *(unsigned char *)((char *)this + 0x91) = *(unsigned char *)((char *)other + 0x91);
+    unsigned char v92 = *(unsigned char *)((char *)other + 0x92);
+    int *src94 = (int *)((char *)other + 0x94);
+    *(unsigned char *)((char *)this + 0x92) = v92;
+    int v94 = *src94;
+    int *dst94 = (int *)((char *)this + 0x94);
+    int *src98 = (int *)((char *)other + 0x98);
+    *dst94 = v94;
+    int *dst98 = (int *)((char *)this + 0x98);
+    int *src9C = (int *)((char *)other + 0x9C);
+    *dst98 = *src98;
+    int *dst9C = (int *)((char *)this + 0x9C);
+    int *srcA0 = (int *)((char *)other + 0xA0);
+    *dst9C = *src9C;
+    copy_word *srcA0W = (copy_word *)srcA0;
+    copy_word *dstA0 = (copy_word *)((char *)this + 0xA0);
+    *dstA0 = *srcA0W;
+    ((gcEvent *)((char *)this + 0xA4))->operator=(*(const gcEvent *)((char *)other + 0xA4));
+    *(int *)((char *)this + 0xC0) = *(int *)((char *)other + 0xC0);
 }
 
 // ── gcExternalCinematic::New(cMemPool *, cBase *) static @ 0x00243958 ──
