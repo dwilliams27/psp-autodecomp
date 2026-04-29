@@ -25,6 +25,7 @@ public:
     int field_58;
 
     eRenderTarget(cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Apply(int, const eCamera *, const eWorld *) const;
 
