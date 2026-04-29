@@ -62,6 +62,8 @@ public:
 };
 
 extern char gcStringLValuevirtualtable[];
+extern char gcUIControlStringvirtualtable[];
+extern char cBaseclassdesc[];
 
 class gcUIControlString : public gcStringLValue {
 public:
@@ -69,6 +71,7 @@ public:
     int mField14;                      // 0x14
     int mField18;                      // 0x18
 
+    static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     ~gcUIControlString();
@@ -85,6 +88,30 @@ public:
 };
 
 gcUIControlString *dcast(const cBase *);
+void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcUIControlString::New(cMemPool *, cBase *)  @ 0x0028f430, 160B
+// ─────────────────────────────────────────────────────────────────────────
+cBase *gcUIControlString::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *rec = (AllocEntry *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcUIControlString *result = 0;
+    gcUIControlString *obj = (gcUIControlString *)rec->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        *(void **)((char *)obj + 4) = cBaseclassdesc;
+        *(cBase **)obj = parent;
+        *(void **)((char *)obj + 4) = gcUIControlStringvirtualtable;
+        gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper((char *)obj + 8, 1);
+        obj->mField14 = 0;
+        obj->mField18 = 0;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // gcUIControlString::AssignCopy(const cBase *)  @ 0x0028f3d0, 96B

@@ -28,6 +28,9 @@ public:
     ~gcExpressionList(void);
 };
 
+void gcAction_gcAction(gcDoUIWidgetForEach *, cBase *);
+void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
+void gcExpressionList_gcExpressionList(void *, cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcAction_Write(const gcDoUIWidgetForEach *, cFile &);
 gcDoUIWidgetForEach *dcast(const cBase *);
@@ -45,6 +48,32 @@ struct DeleteRecord {
     short _pad;
     void (*fn)(void *, void *);
 };
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+// 0x00316388, 160B
+cBase *gcDoUIWidgetForEach::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *base = (char *)block + off;
+    gcDoUIWidgetForEach *result = 0;
+    gcDoUIWidgetForEach *obj =
+        (gcDoUIWidgetForEach *)rec->fn(base, 0x20, 4, 0, 0);
+    if (obj != 0) {
+        gcAction_gcAction(obj, parent);
+        *(void **)((char *)obj + 4) = gcDoUIWidgetForEachvirtualtable;
+        gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper((char *)obj + 0xC, 1);
+        gcExpressionList_gcExpressionList((char *)obj + 0x18, (cBase *)obj);
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // 0x00316b6c, 8B — already matched
 int gcDoUIWidgetForEach::GetMaxBranches(void) const {
