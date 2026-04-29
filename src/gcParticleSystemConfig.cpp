@@ -22,6 +22,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -43,6 +52,8 @@ class gcEntityGeomConfig {
 public:
     int base;
 
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -71,6 +82,7 @@ class gcParticleSystemConfig : public gcEntityGeomConfig {
 public:
     ~gcParticleSystemConfig();
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -87,6 +99,10 @@ public:
         fn(block + off, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F43C;
+extern cType *D_0009F7A0;
 
 extern "C" {
     void gcParticleSystemConfig__gcParticleSystemConfig_cBaseptr(void *self, cBase *parent);
@@ -131,6 +147,26 @@ cBase *gcParticleSystemConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcParticleSystemConfig::GetType(void) const @ 0x0031dd90 ──
+const cType *gcParticleSystemConfig::GetType(void) const {
+    if (D_0009F7A0 == 0) {
+        if (D_0009F43C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F43C = cType::InitializeType(0, 0, 0xA0, D_000385DC,
+                                               &gcEntityGeomConfig::New,
+                                               0, 0, 0);
+        }
+        D_0009F7A0 = cType::InitializeType(0, 0, 0x1F9, D_0009F43C,
+                                           &gcParticleSystemConfig::New,
+                                           0, 0, 0);
+    }
+    return D_0009F7A0;
 }
 
 // ── gcParticleSystemConfig::AssignCopy(const cBase *) @ 0x0031dc7c ──

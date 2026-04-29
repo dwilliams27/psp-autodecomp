@@ -1,6 +1,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -20,6 +29,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 
 class cNamed {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -40,10 +50,15 @@ public:
     gcProfile(cBase *);
     unsigned int CalcCRC(void) const;
     bool IsDirty(void) const;
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009A2F4;
 
 // ── gcProfile::Write(cFile &) const @ 0x000FECDC ──
 void gcProfile::Write(cFile &file) const {
@@ -78,6 +93,24 @@ cBase *gcProfile::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcProfile::GetType(void) const @ 0x0024A8C4 ──
+const cType *gcProfile::GetType(void) const {
+    if (D_0009A2F4 == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_0009A2F4 = cType::InitializeType(0, 0, 0x1F6, D_000385E0,
+                                           &gcProfile::New, 0, 0, 0);
+    }
+    return D_0009A2F4;
 }
 
 bool gcProfile::IsDirty(void) const {

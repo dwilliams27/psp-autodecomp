@@ -7,6 +7,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -26,6 +35,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcPartialEntityController {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -33,9 +43,14 @@ public:
 class gcPartialBodyController : public gcPartialEntityController {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F5E0;
+extern cType *D_0009F5F4;
 
 extern "C" {
     void gcPartialBodyController__gcPartialBodyController_cBaseptr(void *self, cBase *parent);
@@ -86,4 +101,26 @@ cBase *gcPartialBodyController::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// =====================================================================
+// 0x002a5e0c — gcPartialBodyController::GetType(void) const
+// =====================================================================
+const cType *gcPartialBodyController::GetType(void) const {
+    if (D_0009F5F4 == 0) {
+        if (D_0009F5E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F5E0 = cType::InitializeType(0, 0, 0x105, D_000385DC,
+                                               &gcPartialEntityController::New,
+                                               0, 0, 0);
+        }
+        D_0009F5F4 = cType::InitializeType(0, 0, 0x107, D_0009F5E0,
+                                           &gcPartialBodyController::New,
+                                           0, 0, 0);
+    }
+    return D_0009F5F4;
 }
