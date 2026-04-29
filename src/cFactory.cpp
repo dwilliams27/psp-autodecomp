@@ -22,12 +22,25 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class cFactory : public cObject {
 public:
     char _pad0[72];
     unsigned int mField48;
 
     ~cFactory(void);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void Clean(bool flag);
@@ -63,6 +76,11 @@ public:
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040C90;
 
 // ── cFactory::Write(cFile &) const ──
 void cFactory::Write(cFile &file) const {
@@ -127,6 +145,28 @@ int cFactory::Load(void) {
         entry->fn((char *)this + entry->offset, f48, 0, 0, 0, 1);
     }
     return 1;
+}
+
+// ── cFactory::GetType(void) const ──
+const cType *cFactory::GetType(void) const {
+    if (D_00040C90 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36C830,
+                                                       (const char *)0x36C838,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00040C90 = cType::InitializeType(0, 0, 5, D_000385E4,
+                                           0, 0, 0, 0);
+    }
+    return D_00040C90;
 }
 
 // ── cFactory::~cFactory(void) ──
