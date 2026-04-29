@@ -15,10 +15,26 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
 };
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 #pragma control sched=1
 
@@ -30,6 +46,42 @@ void eProjectedDynamicMtl::Write(cFile &file) const {
     ((const cHandle *)((char *)this + 0x48))->Write(wb);
     wb.Write(*(unsigned int *)((char *)this + 0x68));
     wb.End();
+}
+
+// ── eProjectedDynamicMtl::PlatformRead @ 0x0008305c ──
+
+void eProjectedDynamicMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    return;
+}
+
+// ── eProjectedModelMtl::PlatformRead @ 0x0007de54 ──
+
+void eProjectedModelMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    return;
+}
+
+// ── eSilhouetteModelMtl::PlatformRead @ 0x00086f34 ──
+
+void eSilhouetteModelMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    return;
 }
 
 // ── eProjectedDynamicMtl::New @ 0x00219298 ──

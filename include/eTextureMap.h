@@ -30,6 +30,7 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     static eProjectedModelMtl *New(cMemPool *, cBase *);
 };
@@ -116,6 +117,7 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eProjectedDynamicMtl *New(cMemPool *, cBase *);
@@ -208,6 +210,7 @@ public:
     eSilhouetteModelMtl(cBase *);
     void PlatformFree(void);
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Unapply(void) const;
     float GetSilhouetteOffset(const eDrawInfo &) const;
