@@ -25,6 +25,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -48,6 +57,7 @@ public:
 
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -74,6 +84,7 @@ class gcDynamicModelConfig : public gcEntityGeomConfig {
 public:
     ~gcDynamicModelConfig();
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -100,6 +111,10 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F43C;
+extern cType *D_0009F768;
 
 // ── gcDynamicModelConfig::Write(cFile &) const @ 0x00152344 ──
 void gcDynamicModelConfig::Write(cFile &file) const {
@@ -134,6 +149,26 @@ cBase *gcDynamicModelConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcDynamicModelConfig::GetType(void) const @ 0x00319db8 ──
+const cType *gcDynamicModelConfig::GetType(void) const {
+    if (D_0009F768 == 0) {
+        if (D_0009F43C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F43C = cType::InitializeType(0, 0, 0xA0, D_000385DC,
+                                               &gcEntityGeomConfig::New,
+                                               0, 0, 0);
+        }
+        D_0009F768 = cType::InitializeType(0, 0, 0xE1, D_0009F43C,
+                                           &gcDynamicModelConfig::New,
+                                           0, 0, 0);
+    }
+    return D_0009F768;
 }
 
 // ── gcDynamicModelConfig::AssignCopy(const cBase *) @ 0x00319ca4 ──

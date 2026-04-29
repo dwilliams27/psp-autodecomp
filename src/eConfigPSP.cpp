@@ -1,5 +1,25 @@
 class cBase;
+class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(float);
+    void End(void);
+};
 
 class cMemPool {
 public:
@@ -22,6 +42,8 @@ class eConfigBase {
 public:
     eConfigBase(cBase *);
     ~eConfigBase();
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class eConfigPSP : public eConfigBase {
@@ -30,6 +52,8 @@ public:
     ~eConfigPSP();
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -45,6 +69,10 @@ extern "C" {
     void eConfigPSP__eConfigPSP_cBaseptr(void *self, cBase *parent);
 }
 
+extern cType *D_000385DC;
+extern cType *D_00040E78;
+extern cType *D_00040E80;
+
 // eConfigPSP::New(cMemPool *, cBase *) static @ 0x001df84c
 cBase *eConfigPSP::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -59,6 +87,41 @@ cBase *eConfigPSP::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// eConfigPSP::GetType(void) const @ 0x001df8c8
+const cType *eConfigPSP::GetType(void) const {
+    if (D_00040E80 == 0) {
+        if (D_00040E78 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040E78 = cType::InitializeType(0, 0, 0x28B, D_000385DC,
+                                               &eConfigBase::New, 0, 0, 0);
+        }
+        D_00040E80 = cType::InitializeType(0, 0, 0x295, D_00040E78,
+                                           &eConfigPSP::New, 0, 0, 0);
+    }
+    return D_00040E80;
+}
+
+// eConfigPSP::Write(cFile &) const @ 0x0001cb34
+void eConfigPSP::Write(cFile &file) const {
+    cWriteBlock wb(file, 5);
+    eConfigBase::Write(file);
+    wb.Write(*(const int *)((const char *)this + 0x6C));
+    wb.Write(*(const int *)((const char *)this + 0x70));
+    wb.Write(*(const int *)((const char *)this + 0x74));
+    wb.Write(*(const float *)((const char *)this + 0x78));
+    wb.Write(*(const float *)((const char *)this + 0x7C));
+    wb.Write(*(const bool *)((const char *)this + 0x80));
+    wb.Write(*(const int *)((const char *)this + 0x84));
+    wb.Write(*(const int *)((const char *)this + 0x88));
+    wb.Write(*(const int *)((const char *)this + 0x8C));
+    wb.Write(*(const int *)((const char *)this + 0x90));
+    wb.End();
 }
 
 // eConfigPSP::~eConfigPSP(void) @ 0x001dfc00
