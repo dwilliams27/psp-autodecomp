@@ -19,6 +19,22 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 #pragma control sched=1
 
 // ── Trivial stubs ──
@@ -42,6 +58,17 @@ void eStandardParticleSystemMtl::Write(cFile &file) const {
     h->Write(wb);
 
     wb.End();
+}
+
+// ── PlatformRead ──
+
+void eStandardParticleSystemMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
 }
 
 // ── New ──

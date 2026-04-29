@@ -9,6 +9,7 @@ class eStandardParticleSystemMtl {
 public:
     void CreateData(void);
     void PlatformFree(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Unapply(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
