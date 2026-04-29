@@ -10,6 +10,13 @@ public:
     void *_b4;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 class cWriteBlock {
@@ -75,6 +82,7 @@ public:
     void Write(cFile &) const;
     void GetName(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    const cType *GetType(void) const;
     int  Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
     ~gcGameStrings();
@@ -92,6 +100,25 @@ public:
     }
 };
 
+class gcGeomCurveController {
+public:
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcGeomTrailController {
+public:
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4D0;
+extern cType *D_0009F64C;
+extern cType *D_0009F650;
+extern cType *D_0009F788;
+
 gcGameStrings *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 
@@ -101,6 +128,66 @@ void cStrAppend(char *, const char *, ...);
 void gcGameStrings::AssignCopy(const cBase *base) {
     gcGameStrings *src = dcast(base);
     this->mValue = src->mValue;
+}
+
+// ============================================================
+// gcGameStrings::GetType(void) const  @ 0x0027db30
+// ============================================================
+const cType *gcGameStrings::GetType(void) const {
+    if (D_0009F4D0 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4D0 = cType::InitializeType(0, 0, 0x1CC, D_0009F454,
+                                           &gcGameStrings::New, 0, 0, 0);
+    }
+    return D_0009F4D0;
+}
+
+// ============================================================
+// gcGeomCurveController::GetType(void) const  @ 0x002c7060
+// ============================================================
+const cType *gcGeomCurveController::GetType(void) const {
+    if (D_0009F650 == 0) {
+        if (D_0009F64C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F64C = cType::InitializeType(0, 0, 0x1D5, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F650 = cType::InitializeType(0, 0, 0x1D7, D_0009F64C,
+                                           &gcGeomCurveController::New, 0, 0, 0);
+    }
+    return D_0009F650;
+}
+
+// ============================================================
+// gcGeomTrailController::GetType(void) const  @ 0x0031c95c
+// ============================================================
+const cType *gcGeomTrailController::GetType(void) const {
+    if (D_0009F788 == 0) {
+        if (D_0009F64C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F64C = cType::InitializeType(0, 0, 0x1D5, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F788 = cType::InitializeType(0, 0, 0x254, D_0009F64C,
+                                           &gcGeomTrailController::New, 0, 0, 0);
+    }
+    return D_0009F788;
 }
 
 // ============================================================
