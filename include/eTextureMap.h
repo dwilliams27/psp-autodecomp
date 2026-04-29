@@ -195,12 +195,14 @@ public:
 class eRefractionModelMtl {
 public:
     eRefractionModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
+    eRefractionModelMtl &operator=(const eRefractionModelMtl &);
     static eRefractionModelMtl *New(cMemPool *, cBase *);
 };
 
