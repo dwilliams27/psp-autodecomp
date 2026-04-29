@@ -145,6 +145,7 @@ public:
 class eProjectedDynamicMtl {
 public:
     eProjectedDynamicMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -157,6 +158,7 @@ public:
 class eProjectedHeightmapMtl {
 public:
     eProjectedHeightmapMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
