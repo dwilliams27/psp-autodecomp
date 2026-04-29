@@ -1,6 +1,14 @@
 #include "gcDoUserOp.h"
 #include "cBase.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -18,6 +26,11 @@ void gcAction_Write(const gcDoUserOp *, cFile &);
 void gcAction_gcAction(gcDoUserOp *, cBase *);
 
 extern char gcDoUserOpvirtualtable[];
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoUserOp asm("D_0009F758");
 
 struct PoolBlock {
     char pad[0x1C];
@@ -54,4 +67,25 @@ cBase *gcDoUserOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoUserOp::GetType(void) const {
+    if (!type_gcDoUserOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoUserOp = cType::InitializeType(
+            0, 0, 0x288, type_action, gcDoUserOp::New, 0, 0, 0);
+    }
+    return type_gcDoUserOp;
 }

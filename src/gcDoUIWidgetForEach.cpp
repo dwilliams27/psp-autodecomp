@@ -1,6 +1,14 @@
 #include "gcDoUIFade.h"
 #include "cBase.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cFile;
 class cMemPool;
 
@@ -43,6 +51,11 @@ extern "C" {
 extern char gcDoUIWidgetForEachvirtualtable[];
 extern const char gcDoUIWidgetForEach_fmt[];
 
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoUIWidgetForEach asm("D_0009F754");
+
 struct DeleteRecord {
     short offset;
     short _pad;
@@ -81,6 +94,28 @@ cBase *gcDoUIWidgetForEach::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x00316428, 280B
+const cType *gcDoUIWidgetForEach::GetType(void) const {
+    if (!type_gcDoUIWidgetForEach) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoUIWidgetForEach = cType::InitializeType(
+            0, 0, 0x1D2, type_action, gcDoUIWidgetForEach::New, 0, 0, 0);
+    }
+    return type_gcDoUIWidgetForEach;
 }
 
 // 0x00316b6c, 8B — already matched
