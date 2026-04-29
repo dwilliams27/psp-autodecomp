@@ -1,8 +1,16 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class gcEntityControllerTemplate;
 class gcStationaryControllerTemplate;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -33,11 +41,16 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
 };
 
 extern "C" {
     void gcStationaryControllerTemplate__gcStationaryControllerTemplate_cBaseptr(void *self, cBase *parent);
 }
+
+extern cType *D_000385DC;
+extern cType *D_0009A400;
+extern cType *D_0009F7C8;
 
 struct AllocRec {
     short offset;
@@ -78,4 +91,23 @@ cBase *gcStationaryControllerTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcStationaryControllerTemplate::GetType(void) const @ 0x003204c0 ──
+const cType *gcStationaryControllerTemplate::GetType(void) const {
+    if (D_0009F7C8 == 0) {
+        if (D_0009A400 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009A400 = cType::InitializeType(0, 0, 0x9A, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F7C8 = cType::InitializeType(0, 0, 0x102, D_0009A400,
+                                           &gcStationaryControllerTemplate::New,
+                                           0, 0, 0);
+    }
+    return D_0009F7C8;
 }

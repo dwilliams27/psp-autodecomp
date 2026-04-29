@@ -126,6 +126,23 @@ void gcStaticInstanceGroup::AssignCopy(const cBase *base) {
     mField = src->mField;
 }
 
+const cType *gcStaticInstanceGroup::GetType(void) const {
+    if (D_000998A0 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998A0 = cType::InitializeType(0, 0, 0x68, D_00040C94,
+                                           &gcStaticInstanceGroup::New, 0, 0, 8);
+    }
+    return D_000998A0;
+}
+
 // ── gcStaticInstanceGroup::New(cMemPool *, cBase *) static @ 0x00235d1c ──
 cBase *gcStaticInstanceGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];

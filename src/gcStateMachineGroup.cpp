@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -24,6 +25,13 @@ public:
 class cFile {
 public:
     void SetCurrentPos(unsigned int);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cWriteBlock {
@@ -61,6 +69,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     bool IsManagedTypeExternal() const;
+    const cType *GetType() const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -76,6 +85,10 @@ public:
 extern char gcStateMachineGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998C8;
 
 void gcStateMachineGroup::AssignCopy(const cBase *base) {
     gcStateMachineGroup *src = dcast<gcStateMachineGroup>(base);
@@ -126,4 +139,21 @@ cBase *gcStateMachineGroup::New(cMemPool *pool, cBase *parent) {
 
 gcStateMachineGroup::~gcStateMachineGroup() {
     ((void **)this)[1] = gcStateMachineGroupvirtualtable;
+}
+
+const cType *gcStateMachineGroup::GetType(void) const {
+    if (D_000998C8 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998C8 = cType::InitializeType(0, 0, 0xB7, D_00040C94,
+                                           &gcStateMachineGroup::New, 0, 0, 8);
+    }
+    return D_000998C8;
 }
