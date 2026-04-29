@@ -9,6 +9,7 @@ class cObject;
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -60,9 +61,22 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 extern char gcDesiredUIWidgetvirtualtable[]; // 0x38A3C0
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F3F4;
+extern cType *D_0009F4B0;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -120,4 +134,23 @@ cBase *gcDesiredUIWidget::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0027a46c — GetType(void) const
+const cType *gcDesiredUIWidget::GetType(void) const {
+    if (D_0009F4B0 == 0) {
+        if (D_0009F3F4 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F3F4 = cType::InitializeType(0, 0, 0x12C, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4B0 = cType::InitializeType(0, 0, 0x1E9, D_0009F3F4,
+                                           &gcDesiredUIWidget::New,
+                                           0, 0, 0);
+    }
+    return D_0009F4B0;
 }
