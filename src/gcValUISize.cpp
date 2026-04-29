@@ -1,6 +1,9 @@
 // gcValUISize — decompiled from gcAll_psp.obj
 // Methods in this file:
+//   0x00365264  AssignCopy(const cBase *)                    (104B)
+//   0x003652cc  New(cMemPool *, cBase *) static              (176B)
 //   0x003654d0  Write(cFile &) const                       (124B)
+//   0x00366478  VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int) (128B)
 //   0x003664f8  ~gcValUISize(void)                         (100B)
 //
 // Class layout (32 bytes, alloc size 0x20):
@@ -30,8 +33,13 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
+void gcDesiredUIWidgetHelper_ctor(void *, int);
+
+extern char gcLValuevirtualtable[];
+extern char gcValUISizevirtualtable[];
 extern char cBaseclassdesc[];
 
 struct DeleteRecord {
@@ -49,6 +57,7 @@ class gcLValue {
 public:
     cBase *mParent;
     void *mVtable;
+    gcLValue(cBase *parent);
     void Write(cFile &) const;
 };
 
@@ -60,7 +69,10 @@ public:
     float mField1C;
 
     ~gcValUISize();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
@@ -72,6 +84,60 @@ public:
     }
 };
 
+inline gcLValue::gcLValue(cBase *parent) {
+    mVtable = gcLValuevirtualtable;
+    mParent = parent;
+}
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcValUISize::AssignCopy(const cBase *) @ 0x00365264 ──
+void gcValUISize::AssignCopy(const cBase *base) {
+    gcValUISize *other = dcast<gcValUISize>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+    mField14 = other->mField14;
+    mField18 = other->mField18;
+    mField1C = other->mField1C;
+}
+
+// ── gcValUISize::New(cMemPool *, cBase *) static @ 0x003652cc ──
+cBase *gcValUISize::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcValUISize *result = 0;
+    gcValUISize *obj = (gcValUISize *)e->fn(base, 0x20, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = gcLValuevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValUISizevirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 8, 1);
+        obj->mField14 = 0;
+        obj->mField18 = false;
+        obj->mField1C = 0.85f;
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
 // ── gcValUISize::Write(cFile &) const @ 0x003654d0 ──
 void gcValUISize::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
@@ -81,6 +147,14 @@ void gcValUISize::Write(cFile &file) const {
     wb.Write(mField18);
     wb.Write(mField1C);
     wb.End();
+}
+
+// ── gcValUISize::VisitReferences @ 0x00366478 ──
+void gcValUISize::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
 
 // ── gcValUISize::~gcValUISize(void) @ 0x003664f8 ──
