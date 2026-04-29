@@ -42,7 +42,10 @@ public:
     void SetChild(int, gcExpression *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void GetText(char *) const;
+    const cType *GetType(void) const;
+    gcDoStateFunction &operator=(const gcDoStateFunction &);
 };
 
 class gcDoStateParentHandler {
