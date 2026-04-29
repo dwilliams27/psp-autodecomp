@@ -18,6 +18,13 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -55,8 +62,32 @@ public:
     int mField; // 0x0C
 
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static gcLobbyFriendStrings *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4F0;
+
+// ── gcLobbyFriendStrings::GetType(void) const  @ 0x00280b3c, 220B ──
+const cType *gcLobbyFriendStrings::GetType(void) const {
+    if (D_0009F4F0 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4F0 = cType::InitializeType(
+            0, 0, 0x1C4, D_0009F454,
+            (cBase *(*)(cMemPool *, cBase *))&gcLobbyFriendStrings::New, 0, 0, 0);
+    }
+    return D_0009F4F0;
+}
 
 // ── gcLobbyFriendStrings::Write(cFile &) const  @ 0x00280c18, 100B ──
 void gcLobbyFriendStrings::Write(cFile &file) const {

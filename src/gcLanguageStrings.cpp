@@ -10,6 +10,13 @@ class cBase;
 class cFile;
 class cMemPool;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -27,6 +34,9 @@ public:
 void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char gcLanguageStringsvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4E4;
 
 class gcStringValue {
 public:
@@ -44,8 +54,28 @@ class gcLanguageStrings : public gcStringValue {
 public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
     static gcLanguageStrings *New(cMemPool *, cBase *);
 };
+
+// 0x0027f208 — GetType(void) const
+const cType *gcLanguageStrings::GetType(void) const {
+    if (D_0009F4E4 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4E4 = cType::InitializeType(
+            0, 0, 0x1A9, D_0009F454,
+            (cBase *(*)(cMemPool *, cBase *))&gcLanguageStrings::New, 0, 0, 0);
+    }
+    return D_0009F4E4;
+}
 
 // 0x0027f2e4 — Write(cFile &) const
 void gcLanguageStrings::Write(cFile &file) const {

@@ -53,6 +53,13 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcLobbyAccountStrings : public gcStringValue {
 public:
     int mField08;       // 0x08 — constant 1
@@ -66,8 +73,32 @@ public:
         mField10 = 0;
     }
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static gcLobbyAccountStrings *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4E8;
+
+// ── GetType ──  @ 0x0027fbe8, 220B
+const cType *gcLobbyAccountStrings::GetType(void) const {
+    if (D_0009F4E8 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4E8 = cType::InitializeType(
+            0, 0, 0xFF, D_0009F454,
+            (cBase *(*)(cMemPool *, cBase *))&gcLobbyAccountStrings::New, 0, 0, 0);
+    }
+    return D_0009F4E8;
+}
 
 // ── Write ──  @ 0x0027fcc4, 112B
 void gcLobbyAccountStrings::Write(cFile &file) const {
