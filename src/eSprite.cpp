@@ -34,6 +34,7 @@ public:
 
     cObject(cBase *);
     ~cObject();
+    cObject &operator=(const cObject &);
 };
 
 class eSprite : public cObject {
@@ -51,6 +52,7 @@ public:
 
     eSprite(cBase *);
     ~eSprite();
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -62,6 +64,28 @@ public:
         fn(block + off, p);
     }
 };
+
+template <class T> T *dcast(const cBase *);
+
+struct CopyWord {
+    int value;
+};
+
+// -- eSprite::AssignCopy(const cBase *) @ 0x001e6eec --
+void eSprite::AssignCopy(const cBase *src) {
+    eSprite *other = dcast<eSprite>(src);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(int *)((char *)this + 0x44) = *(const int *)((char *)other + 0x44);
+    *(CopyWord *)((char *)this + 0x48) = *(CopyWord *)((char *)other + 0x48);
+    *(float *)((char *)this + 0x4C) = *(const float *)((char *)other + 0x4C);
+    *(float *)((char *)this + 0x50) = *(const float *)((char *)other + 0x50);
+    *(float *)((char *)this + 0x54) = *(const float *)((char *)other + 0x54);
+    *(float *)((char *)this + 0x58) = *(const float *)((char *)other + 0x58);
+    *(float *)((char *)this + 0x5C) = *(const float *)((char *)other + 0x5C);
+    *(float *)((char *)this + 0x60) = *(const float *)((char *)other + 0x60);
+    *(float *)((char *)this + 0x64) = *(const float *)((char *)other + 0x64);
+    *(float *)((char *)this + 0x68) = *(const float *)((char *)other + 0x68);
+}
 
 // -- eSprite::New(cMemPool *, cBase *) static @ 0x001e6f84 --
 cBase *eSprite::New(cMemPool *pool, cBase *parent) {
