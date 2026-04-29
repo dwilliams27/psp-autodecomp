@@ -4,6 +4,7 @@
 #include "gcUIWidget.h"
 
 class cBase;
+class cFile;
 class cMemPool;
 class cTimeValue;
 class gcEventStackData;
@@ -23,6 +24,7 @@ public:
     void UpdateUI(cTimeValue, const gcEventStackData &);
     void FocusCurCell(bool);
     void FillCurVisibleItems(void);
+    void Write(cFile &) const;
     static gcUIWidgetList *New(cMemPool *, cBase *);
 };
 

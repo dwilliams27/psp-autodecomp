@@ -3,6 +3,20 @@
 class cMemPool;
 class gcEventStackData;
 
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class gcUIWidgetGroup {
+public:
+    void Write(cFile &) const;
+};
+
 class cTimeValue {
 public:
     int mTime;
@@ -82,4 +96,24 @@ gcUIWidgetList *gcUIWidgetList::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// ── gcUIWidgetList::Write(cFile &) const @ 0x00130794 ──
+void gcUIWidgetList::Write(cFile &file) const {
+    cWriteBlock wb(file, 3);
+    ((const gcUIWidgetGroup *)this)->Write(file);
+    wb.Write(*(const unsigned int *)((const char *)this + 0xE4));
+    int val = *(const int *)((const char *)this + 0xD8);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    cBase *ptr;
+    if (flag != 0) {
+        ptr = 0;
+    } else {
+        ptr = (cBase *)val;
+    }
+    wb.WriteBase(ptr);
+    wb.End();
 }

@@ -1,10 +1,25 @@
 #include "cBase.h"
 
+class cFile;
 class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void End(void);
+};
+
+class gcDesiredValue {
+public:
+    void Write(cWriteBlock &) const;
+};
 
 class gcDoSaveGameOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 struct AllocRec {
@@ -36,4 +51,15 @@ cBase *gcDoSaveGameOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcDoSaveGameOp::Write(cFile &file) const {
+    cWriteBlock wb(file, 6);
+    ((const gcAction *)this)->Write(file);
+    wb.Write(*(const int *)((const char *)this + 0x0C));
+    ((const gcDesiredValue *)((const char *)this + 0x14))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x10))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x1C))->Write(wb);
+    wb.End();
 }

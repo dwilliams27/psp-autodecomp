@@ -11,6 +11,19 @@ extern "C" {
 
 extern char gcDoWhilevirtualtable[];
 
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class gcExpressionList {
+public:
+    void Write(cWriteBlock &) const;
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -36,6 +49,7 @@ public:
     gcExpression *GetChild(int) const;
     void SetBranch(int, gcExpression *);
     void GetText(char *) const;
+    void Write(cFile &) const;
 };
 
 // 0x00318ea8, 8B
@@ -64,6 +78,25 @@ gcExpression *gcDoWhile::GetChild(int index) const {
 // 0x0015231c, 40B
 void gcDoWhile::GetText(char *buf) const {
     cStrCat(buf, "while");
+}
+
+void gcDoWhile::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const gcAction *)this)->Write(file);
+    int val = ((const int *)this)[3];
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    cBase *ptr;
+    if (flag != 0) {
+        ptr = 0;
+    } else {
+        ptr = (cBase *)val;
+    }
+    wb.WriteBase(ptr);
+    ((const gcExpressionList *)((const char *)this + 0x10))->Write(wb);
+    wb.End();
 }
 
 // 0x00152130, 72B
