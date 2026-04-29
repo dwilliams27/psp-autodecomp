@@ -45,6 +45,7 @@ class eDrawInfo;
 class eColor;
 class cBase;
 class cFile;
+class cFilename;
 class cMemPool;
 
 class eShadowFillModelMtl {
@@ -76,6 +77,7 @@ public:
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     int GetNumExternalDependencies(void) const;
+    void GetExternalDependency(int, cFilename *) const;
 
     static void operator delete(void *p) {
         struct DeleteRecord {

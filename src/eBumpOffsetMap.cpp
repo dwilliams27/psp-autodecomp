@@ -7,6 +7,27 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
+class cFilename;
+
+class cStr {
+public:
+    char _data[256];
+    void Set(const char *, ...);
+};
+
+class cLanguage {
+public:
+    enum cLanguages {
+        kLang0 = 0,
+    };
+};
+
+extern "C" int cGetCurrentPlatform(void);
+extern int gSomePlatformDefault;
+extern "C" void eTexture___dtor_eTexture_void(void *, int);
+extern "C" void eBumpOffsetMap__GetRelativeFilename_unsignedint_cLanguage__cLanguagesconst(
+    cStr *, const eBumpOffsetMap *, unsigned int, cLanguage::cLanguages);
+
 // ── GetNumExternalDependencies ──
 
 int eBumpOffsetMap::GetNumExternalDependencies(void) const {
@@ -99,6 +120,30 @@ extern char eBumpOffsetMapvirtualtable[];
 eBumpOffsetMap::~eBumpOffsetMap(void) {
     *(void **)((char *)this + 4) = eBumpOffsetMapvirtualtable;
     PlatformFree();
+    eTexture___dtor_eTexture_void(this, 0);
+}
+
+// ── GetExternalDependency ──
+
+void eBumpOffsetMap::GetExternalDependency(int, cFilename *out) const {
+    cStr filename;
+    cStr temp;
+    cStr *ret = &temp;
+    __asm__ volatile("" : : "r"(ret) : "memory");
+    unsigned int platform = 9;
+    int usePlatform = ((*(const unsigned short *)((const char *)this + 0x28) & 2) != 0) & 0xFF;
+    if (usePlatform != 0) {
+        platform = (unsigned int)cGetCurrentPlatform();
+    }
+    int lang = 0xC;
+    int useLang = ((*(const unsigned short *)((const char *)this + 0x28) & 0x100) != 0) & 0xFF;
+    if (useLang != 0) {
+        lang = gSomePlatformDefault;
+    }
+    eBumpOffsetMap__GetRelativeFilename_unsignedint_cLanguage__cLanguagesconst(
+        ret, this, platform, (cLanguage::cLanguages)lang);
+    filename = temp;
+    ((cStr *)out)->Set((const char *)&filename);
 }
 
 // ── Stubs (already matched) ──
