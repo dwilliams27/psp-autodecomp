@@ -5,6 +5,20 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F4C0;
 
 class cObject {
 public:
@@ -43,7 +57,9 @@ public:
     gcExternalVariable(cBase *);
     ~gcExternalVariable();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -53,6 +69,32 @@ public:
 };
 
 extern char gcExternalVariablevirtualtable[];
+
+// gcExternalVariable::GetType(void) const @ 0x0027c130
+const cType *gcExternalVariable::GetType(void) const {
+    if (D_0009F4C0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4C0 = cType::InitializeType(0, 0, 0x165, D_000385E4,
+                                           &gcExternalVariable::New,
+                                           (const char *)0x36D9FC,
+                                           (const char *)0x36DA10,
+                                           1);
+    }
+    return D_0009F4C0;
+}
 
 // gcExternalVariable::AssignCopy(const cBase *) @ 0x0027c06c
 void gcExternalVariable::AssignCopy(const cBase *other) {
