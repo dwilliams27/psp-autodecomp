@@ -1,5 +1,40 @@
+class cFile;
 class cBase;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    cFile *_file;
+    int _pos;
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void End(void);
+};
+
+class gcAction {
+public:
+    void Write(cFile &) const;
+};
+
+class gcDesiredUIWidgetHelper {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class gcDesiredValue {
+public:
+    void Write(cWriteBlock &) const;
+};
 
 struct PoolBlock {
     char pad[0x1C];
@@ -19,10 +54,27 @@ extern "C" void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
 extern char gcDoUISetStatevirtualtable[];
 extern char D_000006F8[];
 extern char D_003898A0[];
+extern const char gcDoUISetState_base_name[] asm("D_0036D894");
+extern const char gcDoUISetState_base_desc[] asm("D_0036D89C");
 
-class gcDoUISetState {
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoUISetState asm("D_0009F744");
+
+typedef void (*WriteFn)(cBase *, cFile *);
+
+struct TypeMethod {
+    short offset;
+    short pad;
+    WriteFn fn;
+};
+
+class gcDoUISetState : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
 };
 
 cBase *gcDoUISetState::New(cMemPool *pool, cBase *parent) {
@@ -54,4 +106,47 @@ cBase *gcDoUISetState::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoUISetState::GetType(void) const {
+    if (!type_gcDoUISetState) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoUISetState_base_name, gcDoUISetState_base_desc, 1,
+                        0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoUISetState = cType::InitializeType(
+            0, 0, 0x1BD, type_action, gcDoUISetState::New, 0, 0, 0);
+    }
+    return type_gcDoUISetState;
+}
+
+void gcDoUISetState::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcAction::Write(file);
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 0x0C))->Write(wb);
+    wb.Write(*(const unsigned int *)((const char *)this + 0x18));
+    ((const gcDesiredValue *)((const char *)this + 0x1C))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x20))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x24))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x28))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x2C))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x30))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x34))->Write(wb);
+    wb.Write(*(const int *)((const char *)this + 0x38));
+
+    TypeMethod *slot0 =
+        (TypeMethod *)((char *)*(void **)((char *)this + 0x40) + 0x28);
+    cBase *base0 = (cBase *)((char *)this + 0x3C);
+    slot0->fn((cBase *)((char *)base0 + slot0->offset), wb._file);
+
+    wb.End();
 }
