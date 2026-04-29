@@ -13,6 +13,7 @@ class eCollisionContactInfo;
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class eMultiSphereShape {
 public:
@@ -24,6 +25,7 @@ public:
     int CanSweep(void) const;
     float GetVolume(void) const;
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     void GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *outMin, float *outMax) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

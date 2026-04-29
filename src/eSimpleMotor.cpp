@@ -11,6 +11,15 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -50,12 +59,16 @@ public:
 };
 
 extern char eSimpleMotorvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_00046BCC;
+extern cType *D_00046BD0;
 
 class eSimpleMotor : public eSimulatedMotor {
 public:
     eSimpleMotor(cBase *);
     ~eSimpleMotor();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -108,6 +121,30 @@ cBase *eSimpleMotor::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *eSimpleMotor::GetType(void) const {
+    if (D_00046BD0 == 0) {
+        if (D_00046BCC == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00046BCC = cType::InitializeType(
+                0, 0, 0x261, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00046BCC;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x209BD0;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BD0 = cType::InitializeType(
+            0, 0, 0x262, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BD0;
 }
 
 #pragma control sched=2
