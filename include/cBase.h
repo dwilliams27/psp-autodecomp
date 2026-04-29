@@ -3,9 +3,11 @@
 
 class cMemPool;
 class cFile;
+class cType;
 
 class cBase {
 public:
+    const cType *GetType(void) const;
     void SetDirty(void);
     int IsEditable(void) const;
     void Reset(cMemPool *, bool);

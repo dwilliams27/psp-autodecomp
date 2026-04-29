@@ -3,6 +3,7 @@
 
 class cBase;
 class cFile;
+class cMemPool;
 
 template <class T> T *dcast(const cBase *);
 
@@ -49,19 +50,69 @@ public:
 class gcValEntityIsLocallyControlled : public gcValue {
 public:
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
 
 extern "C" void cStrCat(char *, const char *);
+void gcDesiredObject_ctor(void *, void *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
 
 extern const char gcValEntityIsLocallyControlled_text[];   // @ 0x36F334
+
+extern char cBaseclassdesc[];
+extern char gcValEntityIsLocallyControlled_vtbl[] __asm__(".L00007728");
+extern char D_00000338[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 // ── gcValEntityIsLocallyControlled::AssignCopy(const cBase *) @ 0x00334A64 ──
 void gcValEntityIsLocallyControlled::AssignCopy(const cBase *base) {
     gcValEntityIsLocallyControlled *other = dcast<gcValEntityIsLocallyControlled>(base);
     gcDesiredEntity &srcDesired = *(gcDesiredEntity *)((char *)other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(srcDesired);
+}
+
+// ── gcValEntityIsLocallyControlled::New(cMemPool *, cBase *) static @ 0x00334A98 ──
+cBase *gcValEntityIsLocallyControlled::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValEntityIsLocallyControlled *result = 0;
+    gcValEntityIsLocallyControlled *obj =
+        (gcValEntityIsLocallyControlled *)entry->fn(base, 0x34, 4, 0, 0);
+    if (obj != 0) {
+        ((char **)obj)[1] = cBaseclassdesc;
+        ((int *)obj)[0] = (int)parent;
+        ((char **)obj)[1] = gcValEntityIsLocallyControlled_vtbl;
+        char *sub = (char *)obj + 8;
+        gcDesiredObject_ctor(sub, obj);
+        ((char **)obj)[3] = D_00000338;
+        gcDesiredEntityHelper_ctor((char *)obj + 0x14, 1, 0, 0);
+        ((void **)obj)[3] = (void *)0x388A48;
+        ((char **)obj)[8] = cBaseclassdesc;
+        ((char **)obj)[7] = sub;
+        ((void **)obj)[8] = (void *)0x388568;
+        ((char *)obj)[0x24] = 1;
+        ((char *)obj)[0x25] = 0;
+        ((int *)obj)[10] = 0;
+        ((int *)obj)[11] = 0;
+        ((int *)obj)[12] = (int)sub | 1;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── gcValEntityIsLocallyControlled::Write(cFile &) const @ 0x00334CB0 (108B) ──
