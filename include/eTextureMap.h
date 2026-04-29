@@ -18,7 +18,9 @@ public:
 
     int GetNumExternalDependencies(void) const;
     eTextureMap(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     eTextureMap &operator=(const eTextureMap &);
     void CreateData(void);
 
