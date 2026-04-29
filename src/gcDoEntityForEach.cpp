@@ -1,4 +1,29 @@
 #include "gcDoEntityForEach.h"
+#include "cBase.h"
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    cFile *_file;
+    int _pos;
+
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
 
 class gcDesiredEntityTemplate {
 public:
@@ -8,6 +33,7 @@ public:
 class gcExpressionList {
 public:
     gcExpressionList &operator=(const gcExpressionList &);
+    void Write(cWriteBlock &) const;
 };
 
 class gcEnumeration;
@@ -36,7 +62,14 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+struct WriteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *);
+};
+
 void gcAction_gcAction(void *, cBase *);
+void gcAction_Write(const gcDoEntityForEach *, cFile &);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern "C" void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
 extern "C" void gcExpressionList_gcExpressionList(void *, void *);
@@ -49,12 +82,82 @@ extern char D_000006F8[];
 extern char D_00389508[];
 extern char D_003898A0[];
 
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_action asm("D_000385D4");
+static cType *type_gcDoEntityForEach asm("D_0009F618");
+
 gcExpression *gcDoEntityForEach::GetBranch(int) const {
     return branch;
 }
 
 void gcDoEntityForEach::SetBranch(int, gcExpression *expr) {
     branch = expr;
+}
+
+const cType *gcDoEntityForEach::GetType(void) const {
+    if (!type_gcDoEntityForEach) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                        type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression,
+                                                0, 0, 0, 0);
+        }
+        type_gcDoEntityForEach = cType::InitializeType(
+            0, 0, 0x136, type_action, gcDoEntityForEach::New, 0, 0, 0);
+    }
+    return type_gcDoEntityForEach;
+}
+
+void gcDoEntityForEach::Write(cFile &file) const {
+    const gcDoEntityForEach *self = this;
+    cFile &out = file;
+
+    cWriteBlock wb(out, 4);
+    gcAction_Write(self, out);
+    wb.Write(*(const int *)((const char *)self + 0x0C));
+    wb.Write(*(const int *)((const char *)self + 0x10));
+
+    {
+        char *typeInfo = *(char **)((const char *)self + 0x18);
+        WriteRec *rec = (WriteRec *)(typeInfo + 0x28);
+        char *base = (char *)self + 0x14;
+        rec->fn(base + rec->offset, wb._file);
+    }
+
+    ((const gcExpressionList *)((const char *)self + 0x2C))->Write(wb);
+
+    void *data = *(void **)((const char *)self + 0x34);
+    int size = 0;
+    if (data != 0) {
+        size = ((int *)data)[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(size);
+
+    data = *(void **)((const char *)self + 0x34);
+    size = 0;
+    if (data != 0) {
+        size = ((int *)data)[-1] & 0x3FFFFFFF;
+    }
+
+    int i = 0;
+    if (i < size) {
+        do {
+            char *entry = (char *)data + i * 8;
+            ((cHandle *)entry)->Write(wb);
+            wb.Write(((unsigned int *)entry)[1]);
+            i++;
+        } while (i < size);
+    }
+
+    wb.End();
 }
 
 int gcDoEntityForEachAttached::GetMaxBranches(void) const {

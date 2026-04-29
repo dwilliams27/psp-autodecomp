@@ -15,6 +15,8 @@ public:
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
