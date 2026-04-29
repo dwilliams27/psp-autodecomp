@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -16,6 +17,19 @@ public:
 class cMemPool_shim {
 public:
     static void *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 struct AllocRec {
@@ -54,6 +68,7 @@ class eFrameBufferTexture : public eVirtualTexture {
 public:
     eFrameBufferTexture(cBase *);
     ~eFrameBufferTexture(void);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -71,6 +86,12 @@ public:
 };
 
 extern char eFrameBufferTextureclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FE8;
+extern cType *D_00046B98;
+extern cType *D_00046C78;
 
 // ── eFrameBufferTexture::Write(cFile &) const @ 0x00081588 ──
 #pragma control sched=1
@@ -118,5 +139,48 @@ cBase *eFrameBufferTexture::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+#pragma control sched=1
+const cType *eFrameBufferTexture::GetType(void) const {
+    if (D_00046C78 == 0) {
+        if (D_00046B98 == 0) {
+            if (D_00040FE8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            const char *name = (const char *)0x36CD74;
+                            const char *desc = (const char *)0x36CD7C;
+                            __asm__ volatile("" : "+r"(name), "+r"(desc));
+                            D_000385DC = cType::InitializeType(
+                                name, desc, 1, 0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385DC;
+                        cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, parentType, factory, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                       0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385E4;
+                const char *kindName = (const char *)0x36CDA8;
+                const char *kindDesc = (const char *)0x36CDB4;
+                __asm__ volatile("" : "+r"(parentType), "+r"(kindName),
+                                 "+r"(kindDesc));
+                D_00040FE8 = cType::InitializeType(0, 0, 0xA, parentType,
+                                                   0, kindName, kindDesc, 5);
+            }
+            D_00046B98 = cType::InitializeType(0, 0, 0x135, D_00040FE8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046B98;
+        cBase *(*factory)(cMemPool *, cBase *) = &eFrameBufferTexture::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C78 = cType::InitializeType(0, 0, 0x139, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C78;
 }
 #pragma control sched=2
