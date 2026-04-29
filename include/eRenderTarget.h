@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eCamera;
 class eWorld;
 
@@ -26,6 +27,7 @@ public:
 
     eRenderTarget(cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void Apply(int, const eCamera *, const eWorld *) const;
 
