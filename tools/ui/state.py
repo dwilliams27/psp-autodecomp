@@ -17,6 +17,7 @@ class AgentSlot:
     session_id: str | None = None
     backend: str = ""
     model: str = ""
+    effort: str = ""
     identity: str = ""
     queue_kind: str = ""
     current_working: str = "(idle)"
@@ -80,17 +81,19 @@ class RunState:
         return None
 
     def assign_session(self, session_id, backend="", model="",
-                       identity="", queue_kind=""):
+                       effort="", identity="", queue_kind=""):
         """Bind a new session to an idle slot (or create one). Returns the slot."""
         # Prefer an idle slot
         for s in self.slots:
             if s.session_id is None:
-                self._bind(s, session_id, backend, model, identity, queue_kind)
+                self._bind(s, session_id, backend, model, effort,
+                           identity, queue_kind)
                 return s
         # All busy — create a new slot
         s = AgentSlot(index=len(self.slots))
         self.slots.append(s)
-        self._bind(s, session_id, backend, model, identity, queue_kind)
+        self._bind(s, session_id, backend, model, effort,
+                   identity, queue_kind)
         return s
 
     def release_session(self, session_id):
@@ -102,10 +105,12 @@ class RunState:
             slot.current_working = "(idle)"
             slot.idle_since = time.time()
 
-    def _bind(self, slot, session_id, backend, model, identity, queue_kind):
+    def _bind(self, slot, session_id, backend, model, effort,
+              identity, queue_kind):
         slot.session_id = session_id
         slot.backend = backend
         slot.model = model
+        slot.effort = effort
         slot.identity = identity
         slot.queue_kind = queue_kind
         slot.current_working = "(waiting)"
@@ -153,9 +158,9 @@ class RunState:
             self.variants = self.variants + (variant,)
 
     def ensure_backend(self, backend):
-        """Register a backend seen mid-run for A/B tally tracking.
+        """Register an identity/backend seen mid-run for A/B tally tracking.
 
-        Mirrors `ensure_variant` — backends listed in the run_start event
+        Mirrors `ensure_variant` — identities listed in the run_start event
         are registered up front; this catches any stragglers.
         """
         if not backend:

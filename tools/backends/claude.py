@@ -38,8 +38,15 @@ class ClaudeBackend(Backend):
         },
     }
 
-    def __init__(self, model: str = CLAUDE_MODEL, system_append: str = ""):
-        super().__init__(model=model, system_append=system_append)
+    def __init__(self, model: str = CLAUDE_MODEL, system_append: str = "",
+                 effort: str = ""):
+        if effort:
+            raise ValueError(
+                "Claude backend does not support per-session effort; "
+                "omit the /effort segment from the identity."
+            )
+        super().__init__(model=model, system_append=system_append,
+                         effort=effort)
 
     def spawn_cmd(self, prompt: str, session_id: str) -> List[str]:
         return [

@@ -103,11 +103,9 @@ def _cwd(path):
 
 
 class FakeBackend:
-    name = "fakeclaude"
-    model = "fake-model-1"
-
-    def __init__(self, *_, **__):
-        pass
+    def __init__(self, name="fakeclaude", model="fake-model-1", *_, **__):
+        self.name = name
+        self.model = model
 
 
 def _make_fake_run_session(observed_classes, lock,
@@ -296,7 +294,11 @@ def main():
 
             # Also stub the Backend constructor — coordinator calls
             # get_backend() to instantiate.
-            orchestrator.get_backend = lambda name, system_append="", model="": FakeBackend()
+            orchestrator.get_backend = (
+                lambda name, system_append="", model="", effort="": FakeBackend(
+                    name=name, model=f"{name}-model"
+                )
+            )
 
             # Drive a small run: 2 workers, --limit 4.
             sys.argv = ["orchestrator.py", "--workers", "2",

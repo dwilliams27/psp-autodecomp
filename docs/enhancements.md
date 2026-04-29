@@ -225,3 +225,11 @@ But the agent's narrative output is now ~30+ "acknowledging the misfiring remind
 **Action**: keep the framing for now. Periodically (e.g., every Claude major release) try a smoke run with `SYSTEM_PROMPT_APPEND = ""` on a small batch of src/ that contains inline asm, mangled symbols, and hex constants. If the agent doesn't refuse and the narrative panel doesn't fill with classifier-acknowledgments, drop the framing entirely. Until then it's a free win even if noisy.
 
 The Codex backend doesn't have this issue at all (different classifier, different misfire surface) — useful negative control.
+
+## 10. Confirm Claude usage-limit normalization
+
+The backend layer now has generic rate-limit detection for agent text, tool-result text, raw lines, and stderr. That should catch Claude too **if** the Claude CLI surfaces account/usage limits with ordinary phrases like "usage limit", "rate limit", "too many requests", "quota exceeded", or `429`.
+
+Gap: we only validated the concrete reset-time behavior against Codex logs (`try again at 2:35 PM`). We do not yet have a captured Claude usage-limit stream shape. Claude may emit limits as a `result` subtype, a structured error field, or stderr text that our parser does not preserve fully.
+
+Action: the next time Claude hits a limit, save the surrounding `logs/match_*.jsonl` rows and the CLI stderr tail, then add a unit fixture that proves `AgentRateLimited` fires with a parsed retry time or a conservative fallback pause. This is hardening, not a blocker for Codex-only runs.

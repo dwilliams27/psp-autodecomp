@@ -5,7 +5,7 @@ docs/direction/003-multi-agent-ab-architecture.md §5.
 
 Outputs, in order:
 
-  1. Per-`(backend, model)` summary: Wilson 95% CI on match rate,
+  1. Per-identity summary: Wilson 95% CI on match rate,
      bootstrap 95% CI on attempts/hour, mean cost-per-match, attempts
      attempted.
   2. Stratified tables: same metrics broken down by `(tier, size_bucket,
@@ -154,7 +154,14 @@ def load_attempts(path: Path,
 
 
 def _identity_for(rec: dict) -> str:
-    return identity_key(rec.get("backend") or "", rec.get("model") or "")
+    ident = rec.get("identity")
+    if ident:
+        return ident
+    return identity_key(
+        rec.get("backend") or "",
+        rec.get("model") or "",
+        rec.get("effort") or "",
+    )
 
 
 def _stratum_label(rec: dict) -> str:

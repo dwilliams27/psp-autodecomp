@@ -3,7 +3,7 @@
 onto the main run-branch.
 
 Reads `logs/attempts.jsonl` (Phase 2 schema) plus the shootout
-branches the orchestrator created (`overnight/<ts>/<backend>-<modeltag>`)
+branches the orchestrator created (`overnight/<ts>-<identitytag>`)
 to find which shootout commit matched each function. For each
 function in the shootout/reserved set:
 
@@ -55,6 +55,17 @@ sys.path.insert(0, str(_REPO_ROOT / "tools"))
 from ab_schedule import identity_key, safe_identity_tag
 
 _GIT = "git"
+
+
+def _record_identity(rec: dict) -> str:
+    ident = rec.get("identity")
+    if ident:
+        return ident
+    return identity_key(
+        rec.get("backend") or "",
+        rec.get("model") or "",
+        rec.get("effort") or "",
+    )
 
 
 def git_run(*args, cwd: Optional[Path] = None,
@@ -185,7 +196,7 @@ def _diff_promotes_address_to_matched(diff: str, address: str) -> bool:
 
 def discover_shootout_branches(base: Optional[str]) -> Dict[str, str]:
     """Return `{identity_key: branch_name}` for branches matching
-    `<base>/<backend>-<modeltag>`. When `base` is None we infer it
+    `<base>-<identitytag>`. When `base` is None we infer it
     from the latest `overnight/<ts>` ref (most recent committer date
     on a branch matching the convention).
     """
@@ -236,7 +247,7 @@ def discover_shootout_branches(base: Optional[str]) -> Dict[str, str]:
         if not line or line == base:
             continue
         suffix = line[len(base) + 1:]
-        # Suffix is "<backend>-<modeltag>". We can't perfectly
+        # Suffix is "<identitytag>". We can't perfectly
         # round-trip to identity_key without the actual backend list,
         # but we can split on the first '-'. The smoke test exercises
         # this path with simple two-part suffixes; the real format
@@ -304,8 +315,7 @@ def plan(attempts: List[dict], identities: List[str],
     by_addr: Dict[str, Dict[str, dict]] = defaultdict(dict)
     func_names: Dict[str, str] = {}
     for rec in attempts:
-        ident = identity_key(rec.get("backend") or "",
-                             rec.get("model") or "")
+        ident = _record_identity(rec)
         if ident not in identities:
             continue
         addr = rec.get("address")
@@ -377,7 +387,8 @@ def plan(attempts: List[dict], identities: List[str],
                 # Tie — apply --prefer if it picks one of these.
                 pref_match = next((c for c in candidates
                                     if prefer
-                                    and c["identity"].split("/", 1)[0] == prefer),
+                                    and (c["identity"] == prefer
+                                         or c["identity"].split("/", 1)[0] == prefer)),
                                   None)
                 if pref_match:
                     actions.append({
@@ -406,10 +417,10 @@ def main():
                     help="Base run-branch (default: latest overnight/<ts>).")
     ap.add_argument("--identities", default=None,
                     help="Comma-separated identities like "
-                         "'claude/claude-opus-4-7,codex/gpt-5.5'. Default: "
+                         "'claude/claude-opus-4-7,codex/gpt-5.5/high'. Default: "
                          "infer from attempts.jsonl.")
     ap.add_argument("--prefer", default=None,
-                    help="Backend to prefer when both identities matched.")
+                    help="Backend or full identity to prefer when both identities matched.")
     ap.add_argument("--auto-prefer", default=None,
                     help="Same as --prefer, but skip the interactive "
                          "confirmation entirely.")
@@ -451,9 +462,7 @@ def main():
         identities = [s.strip() for s in args.identities.split(",")
                       if s.strip()]
     else:
-        idents = {identity_key(r.get("backend") or "",
-                                r.get("model") or "")
-                  for r in attempts}
+        idents = {_record_identity(r) for r in attempts}
         identities = sorted(i for i in idents if i and "/" in i)
 
     if not identities:

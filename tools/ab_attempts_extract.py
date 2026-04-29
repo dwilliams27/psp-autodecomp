@@ -27,6 +27,9 @@ import sys
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_REPO_ROOT / "tools"))
+
+from ab_schedule import identity_key
 
 
 # Counts surface at end of run so corrupt lines don't silently
@@ -75,6 +78,8 @@ def extract_attempts_from_log(log_path: Path):
                 "session_id": sid,
                 "backend": ev.get("backend") or "",
                 "model": ev.get("model") or "",
+                "effort": ev.get("effort") or "",
+                "identity": ev.get("identity") or "",
                 "variant": ev.get("variant") or "",
                 "functions": list(ev.get("functions") or []),
                 "ts": ev.get("timestamp"),
@@ -171,6 +176,15 @@ def _emit_session(sess: dict):
             "session_id": sess["session_id"],
             "backend": sess["backend"],
             "model": sess["model"],
+            "effort": sess.get("effort") or "",
+            "identity": (
+                sess.get("identity")
+                or identity_key(
+                    sess["backend"],
+                    sess["model"],
+                    sess.get("effort") or "",
+                )
+            ),
             "variant": sess["variant"],
             "address": addr,
             "name": func.get("name"),
@@ -213,7 +227,7 @@ def main():
         sys.exit(1)
 
     total = 0
-    by_backend: dict[str, int] = {}
+    by_identity: dict[str, int] = {}
 
     out_path = (_REPO_ROOT / args.output).resolve()
     out_handle = None
@@ -225,8 +239,9 @@ def main():
         for log_path in log_paths:
             for rec in extract_attempts_from_log(log_path):
                 total += 1
-                by_backend[rec["backend"] or "?"] = by_backend.get(
-                    rec["backend"] or "?", 0) + 1
+                by_identity[rec["identity"] or rec["backend"] or "?"] = (
+                    by_identity.get(rec["identity"] or rec["backend"] or "?", 0) + 1
+                )
                 if out_handle:
                     out_handle.write(json.dumps(rec) + "\n")
     finally:
@@ -235,8 +250,8 @@ def main():
 
     print(f"Scanned {len(log_paths)} log files.")
     print(f"Attempt records: {total}")
-    for b, n in sorted(by_backend.items(), key=lambda kv: -kv[1]):
-        print(f"  {b:20s} {n}")
+    for ident, n in sorted(by_identity.items(), key=lambda kv: -kv[1]):
+        print(f"  {ident:30s} {n}")
     if _PARSE_ERRORS["corrupt_lines"]:
         print(f"\nWARNING: {_PARSE_ERRORS['corrupt_lines']} corrupt JSON line(s) "
               f"skipped across {len(_PARSE_ERRORS['files_with_errors'])} file(s).",

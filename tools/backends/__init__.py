@@ -6,6 +6,7 @@ from common import CLAUDE_MODEL, CODEX_MODEL
 
 from .base import (
     AgentEvent,
+    AgentRateLimited,
     AgentRefused,
     Backend,
     run_session,
@@ -27,7 +28,8 @@ _DEFAULT_MODELS: dict[str, str] = {
 AVAILABLE_BACKENDS = sorted(_REGISTRY)
 
 
-def get_backend(name: str, system_append: str = "", model: str = "") -> Backend:
+def get_backend(name: str, system_append: str = "", model: str = "",
+                effort: str = "") -> Backend:
     """Instantiate the named backend. Raises ValueError for unknown names."""
     key = name.lower()
     ctor = _REGISTRY.get(key)
@@ -35,11 +37,16 @@ def get_backend(name: str, system_append: str = "", model: str = "") -> Backend:
         raise ValueError(
             f"Unknown backend '{name}'. Supported: {', '.join(AVAILABLE_BACKENDS)}"
         )
-    return ctor(model=model or _DEFAULT_MODELS[key], system_append=system_append)
+    return ctor(
+        model=model or _DEFAULT_MODELS[key],
+        system_append=system_append,
+        effort=effort,
+    )
 
 
 __all__ = [
     "AgentEvent",
+    "AgentRateLimited",
     "AgentRefused",
     "Backend",
     "ClaudeBackend",

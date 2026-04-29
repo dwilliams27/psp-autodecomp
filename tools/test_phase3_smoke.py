@@ -361,7 +361,7 @@ def test_phase3_end_to_end():
             orchestrator.run_session = _make_shootout_run_session(
                 matched_by_ident, threading.Lock())
 
-            def fake_get_backend(name, system_append="", model=""):
+            def fake_get_backend(name, system_append="", model="", effort=""):
                 # Distinguish the two by name suffix so identity_key
                 # produces two distinct identities.
                 return {

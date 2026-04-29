@@ -3,7 +3,7 @@
 
 Phase 3 of docs/direction/003-multi-agent-ab-architecture.md. At run
 start the orchestrator hands a candidate pool + a list of
-(backend, model) identities to `build_schedule()`; it returns a
+backend/model[/effort] identities to `build_schedule()`; it returns a
 `Schedule` whose queues the picker draws from for the duration.
 
 Three modes:
@@ -66,17 +66,22 @@ SIZE_BUCKETS: Tuple[Tuple[int, int], ...] = (
 )
 
 
-def identity_key(backend: str, model: str) -> str:
-    """Canonical string key for a (backend, model) identity. Used as
-    the dict key everywhere so Mode A's per-identity queues, Mode B's
-    shootout-attempted sets, and the report's group-by columns all
-    line up without re-hashing.
+def identity_key(backend: str, model: str, effort: str = "") -> str:
+    """Canonical string key for a backend/model[/effort] identity.
+
+    Used as the dict key everywhere so Mode A's per-identity queues,
+    Mode B's shootout-attempted sets, and the report's group-by columns
+    all line up without re-hashing. `effort` stays optional so older
+    backend/model logs keep their historical spelling.
     """
-    return f"{backend}/{model}"
+    key = f"{backend}/{model}"
+    if effort:
+        key += f"/{effort}"
+    return key
 
 
 def safe_identity_tag(identity: str) -> str:
-    """Filesystem-safe rendition of `backend/model` for branch +
+    """Filesystem-safe rendition of `backend/model[/effort]` for branch +
     worktree paths (e.g. `claude/claude-opus-4-7` →
     `claude-claude-opus-4-7`, `codex/gpt-5.5` → `codex-gpt-5_5`).
     Used by both the orchestrator (worktree creation) and ab_promote
@@ -466,8 +471,9 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", default=MODE_DISJOINT, choices=ALL_MODES)
-    ap.add_argument("--identities", default="claude/claude-opus-4-7,codex/gpt-5.5",
-                    help="Comma-separated backend/model pairs.")
+    ap.add_argument("--identities",
+                    default="claude/claude-opus-4-7,codex/gpt-5.5/high",
+                    help="Comma-separated backend/model[/effort] identities.")
     ap.add_argument("--reserve", type=int, default=0,
                     help="paired_reserve_n for Mode C.")
     ap.add_argument("--seed", type=int, default=42)

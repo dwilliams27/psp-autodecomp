@@ -36,16 +36,22 @@ _IDENTITY_STYLES = {
 
 _MODEL_RANK = {
     "claude": ["claude-opus-4-6", "claude-opus-4-7"],
-    "codex":  ["gpt-5.5"],
+    "codex":  ["gpt-5.5/low", "gpt-5.5/high", "gpt-5.5"],
 }
 
 _FALLBACK_STYLE = (DIM, f"bold {DIM}", "color(238)")
 
 
-def identity_style(backend, model=""):
-    """Return (border_style, label_style, dim_style) for a backend/model."""
+def identity_style(backend, model="", effort=""):
+    """Return (border_style, label_style, dim_style) for an identity."""
+    if "/" in (backend or ""):
+        parts = backend.split("/")
+        backend = parts[0]
+        model = parts[1] if len(parts) >= 2 else model
+        effort = parts[2] if len(parts) >= 3 else effort
     ranks = _MODEL_RANK.get(backend, [])
-    rank = ranks.index(model) if model in ranks else 0
+    rank_key = f"{model}/{effort}" if effort else model
+    rank = ranks.index(rank_key) if rank_key in ranks else 0
     rank = max(0, min(rank, 1))
     return _IDENTITY_STYLES.get((backend, rank), _FALLBACK_STYLE)
 

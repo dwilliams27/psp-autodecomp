@@ -5,11 +5,13 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
 import subprocess
 import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Callable, List, Literal, Optional, Tuple
 
 
@@ -134,7 +136,22 @@ class AgentRefused(RuntimeError):
     def __init__(self, reason: str, session_usage: Optional[dict] = None):
         super().__init__(f"agent refused mid-session ({reason})")
         self.reason = reason
-        self.session_usage = session_usage or {}
+        self.session_usage = session_usage if session_usage is not None else {}
+
+
+class AgentRateLimited(RuntimeError):
+    """Agent hit a provider/account usage limit.
+
+    `retry_at_epoch` is best-effort. Some CLIs say exactly when to try
+    again; others only say "rate limited". The orchestrator uses this
+    to pause the backend family instead of burning retries.
+    """
+    def __init__(self, reason: str, retry_at_epoch: Optional[float] = None,
+                 session_usage: Optional[dict] = None):
+        super().__init__(reason)
+        self.reason = reason
+        self.retry_at_epoch = retry_at_epoch
+        self.session_usage = session_usage if session_usage is not None else {}
 
 
 class Backend(ABC):
@@ -146,9 +163,10 @@ class Backend(ABC):
     # back to this when the backend's stream-JSON doesn't carry cost.
     RATE_CARD: dict = {}
 
-    def __init__(self, model: str, system_append: str):
+    def __init__(self, model: str, system_append: str, effort: str = ""):
         self.model = model
         self.system_append = system_append
+        self.effort = effort
 
     @abstractmethod
     def spawn_cmd(self, prompt: str, session_id: str) -> List[str]:
@@ -177,6 +195,29 @@ class Backend(ABC):
         if any(p in lt for p in self.refusal_patterns()):
             return f"refusal_in_{event.kind}"
         return None
+
+    def rate_limit_info(self, text: str) -> Optional[dict]:
+        """Return `{reason, retry_at_epoch}` when text is a rate-limit hit."""
+        lower = (text or "").lower()
+        patterns = (
+            "usage limit",
+            "rate limit",
+            "rate_limit",
+            "too many requests",
+            "quota exceeded",
+            "429",
+        )
+        if not any(p in lower for p in patterns):
+            return None
+        return {
+            "reason": text[:500],
+            "retry_at_epoch": _parse_retry_at_epoch(text),
+        }
+
+    def is_rate_limited(self, event: AgentEvent) -> Optional[dict]:
+        if event.kind not in ("text", "thinking", "tool_result", "raw", "status"):
+            return None
+        return self.rate_limit_info(event.text)
 
     def compute_cost(self, input_tokens: int, output_tokens: int,
                      cached_tokens: int) -> Optional[float]:
@@ -277,6 +318,7 @@ def run_session(
                 "variant": variant,
                 "backend": backend.name,
                 "model": backend.model,
+                "effort": backend.effort,
             })
         session_usage.update({
             "event": "session_usage",
@@ -284,6 +326,7 @@ def run_session(
             "variant": variant,
             "backend": backend.name,
             "model": backend.model,
+            "effort": backend.effort,
             "input_tokens": usage_in,
             "output_tokens": usage_out,
             "cached_tokens": usage_cached,
@@ -325,7 +368,32 @@ def run_session(
                     fields["session_id"] = session_id
                     fields["variant"] = variant
                     fields["backend"] = backend.name
+                    fields["model"] = backend.model
+                    fields["effort"] = backend.effort
                     log_fn(fields)
+                    rate_limit = backend.is_rate_limited(ev)
+                    if rate_limit:
+                        proc.kill()
+                        retry_at = rate_limit.get("retry_at_epoch")
+                        log_fn({
+                            "event": "agent_rate_limited",
+                            "session_id": session_id,
+                            "variant": variant,
+                            "backend": backend.name,
+                            "model": backend.model,
+                            "effort": backend.effort,
+                            "reason": rate_limit.get("reason") or "",
+                            "retry_at_epoch": retry_at,
+                            "retry_after_s": (
+                                max(0.0, retry_at - time.time())
+                                if retry_at else None
+                            ),
+                        })
+                        raise AgentRateLimited(
+                            rate_limit.get("reason") or "agent rate limited",
+                            retry_at_epoch=retry_at,
+                            session_usage=session_usage,
+                        )
                     reason = backend.is_refusal(ev)
                     if reason:
                         proc.kill()
@@ -334,6 +402,8 @@ def run_session(
                             "session_id": session_id,
                             "variant": variant,
                             "backend": backend.name,
+                            "model": backend.model,
+                            "effort": backend.effort,
                             "reason": reason,
                         })
                         raise AgentRefused(reason, session_usage=session_usage)
@@ -353,6 +423,28 @@ def run_session(
             # "(no stderr)" itself is signal — child wrote nothing.
             err = ("".join(stderr_tail).strip()
                    if stderr_tail else "(no stderr)")
+            rate_limit = backend.rate_limit_info(err)
+            if rate_limit:
+                retry_at = rate_limit.get("retry_at_epoch")
+                log_fn({
+                    "event": "agent_rate_limited",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "model": backend.model,
+                    "effort": backend.effort,
+                    "reason": rate_limit.get("reason") or "",
+                    "retry_at_epoch": retry_at,
+                    "retry_after_s": (
+                        max(0.0, retry_at - time.time())
+                        if retry_at else None
+                    ),
+                })
+                raise AgentRateLimited(
+                    rate_limit.get("reason") or "agent rate limited",
+                    retry_at_epoch=retry_at,
+                    session_usage=session_usage,
+                )
             return False, f"{backend.name} exited {proc.returncode}: {err}", session_usage
 
         if not saw_usage:
@@ -370,6 +462,7 @@ def run_session(
                 "variant": variant,
                 "backend": backend.name,
                 "model": backend.model,
+                "effort": backend.effort,
                 "warning": (
                     f"{backend.name} exited 0 but emitted no usage "
                     f"events. Stream-JSON shape may have drifted "
@@ -383,3 +476,52 @@ def run_session(
         return True, None, session_usage
     finally:
         emit_session_usage()
+
+
+def _parse_retry_at_epoch(text: str) -> Optional[float]:
+    """Best-effort parse of common provider retry hints into epoch seconds."""
+    if not text:
+        return None
+    now = datetime.now()
+
+    m = re.search(
+        r"(?:try again|retry)\s+(?:at|after)\s+"
+        r"(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)",
+        text,
+        re.IGNORECASE,
+    )
+    if m:
+        hour = int(m.group(1))
+        minute = int(m.group(2) or "0")
+        ampm = m.group(3).lower().replace(".", "")
+        if ampm == "pm" and hour != 12:
+            hour += 12
+        if ampm == "am" and hour == 12:
+            hour = 0
+        candidate = now.replace(hour=hour, minute=minute, second=0,
+                                microsecond=0)
+        if candidate.timestamp() <= time.time() + 30:
+            candidate += timedelta(days=1)
+        return candidate.timestamp()
+
+    m = re.search(
+        r"(?:try again|retry)\s+in\s+(\d+)\s*"
+        r"(seconds?|secs?|minutes?|mins?|hours?|hrs?)",
+        text,
+        re.IGNORECASE,
+    )
+    if m:
+        amount = int(m.group(1))
+        unit = m.group(2).lower()
+        if unit.startswith(("hour", "hr")):
+            delta = timedelta(hours=amount)
+        elif unit.startswith(("minute", "min")):
+            delta = timedelta(minutes=amount)
+        else:
+            delta = timedelta(seconds=amount)
+        return (now + delta).timestamp()
+
+    m = re.search(r"retry-after[:=]\s*(\d+)", text, re.IGNORECASE)
+    if m:
+        return time.time() + int(m.group(1))
+    return None

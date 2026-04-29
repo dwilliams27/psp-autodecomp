@@ -32,7 +32,29 @@ _BACKEND_STYLE = {
 
 
 def _backend_style(name):
-    return _BACKEND_STYLE.get(name, MOSS)
+    family = (name or "").split("/", 1)[0]
+    return _BACKEND_STYLE.get(family, MOSS)
+
+
+def _event_identity(event):
+    identity = event.get("identity") or ""
+    if identity:
+        return identity
+    backend = event.get("backend") or ""
+    model = event.get("model") or ""
+    effort = event.get("effort") or ""
+    if backend and model:
+        return f"{backend}/{model}" + (f"/{effort}" if effort else "")
+    return backend
+
+
+def _truncate(text, width):
+    text = str(text or "")
+    if len(text) <= width:
+        return text
+    if width <= 3:
+        return text[:width]
+    return text[:width - 3] + "..."
 
 
 # Patterns in orch_note lines that duplicate a structured event we already
@@ -144,10 +166,20 @@ class RunningScreen(Screen):
         elif ev == "agent_event":
             self._on_agent_event(state, event)
         elif ev == "backend_dead":
-            backend = event.get("backend", "?")
+            backend = event.get("identity") or event.get("backend", "?")
             reason = event.get("reason", "?")
             state.orch_log.append(
                 _ts() + f"BACKEND DEAD: {backend} ({reason})")
+        elif ev == "backend_rate_limited":
+            backend = event.get("backend", "?")
+            retry_after = event.get("retry_after_s")
+            if isinstance(retry_after, (int, float)):
+                wait = fmt_hhmm(retry_after)
+                state.orch_log.append(
+                    _ts() + f"RATE LIMITED: {backend} paused for {wait}")
+            else:
+                state.orch_log.append(
+                    _ts() + f"RATE LIMITED: {backend} paused")
         elif ev == "malformed":
             state.orch_log.append(
                 _ts() + "MALFORMED LOG LINE: " + (event.get("raw") or "")[:80]
@@ -169,12 +201,19 @@ class RunningScreen(Screen):
         state.worker_count = event.get("workers", 1)
         # Pre-allocate slots from the worker count
         state.ensure_slots(state.worker_count)
+        run_identities = list(event.get("identities") or [])
         for b in event.get("backends") or []:
-            state.ensure_backend(b.get("name", ""))
-        if not state.backends and state.backend:
-            state.ensure_backend(state.backend)
+            ident = b.get("identity") or _event_identity(b)
+            if ident:
+                run_identities.append(ident)
+        for ident in dict.fromkeys(i for i in run_identities if i):
+            state.ensure_backend(ident)
+        if not state.backends:
+            ident = _event_identity(event)
+            if ident:
+                state.ensure_backend(ident)
         if len(state.backends) > 1:
-            state.backend = "/".join(state.backends)
+            state.backend = ", ".join(state.backends)
             state.model = ""
         for v in state.variants:
             state.ensure_variant(v)
@@ -189,16 +228,18 @@ class RunningScreen(Screen):
         variant = event.get("variant", "?")
         backend = event.get("backend") or ""
         model = event.get("model") or ""
-        identity = event.get("identity") or ""
+        effort = event.get("effort") or ""
+        identity = _event_identity(event)
         queue_kind = event.get("queue_kind") or ""
         funcs = event.get("functions", []) or []
         state.ensure_variant(variant)
-        if backend:
-            state.ensure_backend(backend)
+        if identity:
+            state.ensure_backend(identity)
         # Ensure at least 1 slot exists (old logs without run_start.workers)
         if not state.slots:
             state.ensure_slots(1)
-        slot = state.assign_session(sid, backend, model, identity, queue_kind)
+        slot = state.assign_session(sid, backend, model, effort,
+                                    identity, queue_kind)
         slot.batch_names = [_short_name(f.get("name", "?")) for f in funcs]
         slot.addr_to_name = {
             (f.get("address") or "").lower():
@@ -210,7 +251,7 @@ class RunningScreen(Screen):
         )
         state.orch_log.append(
             _ts()
-            + f"session {sid} [{backend or variant}] started · batch={len(funcs)}"
+            + f"session {sid} [{identity or backend or variant}] started · batch={len(funcs)}"
         )
 
     def _on_session_done(self, state, event):
@@ -232,15 +273,17 @@ class RunningScreen(Screen):
         status = event.get("status")
         variant = event.get("variant", "?")
         backend = event.get("backend") or ""
+        identity = _event_identity(event)
         state.ensure_variant(variant)
-        if backend:
-            state.ensure_backend(backend)
+        if identity:
+            state.ensure_backend(identity)
         outcome = {
             "status": status,
             "name": event.get("name", "?"),
             "size": event.get("size", 0),
             "variant": variant,
             "backend": backend,
+            "identity": identity,
             "session_id": event.get("session_id"),
             "duration_s": None,
         }
@@ -249,25 +292,26 @@ class RunningScreen(Screen):
         short = _short_name(event.get("name", "?"))
         if status == "matched":
             state.this_run_matched[variant] = state.this_run_matched.get(variant, 0) + 1
-            if backend:
-                state.this_run_matched_by_backend[backend] = (
-                    state.this_run_matched_by_backend.get(backend, 0) + 1
+            if identity:
+                state.this_run_matched_by_backend[identity] = (
+                    state.this_run_matched_by_backend.get(identity, 0) + 1
                 )
             state.orch_log.append(_ts() + f"  matched: {short}")
         elif status == "failed":
             state.this_run_failed[variant] = state.this_run_failed.get(variant, 0) + 1
-            if backend:
-                state.this_run_failed_by_backend[backend] = (
-                    state.this_run_failed_by_backend.get(backend, 0) + 1
+            if identity:
+                state.this_run_failed_by_backend[identity] = (
+                    state.this_run_failed_by_backend.get(identity, 0) + 1
                 )
             state.orch_log.append(_ts() + f"  failed:  {short}")
 
     def _on_verify_failed(self, state, event):
         variant = event.get("variant", "?")
         backend = event.get("backend") or ""
+        identity = _event_identity(event)
         state.ensure_variant(variant)
-        if backend:
-            state.ensure_backend(backend)
+        if identity:
+            state.ensure_backend(identity)
         state.this_run_verify_fail += 1
         state.outcomes.appendleft({
             "status": "verify",
@@ -275,6 +319,7 @@ class RunningScreen(Screen):
             "size": event.get("size", 0),
             "variant": variant,
             "backend": backend,
+            "identity": identity,
             "session_id": event.get("session_id"),
             "duration_s": None,
         })
@@ -453,8 +498,10 @@ class RunningScreen(Screen):
 
     def _render_tile(self, slot):
         """Render a single agent slot as a bordered panel with narrative + tools."""
-        border, label_sty, dim_sty = identity_style(slot.backend, slot.model)
         tag = slot.identity or slot.backend or f"slot-{slot.index}"
+        border, label_sty, dim_sty = identity_style(
+            tag, slot.model, getattr(slot, "effort", "")
+        )
 
         narr_text = (_styled_narrative(slot.narrative_log)
                      if slot.narrative_log else Text("(waiting)", style=DIM))
@@ -492,8 +539,10 @@ class RunningScreen(Screen):
         for i, slot in enumerate(slots):
             if i > 0:
                 t.append("  \u2502  ", style=DIM)
-            _, label_sty, _ = identity_style(slot.backend, slot.model)
             tag = slot.identity or slot.backend or f"A{slot.index}"
+            _, label_sty, _ = identity_style(
+                tag, slot.model, getattr(slot, "effort", "")
+            )
             t.append(f"[{tag}]", style=label_sty)
             w = slot.current_working or "(idle)"
             if len(w) > 20:
@@ -577,8 +626,9 @@ class RunningScreen(Screen):
             l = Text()
             l.append("now        ", style=LEAF)
             if slot0 and slot0.backend and slot0.session_id:
-                l.append(slot0.backend,
-                         style=f"bold {_backend_style(slot0.backend)}")
+                tag = slot0.identity or slot0.backend
+                l.append(_truncate(tag, 30),
+                         style=f"bold {_backend_style(tag)}")
             elif slot0 and slot0.session_id:
                 l.append("active", style=f"bold {LEAF}")
             else:
@@ -599,8 +649,7 @@ class RunningScreen(Screen):
             tag = state.backend
             if state.model:
                 tag = f"{state.backend}/{state.model}"
-            if len(tag) > 22:
-                tag = tag[:19] + "..."
+            tag = _truncate(tag, 30)
             l.append(tag, style=BODY)
             left_lines.append(l)
 
@@ -608,7 +657,7 @@ class RunningScreen(Screen):
             left_lines.append(Text(""))
 
         LEFT_W_fixed = 34
-        RIGHT_W_fixed = 40
+        RIGHT_W_fixed = 56
         helix_w = max(20, panel_inner_width - LEFT_W_fixed - RIGHT_W_fixed - 6)
         middle_lines = helix.render(app.wall_clock_s(), helix_w)
 
@@ -619,7 +668,9 @@ class RunningScreen(Screen):
             total = m + f
             rate = (100.0 * m / total) if total else 0.0
             l = Text()
-            l.append(f"{label[:7]:<7}", style=f"bold {label_style}")
+            label_w = 22
+            shown = _truncate(label, label_w)
+            l.append(f"{shown:<{label_w}}", style=f"bold {label_style}")
             l.append("\u25B0" * min(m, MAX_M_BARS), style=f"bold {OK}")
             if m > MAX_M_BARS:
                 l.append("+", style=DIM)
@@ -723,7 +774,7 @@ class RunningScreen(Screen):
             tbl.add_column(style=BODY, width=10)
             tbl.add_column(style=BODY, ratio=1)
             tbl.add_column(justify="left", width=40)
-            tbl.add_column(justify="right", width=10)
+            tbl.add_column(justify="right", width=22)
             tbl.add_column(style=DIM, justify="right", width=4)
             for o in state.outcomes:
                 st = o["status"]
@@ -737,7 +788,7 @@ class RunningScreen(Screen):
                     glyph, label, color = "\u00b7", st, DIM
                 dur_s = o.get("duration_s")
                 dur_cell = f"{round(dur_s / 60)}m" if dur_s is not None else ""
-                tag = o.get("backend") or o.get("variant", "")
+                tag = o.get("identity") or o.get("backend") or o.get("variant", "")
                 tag_cell = Text(tag, style=f"bold {_backend_style(tag)}")
                 tbl.add_row(
                     Text(glyph, style=f"bold {color}"),

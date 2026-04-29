@@ -244,7 +244,7 @@ def main():
             orchestrator.git_commit_batch = tracking_commit
             orchestrator.run_session = _make_multi_turn_run_session()
             orchestrator.get_backend = (
-                lambda name, system_append="", model="": FakeBackend())
+                lambda name, system_append="", model="", effort="": FakeBackend())
 
             sys.argv = ["orchestrator.py", "--workers", "2",
                         "--backend", "fakebackend",

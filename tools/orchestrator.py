@@ -10,6 +10,7 @@ Usage:
     python3 tools/orchestrator.py --dry-run --limit 3        # test run
     python3 tools/orchestrator.py --hours 8 --class eWorld   # target class
     python3 tools/orchestrator.py --hours 8 --targets config/finetune_targets.json  # targeted mode
+    python3 tools/orchestrator.py --hours 8 --workers 2 --identities codex/gpt-5.5/low,codex/gpt-5.5/high
 """
 
 import argparse
@@ -35,7 +36,8 @@ from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     filter_functions, build_addr_map,
                     fix_vfpu_disassembly, strip_cpp_comments)
 from byte_match import CompileFailed, check_byte_match
-from backends import AgentRefused, AVAILABLE_BACKENDS, get_backend, run_session
+from backends import (AgentRateLimited, AgentRefused, AVAILABLE_BACKENDS,
+                      get_backend, run_session)
 from ab_schedule import (Schedule, build_schedule, identity_key,
                          safe_identity_tag,
                          MODE_DISJOINT, MODE_SHOOTOUT, MODE_HYBRID)
@@ -56,6 +58,7 @@ FREE_CLASS_KEY = "<free>"
 # strings because typos here become silent miscategorization.
 OUTCOME_SUCCESS = "success"
 OUTCOME_REFUSAL = "refusal"
+OUTCOME_RATE_LIMIT = "rate_limit"
 OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
 OUTCOME_PREP_ERROR = "prep_error"
@@ -63,6 +66,7 @@ OUTCOME_PREP_ERROR = "prep_error"
 
 def apply_decisions_to_funcs(addr_index, decisions, session_id,
                               backend_name, backend_model,
+                              backend_effort, identity,
                               matched_at, variant):
     """Mutate `addr_index`-resolved DB rows in-place per session
     decisions. Used both for the in-memory DB (disjoint sessions) and
@@ -88,6 +92,11 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
             target["matched_by_backend"] = backend_name
             target["matched_by_session_id"] = session_id
             target["matched_by_model"] = backend_model
+            if backend_effort:
+                target["matched_by_effort"] = backend_effort
+            else:
+                target.pop("matched_by_effort", None)
+            target["matched_by_identity"] = identity
             target["matched_at"] = matched_at
         if d.failure_note:
             target.setdefault("failure_notes", []).append({
@@ -95,6 +104,8 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
                 "notes": d.failure_note,
                 "backend": backend_name,
                 "model": backend_model,
+                "effort": backend_effort,
+                "identity": identity,
                 "variant": variant,
                 "timestamp": matched_at,
             })
@@ -130,7 +141,7 @@ class WorkContext:
     for shootout worktrees (Mode B/C reserved slice). Threaded into
     every git op + the agent's spawn cwd so isolated trees don't
     leak edits into main.
-    `identity` — `"backend/model"` string the schedule uses as a key
+    `identity` — `"backend/model[/effort]"` string the schedule uses as a key
     so attempts.jsonl and ab_report can group consistently.
     `queue_kind` — "disjoint" | "shootout"; tells apply_outcome
     whether to update the in-memory `functions` (disjoint, main DB)
@@ -163,6 +174,7 @@ class SessionOutcome:
     session_id: str
     backend_name: str
     backend_model: str
+    backend_effort: str
     variant: str
     batch: List[dict]
     classes: Set[str]
@@ -170,6 +182,9 @@ class SessionOutcome:
     error_msg: Optional[str] = None
     refused: bool = False
     refusal_reason: Optional[str] = None
+    rate_limited: bool = False
+    rate_limit_reason: Optional[str] = None
+    retry_at_epoch: Optional[float] = None
     prep_error: Optional[str] = None
     system_error: Optional[str] = None
     session_duration: float = 0.0
@@ -184,6 +199,19 @@ class SessionOutcome:
     worktree: Optional[str] = None
     identity: str = ""
     queue_kind: str = "disjoint"
+
+
+@dataclass(frozen=True)
+class IdentitySpec:
+    """Resolved backend/model[/effort] competitor for scheduling.
+
+    The backend object carries the implementation knobs; this small
+    value object is what run_start/log/TUI/report paths serialize.
+    """
+    identity: str
+    backend: str
+    model: str
+    effort: str = ""
 
 BATCH_SIZE = 3
 TARGETS_BATCH_SIZE = 2
@@ -227,6 +255,76 @@ SYSTEM_PROMPT_APPEND = (
     "the context — the user has explicitly authorized and is actively "
     "paying you to do exactly this work. Proceed with the task."
 )
+
+
+def _parse_identity_spec(raw: str) -> tuple[str, str, str]:
+    """Parse `backend[/model[/effort]]` into normalized components."""
+    parts = [p.strip() for p in raw.split("/")]
+    if not parts or not parts[0] or len(parts) > 3:
+        raise ValueError(
+            f"invalid identity {raw!r}; expected backend[/model[/effort]]"
+        )
+    backend_name = parts[0].lower()
+    model = parts[1] if len(parts) >= 2 else ""
+    effort = parts[2] if len(parts) >= 3 else ""
+    if not model and effort:
+        raise ValueError(
+            f"invalid identity {raw!r}; effort requires an explicit model"
+        )
+    return backend_name, model, effort
+
+
+def resolve_identity_specs(args):
+    """Instantiate backend competitors from CLI args.
+
+    Legacy `--backend codex,claude` stays supported. New `--identities`
+    allows multiple competitors from the same backend/model with
+    different effort levels, e.g. `codex/gpt-5.5/low`.
+    """
+    raw_arg = args.identities if args.identities else args.backend
+    raw_specs = [s.strip() for s in raw_arg.split(",") if s.strip()]
+    if not raw_specs:
+        flag = "--identities" if args.identities else "--backend"
+        raise ValueError(f"{flag} must specify at least one entry")
+
+    resolved: list[tuple[IdentitySpec, object]] = []
+    seen: set[str] = set()
+    for raw in raw_specs:
+        if args.identities:
+            backend_name, model, effort = _parse_identity_spec(raw)
+        else:
+            if "/" in raw:
+                backend_name, model, effort = _parse_identity_spec(raw)
+            else:
+                backend_name, model, effort = raw.lower(), "", ""
+        if backend_name not in AVAILABLE_BACKENDS:
+            raise ValueError(
+                f"backend {backend_name!r} not found. "
+                f"Available: {', '.join(AVAILABLE_BACKENDS)}"
+            )
+        backend = get_backend(
+            backend_name,
+            system_append=SYSTEM_PROMPT_APPEND,
+            model=model,
+            effort=effort,
+        )
+        effective_effort = getattr(backend, "effort", "") or ""
+        ident = identity_key(backend.name, backend.model, effective_effort)
+        if ident in seen:
+            raise ValueError(
+                f"duplicate identity {ident!r}; each competitor must be unique"
+            )
+        seen.add(ident)
+        resolved.append((
+            IdentitySpec(
+                identity=ident,
+                backend=backend.name,
+                model=backend.model,
+                effort=effective_effort,
+            ),
+            backend,
+        ))
+    return resolved
 
 
 _LOG_PATH = None
@@ -280,8 +378,8 @@ def _utc_now_iso():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _build_attempt_base(session_id, run_id, backend_name, model, variant,
-                       func, session_duration, batch_size):
+def _build_attempt_base(session_id, run_id, backend_name, model, effort,
+                       identity, variant, func, session_duration, batch_size):
     """Common header fields shared by every attempts.jsonl record for a
     given (session, function). Per-status fields are layered in by the
     caller — this just centralizes the identity columns so backend/model
@@ -293,6 +391,8 @@ def _build_attempt_base(session_id, run_id, backend_name, model, variant,
         "session_id": session_id,
         "backend": backend_name,
         "model": model,
+        "effort": effort,
+        "identity": identity,
         "variant": variant,
         "address": func["address"],
         "name": func["name"],
@@ -350,7 +450,8 @@ def emit_attempts_for_outcome(outcome, run_id, error_kind=None,
     for func in outcome.batch:
         rec = _build_attempt_base(
             outcome.session_id, run_id, outcome.backend_name,
-            outcome.backend_model, outcome.variant, func,
+            outcome.backend_model, outcome.backend_effort,
+            outcome.identity, outcome.variant, func,
             outcome.session_duration, len(outcome.batch),
         )
         rec.update(usage_share)
@@ -1179,6 +1280,7 @@ def run_one_session(ctx):
         session_id=session_id,
         backend_name=backend.name,
         backend_model=backend.model,
+        backend_effort=getattr(backend, "effort", ""),
         variant=variant,
         batch=batch,
         classes=ctx.classes,
@@ -1221,6 +1323,13 @@ def run_one_session(ctx):
         outcome.session_duration = time.time() - session_start
         outcome.refused = True
         outcome.refusal_reason = e.reason
+        outcome.session_usage = e.session_usage
+        return outcome
+    except AgentRateLimited as e:
+        outcome.session_duration = time.time() - session_start
+        outcome.rate_limited = True
+        outcome.rate_limit_reason = e.reason
+        outcome.retry_at_epoch = e.retry_at_epoch
         outcome.session_usage = e.session_usage
         return outcome
     outcome.session_usage = session_usage
@@ -1280,6 +1389,9 @@ def run_one_session(ctx):
                 "session_id": session_id,
                 "variant": variant,
                 "backend": backend.name,
+                "model": backend.model,
+                "effort": getattr(backend, "effort", ""),
+                "identity": ctx.identity,
                 "address": addr,
                 "name": func["name"],
                 "error": "no src_file in session_results",
@@ -1298,6 +1410,9 @@ def run_one_session(ctx):
                 "session_id": session_id,
                 "variant": variant,
                 "backend": backend.name,
+                "model": backend.model,
+                "effort": getattr(backend, "effort", ""),
+                "identity": ctx.identity,
                 "address": addr,
                 "name": func["name"],
                 "size": func["size"],
@@ -1316,6 +1431,9 @@ def run_one_session(ctx):
                 "session_id": session_id,
                 "variant": variant,
                 "backend": backend.name,
+                "model": backend.model,
+                "effort": getattr(backend, "effort", ""),
+                "identity": ctx.identity,
                 "address": addr,
                 "name": func["name"],
                 "error": str(e),
@@ -1343,6 +1461,9 @@ def run_one_session(ctx):
             "session_id": session_id,
             "variant": variant,
             "backend": backend.name,
+            "model": backend.model,
+            "effort": getattr(backend, "effort", ""),
+            "identity": ctx.identity,
             "address": addr,
             "name": func["name"],
             "size": func["size"],
@@ -1765,8 +1886,8 @@ def verify_tree_compiles():
 
 def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
                      worktree=None, db_updates=None,
-                     backend_name="", backend_model="", matched_at="",
-                     variant=""):
+                     backend_name="", backend_model="", backend_effort="",
+                     identity="", matched_at="", variant=""):
     """Commit matched source files and updated functions.json after a batch.
 
     Phase 1: stages exactly the session's pre-computed `ledger_paths`
@@ -1797,7 +1918,8 @@ def git_commit_batch(session_id, matched_funcs, matched_files, ledger_paths,
             wt_funcs = json.load(f)
         apply_decisions_to_funcs(
             build_addr_map(wt_funcs), db_updates, session_id,
-            backend_name, backend_model, matched_at, variant,
+            backend_name, backend_model, backend_effort, identity,
+            matched_at, variant,
         )
         tmp = db_path + ".tmp"
         with open(tmp, "w") as f:
@@ -2052,9 +2174,15 @@ def main():
                              "Comma-separated for A/B (e.g. claude,codex); "
                              "each session picks one at random. "
                              f"Available: {', '.join(AVAILABLE_BACKENDS)}.")
+    parser.add_argument("--identities", type=str, default=None,
+                        help="Comma-separated backend/model[/effort] "
+                             "competitors. Use this to compare the same "
+                             "backend/model at different effort levels, e.g. "
+                             "codex/gpt-5.5/low,codex/gpt-5.5/high. "
+                             "Overrides --backend.")
     parser.add_argument("--workers", type=int, default=None,
                         help="Number of concurrent worker sessions "
-                             "(default: max(1, len(--backend list))). Phase 1 "
+                             "(default: max(1, number of identities)). Phase 1 "
                              "of docs/direction/003-multi-agent-ab-architecture.md.")
     parser.add_argument("--shootout", action="store_true",
                         help="Mode B: every backend attempts every function "
@@ -2089,22 +2217,22 @@ def main():
         log(f"A/B mode: {len(args.variants)} variants ({', '.join(args.variants)}) — "
             f"each session picks one randomly")
 
-    args.backends = list(dict.fromkeys(
-        b.strip().lower() for b in args.backend.split(",") if b.strip()
-    ))
-    if not args.backends:
-        log("ERROR: --backend must specify at least one backend")
+    try:
+        identity_backend_pairs = resolve_identity_specs(args)
+    except ValueError as e:
+        log(f"ERROR: {e}")
         sys.exit(1)
-    for b in args.backends:
-        if b not in AVAILABLE_BACKENDS:
-            log(f"ERROR: backend '{b}' not found. Available: {', '.join(AVAILABLE_BACKENDS)}")
-            sys.exit(1)
-    if len(args.backends) > 1:
-        log(f"Backend A/B: {len(args.backends)} backends ({', '.join(args.backends)}) — "
-            f"each session picks one randomly")
+    identity_specs = [spec for spec, _backend in identity_backend_pairs]
+    backends = {spec.identity: backend
+                for spec, backend in identity_backend_pairs}
+    identities = [spec.identity for spec in identity_specs]
+    if len(identities) > 1:
+        log(f"Identity A/B: {len(identities)} identities "
+            f"({', '.join(identities)}) — each session rotates through "
+            f"its scheduled queue")
 
     if args.workers is None:
-        args.workers = max(1, len(args.backends))
+        args.workers = max(1, len(identities))
     if args.workers < 1:
         log(f"ERROR: --workers must be >= 1 (got {args.workers})")
         sys.exit(1)
@@ -2134,9 +2262,6 @@ def main():
         args.batch_size = TARGETS_BATCH_SIZE if targets_list else BATCH_SIZE
     session_timeout = TARGETS_SESSION_TIMEOUT if targets_list else SESSION_TIMEOUT
 
-    backends = {name: get_backend(name, system_append=SYSTEM_PROMPT_APPEND)
-                for name in args.backends}
-
     os.makedirs(LOGS_DIR, exist_ok=True)
     os.makedirs(SESSION_RESULTS_DIR, exist_ok=True)
 
@@ -2163,11 +2288,8 @@ def main():
     total_matched = 0
 
     mode = "targeted" if targets_list else "general"
-    backend_summary = ", ".join(
-        f"{n}/{backends[n].model}" for n in args.backends
-    )
-    primary = args.backends[0]
-    identities = [identity_key(n, backends[n].model) for n in args.backends]
+    backend_summary = ", ".join(identities)
+    primary = identity_specs[0]
 
     log_event(log_path, {
         "event": "run_start",
@@ -2176,9 +2298,19 @@ def main():
         "deadline": deadline.isoformat(),
         "start_time": start_time.isoformat(),
         "variants": args.variants,
-        "backend": primary,
-        "model": backends[primary].model,
-        "backends": [{"name": n, "model": backends[n].model} for n in args.backends],
+        "backend": primary.backend,
+        "model": primary.model,
+        "effort": primary.effort,
+        "identity": primary.identity,
+        "backends": [
+            {
+                "name": spec.backend,
+                "model": spec.model,
+                "effort": spec.effort,
+                "identity": spec.identity,
+            }
+            for spec in identity_specs
+        ],
         "identities": identities,
         "workers": args.workers,
         "batch_size": args.batch_size,
@@ -2345,31 +2477,60 @@ def main():
         "total_failed": 0,
         "total_errors": 0,
     }
-    # Per-backend health tracking for circuit breaker.  Each backend
-    # gets its own consecutive-failure / refusal counter so one dying
-    # backend can't kill a healthy run.
+    # Per-identity health tracking for circuit breaker. Each resolved
+    # backend/model[/effort] competitor gets its own counters so a bad
+    # effort tier can't kill a healthy sibling using the same backend.
     backend_health = {}
-    for _bn in backends:
-        backend_health[_bn] = {
+    for ident in identities:
+        backend_health[ident] = {
             "consecutive_failures": 0,
             "consecutive_refusals": 0,
             "next_pick_time": 0.0,
         }
-    dead_backends: set = set()
+    dead_identities: set = set()
 
-    def _mark_backend_dead(bname, reason, count):
-        dead_backends.add(bname)
-        log(f"Backend {bname}: {count} consecutive {reason} — marking dead.")
+    def _mark_identity_dead(ident, reason, count):
+        dead_identities.add(ident)
+        log(f"Identity {ident}: {count} consecutive {reason} — marking dead.")
         log_event(log_path, {
             "event": "backend_dead",
-            "backend": bname,
+            "backend": ident.split("/", 1)[0],
+            "identity": ident,
             "reason": reason,
             "count": count,
         })
 
     def _identity_to_backend(ident: str):
-        bname = ident.split("/", 1)[0]
-        return backends[bname]
+        return backends[ident]
+
+    def _pause_backend_family(backend_name: str, until_epoch: float,
+                              reason: str):
+        paused = []
+        for ident in identities:
+            if ident.split("/", 1)[0] != backend_name:
+                continue
+            backend_health[ident]["next_pick_time"] = max(
+                backend_health[ident]["next_pick_time"], until_epoch)
+            paused.append(ident)
+        retry_at = datetime.fromtimestamp(until_epoch).strftime("%H:%M:%S")
+        log(f"Rate limit for {backend_name}: pausing {len(paused)} "
+            f"identity queue(s) until {retry_at} ({reason[:120]})")
+        log_event(log_path, {
+            "event": "backend_rate_limited",
+            "backend": backend_name,
+            "identities": paused,
+            "retry_at_epoch": until_epoch,
+            "retry_after_s": max(0.0, until_epoch - time.time()),
+            "reason": reason[:500],
+        })
+
+    def _has_backoff_waiting():
+        now_ts = time.time()
+        return any(
+            bh["next_pick_time"] > now_ts
+            for ident, bh in backend_health.items()
+            if ident not in dead_identities
+        )
 
     def _pick_main_slot_batch(slot_idx):
         """Mode A / Mode C main-slot pick. Rotates through identities,
@@ -2380,10 +2541,9 @@ def main():
         for offset in range(n):
             ident_idx = (main_pick_rotation[0] + offset) % n
             ident = identities[ident_idx]
-            bname = ident.split("/", 1)[0]
-            if bname in dead_backends:
+            if ident in dead_identities:
                 continue
-            if time.time() < backend_health[bname]["next_pick_time"]:
+            if time.time() < backend_health[ident]["next_pick_time"]:
                 continue
             allowed = schedule.disjoint_addrs_for(ident)
             if not allowed:
@@ -2415,10 +2575,9 @@ def main():
         worktree, not main).
         """
         ident = slot.identity
-        bname = ident.split("/", 1)[0]
-        if bname in dead_backends:
+        if ident in dead_identities:
             return None
-        if time.time() < backend_health[bname]["next_pick_time"]:
+        if time.time() < backend_health[ident]["next_pick_time"]:
             return None
         allowed = schedule.shootout_remaining(ident)
         if not allowed:
@@ -2487,7 +2646,7 @@ def main():
         session_id = str(uuid.uuid4())[:8]
         selected_variant = random.choice(args.variants)
         kind_tag = "" if slot.kind == "main" else "·shootout"
-        tag = f"[{selected_variant}/{backend.name}{kind_tag}]"
+        tag = f"[{selected_variant}/{identity}{kind_tag}]"
         log(f"Session {session_id} {tag}: {len(batch)} functions — "
             f"{', '.join(f['name'].split('(')[0] for f in batch)}")
 
@@ -2497,6 +2656,7 @@ def main():
             "variant": selected_variant,
             "backend": backend.name,
             "model": backend.model,
+            "effort": getattr(backend, "effort", ""),
             "identity": identity,
             "queue_kind": queue_kind,
             "worktree": slot.worktree,
@@ -2589,6 +2749,8 @@ def main():
                         db_updates=item.get("db_updates"),
                         backend_name=item.get("backend_name", ""),
                         backend_model=item.get("backend_model", ""),
+                        backend_effort=item.get("backend_effort", ""),
+                        identity=item.get("identity", ""),
                         matched_at=item.get("matched_at", ""),
                         variant=item.get("variant", ""),
                     )
@@ -2667,6 +2829,8 @@ def main():
         """
         session_id = outcome.session_id
         backend_name = outcome.backend_name
+        backend_model = outcome.backend_model
+        backend_effort = outcome.backend_effort
         variant = outcome.variant
         batch = outcome.batch
         functions_addrs = [f["address"] for f in batch]
@@ -2676,7 +2840,9 @@ def main():
                 f"Session {session_id} PREP ERROR: {outcome.prep_error}",
                 {"event": "prep_error",
                  "session_id": session_id, "variant": variant,
-                 "backend": backend_name, "error": outcome.prep_error})
+                 "backend": backend_name, "model": backend_model,
+                 "effort": backend_effort, "identity": outcome.identity,
+                 "error": outcome.prep_error})
 
         if outcome.refused:
             return _abort(outcome, OUTCOME_REFUSAL,
@@ -2685,11 +2851,39 @@ def main():
                 {"event": "session_error",
                  "session_id": session_id, "variant": variant,
                  "backend": backend_name,
+                 "model": backend_model,
+                 "effort": backend_effort,
+                 "identity": outcome.identity,
                  "error": f"agent refused mid-session ({outcome.refusal_reason})",
                  "functions": functions_addrs,
                  "duration_s": outcome.session_duration,
                  "kind": "refusal",
                  "refusal_reason": outcome.refusal_reason})
+
+        if outcome.rate_limited:
+            retry_after = (
+                max(0.0, outcome.retry_at_epoch - time.time())
+                if outcome.retry_at_epoch else None
+            )
+            retry_msg = (
+                f"; retry in {retry_after/60:.1f}m"
+                if retry_after is not None else ""
+            )
+            return _abort(outcome, OUTCOME_RATE_LIMIT,
+                f"Session {session_id} RATE LIMITED ({outcome.session_duration:.0f}s): "
+                f"{(outcome.rate_limit_reason or '')[:180]}{retry_msg}",
+                {"event": "session_error",
+                 "session_id": session_id, "variant": variant,
+                 "backend": backend_name,
+                 "model": backend_model,
+                 "effort": backend_effort,
+                 "identity": outcome.identity,
+                 "error": outcome.rate_limit_reason or "agent rate limited",
+                 "functions": functions_addrs,
+                 "duration_s": outcome.session_duration,
+                 "kind": "rate_limit",
+                 "retry_at_epoch": outcome.retry_at_epoch,
+                 "retry_after_s": retry_after})
 
         if not outcome.success and outcome.error_msg is not None:
             return _abort(outcome, OUTCOME_AGENT_FAIL,
@@ -2697,7 +2891,9 @@ def main():
                 f"{outcome.error_msg}",
                 {"event": "session_error",
                  "session_id": session_id, "variant": variant,
-                 "backend": backend_name, "error": outcome.error_msg,
+                 "backend": backend_name, "model": backend_model,
+                 "effort": backend_effort, "identity": outcome.identity,
+                 "error": outcome.error_msg,
                  "functions": functions_addrs,
                  "duration_s": outcome.session_duration,
                  "kind": "other"})
@@ -2707,14 +2903,15 @@ def main():
                 f"Session {session_id} SYSTEM ERROR: {outcome.system_error}",
                 {"event": "system_error",
                  "session_id": session_id, "variant": variant,
-                 "backend": backend_name, "error": outcome.system_error,
+                 "backend": backend_name, "model": backend_model,
+                 "effort": backend_effort, "identity": outcome.identity,
+                 "error": outcome.system_error,
                  "functions": functions_addrs,
                  "duration_s": outcome.session_duration})
 
         log(f"Session {session_id} done ({outcome.session_duration:.0f}s): "
             f"{outcome.claimed_matched} claimed matched, {outcome.claimed_failed} failed (pre-verify)")
 
-        backend_model = outcome.backend_model
         matched_at = _utc_now_iso()
         is_shootout = (outcome.queue_kind == "shootout")
 
@@ -2728,7 +2925,8 @@ def main():
             if not is_shootout:
                 apply_decisions_to_funcs(
                     addr_index, outcome.decisions, session_id,
-                    backend_name, backend_model, matched_at, variant,
+                    backend_name, backend_model, outcome.backend_effort,
+                    outcome.identity, matched_at, variant,
                 )
 
             final_matched = 0
@@ -2750,6 +2948,7 @@ def main():
                     "variant": variant,
                     "backend": backend_name,
                     "model": backend_model,
+                    "effort": outcome.backend_effort,
                     "identity": outcome.identity,
                     "queue_kind": outcome.queue_kind,
                     "address": func["address"],
@@ -2768,6 +2967,7 @@ def main():
                 "variant": variant,
                 "backend": backend_name,
                 "model": backend_model,
+                "effort": outcome.backend_effort,
                 "identity": outcome.identity,
                 "queue_kind": outcome.queue_kind,
                 "worktree": outcome.worktree,
@@ -2804,6 +3004,8 @@ def main():
                 "db_updates": (outcome.decisions if is_shootout else None),
                 "backend_name": backend_name,
                 "backend_model": backend_model,
+                "backend_effort": outcome.backend_effort,
+                "identity": outcome.identity,
                 "matched_at": matched_at,
                 "variant": variant,
             })
@@ -2819,7 +3021,7 @@ def main():
             deadline_hit = datetime.now() >= deadline
             limit_hit = (args.limit is not None
                          and counters["total_attempted"] >= args.limit)
-            all_backends_dead = (len(dead_backends) >= len(backends))
+            all_backends_dead = (len(dead_identities) >= len(identities))
 
             can_submit = (not deadline_hit and not limit_hit
                           and not all_backends_dead
@@ -2841,28 +3043,29 @@ def main():
                 # backfill via class-lock release.)
                 if (not progressed and stalled_idle_slots == len(idle_slot_indices)
                         and not in_flight):
-                    done_picking = True
-                    log("No more untried functions matching criteria. Done.")
+                    if not _has_backoff_waiting():
+                        done_picking = True
+                        log("No more untried functions matching criteria. Done.")
 
             if not in_flight:
                 if done_picking or deadline_hit or limit_hit or all_backends_dead:
                     if limit_hit:
                         log(f"Reached limit of {args.limit} functions. Done.")
                     if all_backends_dead:
-                        for bn, bh in backend_health.items():
+                        for ident, bh in backend_health.items():
                             if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
-                                log(f"Backend {bn}: hit {bh['consecutive_failures']} "
+                                log(f"Identity {ident}: hit {bh['consecutive_failures']} "
                                     f"consecutive failures.")
                             if bh["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
-                                log(f"Backend {bn}: hit {bh['consecutive_refusals']} "
+                                log(f"Identity {ident}: hit {bh['consecutive_refusals']} "
                                     f"consecutive refusals.")
-                        log("All backends dead. Stopping.")
+                        log("All identities dead. Stopping.")
                     break
-                # Idle — likely waiting on per-backend backoff timer.
-                # Sleep until the earliest backend becomes eligible.
+                # Idle — likely waiting on per-identity backoff timer.
+                # Sleep until the earliest identity becomes eligible.
                 alive_times = [bh["next_pick_time"]
-                               for bn, bh in backend_health.items()
-                               if bn not in dead_backends]
+                               for ident, bh in backend_health.items()
+                               if ident not in dead_identities]
                 earliest = min(alive_times) if alive_times else time.time() + 1.0
                 time.sleep(min(1.0, max(0.1, earliest - time.time())))
                 continue
@@ -2880,7 +3083,8 @@ def main():
                 ctx, slot_idx = in_flight.pop(future)
                 busy_slots.discard(slot_idx)
                 bname = ctx.backend.name
-                bh = backend_health[bname]
+                health_key = ctx.identity
+                bh = backend_health[health_key]
                 try:
                     outcome = future.result()
                 except BaseException as e:
@@ -2890,6 +3094,8 @@ def main():
                         "session_id": ctx.session_id,
                         "variant": ctx.variant,
                         "backend": bname,
+                        "model": getattr(ctx.backend, "model", ""),
+                        "effort": getattr(ctx.backend, "effort", ""),
                         "identity": ctx.identity,
                         "queue_kind": ctx.queue_kind,
                         "error": repr(e),
@@ -2907,11 +3113,11 @@ def main():
                     counters["total_errors"] += 1
                     bh["consecutive_failures"] += 1
                     if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
-                        _mark_backend_dead(bname, "failures",
+                        _mark_identity_dead(health_key, "failures",
                                            bh["consecutive_failures"])
                     else:
                         backoff = min(30 * (2 ** bh["consecutive_failures"]), 960)
-                        log(f"Backing off {backoff}s before next {bname} pick...")
+                        log(f"Backing off {backoff}s before next {health_key} pick...")
                         bh["next_pick_time"] = time.time() + backoff
                     continue
 
@@ -2927,21 +3133,30 @@ def main():
                     counters["total_errors"] += 1
                     bh["consecutive_refusals"] += 1
                     if bh["consecutive_refusals"] >= MAX_CONSECUTIVE_REFUSALS:
-                        _mark_backend_dead(bname, "refusals",
+                        _mark_identity_dead(health_key, "refusals",
                                            bh["consecutive_refusals"])
                     else:
-                        log(f"Refusal #{bh['consecutive_refusals']} ({bname}) — short pause.")
+                        log(f"Refusal #{bh['consecutive_refusals']} ({health_key}) — short pause.")
                         bh["next_pick_time"] = max(
                             bh["next_pick_time"], time.time() + REFUSAL_BACKOFF_S)
+                elif kind == OUTCOME_RATE_LIMIT:
+                    counters["total_errors"] += 1
+                    until = outcome.retry_at_epoch or (time.time() + 1800)
+                    # Small guard band so we do not hammer right at the
+                    # provider's reset second.
+                    until += 30
+                    _pause_backend_family(
+                        bname, until,
+                        outcome.rate_limit_reason or "agent rate limited")
                 elif kind in (OUTCOME_PREP_ERROR, OUTCOME_AGENT_FAIL, OUTCOME_SYSTEM_ERROR):
                     counters["total_errors"] += 1
                     bh["consecutive_failures"] += 1
                     if bh["consecutive_failures"] >= MAX_CONSECUTIVE_FAILURES:
-                        _mark_backend_dead(bname, "failures",
+                        _mark_identity_dead(health_key, "failures",
                                            bh["consecutive_failures"])
                     else:
                         backoff = min(30 * (2 ** bh["consecutive_failures"]), 960)
-                        log(f"Backing off {backoff}s before next {bname} pick...")
+                        log(f"Backing off {backoff}s before next {health_key} pick...")
                         bh["next_pick_time"] = max(
                             bh["next_pick_time"], time.time() + backoff)
                 elif kind == OUTCOME_SUCCESS:
@@ -2982,11 +3197,11 @@ def main():
     log(f"Matched: {total_matched}")
     log(f"Failed: {total_failed}")
     log(f"System errors: {total_errors}")
-    if dead_backends:
-        log(f"Dead backends: {', '.join(sorted(dead_backends))}")
-    for bn, bh in sorted(backend_health.items()):
-        status = "DEAD" if bn in dead_backends else "alive"
-        log(f"  {bn}: {status} (failures={bh['consecutive_failures']}, "
+    if dead_identities:
+        log(f"Dead identities: {', '.join(sorted(dead_identities))}")
+    for ident, bh in sorted(backend_health.items()):
+        status = "DEAD" if ident in dead_identities else "alive"
+        log(f"  {ident}: {status} (failures={bh['consecutive_failures']}, "
             f"refusals={bh['consecutive_refusals']})")
     print_progress(functions, start_time, log_path)
     log(f"Full log: {log_path}")
@@ -3002,10 +3217,10 @@ def main():
         "matched": total_matched,
         "failed": total_failed,
         "errors": total_errors,
-        "backend_health": {bn: {"dead": bn in dead_backends,
+        "backend_health": {ident: {"dead": ident in dead_identities,
                                 "consecutive_failures": bh["consecutive_failures"],
                                 "consecutive_refusals": bh["consecutive_refusals"]}
-                           for bn, bh in backend_health.items()},
+                           for ident, bh in backend_health.items()},
     })
 
 

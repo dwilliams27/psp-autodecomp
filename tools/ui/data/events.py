@@ -20,6 +20,7 @@ Producer → consumer list (name, key fields):
   missing_failure_notes  — session_id, variant, address
   unreported_function    — session_id, variant, address, name
   progress_tick     — matched_total, failed_total, untried_total, elapsed_s
+  backend_rate_limited — backend, identities[], retry_after_s
   orch_note         — text  (every log() call in the orchestrator)
   agent_event       — session_id, variant, kind (text|thinking|tool_use|
                       tool_result|raw), text, tool?, tool_use_id?, is_error?
@@ -39,6 +40,7 @@ FUNCTION_EVENTS = frozenset({
 })
 
 STREAM_EVENTS = frozenset({"orch_note", "agent_event", "progress_tick",
-                           "backend_dead"})
+                           "backend_dead", "backend_rate_limited",
+                           "agent_rate_limited"})
 
 ALL_EVENTS = RUN_EVENTS | SESSION_EVENTS | FUNCTION_EVENTS | STREAM_EVENTS

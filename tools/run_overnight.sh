@@ -8,6 +8,8 @@
 #   ./tools/run_overnight.sh --hours 8 --class eWorld         # target specific class
 #   ./tools/run_overnight.sh --dry-run --limit 3              # test with 3 functions, no sandbox
 #   ./tools/run_overnight.sh --hours 8 --backend codex        # drive sessions with OpenAI Codex
+#   ./tools/run_overnight.sh --hours 8 --workers 2 --identities codex/gpt-5.5/low,codex/gpt-5.5/high
+#                                                             # compare Codex effort levels
 #   ./tools/run_overnight.sh --hours 8 --backend claude,codex --shootout
 #                                                             # Mode B: every backend attempts every function
 #   ./tools/run_overnight.sh --hours 8 --backend claude,codex --paired-reserve 50

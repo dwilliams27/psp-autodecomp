@@ -51,26 +51,28 @@ class CodexBackend(Backend):
         },
     }
 
-    def __init__(self, model: str = CODEX_MODEL, system_append: str = ""):
-        super().__init__(model=model, system_append=system_append)
+    def __init__(self, model: str = CODEX_MODEL, system_append: str = "",
+                 effort: str = ""):
+        effective_effort = effort or os.environ.get("CODEX_REASONING_EFFORT") or "high"
+        if effective_effort not in _VALID_REASONING_EFFORTS:
+            raise ValueError(
+                f"Codex effort {effective_effort!r} is not in "
+                f"{_VALID_REASONING_EFFORTS}; codex would reject the flag."
+            )
+        super().__init__(
+            model=model,
+            system_append=system_append,
+            effort=effective_effort,
+        )
 
     def spawn_cmd(self, prompt: str, session_id: str) -> List[str]:
         # Codex has no --append-system-prompt equivalent; prepend the
         # safety addendum to the user prompt so it leads the context.
         full_prompt = (f"{self.system_append}\n\n---\n\n{prompt}"
                        if self.system_append else prompt)
-        # `model_reasoning_effort=high` is the budget tier we want for
-        # match attempts — they're chunky reasoning tasks, not quick
-        # lookups, and the flag-time cost difference is tiny vs. the
-        # value of an actual match. Override via CODEX_REASONING_EFFORT
-        # env (validated against the codex-accepted set so a typo
-        # fails loud rather than silently passing through as garbage).
-        effort = os.environ.get("CODEX_REASONING_EFFORT") or "high"
-        if effort not in _VALID_REASONING_EFFORTS:
-            raise ValueError(
-                f"CODEX_REASONING_EFFORT={effort!r} is not in "
-                f"{_VALID_REASONING_EFFORTS}; codex would reject the flag."
-            )
+        # Effort is resolved at backend construction time so the
+        # orchestrator can run codex/gpt-5.5/low and
+        # codex/gpt-5.5/high side by side in one process.
         return [
             CODEX, "exec",
             "--json",
@@ -78,7 +80,7 @@ class CodexBackend(Backend):
             "--dangerously-bypass-approvals-and-sandbox",
             "--ephemeral",
             "-m", self.model,
-            "-c", f"model_reasoning_effort={effort}",
+            "-c", f"model_reasoning_effort={self.effort}",
             full_prompt,
         ]
 

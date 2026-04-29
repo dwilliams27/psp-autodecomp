@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Multi-agent demo event stream for TUI development.
 
-Emits interleaved events from 2 concurrent sessions (claude + codex)
-to exercise the Phase 4 tiled layout. Run with:
+Emits interleaved events from 2 concurrent Codex sessions at different
+effort levels to exercise the Phase 4 tiled layout. Run with:
 
     python3 tools/ui/dev/demo_multi_stream.py /tmp/multi.jsonl
     python3 tools/ui/app.py --log /tmp/multi.jsonl --replay
@@ -43,13 +43,17 @@ def main():
         "variants": ["base"],
         "batch_size": 5,
         "session_timeout": 1800,
-        "backend": "claude",
-        "model": "claude-opus-4-7",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "low",
+        "identity": "codex/gpt-5.5/low",
         "backends": [
-            {"name": "claude", "model": "claude-opus-4-7"},
-            {"name": "codex", "model": "gpt-5.5"},
+            {"name": "codex", "model": "gpt-5.5", "effort": "low",
+             "identity": "codex/gpt-5.5/low"},
+            {"name": "codex", "model": "gpt-5.5", "effort": "high",
+             "identity": "codex/gpt-5.5/high"},
         ],
-        "identities": ["claude/claude-opus-4-7", "codex/gpt-5.5"],
+        "identities": ["codex/gpt-5.5/low", "codex/gpt-5.5/high"],
         "workers": 2,
         "ab_mode": "hybrid",
         "mode": "general",
@@ -61,12 +65,12 @@ def main():
                 "elapsed_s": 0})
     time.sleep(0.3)
 
-    # -- Session 1 (claude) starts --
+    # -- Session 1 (codex low) starts --
     emit(path, {
         "event": "session_start",
         "session_id": s1, "variant": "base",
-        "backend": "claude", "model": "claude-opus-4-7",
-        "identity": "claude/claude-opus-4-7",
+        "backend": "codex", "model": "gpt-5.5", "effort": "low",
+        "identity": "codex/gpt-5.5/low",
         "queue_kind": "disjoint",
         "class_name": "eShape",
         "functions": [
@@ -77,12 +81,12 @@ def main():
     })
     time.sleep(0.5)
 
-    # -- Session 2 (codex) starts --
+    # -- Session 2 (codex high) starts --
     emit(path, {
         "event": "session_start",
         "session_id": s2, "variant": "base",
-        "backend": "codex", "model": "gpt-5.5",
-        "identity": "codex/gpt-5.5",
+        "backend": "codex", "model": "gpt-5.5", "effort": "high",
+        "identity": "codex/gpt-5.5/high",
         "queue_kind": "disjoint",
         "class_name": "gcConstant",
         "functions": [
@@ -95,7 +99,7 @@ def main():
 
     # -- Interleaved agent events --
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "text", "text": "I'll start by reading the existing eShape source to check for sibling patterns."})
     time.sleep(0.2)
     emit(path, {"event": "agent_event", "session_id": s2, "variant": "base",
@@ -104,11 +108,11 @@ def main():
     time.sleep(0.3)
 
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Read", "text": "read src/eShape.cpp"})
     time.sleep(0.2)
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 14 lines, existing Collide stubs"})
     time.sleep(0.3)
 
@@ -123,23 +127,23 @@ def main():
     time.sleep(0.2)
 
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "thinking",
                 "text": "The Collide methods are thin wrappers that just return 0. I can match all three by adding the same pattern."})
     time.sleep(0.4)
 
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Bash",
                 "text": "$ python3 tools/compare_func.py src/eShape.cpp 0x0002ba38"})
     time.sleep(0.3)
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 MATCH eShape::Collide (36B)"})
     time.sleep(0.2)
 
     emit(path, {"event": "function_result", "session_id": s1, "variant": "base",
-                "backend": "claude", "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "identity": "codex/gpt-5.5/low",
                 "address": "0x0002ba38",
                 "name": "eShape::Collide(const eMultiSphereShape *)", "size": 36,
                 "status": "matched"})
@@ -156,7 +160,7 @@ def main():
     time.sleep(0.2)
 
     emit(path, {"event": "function_result", "session_id": s2, "variant": "base",
-                "backend": "codex", "identity": "codex/gpt-5.5",
+                "backend": "codex", "identity": "codex/gpt-5.5/high",
                 "address": "0x0034e4cc",
                 "name": "gcConstant::gcConstant(cBase *)", "size": 56,
                 "status": "matched"})
@@ -164,16 +168,16 @@ def main():
 
     # More interleaved work
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Bash",
                 "text": "$ python3 tools/compare_func.py src/eShape.cpp 0x0002bac8"})
     time.sleep(0.3)
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 MATCH eShape::Collide (40B)"})
 
     emit(path, {"event": "function_result", "session_id": s1, "variant": "base",
-                "backend": "claude", "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "identity": "codex/gpt-5.5/low",
                 "address": "0x0002bac8",
                 "name": "eShape::Collide(const eCompoundShape *)", "size": 40,
                 "status": "matched"})
@@ -196,16 +200,16 @@ def main():
 
     # Session 1 finishes third function
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Bash",
                 "text": "$ python3 tools/compare_func.py src/eShape.cpp 0x0002bb50"})
     time.sleep(0.3)
     emit(path, {"event": "agent_event", "session_id": s1, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 MISMATCH 2/48 bytes (bnel divergence)"})
     time.sleep(0.2)
     emit(path, {"event": "function_result", "session_id": s1, "variant": "base",
-                "backend": "claude", "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "identity": "codex/gpt-5.5/low",
                 "address": "0x0002bb50",
                 "name": "eShape::Collide(const eMeshShape *)", "size": 48,
                 "status": "failed"})
@@ -213,8 +217,8 @@ def main():
 
     # Session 1 done
     emit(path, {"event": "session_done", "session_id": s1, "variant": "base",
-                "backend": "claude", "model": "claude-opus-4-7",
-                "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "model": "gpt-5.5", "effort": "low",
+                "identity": "codex/gpt-5.5/low",
                 "matched": 2, "failed": 1, "duration_s": 180.0})
     time.sleep(0.5)
 
@@ -229,7 +233,7 @@ def main():
                 "kind": "tool_result", "text": "\u2192 MATCH gcConstant::GetName (32B)"})
 
     emit(path, {"event": "function_result", "session_id": s2, "variant": "base",
-                "backend": "codex", "identity": "codex/gpt-5.5",
+                "backend": "codex", "identity": "codex/gpt-5.5/high",
                 "address": "0x0034e510",
                 "name": "gcConstant::GetName(char *) const", "size": 32,
                 "status": "matched"})
@@ -245,7 +249,7 @@ def main():
                 "kind": "tool_result", "text": "\u2192 MATCH gcConstant::Write (44B)"})
 
     emit(path, {"event": "function_result", "session_id": s2, "variant": "base",
-                "backend": "codex", "identity": "codex/gpt-5.5",
+                "backend": "codex", "identity": "codex/gpt-5.5/high",
                 "address": "0x0034e540",
                 "name": "gcConstant::Write(cWriteBlock &) const", "size": 44,
                 "status": "matched"})
@@ -254,16 +258,16 @@ def main():
     # Session 2 done
     emit(path, {"event": "session_done", "session_id": s2, "variant": "base",
                 "backend": "codex", "model": "gpt-5.5",
-                "identity": "codex/gpt-5.5",
+                "identity": "codex/gpt-5.5/high",
                 "matched": 3, "failed": 0, "duration_s": 240.0})
     time.sleep(0.5)
 
-    # -- Slot reuse: new session on slot 0 (claude) --
+    # -- Slot reuse: new session on slot 0 (codex low) --
     emit(path, {
         "event": "session_start",
         "session_id": s3, "variant": "base",
-        "backend": "claude", "model": "claude-opus-4-7",
-        "identity": "claude/claude-opus-4-7",
+        "backend": "codex", "model": "gpt-5.5", "effort": "low",
+        "identity": "codex/gpt-5.5/low",
         "queue_kind": "disjoint",
         "class_name": "eInput",
         "functions": [
@@ -274,45 +278,45 @@ def main():
     time.sleep(0.3)
 
     emit(path, {"event": "agent_event", "session_id": s3, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "text", "text": "Both are trivial zero-out functions. Quick matches expected."})
     time.sleep(0.5)
 
     emit(path, {"event": "agent_event", "session_id": s3, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Bash",
                 "text": "$ python3 tools/compare_func.py src/eInput.cpp 0x00045000"})
     time.sleep(0.3)
     emit(path, {"event": "agent_event", "session_id": s3, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 MATCH eInput::Reset (28B)"})
 
     emit(path, {"event": "function_result", "session_id": s3, "variant": "base",
-                "backend": "claude", "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "identity": "codex/gpt-5.5/low",
                 "address": "0x00045000",
                 "name": "eInput::Reset(void)", "size": 28,
                 "status": "matched"})
     time.sleep(0.3)
 
     emit(path, {"event": "agent_event", "session_id": s3, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_use", "tool": "Bash",
                 "text": "$ python3 tools/compare_func.py src/eInput.cpp 0x00045020"})
     time.sleep(0.3)
     emit(path, {"event": "agent_event", "session_id": s3, "variant": "base",
-                "backend": "claude",
+                "backend": "codex",
                 "kind": "tool_result", "text": "\u2192 MATCH eInput::ResetIdleTime (24B)"})
 
     emit(path, {"event": "function_result", "session_id": s3, "variant": "base",
-                "backend": "claude", "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "identity": "codex/gpt-5.5/low",
                 "address": "0x00045020",
                 "name": "eInput::ResetIdleTime(void)", "size": 24,
                 "status": "matched"})
     time.sleep(0.3)
 
     emit(path, {"event": "session_done", "session_id": s3, "variant": "base",
-                "backend": "claude", "model": "claude-opus-4-7",
-                "identity": "claude/claude-opus-4-7",
+                "backend": "codex", "model": "gpt-5.5", "effort": "low",
+                "identity": "codex/gpt-5.5/low",
                 "matched": 2, "failed": 0, "duration_s": 60.0})
     time.sleep(0.5)
 
