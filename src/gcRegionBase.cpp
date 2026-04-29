@@ -10,7 +10,16 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class gcReplicationVisitor;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -44,9 +53,16 @@ public:
 class gcRegionBase : public cObject {
 public:
     gcRegionBase(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void OnMemPoolReset(const cMemPool *, unsigned int);
     void MemCardReplicate(gcReplicationVisitor &);
+};
+
+class gcRigidBodyController {
+public:
+    const cType *GetType(void) const;
+    static gcRigidBodyController *New(cMemPool *, cBase *);
 };
 
 struct TypeDispatchEntry {
@@ -64,6 +80,14 @@ struct DeleteRecord {
 extern char gcRegionBaseclassdesc[];  // 0x387838
 extern char cObjectclassdesc[];        // 0x37E9C0
 
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040C90;
+extern cType *D_00099AE0;
+extern cType *D_0009A404;
+extern cType *D_0009F7B4;
+
 extern void *g_regionSlots[2];   // 0x37D7D4
 extern void *g_gcMap;             // 0x37D7FC
 
@@ -74,6 +98,55 @@ extern "C" {
     int cObject_WillBeDeleted(const void *, const cMemPool *, unsigned int);
     void gcStreamedCinematic_Delete(void *);
     void gcGameSettings_Get(void);
+}
+
+const cType *gcRegionBase::GetType(void) const {
+    if (D_00099AE0 == 0) {
+        if (D_00040C90 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(
+                    0, 0, 3, D_000385E0, 0, 0, 0, 0);
+            }
+            D_00040C90 = cType::InitializeType(
+                0, 0, 5, D_000385E4, 0, 0, 0, 0);
+        }
+        D_00099AE0 = cType::InitializeType(0, 0, 0xB3, D_00040C90, 0, 0, 0, 0);
+    }
+    return D_00099AE0;
+}
+
+const cType *gcRigidBodyController::GetType(void) const {
+    if (D_0009F7B4 == 0) {
+        if (D_0009A404 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+            }
+            D_0009A404 = cType::InitializeType(
+                0, 0, 0x99, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F7B4 = cType::InitializeType(
+            0, 0, 0x143, D_0009A404,
+            (cBase *(*)(cMemPool *, cBase *))&gcRigidBodyController::New,
+            0, 0, 0);
+    }
+    return D_0009F7B4;
 }
 
 // ============================================================
