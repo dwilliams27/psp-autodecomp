@@ -1,7 +1,32 @@
 // gcValRandomNumber -- decompiled from gcAll_psp.obj
 
 class cBase;
+class cFile;
 class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void End(void);
+};
+
+class gcValue {
+public:
+    cBase *mParent;
+    void *mClassDesc;
+
+    void Write(cFile &) const;
+};
+
+class gcDesiredValue {
+public:
+    int mValue;
+
+    void Write(cWriteBlock &) const;
+};
 
 extern char cBaseclassdesc[];
 extern char gcValRandomNumbervirtualtable[];
@@ -17,16 +42,15 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
-class gcValRandomNumber {
+class gcValRandomNumber : public gcValue {
 public:
-    cBase *mParent;
-    void *mVtable;
     int mField8;
-    int mDesiredC;
-    int mDesired10;
-    unsigned char mField14;
+    gcDesiredValue mDesiredC;
+    gcDesiredValue mDesired10;
+    bool mField14;
 
     static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 // 0x00357d48 -- gcValRandomNumber::New(cMemPool *, cBase *) static
@@ -51,4 +75,14 @@ cBase *gcValRandomNumber::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcValRandomNumber::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcValue::Write(file);
+    wb.Write(mField8);
+    wb.Write(mField14);
+    mDesiredC.Write(wb);
+    mDesired10.Write(wb);
+    wb.End();
 }

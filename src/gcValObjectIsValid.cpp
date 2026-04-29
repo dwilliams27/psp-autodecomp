@@ -4,7 +4,16 @@
 //   0x00356628 gcValObjectIsValid::New(cMemPool *, cBase *) static  140B
 
 class cBase;
+class cFile;
 class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
 
 struct PoolBlock {
     char pad[0x1C];
@@ -21,6 +30,8 @@ class gcValue {
 public:
     cBase *mParent;
     void *mClassDesc;
+
+    void Write(cFile &) const;
 };
 
 class gcValObjectIsValid : public gcValue {
@@ -28,6 +39,7 @@ public:
     int mObject;
 
     static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 extern char cBaseclassdesc[];
@@ -51,4 +63,24 @@ cBase *gcValObjectIsValid::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcValObjectIsValid::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcValue::Write(file);
+
+    int value = mObject;
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+    cBase *ptr;
+    if (flag != 0) {
+        ptr = 0;
+    } else {
+        ptr = (cBase *)value;
+    }
+    wb.WriteBase(ptr);
+    wb.End();
 }
