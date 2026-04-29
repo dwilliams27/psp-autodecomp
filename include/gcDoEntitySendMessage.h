@@ -62,6 +62,8 @@ public:
     void SetChild(int, gcExpression *);
     int GetExprFlags(void) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
 };
 
 #endif

@@ -12,6 +12,17 @@ class cBaseArray {
 public:
     cBase **mData;
     cBaseArray &operator=(const cBaseArray &);
+    void SetSize(int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(int, const char *);
+    void WriteBase(const cBase *);
+    void End(void);
 };
 
 struct gcDoLogData {
@@ -22,7 +33,21 @@ struct gcDoLogData {
     gcExpression **mChildren;
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 gcDoLog *dcast(const cBase *);
+void gcAction_gcAction(gcDoLog *, cBase *);
+void gcAction_Write(const gcDoLog *, cFile &);
+extern char gcDoLogvirtualtable[];
 
 unsigned int gcDoLog::GetTextColor(void) const {
     return 0xFF008000;
@@ -75,4 +100,56 @@ void gcDoLog::AssignCopy(const cBase *base) {
     } else {
         *(volatile int *)((char *)this + 8) = f2 & ~1;
     }
+}
+
+cBase *gcDoLog::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoLog *result = 0;
+    gcDoLog *obj = (gcDoLog *)entry->fn(base, 0x1C, 4, 0, 0);
+    if (obj != 0) {
+        gcAction_gcAction(obj, parent);
+        ((void **)obj)[1] = gcDoLogvirtualtable;
+        ((int *)obj)[3] = 0;
+        ((int *)obj)[4] = 0;
+        ((int *)obj)[5] = 0;
+        ((int *)obj)[6] = (int)obj;
+        ((cBaseArray *)((char *)obj + 0x14))->SetSize(3);
+        result = obj;
+        ((int *)obj)[2] = ((int *)obj)[2] | 1;
+    }
+    return (cBase *)result;
+}
+
+void gcDoLog::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcAction_Write(this, file);
+    gcDoLogData *self = (gcDoLogData *)this;
+
+    int s1 = 0;
+    if (self->mText.mData != 0) {
+        s1 = ((int *)self->mText.mData)[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(s1);
+
+    int s2 = 0;
+    if (self->mText.mData != 0) {
+        s2 = ((int *)self->mText.mData)[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(s2, (const char *)self->mText.mData);
+
+    wb.Write(self->mNumChildren);
+
+    int i = 0;
+    int offset = 0;
+    do {
+        wb.WriteBase(*(cBase **)((char *)self->mChildren + offset));
+        i++;
+        offset += 4;
+    } while (i < 3);
+
+    wb.End();
 }

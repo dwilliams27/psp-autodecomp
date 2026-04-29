@@ -67,6 +67,7 @@ public:
     float mField1C;
 
     ~gcValUIPosition();
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
 
@@ -79,6 +80,40 @@ public:
         fn(block + off, p);
     }
 };
+
+void gcDesiredUIWidgetHelper_ctor(void *, int);
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+// ── gcValUIPosition::New(cMemPool *, cBase *) static @ 0x00363d14 ──
+cBase *gcValUIPosition::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *entry = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValUIPosition *result = 0;
+    gcValUIPosition *obj = (gcValUIPosition *)entry->fn(base, 0x20, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = gcLValuevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcValUIPositionvirtualtable;
+        gcDesiredUIWidgetHelper_ctor((char *)obj + 8, 1);
+        obj->mField14 = 0;
+        obj->mField18 = false;
+        obj->mField1C = 0.85f;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // ── gcValUIPosition::Write(cFile &) const @ 0x00363f18 ──
 void gcValUIPosition::Write(cFile &file) const {
