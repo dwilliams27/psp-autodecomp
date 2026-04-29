@@ -8,6 +8,15 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cMemPool;
+class cBase;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -65,7 +74,85 @@ public:
     }
     void Write(cFile &) const;
     static gcLobbyUserStrings *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
+
+class gcNetworkConfigStrings {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
+
+class gcPartialBodyControllerTemplate {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F504;
+extern cType *D_0009F554;
+extern cType *D_0009F5DC;
+extern cType *D_0009F5F0;
+
+// ── GetType ──  @ 0x002847ac, 220B
+const cType *gcLobbyUserStrings::GetType(void) const {
+    if (D_0009F504 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F504 = cType::InitializeType(
+            0, 0, 0x18C, D_0009F454,
+            (cBase *(*)(cMemPool *, cBase *))&gcLobbyUserStrings::New,
+            0, 0, 0);
+    }
+    return D_0009F504;
+}
+
+// ── GetType ──  @ 0x00285e78, 220B
+const cType *gcNetworkConfigStrings::GetType(void) const {
+    if (D_0009F554 == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F554 = cType::InitializeType(0, 0, 0xF8, D_0009F454,
+                                           &gcNetworkConfigStrings::New,
+                                           0, 0, 0);
+    }
+    return D_0009F554;
+}
+
+// ── GetType ──  @ 0x002a55fc, 220B
+const cType *gcPartialBodyControllerTemplate::GetType(void) const {
+    if (D_0009F5F0 == 0) {
+        if (D_0009F5DC == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F5DC = cType::InitializeType(0, 0, 0x104, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F5F0 = cType::InitializeType(0, 0, 0x106, D_0009F5DC,
+                                           &gcPartialBodyControllerTemplate::New,
+                                           0, 0, 0);
+    }
+    return D_0009F5F0;
+}
 
 // ── Write ──  @ 0x00284888, 100B
 void gcLobbyUserStrings::Write(cFile &file) const {
