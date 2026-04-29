@@ -16,20 +16,24 @@ public:
 
 class gcCamera {
 public:
+    gcCamera(void);
     gcCamera &operator=(const gcCamera &);
 };
 
 class gcViewport {
 public:
+    gcViewport(cBase *);
     void GetName(char *) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    static int PausesGame(void);
     const cType *GetType(void) const;
 };
 
 template <class T> T *dcast(const cBase *);
 
 extern "C" int cStrFormat(char *, const char *, ...);
+extern "C" void gcCamera__gcCamera_void(void *self);
 extern "C" void gcViewport__gcViewport_cBaseptr(void *self, cBase *parent);
 
 extern cType *D_000385DC;
@@ -39,6 +43,24 @@ struct AllocRec {
     short offset;
     short _pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct GlobalViewportPauseData {
+    char pad0[0x0B];
+    unsigned char unk0B;
+    char pad1[0x23];
+    unsigned char unk2F;
+    char pad2[0xA8];
+    int unkD8;
+};
+
+struct ViewportPauseData {
+    char pad0[0x11EF];
+    unsigned char unk11EF;
+    char pad1[0x23];
+    unsigned char unk1213;
+    char pad2[0xA8];
+    int unk12BC;
 };
 
 // ── gcViewport::GetName(char *) const @ 0x002492E8 ──
@@ -70,6 +92,66 @@ cBase *gcViewport::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcViewport::gcViewport(cBase *) @ 0x000FDB7C ──
+gcViewport::gcViewport(cBase *parent) {
+    *(cBase **)this = parent;
+    *(void **)((char *)this + 4) = (void *)0x387E28;
+    gcCamera__gcCamera_void((char *)this + 0x10);
+    *(unsigned char *)((char *)this + 0x1380) = 0;
+    *(unsigned char *)((char *)this + 0x1381) = 1;
+    *(gcViewport **)((char *)this + 0x11F4) = this;
+}
+
+// ── gcViewport::PausesGame(void) static @ 0x000FE08C ──
+int gcViewport::PausesGame(void) {
+    int pauses;
+    int active;
+    int i;
+    ViewportPauseData *viewport;
+    ViewportPauseData *current;
+
+    pauses = 0;
+    if (((GlobalViewportPauseData *)0x99928)->unkD8 > 0) {
+        goto global_true;
+    }
+    if (((GlobalViewportPauseData *)0x99928)->unk0B != 0) {
+        goto global_true;
+    }
+    if (((GlobalViewportPauseData *)0x99928)->unk2F == 0) {
+        goto global_done;
+    }
+global_true:
+    pauses = 1;
+global_done:
+    if ((unsigned char)pauses != 0) {
+        return 1;
+    }
+    i = 0;
+    viewport = (ViewportPauseData *)(*(char **)0x37D840 + 0x10);
+    do {
+        current = viewport;
+        active = 0;
+        if (current->unk12BC > 0) {
+            goto active_true;
+        }
+        if (current->unk11EF != 0) {
+            goto active_true;
+        }
+        if (current->unk1213 == 0) {
+            goto active_done;
+        }
+active_true:
+        active = 1;
+active_done:
+        i += 1;
+        if ((unsigned char)active != 0) {
+            return 1;
+        }
+        viewport = (ViewportPauseData *)((char *)viewport + 0x1390);
+    } while (i < 5);
+    return 0;
 }
 
 // ── gcViewport::GetType(void) const @ 0x00249248 ──
