@@ -10,6 +10,17 @@ class cBase;
 class cFile;
 class cMemPool;
 
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mIndex;
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -48,6 +59,7 @@ public:
     eShadowVolumeTexture(cBase *);
     ~eShadowVolumeTexture();
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -74,6 +86,20 @@ void eShadowVolumeTexture::Write(cFile &file) const {
 // ── eShadowVolumeTexture::~eShadowVolumeTexture(void) @ 0x00086bd4 ──
 eShadowVolumeTexture::~eShadowVolumeTexture() {
     *(void **)((char *)this + 4) = (void *)0x385AA0;
+}
+
+// ── eShadowVolumeTexture::AssignCopy(const cBase *) @ 0x0021ae54 ──
+void eShadowVolumeTexture::AssignCopy(const cBase *base) {
+    eShadowVolumeTexture *other = dcast<eShadowVolumeTexture>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(signed char *)((char *)this + 0x44) = *(const signed char *)((char *)other + 0x44);
+    *(signed char *)((char *)this + 0x45) = *(const signed char *)((char *)other + 0x45);
+    *(signed char *)((char *)this + 0x46) = *(const signed char *)((char *)other + 0x46);
+    *(unsigned char *)((char *)this + 0x47) = *(const unsigned char *)((char *)other + 0x47);
+    *(short *)((char *)this + 0x48) = *(const short *)((char *)other + 0x48);
+    *(short *)((char *)this + 0x4A) = *(const short *)((char *)other + 0x4A);
+    __asm__ volatile("" ::: "memory");
+    *(cHandle *)((char *)this + 0x4C) = *(const cHandle *)((char *)other + 0x4C);
 }
 
 // ── eShadowVolumeTexture::New(cMemPool *, cBase *) static @ 0x0021aed4 ──

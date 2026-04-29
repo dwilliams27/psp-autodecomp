@@ -16,12 +16,25 @@ class mVec3;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+template <class T> T *dcast(const cBase *);
+
 class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void Write(float);
     void End(void);
+};
+
+class cHandle {
+public:
+    int mIndex;
+    void Write(cWriteBlock &) const;
 };
 
 class cMemPool {
@@ -60,6 +73,7 @@ public:
     ~eStaticSpotLight();
     void Write(cFile &) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -99,6 +113,26 @@ eStaticSpotLight::eStaticSpotLight(cBase *parent) : eStaticLight(parent) {
 
 eStaticSpotLight::~eStaticSpotLight() {
     *(void **)((char *)this + 4) = eStaticSpotLightvirtualtable;
+}
+
+// ── 0x002062a0 — eStaticSpotLight::AssignCopy(const cBase *) ──
+void eStaticSpotLight::AssignCopy(const cBase *base) {
+    eStaticSpotLight *other = dcast<eStaticSpotLight>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(float *)((char *)this + 0x44) = *(const float *)((const char *)other + 0x44);
+    *(cHandle *)((char *)this + 0x48) = *(const cHandle *)((const char *)other + 0x48);
+    __asm__ volatile(
+        "lv.q C120, 0x80(%1)\n"
+        "sv.q C120, 0x80(%0)\n"
+        "lv.q C120, 0x50(%1)\n"
+        "sv.q C120, 0x50(%0)\n"
+        "lv.q C120, 0x60(%1)\n"
+        "sv.q C120, 0x60(%0)\n"
+        "lv.q C120, 0x70(%1)\n"
+        "sv.q C120, 0x70(%0)\n"
+        :: "r"(this), "r"(other) : "memory"
+    );
+    *(float *)((char *)this + 0x90) = *(const float *)((const char *)other + 0x90);
 }
 
 void eStaticSpotLight::GetSampleRay(mRay *ray, mVec3 *, const mVec3 &p1, const mVec3 &) const {
@@ -149,12 +183,6 @@ cBase *eStaticSpotLight::New(cMemPool *pool, cBase *parent) {
 // ============================================================
 // 0x000d4d4c — gcNamedSet::Write(cFile &) const
 // ============================================================
-
-class cHandle {
-public:
-    int mIndex;
-    void Write(cWriteBlock &) const;
-};
 
 class gcNamedSet {
 public:

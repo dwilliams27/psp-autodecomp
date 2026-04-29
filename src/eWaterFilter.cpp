@@ -8,6 +8,12 @@ class cFile;
 class cMemPool;
 class cType;
 
+template <class T> T *dcast(const cBase *);
+
+struct CopyWord {
+    int value;
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -46,6 +52,7 @@ class eWaterFilter : public eTextureFilter {
 public:
     eWaterFilter(cBase *);
     ~eWaterFilter();
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -71,6 +78,22 @@ static cType *type_eWaterFilter;
 // ── 0x0008c7f4 — ~eWaterFilter(void) ──
 eWaterFilter::~eWaterFilter() {
     *(void **)((char *)this + 4) = eWaterFiltervirtualtable;
+}
+
+// ── 0x0021d1d0 — AssignCopy(const cBase *) ──
+void eWaterFilter::AssignCopy(const cBase *base) {
+    eWaterFilter *other = dcast<eWaterFilter>(base);
+    *(CopyWord *)((char *)this + 0x08) = *(const CopyWord *)((const char *)other + 0x08);
+    __asm__ volatile("" ::: "memory");
+    *(CopyWord *)((char *)this + 0x0C) = *(const CopyWord *)((const char *)other + 0x0C);
+    __asm__ volatile("" ::: "memory");
+    *(CopyWord *)((char *)this + 0x10) = *(const CopyWord *)((const char *)other + 0x10);
+    __asm__ volatile("" ::: "memory");
+    *(CopyWord *)((char *)this + 0x14) = *(const CopyWord *)((const char *)other + 0x14);
+    __asm__ volatile("" ::: "memory");
+    *(float *)((char *)this + 0x18) = *(const float *)((const char *)other + 0x18);
+    *(float *)((char *)this + 0x1C) = *(const float *)((const char *)other + 0x1C);
+    *(float *)((char *)this + 0x20) = *(const float *)((const char *)other + 0x20);
 }
 
 // ── 0x0021d250 — New(cMemPool *, cBase *) static ──
