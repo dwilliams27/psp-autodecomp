@@ -2,12 +2,27 @@ class cBase;
 class cFile;
 class cInStream;
 class cMemPool;
+class cOutStream;
 
 class cArrayShort {
 public:
     short *mData;
     cArrayShort &operator=(const cArrayShort &);
     void Read(cInStream &);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(int, const short *);
+    void End(void);
+};
+
+class cOutStream {
+public:
+    void Write(int, int, bool);
 };
 
 struct gcTableColumnShort;
@@ -26,6 +41,8 @@ public:
 struct gcTableColumn {
     void *mOwner;
     void *mClassDesc;
+
+    void Write(cFile &) const;
 };
 
 extern cType *D_000385DC;
@@ -42,6 +59,8 @@ struct gcTableColumnShort : public gcTableColumn {
     int Compare(int row1, int row2) const;
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
+    void Write(cFile &file) const;
+    void Write(cOutStream &os) const;
 };
 
 struct PoolBlock {
@@ -103,6 +122,36 @@ int gcTableColumnShort::Compare(int row1, int row2) const {
         result = data[row2] < data[row1];
     }
     return result;
+}
+
+// 0x0012ad9c, 152B
+void gcTableColumnShort::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcTableColumn::Write(file);
+    wb.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0);
+    wb.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0,
+             mValues.mData);
+    wb.End();
+}
+
+// 0x00271910, 196B
+void gcTableColumnShort::Write(cOutStream &os) const {
+    os.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0,
+             0x20, 1);
+    int i = 0;
+    int offset = 0;
+loop:
+    int count = 0;
+    if (mValues.mData != 0) {
+        count = ((int *)mValues.mData)[-1] & 0x3FFFFFFF;
+    }
+    if (i < count) {
+        short value = *(short *)((char *)mValues.mData + offset);
+        os.Write(value, 0x10, 1);
+        i++;
+        offset += 2;
+        goto loop;
+    }
 }
 
 // 0x00271538, 136B — static, ctor fully inlined (no jal to constructor).
