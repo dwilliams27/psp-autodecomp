@@ -9,10 +9,23 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class mRay;
 class mVec3;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -57,6 +70,7 @@ public:
     eStaticPointLight(cBase *);
     ~eStaticPointLight();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -80,6 +94,11 @@ struct cHandle {
 };
 
 extern char eStaticPointLightvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046B30;
+extern cType *D_00046B34;
 
 #pragma control sched=1
 // ── 0x0005eec4 — Write(cFile &) const ──
@@ -149,5 +168,41 @@ cBase *eStaticPointLight::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *eStaticPointLight::GetType(void) const {
+    if (D_00046B34 == 0) {
+        if (D_00046B30 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        const char *name = (const char *)0x36CD74;
+                        const char *desc = (const char *)0x36CD7C;
+                        __asm__ volatile("" : "+r"(name), "+r"(desc));
+                        D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385DC;
+                    cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                    D_000385E0 = cType::InitializeType(0, 0, 2, parentType,
+                                                       factory, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            const cType *parentType = D_000385E4;
+            const char *kindName = (const char *)0x36CEE0;
+            const char *kindDesc = (const char *)0x36CEEC;
+            __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+            D_00046B30 = cType::InitializeType(0, 0, 0x4A, parentType,
+                                               0, kindName, kindDesc, 0);
+        }
+        const cType *parentType = D_00046B30;
+        cBase *(*factory)(cMemPool *, cBase *) = &eStaticPointLight::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046B34 = cType::InitializeType(0, 0, 0x4B, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046B34;
 }
 #pragma control sched=2
