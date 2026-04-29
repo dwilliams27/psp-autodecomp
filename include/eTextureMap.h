@@ -27,6 +27,8 @@ public:
 
 class eProjectedModelMtl {
 public:
+    eProjectedModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
