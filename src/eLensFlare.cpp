@@ -4,6 +4,7 @@
 // Functions:
 //   0x0003bdac eLensFlare::Write(cFile &) const             100B
 //   0x0003beec eLensFlare::eLensFlare(cBase *)               68B
+//   0x001e880c eLensFlare::AssignCopy(const cBase *)          92B
 //   0x001e8868 eLensFlare::New(cMemPool *, cBase *) static  124B
 
 class cBase;
@@ -20,6 +21,7 @@ public:
 
 class cBaseArray {
 public:
+    cBaseArray &operator=(const cBaseArray &);
     void Write(cWriteBlock &) const;
 };
 
@@ -27,8 +29,11 @@ class cObject {
 public:
     char _pad[0x44];
     cObject(cBase *);
+    cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
+
+template <class T> T *dcast(const cBase *);
 
 class eLensFlare : public cObject {
 public:
@@ -37,6 +42,7 @@ public:
     unsigned int mField4C;   // 0x4C
 
     eLensFlare(cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -51,6 +57,18 @@ struct AllocRec {
 
 extern "C" {
     void eLensFlare__eLensFlare_cBaseptr(void *self, cBase *parent);
+}
+
+// ── eLensFlare::AssignCopy @ 0x001e880c ──
+void eLensFlare::AssignCopy(const cBase *base) {
+    eLensFlare *other = dcast<eLensFlare>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    ((cBaseArray *)((char *)this + 0x44))->operator=(
+        *(const cBaseArray *)((char *)other + 0x44));
+    unsigned int *srcField = (unsigned int *)((char *)other + 0x4C);
+    unsigned int value = *srcField;
+    unsigned int *dstField = (unsigned int *)((char *)this + 0x4C);
+    *dstField = value;
 }
 
 // ── eLensFlare::Write @ 0x0003bdac ──

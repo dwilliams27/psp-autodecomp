@@ -1,5 +1,6 @@
 // gcValUIVar — decompiled from gcAll_psp.obj
 // Methods in this file:
+//   0x0036823c  AssignCopy(const cBase *)
 //   0x00368484  Write(cFile &) const
 //   0x003699c0  GetText(char *) const
 //   0x00369a10  VisitReferences(...)
@@ -75,6 +76,7 @@ public:
     gcDesiredUIWidgetHelper mHelper;
     int mField14;
 
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
@@ -90,6 +92,21 @@ public:
         fn(block + off, p);
     }
 };
+
+template <class T> T *dcast(const cBase *);
+
+struct cHandle {
+    int mId;
+};
+
+// ── gcValUIVar::AssignCopy @ 0x0036823c ──
+void gcValUIVar::AssignCopy(const cBase *base) {
+    gcValUIVar *other = dcast<gcValUIVar>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+    *(int *)((char *)this + 20) = *(const int *)((char *)other + 20);
+}
 
 // ── gcValUIVar::New @ 0x00368294 ──
 cBase *gcValUIVar::New(cMemPool *pool, cBase *parent) {

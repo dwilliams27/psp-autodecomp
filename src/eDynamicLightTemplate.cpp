@@ -3,6 +3,7 @@
 // Functions:
 //   0x0007744c  eDynamicLightTemplate::Write(cFile &) const
 //   0x00077608  eDynamicLightTemplate::eDynamicLightTemplate(cBase *)
+//   0x0020fe38  eDynamicLightTemplate::AssignCopy(const cBase *)
 //   0x0020fe94  eDynamicLightTemplate::New(cMemPool *, cBase *) static
 
 class cBase;
@@ -21,6 +22,7 @@ public:
 class cObject {
 public:
     cObject(cBase *);
+    cObject &operator=(const cObject &);
 };
 
 class eDynamicGeomTemplate {
@@ -34,6 +36,23 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class eMaterial;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cArrayBase {
+public:
+    T *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
+template <class T> T *dcast(const cBase *);
+
 struct AllocRec {
     short offset;
     short pad;
@@ -43,6 +62,7 @@ struct AllocRec {
 class eDynamicLightTemplate : public cObject {
 public:
     eDynamicLightTemplate(cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -50,6 +70,19 @@ public:
 extern "C" {
     void eDynamicLightTemplate__eDynamicLightTemplate_cBaseptr(void *self, cBase *parent);
 }
+
+// -- eDynamicLightTemplate::AssignCopy(const cBase *) @ 0x0020fe38 --
+#pragma control sched=1
+void eDynamicLightTemplate::AssignCopy(const cBase *base) {
+    eDynamicLightTemplate *other = dcast<eDynamicLightTemplate>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(float *)((char *)this + 0x44) = *(const float *)((char *)other + 0x44);
+    __asm__ volatile("" ::: "memory");
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x48))->operator=(
+        *(const cArrayBase<cHandleT<eMaterial> > *)((char *)other + 0x48));
+    *(float *)((char *)this + 0x4C) = *(const float *)((char *)other + 0x4C);
+}
+#pragma control sched=2
 
 // -- eDynamicLightTemplate::Write(cFile &) const @ 0x0007744c --
 #pragma control sched=1
