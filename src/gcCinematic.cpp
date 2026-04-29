@@ -4,6 +4,21 @@
 
 class cBase;
 class cFile;
+class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 class cObject {
 public:
@@ -39,6 +54,10 @@ void cHandle_Write(const cHandle *, cWriteBlock &);
 
 extern char gcCinematicvirtualtable[];
 extern const char gcEventName_Cinematic[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00099AC8;
 
 gcCinematic *dcast(const cBase *);
 
@@ -69,6 +88,33 @@ void gcReplicationVisitor::SetNetConnection(int connection) {
 
 void gcReplicationVisitor::SetMemCardStream(cInStream *stream) {
     mInStream = stream;
+}
+
+// ─────────────────────────────────────────────────────
+// 0x00242e58 (296B) — gcCinematic::GetType
+// ─────────────────────────────────────────────────────
+const cType *gcCinematic::GetType(void) const {
+    if (D_00099AC8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00099AC8 = cType::InitializeType(0, 0, 0x163, D_000385E4,
+                                           &gcCinematic::New,
+                                           (const char *)0x36D8F0,
+                                           (const char *)0x36D8FC,
+                                           0);
+    }
+    return D_00099AC8;
 }
 
 // ─────────────────────────────────────────────────────
