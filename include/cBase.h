@@ -7,7 +7,9 @@ class cType;
 
 class cBase {
 public:
+    ~cBase(void);
     const cType *GetType(void) const;
+    cBase *Copy(cMemPool *, cBase *) const;
     void SetDirty(void);
     int IsEditable(void) const;
     void Reset(cMemPool *, bool);
@@ -17,6 +19,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    static void operator delete(void *);
 };
 
 class gcExpression {
