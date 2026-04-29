@@ -8,6 +8,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -39,6 +40,19 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class eMesh : public cObject {
 public:
     int mField44;            // 0x44
@@ -50,6 +64,7 @@ public:
 
     eMesh(cBase *);
     ~eMesh();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -63,6 +78,10 @@ public:
 };
 
 extern char eMeshvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469B8;
 
 // ── eMesh::Write @ 0x00043d70 ──
 void eMesh::Write(cFile &file) const {
@@ -82,4 +101,29 @@ void eMesh::Write(cFile &file) const {
 // `if (flags & 1) operator delete(this)` deleting tail (inlined).
 eMesh::~eMesh() {
     *(void **)((char *)this + 4) = eMeshvirtualtable;
+}
+
+// ── eMesh::GetType(void) const @ 0x001ED500 ──
+const cType *eMesh::GetType(void) const {
+    if (D_000469B8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))&cNamed::New,
+                    0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_000469B8 = cType::InitializeType(0, 0, 0xE, D_000385E4, 0,
+                                           (const char *)0x36CE40,
+                                           (const char *)0x36CE48, 1);
+    }
+    return D_000469B8;
 }
