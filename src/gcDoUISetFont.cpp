@@ -60,6 +60,7 @@ public:
 
     gcDoUISetFont(cBase *);
     ~gcDoUISetFont();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -74,6 +75,7 @@ public:
 extern char gcDoUISetFontvirtualtable[];
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(void *, int);
+gcDoUISetFont *dcast(const cBase *);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -85,6 +87,24 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+// ── gcDoUISetFont::AssignCopy @ 0x0030f208 ──
+void gcDoUISetFont::AssignCopy(const cBase *other) {
+    gcDoUISetFont *src = dcast(other);
+    int *self_i = (int *)this;
+    int *src_i = (int *)src;
+    int v = self_i[2] & ~3;
+    self_i[2] = v;
+    self_i[2] = v | (src_i[2] & 3);
+    self_i[3] = src_i[3];
+    int *s1 = (int *)((char *)src + 0x10);
+    int *d1 = (int *)((char *)this + 0x10);
+    int *s2 = (int *)((char *)src + 0x14);
+    int *d2 = (int *)((char *)this + 0x14);
+    *d1 = *s1;
+    *d2 = *s2;
+    *(cHandle *)((char *)this + 0x18) = *(const cHandle *)((char *)src + 0x18);
+}
 
 // ── gcDoUISetFont::New @ 0x0030f288 ──
 cBase *gcDoUISetFont::New(cMemPool *pool, cBase *parent) {

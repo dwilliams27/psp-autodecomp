@@ -31,6 +31,7 @@ public:
 class gcDesiredUIWidgetHelper {
 public:
     void Write(class cWriteBlock &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 class cWriteBlock {
@@ -44,7 +45,9 @@ public:
 class gcDoUIEffect : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcDoUIEffect();
     static void operator delete(void *p) {
         void *pool = cMemPool_GetPoolFromPtr(p);
@@ -57,6 +60,7 @@ public:
 
 void gcAction_gcAction(gcDoUIEffect *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(gcDesiredUIWidgetHelper *, int);
+gcDoUIEffect *dcast(const cBase *);
 extern char gcDoUIEffectvirtualtable[];
 
 struct PoolBlock {
@@ -69,6 +73,25 @@ struct AllocEntry {
     short pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+// 0x0030a098 — AssignCopy(const cBase *)
+void gcDoUIEffect::AssignCopy(const cBase *other) {
+    gcDoUIEffect *src = dcast(other);
+    int *self_i = (int *)this;
+    int *src_i = (int *)src;
+    int v = self_i[2] & ~3;
+    self_i[2] = v;
+    self_i[2] = v | (src_i[2] & 3);
+    self_i[3] = src_i[3];
+    int *s1 = (int *)((char *)src + 0x10);
+    int *d1 = (int *)((char *)this + 0x10);
+    int *s2 = (int *)((char *)src + 0x14);
+    int *d2 = (int *)((char *)this + 0x14);
+    *d1 = *s1;
+    *d2 = *s2;
+    self_i[6] = src_i[6];
+    self_i[7] = src_i[7];
+}
 
 // 0x0030a118 — New(cMemPool *, cBase *) static
 cBase *gcDoUIEffect::New(cMemPool *pool, cBase *parent) {
@@ -98,6 +121,14 @@ void gcDoUIEffect::Write(cFile &file) const {
     wb.Write(((int *)this)[7]);
     wb.Write(((int *)this)[6]);
     wb.End();
+}
+
+// 0x0030a6bc — VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)
+void gcDoUIEffect::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
 
 // 0x0030a73c — ~gcDoUIEffect(void), 124B
