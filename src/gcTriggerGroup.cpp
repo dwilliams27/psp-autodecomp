@@ -18,6 +18,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -59,6 +65,8 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static bool IsManagedTypeExternalStatic();
+    static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -79,6 +87,8 @@ public:
 };
 
 extern char gcTriggerGroupvirtualtable[];
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
 
 void gcTriggerGroup::AssignCopy(const cBase *base) {
     gcTriggerGroup *src = dcast<gcTriggerGroup>(base);
@@ -90,6 +100,29 @@ void gcCinematicGroup::AssignCopy(const cBase *base) {
     gcCinematicGroup *src = dcast<gcCinematicGroup>(base);
     mFlag = src->mFlag;
     mField = src->mField;
+}
+
+// ── gcTriggerGroup::New(cMemPool *, cBase *) static @ 0x0023705C ──
+cBase *gcTriggerGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcTriggerGroup *result = 0;
+    gcTriggerGroup *obj = (gcTriggerGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = gcTriggerGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── gcTriggerGroup::Write(cFile &) const @ 0x000CFE00 ──
