@@ -13,11 +13,11 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | ML3 | Fix template instantiation verification | Tooling | **DONE** | ~355 unblocked |
 | ML4 | Audit for adjacent verification gaps | Tooling | **DONE** | N/A (preventive) |
 | ML5 | Destructor exemplars in agent prompt | Prompt | **DONE** | Prevents ~7/run waste |
-| ML6 | Exclude unmatchable intrinsics/SDK functions | Orchestrator | Scoped | Saves ~30+ wasted attempts |
+| ML6 | Exclude unmatchable intrinsics/SDK functions | Orchestrator | **DONE** | Saves ~30+ wasted attempts |
 | ML7 | 128-256B function category research | Research | **DONE** | ~493 projected |
-| ML8 | Chained permuter mutations (2-3 per candidate) | Permuter | Scoped | ~10-30 |
-| ML9 | Matched function corpus as agent exemplars | Prompt | Scoped | +5-15% first-attempt rate |
-| ML10 | Cross-class method template library | Prompt | Scoped | ~50-100 |
+| ML8 | Chained permuter mutations (2-3 per candidate) | Permuter | **DONE** | ~10-30 |
+| ML9 | Matched function corpus as agent exemplars | Prompt | **DONE** | +5-15% first-attempt rate |
+| ML10 | Cross-class method template library | Prompt | **DONE** | ~50-100 |
 | ML11 | Static analysis pre-pass for prompt enrichment | Prompt | **Deprioritized** | <1% overall improvement |
 | ML12 | Diff-guided agent retries | Orchestrator | Idea | ~10-30 |
 | ML13 | Binary patch pspcor.exe bnel heuristic | Compiler | Designed | ~2-7 |
@@ -155,7 +155,7 @@ The exemplar system already normalizes destructors to `~dtor` for cross-class ma
 
 ## ML6. Exclude unmatchable intrinsics/SDK functions
 
-**Status: Scoped.**
+**Status: DONE.**
 
 **Why these are unmatchable (by category):**
 
@@ -182,7 +182,7 @@ These are **fundamentally unmatchable** — you cannot write a C function that c
 
 **Do NOT exclude:** Standard libc/math functions that are already matched (40 in gMain_psp.obj) — these prove some CRT code IS matchable. Game-code functions with dead-epilogue issues should remain `failed` for retry.
 
-**Implementation:** Add a new status `unmatchable_crt` or similar. Update `pick_next_batch()` to filter them out. Requires identifying all affected addresses.
+**Implementation landed:** `tools/orchestrator.py` now applies a conservative picker-only filter for zero-size import stubs, confirmed runtime mid-function labels, known dead-epilogue compiler artifacts, SNC softfloat helpers, and PSP SDK/import wrapper prefixes. This avoids production-run waste without rewriting historical DB status. The run log reports how many untried targets were skipped by this filter.
 
 ---
 
@@ -234,7 +234,7 @@ Three systematic blockers:
 
 ## ML8. Chained permuter mutations
 
-**Status: Scoped.**
+**Status: DONE.**
 
 Two improvements that capture most of ML1's value at 5% of the cost:
 
@@ -246,35 +246,37 @@ Currently `mutate()` applies exactly one random mutation per candidate. Allow 2-
 
 **Combined effect:** 12x expansion of search neighborhood for N-way, plus combinatorial coverage from chaining. These should be the next permuter improvement before considering ML1.
 
-**Files:** `tools/mutations.py` (`mutate()`, new `permute_block()` function), `tools/permuter.py` (mutation count parameter)
+**Implementation landed:** `tools/mutations.py` now includes a `permute_statement_run()` mutation for 3-7 simple statements at the same brace depth. `mutate()` can chain 1-3 mutations, weighted toward single mutations to preserve compile success. `tools/permuter.py` uses the improved mutation engine through the existing `mutate()` API.
 
 ---
 
 ## ML9. Matched function corpus as agent exemplars
 
-**Status: Scoped.**
+**Status: DONE.**
 
 **Clarification:** m2c is a non-intelligent CLI tool (rule-based decompiler). It cannot consume training data or learn from examples. The matched function corpus should be fed to the **agents** (Claude/Codex), not m2c. m2c's output is just a starting point the agent rewrites.
 
 The S1 enhancement (already DONE in `docs/enhancements.md`) already injects one matched exemplar per function via `get_method_exemplar()`. The improvement is selecting *better* and *more* exemplars.
 
+**Implementation landed:** agent prompts now receive up to three ranked matched exemplars for the same method archetype, preferring same obj file, same coarse class family, and closest byte size. The old single-exemplar API remains as a compatibility wrapper.
+
 **Design for improved exemplar selection:**
 
-1. **Multiple exemplars per function (top 3 by size similarity):** Currently limited to 1. Showing 3 gives the agent more structural variety to learn from. ~600 extra tokens per function.
+1. **Multiple exemplars per function (top 3 by size similarity):** Showing 3 gives the agent more structural variety to learn from. ~600 extra tokens per function.
 
 2. **Exemplar quality ranking:** Prefer exemplars from the same obj file (same compilation unit = same flags). Then same sched zone. Then closest byte size.
 
-3. **Method archetype templates:** For each method type (Read, Write, New, GetType, AssignCopy, destructor, constructor), extract the canonical source pattern from the 3 best matches. Store as static templates in `config/method_templates/`. Inject the relevant template even when no size-matched exemplar exists.
+3. **Method archetype templates:** For each method type (Read, Write, New, GetType, AssignCopy, destructor, constructor), inject concise static guidance from the orchestrator. A later generated-template pass can extract canonical source patterns from the matched corpus if the static guidance proves too shallow.
 
 4. **Failure-note-aware selection:** If a function has prior failure notes mentioning a specific issue (e.g., "scheduling"), prefer exemplars from classes that had similar issues and were eventually matched.
 
-**Files:** `tools/orchestrator.py` (`get_method_exemplar`), `tools/prompt_variants/_common.py` (`render_function_block`), new `config/method_templates/` directory
+**Files:** `tools/orchestrator.py` (`get_method_exemplars`, `get_method_template_guidance`), `tools/prompt_variants/_common.py` (`render_function_block`)
 
 ---
 
 ## ML10. Cross-class method template library
 
-**Status: Scoped.** Extension of ML9.
+**Status: DONE.** Extension of ML9.
 
 Build a library of canonical method patterns from matched functions. For each method archetype:
 - Extract the structure (prologue, field access pattern, control flow, epilogue)
@@ -290,7 +292,7 @@ Build a library of canonical method patterns from matched functions. For each me
 - `PlatformRead(cFile &)` — 100% match rate, simple delegation pattern
 - `VisitReferences(...)` — 100% match rate, fn(this, flags, member_ptr) chain
 
-**Implementation:** Script that reads matched source files, groups by method name, extracts common structure, generates template files. Orchestrator injects the relevant template when no close exemplar exists.
+**Implementation landed:** `tools/orchestrator.py` now injects static method-template guidance for high-yield archetypes (`GetType`, `Write`, `New`, `AssignCopy`/`operator=`, destructor, constructor, `VisitReferences`, and `Read`). This keeps the first implementation lightweight while preserving the option to graduate to generated template files later.
 
 ---
 

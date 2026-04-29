@@ -117,6 +117,57 @@ def swap_adjacent_statements(lines):
     return out, "swap_stmt"
 
 
+def permute_statement_run(lines):
+    """Randomly permute a short run of simple statements.
+
+    This targets SNC's sensitivity to source-order scheduling for independent
+    loads/stores. It is intentionally heuristic: compile-and-score is the
+    correctness filter.
+    """
+    depths = _brace_depth_map(lines)
+    runs = []
+    start = None
+    for i, line in enumerate(lines + [""]):
+        ok = (
+            i < len(lines)
+            and depths[i] >= 1
+            and _is_simple_statement(line)
+        )
+        if ok and start is None:
+            start = i
+        if (not ok or i == len(lines)) and start is not None:
+            end = i
+            if end - start >= 3:
+                runs.append((start, end))
+            start = None
+
+    # Prefer small windows to keep compile success high.
+    windows = []
+    for start, end in runs:
+        run_len = end - start
+        max_len = min(7, run_len)
+        for length in range(3, max_len + 1):
+            for s in range(start, end - length + 1):
+                windows.append((s, s + length))
+
+    if not windows:
+        return None
+
+    start, end = random.choice(windows)
+    block = list(lines[start:end])
+    shuffled = list(block)
+    for _ in range(10):
+        random.shuffle(shuffled)
+        if shuffled != block:
+            break
+    if shuffled == block:
+        return None
+
+    out = list(lines)
+    out[start:end] = shuffled
+    return out, "permute_stmt_run"
+
+
 def reorder_operands(lines):
     """Swap operands around a commutative binary operator on a random line."""
     eligible = []
@@ -385,6 +436,7 @@ def multiply_decompose(lines):
 MUTATIONS = [
     # High value (always try)
     (swap_adjacent_statements, 10),
+    (permute_statement_run, 8),
     (reorder_operands, 10),
     (reassociate_expression, 8),
     (reorder_declarations, 8),
@@ -403,7 +455,7 @@ MUTATIONS = [
 _TOTAL_WEIGHT = sum(w for _, w in MUTATIONS)
 
 
-def mutate(source):
+def _mutate_once(source):
     """Apply a single random mutation to source text.
 
     Returns (mutated_source, mutation_name) or None if no mutation applied
@@ -425,3 +477,29 @@ def mutate(source):
                         return mutated, name
                 break
     return None
+
+
+def mutate(source, max_steps=3):
+    """Apply one or more random mutations to source text.
+
+    Most candidates stay single-mutation for compile success. A meaningful
+    minority chains 2-3 mutations, which catches cases where SNC needs both
+    statement order and local expression/register-pressure changes.
+    """
+    if max_steps <= 1:
+        return _mutate_once(source)
+
+    steps = random.choices([1, 2, 3], weights=[65, 25, 10], k=1)[0]
+    steps = min(steps, max_steps)
+    current = source
+    names = []
+    for _ in range(steps):
+        result = _mutate_once(current)
+        if result is None:
+            break
+        current, name = result
+        names.append(name)
+
+    if not names or current == source:
+        return None
+    return current, "+".join(names)

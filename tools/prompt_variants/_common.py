@@ -13,7 +13,8 @@ from orchestrator import (
     get_class_header,
     get_m2c_output,
     get_matched_neighbors,
-    get_method_exemplar,
+    get_method_exemplars,
+    get_method_template_guidance,
     get_sched_hint,
 )
 
@@ -127,16 +128,25 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     if sched_hint:
         parts.append(f"\n{sched_hint}\n")
 
-    # Cross-class matched exemplar for the same method signature
+    template_guidance = get_method_template_guidance(func)
+    if template_guidance:
+        parts.append(f"\nMETHOD TEMPLATE GUIDANCE:\n{template_guidance}\n")
+
+    # Cross-class matched exemplars for the same method signature
     if all_functions is not None:
-        exemplar, exemplar_src = get_method_exemplar(all_functions, func)
-        if exemplar and exemplar_src:
+        exemplars = get_method_exemplars(all_functions, func, limit=3)
+        if exemplars:
+            parts.append("\nMATCHED METHOD EXEMPLARS:\n")
+            for idx, (exemplar, exemplar_src) in enumerate(exemplars, 1):
+                parts.append(
+                    f"\nExemplar {idx}: {exemplar['name']} "
+                    f"({exemplar['size']}B, {exemplar.get('obj_file')})\n"
+                    f"```\n{exemplar_src}```\n"
+                )
             parts.append(
-                f"\nMATCHED EXEMPLAR ({exemplar['name']}, "
-                f"{exemplar['size']}B — same method, different class):\n"
-                f"```\n{exemplar_src}```\n"
-                f"Adapt this pattern: change class name, offsets, type IDs. "
-                f"The structure should be very similar.\n"
+                "Adapt these patterns: change class names, field offsets, "
+                "type IDs, vtables, and helper symbols. Prefer the exemplar "
+                "from the same obj/family when they disagree.\n"
             )
 
     prior_notes = func.get("failure_notes", [])

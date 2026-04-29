@@ -53,6 +53,31 @@ git_lock = threading.Lock()
 # Uses a value that can't collide with a real class name.
 FREE_CLASS_KEY = "<free>"
 
+# Functions matching these patterns are not useful production matching
+# targets. They are either import-table stubs, labels inside larger runtime
+# routines, or SDK wrappers with non-C entry conventions. Keep this list
+# conservative: normal libc/runtime functions in gMain_psp.obj are not
+# excluded here because several have matched successfully.
+_UNMATCHABLE_EXACT_NAMES = frozenset({
+    "_array_pointer_not_from_vec_new",
+    "__snmain",
+    "__default_terminate",
+    "eh_free_memory(void *)",
+    "_i2b",
+    "setjmp",
+    "longjmp",
+    "__abort_execution",
+    "_pure_error_",
+    "__call_terminate",
+})
+_UNMATCHABLE_PREFIXES = (
+    "__make_",       # SNC softfloat helpers with non-standard conventions
+    "sceSas",        # SDK wrapper labels in the runtime blob
+    "__sce",         # zero-size import stubs and SAS imports
+    "sceKernel", "sceIo", "sceUtility", "scePower", "sceAtrac",
+    "sceMpeg", "sceUmd", "sceAudio", "sceDisplay", "sceGe", "sceRtc",
+)
+
 # apply_outcome return-kind constants. The coordinator dispatch reads
 # these to drive the circuit breaker and backoff. Constants beat raw
 # strings because typos here become silent miscategorization.
@@ -62,6 +87,30 @@ OUTCOME_RATE_LIMIT = "rate_limit"
 OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
 OUTCOME_PREP_ERROR = "prep_error"
+
+
+def unmatchable_reason(func):
+    """Return a production-skip reason for known non-source targets.
+
+    This is a picker filter, not a permanent DB migration. It prevents
+    routine runs from wasting sessions on targets that should be handled
+    by a separate CRT/import classification pass.
+    """
+    name = func.get("name") or ""
+    short_name = name.split("(", 1)[0]
+    size = int(func.get("size") or 0)
+
+    if size == 0:
+        return "zero-size label/import stub"
+    if name in _UNMATCHABLE_EXACT_NAMES or short_name in _UNMATCHABLE_EXACT_NAMES:
+        return "confirmed runtime mid-function label or compiler artifact"
+    if any(name.startswith(prefix) for prefix in _UNMATCHABLE_PREFIXES):
+        return "SDK/import wrapper or compiler helper"
+    return None
+
+
+def is_known_unmatchable(func):
+    return unmatchable_reason(func) is not None
 
 
 def apply_decisions_to_funcs(addr_index, decisions, session_id,
@@ -818,6 +867,8 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
             continue
         if check_status and func["match_status"] != "untried":
             continue
+        if is_known_unmatchable(func):
+            continue
         if _candidate_lock_keys(func, class_to_header) & excluded_classes:
             continue
         if allowed_addrs is not None and addr not in allowed_addrs:
@@ -864,6 +915,10 @@ def pick_next_batch(functions, args, batch_size=BATCH_SIZE,
     if allowed_addrs is not None:
         candidates = [c for c in candidates if c["address"] in allowed_addrs]
 
+    if not candidates:
+        return []
+
+    candidates = [c for c in candidates if not is_known_unmatchable(c)]
     if not candidates:
         return []
 
@@ -1007,6 +1062,16 @@ def _extract_method_name(name):
     return method_part
 
 
+def _class_family(class_name):
+    """Coarse class-family key for exemplar ranking."""
+    if not class_name:
+        return ""
+    for prefix in ("gcDo", "gcVal", "gcUI", "gc", "e", "c", "m", "nw"):
+        if class_name.startswith(prefix):
+            return prefix
+    return class_name.split("::", 1)[0]
+
+
 def _extract_function_source(filepath, class_name, method_name):
     """Extract a single function's source from a .cpp file.
 
@@ -1047,22 +1112,91 @@ def _extract_function_source(filepath, class_name, method_name):
     return "".join(result)
 
 
-def get_method_exemplar(functions, func):
-    """Find the best cross-class exemplar for a function.
+def _method_template_notes(method, func):
+    name = func.get("name") or ""
+    if method == "GetType":
+        return (
+            "GetType template: prefer the local InitializeType singleton "
+            "shape. Preserve the two-level parent-type initialization order, "
+            "the exact type-id constant, and the static `New` function pointer."
+        )
+    if method == "Write":
+        return (
+            "Write template: preserve cWriteBlock/cOutStream construction, "
+            "field write order, and End() placement. SNC is sensitive to "
+            "temporary bool/cast shapes and to independent store ordering."
+        )
+    if method == "New":
+        return (
+            "New template: use pool allocation table lookup, null guard, "
+            "placement construction or ctor wrapper, and return-null shape "
+            "matching nearby matched factories."
+        )
+    if method in ("AssignCopy", "operator="):
+        return (
+            "Copy template: copy fields in target byte order, not semantic "
+            "group order. Split pointer/word copies when register allocation "
+            "differs, and use matched siblings for exact field offsets."
+        )
+    if method == "~dtor":
+        return (
+            "Destructor template: use canonical C++ destructor syntax. For "
+            "deleting destructors, an inline class-local operator delete often "
+            "lets SNC emit the pool-delete tail; avoid extern-C destructor "
+            "wrappers."
+        )
+    cls = func.get("class_name")
+    if cls and method == cls:
+        return (
+            "Constructor template: base constructor call order, vtable store, "
+            "field initialization order, and vec_new/helper calls drive the "
+            "bytes. Prefer already matched constructors from the same family."
+        )
+    if method == "VisitReferences":
+        return (
+            "VisitReferences template: preserve callback null checks, direct "
+            "self callback order, then handle/list/member VisitReferences calls "
+            "in exact field order."
+        )
+    if method == "Read":
+        if "cFile &, cMemPool *" in name:
+            return (
+                "Read warning: many `Read(cFile &, cMemPool *)` methods are "
+                "blocked by the known cReadBlock prologue scheduler divergence. "
+                "If the body matches and only the 20-byte prologue differs, "
+                "record that blocker instead of spending the session on retries."
+            )
+        return (
+            "Read template: preserve read-block/stream construction, old-position "
+            "restore paths, and result initialization location. Compare against "
+            "same stream type exemplars when available."
+        )
+    return None
 
-    Returns (exemplar_func, source_text) or (None, None).
-    Picks the matched function from a DIFFERENT class with the same
-    method name and closest byte size.
+
+def get_method_template_guidance(func):
+    method = _extract_method_name(func["name"])
+    if not method:
+        return None
+    return _method_template_notes(method, func)
+
+
+def get_method_exemplars(functions, func, limit=3):
+    """Find ranked cross-class exemplars for a function.
+
+    Returns [(exemplar_func, source_text), ...]. Ranking prefers the same
+    method, same obj file, same coarse class family, and close byte size.
     """
     method = _extract_method_name(func["name"])
     if not method:
-        return None, None
+        return []
 
     target_size = func["size"]
     target_class = func.get("class_name", "")
+    target_family = _class_family(target_class)
+    target_obj = func.get("obj_file")
 
-    best = None
-    best_diff = float("inf")
+    ranked = []
 
     for f in functions:
         if f["match_status"] != "matched":
@@ -1072,28 +1206,39 @@ def get_method_exemplar(functions, func):
         f_method = _extract_method_name(f["name"])
         if f_method != method:
             continue
-        diff = abs(f["size"] - target_size)
-        if diff < best_diff:
-            best = f
-            best_diff = diff
+        score = (
+            0 if f.get("obj_file") == target_obj else 1,
+            0 if _class_family(f.get("class_name")) == target_family else 1,
+            abs(f["size"] - target_size),
+            f["size"],
+        )
+        ranked.append((score, f))
 
-    if best is None:
-        return None, None
+    exemplars = []
+    for _, best in sorted(ranked, key=lambda x: x[0]):
+        src_file = best.get("src_file")
+        if not src_file:
+            src_file = f"src/{_safe_class_filename(best['class_name'])}.cpp"
 
-    src_file = best.get("src_file")
-    if not src_file:
-        src_file = f"src/{_safe_class_filename(best['class_name'])}.cpp"
+        source = _extract_function_source(
+            src_file, best["class_name"],
+            _extract_method_name(best["name"]),
+        )
+        if not source:
+            log(f"  WARNING: exemplar source extraction failed for matched "
+                f"function {best['name']} (file: {src_file})")
+            continue
+        exemplars.append((best, source))
+        if len(exemplars) >= limit:
+            break
 
-    source = _extract_function_source(
-        src_file, best["class_name"],
-        _extract_method_name(best["name"]),
-    )
-    if not source:
-        log(f"  WARNING: exemplar source extraction failed for matched "
-            f"function {best['name']} (file: {src_file})")
-        return None, None
+    return exemplars
 
-    return best, source
+
+def get_method_exemplar(functions, func):
+    """Compatibility wrapper returning the single best exemplar."""
+    exemplars = get_method_exemplars(functions, func, limit=1)
+    return exemplars[0] if exemplars else (None, None)
 
 
 def determine_source_file(batch):
@@ -2337,6 +2482,12 @@ def main():
     log(f"Backend: {backend_summary}")
     log(f"Workers: {args.workers}")
     log(f"Mode: {mode_label}, batch_size={args.batch_size}, session_timeout={session_timeout}s")
+    skipped_unmatchable = sum(
+        1 for f in functions
+        if f.get("match_status") == "untried" and is_known_unmatchable(f)
+    )
+    if skipped_unmatchable:
+        log(f"Picker filter: excluding {skipped_unmatchable} known unmatchable/import targets")
 
     # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
     # into sessions whose target classes inherit broken source. See
