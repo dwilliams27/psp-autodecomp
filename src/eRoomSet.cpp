@@ -1,6 +1,9 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cWriteBlock {
 public:
@@ -18,8 +21,21 @@ public:
 class cObject {
 public:
     char _pad[0x44];
+    cObject(cBase *);
     void Write(cFile &) const;
     cObject &operator=(const cObject &);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T>
@@ -72,6 +88,8 @@ public:
     char mAABBTree[8];
     int *mHandles;
 
+    eRoomSet(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -87,8 +105,42 @@ public:
     void AssignCopy(const cBase *);
 };
 
-extern "C" {
-    void eRoomSet__eRoomSet_cBaseptr(void *self, cBase *parent);
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000468D8;
+
+eRoomSet::eRoomSet(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x380A08;
+    *(int *)((char *)this + 0x44) = 0;
+    *(int *)((char *)this + 0x48) = 0;
+    *(int *)((char *)this + 0x4C) = 0;
+    *(int *)((char *)this + 0x50) = 0;
+    *(int *)((char *)this + 0x54) = 0;
+    *(int *)((char *)this + 0x58) = 0;
+}
+
+const cType *eRoomSet::GetType(void) const {
+    if (D_000468D8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_000468D8 = cType::InitializeType(0, 0, 0x222, D_000385E4,
+                                           &eRoomSet::New,
+                                           (const char *)0x36CE10,
+                                           (const char *)0x36CE1C, 3);
+    }
+    return D_000468D8;
 }
 
 // -- eRoomSet::Write(cFile &) const @ 0x0003f934 --
@@ -149,7 +201,7 @@ cBase *eRoomSet::New(cMemPool *pool, cBase *parent) {
     eRoomSet *result = 0;
     eRoomSet *obj = (eRoomSet *)rec->fn(base, 0x5C, 4, 0, 0);
     if (obj != 0) {
-        eRoomSet__eRoomSet_cBaseptr(obj, parent);
+        new (obj) eRoomSet(parent);
         result = obj;
     }
     return (cBase *)result;
