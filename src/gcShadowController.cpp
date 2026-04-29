@@ -2,6 +2,13 @@
 
 class cFile;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -44,6 +51,8 @@ public:
     gcShadowController(cBase *);
     ~gcShadowController();
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -53,6 +62,12 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+template <class T> T *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_0009F64C;
+extern cType *D_0009F7B8;
 
 // ── gcShadowController::Write(cFile &) const @ 0x00157a08 ──
 void gcShadowController::Write(cFile &file) const {
@@ -86,4 +101,48 @@ cBase *gcShadowController::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcShadowController::AssignCopy(const cBase *) @ 0x0031f83c ──
+void gcShadowController::AssignCopy(const cBase *base) {
+    gcShadowController *other = dcast<gcShadowController>(base);
+
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+    *(int *)((char *)this + 12) = *(int *)((char *)other + 12);
+    *(float *)((char *)this + 16) = *(float *)((char *)other + 16);
+    *(float *)((char *)this + 20) = *(float *)((char *)other + 20);
+    *(float *)((char *)this + 24) = *(float *)((char *)other + 24);
+
+    int i = 0;
+    short *dst = (short *)((char *)this + 28);
+    short *src = (short *)((char *)other + 28);
+    do {
+        short x = src[0];
+        short y = src[1];
+        short z = src[2];
+        dst[0] = x;
+        dst[1] = y;
+        dst[2] = z;
+        i++;
+        dst += 3;
+        src += 3;
+    } while (i <= 0);
+}
+
+// ── gcShadowController::GetType(void) const @ 0x0031f93c ──
+const cType *gcShadowController::GetType(void) const {
+    if (D_0009F7B8 == 0) {
+        if (D_0009F64C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F64C = cType::InitializeType(0, 0, 0x1D5, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F7B8 = cType::InitializeType(0, 0, 0x1EB, D_0009F64C,
+                                           &gcShadowController::New, 0, 0, 0);
+    }
+    return D_0009F7B8;
 }
