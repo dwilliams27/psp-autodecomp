@@ -35,6 +35,7 @@ public:
     void *GetCamera(void) const;
     void GetName(char *) const;
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     ~gcPlayer();
 

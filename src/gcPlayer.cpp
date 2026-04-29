@@ -9,6 +9,8 @@ public:
     void End(void);
 };
 
+template <class T> T *dcast(const cBase *);
+
 extern char *gcViewport_s_viewports;
 extern int gcPlayer_s_nDefaultController;
 extern unsigned short gcPlayer_s_nLastBoundController;  // 0x37D2FA
@@ -67,6 +69,66 @@ void gcPlayer::GetName(char *dest) const {
 void gcPlayer::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.End();
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::AssignCopy(const cBase *)  @ 0x002610a0, 240B
+// -----------------------------------------------------------------------------
+struct gcPlayer_half3 {
+    short a;
+    short b;
+    short c;
+};
+
+void gcPlayer::AssignCopy(const cBase *base) {
+    gcPlayer *other = dcast<gcPlayer>(base);
+    int *src8 = (int *)((char *)other + 8);
+    int value8 = *src8;
+    int *dst8 = (int *)((char *)this + 8);
+    *dst8 = value8;
+
+    int i = 0;
+    do {
+        char *srcByte = (char *)(i + (int)other);
+        char value = *(srcByte + 0xC);
+        char *dstByte = (char *)(i + (int)this);
+        i += 1;
+        *(dstByte + 0xC) = value;
+    } while (i < 0x14);
+
+    *(int *)((char *)this + 0x20) = *(int *)((char *)other + 0x20);
+    *(int *)((char *)this + 0x24) = *(int *)((char *)other + 0x24);
+    int *src28 = (int *)((char *)other + 0x28);
+    int value28 = *src28;
+    int *dst28 = (int *)((char *)this + 0x28);
+    int *src2c = (int *)((char *)other + 0x2C);
+    int *dst2c = (int *)((char *)this + 0x2C);
+    *dst28 = value28;
+    int value2c = *src2c;
+    *dst2c = value2c;
+    *(int *)((char *)this + 0x30) = *(int *)((char *)other + 0x30);
+    *(unsigned char *)((char *)this + 0x34) =
+        *(unsigned char *)((char *)other + 0x34);
+    *(unsigned char *)((char *)this + 0x35) =
+        *(unsigned char *)((char *)other + 0x35);
+    *(unsigned char *)((char *)this + 0x36) =
+        *(unsigned char *)((char *)other + 0x36);
+    *(float *)((char *)this + 0x38) = *(float *)((char *)other + 0x38);
+
+    int j = 0;
+    gcPlayer_half3 *dst = (gcPlayer_half3 *)((char *)this + 0x3C);
+    gcPlayer_half3 *src = (gcPlayer_half3 *)((char *)other + 0x3C);
+    do {
+        short a = src->a;
+        short b = src->b;
+        short c = src->c;
+        dst->a = a;
+        dst->b = b;
+        dst->c = c;
+        j += 1;
+        dst += 1;
+        src += 1;
+    } while (j <= 0);
 }
 
 // -----------------------------------------------------------------------------

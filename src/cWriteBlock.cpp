@@ -32,6 +32,11 @@ public:
 
 extern unsigned char gByteSwap;
 
+void cWriteBlock::Write(bool data) {
+    unsigned char tmp = (unsigned int)data;
+    cFileSystem::Write(mFile->mHandle, &tmp, 1);
+}
+
 void cWriteBlock::Write(char data) {
     cFileSystem::Write(mFile->mHandle, &data, 1);
 }
