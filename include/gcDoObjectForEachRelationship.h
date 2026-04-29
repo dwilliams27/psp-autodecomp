@@ -2,6 +2,8 @@
 #define GCDOOBJECTFOREACHRELATIONSHIP_H
 
 class gcExpression;
+class cBase;
+class cMemPool;
 
 class gcDoObjectForEachRelationship {
 public:
@@ -11,6 +13,7 @@ public:
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    static cBase *New(cMemPool *, cBase *);
 };
 
 #endif
