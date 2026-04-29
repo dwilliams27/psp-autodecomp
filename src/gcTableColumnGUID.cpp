@@ -1,10 +1,14 @@
 class cBase;
+class cFile;
 class cInStream;
 class cMemPool;
+class cWriteBlock;
 
 struct cGUID {
     int mA;
     int mB;
+
+    void Write(cWriteBlock &) const;
 };
 
 class cArrayBase_cGUID {
@@ -20,8 +24,34 @@ int cStrCopy(char *, const wchar_t *);
 int sscanf(const char *, const char *, ...);
 gcTableColumnGUID *dcast(const cBase *);
 
-struct gcTableColumnGUID {
-    char _pad[0x08];
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void End(void);
+};
+
+struct gcTableColumn {
+    void *mOwner;
+    void *mClassDesc;
+
+    void Write(cFile &) const;
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F478;
+extern cType *D_0009F490;
+
+struct gcTableColumnGUID : public gcTableColumn {
     cArrayBase_cGUID mValues;
 
     void AssignCopy(const cBase *other);
@@ -29,6 +59,8 @@ struct gcTableColumnGUID {
     void Get(int row, wchar_t *buf, int bufsize) const;
     void Set(int row, const wchar_t *text, bool flag);
     static cBase *New(cMemPool *pool, cBase *parent);
+    const cType *GetType(void) const;
+    void Write(cFile &file) const;
 };
 
 struct PoolBlock {
@@ -47,6 +79,24 @@ void gcTableColumnGUID::AssignCopy(const cBase *other) {
     gcTableColumnGUID *src = dcast(other);
     cArrayBase_cGUID &srcArr = *(cArrayBase_cGUID *)((char *)src + 8);
     ((cArrayBase_cGUID *)((char *)this + 8))->operator=(srcArr);
+}
+
+// 0x0027354c, 220B
+const cType *gcTableColumnGUID::GetType(void) const {
+    if (D_0009F490 == 0) {
+        if (D_0009F478 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F478 = cType::InitializeType(0, 0, 0x241, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F490 = cType::InitializeType(0, 0, 0x247, D_0009F478,
+                                           &gcTableColumnGUID::New, 0, 0, 0);
+    }
+    return D_0009F490;
 }
 
 // 0x00273828, 72B
@@ -89,4 +139,36 @@ cBase *gcTableColumnGUID::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0012b750, 196B
+void gcTableColumnGUID::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcTableColumn::Write(file);
+
+    {
+        int firstCount = (unsigned char *)mValues.mData
+                             ? (((int *)(unsigned char *)mValues.mData)[-1] &
+                                0x3FFFFFFF)
+                             : 0;
+        wb.Write(firstCount);
+    }
+
+    __asm__ volatile("" ::: "memory");
+    int i = 0;
+    void *data = (unsigned char *)mValues.mData;
+    int count = 0;
+    if (data != 0) {
+        count = ((int *)data)[-1] & 0x3FFFFFFF;
+    }
+    if (i < count) {
+        void *p = data;
+        do {
+            ((cGUID *)p)->Write(wb);
+            i++;
+            p = (char *)p + 8;
+        } while (i < count);
+    }
+
+    wb.End();
 }

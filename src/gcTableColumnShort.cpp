@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 class cInStream;
 class cMemPool;
 
@@ -14,8 +15,24 @@ int cAtoI(const wchar_t *);
 int cStrFormat(wchar_t *, const wchar_t *, ...);
 gcTableColumnShort *dcast(const cBase *);
 
-struct gcTableColumnShort {
-    char _pad[0x08];
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+struct gcTableColumn {
+    void *mOwner;
+    void *mClassDesc;
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F478;
+extern cType *D_0009F480;
+
+struct gcTableColumnShort : public gcTableColumn {
     cArrayShort mValues;
 
     void Read(cInStream &stream);
@@ -24,6 +41,7 @@ struct gcTableColumnShort {
     void Set(int row, const wchar_t *text, bool flag);
     int Compare(int row1, int row2) const;
     static cBase *New(cMemPool *pool, cBase *parent);
+    const cType *GetType(void) const;
 };
 
 struct PoolBlock {
@@ -47,6 +65,24 @@ void gcTableColumnShort::AssignCopy(const cBase *other) {
     gcTableColumnShort *src = dcast(other);
     cArrayShort &srcArr = *(cArrayShort *)((char *)src + 8);
     ((cArrayShort *)((char *)this + 8))->operator=(srcArr);
+}
+
+// 0x002715c0, 220B
+const cType *gcTableColumnShort::GetType(void) const {
+    if (D_0009F480 == 0) {
+        if (D_0009F478 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F478 = cType::InitializeType(0, 0, 0x241, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F480 = cType::InitializeType(0, 0, 0x243, D_0009F478,
+                                           &gcTableColumnShort::New, 0, 0, 0);
+    }
+    return D_0009F480;
 }
 
 // 0x002718a4, 56B
