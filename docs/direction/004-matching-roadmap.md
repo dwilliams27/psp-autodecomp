@@ -2,6 +2,8 @@
 
 Status snapshot: 2026-04-29, while `overnight/20260429-145324` was active. Numbers in this document are directional; refresh them after each merged run before using them for hard projections.
 
+Implementation update: commit `cfad8f7` landed the first near-term match-lift slice: known unmatchable/import picker filtering, multi-exemplar prompt injection, static method-template guidance, and chained/N-way permuter mutations. The current production focus is to measure that lift on targeted `Write`, `GetType`, `New`, `AssignCopy`, constructor, and small/medium `VisitReferences` runs before choosing the next research-heavy slice.
+
 This document extends `docs/direction/001-decompilation-phases.md` with the current production strategy for pushing the function matcher through the remaining work. The goal is to keep the project focused on the next highest-leverage work without pretending the whole remaining path is knowable upfront.
 
 ## Current Position
@@ -116,12 +118,17 @@ Recommended execution:
 - Prefer disjoint matching for production throughput. Use shootouts only when deciding whether to promote or demote a model/prompt.
 - Keep batch size small enough that failures do not tie up too much wall time, but large enough to amortize setup. Current batch size 2 is a reasonable default.
 
-Immediate implementation work that supports this phase:
+Landed support for this phase:
 
-1. Finish excluding known unmatchable CRT/SDK/import/mid-function-label targets from normal picks.
-2. Make reports emphasize matched bytes per agent-hour and cost per matched byte, not just function hit rate.
-3. Keep token/cost attribution working for every backend/model/effort tuple.
-4. Keep the active run cleanup path strict: verify, revert out-of-scope edits, merge only clean matches.
+1. Known unmatchable CRT/SDK/import/mid-function-label targets are filtered out of normal picks.
+2. Chained permuter mutations and short N-way simple-statement permutation are available for candidate search.
+3. Prompts include ranked matched exemplars and static method-template guidance for the highest-yield method families.
+
+Remaining operational work:
+
+1. Make reports emphasize matched bytes per agent-hour and cost per matched byte, not just function hit rate.
+2. Keep token/cost attribution working for every backend/model/effort tuple.
+3. Keep the active run cleanup path strict: verify, revert out-of-scope edits, merge only clean matches.
 
 Exit signals:
 
@@ -135,12 +142,12 @@ Purpose: turn medium functions into routine matches by giving agents better loca
 
 This is the most important near-term match-lift phase. The next byte-heavy pool is too large for generic prompting. Agents need category-specific examples from the same binary, same object, same class family, and same compiler behavior zone.
 
-Implement or expand:
+Baseline support is now landed; expand it where current-run data shows payoff:
 
 1. Matched corpus exemplars in prompts.
    - Prefer same method name and same object file.
    - Prefer same class prefix/family when exact method exemplars are scarce.
-   - Include both source and compact disassembly shape when useful.
+   - Currently injects source exemplars; add compact disassembly shape only if failures show source alone is insufficient.
    - Avoid flooding prompts; 2-4 high-quality examples are usually better than a large dump.
 
 2. Cross-class method templates.
@@ -153,6 +160,7 @@ Implement or expand:
    - `VisitReferences`
    - `Evaluate`
    - safe subsets of `Read`
+   - Current implementation is static guidance in the orchestrator; generated corpus-derived templates are a follow-up if static notes are too shallow.
 
 3. Category-specific prompt notes.
    - Known source ordering sensitivities.
@@ -488,10 +496,10 @@ Periodic deeper review:
 The likely best order from here:
 
 1. Continue current production churn while it is producing clean matches.
-2. Land unmatchable-target exclusion and reporting improvements.
-3. Build exemplar/template prompt support for the best method families.
+2. Measure the landed match-lift slice on targeted campaigns and compare hit rate, bytes/hour, and cost/byte against recent random runs.
+3. Improve reporting around matched bytes per agent-hour and cost per matched byte.
 4. Run targeted campaigns on `Write`, `GetType`, `New`, `AssignCopy`, constructors, and small/medium `VisitReferences`.
-5. Implement chained mutation / N-way permutation and diff-guided retry support.
+5. Add diff-guided retry support once failures show repeated small byte diffs that prompts/permuter do not fix.
 6. Start compiler patch work for the `Read` prologue divergence, using smaller compiler-patch scaffolding first if useful.
 7. Shift from broad matching to mid-game campaigns across UI, entity/controller, action/value, serialization, visitor, and engine subsystem clusters.
 8. Classify >1KB functions before attempting them at scale.
@@ -511,4 +519,3 @@ The plan should change if any of these turn out differently than expected:
 - Some large functions may be non-game library/runtime code. If so, mark or isolate them instead of chasing them as normal source.
 
 The central tactic is to keep the matching frontier moving while repeatedly turning discoveries into reusable leverage: templates, exemplars, scheduler rules, failure tags, compiler patches, and reports.
-
