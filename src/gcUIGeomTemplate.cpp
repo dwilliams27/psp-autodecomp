@@ -1,11 +1,26 @@
 #include "cBase.h"
 
 class cMemPool;
+class cFile;
 
 class cObject {
 public:
     cObject(cBase *);
     cObject &operator=(const cObject &);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(float);
+    void End(void);
+};
+
+class eDynamicGeomTemplate {
+public:
+    void Write(cFile &) const;
 };
 
 class gcEvent {
@@ -24,9 +39,17 @@ public:
     float mField50;           // 0x50
     gcEvent mEvent;           // 0x54
 
+    gcUIGeomTemplate(cBase *);
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+};
+
+struct ParamWriteVtableEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *);
 };
 
 struct AllocRec {
@@ -37,6 +60,7 @@ struct AllocRec {
 
 extern "C" {
     void gcUIGeomTemplate__gcUIGeomTemplate_cBaseptr(void *self, cBase *parent);
+    void gcEvent__gcEvent_cBaseptr_constcharptr(void *, cBase *, const char *);
 }
 
 class gcPartialBodyController {
@@ -103,4 +127,26 @@ nwTransport *nwTransport::Create(nwTransportType, unsigned short) {
 
 void *nwNetwork::GetLobby(void) {
     return 0;
+}
+
+gcUIGeomTemplate::gcUIGeomTemplate(cBase *parent) : cObject(parent) {
+    mField44 = 1000.0f;
+    *(void **)((char *)this + 4) = (void *)0x38B3F0;
+    mField48 = 0x280;
+    mField4C = 0x1E0;
+    mField50 = 1.0f;
+    gcEvent__gcEvent_cBaseptr_constcharptr((char *)this + 0x54, (cBase *)this, 0);
+}
+
+void gcUIGeomTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    ((const eDynamicGeomTemplate *)this)->Write(file);
+    wb.Write(mField48);
+    wb.Write(mField4C);
+    wb.Write(mField50);
+    const ParamWriteVtableEntry *entry =
+        (const ParamWriteVtableEntry *)(*(char **)((const char *)this + 0x58) + 0x28);
+    char *eventBase = (char *)this + 0x54;
+    entry->fn(eventBase + entry->offset, *(cFile **)&wb._data[0]);
+    wb.End();
 }
