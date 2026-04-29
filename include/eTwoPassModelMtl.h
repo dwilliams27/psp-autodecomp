@@ -7,10 +7,12 @@ class cMemPool;
 class eDrawInfo;
 class mOCS;
 class eColor;
+class cType;
 
 class eTwoPassModelMtl {
 public:
     eTwoPassModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
