@@ -19,6 +19,41 @@ class cObject {
 public:
     char _pad[0x44];
     void Write(cFile &) const;
+    cObject &operator=(const cObject &);
+};
+
+template <class T>
+class cArrayBase {
+public:
+    T *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
+template <class T> T *dcast(const cBase *);
+
+class eRoomTreeNode;
+class eRoom;
+class ePortal;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+class gcDesiredEntity {
+public:
+    gcDesiredEntity &operator=(const gcDesiredEntity &);
+};
+
+struct ShortTriple {
+    short x;
+    short y;
+    short z;
+};
+
+struct IntField {
+    int value;
 };
 
 class eRoomAABBTree {
@@ -38,7 +73,18 @@ public:
     int *mHandles;
 
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+};
+
+class gcDoEntitySetCollisionMask {
+public:
+    void AssignCopy(const cBase *);
+};
+
+class gcGeomTrailController {
+public:
+    void AssignCopy(const cBase *);
 };
 
 extern "C" {
@@ -76,6 +122,23 @@ void eRoomSet::Write(cFile &file) const {
     wb.End();
 }
 
+// -- eRoomSet::AssignCopy(const cBase *) @ 0x001eb0b8 --
+void eRoomSet::AssignCopy(const cBase *base) {
+    eRoomSet *other = dcast<eRoomSet>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    ((cArrayBase<eRoomTreeNode> *)((char *)this + 0x44))->operator=(
+        *(const cArrayBase<eRoomTreeNode> *)((char *)other + 0x44));
+    ((cArrayBase<cHandleT<eRoom> > *)((char *)this + 0x48))->operator=(
+        *(const cArrayBase<cHandleT<eRoom> > *)((char *)other + 0x48));
+    ((cArrayBase<cHandleT<ePortal> > *)((char *)this + 0x4C))->operator=(
+        *(const cArrayBase<cHandleT<ePortal> > *)((char *)other + 0x4C));
+    *(int *)((char *)this + 0x50) = *(const int *)((char *)other + 0x50);
+    *(int *)((char *)this + 0x54) = *(const int *)((char *)other + 0x54);
+    int *srcField58 = (int *)((char *)other + 0x58);
+    int *dstField58 = (int *)((char *)this + 0x58);
+    *dstField58 = *srcField58;
+}
+
 // -- eRoomSet::New(cMemPool *, cBase *) static @ 0x001eb13c --
 cBase *eRoomSet::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -90,4 +153,45 @@ cBase *eRoomSet::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// -- gcDoEntitySetCollisionMask::AssignCopy(const cBase *) @ 0x002c571c --
+void gcDoEntitySetCollisionMask::AssignCopy(const cBase *base) {
+    gcDoEntitySetCollisionMask *other = dcast<gcDoEntitySetCollisionMask>(base);
+    int *self = (int *)this;
+    int *src = (int *)other;
+    int flags = self[2] & ~3;
+    self[2] = flags;
+    self[2] = flags | (src[2] & 3);
+    IntField *dstFieldC = (IntField *)((char *)this + 0xC);
+    IntField *srcFieldC = (IntField *)((char *)other + 0xC);
+    int valueC = srcFieldC->value;
+    dstFieldC->value = valueC;
+    int value10 = src[4];
+    gcDesiredEntity *dstEntity14 = (gcDesiredEntity *)((char *)this + 0x14);
+    const gcDesiredEntity *srcEntity14 = (const gcDesiredEntity *)((char *)other + 0x14);
+    self[4] = value10;
+    dstEntity14->operator=(*srcEntity14);
+    ((gcDesiredEntity *)((char *)this + 0x40))->operator=(
+        *(const gcDesiredEntity *)((char *)other + 0x40));
+}
+
+// -- gcGeomTrailController::AssignCopy(const cBase *) @ 0x0031c85c --
+void gcGeomTrailController::AssignCopy(const cBase *base) {
+    gcGeomTrailController *other = dcast<gcGeomTrailController>(base);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(int *)((char *)this + 12) = *(const int *)((char *)other + 12);
+    *(float *)((char *)this + 16) = *(const float *)((char *)other + 16);
+    *(float *)((char *)this + 20) = *(const float *)((char *)other + 20);
+    *(float *)((char *)this + 24) = *(const float *)((char *)other + 24);
+
+    int i = 0;
+    ShortTriple *dst = (ShortTriple *)((char *)this + 0x1C);
+    ShortTriple *src = (ShortTriple *)((char *)other + 0x1C);
+    do {
+        *dst = *src;
+        i++;
+        dst++;
+        src++;
+    } while (i <= 0);
 }
