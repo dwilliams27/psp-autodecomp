@@ -2,9 +2,28 @@
 //
 // Functions:
 //   0x001C4E24 gcDoRecord::New(cMemPool *, cBase *) static  152B
+//   0x001C4EBC gcDoRecord::GetType(void) const              280B
+//   0x001C4FD4 gcDoRecord::Write(cFile &) const             148B
 
 class cBase;
+class cFile;
 class cMemPool;
+class cType;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class gcDesiredValue {
+public:
+    unsigned int mValue;
+    void Write(cWriteBlock &) const;
+};
 
 class gcExpression {
 };
@@ -16,6 +35,15 @@ public:
     unsigned int mNext;
 
     gcAction(cBase *);
+    void Write(cFile &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct PoolBlock {
@@ -32,14 +60,18 @@ struct AllocEntry {
 extern "C" void gcAction_gcAction(void *, cBase *);
 
 extern char gcDoRecordvirtualtable[];
+extern const char gcDoRecord_base_name[];
+extern const char gcDoRecord_base_desc[];
 
 class gcDoRecord : public gcAction {
 public:
     int mFieldC;
-    unsigned int mField10;
+    gcDesiredValue mField10;
     unsigned int mField14;
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
 };
 
 cBase *gcDoRecord::New(cMemPool *pool, cBase *parent) {
@@ -60,4 +92,50 @@ cBase *gcDoRecord::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoRecord;
+
+const cType *gcDoRecord::GetType(void) const {
+    if (!type_gcDoRecord) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoRecord_base_name, gcDoRecord_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression,
+                                                0, 0, 0, 0);
+        }
+        type_gcDoRecord = cType::InitializeType(0, 0, 0x2E9, type_action,
+                                                gcDoRecord::New, 0, 0, 0);
+    }
+    return type_gcDoRecord;
+}
+
+void gcDoRecord::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    gcAction::Write(file);
+    wb.Write(mFieldC);
+    mField10.Write(wb);
+
+    int value = mField14;
+    int flag = 0;
+    if (value & 1) {
+        flag = 1;
+    }
+    cBase *ptr;
+    if (flag != 0) {
+        ptr = 0;
+    } else {
+        ptr = (cBase *)value;
+    }
+    wb.WriteBase(ptr);
+    wb.End();
 }
