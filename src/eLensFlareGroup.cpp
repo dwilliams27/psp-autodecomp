@@ -8,6 +8,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -52,6 +60,7 @@ public:
     eLensFlareGroup(cBase *);
     ~eLensFlareGroup();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -67,6 +76,10 @@ public:
 extern char eLensFlareGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E58;
 
 // ── eLensFlareGroup::Write(cFile &) const @ 0x000192EC ──
 void eLensFlareGroup::Write(cFile &file) const {
@@ -96,6 +109,25 @@ cBase *eLensFlareGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eLensFlareGroup::GetType(void) const @ 0x001DDF38 ──
+const cType *eLensFlareGroup::GetType(void) const {
+    if (D_00040E58 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E58 = cType::InitializeType(0, 0, 0x19C, D_00040C94,
+                                           &eLensFlareGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E58;
 }
 
 // ── eLensFlareGroup::~eLensFlareGroup(void) @ 0x001DE030 ──
