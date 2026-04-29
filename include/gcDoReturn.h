@@ -57,6 +57,7 @@ public:
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     void GetText(char *) const;
+    const cType *GetType(void) const;
 };
 
 struct gcDoSwitchCaseData {
@@ -106,6 +107,8 @@ class gcDoSwitch {
 public:
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 #endif
