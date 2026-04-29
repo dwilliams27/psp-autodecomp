@@ -24,6 +24,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -39,6 +45,8 @@ public:
 
 class gcEntityCustomAttackGroup : public cGroup {
 public:
+    static bool IsManagedTypeExternalStatic();
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     ~gcEntityCustomAttackGroup();
@@ -51,6 +59,31 @@ public:
 };
 
 extern char gcEntityCustomAttackGroupvirtualtable[];
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
+
+cBase *gcEntityCustomAttackGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcEntityCustomAttackGroup *result = 0;
+    gcEntityCustomAttackGroup *obj =
+        (gcEntityCustomAttackGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = gcEntityCustomAttackGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 // gcEntityCustomAttackGroup::Write(cFile &) const @ 0x000d265c
 void gcEntityCustomAttackGroup::Write(cFile &file) const {
