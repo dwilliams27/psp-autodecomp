@@ -72,6 +72,7 @@ public:
     void CreateData(void);
     void Apply(int, const eCamera *, const eWorld *) const;
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     int GetNumExternalDependencies(void) const;
 
     static eBumpOffsetMap *New(cMemPool *, cBase *);

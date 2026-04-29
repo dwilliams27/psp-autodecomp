@@ -39,11 +39,23 @@ public:
     void Write(cFile &) const;
 };
 
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+struct cHandleVal {
+    int mIndex;
+};
+
+template <class T> T *dcast(const cBase *);
+
 class eFrameBufferTexture : public eVirtualTexture {
 public:
     eFrameBufferTexture(cBase *);
     ~eFrameBufferTexture(void);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -72,6 +84,22 @@ void eFrameBufferTexture::Write(cFile &file) const {
 // ── eFrameBufferTexture::~eFrameBufferTexture(void) @ 0x00081754 ──
 eFrameBufferTexture::~eFrameBufferTexture(void) {
     *(void **)((char *)this + 4) = eFrameBufferTextureclassdesc;
+}
+
+// ── eFrameBufferTexture::AssignCopy(const cBase *) @ 0x0021842c ──
+void eFrameBufferTexture::AssignCopy(const cBase *base) {
+    eFrameBufferTexture *other = dcast<eFrameBufferTexture>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    ((signed char *)this)[0x44] = ((const signed char *)other)[0x44];
+    ((signed char *)this)[0x45] = ((const signed char *)other)[0x45];
+    ((signed char *)this)[0x46] = ((const signed char *)other)[0x46];
+    ((unsigned char *)this)[0x47] = ((const unsigned char *)other)[0x47];
+    ((short *)this)[0x48 / 2] = ((const short *)other)[0x48 / 2];
+    ((short *)this)[0x4A / 2] = ((const short *)other)[0x4A / 2];
+    __asm__ volatile("" ::: "memory");
+    *(cHandleVal *)((char *)this + 0x4C) =
+        *(cHandleVal *)((char *)other + 0x4C);
+    ((unsigned char *)this)[0x50] = ((const unsigned char *)other)[0x50];
 }
 
 // ── eFrameBufferTexture::New(cMemPool *, cBase *) static @ 0x002184b4 ──

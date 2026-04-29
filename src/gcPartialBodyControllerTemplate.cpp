@@ -24,6 +24,7 @@ public:
     void *mData;
     void *mOwner;
     void Write(cWriteBlock &) const;
+    cBaseArray &operator=(const cBaseArray &);
 };
 
 template <class T>
@@ -57,6 +58,7 @@ public:
     cBaseArray mArr2;       // 0x20
 
     gcPartialBodyControllerTemplate(cBase *);
+    void AssignCopy(const cBase *);
     int FindAnimationSet(cHandleT<gcEnumeration>) const;
     void Write(cFile &) const;
     int FindAttackSet(cHandleT<gcEnumeration>) const;
@@ -79,6 +81,8 @@ gcPartialBodyControllerSet::GetEnumeration(void) const {
 extern char gcPartialBodyControllerTemplatevtable[];   // 0x38BA50
 
 void gcPartialBodyControllerTemplate_ctor(gcPartialBodyControllerTemplate *, cBase *);
+
+template <class T> T *dcast(const cBase *);
 
 // Pool allocation infrastructure (matches gcEntityAttackSet::New pattern).
 struct PoolBlock {
@@ -116,6 +120,22 @@ void gcPartialBodyControllerTemplate::Write(cFile &file) const {
     wb.Write(mField1C);
     mArr2.Write(wb);
     wb.End();
+}
+
+// =====================================================================
+// 0x002a54fc — AssignCopy(const cBase *)
+// =====================================================================
+void gcPartialBodyControllerTemplate::AssignCopy(const cBase *base) {
+    gcPartialBodyControllerTemplate *other =
+        dcast<gcPartialBodyControllerTemplate>(base);
+    unsigned int *dstIndex = &mIndex;
+    mHandle1 = other->mHandle1;
+    const unsigned int *srcIndex = &other->mIndex;
+    *dstIndex = *srcIndex;
+    mHandle2 = other->mHandle2;
+    mArr1.operator=(other->mArr1);
+    mField1C = other->mField1C;
+    mArr2.operator=(other->mArr2);
 }
 
 // =====================================================================
