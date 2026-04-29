@@ -43,6 +43,7 @@ public:
     char _pad[0x80];
     eOnePassModelMtl(cBase *);
     ~eOnePassModelMtl(void);
+    eOnePassModelMtl &operator=(const eOnePassModelMtl &);
     void Write(cFile &) const;
 };
 
@@ -53,6 +54,7 @@ public:
 
     eLightEmitModelMtl(cBase *);
     ~eLightEmitModelMtl(void);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -70,6 +72,9 @@ public:
 
 extern char eLightEmitModelMtlvirtualtable[];
 
+template <class T>
+T dcast(const cBase *);
+
 // ── eLightEmitModelMtl::Write @ 0x00082ca8 ──
 #pragma control sched=1
 void eLightEmitModelMtl::Write(cFile &file) const {
@@ -83,6 +88,18 @@ void eLightEmitModelMtl::Write(cFile &file) const {
 // ── eLightEmitModelMtl::~eLightEmitModelMtl @ 0x00082e48 ──
 eLightEmitModelMtl::~eLightEmitModelMtl(void) {
     *(void **)((char *)this + 4) = eLightEmitModelMtlvirtualtable;
+}
+
+// ── eLightEmitModelMtl::AssignCopy @ 0x00218f28 ──
+void eLightEmitModelMtl::AssignCopy(const cBase *base) {
+    eLightEmitModelMtl *src = dcast<eLightEmitModelMtl *>(base);
+    ((eOnePassModelMtl *)this)->operator=(*(eOnePassModelMtl *)src);
+    mField80 = src->mField80;
+    __asm__ volatile("" ::: "memory");
+    unsigned int *dst84 = &mField84;
+    unsigned int *src84 = &src->mField84;
+    __asm__ volatile("" : "+r"(dst84), "+r"(src84));
+    *dst84 = *src84;
 }
 
 // ── eLightEmitModelMtl::New @ 0x00218f80 ──

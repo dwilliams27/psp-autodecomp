@@ -5,6 +5,29 @@
 
 class cBase;
 class cMemPool;
+class eMaterialSet;
+class eSurfaceSet;
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+template <class T>
+T dcast(const cBase *);
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cArrayBase {
+public:
+    void *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
 
 struct PoolBlock {
     char pad[0x1C];
@@ -19,6 +42,7 @@ struct AllocEntry {
 
 class eSkin {
 public:
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -27,6 +51,16 @@ extern "C" void cObject_cObject(void *self, cBase *parent);
 extern char eSkinclassdesc[];
 
 #pragma control sched=1
+// -- eSkin::AssignCopy @ 0x001f16cc --
+void eSkin::AssignCopy(const cBase *base) {
+    eSkin *src = dcast<eSkin *>(base);
+    ((cObject *)this)->operator=(*(cObject *)src);
+    ((cArrayBase<cHandleT<eMaterialSet> > *)((char *)this + 0x44))->operator=(
+        *(cArrayBase<cHandleT<eMaterialSet> > *)((char *)src + 0x44));
+    ((cArrayBase<cHandleT<eSurfaceSet> > *)((char *)this + 0x48))->operator=(
+        *(cArrayBase<cHandleT<eSurfaceSet> > *)((char *)src + 0x48));
+}
+
 // -- eSkin::New @ 0x001f1724 --
 cBase *eSkin::New(cMemPool *pool, cBase *parent) {
     eSkin *result = 0;

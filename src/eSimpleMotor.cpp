@@ -67,6 +67,7 @@ class eSimpleMotor : public eSimulatedMotor {
 public:
     eSimpleMotor(cBase *);
     ~eSimpleMotor();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -82,6 +83,9 @@ public:
     }
 };
 
+template <class T>
+T dcast(const cBase *);
+
 // ── eSimpleMotor::eSimpleMotor(cBase *) @ 0x0006b840 ──
 eSimpleMotor::eSimpleMotor(cBase *parent) : eSimulatedMotor(parent) {
     *(void **)((char *)this + 4) = eSimpleMotorvirtualtable;
@@ -95,6 +99,18 @@ void eSimpleMotor::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     eSimulatedMotor::Write(file);
     wb.End();
+}
+
+// ── eSimpleMotor::AssignCopy(const cBase *) @ 0x00209b78 ──
+void eSimpleMotor::AssignCopy(const cBase *base) {
+    eSimpleMotor *src = dcast<eSimpleMotor *>(base);
+    *(int *)((char *)this + 8) = *(int *)((char *)src + 8);
+    *(int *)((char *)this + 0xC) = *(int *)((char *)src + 0xC);
+    *(int *)((char *)this + 0x10) = *(int *)((char *)src + 0x10);
+    *(unsigned char *)((char *)this + 0x14) =
+        *(unsigned char *)((char *)src + 0x14);
+    *(int *)((char *)this + 0x18) = *(int *)((char *)src + 0x18);
+    *(int *)((char *)this + 0x1C) = *(int *)((char *)src + 0x1C);
 }
 
 // ── eSimpleMotor::~eSimpleMotor(void) @ 0x0006b878 ──
