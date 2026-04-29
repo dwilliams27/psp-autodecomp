@@ -181,12 +181,14 @@ class cMemPool;
 class eReflectionModelMtl {
 public:
     eReflectionModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static eReflectionModelMtl *New(cMemPool *, cBase *);
 };
 
