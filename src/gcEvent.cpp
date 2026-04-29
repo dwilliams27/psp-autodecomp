@@ -2,8 +2,17 @@
 
 class cBase;
 class cMemPool;
+class cType;
 
 inline void *operator new(unsigned int, void *p) { return p; }
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct AllocRec {
     short offset;
@@ -26,7 +35,11 @@ public:
     gcEvent(cBase *, const char *);
     gcEvent &operator=(const gcEvent &other);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
+
+extern cType *D_000385DC;
+extern cType *D_000998FC;
 
 gcEvent &gcEvent::operator=(const gcEvent &other) {
     mExprList = other.mExprList;
@@ -47,4 +60,17 @@ cBase *gcEvent::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcEvent::GetType(void) const {
+    if (D_000998FC == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                               (const char *)0x36D89C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_000998FC = cType::InitializeType(0, 0, 0x69, D_000385DC,
+                                           &gcEvent::New, 0, 0, 0);
+    }
+    return D_000998FC;
 }
