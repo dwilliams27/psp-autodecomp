@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eGeom;
 
 template <class T> T *dcast(const cBase *);
@@ -11,9 +12,22 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cGroup {
@@ -34,6 +48,9 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static bool IsManagedTypeExternalStatic();
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType() const;
     ~gcStaticInstanceGroup();
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -72,6 +89,12 @@ public:
 void cFile_SetCurrentPos_Group(void *, unsigned int);
 
 extern char gcStaticInstanceGroupvirtualtable[];  // 0x00386090
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998A0;
 
 class eDynamicMeshExtrudedShadowFace {
 public:
@@ -101,6 +124,30 @@ void gcStaticInstanceGroup::AssignCopy(const cBase *base) {
     gcStaticInstanceGroup *src = dcast<gcStaticInstanceGroup>(base);
     mFlag = src->mFlag;
     mField = src->mField;
+}
+
+// ── gcStaticInstanceGroup::New(cMemPool *, cBase *) static @ 0x00235d1c ──
+cBase *gcStaticInstanceGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    gcStaticInstanceGroup *result = 0;
+    gcStaticInstanceGroup *obj =
+        (gcStaticInstanceGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = gcStaticInstanceGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 void gcFunctionGroup::AssignCopy(const cBase *base) {
