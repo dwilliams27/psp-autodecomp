@@ -5,11 +5,13 @@
 
 class cBase;
 class cMemPool;
+class cType;
 class gcPlayer;
 
 class gcEntity {
 public:
     gcEntity(cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     static void OnFullscreenCinematicStarting(void);
     gcPlayer *GetPlayer(void) const;
