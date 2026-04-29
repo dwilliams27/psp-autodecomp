@@ -1,6 +1,7 @@
 // gcLightingConfig — lighting configuration class.
 // Functions matched here:
 //   gcLightingConfig::Write(cFile &) const         @ 0x000f0ba4  (gcAll_psp.obj)
+//   gcLightingConfig::New(cMemPool *, cBase *)     @ 0x002468bc  (gcAll_psp.obj)
 //   gcLightingConfig::GetType(void) const          @ 0x00246980  (gcAll_psp.obj)
 //   gcLightingConfig::~gcLightingConfig(void)      @ 0x00246a20  (gcAll_psp.obj)
 
@@ -20,6 +21,7 @@ public:
 };
 
 extern char cBaseclassdesc[];                       // @ 0x37E6A8
+extern char gcLightingConfigvirtualtable[];
 
 extern const char gcLightingConfig_base_name[];     // @ 0x36D894
 extern const char gcLightingConfig_base_desc[];     // @ 0x36D89C
@@ -41,6 +43,12 @@ struct gcLC_DeleteRecord {
     short offset;
     short pad;
     void (*fn)(void *, void *);
+};
+
+struct gcLC_AllocRecord {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
 };
 
 class gcLightingConfig_cMemPoolNS {
@@ -77,6 +85,32 @@ void gcLightingConfig::Write(cFile &file) const {
     wb.Write(*(float *)((char *)this + 0x1C));
     wb.Write(*(unsigned int *)((char *)this + 0x20));
     wb.End();
+}
+
+// 0x002468bc - gcLightingConfig::New(cMemPool *, cBase *) static
+cBase *gcLightingConfig::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((gcLC_PoolBlock *)block)->allocTable;
+    gcLC_AllocRecord *entry = (gcLC_AllocRecord *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcLightingConfig *result = 0;
+    gcLightingConfig *obj =
+        (gcLightingConfig *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = cBaseclassdesc;
+        ((void **)obj)[0] = parent;
+        ((void **)obj)[1] = gcLightingConfigvirtualtable;
+        ((int *)obj)[2] = 8;
+        *(float *)((char *)obj + 0x0C) = 1.5f;
+        ((int *)obj)[4] = 1;
+        result = obj;
+        *(float *)((char *)obj + 0x14) = 2.0f;
+        ((int *)obj)[6] = 0x1388;
+        *(float *)((char *)obj + 0x1C) = 1.0f;
+        ((int *)obj)[8] = 0;
+    }
+    return (cBase *)result;
 }
 
 // ── GetType ──  @ 0x00246980, 160B
