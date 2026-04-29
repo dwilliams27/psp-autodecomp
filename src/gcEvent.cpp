@@ -23,6 +23,7 @@ struct AllocRec {
 class gcExpressionList {
 public:
     gcExpressionList &operator=(const gcExpressionList &other);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 class gcEvent {
@@ -36,6 +37,7 @@ public:
     gcEvent &operator=(const gcEvent &other);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 extern cType *D_000385DC;
@@ -73,4 +75,11 @@ const cType *gcEvent::GetType(void) const {
                                            &gcEvent::New, 0, 0, 0);
     }
     return D_000998FC;
+}
+
+void gcEvent::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    this->mExprList.VisitReferences(flags, (cBase *)this, cb, user, mask);
 }

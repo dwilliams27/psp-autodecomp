@@ -74,10 +74,18 @@ void gcStreamedCinematicConfig_ctor(void *, cBase *);
 class gcStreamedCinematicConfig {
 public:
     gcStreamedCinematicConfig(cBase *);
+    ~gcStreamedCinematicConfig();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    static void operator delete(void *p) {
+        void *pool = cMemPool_GetPoolFromPtr(p);
+        void *block = *(void **)((char *)pool + 0x24);
+        DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        short off = rec->offset;
+        rec->fn((char *)block + off, p);
+    }
 };
 
 gcStreamedCinematicConfig *dcast(const cBase *);
@@ -157,22 +165,8 @@ const cType *gcStreamedCinematicConfig::GetType(void) const {
 
 // ── Destructor ──
 
-extern "C" {
-
-void gcStreamedCinematicConfig___dtor_gcStreamedCinematicConfig_void(
-    gcStreamedCinematicConfig *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = gcStreamedCinematicConfigclassdesc;
-        gcStreamedCinematic::Delete((cBase *)self);
-        *(void **)((char *)self + 4) = cBaseclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
-    }
-}
-
+gcStreamedCinematicConfig::~gcStreamedCinematicConfig() {
+    *(void **)((char *)this + 4) = gcStreamedCinematicConfigclassdesc;
+    gcStreamedCinematic::Delete((cBase *)this);
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
