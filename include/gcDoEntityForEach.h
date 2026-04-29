@@ -2,6 +2,10 @@
 #define GCDOENTITYFOREACH_H
 
 class gcExpression;
+class cBase;
+class cFile;
+class cMemPool;
+class cType;
 
 class gcDoEntityForEach {
 public:
@@ -11,12 +15,9 @@ public:
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
 };
-
-class cBase;
-class cFile;
-class cMemPool;
-class cType;
 
 class gcDoEntityFindAttachedBase {
 public:
