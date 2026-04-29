@@ -1,7 +1,11 @@
 class cBase;
 class cFile;
-class cMemPool;
 class ePoint;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 template <class T>
 class cHandleT {
@@ -18,19 +22,36 @@ public:
     void End(void);
 };
 
-// External helpers for base-class methods (resolved at link time;
-// compare_func.py masks the jal relocations so the unresolved target is fine).
-void gcSubGeomController_gcSubGeomController(void *self, cBase *parent);
-void gcSubGeomController_Reset(void *self, cMemPool *pool, bool flag);
-void gcSubGeomController_Write(const void *self, cFile &file);
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 extern "C" void *__vec_new(void *arr, int count, int size, void (*ctor)(void *));
 
-class gcGeomCurveController {
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class gcSubGeomController {
 public:
-    void *m_parent;              // 0x00
-    void *m_vtable;              // 0x04
-    char m_pad08[0x1C];          // 0x08..0x23 (rest of gcSubGeomController state)
+    char _pad[0x24];
+
+    gcSubGeomController(cBase *parent);
+    ~gcSubGeomController();
+    void Reset(cMemPool *pool, bool flag);
+    void Write(cFile &file) const;
+    int Read(cFile &file, cMemPool *pool);
+};
+
+class gcGeomCurveController : public gcSubGeomController {
+public:
     cHandleT<ePoint> m_target;   // 0x24
     int m_pad28;                 // 0x28
     short m_flag;                // 0x2C
@@ -38,11 +59,21 @@ public:
     char m_arr30[8];             // 0x30..0x37
 
     gcGeomCurveController(cBase *parent);
+    ~gcGeomCurveController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    int Read(cFile &file, cMemPool *pool);
     void SetTarget(cHandleT<ePoint> p);
     void AssignCopy(const cBase *base);
     static gcGeomCurveController *New(cMemPool *pool, cBase *parent);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // Free-function wrapper declaration so New can call the ctor via an unresolved
@@ -66,6 +97,11 @@ struct gcc_half3 {
     short c;
 };
 
+gcGeomCurveController::~gcGeomCurveController() {
+    *(void **)((char *)this + 4) = (void *)0x38BF20;
+    *(int *)((char *)this + 8) = 0;
+}
+
 void gcGeomCurveController::SetTarget(cHandleT<ePoint> p) {
     m_flag = 1;
     m_target = p;
@@ -75,18 +111,28 @@ void gcGeomCurveController::SetTarget(cHandleT<ePoint> p) {
 
 void gcGeomCurveController::Reset(cMemPool *pool, bool flag) {
     if (flag) {
-        gcSubGeomController_Reset(this, pool, flag);
+        gcSubGeomController::Reset(pool, flag);
     }
 }
 
 void gcGeomCurveController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
-    gcSubGeomController_Write(this, file);
+    gcSubGeomController::Write(file);
     wb.End();
 }
 
-gcGeomCurveController::gcGeomCurveController(cBase *parent) {
-    gcSubGeomController_gcSubGeomController(this, parent);
+int gcGeomCurveController::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcSubGeomController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+gcGeomCurveController::gcGeomCurveController(cBase *parent) : gcSubGeomController(parent) {
     *(void **)((char *)this + 4) = (void *)0x38BF20;
     m_target.mIndex = 0;
     m_pad28 = 0;
