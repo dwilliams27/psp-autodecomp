@@ -25,6 +25,9 @@ public:
 template <class T>
 class cSubHandleT {
 public:
+    cSubHandleT();
+    cSubHandleT(const cSubHandleT &);
+    ~cSubHandleT();
     int mIndex;
 };
 
@@ -88,7 +91,9 @@ public:
     gcStringTable(cBase *);
     ~gcStringTable();
     void AssignCopy(const cBase *);
+    gcString *GetSubObject(cSubHandleT<gcString>, int) const;
     cHandlePairT<gcStringTable, cSubHandleT<gcString> > GetStringHandle(int) const;
+    int IsValid(cSubHandleT<gcString>, int) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -185,6 +190,97 @@ gcStringTable::GetStringHandle(int index) const {
     result.mHandle.mIndex = handle;
     result.mSubHandle.mIndex = subp->mIndex;
     return result;
+}
+
+// ── gcStringTable::IsValid(cSubHandleT<gcString>, int) const @ 0x000d6fd4 ──
+int gcStringTable::IsValid(cSubHandleT<gcString> handle, int offset) const {
+    if (offset < 0) {
+        return 0;
+    }
+
+    volatile int *handleIndexPtr = &handle.mIndex;
+    int stateIndex = *handleIndexPtr;
+    if (stateIndex == 0) {
+        return 0;
+    }
+
+    stateIndex = stateIndex & 0xFFFF;
+    int nextIndex = stateIndex;
+    nextIndex += offset;
+    void **states = *(void ***)((char *)this + 0x44);
+    int count = 0;
+    if (states == 0) {
+    } else {
+        count = ((int *)states)[-1];
+    }
+    if (nextIndex >= count) {
+        return 0;
+    }
+    if (stateIndex < 0) {
+        return 0;
+    }
+
+    int count2 = 0;
+    if (states != 0) {
+        count2 = ((int *)states)[-1];
+    }
+    if (stateIndex >= count2) {
+        return 0;
+    }
+
+    void *state = states[stateIndex];
+    int result = 0;
+    if (state != 0) {
+        int valid = (*handleIndexPtr == *(int *)((char *)state + 0x20));
+        valid = (unsigned char)valid;
+        if (valid != 0 && states[nextIndex] != 0) {
+            result = 1;
+        }
+    }
+    return (unsigned char)result;
+}
+
+// ── gcStringTable::GetSubObject(cSubHandleT<gcString>, int) const @ 0x000d707c ──
+gcString *gcStringTable::GetSubObject(cSubHandleT<gcString> handle, int offset) const {
+    if (offset < 0) {
+        return 0;
+    }
+
+    volatile int *handleIndexPtr = &handle.mIndex;
+    int stateIndex = *handleIndexPtr;
+    if (stateIndex == 0) {
+        return 0;
+    }
+
+    stateIndex = stateIndex & 0xFFFF;
+    int nextIndex = stateIndex;
+    nextIndex += offset;
+    void *states = *(void ***)((char *)this + 0x44);
+    int count = 0;
+    if (states != 0) {
+        count = *(int *)((char *)states - 4);
+    }
+    if (nextIndex >= count) {
+        return 0;
+    }
+    if (stateIndex >= 0) {
+        count = 0;
+        if (states != 0) {
+            count = *(int *)((char *)states - 4);
+        }
+        if (stateIndex < count) {
+            void *state = *(void **)((char *)states + (stateIndex * 4));
+            gcString *result = 0;
+            if (state == 0) {
+                return 0;
+            }
+            if (((*handleIndexPtr == *(int *)((char *)state + 0x20)) & 0xFF) != 0) {
+                result = *(gcString **)((char *)states + (nextIndex * 4));
+            }
+            return result;
+        }
+    }
+    return 0;
 }
 
 // ── gcStringTable::AssignCopy(const cBase *) @ 0x0023b390 ──
