@@ -11,6 +11,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -58,6 +67,7 @@ class gcFlyingControllerTemplate : public gcCreatureControllerTemplate {
 public:
     gcFlyingControllerTemplate(cBase *);
     ~gcFlyingControllerTemplate();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 
@@ -76,6 +86,10 @@ public:
 
 extern char gcFlyingControllerTemplatevirtualtable[];      // 0x388738
 extern char gcCreatureControllerTemplatevirtualtable[];    // 0x37E6A8
+extern cType *D_000385DC;
+extern cType *D_0009A400;
+extern cType *D_0009F5A4;
+extern cType *D_0009F77C;
 
 // ── ctor (already matched) ──
 gcFlyingControllerTemplate::gcFlyingControllerTemplate(cBase *parent)
@@ -101,6 +115,28 @@ int gcFlyingControllerTemplate::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+// ── gcFlyingControllerTemplate::GetType(void) const @ 0x0031B620 ──
+const cType *gcFlyingControllerTemplate::GetType(void) const {
+    if (D_0009F77C == 0) {
+        if (D_0009F5A4 == 0) {
+            if (D_0009A400 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009A400 = cType::InitializeType(0, 0, 0x9A, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F5A4 = cType::InitializeType(0, 0, 0xB8, D_0009A400,
+                                               0, 0, 0, 0);
+        }
+        D_0009F77C = cType::InitializeType(0, 0, 0x1AC, D_0009F5A4,
+                                           0, 0, 0, 0);
+    }
+    return D_0009F77C;
 }
 
 // ── ~gcFlyingControllerTemplate() ──
