@@ -4,6 +4,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eMaterial;
 
 struct AllocEntry {
@@ -39,6 +40,14 @@ public:
     cObject &operator=(const cObject &);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 template <class T> T *dcast(const cBase *);
 
 template <class T>
@@ -62,6 +71,7 @@ public:
 
 class eSpriteMtlSet : public eMaterialSet {
 public:
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -70,6 +80,11 @@ public:
 
 extern char eMaterialSetvirtualtable[];   // 0x37FEA8
 extern char eSpriteMtlSetvirtualtable[];  // 0x380410
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FF0;
+extern cType *D_0004103C;
 
 extern "C" void cObject_cObject(void *self, cBase *parent);
 
@@ -117,4 +132,33 @@ cBase *eSpriteMtlSet::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSpriteMtlSet::GetType(void) const @ 0x001E3FCC ──
+const cType *eSpriteMtlSet::GetType(void) const {
+    if (D_0004103C == 0) {
+        if (D_00040FF0 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36CD74, (const char *)0x36CD7C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                       (cBase *(*)(cMemPool *, cBase *))0x1C3C58,
+                                                       0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040FF0 = cType::InitializeType(
+                0, 0, 0x23, D_000385E4, 0,
+                (const char *)0x36CDB8, (const char *)0x36CDC8, 5);
+        }
+        D_0004103C = cType::InitializeType(
+            0, 0, 0x29, D_00040FF0,
+            (cBase *(*)(cMemPool *, cBase *))&eSpriteMtlSet::New, 0, 0, 0);
+    }
+    return D_0004103C;
 }
