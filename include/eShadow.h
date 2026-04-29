@@ -29,6 +29,8 @@ public:
         fn(base, p);
     }
 
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
     void Update(cTimeValue);
