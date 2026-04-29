@@ -8,9 +8,12 @@
 #include "cBase.h"
 #include "cFile.h"
 
+class gcEntity;
+class gcPartialEntityController;
+
 class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *);
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cType {
@@ -39,6 +42,14 @@ public:
     const char *GetName(char *, bool, char *) const;
 };
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void free(void *);
+
 class gcPartialEntityControllerTemplate {
 public:
     cBase *mOwner;          // 0x00
@@ -48,9 +59,24 @@ public:
     cHandle mHandle2;       // 0x10
 
     gcPartialEntityControllerTemplate(cBase *);
+    ~gcPartialEntityControllerTemplate();
     void GetName(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    static void CreateAndResetInstance(cMemPool *, gcEntity *,
+                                       const gcPartialEntityControllerTemplate *,
+                                       gcPartialEntityController **);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            rec->fn(block + off, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 extern char gcPartialEntityControllerTemplateclassdesc[];
@@ -85,29 +111,57 @@ void gcPartialEntityControllerTemplate::Write(cFile &file) const {
 }
 
 // 0x0013e530 — destructor
-struct DeleteRecord {
+gcPartialEntityControllerTemplate::~gcPartialEntityControllerTemplate() {
+    mClassDesc = gcPartialEntityControllerTemplatebasevtable;
+}
+
+struct VtEntry {
     short offset;
     short _pad;
-    void (*fn)(void *, void *);
+    void *fn;
 };
 
-extern "C" void free(void *);
+// 0x0013e5b0 — CreateAndResetInstance
+void gcPartialEntityControllerTemplate::CreateAndResetInstance(
+        cMemPool *pool,
+        gcEntity *entity,
+        const gcPartialEntityControllerTemplate *tpl,
+        gcPartialEntityController **out) {
+    void *var_a0 = *out;
 
-extern "C" void gcPartialEntityControllerTemplate___dtor_gcPartialEntityControllerTemplate_void(
-        gcPartialEntityControllerTemplate *self, int flags) {
-    if (self != 0) {
-        self->mClassDesc = gcPartialEntityControllerTemplatebasevtable;
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
+    if (tpl == 0) {
+        if (var_a0 != 0) {
+            void *vt = *(void **)((char *)var_a0 + 4);
+            VtEntry *entry = (VtEntry *)((char *)vt + 0x50);
+            ((void (*)(void *, int))entry->fn)((char *)var_a0 + entry->offset, 3);
+            *out = 0;
         }
+        return;
+    }
+
+    if (var_a0 == 0 || *(const gcPartialEntityControllerTemplate **)((char *)var_a0 + 8) != tpl) {
+        if (var_a0 != 0) {
+            void *vt = *(void **)((char *)var_a0 + 4);
+            VtEntry *entry = (VtEntry *)((char *)vt + 0x50);
+            ((void (*)(void *, int))entry->fn)((char *)var_a0 + entry->offset, 3);
+            *out = 0;
+        }
+
+        void *tplVt = *(void **)((char *)tpl + 4);
+        VtEntry *typeEntry = (VtEntry *)((char *)tplVt + 0x70);
+        void *type = ((void *(*)(void *))typeEntry->fn)((char *)tpl + typeEntry->offset);
+        void *(*creator)(cMemPool *, gcEntity *) =
+            *(void *(**)(cMemPool *, gcEntity *))((char *)type + 0x10);
+        gcPartialEntityController *created = (gcPartialEntityController *)creator(pool, entity);
+        *out = created;
+        *(const gcPartialEntityControllerTemplate **)((char *)created + 8) = tpl;
+        var_a0 = *out;
+    }
+
+    if (var_a0 != 0) {
+        void *vt = *(void **)((char *)var_a0 + 4);
+        VtEntry *entry = (VtEntry *)((char *)vt + 0x38);
+        ((void (*)(void *, cMemPool *, int))entry->fn)((char *)var_a0 + entry->offset, pool, 1);
     }
 }
 
