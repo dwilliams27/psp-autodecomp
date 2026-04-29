@@ -2,8 +2,14 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -24,6 +30,7 @@ public:
 
 class gcEvent {
 public:
+    gcEvent(cBase *, const char *);
     gcEvent &operator=(const gcEvent &);
 };
 
@@ -45,6 +52,23 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocRec {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 struct ParamWriteVtableEntry {
     short adj;
     short pad;
@@ -53,10 +77,20 @@ struct ParamWriteVtableEntry {
 
 class gcStateFunction : public cNamed {
 public:
+    gcStateFunction(cBase *);
+    ~gcStateFunction();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        rec->fn(block + off, p);
+    }
 };
 
 extern cType *D_000385DC;
@@ -64,14 +98,30 @@ extern cType *D_000385E0;
 extern cType *D_0009A3CC;
 
 extern "C" {
-    void gcStateFunction__gcStateFunction_cBaseptr(void *self, cBase *parent);
+    void gcEvent__gcEvent_cBaseptr_constcharptr(void *, cBase *, const char *);
+    void gcEvent___dtor_gcEvent_void(void *, int);
 }
 
-struct AllocRec {
-    short offset;
-    short _pad;
-    void *(*fn)(void *, int, int, int, int);
-};
+extern char gcStateFunctionvirtualtable[];
+extern char cBaseclassdesc[];
+
+// ── gcStateFunction::gcStateFunction(cBase *) @ 0x001098b4 ──
+gcStateFunction::gcStateFunction(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(short *)((char *)this + 0x1C) = 0;
+    *(short *)((char *)this + 0x1E) = 0;
+    *(char *)((char *)this + 8) = 0;
+    *(void **)((char *)this + 4) = gcStateFunctionvirtualtable;
+    gcEvent__gcEvent_cBaseptr_constcharptr((char *)this + 0x20, (cBase *)this, 0);
+    *(int *)((char *)this + 0x3C) = 0;
+}
+
+// ── gcStateFunction::~gcStateFunction(void) @ 0x00256ed8 ──
+gcStateFunction::~gcStateFunction() {
+    *(void **)((char *)this + 4) = gcStateFunctionvirtualtable;
+    gcEvent___dtor_gcEvent_void((char *)this + 0x20, 2);
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── gcStateFunction::Write(cFile &) const @ 0x0010973c ──
 void gcStateFunction::Write(cFile &file) const {
@@ -96,7 +146,7 @@ cBase *gcStateFunction::New(cMemPool *pool, cBase *parent) {
     gcStateFunction *result = 0;
     gcStateFunction *obj = (gcStateFunction *)rec->fn(base, 0x40, 4, 0, 0);
     if (obj != 0) {
-        gcStateFunction__gcStateFunction_cBaseptr(obj, parent);
+        new (obj) gcStateFunction(parent);
         result = obj;
     }
     return (cBase *)result;
