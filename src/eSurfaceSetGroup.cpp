@@ -1,6 +1,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -44,6 +52,7 @@ class eSurfaceSetGroup : public cGroup {
 public:
     eSurfaceSetGroup(cBase *);
     ~eSurfaceSetGroup();
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
@@ -94,6 +103,10 @@ public:
 extern char eSurfaceSetGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E3C;
 
 void eSurfaceSetGroup::AssignCopy(const cBase *base) {
     eSurfaceSetGroup *src = dcast<eSurfaceSetGroup>(base);
@@ -151,6 +164,25 @@ cBase *eSurfaceSetGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSurfaceSetGroup::GetType(void) const @ 0x001DCE60 ──
+const cType *eSurfaceSetGroup::GetType(void) const {
+    if (D_00040E3C == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E3C = cType::InitializeType(0, 0, 0x3C, D_00040C94,
+                                           &eSurfaceSetGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E3C;
 }
 
 // ── eSurfaceSetGroup::~eSurfaceSetGroup(void) @ 0x001DCF58 ──

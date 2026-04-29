@@ -9,6 +9,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -51,6 +59,7 @@ public:
     int mField;
     eTextureGroup(cBase *);
     ~eTextureGroup();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
@@ -117,6 +126,10 @@ extern char eTextureGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_00040E18;
+
 void eTextureGroup::AssignCopy(const cBase *base) {
     eTextureGroup *src = dcast<eTextureGroup>(base);
     mFlag = src->mFlag;
@@ -155,6 +168,25 @@ cBase *eTextureGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eTextureGroup::GetType(void) const @ 0x001DB8B8 ──
+const cType *eTextureGroup::GetType(void) const {
+    if (D_00040E18 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_00040E18 = cType::InitializeType(0, 0, 0xB, D_00040C94,
+                                           &eTextureGroup::New,
+                                           0, 0, 8);
+    }
+    return D_00040E18;
 }
 
 // ── eTextureGroup::~eTextureGroup(void) @ 0x001db9b0 ──

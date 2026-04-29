@@ -9,6 +9,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -62,6 +70,7 @@ public:
 
     gcConstantGroup(cBase *);
     ~gcConstantGroup();
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -80,6 +89,10 @@ public:
 extern char gcConstantGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998AC;
 
 // ── gcConstantGroup::AssignCopy(const cBase *) @ 0x0023641C ──
 void gcConstantGroup::AssignCopy(const cBase *base) {
@@ -128,6 +141,25 @@ cBase *gcConstantGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcConstantGroup::GetType(void) const @ 0x00236510 ──
+const cType *gcConstantGroup::GetType(void) const {
+    if (D_000998AC == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998AC = cType::InitializeType(0, 0, 0x7C, D_00040C94,
+                                           &gcConstantGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998AC;
 }
 
 // ── gcConstantGroup::~gcConstantGroup(void) @ 0x00236608 ──
