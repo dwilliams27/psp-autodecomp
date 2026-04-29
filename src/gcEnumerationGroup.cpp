@@ -83,6 +83,10 @@ extern char gcEnumerationGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+extern cType *D_000385DC;
+extern cType *D_00040C94;
+extern cType *D_000998C4;
+
 // ── gcEnumerationGroup::New(cMemPool *, cBase *) static @ 0x002372C4 ──
 cBase *gcEnumerationGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -105,6 +109,25 @@ cBase *gcEnumerationGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcEnumerationGroup::GetType(void) const @ 0x00237380 ──
+const cType *gcEnumerationGroup::GetType() const {
+    if (D_000998C4 == 0) {
+        if (D_00040C94 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040C94 = cType::InitializeType(0, 0, 4, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_000998C4 = cType::InitializeType(0, 0, 0xAC, D_00040C94,
+                                           &gcEnumerationGroup::New,
+                                           0, 0, 8);
+    }
+    return D_000998C4;
 }
 
 // ── gcEnumerationGroup::Write(cFile &) const @ 0x000D03C4 ──

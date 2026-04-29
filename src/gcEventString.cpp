@@ -9,6 +9,12 @@ public:
 
 class cFile;
 class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -59,6 +65,7 @@ public:
     void Get(wchar_t *, int) const;
     void GetName(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    const cType *GetType() const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
@@ -75,6 +82,10 @@ public:
 
 extern char cBaseclassdesc[];
 extern char gcEventStringvirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F4BC;
 
 inline gcStringValue::gcStringValue(cBase *parent) {
     *(void **)((char *)this + 4) = cBaseclassdesc;
@@ -157,6 +168,26 @@ cBase *gcEventString::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcEventString::GetType(void) const  @ 0x0027bca4, 220B
+// ─────────────────────────────────────────────────────────────────────────
+const cType *gcEventString::GetType() const {
+    if (D_0009F4BC == 0) {
+        if (D_0009F454 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4BC = cType::InitializeType(0, 0, 0x24B, D_0009F454,
+                                           &gcEventString::New, 0, 0, 0);
+    }
+    return D_0009F4BC;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
