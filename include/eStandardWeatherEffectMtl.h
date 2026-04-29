@@ -10,6 +10,7 @@ public:
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eStandardWeatherEffectMtl *New(cMemPool *, cBase *);

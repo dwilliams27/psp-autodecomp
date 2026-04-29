@@ -84,6 +84,7 @@ public:
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
     void Unapply(void) const;
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eDynamicLightHeightmapMtl *New(cMemPool *, cBase *);
@@ -97,6 +98,7 @@ public:
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Unapply(void) const;
     void CreateData(void);
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eDynamicLightModelMtl *New(cMemPool *, cBase *);

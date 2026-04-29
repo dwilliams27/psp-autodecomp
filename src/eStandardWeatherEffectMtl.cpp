@@ -1,11 +1,26 @@
 #include "eStandardWeatherEffectMtl.h"
 #include "eTwoPassModelMtl.h"
+#include "eTextureMap.h"
 
 class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
 };
 
 class eWeatherEffectMtl {
@@ -17,6 +32,8 @@ class cHandle {
 public:
     void Write(cWriteBlock &) const;
 };
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 #pragma control sched=1
 
@@ -33,6 +50,37 @@ void eTwoPassModelMtl::Unapply(void) const {
 }
 
 void eTwoPassModelMtl::CreateData(void) {
+}
+
+void eStandardWeatherEffectMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+}
+
+void eDynamicLightHeightmapMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    ((unsigned char *)this)[0x5C] |= 0x80;
+    __asm__ volatile("" ::: "memory");
+}
+
+void eDynamicLightModelMtl::PlatformRead(cFile &file, cMemPool *pool) {
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+    ((unsigned char *)this)[0x5C] |= 0x80;
+    __asm__ volatile("" ::: "memory");
 }
 
 // ── eStandardWeatherEffectMtl::Write @ 0x0008a260 ──
