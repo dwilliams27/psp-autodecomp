@@ -18,6 +18,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -49,6 +55,7 @@ public:
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
     void AssignCopy(const class cBase *);
+    static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -107,6 +114,8 @@ public:
 };
 
 extern char eTextureGroupvirtualtable[];
+extern char cGroupvirtualtable[];
+extern char cBasevirtualtable[];
 
 void eTextureGroup::AssignCopy(const cBase *base) {
     eTextureGroup *src = dcast<eTextureGroup>(base);
@@ -123,6 +132,29 @@ void eTextureGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eTextureGroup::New(cMemPool *, cBase *) static @ 0x001DB7FC ──
+cBase *eTextureGroup::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
+    void *base = (char *)block + off;
+    eTextureGroup *result = 0;
+    eTextureGroup *obj = (eTextureGroup *)e->fn(base, 0x10, 4, 0, 0);
+    if (obj != 0) {
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = cGroupvirtualtable;
+        ((unsigned char *)obj)[8] = flag;
+        ((int *)obj)[3] = 0;
+        ((void **)obj)[1] = eTextureGroupvirtualtable;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── eTextureGroup::~eTextureGroup(void) @ 0x001db9b0 ──
