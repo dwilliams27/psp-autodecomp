@@ -4,8 +4,14 @@
 class cBase;
 class cFile;
 class cMemPool;
-class cType;
 class gcEntity;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 extern "C" void gcStateInfo__gcStateInfo_void(void *);
@@ -37,6 +43,7 @@ public:
 
 class cNamed {
 public:
+    static cBase *New(cMemPool *, cBase *);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
@@ -151,6 +158,7 @@ public:
     int Read(cFile &, cMemPool *);
     void CancelFollowPath(void);
     void ClearCurrentNavMeshPosition(void);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void SetPhysicsController(const cType *);
     void OnMemPoolReset(const cMemPool *, unsigned int);
@@ -158,6 +166,10 @@ public:
     void OnActivated(void);
     void PostUpdateFinal(void);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009A404;
 
 // ── IsCurrentController (0x00110cd4) ──
 
@@ -184,6 +196,25 @@ void gcEntityController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const cNamed *)this)->cNamed::Write(file);
     wb.End();
+}
+
+// ── GetType (0x0025d698) ──
+
+const cType *gcEntityController::GetType(void) const {
+    if (D_0009A404 == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_0009A404 = cType::InitializeType(0, 0, 0x99, D_000385E0,
+                                           0, 0, 0, 0);
+    }
+    return D_0009A404;
 }
 
 // ── Read (0x00110804) ──

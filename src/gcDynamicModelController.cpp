@@ -20,6 +20,15 @@ class cBase;
 class cFile;
 class cMemPool;
 
+template <class T> T *dcast(const cBase *);
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 // cWriteBlock — RAII wrapper around the file format's begin/end-block pair.
 class cWriteBlock {
 public:
@@ -77,6 +86,8 @@ public:
 
     gcDynamicModelController(cBase *);
     ~gcDynamicModelController();
+    const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static gcDynamicModelController *New(cMemPool *, cBase *);
 
@@ -92,6 +103,15 @@ public:
 };
 
 extern char gcDynamicModelControllervirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_0009F64C;
+extern cType *D_0009F670;
+
+struct gdm_half3 {
+    short a;
+    short b;
+    short c;
+};
 
 // ── gcDynamicModelController::Write(cFile &) const @ 0x0014a554 ──
 void gcDynamicModelController::Write(cFile &file) const {
@@ -103,6 +123,48 @@ void gcDynamicModelController::Write(cFile &file) const {
 // ── gcDynamicModelController::~gcDynamicModelController(void) @ 0x0014a6a8 ──
 gcDynamicModelController::~gcDynamicModelController() {
     *(void **)((char *)this + 4) = gcDynamicModelControllervirtualtable;
+}
+
+// ── gcDynamicModelController::AssignCopy(const cBase *) @ 0x002d5df4 ──
+void gcDynamicModelController::AssignCopy(const cBase *src) {
+    gcDynamicModelController *other = dcast<gcDynamicModelController>(src);
+    *(int *)((char *)this + 8) = *(int *)((char *)other + 8);
+    *(int *)((char *)this + 0xC) = *(int *)((char *)other + 0xC);
+    *(float *)((char *)this + 0x10) = *(float *)((char *)other + 0x10);
+    *(float *)((char *)this + 0x14) = *(float *)((char *)other + 0x14);
+
+    int i = 0;
+    gdm_half3 *dst = (gdm_half3 *)((char *)this + 0x1C);
+    gdm_half3 *from = (gdm_half3 *)((char *)other + 0x1C);
+    *(float *)((char *)this + 0x18) = *(float *)((char *)other + 0x18);
+    do {
+        short a = from->a;
+        short b = from->b;
+        short c = from->c;
+        __asm__ volatile("" ::: "memory");
+        dst->a = a;
+        dst->b = b;
+        dst->c = c;
+        i += 1;
+        dst += 1;
+        from += 1;
+    } while (i <= 0);
+
+    int j = 0;
+    gdm_half3 *dst2 = (gdm_half3 *)((char *)this + 0x24);
+    gdm_half3 *from2 = (gdm_half3 *)((char *)other + 0x24);
+    do {
+        short a = from2->a;
+        short b = from2->b;
+        short c = from2->c;
+        __asm__ volatile("" ::: "memory");
+        dst2->a = a;
+        dst2->b = b;
+        dst2->c = c;
+        j += 1;
+        dst2 += 1;
+        from2 += 1;
+    } while (j <= 0);
 }
 
 // ── gcDynamicModelController::New(cMemPool *, cBase *) static @ 0x002d5eb4 ──
@@ -119,4 +181,22 @@ gcDynamicModelController *gcDynamicModelController::New(cMemPool *pool, cBase *p
         result = obj;
     }
     return result;
+}
+
+// ── gcDynamicModelController::GetType(void) const @ 0x002d5f30 ──
+const cType *gcDynamicModelController::GetType(void) const {
+    if (D_0009F670 == 0) {
+        if (D_0009F64C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F64C = cType::InitializeType(0, 0, 0x1D5, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F670 = cType::InitializeType(0, 0, 0xE2, D_0009F64C,
+                                           (cBase *(*)(cMemPool *, cBase *))&gcDynamicModelController::New, 0, 0, 0);
+    }
+    return D_0009F670;
 }
