@@ -119,6 +119,7 @@ public:
 class eDynamicLightModelMtl {
 public:
     eDynamicLightModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
