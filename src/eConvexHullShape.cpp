@@ -3,6 +3,23 @@
 class mVec3;
 class cBase;
 class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class eKeyframedController {
+public:
+    const cType *GetType(void) const;
+};
+
+class eKeyframedControllerTemplate {
+public:
+    const cType *GetType(void) const;
+};
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -19,9 +36,18 @@ public:
     void GetInertialTensor(float, mVec3 *) const;
     void GetInertialTensorAndVolume(float, mVec3 *, float *) const;
     float GetVolume(void) const;
+    const cType *GetType(void) const;
 
     static eConvexHullShape *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_00040FE4;
+extern cType *D_000469D8;
+extern cType *D_000469F4;
+extern cType *D_00046BE0;
+extern cType *D_00046BEC;
+extern cType *D_00046BF4;
 
 #pragma control sched=1
 
@@ -81,5 +107,82 @@ eConvexHullShape *eConvexHullShape::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+#pragma control sched=2
+
+// eConvexHullShape::GetType(void) const @ 0x0020b0a0
+#pragma control sched=1
+const cType *eConvexHullShape::GetType(void) const {
+    if (D_00046BE0 == 0) {
+        if (D_00040FE4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00040FE4 = cType::InitializeType(
+                0, 0, 0x227, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00040FE4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20B024;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BE0 = cType::InitializeType(
+            0, 0, 0x22E, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BE0;
+}
+
+// eKeyframedController::GetType(void) const @ 0x0020ded8
+const cType *eKeyframedController::GetType(void) const {
+    if (D_00046BEC == 0) {
+        if (D_000469D8 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_000469D8 = cType::InitializeType(
+                0, 0, 0x232, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_000469D8;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20DE5C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BEC = cType::InitializeType(
+            0, 0, 0x23A, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BEC;
+}
+
+// eKeyframedControllerTemplate::GetType(void) const @ 0x0020e258
+const cType *eKeyframedControllerTemplate::GetType(void) const {
+    if (D_00046BF4 == 0) {
+        if (D_000469F4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_000469F4 = cType::InitializeType(
+                0, 0, 0x22F, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_000469F4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20E1DC;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BF4 = cType::InitializeType(
+            0, 0, 0x239, parentType, factory, 0, 0, 2);
+    }
+    return D_00046BF4;
 }
 #pragma control sched=2
