@@ -2,6 +2,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+struct cFileHandle;
 
 class cType {
 public:
@@ -19,8 +20,33 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class nwConfigBase {
 public:
+    ~nwConfigBase();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -28,15 +54,19 @@ public:
 class nwConfigPSP : public nwConfigBase {
 public:
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
-};
+    ~nwConfigPSP();
 
-class cReadBlock {
-public:
-    int _data[5];
-    cReadBlock(cFile &, unsigned int, bool);
-    ~cReadBlock(void);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class cMemBlockSuspend {
@@ -113,6 +143,33 @@ const cType *nwConfigPSP::GetType(void) const {
                                            &nwConfigPSP::New, 0, 0, 0);
     }
     return D_0009F924;
+}
+
+// ── nwConfigPSP::~nwConfigPSP(void) @ 0x0036b78c ──
+nwConfigPSP::~nwConfigPSP() {
+    *(void **)((char *)this + 4) = (void *)0x38D948;
+}
+
+// ── nwConfigPSP::Read(cFile &, cMemPool *) @ 0x001a5060 ──
+int nwConfigPSP::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && nwConfigBase::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x60, 0x20);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x80, 0x40);
+    }
+    return result;
 }
 
 #pragma control sched=1
