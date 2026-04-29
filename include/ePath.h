@@ -3,6 +3,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class mBasis;
 class mVec3;
 
@@ -40,6 +41,7 @@ public:
     float Units2PathT(float, float, float) const;
     void GetPosAt(float, mVec3 *) const;
     void GetBasisAt(float, mBasis *, bool) const;
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     static ePath *New(cMemPool *, cBase *);
 

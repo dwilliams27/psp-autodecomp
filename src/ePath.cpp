@@ -12,6 +12,18 @@ public:
     void End(void);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -28,6 +40,11 @@ public:
 };
 
 extern "C" void ePathPoint_Write(const ePathPoint *, cWriteBlock &) asm("__0fKePathPointFWriteR6LcWriteBlockK");
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046A48;
 
 #pragma control sched=1
 void ePath::Write(cFile &file) const {
@@ -84,5 +101,37 @@ ePath *ePath::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+const cType *ePath::GetType(void) const {
+    if (D_00046A48 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385DC;
+                cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000385E4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))&ePath::New;
+        const char *kindName = (const char *)0x36CEA4;
+        const char *kindDesc = (const char *)0x36CEAC;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory), "+r"(kindName),
+                         "+r"(kindDesc));
+        D_00046A48 = cType::InitializeType(0, 0, 0x18, parentType, factory,
+                                           kindName, kindDesc, 0);
+    }
+    return D_00046A48;
 }
 #pragma control sched=2
