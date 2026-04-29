@@ -54,6 +54,7 @@ class eBlurFilter : public eTextureFilter {
 public:
     eBlurFilter(cBase *);
     ~eBlurFilter();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -76,6 +77,8 @@ static cType *type_cBase;
 static cType *type_eTextureFilter;
 static cType *type_eBlurFilter;
 
+template <class T> T *dcast(const cBase *);
+
 #pragma control sched=1
 
 eBlurFilter::eBlurFilter(cBase *parent) : eTextureFilter(parent) {
@@ -86,6 +89,26 @@ eBlurFilter::eBlurFilter(cBase *parent) : eTextureFilter(parent) {
     *(int *)((char *)this + 0x18) = -1;
 }
 
+#pragma control sched=2
+
+#pragma control sched=1
+void eBlurFilter::AssignCopy(const cBase *base) {
+    eBlurFilter *other = dcast<eBlurFilter>(base);
+    int *src8 = (int *)((char *)other + 8);
+    int *dst8 = (int *)((char *)this + 8);
+    __asm__ volatile("" : "+r"(src8), "+r"(dst8));
+    *dst8 = *src8;
+    int *dstC = (int *)((char *)this + 0xC);
+    int *srcC = (int *)((char *)other + 0xC);
+    __asm__ volatile("" : "+r"(dstC), "+r"(srcC));
+    *dstC = *srcC;
+    *(float *)((char *)this + 0x10) = *(float *)((char *)other + 0x10);
+    *(float *)((char *)this + 0x14) = *(float *)((char *)other + 0x14);
+    int *dst18 = (int *)((char *)this + 0x18);
+    int *src18 = (int *)((char *)other + 0x18);
+    __asm__ volatile("" : "+r"(dst18), "+r"(src18));
+    *dst18 = *src18;
+}
 #pragma control sched=2
 
 #pragma control sched=1
