@@ -25,6 +25,7 @@ public:
 
     float GetVolume(void) const;
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

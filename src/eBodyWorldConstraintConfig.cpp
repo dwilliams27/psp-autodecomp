@@ -2,6 +2,15 @@
 
 class cBase;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cMemPool {
 public:
@@ -30,6 +39,9 @@ public:
 };
 
 extern char eBodyWorldConstraintConfigvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000469EC;
+extern cType *D_00046BFC;
 
 class eBodyWorldConstraintConfig : public ePhysicsConstraintConfig {
 public:
@@ -37,6 +49,7 @@ public:
 
     eBodyWorldConstraintConfig(cBase *);
     ~eBodyWorldConstraintConfig();
+    const cType *GetType(void) const;
 
     static cBase *New(cMemPool *, cBase *);
 
@@ -75,6 +88,32 @@ cBase *eBodyWorldConstraintConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+#pragma control sched=2
+
+#pragma control sched=1
+
+// eBodyWorldConstraintConfig::GetType(void) const @ 0x0020e518
+const cType *eBodyWorldConstraintConfig::GetType(void) const {
+    if (D_00046BFC == 0) {
+        if (D_000469EC == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_000469EC = cType::InitializeType(0, 0, 0x25C, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_000469EC;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20E49C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BFC = cType::InitializeType(0, 0, 0x25D, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BFC;
 }
 
 #pragma control sched=2
