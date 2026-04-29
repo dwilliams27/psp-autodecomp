@@ -7,6 +7,18 @@ public:
 };
 
 class cFile;
+class cMemPool;
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 class cWriteBlock {
 public:
@@ -55,6 +67,7 @@ public:
 class gcStringTableValue : public gcStringValue {
 public:
     gcDesiredString mDesired;
+    static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Get(wchar_t *, int) const;
@@ -71,9 +84,39 @@ public:
 gcStringTableValue *dcast(const cBase *);
 void cStrCopy(wchar_t *, const wchar_t *, int);
 extern const wchar_t gcStringTableValueEmptyStr[];
+void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern char cBasevirtualtable[];
+extern char gcStringValuevirtualtable[];
+extern char gcStringTableValuevirtualtable[];
 
 typedef void (*WriteFn)(void *, cFile *);
 typedef void (*NameFn)(void *, char *);
+
+// ── gcStringTableValue::New(cMemPool *, cBase *) static @ 0x0028995C ──
+cBase *gcStringTableValue::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcStringTableValue *result = 0;
+    gcStringTableValue *obj = (gcStringTableValue *)entry->fn(base, 0x24, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = cBasevirtualtable;
+        ((cBase **)obj)[0] = parent;
+        ((void **)obj)[1] = gcStringValuevirtualtable;
+        void *desired = (char *)obj + 8;
+        gcDesiredObject_gcDesiredObject(desired, obj);
+        ((void **)obj)[3] = gcStringTableValuevirtualtable;
+        ((unsigned char *)obj)[0x14] = 0;
+        ((unsigned char *)obj)[0x15] = 0;
+        ((int *)obj)[6] = 0;
+        ((int *)obj)[7] = 0;
+        ((int *)obj)[8] = (int)((unsigned int)desired | 1);
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 void gcStringTableValue::GetName(char *buf) const {
     const cTypeMethod *e = &this->mDesired.mType->name_m;
