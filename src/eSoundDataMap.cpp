@@ -4,9 +4,17 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class cObject {
 public:
     cObject &operator=(const cObject &);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct DeleteRecord {
@@ -47,6 +55,7 @@ public:
     eSoundDataMap(cBase *);
     ~eSoundDataMap();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static eSoundDataMap *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -58,6 +67,13 @@ public:
 };
 
 extern char eSoundDataMapvirtualtable[];
+extern const char eSoundData_kind_name[];
+extern const char eSoundData_kind_desc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040F6C;
+extern cType *D_00040F70;
 
 template <class T> T *dcast(const cBase *);
 
@@ -86,6 +102,36 @@ void eSoundDataMap::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
     eSoundData::Write(file);
     wb.End();
+}
+
+// ── eSoundDataMap::GetType(void) const @ 0x001dffb4 ──
+const cType *eSoundDataMap::GetType(void) const {
+    if (D_00040F70 == 0) {
+        if (D_00040F6C == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36CD74, (const char *)0x36CD7C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040F6C = cType::InitializeType(0, 0, 0x26, D_000385E4,
+                                               0, eSoundData_kind_name,
+                                               eSoundData_kind_desc, 1);
+        }
+        D_00040F70 = cType::InitializeType(
+            0, 0, 0x2A, D_00040F6C,
+            (cBase *(*)(cMemPool *, cBase *))&eSoundDataMap::New,
+            eSoundData_kind_name, eSoundData_kind_desc, 1);
+    }
+    return D_00040F70;
 }
 
 // ── eSoundDataMap::~eSoundDataMap(void) @ 0x001e012c ──
