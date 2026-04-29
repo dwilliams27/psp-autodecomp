@@ -3,6 +3,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -13,9 +22,27 @@ public:
     void End(void);
 };
 
+class gcEvent {
+public:
+    gcEvent &operator=(const gcEvent &);
+};
+
+template <class T>
+T dcast(const cBase *);
+
+struct StateFunctionNamedBlob {
+    int w0, w1, w2, w3, w4, w5;
+};
+
+static inline void CopyStateFunctionNamedBlob(const StateFunctionNamedBlob *src,
+                                              StateFunctionNamedBlob *dst) {
+    *dst = *src;
+}
+
 class cNamed {
 public:
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 struct ParamWriteVtableEntry {
@@ -27,8 +54,14 @@ struct ParamWriteVtableEntry {
 class gcStateFunction : public cNamed {
 public:
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009A3CC;
 
 extern "C" {
     void gcStateFunction__gcStateFunction_cBaseptr(void *self, cBase *parent);
@@ -67,4 +100,34 @@ cBase *gcStateFunction::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcStateFunction::AssignCopy(const cBase *) @ 0x002567a8 ──
+void gcStateFunction::AssignCopy(const cBase *src) {
+    gcStateFunction *other = dcast<gcStateFunction *>(src);
+    CopyStateFunctionNamedBlob((const StateFunctionNamedBlob *)((char *)other + 8),
+                               (StateFunctionNamedBlob *)((char *)this + 8));
+    ((gcEvent *)((char *)this + 0x20))->operator=(
+        *(gcEvent *)((char *)other + 0x20));
+    int *srcIndex = (int *)((char *)other + 0x3C);
+    int *dstIndex = (int *)((char *)this + 0x3C);
+    *dstIndex = *srcIndex;
+}
+
+// ── gcStateFunction::GetType(void) const @ 0x002568ac ──
+const cType *gcStateFunction::GetType(void) const {
+    if (D_0009A3CC == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_0009A3CC = cType::InitializeType(0, 0, 0xC8, D_000385E0,
+                                           &gcStateFunction::New, 0, 0, 0);
+    }
+    return D_0009A3CC;
 }
