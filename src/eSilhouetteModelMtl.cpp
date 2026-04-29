@@ -14,6 +14,20 @@ class eDrawInfo;
 class eModelMtl {
 public:
     void ApplyCommonDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
+    void Write(cFile &) const;
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(float);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
 };
 
 extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
@@ -76,6 +90,19 @@ float eSilhouetteModelMtl::GetSilhouetteOffset(const eDrawInfo &di) const {
     float f12 = (t <= 0.0f) ? 0.0f : ((t >= 1.0f) ? 1.0f : t);
     float unk80 = ((const float *)this)[0x80 / 4];
     return unk80 + f12 * (((const float *)this)[0x78 / 4] - unk80);
+}
+
+// ── Write ──
+
+void eSilhouetteModelMtl::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    ((const eModelMtl *)this)->Write(file);
+    ((const cHandle *)((const char *)this + 0x48))->Write(wb);
+    wb.Write(*(const float *)((const char *)this + 0x78));
+    wb.Write(*(const float *)((const char *)this + 0x74));
+    wb.Write(*(const float *)((const char *)this + 0x80));
+    wb.Write(*(const float *)((const char *)this + 0x7C));
+    wb.End();
 }
 
 // ── Constructor ──

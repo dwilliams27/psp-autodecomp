@@ -218,6 +218,7 @@ public:
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Unapply(void) const;
     float GetSilhouetteOffset(const eDrawInfo &) const;
+    void Write(cFile &) const;
     static eSilhouetteModelMtl *New(cMemPool *, cBase *);
 };
 
