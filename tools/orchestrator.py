@@ -2512,7 +2512,10 @@ def main():
             backend_health[ident]["next_pick_time"] = max(
                 backend_health[ident]["next_pick_time"], until_epoch)
             paused.append(ident)
-        retry_at = datetime.fromtimestamp(until_epoch).strftime("%H:%M:%S")
+        retry_dt = datetime.fromtimestamp(until_epoch)
+        retry_at = retry_dt.strftime("%H:%M:%S")
+        if until_epoch - time.time() > 12 * 60 * 60:
+            retry_at = retry_dt.strftime("%Y-%m-%d %H:%M:%S")
         log(f"Rate limit for {backend_name}: pausing {len(paused)} "
             f"identity queue(s) until {retry_at} ({reason[:120]})")
         log_event(log_path, {

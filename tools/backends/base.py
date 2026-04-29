@@ -38,6 +38,12 @@ _DEFAULT_REFUSAL_PATTERNS: Tuple[str, ...] = (
 _RESULT_KEYWORDS = ("match", "mismatch", "fail", "error", "permuter",
                     "diff", "verify", "byte", "segfault", "exit")
 
+# Some CLIs keep returning the just-expired reset clock time for a few
+# seconds/minutes after the limit should have cleared. Treat that as a
+# short retry pause, not as the same wall-clock time tomorrow.
+_STALE_ABSOLUTE_RETRY_GRACE_S = 15 * 60
+_STALE_ABSOLUTE_RETRY_BACKOFF_S = 5 * 60
+
 
 EventKind = Literal["text", "thinking", "tool_use", "tool_result", "raw",
                     "status", "usage"]
@@ -500,7 +506,11 @@ def _parse_retry_at_epoch(text: str) -> Optional[float]:
             hour = 0
         candidate = now.replace(hour=hour, minute=minute, second=0,
                                 microsecond=0)
-        if candidate.timestamp() <= time.time() + 30:
+        now_epoch = time.time()
+        candidate_epoch = candidate.timestamp()
+        if candidate_epoch <= now_epoch + 30:
+            if now_epoch - candidate_epoch <= _STALE_ABSOLUTE_RETRY_GRACE_S:
+                return now_epoch + _STALE_ABSOLUTE_RETRY_BACKOFF_S
             candidate += timedelta(days=1)
         return candidate.timestamp()
 
