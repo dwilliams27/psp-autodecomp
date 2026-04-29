@@ -40,9 +40,49 @@ public:
     ~gcDoEntityFindAttachedBase(void);
 };
 
+class gcDesiredEntity {
+public:
+    gcDesiredEntity &operator=(const gcDesiredEntity &);
+};
+
+class gcDesiredEntityTemplate {
+public:
+    gcDesiredEntityTemplate &operator=(const gcDesiredEntityTemplate &);
+};
+
+class gcEnumeration;
+class gcEnumerationEntry;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cSubHandleT {
+public:
+    int mIndex;
+};
+
+template <class T, class U>
+class cHandlePairT {
+public:
+    cHandleT<T> mHandle;
+    U mSubHandle;
+};
+
+template <class T>
+class cArrayBase {
+public:
+    void *mData;
+    cArrayBase &operator=(const cArrayBase &);
+};
+
 class gcDoEntityFindAttached : public gcDoEntityFindAttachedBase {
 public:
     int mField64;   // 0x64
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
     ~gcDoEntityFindAttached(void);
@@ -62,6 +102,27 @@ extern char gcDoEntityFindAttachedvirtualtable[];
 extern const char gcDoEntityFindAttached_text_fmt[];
 extern const char gcDoEntityFindAttached_text_arg[];
 extern const char gcDoEntityFindAttached_text_label[];
+
+template <class T> T *dcast(const cBase *);
+
+// ── AssignCopy @ 0x002b07b8 ────────────────────────────────────────────
+void gcDoEntityFindAttached::AssignCopy(const cBase *src) {
+    gcDoEntityFindAttached *other = dcast<gcDoEntityFindAttached>(src);
+    int flags = *(int *)((char *)this + 8) & ~3;
+    *(int *)((char *)this + 8) = flags;
+    *(int *)((char *)this + 8) = flags | (*(int *)((char *)other + 8) & 3);
+    *(int *)((char *)this + 0x0C) = *(int *)((char *)other + 0x0C);
+    ((gcDesiredEntity *)((char *)this + 0x10))->operator=(
+        *(const gcDesiredEntity *)((char *)other + 0x10));
+    *(int *)((char *)this + 0x3C) = *(int *)((char *)other + 0x3C);
+    *(int *)((char *)this + 0x40) = *(int *)((char *)other + 0x40);
+    *(int *)((char *)this + 0x44) = *(int *)((char *)other + 0x44);
+    ((gcDesiredEntityTemplate *)((char *)this + 0x48))->operator=(
+        *(const gcDesiredEntityTemplate *)((char *)other + 0x48));
+    ((cArrayBase<cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > > *)((char *)this + 0x60))->operator=(
+        *(const cArrayBase<cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > > *)((char *)other + 0x60));
+    mField64 = other->mField64;
+}
 
 // ── Write @ 0x002b0b00 ─────────────────────────────────────────────────
 void gcDoEntityFindAttached::Write(cFile &file) const {

@@ -32,6 +32,7 @@ public:
     void CreateData(void);
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static eProjectedModelMtl *New(cMemPool *, cBase *);
 };
 

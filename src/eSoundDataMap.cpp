@@ -4,6 +4,10 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
 
 struct DeleteRecord {
     short offset;
@@ -42,6 +46,7 @@ class eSoundDataMap : public eSoundData {
 public:
     eSoundDataMap(cBase *);
     ~eSoundDataMap();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static eSoundDataMap *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -53,6 +58,28 @@ public:
 };
 
 extern char eSoundDataMapvirtualtable[];
+
+template <class T> T *dcast(const cBase *);
+
+// ── eSoundDataMap::AssignCopy(const cBase *) @ 0x001dfe8c ──
+void eSoundDataMap::AssignCopy(const cBase *src) {
+    eSoundDataMap *other = dcast<eSoundDataMap>(src);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(int *)((char *)this + 0x44) = *(int *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x48) = *(int *)((char *)other + 0x48);
+    *(float *)((char *)this + 0x4C) = *(float *)((char *)other + 0x4C);
+    *(unsigned char *)((char *)this + 0x50) = *(unsigned char *)((char *)other + 0x50);
+    *(unsigned char *)((char *)this + 0x51) = *(unsigned char *)((char *)other + 0x51);
+    *(unsigned char *)((char *)this + 0x52) = *(unsigned char *)((char *)other + 0x52);
+    *(float *)((char *)this + 0x54) = *(float *)((char *)other + 0x54);
+    *(float *)((char *)this + 0x58) = *(float *)((char *)other + 0x58);
+    *(unsigned char *)((char *)this + 0x5C) = *(unsigned char *)((char *)other + 0x5C);
+    *(int *)((char *)this + 0x60) = *(int *)((char *)other + 0x60);
+    int *src64 = (int *)((char *)other + 0x64);
+    int value64 = *src64;
+    int *dst64 = (int *)((char *)this + 0x64);
+    *dst64 = value64;
+}
 
 // ── eSoundDataMap::Write(cFile &) const @ 0x000210a8 ──
 void eSoundDataMap::Write(cFile &file) const {
