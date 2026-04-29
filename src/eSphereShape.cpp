@@ -10,13 +10,28 @@
 #include "mVec3.h"
 #include "mOCS.h"
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
 class eConvexHullShape;
 class cBase;
 class cFile;
 class cMemPool;
 class eCollisionSupport;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+template <class T> T *dcast(const cBase *);
+
 extern char eSphereShapevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_00040FE4;
+extern cType *D_00046BB8;
 
 // Forward decl of cWriteBlock used by Write()
 class cFile;
@@ -55,6 +70,8 @@ struct DeleteRecord {
 };
 
 void *cMemPool_GetPoolFromPtr(const void *);
+
+struct eSphereShape_block_18 { int _[6]; };
 
 int eSphereShape::CanSweep(void) const {
     return 1;
@@ -225,6 +242,48 @@ eSphereShape *eSphereShape::New(cMemPool *pool, cBase *parent) {
     return result;
 }
 #pragma control sched=1
+
+// eSphereShape::AssignCopy(const cBase *) — 0x00208f38
+void eSphereShape::AssignCopy(const cBase *src) {
+    eSphereShape *other = dcast<eSphereShape>(src);
+    *(v4sf_t *)((char *)this + 0x40) = *(v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(v4sf_t *)((char *)other + 0x30);
+    *(unsigned char *)((char *)this + 0x50) = *(unsigned char *)((char *)other + 0x50);
+    __asm__ volatile("" ::: "memory");
+    *(eSphereShape_block_18 *)((char *)this + 0x54) =
+        *(eSphereShape_block_18 *)((char *)other + 0x54);
+    *(int *)((char *)this + 0x6C) = *(int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(float *)((char *)other + 0x78);
+}
+
+// eSphereShape::GetType(void) const — 0x0020905c
+const cType *eSphereShape::GetType(void) const {
+    if (D_00046BB8 == 0) {
+        if (D_00040FE4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00040FE4 = cType::InitializeType(
+                0, 0, 0x227, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00040FE4;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x208FE0;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BB8 = cType::InitializeType(
+            0, 0, 0x228, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BB8;
+}
 
 // eSphereShape::Collide(const eBoxShape *, ...) const — 0x000683c0
 // Delegates to eCollision::BoxSphere with args swapped (box-perspective),

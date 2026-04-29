@@ -7,6 +7,7 @@ struct mBox;
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eBoxShape;
 class eCollisionSupport;
 class eMultiSphereShape;
@@ -24,7 +25,9 @@ public:
 
     eSphereShape(cBase *);
 
+    void AssignCopy(const cBase *);
     int CanSweep(void) const;
+    const cType *GetType(void) const;
     float GetVolume(void) const;
     void Write(cFile &) const;
     int NeedsRollingFriction(float *) const;

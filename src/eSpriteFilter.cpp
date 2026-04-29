@@ -38,6 +38,14 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -72,6 +80,7 @@ public:
     ~eSpriteFilter();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -89,6 +98,9 @@ public:
 template <class T> T *dcast(const cBase *);
 
 extern char eSpriteFiltervirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_00046C60;
+extern cType *D_00046CBC;
 
 extern "C" {
     void eSpriteFilter__eSpriteFilter_cBaseptr(void *self, cBase *parent);
@@ -141,5 +153,30 @@ cBase *eSpriteFilter::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── 0x0021ce00 — GetType(void) const, 216B ──
+const cType *eSpriteFilter::GetType(void) const {
+    if (D_00046CBC == 0) {
+        if (D_00046C60 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00046C60 = cType::InitializeType(
+                0, 0, 0x13B, D_000385DC, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = D_00046C60;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x21CD84;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046CBC = cType::InitializeType(
+            0, 0, 0x63, parentType, factory, 0, 0, 0);
+    }
+    return D_00046CBC;
 }
 #pragma control sched=2
