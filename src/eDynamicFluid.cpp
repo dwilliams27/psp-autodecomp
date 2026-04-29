@@ -4,6 +4,19 @@
 
 extern char eDynamicFluidvirtualtable[];
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_00040FF4;
+extern cType *D_000469C0;
+extern cType *D_00046B24;
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -76,6 +89,38 @@ cBase *eDynamicFluid::New(cMemPool *pool, cBase *parent) {
     }
     return (cBase *)result;
 }
+
+// eDynamicFluid::GetType(void) const — 0x00205820
+#pragma control sched=1
+const cType *eDynamicFluid::GetType(void) const {
+    __asm__ volatile("" ::: "memory");
+    if (D_00046B24 == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469C0;
+        __asm__ volatile("" : "+r"(parentType));
+        __asm__ volatile("" ::: "memory");
+        cBase *(*factory)(cMemPool *, cBase *) = eDynamicFluid::New;
+        __asm__ volatile("" : "+r"(factory));
+        D_00046B24 = cType::InitializeType(0, 0, 0x259, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046B24;
+}
+#pragma control sched=2
 
 #pragma control sched=1
 // eDynamicFluid::~eDynamicFluid(void) — 0x0005DDC0
