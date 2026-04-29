@@ -7,6 +7,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -26,6 +35,7 @@ public:
     int m_n4;
     int m_n5;
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class cBaseArray {
@@ -52,10 +62,15 @@ public:
 
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
 gcRegionSetGroup *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_00099AEC;
 
 // ============================================================
 // 0x000ef96c — Write(cFile &) const
@@ -105,4 +120,24 @@ cBase *gcRegionSetGroup::New(cMemPool *pool, cBase *parent) {
         result = (int)obj;
     }
     return (cBase *)result;
+}
+
+// ============================================================
+// 0x002461a0 — GetType(void) const
+// ============================================================
+const cType *gcRegionSetGroup::GetType(void) const {
+    if (D_00099AEC == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_00099AEC = cType::InitializeType(0, 0, 0x113, D_000385E0,
+                                           &gcRegionSetGroup::New, 0, 0, 0);
+    }
+    return D_00099AEC;
 }

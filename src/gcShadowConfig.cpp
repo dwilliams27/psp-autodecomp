@@ -1,6 +1,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -20,6 +29,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcEntityGeomConfig {
 public:
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -27,6 +37,7 @@ public:
 class gcShadowConfig : public gcEntityGeomConfig {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -41,6 +52,10 @@ extern "C" {
 template <class T> T *dcast(const cBase *);
 
 extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+extern cType *D_000385DC;
+extern cType *D_0009F43C;
+extern cType *D_0009F7BC;
 
 struct AllocRec {
     short offset;
@@ -127,4 +142,23 @@ cBase *gcShadowConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcShadowConfig::GetType(void) const @ 0x0031fb2c ──
+const cType *gcShadowConfig::GetType(void) const {
+    if (D_0009F7BC == 0) {
+        if (D_0009F43C == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F43C = cType::InitializeType(0, 0, 0xA0, D_000385DC,
+                                               &gcEntityGeomConfig::New,
+                                               0, 0, 0);
+        }
+        D_0009F7BC = cType::InitializeType(0, 0, 0x1EA, D_0009F43C,
+                                           &gcShadowConfig::New, 0, 0, 0);
+    }
+    return D_0009F7BC;
 }
