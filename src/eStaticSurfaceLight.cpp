@@ -3,6 +3,18 @@
 class cFile;
 class cMemPool;
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class cBaseArray {
+public:
+    cBaseArray &operator=(const cBaseArray &);
+};
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -35,6 +47,7 @@ public:
     eStaticSurfaceLight(cBase *);
     ~eStaticSurfaceLight();
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -47,6 +60,26 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(base, p);
     }
+};
+
+class eBipedControllerTemplate {
+public:
+    void AssignCopy(const cBase *);
+};
+
+class eDynamicModelLookAtTemplate {
+public:
+    void AssignCopy(const cBase *);
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct WordCopy {
+    int value;
+};
+
+struct cHandle {
+    int mIndex;
 };
 
 extern char eStaticSurfaceLightvirtualtable[];
@@ -65,6 +98,30 @@ eStaticSurfaceLight::~eStaticSurfaceLight() {
     *(void **)((char *)this + 4) = eStaticSurfaceLightvirtualtable;
 }
 
+// eStaticSurfaceLight::AssignCopy(const cBase *) — 0x00206a68
+void eStaticSurfaceLight::AssignCopy(const cBase *src) {
+    eStaticSurfaceLight *other = dcast<eStaticSurfaceLight>(src);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(float *)((char *)this + 0x44) =
+        *(const float *)((const char *)other + 0x44);
+    __asm__ volatile("" ::: "memory");
+    cHandle *dstHandle = (cHandle *)((char *)this + 0x48);
+    const cHandle *srcHandle = (const cHandle *)((const char *)other + 0x48);
+    *dstHandle = *srcHandle;
+    *(v4sf_t *)((char *)this + 0x80) =
+        *(const v4sf_t *)((const char *)other + 0x80);
+    *(v4sf_t *)((char *)this + 0x50) =
+        *(const v4sf_t *)((const char *)other + 0x50);
+    *(v4sf_t *)((char *)this + 0x60) =
+        *(const v4sf_t *)((const char *)other + 0x60);
+    *(v4sf_t *)((char *)this + 0x70) =
+        *(const v4sf_t *)((const char *)other + 0x70);
+    *(float *)((char *)this + 0x90) =
+        *(const float *)((const char *)other + 0x90);
+    *(float *)((char *)this + 0x94) =
+        *(const float *)((const char *)other + 0x94);
+}
+
 // eStaticSurfaceLight::New(cMemPool *, cBase *) static — 0x00206af0
 cBase *eStaticSurfaceLight::New(cMemPool *pool, cBase *parent) {
     eStaticSurfaceLight *result = 0;
@@ -81,5 +138,63 @@ cBase *eStaticSurfaceLight::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// eBipedControllerTemplate::AssignCopy(const cBase *) — 0x002085a8
+void eBipedControllerTemplate::AssignCopy(const cBase *src) {
+    eBipedControllerTemplate *other = dcast<eBipedControllerTemplate>(src);
+    const cBaseArray *other8 = (const cBaseArray *)((const char *)other + 8);
+    ((cBaseArray *)((char *)this + 8))->operator=(*other8);
+    ((cBaseArray *)((char *)this + 0x10))->operator=(
+        *(const cBaseArray *)((const char *)other + 0x10));
+    ((cBaseArray *)((char *)this + 0x18))->operator=(
+        *(const cBaseArray *)((const char *)other + 0x18));
+    __asm__ volatile("" ::: "memory");
+    cHandle *dst20 = (cHandle *)((char *)this + 0x20);
+    const cHandle *src20 = (const cHandle *)((const char *)other + 0x20);
+    *dst20 = *src20;
+    __asm__ volatile("" ::: "memory");
+    cHandle *dst24 = (cHandle *)((char *)this + 0x24);
+    const cHandle *src24 = (const cHandle *)((const char *)other + 0x24);
+    *dst24 = *src24;
+    *(float *)((char *)this + 0x28) =
+        *(const float *)((const char *)other + 0x28);
+    *(float *)((char *)this + 0x2C) =
+        *(const float *)((const char *)other + 0x2C);
+    *(float *)((char *)this + 0x30) =
+        *(const float *)((const char *)other + 0x30);
+}
+
+// eDynamicModelLookAtTemplate::AssignCopy(const cBase *) — 0x001f0e34
+void eDynamicModelLookAtTemplate::AssignCopy(const cBase *src) {
+    eDynamicModelLookAtTemplate *other =
+        dcast<eDynamicModelLookAtTemplate>(src);
+    *(unsigned char *)((char *)this + 8) =
+        *(const unsigned char *)((const char *)other + 8);
+    *(float *)((char *)this + 0xC) =
+        *(const float *)((const char *)other + 0xC);
+    *(float *)((char *)this + 0x10) =
+        *(const float *)((const char *)other + 0x10);
+    *(float *)((char *)this + 0x14) =
+        *(const float *)((const char *)other + 0x14);
+    *(float *)((char *)this + 0x18) =
+        *(const float *)((const char *)other + 0x18);
+    *(float *)((char *)this + 0x1C) =
+        *(const float *)((const char *)other + 0x1C);
+    __asm__ volatile("" ::: "memory");
+    int *dst = (int *)((char *)this + 0x20);
+    const int *srcWords = (const int *)((const char *)other + 0x20);
+    int w0 = srcWords[0];
+    int w1 = srcWords[1];
+    int w2 = srcWords[2];
+    dst[0] = w0;
+    dst[1] = w1;
+    dst[2] = w2;
+    int w3 = srcWords[3];
+    int w4 = srcWords[4];
+    int w5 = srcWords[5];
+    dst[3] = w3;
+    dst[4] = w4;
+    dst[5] = w5;
 }
 #pragma control sched=2
