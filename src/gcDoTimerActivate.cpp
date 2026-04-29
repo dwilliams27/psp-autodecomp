@@ -7,6 +7,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -53,6 +62,7 @@ public:
     // 0x20: bool
     // 0x21: bool
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -64,6 +74,13 @@ extern "C" {
 extern char gcDoTimerActivatevirtualtable[];
 extern char gcDoTimerActivate_desobj_vtable[];
 extern char gcDoTimerActivate_vtable1[];
+extern const char gcDoTimerActivate_base_name[] asm("D_0036D894");
+extern const char gcDoTimerActivate_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoTimerActivate asm("D_0009F718");
 
 struct PoolBlock {
     char  _pad[0x1C];
@@ -100,6 +117,27 @@ cBase *gcDoTimerActivate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoTimerActivate::GetType(void) const {
+    if (!type_gcDoTimerActivate) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoTimerActivate_base_name,
+                        gcDoTimerActivate_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoTimerActivate = cType::InitializeType(
+            0, 0, 0xDF, type_action, gcDoTimerActivate::New, 0, 0, 0);
+    }
+    return type_gcDoTimerActivate;
 }
 
 // 0x00307e9c - gcDoTimerActivate::Write(cFile &) const

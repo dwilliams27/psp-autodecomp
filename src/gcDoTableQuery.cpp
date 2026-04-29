@@ -1,6 +1,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -23,6 +32,7 @@ public:
 class gcDoTableQuery : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -51,6 +61,13 @@ void gcEvent_gcEvent(void *, cBase *, const char *);
 
 extern char gcActionvirtualtable[];
 extern char D_00000838[];
+extern const char gcDoTableQuery_base_name[] asm("D_0036D894");
+extern const char gcDoTableQuery_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoTableQuery asm("D_0009F714");
 
 cBase *gcDoTableQuery::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -79,6 +96,27 @@ cBase *gcDoTableQuery::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoTableQuery::GetType(void) const {
+    if (!type_gcDoTableQuery) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoTableQuery_base_name, gcDoTableQuery_base_desc, 1,
+                        0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoTableQuery = cType::InitializeType(
+            0, 0, 0x21A, type_action, gcDoTableQuery::New, 0, 0, 0);
+    }
+    return type_gcDoTableQuery;
 }
 
 void gcDoTableQuery::Write(cFile &file) const {
