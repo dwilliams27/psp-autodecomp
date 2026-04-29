@@ -5,6 +5,7 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -39,11 +40,20 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcDoEntitySetLookAtTarget : public gcAction {
 public:
     gcDoEntitySetLookAtTarget(cBase *);
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -58,6 +68,92 @@ struct WriteRec {
     short _pad;
     void (*fn)(void *, cFile *);
 };
+
+extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+extern char D_00000338[];
+extern char gcDoEntitySetLookAtTargetvirtualtable[];
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_action asm("D_000385D4");
+static cType *type_gcDoEntitySetLookAtTarget asm("D_0009F658");
+
+gcDoEntitySetLookAtTarget::gcDoEntitySetLookAtTarget(cBase *parent) {
+    gcAction_gcAction(this, parent);
+    mVTable = gcDoEntitySetLookAtTargetvirtualtable;
+
+    char *desired0 = (char *)this + 0x0C;
+    gcDesiredObject_gcDesiredObject(desired0, (cBase *)this);
+
+    void *desiredType = D_00000338;
+    *(void **)((char *)this + 0x10) = desiredType;
+
+    void *helper0 = (char *)this + 0x18;
+    int one = 1;
+    gcDesiredEntityHelper_ctor(helper0, 1, 0, 0);
+
+    void *helperDesc = (void *)0x388A48;
+    *(void **)((char *)this + 0x10) = helperDesc;
+    *(void **)((char *)this + 0x20) = desired0;
+
+    void *desiredVTable = (void *)0x388568;
+    *(void **)((char *)this + 0x24) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x28) = one;
+    *(unsigned char *)((char *)this + 0x29) = 0;
+    *(int *)((char *)this + 0x2C) = 0;
+    *(int *)((char *)this + 0x30) = 0;
+    *(int *)((char *)this + 0x34) = (int)desired0 | 1;
+    *(void **)((char *)this + 0x38) = this;
+    *(void **)((char *)this + 0x3C) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x40) = one;
+    *(unsigned char *)((char *)this + 0x41) = 0;
+    *(int *)((char *)this + 0x44) = 0;
+    *(int *)((char *)this + 0x48) = 0;
+    *(int *)((char *)this + 0x4C) = (int)this | 1;
+    *(int *)((char *)this + 0x54) = 0;
+
+    char *desired1 = (char *)this + 0x58;
+    gcDesiredObject_gcDesiredObject(desired1, (cBase *)this);
+    *(void **)((char *)this + 0x5C) = desiredType;
+    void *helper1 = (char *)this + 0x64;
+    gcDesiredEntityHelper_ctor(helper1, 1, 0, 0);
+    *(void **)((char *)this + 0x5C) = helperDesc;
+    *(void **)((char *)this + 0x6C) = desired1;
+    *(void **)((char *)this + 0x70) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x74) = one;
+    *(unsigned char *)((char *)this + 0x75) = 0;
+    *(int *)((char *)this + 0x78) = 0;
+    *(int *)((char *)this + 0x7C) = 0;
+    *(int *)((char *)this + 0x80) = (int)desired1 | 1;
+    *(short *)((char *)this + 0x98) = 0;
+    *(short *)((char *)this + 0x9A) = 0;
+    *(unsigned char *)((char *)this + 0x84) = 0;
+}
+
+const cType *gcDoEntitySetLookAtTarget::GetType(void) const {
+    if (!type_gcDoEntitySetLookAtTarget) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                        type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression,
+                                                0, 0, 0, 0);
+        }
+        type_gcDoEntitySetLookAtTarget = cType::InitializeType(
+            0, 0, 0x11B, type_action, gcDoEntitySetLookAtTarget::New, 0, 0, 0);
+    }
+    return type_gcDoEntitySetLookAtTarget;
+}
 
 cBase *gcDoEntitySetLookAtTarget::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
