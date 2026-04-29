@@ -6,6 +6,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -46,6 +55,7 @@ class gcDoUIEffect : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcDoUIEffect();
@@ -62,6 +72,13 @@ void gcAction_gcAction(gcDoUIEffect *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(gcDesiredUIWidgetHelper *, int);
 gcDoUIEffect *dcast(const cBase *);
 extern char gcDoUIEffectvirtualtable[];
+extern const char gcDoUIEffect_base_name[];
+extern const char gcDoUIEffect_base_desc[];
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoUIEffect;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -73,6 +90,23 @@ struct AllocEntry {
     short pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+// 0x0030a1b4 — GetType(void) const
+const cType *gcDoUIEffect::GetType(void) const {
+    if (!type_gcDoUIEffect) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(gcDoUIEffect_base_name, gcDoUIEffect_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoUIEffect = cType::InitializeType(0, 0, 0x204, type_action, gcDoUIEffect::New, 0, 0, 0);
+    }
+    return type_gcDoUIEffect;
+}
 
 // 0x0030a098 — AssignCopy(const cBase *)
 void gcDoUIEffect::AssignCopy(const cBase *other) {
