@@ -2,6 +2,7 @@
 // Decompiled functions:
 //   0x0036655c  gcValUITexCoord::AssignCopy(const cBase *)            (112B)
 //   0x003665cc  gcValUITexCoord::New(cMemPool *, cBase *) static      (180B)
+//   0x00367070  gcValUITexCoord::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int) (128B)
 //   0x003670f0  gcValUITexCoord::~gcValUITexCoord(void)               (100B)
 //
 // Class layout (36 bytes, alloc size 0x24):
@@ -23,6 +24,13 @@ extern char gcLValuevirtualtable[];
 extern char gcValUITexCoordvirtualtable[];
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
+
+struct gcDesiredUIWidgetHelper {
+    int _a;
+    int _b;
+    int _c;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+};
 
 struct DeleteRecord {
     short offset;
@@ -58,6 +66,7 @@ public:
 
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcValUITexCoord();
 
     static void operator delete(void *p) {
@@ -118,6 +127,16 @@ cBase *gcValUITexCoord::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ============================================================
+// 0x00367070 — VisitReferences
+// ============================================================
+void gcValUITexCoord::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
 
 // ============================================================

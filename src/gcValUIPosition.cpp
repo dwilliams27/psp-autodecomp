@@ -1,6 +1,7 @@
 // gcValUIPosition — decompiled from gcAll_psp.obj
 // Methods in this file:
 //   0x00363f18  Write(cFile &) const
+//   0x00365180  VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)
 //   0x00365200  ~gcValUIPosition(void)
 //
 // Class layout (32 bytes):
@@ -31,6 +32,7 @@ struct gcDesiredUIWidgetHelper {
     int _c;
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 void cStrAppend(char *, const char *, ...);
@@ -71,6 +73,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 
     static void operator delete(void *p) {
         cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
@@ -150,6 +153,14 @@ void gcValUIPosition::GetText(char *buf) const {
     local[0] = *local = '\0';
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
     cStrAppend(buf, gcValUIPosition_fmt, local, gcValGetText_text);
+}
+
+// ── gcValUIPosition::VisitReferences @ 0x00365180 ──
+void gcValUIPosition::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
 
 // ── gcValUIPosition::~gcValUIPosition(void) @ 0x00365200 ──
