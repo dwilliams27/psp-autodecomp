@@ -4,6 +4,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -40,11 +48,35 @@ struct DeleteRecord {
 
 class gcSaveGameSubscriber {
 public:
+    const cType *GetType(void) const;
     void Attach(void);
     void Write(cFile &) const;
     int GetItem(int) const;
     void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
 };
+
+extern cType *D_000385DC;
+extern cType *D_00038880;
+extern cType *D_0009F564;
+
+// -- gcSaveGameSubscriber::GetType(void) const @ 0x00288420 --
+const cType *gcSaveGameSubscriber::GetType(void) const {
+    if (D_0009F564 == 0) {
+        if (D_00038880 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00038880 = cType::InitializeType(0, 0, 0x187, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        D_0009F564 = cType::InitializeType(0, 0, 0x1B5, D_00038880,
+                                           &gcSaveGameSubscriber::New, 0, 0, 0);
+    }
+    return D_0009F564;
+}
 
 // ── gcSaveGameSubscriber::Attach(void) @ 0x00288604 ──
 void gcSaveGameSubscriber::Attach(void) {
