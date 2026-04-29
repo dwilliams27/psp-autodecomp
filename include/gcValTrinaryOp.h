@@ -2,7 +2,9 @@
 #define GCVALTRINARYOP_H
 
 class cBase;
+class cFile;
 class cMemPool;
+class cType;
 class gcExpression;
 
 struct gcValTrinaryOpData {
@@ -21,6 +23,8 @@ public:
     int GetExprFlags(void) const;
     void GetText(char *) const;
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
