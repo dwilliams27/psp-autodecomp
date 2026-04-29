@@ -19,11 +19,16 @@ public:
 
 class gcDesiredEntityHelper {
 public:
+    enum gcPrimary { gcPrimary_One = 1 };
+    enum gcRelationship { gcRelationship_None = 0 };
+
+    gcDesiredEntityHelper(gcPrimary, gcRelationship, gcRelationship);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredObject {
 public:
+    gcDesiredObject(cBase *);
     void Write(cFile &) const;
 };
 
@@ -59,6 +64,25 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+struct gcDesiredEntityPoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct gcDesiredEntityAllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+extern char D_00000338[];
+extern char gcDesiredEntityHelperclassdesc[];
+extern char cBaseclassdesc[];
+extern char gcDesiredEntityvirtualtable[];
+extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
 // ── gcDesiredEntity::Write @ 0x0011d67c ──
 void gcDesiredEntity::Write(cFile &file) const {
     cWriteBlock wb(file, 3);
@@ -71,6 +95,35 @@ void gcDesiredEntity::Write(cFile &file) const {
     slot->mWrite((cBase *)((char *)embedded + slot->mOffset), wb._file);
 
     wb.End();
+}
+
+// ── gcDesiredEntity::New @ 0x0026015c ──
+cBase *gcDesiredEntity::New(cMemPool *pool, cBase *parent) {
+    gcDesiredEntity *result = 0;
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((gcDesiredEntityPoolBlock *)block)->allocTable;
+    gcDesiredEntityAllocEntry *entry = (gcDesiredEntityAllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDesiredEntity *obj = (gcDesiredEntity *)entry->fn(base, 0x2C, 4, 0, 0);
+    if (obj != 0) {
+        gcDesiredObject_gcDesiredObject(obj, parent);
+        *(void **)((char *)obj + 4) = D_00000338;
+        void *helper = (char *)obj + 0x0C;
+        int one = 1;
+        gcDesiredEntityHelper_ctor(helper, 1, 0, 0);
+        *(void **)((char *)obj + 4) = gcDesiredEntityHelperclassdesc;
+        *(void **)((char *)obj + 0x18) = cBaseclassdesc;
+        *(void **)((char *)obj + 0x14) = obj;
+        *(void **)((char *)obj + 0x18) = gcDesiredEntityvirtualtable;
+        *(unsigned char *)((char *)obj + 0x1C) = one;
+        *(unsigned char *)((char *)obj + 0x1D) = 0;
+        *(int *)((char *)obj + 0x20) = 0;
+        *(int *)((char *)obj + 0x24) = 0;
+        *(int *)((char *)obj + 0x28) = (int)obj | 1;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 // ── gcDesiredEntity::GetType @ 0x0026023c ──
