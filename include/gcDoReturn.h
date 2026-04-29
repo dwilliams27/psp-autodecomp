@@ -70,6 +70,7 @@ struct gcDoSwitchCaseData {
 class gcDoSwitchCase {
 public:
     gcDoSwitchCase(cBase *);
+    const cType *GetType(void) const;
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
     int GetExprFlags(void) const;
