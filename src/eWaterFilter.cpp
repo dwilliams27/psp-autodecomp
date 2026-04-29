@@ -6,6 +6,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cMemPool {
 public:
@@ -37,6 +46,7 @@ class eWaterFilter : public eTextureFilter {
 public:
     eWaterFilter(cBase *);
     ~eWaterFilter();
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -52,6 +62,10 @@ public:
 };
 
 extern char eWaterFiltervirtualtable[];
+
+static cType *type_cBase;
+static cType *type_eTextureFilter;
+static cType *type_eWaterFilter;
 
 #pragma control sched=1
 // ── 0x0008c7f4 — ~eWaterFilter(void) ──
@@ -74,5 +88,29 @@ cBase *eWaterFilter::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── 0x0021d2cc — GetType(void) const ──
+const cType *eWaterFilter::GetType(void) const {
+    if (!type_eWaterFilter) {
+        if (!type_eTextureFilter) {
+            if (!type_cBase) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                type_cBase = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            type_eTextureFilter =
+                cType::InitializeType(0, 0, 0x13B, type_cBase, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = type_eTextureFilter;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x21D250;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        type_eWaterFilter =
+            cType::InitializeType(0, 0, 0x249, parentType, factory, 0, 0, 0);
+    }
+    return type_eWaterFilter;
 }
 #pragma control sched=2

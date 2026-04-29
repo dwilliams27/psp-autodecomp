@@ -34,6 +34,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
 };
 
 extern "C" {
@@ -45,6 +46,18 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+static cType *type_cBase;
+static cType *type_eGeom;
+static cType *type_eWeatherEffect;
 
 #pragma control sched=1
 
@@ -83,4 +96,27 @@ cBase *eWeatherEffect::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eWeatherEffect::GetType(void) const @ 0x002075c8 ──
+const cType *eWeatherEffect::GetType(void) const {
+    if (!type_eWeatherEffect) {
+        if (!type_eGeom) {
+            if (!type_cBase) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                type_cBase = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            type_eGeom = cType::InitializeType(0, 0, 0x16, type_cBase, 0, 0, 0, 0);
+        }
+        __asm__ volatile("" ::: "memory");
+        const cType *parentType = type_eGeom;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x20754C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        type_eWeatherEffect =
+            cType::InitializeType(0, 0, 0x192, parentType, factory, 0, 0, 0);
+    }
+    return type_eWeatherEffect;
 }
