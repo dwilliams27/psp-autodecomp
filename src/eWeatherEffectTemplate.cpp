@@ -1,5 +1,40 @@
 class cBase;
+class cFile;
 class cMemPool;
+class cType;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(float);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class eGeomTemplate {
+public:
+    void Write(cFile &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A8;
+extern cType *D_00046BA0;
 
 class cMemPool {
 public:
@@ -31,6 +66,8 @@ public:
     ~eWeatherEffectTemplate(void);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -105,4 +142,66 @@ cBase *eWeatherEffectTemplate::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+const cType *eWeatherEffectTemplate::GetType(void) const {
+    if (D_00046BA0 == 0) {
+        if (D_000469A8 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        const char *name = (const char *)0x36CD74;
+                        const char *desc = (const char *)0x36CD7C;
+                        __asm__ volatile("" : "+r"(name), "+r"(desc));
+                        D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385DC;
+                    cBase *(*factory)(cMemPool *, cBase *) =
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                    D_000385E0 = cType::InitializeType(0, 0, 2, parentType,
+                                                       factory, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            const cType *parentType = D_000385E4;
+            const char *kindName = (const char *)0x36CE2C;
+            const char *kindDesc = (const char *)0x36CE3C;
+            __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+            D_000469A8 = cType::InitializeType(0, 0, 0x20, parentType,
+                                               0, kindName, kindDesc, 5);
+        }
+        const cType *parentType = D_000469A8;
+        cBase *(*factory)(cMemPool *, cBase *) = &eWeatherEffectTemplate::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BA0 = cType::InitializeType(0, 0, 0x191, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046BA0;
+}
+
+#pragma control sched=2
+
+#pragma control sched=1
+void eWeatherEffectTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 4);
+    ((const eGeomTemplate *)this)->Write(file);
+    ((const cHandle *)((const char *)this + 0x70))->Write(wb);
+    wb.Write(*(int *)((const char *)this + 0x44));
+    wb.Write(*(float *)((const char *)this + 0x60));
+    wb.Write(*(float *)((const char *)this + 0x48));
+    wb.Write(*(float *)((const char *)this + 0x4C));
+    wb.Write(*(float *)((const char *)this + 0x50));
+    wb.Write(*(float *)((const char *)this + 0x58));
+    wb.Write(*(float *)((const char *)this + 0x64));
+    wb.Write(*(float *)((const char *)this + 0x5C));
+    wb.Write(*(float *)((const char *)this + 0x54));
+    wb.Write(*(float *)((const char *)this + 0x68));
+    wb.Write(*(float *)((const char *)this + 0x6C));
+    wb.Write(*(const bool *)((const char *)this + 0x74));
+    wb.Write(*(float *)((const char *)this + 0x78));
+    wb.Write(*(float *)((const char *)this + 0x7C));
+    wb.Write(*(float *)((const char *)this + 0x80));
+    wb.Write(*(float *)((const char *)this + 0x84));
+    wb.End();
+}
 #pragma control sched=2
