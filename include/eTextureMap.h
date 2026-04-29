@@ -69,12 +69,30 @@ public:
     int field_54;
 
     eBumpOffsetMap(cBase *);
+    ~eBumpOffsetMap(void);
     void PlatformFree(void);
     void CreateData(void);
     void Apply(int, const eCamera *, const eWorld *) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     int GetNumExternalDependencies(void) const;
+
+    static void operator delete(void *p) {
+        struct DeleteRecord {
+            short offset;
+            short pad;
+            void (*fn)(void *, void *);
+        };
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        char *allocTable = ((char **)block)[7];
+        DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        void *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 
     static eBumpOffsetMap *New(cMemPool *, cBase *);
 };

@@ -95,37 +95,10 @@ eBumpOffsetMap *eBumpOffsetMap::New(cMemPool *pool, cBase *parent) {
 // ── Destructor ──
 
 extern char eBumpOffsetMapvirtualtable[];
-void eBumpOffsetMap_PlatformFree(eBumpOffsetMap *);
-void eTexture___dtor_eTexture_void(void *, int);
-void *cMemPool_GetPoolFromPtr(void *);
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-extern "C" {
-
-void eBumpOffsetMap___dtor_eBumpOffsetMap_void(eBumpOffsetMap *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eBumpOffsetMapvirtualtable;
-        eBumpOffsetMap_PlatformFree(self);
-        eTexture___dtor_eTexture_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
-}
-
+eBumpOffsetMap::~eBumpOffsetMap(void) {
+    *(void **)((char *)this + 4) = eBumpOffsetMapvirtualtable;
+    PlatformFree();
 }
 
 // ── Stubs (already matched) ──

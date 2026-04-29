@@ -4,7 +4,22 @@
 //   0x0028ee64  New(cMemPool *, cBase *) static
 
 class cBase;
+class cFile;
 class cMemPool;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void End(void);
+};
+
+class cHandle {
+public:
+    int mIndex;
+    void Write(cWriteBlock &) const;
+};
 
 inline void *operator new(unsigned int, void *p) {
     return p;
@@ -31,12 +46,14 @@ class gcUITextControl {
 public:
     gcUITextControl(cBase *);
     ~gcUITextControl();
+    void Write(cFile &) const;
 };
 
 class gcUICheckBox : public gcUITextControl {
 public:
     gcUICheckBox(cBase *);
     ~gcUICheckBox();
+    void Write(cFile &) const;
 
     static cBase *New(cMemPool *, cBase *);
 
@@ -55,6 +72,17 @@ extern char gcUICheckBoxvirtualtable[];
 // SNC emits the null guard, base destructor call, and deleting tail.
 gcUICheckBox::~gcUICheckBox() {
     *(void **)((char *)this + 4) = gcUICheckBoxvirtualtable;
+}
+
+void gcUICheckBox::Write(cFile &file) const {
+    cWriteBlock wb(file, 3);
+    gcUITextControl::Write(file);
+    wb.Write(3);
+    const cHandle *handles = (const cHandle *)((const char *)this + 0x114);
+    for (int i = 0; i < 3; i++) {
+        handles[i].Write(wb);
+    }
+    wb.End();
 }
 
 // gcUICheckBox::New(cMemPool *, cBase *) static @ 0x0028ee64
