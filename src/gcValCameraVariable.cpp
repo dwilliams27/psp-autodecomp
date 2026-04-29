@@ -7,6 +7,12 @@ public:
     gcDesiredCamera(cBase *);
 };
 
+class gcDesiredEntity {
+public:
+    char _pad[0x2C];
+    gcDesiredEntity &operator=(const gcDesiredEntity &);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -20,16 +26,31 @@ struct AllocEntry {
 
 class gcValCameraVariable {
 public:
-    char _pad[0x40];
+    char _pad0[0x10];
+    int mField10;
+    gcDesiredEntity mDesiredEntity;
     unsigned char mField40;
+    char _pad41[3];
     int mField44;
 
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+template <class T> T *dcast(const cBase *);
 
 extern char cBaseclassdesc[];
 extern char gcValCameraVariablevirtualtable[];
 void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
+
+// 0x003223ac, 88B
+void gcValCameraVariable::AssignCopy(const cBase *base) {
+    gcValCameraVariable *other = dcast<gcValCameraVariable>(base);
+    mField10 = other->mField10;
+    mDesiredEntity.operator=(other->mDesiredEntity);
+    mField40 = other->mField40;
+    mField44 = other->mField44;
+}
 
 // 0x00322404, 160B
 cBase *gcValCameraVariable::New(cMemPool *pool, cBase *parent) {
