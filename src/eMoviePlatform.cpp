@@ -228,6 +228,7 @@ int eMoviePlatform::soundbuf_getDrawbuf(void) {
     return result;
 }
 
+#pragma control sched=1
 void eMoviePlatform::avsync_video_setPts(unsigned int pts) {
     if (pts == (unsigned int)-1) {
         pts = *(unsigned int *)((char *)this + 0x378) + *(unsigned int *)((char *)this + 0x37C);
@@ -240,6 +241,7 @@ void eMoviePlatform::avsync_video_setPts(unsigned int pts) {
     *(int *)((char *)this + 0x370) = count + 1;
     *(int *)((char *)this + 0x368) = (idx + 1) % size;
 }
+#pragma control sched=2
 
 int eMoviePlatform::read_isFull(void) {
     control_getCondition();

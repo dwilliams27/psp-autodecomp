@@ -84,13 +84,12 @@ void eBroadphase::MarkPairsUnvisited(eRigidBodyState *body) {
 
 void eBroadphase::UpdatePairSleepState(eCollisionPair *pair) {
     unsigned short flags = pair->mFlags;
-    register int wasSleeping __asm__("s2") = (flags & 8) != 0;
-    int isSleeping = pair->BodiesSleeping();
-    if (wasSleeping == isSleeping) {
-        return;
+    int wasSleeping = (flags & 8) != 0;
+    unsigned int isSleeping = pair->BodiesSleeping();
+    if (wasSleeping != isSleeping) {
+        UnlinkPair(pair);
+        LinkPair(pair);
     }
-    UnlinkPair(pair);
-    LinkPair(pair);
 }
 
 void eBroadphase::AddRigidBody(eRigidBodyState *body) {
