@@ -103,6 +103,7 @@ public:
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void SetScale(float, unsigned int);
     void Write(cFile &) const;
     static gcDynamicModelController *New(cMemPool *, cBase *);
 
@@ -126,6 +127,13 @@ struct gdm_half3 {
     short a;
     short b;
     short c;
+};
+
+struct gcDynamicModelData {
+    char _pad0[0x78];
+    float mScale;
+    char _pad1[0x10];
+    unsigned char mFlags;
 };
 
 // ── gcDynamicModelController::Write(cFile &) const @ 0x0014a554 ──
@@ -198,6 +206,22 @@ void gcDynamicModelController::AssignCopy(const cBase *src) {
         dst2 += 1;
         from2 += 1;
     } while (j <= 0);
+}
+
+// ── gcDynamicModelController::SetScale(float, unsigned int) @ 0x0014a724 ──
+void gcDynamicModelController::SetScale(float scale, unsigned int flags) {
+    gcDynamicModelData *model = *(gcDynamicModelData **)((char *)this + 0x0C);
+    if (model != 0) {
+        float clamped = scale;
+        float minScale = 0.00001f;
+        if (clamped <= minScale) {
+            clamped = minScale;
+        }
+        model->mFlags = model->mFlags & ~0xE0;
+        model->mScale = clamped;
+        __asm__ volatile("" ::: "memory");
+        model->mFlags = model->mFlags | flags;
+    }
 }
 
 // ── gcDynamicModelController::New(cMemPool *, cBase *) static @ 0x002d5eb4 ──

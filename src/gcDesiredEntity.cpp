@@ -8,6 +8,14 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcEnumeration;
+class gcEnumerationEntry;
+
+template <class T>
+class cSubHandleT;
+
+template <class T, class U>
+class cHandlePairT;
 
 class cWriteBlock {
 public:
@@ -30,6 +38,11 @@ class gcDesiredObject {
 public:
     gcDesiredObject(cBase *);
     void Write(cFile &) const;
+};
+
+class gcEntity {
+public:
+    int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
 };
 
 class cType {
@@ -59,6 +72,8 @@ struct gcDesiredEntityTypeInfo2 {
 
 class gcDesiredEntity {
 public:
+    gcEntity *Get(bool) const;
+    int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -82,6 +97,16 @@ extern char gcDesiredEntityvirtualtable[];
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+// ── gcDesiredEntity::HasCategory @ 0x0011df9c ──
+int gcDesiredEntity::HasCategory(
+    const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &category) const {
+    gcEntity *entity = Get(1);
+    if (entity != 0) {
+        return entity->HasCategory(category);
+    }
+    return 0;
+}
 
 // ── gcDesiredEntity::Write @ 0x0011d67c ──
 void gcDesiredEntity::Write(cFile &file) const {
