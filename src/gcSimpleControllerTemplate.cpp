@@ -1,9 +1,13 @@
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 class gcEntityControllerTemplate;
 class gcSimpleControllerTemplate;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -30,6 +34,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 
 class cBaseArray {
 public:
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
 };
 
@@ -44,6 +49,7 @@ public:
 
 class gcSimpleControllerTemplate : public gcEntityControllerTemplate {
 public:
+    ~gcSimpleControllerTemplate();
     gcSimpleControllerTemplate(cBase *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
@@ -63,9 +69,44 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    void *block = *(void **)((char *)pool + 0x24);
+    DeleteRec *rec = (DeleteRec *)(*(char **)((char *)block + 0x1C) + 0x30);
+    short off = rec->offset;
+    rec->fn((char *)block + off, p);
+}
+
 extern cType *D_000385DC;
 extern cType *D_0009A400;
 extern cType *D_0009F7C0;
+
+extern char gcEntityControllerTemplate_dtor_classdesc[];
+extern char cBase_dtor_classdesc[];
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oagcSimpleControllerTemplatedtv, 0xb0\n");
+
+// ── gcSimpleControllerTemplate::~gcSimpleControllerTemplate(void) @ 0x0031ff44 ──
+gcSimpleControllerTemplate::~gcSimpleControllerTemplate() {
+    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
+    cBaseArray *arr1 = (cBaseArray *)((char *)this + 0x1C);
+    cBaseArray *arr0 = (cBaseArray *)((char *)this + 0x08);
+    if (arr1 != 0) {
+        arr1->RemoveAll();
+    }
+    if (arr0 != 0) {
+        arr0->RemoveAll();
+    }
+    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
 
 // ── gcSimpleControllerTemplate::gcSimpleControllerTemplate(cBase *) @ 0x00157e04 ──
 gcSimpleControllerTemplate::gcSimpleControllerTemplate(cBase *parent)

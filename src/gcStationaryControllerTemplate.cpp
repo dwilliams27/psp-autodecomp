@@ -1,9 +1,13 @@
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 class gcEntityControllerTemplate;
 class gcStationaryControllerTemplate;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -32,6 +36,7 @@ class cBaseArray {
 public:
     int _count;
     cBase *_owner;
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
 };
 
@@ -45,6 +50,7 @@ public:
 
 class gcStationaryControllerTemplate : public gcEntityControllerTemplate {
 public:
+    ~gcStationaryControllerTemplate();
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -66,6 +72,41 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    void *block = *(void **)((char *)pool + 0x24);
+    DeleteRec *rec = (DeleteRec *)(*(char **)((char *)block + 0x1C) + 0x30);
+    short off = rec->offset;
+    rec->fn((char *)block + off, p);
+}
+
+extern char gcEntityControllerTemplate_dtor_classdesc[];
+extern char cBase_dtor_classdesc[];
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oegcStationaryControllerTemplatedtv, 0xb0\n");
+
+// ── gcStationaryControllerTemplate::~gcStationaryControllerTemplate(void) @ 0x0032059c ──
+gcStationaryControllerTemplate::~gcStationaryControllerTemplate() {
+    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
+    cBaseArray *arr1 = (cBaseArray *)((char *)this + 0x1C);
+    cBaseArray *arr0 = (cBaseArray *)((char *)this + 0x08);
+    if (arr1 != 0) {
+        arr1->RemoveAll();
+    }
+    if (arr0 != 0) {
+        arr0->RemoveAll();
+    }
+    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
 
 // ── gcStationaryControllerTemplate::Write(cFile &) const @ 0x001581a0 ──
 void gcStationaryControllerTemplate::Write(cFile &file) const {
