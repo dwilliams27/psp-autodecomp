@@ -4,16 +4,19 @@
 // finitef / isnanf: libm helpers (co-located at orchestrator's request)
 
 class cBase;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 extern "C" {
-    void *cMemPool_GetPoolFromPtr(void *);
     void free(void *);
 }
 
 struct DeleteRecord {
     short offset;
     short _pad;
-    void (*fn)(void *, void *);
+    void *fn;
 };
 
 // ==========================================================================
@@ -29,37 +32,47 @@ public:
     int mUnk10;
 
     eSoundWaveData();
+    ~eSoundWaveData();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            DeleteRecord *rec =
+                (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+            __asm__ volatile("" : "+r"(rec));
+            short off = rec->offset;
+            void *base = (char *)block + off;
+            __asm__ volatile("" : "+r"(base));
+            void *fn = rec->fn;
+            ((void (*)(void *, void *, void *))fn)(base, p, fn);
+        } else {
+            free(p);
+        }
+    }
 };
 
 eSoundWaveData::eSoundWaveData() {
     mVolume = 0.0f;
+    __asm__ volatile("" ::: "memory");
     mUnk4 = 0;
     mUnk8 = 0;
     mResource = 0;
     mUnk10 = 0;
 }
 
-extern "C" void eSoundWaveData___dtor_eSoundWaveData_void(eSoundWaveData *self, int flags) {
-    if (self != 0) {
-        if (self->mResource != 0) {
-            void *pool = cMemPool_GetPoolFromPtr(self->mResource);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self->mResource);
-            self->mResource = 0;
-        }
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
+eSoundWaveData::~eSoundWaveData() {
+    if (mResource != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(mResource);
+        void *block = *(void **)((char *)pool + 0x24);
+        DeleteRecord *rec =
+            (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        __asm__ volatile("" : "+r"(rec));
+        short off = rec->offset;
+        void *base = (char *)block + off;
+        __asm__ volatile("" : "+r"(base));
+        void *fn = rec->fn;
+        ((void (*)(void *, void *, short, void *))fn)(base, mResource, off, fn);
+        mResource = 0;
     }
 }
 
