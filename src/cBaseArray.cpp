@@ -30,10 +30,51 @@ public:
     int *mData;
     cBase *mOwner;
 
+    cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
+    int *Allocate(int);
     void SetSize(int);
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
 };
+
+struct cBaseArray_CloneEntry {
+    short offset;
+    short _pad;
+    cBase *(*func)(void *, cMemPool *, cBase *);
+};
+
+cBaseArray &cBaseArray::operator=(const cBaseArray &other) {
+    RemoveAll();
+
+    int count = 0;
+    if (other.mData != 0) {
+        count = other.mData[-1];
+    }
+
+    cMemPool *pool = cMemPool::GetPoolFromPtr(this);
+    mData = Allocate(count);
+
+    int index = 0;
+    if (index < count) {
+        int offset = 0;
+        do {
+            void *copy = 0;
+            void *src = *(void **)((char *)other.mData + offset);
+            if (src != 0) {
+                char *dispatch = *(char **)((char *)src + 4);
+                cBaseArray_CloneEntry *clone =
+                    (cBaseArray_CloneEntry *)(dispatch + 0x10);
+                copy = clone->func((char *)src + clone->offset, pool, mOwner);
+            }
+            *(void **)((char *)mData + offset) = copy;
+            index += 1;
+            offset += 4;
+        } while (index < count);
+    }
+
+    return *this;
+}
 
 void cBaseArray::Write(cWriteBlock &wb) const {
     int count = 0;
