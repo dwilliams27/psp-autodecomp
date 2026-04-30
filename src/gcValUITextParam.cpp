@@ -13,8 +13,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -47,6 +51,18 @@ void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 extern char gcLValuevirtualtable[];
 extern char gcValUITextParamvirtualtable[];
+extern char cBaseclassdesc[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 class gcLValue {
 public:
@@ -60,9 +76,20 @@ public:
     gcDesiredUIWidgetHelper mHelper;
     gcDesiredValue mValue;
 
+    ~gcValUITextParam();
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 static cType *type_base;
@@ -71,16 +98,38 @@ static cType *type_value;
 static cType *type_variable;
 static cType *type_gcValUITextParam;
 
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
 struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oQgcValUITextParamdtv, 0xd4\n");
+
+// ── gcValUITextParam::~gcValUITextParam(void) @ 0x00368168 ──
+gcValUITextParam::~gcValUITextParam() {
+    *(void **)((char *)this + 4) = gcValUITextParamvirtualtable;
+    char *slot = (char *)this + 0x14;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x14) = 0;
+        }
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── gcValUITextParam::New(cMemPool *, cBase *) static @ 0x00367454 ──
 cBase *gcValUITextParam::New(cMemPool *pool, cBase *parent) {
