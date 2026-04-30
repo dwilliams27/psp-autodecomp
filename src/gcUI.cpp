@@ -59,6 +59,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cOutStream &) const;
+    void RemoveFromDestroyList(gcUIDialog *);
 };
 
 class cOutStream {
@@ -83,6 +84,11 @@ public:
 class gcUIDialog {
 public:
     void Write(cOutStream &) const;
+};
+
+struct gcUI_DestroySlotScan {
+    char pad[0xDC];
+    gcUIDialog *slot;
 };
 
 extern "C" void gcUI_gcFader_ctor(gcUI::gcFader *) asm("__0o5EgcUIHgcFaderctv");
@@ -177,6 +183,31 @@ block_13:
         *var_a1 = var_a2_4 | (zero << var_a0);
     }
 }
+
+// ── RemoveFromDestroyList ──  @ 0x000e177c, 96B
+#pragma control sched=1
+void gcUI::RemoveFromDestroyList(gcUIDialog *dialog) {
+    int i = 0;
+    int count = *(int *)((char *)this + 0x15C);
+
+    if (i < count) {
+        gcUI_DestroySlotScan *scan = (gcUI_DestroySlotScan *)this;
+        do {
+            if (scan->slot == dialog) {
+                count--;
+                gcUI_DestroySlotScan *lastScan =
+                    (gcUI_DestroySlotScan *)((char *)this + count * 4);
+                *(int *)((char *)this + 0x15C) = count;
+                scan->slot = lastScan->slot;
+                *(int *)((char *)dialog + 0x54) &= ~8;
+                return;
+            }
+            i++;
+            scan = (gcUI_DestroySlotScan *)((char *)scan + 4);
+        } while (i < count);
+    }
+}
+#pragma control sched=2
 
 // ── New ──  @ 0x0023d8d8, 128B
 cBase *gcUI::New(cMemPool *pool, cBase *parent) {
