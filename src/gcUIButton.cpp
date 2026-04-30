@@ -8,6 +8,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 inline void *operator new(unsigned int, void *p) {
     return p;
@@ -30,6 +31,14 @@ public:
     static cMemPoolHelper *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -48,10 +57,16 @@ public:
     int IsUpdateEmpty(bool, bool) const;
 };
 
-class gcUITextControl : public gcUIWidget {
+class gcUIControl : public gcUIWidget {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcUITextControl : public gcUIControl {
 public:
     gcUITextControl(cBase *);
     ~gcUITextControl();
+    static cBase *New(cMemPool *, cBase *);
     int IsUpdateEmpty(bool, bool) const;
     void Write(cFile &) const;
 };
@@ -60,6 +75,7 @@ class gcUIButton : public gcUITextControl {
 public:
     gcUIButton(cBase *);
     ~gcUIButton();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int IsUpdateEmpty(bool, bool) const;
 
@@ -75,10 +91,55 @@ public:
     }
 };
 
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 extern char gcUIButtonvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009990C;
+extern cType *gcUIControl__s_pType__0042CF74;
+extern cType *gcUITextControl__s_pType__0042CF78;
+extern cType *D_0009F40C;
+extern cType *D_0009F410;
+extern cType *D_0009F57C;
+
+gcUIButton::gcUIButton(cBase *parent) : gcUITextControl(parent) {
+    *(void **)((char *)this + 4) = gcUIButtonvirtualtable;
+    *(int *)((char *)this + 0x110) = 0;
+    __vec_new((char *)this + 0x114, 2, 4, (void (*)(void *))0x1E74A4);
+}
 
 gcUIButton::~gcUIButton() {
     *(void **)((char *)this + 4) = gcUIButtonvirtualtable;
+}
+
+const cType *gcUIButton::GetType(void) const {
+    if (D_0009F57C == 0) {
+        if (D_0009F410 == 0) {
+            if (D_0009F40C == 0) {
+                if (D_0009990C == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                    }
+                    D_0009990C = cType::InitializeType(
+                        0, 0, 0x84, D_000385E0, 0, 0, 0, 0);
+                }
+                D_0009F40C = cType::InitializeType(
+                    0, 0, 0x201, D_0009990C, gcUIControl::New, 0, 0, 0);
+            }
+            D_0009F410 = cType::InitializeType(
+                0, 0, 0x200, D_0009F40C, gcUITextControl::New, 0, 0, 0);
+        }
+        D_0009F57C = cType::InitializeType(
+            0, 0, 0x205, D_0009F410, gcUIButton::New, 0, 0, 0);
+    }
+    return D_0009F57C;
 }
 
 // -- gcUIButton::Write(cFile &) const @ 0x00139654 --
