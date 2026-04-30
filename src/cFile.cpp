@@ -33,6 +33,22 @@ void cFile::SetCurrentPos(unsigned int offset) {
 void cFile::OnClosed(void) {
 }
 
+bool cFile::AddDependency(const cObject *obj) {
+    const cObject **deps = mDepArray;
+    if (deps != 0) {
+        int i = 0;
+        int count = mDepCount;
+        for (; i < count; i++) {
+            if (deps[i] == obj) {
+                return false;
+            }
+        }
+        deps[mDepCount++] = obj;
+        return true;
+    }
+    return false;
+}
+
 nwMsg *gcMsgRequestLoadedState::New(nwMsgBuffer &buf) {
     buf.mOffset += 4;
     char *p = (char *)&buf + buf.mOffset;

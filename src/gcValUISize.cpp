@@ -42,10 +42,12 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
 void gcDesiredUIWidgetHelper_ctor(void *, int);
+void cStrCat(char *, const char *);
 
 extern char gcLValuevirtualtable[];
 extern char gcValUISizevirtualtable[];
@@ -81,6 +83,7 @@ public:
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 
@@ -189,6 +192,16 @@ void gcValUISize::Write(cFile &file) const {
     wb.Write(mField18);
     wb.Write(mField1C);
     wb.End();
+}
+
+// ── gcValUISize::GetText(char *) const @ 0x00366418 ──
+void gcValUISize::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+    cStrCat(buf, (const char *)0x36DADC);
+    cStrCat(buf, (const char *)0x36DAF0);
 }
 
 // ── gcValUISize::VisitReferences @ 0x00366478 ──
