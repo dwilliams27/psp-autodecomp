@@ -3,7 +3,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class gcEntity;
 
 class cType {
@@ -14,6 +17,7 @@ public:
 };
 
 extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void __vec_delete(void *, int, int, void (*)(void *), int, int);
 extern "C" void gcStateInfo__gcStateInfo_void(void *);
 extern "C" void gcReplicationGroup__gcReplicationGroup_void(void *);
 
@@ -97,7 +101,7 @@ struct gcEntityControllerEntData {
 
 struct gcEntityControllerNavData {
     char pad0[0x4C];
-    volatile int flags;
+    int flags;
     char pad50[0xA4 - 0x50];
     void *path;
     char padA8[0xC0 - 0xA8];
@@ -155,6 +159,7 @@ public:
 
     bool IsCurrentController(void) const;
     gcEntityController(cBase *);
+    ~gcEntityController();
     int Read(cFile &, cMemPool *);
     void CancelFollowPath(void);
     void ClearCurrentNavMeshPosition(void);
@@ -165,11 +170,28 @@ public:
     void ValidateNavMeshPos(void);
     void OnActivated(void);
     void PostUpdateFinal(void);
+
+    static void operator delete(void *p);
 };
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_0009A404;
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+inline void gcEntityController::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
 
 // ── IsCurrentController (0x00110cd4) ──
 
@@ -250,6 +272,24 @@ gcEntityController::gcEntityController(cBase *parent) {
     *(float *)((char *)this + 0x88) = 0.0f;
 }
 
+// ── ~gcEntityController (0x00110958) ──
+
+gcEntityController::~gcEntityController() {
+    *(void **)((char *)this + 4) = (void *)0x3887B0;
+    if (*(int *)((char *)this + 0x7C) != 0) {
+        int attack = *(int *)((char *)this + 0x7C);
+        cMemPool *pool = cMemPool::GetPoolFromPtr((void *)attack);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, (void *)attack);
+        *(void **)((char *)this + 0x7C) = 0;
+    }
+    __vec_delete((char *)this + 0x28, 2, 0x24, (void (*)(void *))0x2597C0, 0, 0);
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
+
 // ── SetPhysicsController (0x00113a58) ──
 
 void gcEntityController::SetPhysicsController(const cType *type) {
@@ -269,21 +309,27 @@ void gcEntityController::SetPhysicsController(const cType *type) {
 void gcEntityController::CancelFollowPath(void) {
     gcEntityControllerEntFull *ent = *(gcEntityControllerEntFull **)this;
     gcEntityControllerNavData *nav = ent->nav;
-    int flags = nav->flags & ~1;
-    flags &= ~0x10;
+    int flags = nav->flags;
+    flags &= ~1;
     nav->flags = flags;
+    flags = nav->flags & ~0x10;
     nav->flags = flags;
     nav->path = 0;
     if (flags & 4) {
-        flags = nav->flags | 4;
+        int count = 0xFF;
+        flags = nav->flags;
         nav->follow = 0;
-        nav->current = 0xFF;
+        flags |= 4;
+        __asm__ volatile("" ::: "memory");
+        nav->current = count;
+        register int mask __asm__("$7") = ~8;
         nav->flags = flags;
-        nav->flags = flags & ~8;
+        flags = nav->flags & mask;
+        nav->flags = flags;
         void *current = 0;
         int idx = ent->idx;
         if (idx >= 0) {
-            int count = 0;
+            count = 0;
             void **arr = ent->arr;
             if (arr != 0) {
                 count = ((int *)arr)[-1];
