@@ -8,8 +8,12 @@
 #include "cBase.h"
 
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -30,6 +34,7 @@ class cBaseArray {
 public:
     int _count;
     cBase *_owner;
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
 };
 
@@ -43,19 +48,54 @@ void *dcastdcast_gcPCBipedControllerTemplateptr__constcBaseptr(const cBase *);
 }
 
 extern char gcPCBipedControllerTemplateclassdesc[];
+extern char gcEntityControllerTemplate_dtor_classdesc[];
+extern char cBase_dtor_classdesc[];
 extern cType *D_000385DC;
 extern cType *D_0009A400;
 extern cType *D_0009F5A4;
 extern cType *D_0009F5FC;
 extern cType *D_0009F76C;
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcPCBipedControllerTemplate : public gcBipedControllerTemplate {
 public:
+    ~gcPCBipedControllerTemplate();
     const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    void *block = *(void **)((char *)pool + 0x24);
+    DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+    short off = rec->offset;
+    rec->fn((char *)block + off, p);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0obgcPCBipedControllerTemplatedtv, 0xb0\n");
+
+// ── gcPCBipedControllerTemplate::~gcPCBipedControllerTemplate(void) @ 0x0031a250 ──
+gcPCBipedControllerTemplate::~gcPCBipedControllerTemplate() {
+    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
+    cBaseArray *arr1 = (cBaseArray *)((char *)this + 0x1C);
+    cBaseArray *arr0 = (cBaseArray *)((char *)this + 0x08);
+    if (arr1 != 0) {
+        arr1->RemoveAll();
+    }
+    if (arr0 != 0) {
+        arr0->RemoveAll();
+    }
+    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
 
 // ── gcPCBipedControllerTemplate::Write(cFile &) const @ 0x00152480 ──
 void gcPCBipedControllerTemplate::Write(cFile &file) const {
