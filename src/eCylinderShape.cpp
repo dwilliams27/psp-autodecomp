@@ -8,6 +8,9 @@ class cBase;
 class cFile;
 class cMemPool;
 class eCollisionContactInfo;
+class mSphere;
+class mCollideInfo;
+class eCollisionInfo;
 
 extern char eCylinderShapevirtualtable[];
 
@@ -71,6 +74,13 @@ struct CollideVtableEntry {
               const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
 };
 
+struct CastSphereVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const mSphere &sphere, const mCollideInfo &collideInfo,
+              const eCollisionInfo &collisionInfo, mVec3 *pos, mVec3 *normal, float *time);
+};
+
 // eCylinderShape::Write(cFile &) const — 0x000740e4
 #pragma control sched=1
 void eCylinderShape::Write(cFile &file) const {
@@ -91,6 +101,18 @@ eCylinderShape::eCylinderShape(cBase *parent) {
     mHalfHeight = 1.0f;
     __asm__ volatile("" ::: "memory");
     _unk88 = 0;
+}
+#pragma control sched=2
+
+// eCylinderShape::CastSphere(...) const — 0x00074400
+#pragma control sched=1
+int eCylinderShape::CastSphere(const mSphere &sphere, const mCollideInfo &collideInfo,
+                               const eCollisionInfo &collisionInfo, mVec3 *pos,
+                               mVec3 *normal, float *time) const {
+    void *shape = (void *)_unk88;
+    CastSphereVtableEntry *entry = (CastSphereVtableEntry *)(*(char **)((char *)shape + 4) + 0xA0);
+    return entry->fn((char *)shape + entry->thisOffset, sphere, collideInfo, collisionInfo,
+                     pos, normal, time);
 }
 #pragma control sched=2
 
@@ -124,6 +146,22 @@ void eCylinderShape::GetInertialTensor(float mass, mVec3 *out) const {
         :: "r"(a), "r"(b), "r"(c), "r"(out)
         : "memory"
     );
+}
+#pragma control sched=2
+
+// eCylinderShape::GetVolume(void) const — 0x00074828
+#pragma control sched=1
+float eCylinderShape::GetVolume(void) const {
+    float radiusSq = mRadius * mRadius;
+    __asm__ volatile("" : "+f"(radiusSq));
+
+    float area = radiusSq * 3.1415927f;
+    __asm__ volatile("" : "+f"(area));
+
+    float height = mHalfHeight * 2.0f;
+    __asm__ volatile("" : "+f"(height));
+
+    return area * height;
 }
 #pragma control sched=2
 

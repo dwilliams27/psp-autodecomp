@@ -7,6 +7,9 @@ class cMemPool;
 class cType;
 struct mVec3;
 struct mOCS;
+class mSphere;
+class mCollideInfo;
+class eCollisionInfo;
 class eShape;
 class eCollisionContactInfo;
 
@@ -22,6 +25,8 @@ public:
 
     void Write(cFile &) const;
     void GetInertialTensor(float mass, mVec3 *out) const;
+    float GetVolume(void) const;
+    int CastSphere(const mSphere &, const mCollideInfo &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
     int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int NeedsRollingFriction(float *) const;
     void AssignCopy(const cBase *);
