@@ -6,6 +6,16 @@ public:
     void Write(unsigned char);
 };
 
+class cReadBlock {
+public:
+    int _data[4];
+};
+
+class cFileSystem {
+public:
+    static int Read(void *, void *, unsigned int);
+};
+
 class eDynamicMeshExtrudedShadowVertex {
 public:
     float mPos[3];
@@ -14,10 +24,25 @@ public:
     unsigned char mC;
     unsigned char mD;
 
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 #pragma control sched=1
+
+void eDynamicMeshExtrudedShadowVertex::Read(cReadBlock &rb) {
+    cReadBlock *in = &rb;
+    eDynamicMeshExtrudedShadowVertex *self = this;
+    __asm__ volatile("" : "+r"(in), "+r"(self));
+    cFileSystem::Read(*(void **)in->_data[0], self->mPos + 0, 4);
+    cFileSystem::Read(*(void **)in->_data[0], self->mPos + 1, 4);
+    cFileSystem::Read(*(void **)in->_data[0], self->mPos + 2, 4);
+    cFileSystem::Read(*(void **)in->_data[0], &self->mA, 1);
+    cFileSystem::Read(*(void **)in->_data[0], &self->mB, 1);
+    cFileSystem::Read(*(void **)in->_data[0], &self->mC, 1);
+    cFileSystem::Read(*(void **)in->_data[0], &self->mD, 1);
+}
+
 void eDynamicMeshExtrudedShadowVertex::Write(cWriteBlock &wb) const {
     cWriteBlock *out = &wb;
     const eDynamicMeshExtrudedShadowVertex *self = this;

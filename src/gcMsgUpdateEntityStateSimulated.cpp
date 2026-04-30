@@ -59,22 +59,25 @@ public:
 void gcMsgUpdateEntityStateSimulated::Read(cInStream &is, nwSocketHandle sock,
                                            const nwAddress &addr,
                                            nwConnectionHandle conn) {
-    gcMsgUpdateEntityState::Read(is, sock, addr, conn);
+    volatile nwSocketHandle savedSock = sock;
+    volatile nwConnectionHandle savedConn = conn;
+    sock = savedSock;
+    nwConnectionHandle outConn = savedConn;
+    gcMsgUpdateEntityStateSimulated *self = this;
+    self->gcMsgUpdateEntityState::Read(is, sock, addr, outConn);
 
     unsigned int flag = *(unsigned int *)0x37D858;
-    unsigned char send;
-    if (!(flag & 1)) goto setone;
-    send = 0;
-    if (!(flag & 4)) goto endsend;
-setone:
-    send = 1;
-endsend:
-    if ((unsigned char)send != 0) {
+    int send;
+    if (!(flag & 1) || (send = (0 & 0xFF), ((flag & 4) != 0))) {
+        send = (1 & 0xFF);
+    }
+    int *numPtr = &((gcMsgUpdateEntityStateSimulated_layout *)self)->mNum;
+    if (send != 0) {
         gcMsgUpdateEntityStateSimulated_layout msg;
         // Replicate SNC's spill pattern around the int store: 4 spill slots
         // written, reload from the last, then store the actual msg.mNum.
         volatile int zb[4];
-        int v = ((gcMsgUpdateEntityStateSimulated_layout *)this)->mNum;
+        int v = *numPtr;
         zb[3] = v;
         zb[0] = v;
         zb[1] = v;
@@ -85,7 +88,7 @@ endsend:
         msg.mFlag = one;
         msg.vtable = (void *)0x38ABE0;
         gcNetGame::SendToAll((nwConnection::nwSendMethod)0,
-                             *(const nwMsg *)&msg, 1, conn);
+                             *(const nwMsg *)&msg, 1, outConn);
     }
 }
 
