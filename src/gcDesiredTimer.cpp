@@ -7,7 +7,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cWriteBlock {
@@ -40,6 +43,8 @@ void gcDesiredObject_gcDesiredObject(void *, cBase *);
 
 extern char gcDesiredObjectT_gcDesiredTimer_gcDesiredTimerHelper_gcTimer_virtualtable[];
 extern char gcDesiredTimervirtualtable[];
+extern char gcDesiredObjectT_gcDesiredTrigger_gcDesiredTriggerHelper_gcTrigger_virtualtable[];
+extern char cBaseclassdesc[];
 
 extern cType *D_000385DC;
 extern cType *D_0009F3F4;
@@ -56,12 +61,98 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class gcDesiredTrigger {
+public:
+    ~gcDesiredTrigger();
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+};
+
+// 0x00278da4 - gcDesiredTrigger::~gcDesiredTrigger(void)
+gcDesiredTrigger::~gcDesiredTrigger() {
+    *(char **)((char *)this + 4) =
+        gcDesiredObjectT_gcDesiredTrigger_gcDesiredTriggerHelper_gcTrigger_virtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oQgcDesiredTriggerdtv, 0xd4\n");
+
 class gcDesiredTimer {
 public:
+    ~gcDesiredTimer();
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oOgcDesiredTimerdtv, 0xd4\n");
+
+// 0x00276cdc - gcDesiredTimer::~gcDesiredTimer(void)
+gcDesiredTimer::~gcDesiredTimer() {
+    *(char **)((char *)this + 4) =
+        gcDesiredObjectT_gcDesiredTimer_gcDesiredTimerHelper_gcTimer_virtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // 0x0012ce88 - gcDesiredTimer::Write(cFile &) const
 void gcDesiredTimer::Write(cFile &file) const {
