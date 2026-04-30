@@ -37,6 +37,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cTimeValue {
 public:
     int mTime;
@@ -48,6 +57,7 @@ public:
     gcEntityController(cBase *);
     ~gcEntityController();
     void HandleNextAnimation(cTimeValue);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -58,6 +68,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Move(cTimeValue);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static gcStationaryController *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -139,6 +150,18 @@ void gcStationaryController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcEntityController::Write(file);
     wb.End();
+}
+
+// ── Read (0x00158448) ──
+int gcStationaryController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] != 1 || !gcEntityController::Read(file, pool)) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    return result;
 }
 
 // ── ~gcStationaryController (0x00320984) ──
@@ -233,25 +256,30 @@ void gcStationaryController::AssignCopy(const cBase *base) {
         var_a2->unk0 = var_a1->unk0;
         var_a2->unk4 = var_a1->unk4;
         var_a2->unk5 = var_a1->unk5;
-        int *src_words = (int *)((char *)var_a1 + 8);
-        int *dst_words = (int *)((unsigned char *)var_a2 + 8);
-        dst_words[0] = src_words[0];
-        int *dst_words_2 = (int *)((char *)var_a2 + 12);
-        int *src_words_2 = (int *)((char *)var_a1 + 12);
-        dst_words_2[0] = src_words_2[0];
-        int *src_words_3 = (int *)((char *)var_a1 + 16);
-        __asm__ volatile("" ::: "memory");
-        dst_words = (int *)((char *)var_a2 + 16);
-        dst_words[0] = src_words_3[0];
-        dst_words_2 = (int *)((char *)var_a2 + 20);
-        int *src_words_4 = (int *)((char *)var_a1 + 20);
-        int *src_words_5 = (int *)((char *)var_a1 + 24);
-        dst_words = (int *)((char *)var_a2 + 24);
-        int *src_words_6 = (int *)((char *)var_a1 + 28);
-        dst_words_2[0] = src_words_4[0];
-        dst_words_2 = (int *)((char *)var_a2 + 28);
-        dst_words[0] = src_words_5[0];
-        dst_words_2[0] = src_words_6[0];
+        int *temp_t1 = &var_a1->unk8;
+        int *temp_t2 = &var_a2->unk8;
+        int temp_unk8_2 = *temp_t1;
+        *temp_t2 = temp_unk8_2;
+        int *temp_t0 = (int *)((char *)var_a2 + 12);
+        int *temp_t1_2 = (int *)((char *)var_a1 + 12);
+        int temp_unkC_2 = *temp_t1_2;
+        int *temp_t2_2 = (int *)((char *)var_a1 + 16);
+        *temp_t0 = temp_unkC_2;
+        int *temp_t0_2 = (int *)((char *)var_a2 + 16);
+        int *temp_t2_3 = (int *)((char *)var_a1 + 20);
+        int temp_unk10_2 = *temp_t2_2;
+        int *temp_t0_3 = (int *)((char *)var_a2 + 20);
+        *temp_t0_2 = temp_unk10_2;
+        int *temp_t2_4 = (int *)((char *)var_a1 + 24);
+        int temp_unk14_2 = *temp_t2_3;
+        int *temp_t0_4 = (int *)((char *)var_a2 + 24);
+        int *temp_t2_5 = (int *)((char *)var_a1 + 28);
+        *temp_t0_3 = temp_unk14_2;
+        int temp_unk18_2 = *temp_t2_4;
+        int *temp_t0_5 = (int *)((char *)var_a2 + 28);
+        *temp_t0_4 = temp_unk18_2;
+        int temp_unk1C_2 = *temp_t2_5;
+        *temp_t0_5 = temp_unk1C_2;
         var_a3 += 1;
         var_a2->unk20 = var_a1->unk20;
         var_a1 = (gcStationaryControllerBlock36 *)((char *)var_a1 + 0x24);
