@@ -138,6 +138,7 @@ public:
 
 class eOnePassModelMtl {
 public:
+    eOnePassModelMtl(cBase *);
     const cType *GetType(void) const;
     eOnePassModelMtl &operator=(const eOnePassModelMtl &);
     void PlatformFree(void);

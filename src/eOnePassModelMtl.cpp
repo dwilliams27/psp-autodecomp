@@ -82,6 +82,8 @@ struct RefCountedBase {
     char *vt;
 };
 
+extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
+
 #pragma control sched=1
 
 // ── GetType @ 0x0021899c ──
@@ -133,9 +135,26 @@ const cType *eOnePassModelMtl::GetType(void) const {
     return D_00046C7C;
 }
 
+// ── Constructor @ 0x00081f1c ──
+
+eOnePassModelMtl::eOnePassModelMtl(cBase *parent) {
+    eGeomMtl_eGeomMtl(this, parent);
+    *(int *)((char *)this + 0x68) = -1;
+    *(int *)((char *)this + 0x6C) = 0;
+    *(int *)((char *)this + 0x70) = 0;
+    *(void **)((char *)this + 0x04) = (void *)0x385430;
+    *(int *)((char *)this + 0x74) = 0;
+    *(int *)((char *)this + 0x78) = 0;
+    *(int *)((char *)this + 0x7C) = 0;
+    CreateData();
+}
+
 // ── operator= @ 0x00082154 ──
 
 eOnePassModelMtl &eOnePassModelMtl::operator=(const eOnePassModelMtl &other) {
+    int *dstWord;
+    const int *srcWord;
+
     ((eMaterial *)this)->operator=(*(const eMaterial *)&other);
     *(unsigned char *)((char *)this + 0x5C) =
         *(const unsigned char *)((const char *)&other + 0x5C);
@@ -152,8 +171,14 @@ eOnePassModelMtl &eOnePassModelMtl::operator=(const eOnePassModelMtl &other) {
     ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x64))
         ->operator=(*(const cArrayBase<cHandleT<eMaterial> > *)((const char *)&other + 0x64));
 
-    *(int *)((char *)this + 0x68) = *(const int *)((const char *)&other + 0x68);
-    *(int *)((char *)this + 0x6C) = *(const int *)((const char *)&other + 0x6C);
+    dstWord = (int *)((char *)this + 0x68);
+    srcWord = (const int *)((const char *)&other + 0x68);
+    __asm__ volatile("" : "+r"(dstWord), "+r"(srcWord));
+    *dstWord = *srcWord;
+    dstWord = (int *)((char *)this + 0x6C);
+    srcWord = (const int *)((const char *)&other + 0x6C);
+    __asm__ volatile("" : "+r"(dstWord), "+r"(srcWord));
+    *dstWord = *srcWord;
     *(int *)((char *)this + 0x70) = *(const int *)((const char *)&other + 0x70);
     *(int *)((char *)this + 0x74) = *(const int *)((const char *)&other + 0x74);
     __asm__ volatile("" ::: "memory");
@@ -161,9 +186,12 @@ eOnePassModelMtl &eOnePassModelMtl::operator=(const eOnePassModelMtl &other) {
     char *live78 = *(char **)((char *)this + 0x78);
     if (!live78) goto skip_destroy78;
     {
-        char *vt = ((RefCountedBase *)live78)->vt;
-        DestroyEntry *entry = (DestroyEntry *)(vt + 0x50);
-        entry->fn(live78 + entry->offset, 3);
+        DestroyEntry *entry = (DestroyEntry *)(((RefCountedBase *)live78)->vt + 0x50);
+        short offset = entry->offset;
+        live78 = live78 + offset;
+        __asm__ volatile("" : "+r"(live78), "+r"(entry));
+        void (*fn)(void *, int) = entry->fn;
+        fn(live78, 3);
         *(void **)((char *)this + 0x78) = 0;
     }
 skip_destroy78:
@@ -174,6 +202,7 @@ skip_destroy78:
         char *vt = ((RefCountedBase *)other78)->vt;
         CloneEntry *entry = (CloneEntry *)(vt + 0x10);
         other78 = other78 + entry->offset;
+        __asm__ volatile("" : "+r"(other78), "+r"(entry));
         cMemPool *pool = cMemPool::GetPoolFromPtr(this);
         *(void **)((char *)this + 0x78) = entry->fn(other78, pool, this);
     }
@@ -182,9 +211,12 @@ skip_clone78:
     char *live7C = *(char **)((char *)this + 0x7C);
     if (!live7C) goto skip_destroy7C;
     {
-        char *vt = ((RefCountedBase *)live7C)->vt;
-        DestroyEntry *entry = (DestroyEntry *)(vt + 0x50);
-        entry->fn(live7C + entry->offset, 3);
+        DestroyEntry *entry = (DestroyEntry *)(((RefCountedBase *)live7C)->vt + 0x50);
+        short offset = entry->offset;
+        live7C = live7C + offset;
+        __asm__ volatile("" : "+r"(live7C), "+r"(entry));
+        void (*fn)(void *, int) = entry->fn;
+        fn(live7C, 3);
         *(void **)((char *)this + 0x7C) = 0;
     }
 skip_destroy7C:
@@ -195,6 +227,7 @@ skip_destroy7C:
         char *vt = ((RefCountedBase *)other7C)->vt;
         CloneEntry *entry = (CloneEntry *)(vt + 0x10);
         other7C = other7C + entry->offset;
+        __asm__ volatile("" : "+r"(other7C), "+r"(entry));
         cMemPool *pool = cMemPool::GetPoolFromPtr(this);
         *(void **)((char *)this + 0x7C) = entry->fn(other7C, pool, this);
     }
