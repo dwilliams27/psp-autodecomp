@@ -215,9 +215,8 @@ void gcCinematicInstance::Read(cInStream &stream) {
 // Function 7: 0x000ebdcc, 124 bytes — UpdateDialogs
 void gcCinematicInstance::UpdateDialogs(cTimeValue tv) {
     gcUIDialog *dlg0 = NULL;
-    gcDialogHolder *dh0 = mpDialogHolder0;
-    if (dh0 != NULL) {
-        dlg0 = dh0->mpDialog;
+    if (mpDialogHolder0 != NULL) {
+        dlg0 = mpDialogHolder0->mpDialog;
         if (dlg0 != NULL) {
             dlg0->Update(tv);
         }

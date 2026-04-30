@@ -123,7 +123,12 @@ void gcStreamedCinematicConfig::Write(cFile &file) const {
 
 void gcStreamedCinematicConfig::AssignCopy(const cBase *base) {
     const gcStreamedCinematicConfig *src = dcast(base);
-    *(cGUID *)((char *)this + 0x08) = *(const cGUID *)((const char *)src + 0x08);
+    const cGUID *srcGuid0 = (const cGUID *)((const char *)src + 0x08);
+    cGUID *dstGuid0 = (cGUID *)((char *)this + 0x08);
+    int value8 = srcGuid0->m0;
+    int valueC = srcGuid0->m4;
+    dstGuid0->m0 = value8;
+    dstGuid0->m4 = valueC;
     *(cGUID *)((char *)this + 0x10) = *(const cGUID *)((const char *)src + 0x10);
     *(cHandle *)((char *)this + 0x18) = *(const cHandle *)((const char *)src + 0x18);
     *(unsigned char *)((char *)this + 0x1C) = *(const unsigned char *)((const char *)src + 0x1C);
