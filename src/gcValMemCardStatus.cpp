@@ -63,6 +63,7 @@ public:
     ~gcValMemCardStatus(void);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -80,6 +81,7 @@ public:
 
 extern char cBaseclassdesc[];   // @ 0x37E6A8
 extern char gcValMemCardStatusvirtualtable[];
+void cStrAppend(char *, const char *, ...);
 
 // ── gcValMemCardStatus::New @ 0x00350008 ──
 cBase *gcValMemCardStatus::New(cMemPool *pool, cBase *parent) {
@@ -136,6 +138,14 @@ const cType *gcValMemCardStatus::GetType(void) const {
             0, 0, 0x1C1, type_value, gcValMemCardStatus::New, 0, 0, 0);
     }
     return type_gcValMemCardStatus;
+}
+
+void gcValMemCardStatus::GetText(char *buf) const {
+    if (((const int *)this)[2] == 0) {
+        cStrAppend(buf, (const char *)0x36F588, (const char *)0x36DAF0);
+        return;
+    }
+    cStrAppend(buf, (const char *)0x36DAF0);
 }
 
 // ── gcValMemCardStatus::~gcValMemCardStatus @ 0x00350490, 100B ──

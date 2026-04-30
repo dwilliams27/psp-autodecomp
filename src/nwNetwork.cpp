@@ -10,6 +10,7 @@ public:
     static int GetSelectedInterface(void);
     static void StartInterface(void);
     static int GetNumInterfaces(void);
+    static int IsInterfaceValid(int);
     static void SetLastError(nwNetError);
 };
 
@@ -44,4 +45,12 @@ int nwNetwork::GetSelectedInterface(void) {
         selected = 0;
     }
     return selected;
+}
+
+int nwNetwork::IsInterfaceValid(int index) {
+    int valid = 0;
+    if (index >= 0 && index < GetNumInterfaces()) {
+        valid = 1;
+    }
+    return valid & 0xff;
 }
