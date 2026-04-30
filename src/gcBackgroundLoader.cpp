@@ -11,9 +11,13 @@ struct cGUIDT {
 class gcLoadingScreen;
 class gcMap;
 class gcStreamedCinematic;
+class gcStreamedCinematicConfig;
 
 class gcGame {
 public:
+    static const gcStreamedCinematicConfig *FindStreamedCinematicAll(
+        const cGUIDT<gcStreamedCinematic> &);
+    static int LoadStreamedCinematic(const gcStreamedCinematicConfig *);
     int LoadMap(const cGUIDT<gcMap> &, bool);
     void LoadLoadingScreen(const cGUIDT<gcLoadingScreen> &);
 };
@@ -97,6 +101,7 @@ public:
     void LoadGameThread(void);
     void LoadObjects(void);
     void LoadMap(void);
+    void LoadStreamedCinematic(void);
     void PreLoad(void);
     void Load(const cGUIDT<gcStreamedCinematic> &guid);
     static int LoadObjectsStatic(int, gcMapObjectLoad *);
@@ -190,6 +195,19 @@ void gcBackgroundLoader::LoadObjects(void) {
 void gcBackgroundLoader::LoadMap(void) {
     int result = gGameInstance->LoadMap(mMapGuid, true);
     mLoadMapResult = result;
+    if (result == 0) {
+        mLoadFailed = 1;
+    }
+}
+
+void gcBackgroundLoader::LoadStreamedCinematic(void) {
+    const gcStreamedCinematicConfig *cinematic =
+        gcGame::FindStreamedCinematicAll(mCinematicGuid);
+    int result = 0;
+    if (cinematic != 0) {
+        result = gcGame::LoadStreamedCinematic(cinematic);
+    }
+    mField818 = result;
     if (result == 0) {
         mLoadFailed = 1;
     }

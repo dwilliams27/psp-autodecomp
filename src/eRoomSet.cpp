@@ -50,6 +50,8 @@ template <class T> T *dcast(const cBase *);
 class eRoomTreeNode;
 class eRoom;
 class ePortal;
+class eRoomSet;
+class eWorld;
 
 template <class T>
 class cHandleT {
@@ -75,6 +77,7 @@ struct IntField {
 class eRoomAABBTree {
 public:
     void Write(cWriteBlock &) const;
+    void AddToWorld(eWorld *, const eRoomSet *);
 };
 
 struct AllocRec {
@@ -90,9 +93,16 @@ public:
 
     eRoomSet(cBase *);
     const cType *GetType(void) const;
+    void AddToWorld(eWorld *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+};
+
+class eWorld {
+public:
+    void AddRoomSet(eRoomSet *);
+    void MoveIntoRooms(void);
 };
 
 class gcDoEntitySetCollisionMask {
@@ -141,6 +151,13 @@ const cType *eRoomSet::GetType(void) const {
                                            (const char *)0x36CE1C, 3);
     }
     return D_000468D8;
+}
+
+// -- eRoomSet::AddToWorld(eWorld *) @ 0x00040094 --
+void eRoomSet::AddToWorld(eWorld *world) {
+    world->AddRoomSet(this);
+    ((eRoomAABBTree *)mAABBTree)->AddToWorld(world, this);
+    world->MoveIntoRooms();
 }
 
 // -- eRoomSet::Write(cFile &) const @ 0x0003f934 --
