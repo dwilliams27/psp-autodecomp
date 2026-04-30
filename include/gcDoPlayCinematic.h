@@ -13,9 +13,11 @@ public:
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
     void SetChild(int, gcExpression *);
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    gcDoPlayCinematic &operator=(const gcDoPlayCinematic &);
 };
 
 #endif
