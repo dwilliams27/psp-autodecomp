@@ -4,6 +4,13 @@ class cInStream;
 class cMemPool;
 class cOutStream;
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 class cArrayShort {
 public:
     short *mData;
@@ -29,6 +36,9 @@ struct gcTableColumnShort;
 int cAtoI(const wchar_t *);
 int cStrFormat(wchar_t *, const wchar_t *, ...);
 gcTableColumnShort *dcast(const cBase *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void voidcArray_short___Read_cReadBlockref__001D9B0C(cArrayShort *,
+                                                                cReadBlock *);
 
 class cType {
 public:
@@ -43,6 +53,7 @@ struct gcTableColumn {
     void *mClassDesc;
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern cType *D_000385DC;
@@ -61,6 +72,7 @@ struct gcTableColumnShort : public gcTableColumn {
     const cType *GetType(void) const;
     void Write(cFile &file) const;
     void Write(cOutStream &os) const;
+    int Read(cFile &file, cMemPool *pool);
 };
 
 struct PoolBlock {
@@ -134,11 +146,24 @@ void gcTableColumnShort::Write(cFile &file) const {
     wb.End();
 }
 
+// 0x0012ae34, 200B
+int gcTableColumnShort::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1U || gcTableColumn::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    voidcArray_short___Read_cReadBlockref__001D9B0C(&mValues, &rb);
+    return 1;
+}
+
 // 0x00271910, 196B
 void gcTableColumnShort::Write(cOutStream &os) const {
     os.Write(mValues.mData ? (((int *)mValues.mData)[-1] & 0x3FFFFFFF) : 0,
              0x20, 1);
     int i = 0;
+    short *data = mValues.mData;
+    __asm__ volatile("" : : "r"(data));
     int offset = 0;
 loop:
     int count = 0;
@@ -146,8 +171,10 @@ loop:
         count = ((int *)mValues.mData)[-1] & 0x3FFFFFFF;
     }
     if (i < count) {
-        short value = *(short *)((char *)mValues.mData + offset);
-        os.Write(value, 0x10, 1);
+        bool bitOrder = true;
+        int value = *(short *)((char *)mValues.mData + offset);
+        value = (short)value;
+        os.Write(value, 0x10, bitOrder);
         i++;
         offset += 2;
         goto loop;
