@@ -4,7 +4,6 @@
 
 #pragma control sched=1
 
-class cBase;
 class cMemPool;
 class cType {
 public:
@@ -21,9 +20,11 @@ public:
     void End(void);
 };
 
-class ePhysicsController {
+class cReadBlock {
 public:
-    void Write(cFile &) const;
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 class eSimulatedControllerConfig {
@@ -37,6 +38,57 @@ extern cType *D_000469E8;
 extern cType *D_00046BB4;
 extern cType *D_00046BD4;
 extern cType *D_00046BF8;
+extern "C" void *__vec_new(void *, int, int, void *);
+extern "C" void *eSimulatedContact__eSimulatedContact_void__00209D24(void *);
+void cFile_SetCurrentPos(void *, unsigned int);
+
+#pragma control sched=2
+eSimulatedController::eSimulatedController(cBase *parent)
+    : ePhysicsController(parent)
+{
+    *(void **)((char *)this + 4) = (void *)0x3834D8;
+    *(unsigned char *)((char *)this + 0x10) = 0;
+    *(unsigned char *)((char *)this + 0x11) = 0;
+    *(unsigned char *)((char *)this + 0x12) = 0;
+    __asm__ volatile(
+        "mtc1 $0, $f12\n"
+        "mfc1 $4, $f12\n"
+        "mfc1 $5, $f12\n"
+        "lui $6, 0xbf80\n"
+        "mtc1 $6, $f13\n"
+        "mfc1 $6, $f13\n"
+        "mtv $4, S120\n"
+        "mtv $5, S121\n"
+        "mtv $6, S122\n"
+        "sv.q C120, 0x20(%0)\n"
+        :
+        : "r"(this)
+        : "$4", "$5", "$6", "$f12", "$f13", "memory");
+    *(float *)((char *)this + 0x30) = 1.0f;
+    *(int *)((char *)this + 0x38) = 0;
+    *(int *)((char *)this + 0x3C) = 0;
+    *(void **)((char *)this + 0x40) = this;
+    *(int *)((char *)this + 0x44) = 0;
+    *(void **)((char *)this + 0x48) = this;
+    __vec_new((char *)this + 0x50, 4, 0x40,
+              (void *)eSimulatedContact__eSimulatedContact_void__00209D24);
+    *(int *)((char *)this + 0x150) = 0;
+    *(int *)((char *)this + 0x154) = 0;
+    *(int *)((char *)this + 0x158) = 0;
+}
+
+#pragma control sched=1
+int eSimulatedController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((ePhysicsController *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
 
 void eSimulatedController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
