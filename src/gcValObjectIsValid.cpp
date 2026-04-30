@@ -54,6 +54,12 @@ struct ReleaseEntry {
     void (*fn)(void *, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcValue {
 public:
     cBase *mParent;
@@ -66,10 +72,20 @@ class gcValObjectIsValid : public gcValue {
 public:
     int mObject;
 
+    ~gcValObjectIsValid();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern char cBaseclassdesc[];
@@ -101,20 +117,23 @@ cBase *gcValObjectIsValid::New(cMemPool *pool, cBase *parent) {
 }
 
 void gcValObjectIsValid::AssignCopy(const cBase *base) {
+    int temp_s1 = (int)this;
     int temp_s2 = (int)dcast<gcValObjectIsValid *>(base);
-    int temp_s1 = (int)this + 8;
 
-    if (temp_s2 + 8 != temp_s1) {
+    if (temp_s2 + 8 != temp_s1 + 8) {
+        temp_s1 += 8;
         int temp_a2 = *(int *)((char *)this + 8);
         int var_a1 = 1;
         int temp_a0 = temp_a2 & 1;
         if (temp_a0 != 0) {
             var_a1 = 0;
         }
+        int temp_a3 = temp_a0;
         if (var_a1 != 0) {
             int var_a1_2 = 0;
             int var_a2;
-            if (temp_a0 != 0) {
+            temp_a0 = temp_a2;
+            if (temp_a3 != 0) {
                 var_a1_2 = 1;
             }
             if (var_a1_2 != 0) {
@@ -123,26 +142,28 @@ void gcValObjectIsValid::AssignCopy(const cBase *base) {
                 var_a2 = *(int *)temp_a2;
             }
             *(int *)((char *)this + 8) = var_a2 | 1;
-            if (temp_a2 != 0) {
-                void *temp_a2_2 = *(void **)(temp_a2 + 4);
-                short temp_a3 = *(short *)((char *)temp_a2_2 + 0x50);
-                void (*temp_a2_3)(void *, int) =
-                    *(void (**)(void *, int))((char *)temp_a2_2 + 0x54);
-                temp_a2_3((char *)temp_a2 + temp_a3, 3);
+            if (temp_a0 != 0) {
+                ReleaseEntry *entry =
+                    (ReleaseEntry *)(*(char **)(temp_a0 + 4) + 0x50);
+                short temp_a3 = entry->offset;
+                void (*temp_a2_3)(void *, int) = entry->fn;
+                temp_a2_3((char *)temp_a0 + temp_a3, 3);
             }
         }
 
-        int temp_a0_2 = *(int *)(temp_s2 + 8);
-        int var_a1_3 = 1;
-        if (temp_a0_2 & 1) {
-            var_a1_3 = 0;
+        temp_s2 = *(int *)(temp_s2 + 8);
+        int temp_a0_3 = 1;
+        int temp_a1_2 = temp_s2 & 1;
+        if (temp_a1_2 != 0) {
+            temp_a0_3 = 0;
         }
-        if (var_a1_3 != 0) {
-            temp_s1 = *(int *)(temp_a0_2 + 4) + 0x10;
+        if (temp_a0_3 != 0) {
+            int temp_a1_3 = *(int *)(temp_s2 + 4);
+            int old_s1 = temp_s1;
+            temp_s1 = temp_a1_3 + 0x10;
             short temp_a1 = *(short *)temp_s1;
-            cMemPool *temp_v0_2 =
-                cMemPool::GetPoolFromPtr((void *)((char *)this + 8));
-            temp_s2 = *(int *)(temp_s2 + 8) + temp_a1;
+            temp_s2 += temp_a1;
+            cMemPool *temp_a1_4 = cMemPool::GetPoolFromPtr((void *)old_s1);
             int temp_a0_4 = *(int *)((char *)this + 8);
             int var_a2_2 = 0;
             if (temp_a0_4 & 1) {
@@ -155,7 +176,7 @@ void gcValObjectIsValid::AssignCopy(const cBase *base) {
             }
             *(int *)((char *)this + 8) =
                 (int)((CloneEntry *)temp_s1)
-                    ->fn((void *)temp_s2, temp_v0_2, (cBase *)temp_a0_4);
+                    ->fn((void *)temp_s2, temp_a1_4, (cBase *)temp_a0_4);
         }
     }
 }
@@ -199,4 +220,30 @@ void gcValObjectIsValid::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcValObjectIsValiddtv, 0xd4\n");
+
+gcValObjectIsValid::~gcValObjectIsValid() {
+    *(void **)((char *)this + 4) = gcValObjectIsValidvirtualtable;
+    char *slot = (char *)this + 8;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 8);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            ReleaseEntry *rec = (ReleaseEntry *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, int) = rec->fn;
+            fn(obj + off, 3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
