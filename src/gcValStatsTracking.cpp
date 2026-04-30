@@ -26,6 +26,9 @@ public:
 
 class cType {
 public:
+    char pad[0x1C];
+    cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
@@ -43,6 +46,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
 extern char cBaseclassdesc[];
 extern char gcValStatsTrackingvirtualtable[];
 
@@ -55,6 +64,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    gcValStatsTracking &operator=(const gcValStatsTracking &);
 };
 
 static cType *type_base;
@@ -131,4 +142,63 @@ const cType *gcValStatsTracking::GetType(void) const {
                                                         0, 0, 0);
     }
     return type_gcValStatsTracking;
+}
+
+void gcValStatsTracking::AssignCopy(const cBase *base) {
+    const gcValStatsTracking *other = 0;
+
+    if (base != 0) {
+        if (!type_gcValStatsTracking) {
+            if (!type_variable) {
+                if (!type_value) {
+                    if (!type_expression) {
+                        if (!type_base) {
+                            type_base = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        type_expression = cType::InitializeType(
+                            0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                    }
+                    type_value = cType::InitializeType(
+                        0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+                }
+                type_variable = cType::InitializeType(
+                    0, 0, 0x6D, type_value, 0, 0, 0, 0);
+            }
+            type_gcValStatsTracking = cType::InitializeType(
+                0, 0, 0xE8, type_variable, gcValStatsTracking::New, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *wanted = type_gcValStatsTracking;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, (void *)fn);
+        int ok;
+
+        if (wanted == 0) {
+            ok = 0;
+        } else if (type != 0) {
+        loop:
+            if (type == wanted) {
+                ok = 1;
+            } else {
+                type = type->mParent;
+                if (type != 0) {
+                    goto loop;
+                }
+                goto fail;
+            }
+        } else {
+        fail:
+            ok = 0;
+        }
+        if (ok != 0) {
+            other = (const gcValStatsTracking *)base;
+        }
+    }
+
+    operator=(*other);
 }

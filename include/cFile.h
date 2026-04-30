@@ -78,6 +78,7 @@ public:
     cFilePlatform mPlatform;
     int mAllocHandle;
 
+    cBufferedFile(unsigned int shift);
     void Close(void);
     void FillBuffer(int bufIndex);
     void WaitForFill(void);
