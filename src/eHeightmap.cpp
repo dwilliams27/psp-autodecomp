@@ -89,11 +89,16 @@ void eHeightmap::GetEmbedContacts(const eCollisionInfo &info, int idx, const mSp
 }
 #pragma control sched=2
 
-void eHeightmap::GetSweptContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, const mCollideInfo *ci, eContactCollector *) const {
-    char *shape = ((char **)&info)[1];
-    int *entry = (int *)(((char **)shape)[1] + 0xA8);
-    ((void (*)(char *, int, const mSphere *, const mCollideInfo *, const eCollisionInfo &))entry[1])(shape + *(short *)entry, idx, sphere, ci, info);
+#pragma control sched=1
+void eHeightmap::GetSweptContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, const mCollideInfo *ci, eContactCollector *collector) const {
+    const eCollisionInfo *infoReg = &info;
+    char *shape = *(char * const volatile *)((char *)infoReg + 4);
+    int *entry = (int *)((char **)shape)[1];
+    entry += 42;
+    ((void (*)(char *, int, const mSphere *, const mCollideInfo *, const eCollisionInfo &, eContactCollector *))entry[1])(
+        shape + *(short *)entry, idx, sphere, ci, *infoReg, collector);
 }
+#pragma control sched=2
 
 int eMemCard::Reset(void) {
     return 1;

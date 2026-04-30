@@ -9,19 +9,22 @@ public:
     void ComputeForces(mVec3 *, const eContact *, int);
 };
 
+#pragma control sched=1
 void eContactCollector::FindSlideVelocity(mVec3 *v) const {
     int count;
-    __asm__(
+    __asm__ volatile(
         "addiu $a2, %1, 0x4860\n\t"
         "lw %0, 0($a2)"
         : "=r"(count)
         : "r"(this)
         : "$a2");
     if (count != 0) {
+        __asm__ volatile("" : "+r"(v));
         eContactForceSolver solver;
         solver.ComputeForces(v, (const eContact *)((char *)this + 0x60), count);
     }
 }
+#pragma control sched=2
 
 int eContactCollector::ValidateTri(eContact *contacts, int count) {
     char *newBase = (char *)contacts + count * 0x90;
