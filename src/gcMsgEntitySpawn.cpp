@@ -80,19 +80,7 @@ public:
 extern char gcMsgEntitySpawnvirtualtable[];
 extern void *D_00038890[];
 
-inline gcMsgEntitySpawn::gcMsgEntitySpawn(const cObjectKeyRef &r) : mHandle(r.mHandle) {
-    mVTable = gcMsgEntitySpawnvirtualtable;
-}
-
-// -----------------------------------------------------------------------------
-// 0x001347c4 — gcMsgEntitySpawn::Write
-//   Resolves the entity referred to by mHandle via the global handle table at
-//   D_00038890, then writes the entity's cHandle (offset +0x44) and an
-//   xor-derived cObjectKey (offset +0x20 ^ +0x24) to the stream.
-// -----------------------------------------------------------------------------
-
-void gcMsgEntitySpawn::Write(cOutStream &s, nwSocketHandle, const nwAddress &, nwConnectionHandle) const {
-    int h = mHandle.mIndex;
+static inline void *ResolveSpawnHandle(int h) {
     void *sm;
     if (h == 0) {
         sm = 0;
@@ -106,6 +94,23 @@ void gcMsgEntitySpawn::Write(cOutStream &s, nwSocketHandle, const nwAddress &, n
         }
         sm = r;
     }
+    return sm;
+}
+
+inline gcMsgEntitySpawn::gcMsgEntitySpawn(const cObjectKeyRef &r) : mHandle(r.mHandle) {
+    mVTable = gcMsgEntitySpawnvirtualtable;
+}
+
+// -----------------------------------------------------------------------------
+// 0x001347c4 — gcMsgEntitySpawn::Write
+//   Resolves the entity referred to by mHandle via the global handle table at
+//   D_00038890, then writes the entity's cHandle (offset +0x44) and an
+//   xor-derived cObjectKey (offset +0x20 ^ +0x24) to the stream.
+// -----------------------------------------------------------------------------
+
+void gcMsgEntitySpawn::Write(cOutStream &s, nwSocketHandle, const nwAddress &, nwConnectionHandle) const {
+    int h = mHandle.mIndex;
+    void *sm = ResolveSpawnHandle(h);
     cHandle hOut = *(const cHandle *)((char *)sm + 0x44);
     hOut.Write(s);
     int key = 0;
@@ -114,6 +119,8 @@ void gcMsgEntitySpawn::Write(cOutStream &s, nwSocketHandle, const nwAddress &, n
     }
     cObjectKey kOut((unsigned int)key);
     kOut.Write(s);
+    int pad;
+    __asm__ volatile("" : "=m"(pad));
 }
 
 // -----------------------------------------------------------------------------
