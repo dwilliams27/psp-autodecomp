@@ -4,16 +4,49 @@
 #include "gcUI.h"
 #include "gcUIWidgetGroup.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    void GenerateName(const char *);
+};
+
+class cOutStream {
+public:
+    void Write(unsigned int, int, bool);
+    void Write(float, bool);
+};
+
+class cHandleRef {
+public:
+    int mIndex;
+
+    void Write(cOutStream &) const;
+};
+
+class cTimeValueRef {
+public:
+    float mTime;
+
+    void Write(cOutStream &) const;
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00099AB0;
+
 class cMemBlockAllocation {
 public:
     cMemBlockAllocation(void *, bool);
     ~cMemBlockAllocation();
     char _pad[0x18];
-};
-
-class cNamed {
-public:
-    void GenerateName(const char *);
 };
 
 class cObject {
@@ -51,6 +84,29 @@ cBase *gcUIDialog::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcUIDialog::GetType(void) const {
+    if (D_00099AB0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00099AB0 = cType::InitializeType(0, 0, 0x81, D_000385E4,
+                                           &gcUIDialog::New,
+                                           (const char *)0x36D8CC,
+                                           (const char *)0x36D8D4, 5);
+    }
+    return D_00099AB0;
 }
 
 void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
@@ -137,6 +193,36 @@ void gcUIDialog::Close(void) {
     if (mpUI) {
         mpUI->CloseDialog(this, 0, 0);
     }
+}
+
+void gcUIDialog::Write(cOutStream &out) const {
+    float *var_s2;
+    float *var_s3;
+    int var_s3_2;
+    int var_s4;
+
+    ((cHandleRef *)((char *)this + 0x48))->Write(out);
+    ((cHandleRef *)((char *)this + 0x4C))->Write(out);
+    out.Write(*(unsigned int *)((char *)this + 0x50), 0x20, true);
+    out.Write(*(float *)((char *)this + 0x5C), true);
+    int var_s5 = 1;
+    var_s4 = 0;
+    var_s3 = (float *)((char *)this + 0x1E8);
+    var_s2 = (float *)((char *)this + 0x1F8);
+    do {
+        out.Write(*var_s3, var_s5);
+        var_s4 += 1;
+        var_s3 += 1;
+    } while (var_s4 < 3);
+    out.Write(*(float *)((char *)this + 0x1F4), true);
+    var_s4 = 1;
+    var_s3_2 = 0;
+    do {
+        out.Write(*var_s2, var_s4);
+        var_s3_2 += 1;
+        var_s2 += 1;
+    } while (var_s3_2 < 5);
+    ((cTimeValueRef *)((char *)this + 0x20C))->Write(out);
 }
 
 void gcUIDialog::OnFinalClose(void) {

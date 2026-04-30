@@ -6,8 +6,10 @@ class cBase;
 class cMemPool;
 class gcUIWidgetGroup;
 class gcDoUIShowDialog;
+class cOutStream;
 class cTimeValue;
 class cName;
+class cType;
 template <class T> class cSubHandleT;
 
 class gcUIWidget;
@@ -27,6 +29,7 @@ public:
 
     gcUIDialog(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void CalcInstanceSize(void);
     void OnMemPoolReset(const cMemPool *, unsigned int);
     int PausesGame(void) const;
@@ -42,6 +45,7 @@ public:
     void Close(void);
     void CreateControl(gcUIWidget *);
     void Update(cTimeValue);
+    void Write(cOutStream &) const;
 };
 
 #endif
