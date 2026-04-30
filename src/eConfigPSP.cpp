@@ -73,6 +73,21 @@ extern cType *D_000385DC;
 extern cType *D_00040E78;
 extern cType *D_00040E80;
 
+// eConfigPSP::eConfigPSP(cBase *) @ 0x0001cdec
+eConfigPSP::eConfigPSP(cBase *parent) : eConfigBase(parent) {
+    *(void **)((char *)this + 4) = (void *)0x37F930;
+    *(int *)((char *)this + 0x6C) = 0xE290;
+    *(int *)((char *)this + 0x70) = 0;
+    *(int *)((char *)this + 0x74) = 0;
+    *(float *)((char *)this + 0x78) = 0.15f;
+    *(float *)((char *)this + 0x7C) = 0.0018f;
+    *(unsigned char *)((char *)this + 0x80) = 0;
+    *(int *)((char *)this + 0x84) = 0xAC44;
+    *(int *)((char *)this + 0x88) = 0x80;
+    *(int *)((char *)this + 0x8C) = 0x8000;
+    *(int *)((char *)this + 0x90) = 0x30000;
+}
+
 // eConfigPSP::New(cMemPool *, cBase *) static @ 0x001df84c
 cBase *eConfigPSP::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
