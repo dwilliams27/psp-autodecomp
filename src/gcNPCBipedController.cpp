@@ -5,10 +5,10 @@
 //   gcNPCBipedController::New(cMemPool *, cBase *) static @ 0x0031d25c (124B)
 //   gcNPCBipedController::~gcNPCBipedController(void)     @ 0x0031d470 (124B)
 //
-// gcNPCBipedController inherits directly from gcEntityController (the
-// destructor chain at 0x31d49c jumps to ~gcEntityController, not
-// ~gcBipedController). Write() forwards to gcBipedController::Write —
-// gcBipedController is a sibling class, not an ancestor.
+// The constructor, Write, and Read forward through gcBipedController, but the
+// destructor chain at 0x31d49c jumps to ~gcEntityController.  The local
+// gcBipedController declaration below aliases its destructor accordingly so the
+// canonical C++ methods produce the observed mixed chain.
 
 class cBase;
 class cFile;
@@ -47,26 +47,36 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class gcEntityController {
 public:
     gcEntityController(cBase *);
     ~gcEntityController();
 };
 
-// Sibling class — not an ancestor. Used only to call gcBipedController::Write
-// on `this` via a C-style cast. The jal target is a relocation, masked by
-// asm-differ during object-file compare.
-class gcBipedController {
+class gcBipedController : public gcEntityController {
 public:
+    gcBipedController(cBase *);
+    ~gcBipedController() __asm__("gcEntityController___dtor_gcEntityController_void");
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
-class gcNPCBipedController : public gcEntityController {
+class gcNPCBipedController : public gcBipedController {
 public:
     gcNPCBipedController(cBase *);
     ~gcNPCBipedController();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -91,11 +101,29 @@ extern cType *D_0009F794;
 extern "C" void gcNPCBipedController__gcNPCBipedController_cBaseptr(void *self, cBase *parent);
 extern "C" void *dcastdcast_gcNPCBipedControllerptr__constcBaseptr(const cBase *);
 
+// ── gcNPCBipedController::gcNPCBipedController(cBase *) @ 0x00154e78 ──
+gcNPCBipedController::gcNPCBipedController(cBase *parent)
+    : gcBipedController(parent) {
+    *(void **)((char *)this + 4) = gcNPCBipedControllervirtualtable;
+}
+
 // ── gcNPCBipedController::Write(cFile &) const @ 0x00154d70 ──
 void gcNPCBipedController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcBipedController *)this)->Write(file);
     wb.End();
+}
+
+// ── gcNPCBipedController::Read(cFile &, cMemPool *) @ 0x00154dbc ──
+int gcNPCBipedController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcBipedController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── gcNPCBipedController::New(cMemPool *, cBase *) static @ 0x0031d25c ──
