@@ -13,6 +13,7 @@ class eDynamicLight : public eDynamicGeom {
 public:
     int Read(cFile &, cMemPool *);
     void Draw(const eDrawInfo &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };

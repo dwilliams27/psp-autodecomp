@@ -1,5 +1,7 @@
 #include "eDynamicLight.h"
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
 class cReadBlock {
 public:
     int _data[5];
@@ -15,6 +17,8 @@ public:
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
+
+template <class T> T *dcast(const cBase *);
 
 extern "C" void eDynamicLight__eDynamicLight_cBaseptr(void *, cBase *);
 
@@ -43,6 +47,48 @@ success:
 }
 
 void eDynamicLight::Draw(const eDrawInfo &) const {
+}
+
+void eDynamicLight::AssignCopy(const cBase *base) {
+    eDynamicLight *other = dcast<eDynamicLight>(base);
+    *(v4sf_t *)((char *)this + 0x40) = *(const v4sf_t *)((char *)other + 0x40);
+    *(v4sf_t *)((char *)this + 0x10) = *(const v4sf_t *)((char *)other + 0x10);
+    *(v4sf_t *)((char *)this + 0x20) = *(const v4sf_t *)((char *)other + 0x20);
+    *(v4sf_t *)((char *)this + 0x30) = *(const v4sf_t *)((char *)other + 0x30);
+    float value5C = *(const float *)((char *)other + 0x5C);
+    *(v4sf_t *)((char *)this + 0x50) = *(const v4sf_t *)((char *)other + 0x50);
+    *(float *)((char *)this + 0x5C) = value5C;
+    *(int *)((char *)this + 0x60) = *(const int *)((char *)other + 0x60);
+    *(int *)((char *)this + 0x64) = *(const int *)((char *)other + 0x64);
+    *(int *)((char *)this + 0x68) = *(const int *)((char *)other + 0x68);
+    *(int *)((char *)this + 0x6C) = *(const int *)((char *)other + 0x6C);
+    *(int *)((char *)this + 0x70) = *(const int *)((char *)other + 0x70);
+    *(float *)((char *)this + 0x74) = *(const float *)((char *)other + 0x74);
+    *(float *)((char *)this + 0x78) = *(const float *)((char *)other + 0x78);
+    *(int *)((char *)this + 0x7C) = *(const int *)((char *)other + 0x7C);
+    *(int *)((char *)this + 0x80) = *(const int *)((char *)other + 0x80);
+    *(int *)((char *)this + 0x84) = *(const int *)((char *)other + 0x84);
+    *(int *)((char *)this + 0x88) = *(const int *)((char *)other + 0x88);
+    *(unsigned char *)((char *)this + 0x8C) =
+        *(const unsigned char *)((char *)other + 0x8C);
+    *(unsigned char *)((char *)this + 0x8D) =
+        *(const unsigned char *)((char *)other + 0x8D);
+    *(v4sf_t *)((char *)this + 0xC0) = *(const v4sf_t *)((char *)other + 0xC0);
+    *(v4sf_t *)((char *)this + 0x90) = *(const v4sf_t *)((char *)other + 0x90);
+    *(v4sf_t *)((char *)this + 0xA0) = *(const v4sf_t *)((char *)other + 0xA0);
+    *(v4sf_t *)((char *)this + 0xB0) = *(const v4sf_t *)((char *)other + 0xB0);
+    *(short *)((char *)this + 0xD0) = *(const short *)((char *)other + 0xD0);
+    *(unsigned char *)((char *)this + 0xD2) =
+        *(const unsigned char *)((char *)other + 0xD2);
+    *(float *)((char *)this + 0xD4) = *(const float *)((char *)other + 0xD4);
+    __asm__ volatile("" ::: "memory");
+    int *dstD8 = (int *)((char *)this + 0xD8);
+    int *srcD8 = (int *)((char *)other + 0xD8);
+    *dstD8 = *srcD8;
+    *(int *)((char *)this + 0xDC) = *(const int *)((char *)other + 0xDC);
+    *(int *)((char *)this + 0xE0) = *(const int *)((char *)other + 0xE0);
+    *(int *)((char *)this + 0xE4) = *(const int *)((char *)other + 0xE4);
+    *(int *)((char *)this + 0xE8) = *(const int *)((char *)other + 0xE8);
 }
 
 cBase *eDynamicLight::New(cMemPool *pool, cBase *parent) {

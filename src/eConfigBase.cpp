@@ -10,10 +10,19 @@ public:
 
 class cType {
 public:
+    char _pad[0x1C];
+    const cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
 };
 
 struct AllocRec {
@@ -34,6 +43,7 @@ public:
     ~eConfigBase();
 
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     const char *GetImageFileFormatName(void) const;
     int GetPhysicsMemPoolSize(void) const;
     const cType *GetType(void) const;
@@ -104,6 +114,94 @@ void eConfigBase::Write(cFile &file) const {
     wb.Write(*(const int *)((const char *)this + 0x64));
     wb.Write(*(const int *)((const char *)this + 0x68));
     wb.End();
+}
+
+// ── eConfigBase::AssignCopy(const cBase *) @ 0x001df184 ──
+void eConfigBase::AssignCopy(const cBase *base) {
+    const eConfigBase *other = 0;
+
+    if (base != 0) {
+        if (D_00040E78 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                   (const char *)0x36CD7C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_00040E78 = cType::InitializeType(0, 0, 0x28B, D_000385DC,
+                                               &eConfigBase::New, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *target = D_00040E78;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, (void *)fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const eConfigBase *)base;
+        }
+    }
+
+    *(int *)((char *)this + 0x08) = *(const int *)((const char *)other + 0x08);
+    *(int *)((char *)this + 0x0C) = *(const int *)((const char *)other + 0x0C);
+    *(int *)((char *)this + 0x10) = *(const int *)((const char *)other + 0x10);
+    *(unsigned char *)((char *)this + 0x14) =
+        *(const unsigned char *)((const char *)other + 0x14);
+    *(int *)((char *)this + 0x18) = *(const int *)((const char *)other + 0x18);
+    *(int *)((char *)this + 0x1C) = *(const int *)((const char *)other + 0x1C);
+    *(int *)((char *)this + 0x20) = *(const int *)((const char *)other + 0x20);
+    *(int *)((char *)this + 0x24) = *(const int *)((const char *)other + 0x24);
+    *(unsigned char *)((char *)this + 0x28) =
+        *(const unsigned char *)((const char *)other + 0x28);
+    *(unsigned char *)((char *)this + 0x29) =
+        *(const unsigned char *)((const char *)other + 0x29);
+    *(unsigned char *)((char *)this + 0x2A) =
+        *(const unsigned char *)((const char *)other + 0x2A);
+    *(int *)((char *)this + 0x2C) = *(const int *)((const char *)other + 0x2C);
+    *(int *)((char *)this + 0x30) = *(const int *)((const char *)other + 0x30);
+    *(float *)((char *)this + 0x34) = *(const float *)((const char *)other + 0x34);
+    *(float *)((char *)this + 0x38) = *(const float *)((const char *)other + 0x38);
+    *(float *)((char *)this + 0x3C) = *(const float *)((const char *)other + 0x3C);
+    *(float *)((char *)this + 0x40) = *(const float *)((const char *)other + 0x40);
+    *(float *)((char *)this + 0x44) = *(const float *)((const char *)other + 0x44);
+    *(unsigned char *)((char *)this + 0x48) =
+        *(const unsigned char *)((const char *)other + 0x48);
+    *(unsigned char *)((char *)this + 0x49) =
+        *(const unsigned char *)((const char *)other + 0x49);
+    *(float *)((char *)this + 0x4C) = *(const float *)((const char *)other + 0x4C);
+    *(float *)((char *)this + 0x50) = *(const float *)((const char *)other + 0x50);
+    *(int *)((char *)this + 0x54) = *(const int *)((const char *)other + 0x54);
+    *(int *)((char *)this + 0x58) = *(const int *)((const char *)other + 0x58);
+    *(int *)((char *)this + 0x5C) = *(const int *)((const char *)other + 0x5C);
+    *(int *)((char *)this + 0x60) = *(const int *)((const char *)other + 0x60);
+    *(int *)((char *)this + 0x64) = *(const int *)((const char *)other + 0x64);
+    *(int *)((char *)this + 0x68) = *(const int *)((const char *)other + 0x68);
 }
 
 // ── eConfigBase::GetPhysicsMemPoolSize(void) const @ 0x0001cb18 ──

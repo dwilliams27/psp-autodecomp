@@ -8,6 +8,7 @@ class cType;
 class eConfigBase {
 public:
     ~eConfigBase();
+    void AssignCopy(const cBase *);
     const char *GetImageFileFormatName(void) const;
     int GetPhysicsMemPoolSize(void) const;
     const cType *GetType(void) const;
