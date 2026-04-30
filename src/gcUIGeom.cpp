@@ -6,6 +6,11 @@ class eGeom;
 class eDynamicGeom;
 class gcUIGeom;
 
+class cTimeValue {
+public:
+    int mTime;
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -43,6 +48,7 @@ public:
 
 class gcUI {
 public:
+    void Update(cTimeValue);
     void CloseAllDialogs(void);
     void DeleteSpawned(void);
     ~gcUI();
@@ -64,6 +70,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void Update(cTimeValue);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 
@@ -147,6 +154,18 @@ int gcUIGeom::Read(cFile &file, cMemPool *pool) {
         return 0;
     }
     return result;
+}
+
+// ── gcUIGeom::Update(cTimeValue) @ 0x0013b8c0 ──
+void gcUIGeom::Update(cTimeValue t) {
+    ((gcUI *)((char *)this + 0xF0))->Update(t);
+    if (*(unsigned char *)((char *)this + 0x8C) & 4) {
+        int *vt = *(int **)((char *)this + 4);
+        int *entry = (int *)((char *)vt + 0xB8);
+        short adj = *(short *)entry;
+        void (*fn)(void *) = (void (*)(void *))entry[1];
+        fn((char *)this + adj);
+    }
 }
 
 const cType *gcUIGeom::GetType(void) const {
