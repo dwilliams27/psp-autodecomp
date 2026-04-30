@@ -5,6 +5,22 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    char _pad[0x1C];
+    const cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cObject {
@@ -48,6 +64,12 @@ struct TypeDispatchEntry {
     void (*fn)(void *, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
 class gcStaticInstance : public cObject {
 public:
     char _pad8[0x44];
@@ -58,6 +80,9 @@ public:
 
     gcStaticInstance(cBase *);
     ~gcStaticInstance();
+    gcStaticInstance &operator=(const gcStaticInstance &);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -71,6 +96,10 @@ public:
 };
 
 extern char gcStaticInstanceclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F560;
 
 gcStaticInstance::gcStaticInstance(cBase *parent) : cObject(parent) {
     *(void **)((char *)this + 4) = gcStaticInstanceclassdesc;
@@ -114,4 +143,90 @@ cBase *gcStaticInstance::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcStaticInstance::AssignCopy(const cBase *base) {
+    const gcStaticInstance *other = 0;
+
+    if (base != 0) {
+        if (D_0009F560 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                           (const char *)0x36D89C,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                       &cNamed::New, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F560 = cType::InitializeType(0, 0, 0x67, D_000385E4,
+                                               &gcStaticInstance::New,
+                                               (const char *)0x36DA34,
+                                               (const char *)0x36DA48, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *target = D_0009F560;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcStaticInstance *)base;
+        }
+    }
+    operator=(*other);
+}
+
+const cType *gcStaticInstance::GetType(void) const {
+    if (D_0009F560 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F560 = cType::InitializeType(0, 0, 0x67, D_000385E4,
+                                           &gcStaticInstance::New,
+                                           (const char *)0x36DA34,
+                                           (const char *)0x36DA48, 0);
+    }
+    return D_0009F560;
 }
