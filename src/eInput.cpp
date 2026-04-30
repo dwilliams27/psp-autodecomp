@@ -3,23 +3,38 @@
 
 class eInputJoystick {
 public:
+    static bool Initialize();
     static void Reset();
     static void ResetIdleTime(int);
 };
 
 class eInputMouse {
 public:
+    static bool Initialize();
     static void Reset();
 };
 
 class eInputKeyboard {
 public:
+    static bool Initialize();
     static void Reset();
 };
 
 namespace eInput {
+    bool Initialize();
     void Reset();
     void ResetIdleTime();
+}
+
+// ── eInput::Initialize(void) static @ 0x00030d14 ──
+bool eInput::Initialize() {
+    if (eInputJoystick::Initialize() &&
+        eInputMouse::Initialize() &&
+        eInputKeyboard::Initialize()) {
+        Reset();
+        return true;
+    }
+    return false;
 }
 
 // ── eInput::Reset(void) static @ 0x00030d74 ──

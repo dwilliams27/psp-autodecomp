@@ -115,19 +115,24 @@ public:
     // 0x20: bool
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    ~gcDoPortalActivate(void);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     float Evaluate(void) const;
+
+    static void operator delete(void *p);
 };
 
 // External constructors / vtables.
 extern "C" {
     void gcAction_gcAction(gcDoPortalActivate *, cBase *);
+    void gcAction___dtor_gcAction_void(void *, int);
     void gcDesiredObject_gcDesiredObject(void *, void *);
 }
 extern char gcDoPortalActivatevirtualtable[];
 extern char gcDoPortalActivate_desobj_vtable[];
 extern char gcDoPortalActivate_vtable1[];
+extern char cBasevirtualtable[];
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
@@ -144,6 +149,26 @@ struct AllocEntry {
     short _pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+struct PoolDeleteSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct DtorSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
+inline void gcDoPortalActivate::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    void *block = ((void **)pool)[9];
+    char *entries = ((PoolBlock *)block)->allocTable;
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, p);
+}
 
 // ── gcDoPortalActivate::New @ 0x00319534 ──
 cBase *gcDoPortalActivate::New(cMemPool *pool, cBase *parent) {
@@ -188,6 +213,37 @@ const cType *gcDoPortalActivate::GetType(void) const {
             0, 0, 0x226, type_action, gcDoPortalActivate::New, 0, 0, 0);
     }
     return type_gcDoPortalActivate;
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── gcDoPortalActivate::~gcDoPortalActivate @ 0x0031970c ──
+gcDoPortalActivate::~gcDoPortalActivate(void) {
+    *(void **)((char *)this + 4) = gcDoPortalActivatevirtualtable;
+
+    if ((void *)((char *)this + 0x0C) != 0) {
+        *(void * volatile *)((char *)this + 0x10) = (void *)0x38B678;
+        *(void * volatile *)((char *)this + 0x10) = cBasevirtualtable;
+        *(void * volatile *)((char *)this + 0x10) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x14) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x14);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, 3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x10) = (void *)0x37E6A8;
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 // ── gcDoPortalActivate::Write @ 0x0031981c ──
