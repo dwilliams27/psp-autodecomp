@@ -55,6 +55,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cMemPool_shim {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -77,6 +84,7 @@ public:
     char _pad[0x154];
     eSimulatedController(cBase *);
     ~eSimulatedController();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -87,6 +95,7 @@ public:
     ~eRigidBodyController();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -105,6 +114,7 @@ extern cType *D_000385DC;
 extern cType *D_000469D8;
 extern cType *D_00046BD4;
 extern cType *D_00046C08;
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ── eRigidBodyController::AssignCopy(const cBase *) @ 0x0020f740 ──
 void eRigidBodyController::AssignCopy(const cBase *base) {
@@ -169,6 +179,19 @@ void eRigidBodyController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eSimulatedController *)this)->Write(file);
     wb.End();
+}
+
+// ── eRigidBodyController::Read(cFile &, cMemPool *) @ 0x0007680c ──
+int eRigidBodyController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((eSimulatedController *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eRigidBodyController::~eRigidBodyController(void) @ 0x000768fc ──

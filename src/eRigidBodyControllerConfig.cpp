@@ -27,11 +27,19 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class eSimulatedControllerConfig {
 public:
     char _pad[0x8];
     eSimulatedControllerConfig(cBase *);
     ~eSimulatedControllerConfig();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -59,6 +67,7 @@ public:
     eRigidBodyControllerConfig(cBase *);
     ~eRigidBodyControllerConfig();
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -78,6 +87,7 @@ extern cType *D_000385DC;
 extern cType *D_000469E8;
 extern cType *D_00046BF8;
 extern cType *D_00046C0C;
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ── Write ──  @ 0x00076f40, 76B
 #pragma control sched=1
@@ -85,6 +95,21 @@ void eRigidBodyControllerConfig::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eSimulatedControllerConfig *)this)->Write(file);
     wb.End();
+}
+#pragma control sched=2
+
+// ── Read ──  @ 0x00076f8c, 188B
+#pragma control sched=1
+int eRigidBodyControllerConfig::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((eSimulatedControllerConfig *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 #pragma control sched=2
 
