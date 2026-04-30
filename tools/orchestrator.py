@@ -161,6 +161,29 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
             target["failure_notes"] = target["failure_notes"][-5:]
 
 
+def verifier_failure_note(prefix, src_file=None, reason=None,
+                          diff_count=None, byte_diffs=None, error=None):
+    """Compact failure note for claimed matches demoted by local gates."""
+    parts = [prefix]
+    if src_file:
+        parts.append(f"src={src_file}")
+    if reason:
+        parts.append(f"reason={reason}")
+    if diff_count:
+        parts.append(f"diff_count={diff_count}")
+    if byte_diffs:
+        first = byte_diffs[0]
+        parts.append(
+            "first_diff="
+            f"{first.get('addr', '?')}:"
+            f"{first.get('compiled', '?')}!="
+            f"{first.get('expected', '?')}"
+        )
+    if error:
+        parts.append(f"error={str(error)[:500]}")
+    return "; ".join(parts)
+
+
 @dataclass
 class FunctionDecision:
     """Worker's final verdict for one batch address — post-verify,
@@ -1567,6 +1590,12 @@ def run_one_session(ctx):
             })
             d.status = "failed"
             d.src_file = None
+            d.failure_note = verifier_failure_note(
+                "Verifier demoted claimed match: compile failed",
+                src_file=src_file,
+                reason="compile_failed",
+                error=e,
+            )
             d.verify_reason = "compile_failed"
             continue
         except RuntimeError as e:
@@ -1618,6 +1647,13 @@ def run_one_session(ctx):
         })
         d.status = "failed"
         d.src_file = None
+        d.failure_note = verifier_failure_note(
+            "Verifier demoted claimed match: byte mismatch",
+            src_file=src_file,
+            reason=result.reason,
+            diff_count=result.diff_count,
+            byte_diffs=result.byte_diffs,
+        )
         d.verify_reason = result.reason
 
     matched_funcs = [f for f in batch
@@ -1648,6 +1684,11 @@ def run_one_session(ctx):
                     d.status = "failed"
                     d.src_file = None
                     d.symbol_name = None
+                    d.failure_note = verifier_failure_note(
+                        "Verifier demoted claimed match: assembly-only source rejected",
+                        src_file=next(iter(func_files), None),
+                        reason="rejected_assembly_only",
+                    )
                     d.verify_reason = "rejected_assembly_only"
                     matched_funcs.remove(func)
                     log(f"    Reverted: {func['name']} → failed (assembly-only source)")

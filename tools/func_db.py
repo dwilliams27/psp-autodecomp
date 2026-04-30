@@ -11,6 +11,7 @@ Usage:
                                    [--leaf] [--limit N]
     python3 tools/func_db.py stats
     python3 tools/func_db.py set-status ADDRESS STATUS
+    python3 tools/func_db.py reset-targets config/targets_failed_retry.json --apply
 """
 
 import argparse
@@ -481,6 +482,79 @@ def cmd_set_status(args):
         sys.exit(1)
 
 
+def _load_target_addresses(path):
+    with open(path, "r") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise SystemExit(f"Error: {path} is not a JSON array")
+
+    addrs = []
+    for i, entry in enumerate(data):
+        if isinstance(entry, str):
+            addr = entry
+        elif isinstance(entry, dict):
+            addr = entry.get("address")
+        else:
+            raise SystemExit(f"Error: target entry {i} is not an object/string")
+        if not addr:
+            raise SystemExit(f"Error: target entry {i} missing address")
+        addr = addr.lower()
+        if not addr.startswith("0x"):
+            addr = "0x" + addr
+        addrs.append(addr)
+    return addrs
+
+
+def cmd_reset_targets(args):
+    """Bulk reset target-list rows while preserving failure_notes."""
+    functions = load_db()
+    addr_index = build_addr_map(functions)
+    addrs = _load_target_addresses(args.targets)
+
+    seen = set()
+    reset = []
+    skipped = []
+    missing = []
+    for addr in addrs:
+        if addr in seen:
+            continue
+        seen.add(addr)
+        func = addr_index.get(addr)
+        if not func:
+            missing.append(addr)
+            continue
+        status = func.get("match_status")
+        if args.from_status and status != args.from_status:
+            skipped.append((func, status))
+            continue
+        reset.append(func)
+
+    print(f"Targets read:       {len(addrs)}")
+    print(f"Unique addresses:   {len(seen)}")
+    print(f"Will reset:         {len(reset)} "
+          f"({args.from_status or 'any'} → {args.to_status})")
+    print(f"Skipped by status:  {len(skipped)}")
+    print(f"Missing from DB:    {len(missing)}")
+
+    if skipped:
+        print("\nSkipped examples:")
+        for func, status in skipped[:10]:
+            print(f"  {func['address']} [{status}] {func['name']}")
+    if missing:
+        print("\nMissing examples:")
+        for addr in missing[:10]:
+            print(f"  {addr}")
+
+    if not args.apply:
+        print("\nDry run only. Re-run with --apply to update config/functions.json.")
+        return
+
+    for func in reset:
+        func["match_status"] = args.to_status
+    save_db(functions)
+    print(f"\nApplied: reset {len(reset)} rows to {args.to_status}.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Function database for decompilation")
     sub = parser.add_subparsers(dest="command")
@@ -509,6 +583,18 @@ def main():
     ss.add_argument("status", choices=["untried", "in_progress", "matched", "failed"],
                     help="New status")
 
+    rt = sub.add_parser("reset-targets",
+                        help="Bulk reset statuses for addresses in a target JSON file")
+    rt.add_argument("targets", help="Target JSON file containing address fields")
+    rt.add_argument("--from-status", default="failed",
+                    choices=["untried", "in_progress", "matched", "failed"],
+                    help="Only reset rows currently in this status (default: failed)")
+    rt.add_argument("--to-status", default="untried",
+                    choices=["untried", "in_progress", "matched", "failed"],
+                    help="New status to write (default: untried)")
+    rt.add_argument("--apply", action="store_true",
+                    help="Actually write config/functions.json. Default is dry run.")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -520,6 +606,7 @@ def main():
         "stats": cmd_stats,
         "backfill-symbols": cmd_backfill_symbols,
         "set-status": cmd_set_status,
+        "reset-targets": cmd_reset_targets,
     }[args.command](args)
 
 
