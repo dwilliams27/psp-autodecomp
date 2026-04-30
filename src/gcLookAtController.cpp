@@ -2,6 +2,10 @@ class ePoint;
 class cBase;
 class cMemPool;
 class cFile;
+struct LookAtParent;
+struct LookAtRef;
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cWriteBlock {
 public:
@@ -10,8 +14,27 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class gcPartialEntityController {
 public:
+    LookAtParent *m_parent;     // 0x00
+    void *m_classDesc;          // 0x04
+    LookAtRef *m_ref;           // 0x08
+    char m_basePad0C[0x38 - 0x0C];
+
+    gcPartialEntityController(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -21,17 +44,14 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
-extern "C" void gcLookAtController__gcLookAtController_cBaseptr(void *self, cBase *parent);
+extern "C" void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
+extern char gcLookAtControllervirtualtable[];
 
 template <class T>
 class cHandleT {
 public:
     int mIndex;
-    cHandleT();
 };
-
-template <class T>
-cHandleT<T>::cHandleT() : mIndex(0) {}
 
 struct LookAtEntry {
     float v0;
@@ -64,16 +84,16 @@ struct gcLookAtController_layout {
     char pad0C[0x40 - 0x0C];
 };
 
-class gcLookAtController {
+class gcLookAtController : public gcPartialEntityController {
 public:
-    LookAtParent *m_parent;       // 0x00
-    int m_pad04;                  // 0x04
-    LookAtRef *m_ref;             // 0x08
-    char m_pad0C[0x38 - 0x0C];    // 0x0C..0x37
     cHandleT<ePoint> m_target;    // 0x38
     cHandleT<ePoint> m_target2;   // 0x3C  (separate handle)
     short m_state;                // 0x40
+    short m_pad42;                // 0x42
+    char m_arr44[8];              // 0x44
 
+    gcLookAtController(cBase *);
+    int Read(cFile &, cMemPool *);
     void SetHPR(float heading, float pitch, float roll, bool snap);
     void LookAt(cHandleT<ePoint> p);
     float GetHeading() const;
@@ -83,6 +103,27 @@ public:
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
+
+gcLookAtController::gcLookAtController(cBase *parent) : gcPartialEntityController(parent) {
+    *(void **)((char *)this + 4) = gcLookAtControllervirtualtable;
+    m_target.mIndex = 0;
+    m_target2.mIndex = 0;
+    m_state = 0;
+    m_pad42 = -1;
+    __vec_new((char *)this + 0x44, 1, 6, (void (*)(void *))0x24400C);
+}
+
+int gcLookAtController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        gcPartialEntityController::Read(file, pool)) goto success;
+    ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+    return 0;
+success:
+    return result;
+}
 
 void gcLookAtController::LookAt(cHandleT<ePoint> p) {
     m_state = 2;
@@ -256,7 +297,7 @@ cBase *gcLookAtController::New(cMemPool *pool, cBase *parent) {
     gcLookAtController *result = 0;
     gcLookAtController *obj = (gcLookAtController *)rec->fn(base, 0x4C, 4, 0, 0);
     if (obj != 0) {
-        gcLookAtController__gcLookAtController_cBaseptr(obj, parent);
+        new (obj) gcLookAtController(parent);
         result = obj;
     }
     return (cBase *)result;
