@@ -96,10 +96,11 @@ const cType *eSimulatedControllerTemplate::GetType(void) const {
     if (type_eSimulatedControllerTemplate == 0) {
         if (type_eSimulatedControllerTemplate_mid == 0) {
             if (type_eSimulatedControllerTemplate_base == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
                 type_eSimulatedControllerTemplate_base = cType::InitializeType(
-                    eSimulatedControllerTemplate_typeName,
-                    eSimulatedControllerTemplate_typeDesc,
-                    1, 0, 0, 0, 0, 0);
+                    name, desc, 1, 0, 0, 0, 0, 0);
             }
             type_eSimulatedControllerTemplate_mid = cType::InitializeType(
                 0, 0, 0x22F, type_eSimulatedControllerTemplate_base,

@@ -106,9 +106,30 @@ success:
 // ── gcShadowConfig::AssignCopy(const cBase *) @ 0x0031fa18, 152B ──
 void gcShadowConfig::AssignCopy(const cBase *src) {
     gcShadowConfig *other = dcast<gcShadowConfig>(src);
-    *(gcSC_Word *)((char *)this + 8) = *(const gcSC_Word *)((const char *)other + 8);
-    *(gcSC_Block6 *)((char *)this + 0xC) = *(const gcSC_Block6 *)((const char *)other + 0xC);
-    *(gcSC_Word *)((char *)this + 0x24) = *(const gcSC_Word *)((const char *)other + 0x24);
+    int *srcHandle = (int *)((char *)other + 8);
+    int handle = *srcHandle;
+    int *dstHandle = (int *)((char *)this + 8);
+    __asm__ volatile("" : "+r"(dstHandle));
+    *dstHandle = handle;
+    int *srcWords = (int *)((char *)other + 0xC);
+    int *dstWords = (int *)((char *)this + 0xC);
+    int word0 = srcWords[0];
+    int word1 = srcWords[1];
+    int word2 = srcWords[2];
+    dstWords[0] = word0;
+    word0 = srcWords[3];
+    dstWords[1] = word1;
+    word1 = srcWords[4];
+    dstWords[2] = word2;
+    word2 = srcWords[5];
+    dstWords[3] = word0;
+    dstWords[4] = word1;
+    dstWords[5] = word2;
+    int *srcInt = (int *)((char *)other + 0x24);
+    int int24 = *srcInt;
+    int *dstInt = (int *)((char *)this + 0x24);
+    __asm__ volatile("" : "+r"(dstInt));
+    *dstInt = int24;
     *(v4sf_t *)((char *)this + 0x30) = *(const v4sf_t *)((const char *)other + 0x30);
     *(v4sf_t *)((char *)this + 0x40) = *(const v4sf_t *)((const char *)other + 0x40);
     *(unsigned char *)((char *)this + 0x50) = *(const unsigned char *)((const char *)other + 0x50);
