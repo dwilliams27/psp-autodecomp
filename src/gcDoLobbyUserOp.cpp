@@ -11,10 +11,19 @@ class cMemPool;
 class cFile;
 class cType;
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDoLobbyUserOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
+    ~gcDoLobbyUserOp(void);
     void Write(cFile &) const;
 };
 
@@ -59,13 +68,37 @@ struct AllocEntry {
 
 void gcAction_gcAction(gcDoLobbyUserOp *, cBase *);
 void gcAction_Write(const gcDoLobbyUserOp *, cFile &);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyUserOpvirtualtable[];
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoLobbyUserOp asm("D_0009F6A0");
 static cType *type_gcDoLog asm("D_0009F6A4");
+
+inline void gcDoLobbyUserOp::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 // 0x002e61d8 — New(cMemPool *, cBase *) static
 cBase *gcDoLobbyUserOp::New(cMemPool *pool, cBase *parent) {
@@ -108,6 +141,61 @@ const cType *gcDoLobbyUserOp::GetType(void) const {
             0, 0, 0x1CB, type_action, gcDoLobbyUserOp::New, 0, 0, 0);
     }
     return type_gcDoLobbyUserOp;
+}
+
+// 0x002e66a4 — GetText(char *) const
+void gcDoLobbyUserOp::GetText(char *buf) const {
+    const char *arg = (const char *)0x36DAF0;
+    cStrAppend(buf, (const char *)0x36E00C, arg);
+
+    int val = *(int *)((const char *)this + 0x14);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    if (*(int *)((const char *)this + 0x0C) == 0) {
+        cStrAppend(buf, (const char *)0x36DBAC, arg);
+    }
+    cStrAppend(buf, (const char *)0x36DCEC);
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// 0x002e6a34 — ~gcDoLobbyUserOp(void)
+gcDoLobbyUserOp::~gcDoLobbyUserOp(void) {
+    *(void **)((char *)this + 4) = gcDoLobbyUserOpvirtualtable;
+
+    if ((void *)((char *)this + 0x14) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x14) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 // 0x002e638c — Write(cFile &) const
