@@ -36,7 +36,9 @@ public:
     gcStateHandlerBase(cBase *);
     ~gcStateHandlerBase();
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    gcStateHandlerBase &operator=(const gcStateHandlerBase &);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -46,6 +48,12 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+struct VTableSlot {
+    short offset;
+    short pad;
+    void *(*fn)(void *);
 };
 
 extern cType *D_000385DC;
@@ -94,6 +102,53 @@ const cType *gcStateHandlerBase::GetType(void) const {
                                            &gcStateHandlerBase::New, 0, 0, 0);
     }
     return D_0009A3D0;
+}
+
+// ── gcStateHandlerBase::AssignCopy(const cBase *) @ 0x00256F60 ──
+void gcStateHandlerBase::AssignCopy(const cBase *base) {
+    const cBase *copy = 0;
+
+    if (base != 0) {
+        if (D_0009A3D0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009A3D0 = cType::InitializeType(0, 0, 0xD9, D_000385DC,
+                                               &gcStateHandlerBase::New, 0, 0, 0);
+        }
+
+        void *vt = ((void **)base)[1];
+        void *myType = D_0009A3D0;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short off = slot->offset;
+        void *(*getType)(void *) = slot->fn;
+        void *type = getType((char *)base + off);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done_type;
+        }
+        if (type != 0) {
+        loop_type:
+            if (type == myType) {
+                ok = 1;
+                goto done_type;
+            }
+            type = *(void **)((char *)type + 0x1C);
+            if (type != 0) {
+                goto loop_type;
+            }
+        }
+        ok = 0;
+    done_type:
+        if (ok != 0) {
+            copy = base;
+        }
+    }
+    *this = *(const gcStateHandlerBase *)copy;
 }
 
 // ── gcStateHandlerBase::~gcStateHandlerBase(void) @ 0x0010a808 ──
