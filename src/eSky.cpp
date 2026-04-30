@@ -67,6 +67,7 @@ public:
 
 class cObject {
 public:
+    char _pad[0x44];
     cObject(cBase *);
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
@@ -74,6 +75,11 @@ public:
 
 class eSky : public cObject {
 public:
+    cArrayBase<cHandleT<eGeomTemplate> > mHandles;
+    cBaseArray mArray48;
+    cBaseArray mArray50;
+    cBaseArray mArray58;
+
     eSky(cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
@@ -97,6 +103,20 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+// -- eSky::eSky(cBase *) @ 0x0005d158 --
+#pragma control sched=1
+eSky::eSky(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x3821C0;
+    *(int *)((char *)this + 0x44) = 0;
+    *(int *)((char *)this + 0x48) = 0;
+    *(eSky **)((char *)this + 0x4C) = this;
+    *(int *)((char *)this + 0x50) = 0;
+    *(eSky **)((char *)this + 0x54) = this;
+    *(int *)((char *)this + 0x58) = 0;
+    *(eSky **)((char *)this + 0x5C) = this;
+}
+#pragma control sched=2
 
 // ── eSky::AssignCopy(const cBase *) @ 0x002048d8 ──
 #pragma control sched=1
@@ -188,10 +208,12 @@ void eSky::Write(cFile &file) const {
     if (handles != 0) {
         count = handles[-1] & 0x3FFFFFFF;
     }
+    int *handleBase = handles;
+
     int i = 0;
     int offset = 0;
     if (i < count) {
-        int *handle = handles + offset;
+        int *handle = handleBase + offset;
         do {
             ((cHandle *)handle)->Write(wb);
             i++;
