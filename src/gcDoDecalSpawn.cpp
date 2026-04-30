@@ -34,7 +34,9 @@ public:
 class gcDoDecalSpawn {
 public:
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     const cType *GetType(void) const;
+    ~gcDoDecalSpawn(void);
     void Write(cFile &) const;
 };
 
@@ -49,20 +51,42 @@ struct PoolBlock {
     char *allocTable;
 };
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
 void gcAction_gcAction(gcDoDecalSpawn *, cBase *);
 void gcAction_Write(const gcDoDecalSpawn *, cFile &);
+void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoDecalSpawnvirtualtable[];
 extern cType *D_000385D4;
 extern cType *D_000385D8;
 extern cType *D_000385DC;
 extern cType *D_0009F5D4;
 extern cType *D_0009F5E8;
+
+inline void gcDoDecalSpawn::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 cBase *gcDoDecalSpawn::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -113,6 +137,30 @@ void gcDoDecalSpawn::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x14))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoDecalSpawn::~gcDoDecalSpawn(void) {
+    *(void **)((char *)this + 4) = gcDoDecalSpawnvirtualtable;
+
+    if ((void *)((char *)this + 0x18) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x18);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x18) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 const cType *gcDoEntityApplyRigidBodyImpulse::GetType(void) const {
