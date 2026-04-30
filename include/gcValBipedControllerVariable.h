@@ -10,6 +10,7 @@ class gcValBipedControllerVariable {
 public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
