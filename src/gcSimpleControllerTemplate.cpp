@@ -37,12 +37,14 @@ class gcEntityControllerTemplate {
 public:
     int base;
 
+    gcEntityControllerTemplate(cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
 
 class gcSimpleControllerTemplate : public gcEntityControllerTemplate {
 public:
+    gcSimpleControllerTemplate(cBase *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -64,6 +66,13 @@ struct AllocRec {
 extern cType *D_000385DC;
 extern cType *D_0009A400;
 extern cType *D_0009F7C0;
+
+// ── gcSimpleControllerTemplate::gcSimpleControllerTemplate(cBase *) @ 0x00157e04 ──
+gcSimpleControllerTemplate::gcSimpleControllerTemplate(cBase *parent)
+    : gcEntityControllerTemplate(parent) {
+    *(void **)((char *)this + 4) = (void *)0x38D1E8;
+    *(unsigned int *)((char *)this + 0x18) |= 1;
+}
 
 // ── gcSimpleControllerTemplate::Write(cFile &) const @ 0x00157cfc ──
 void gcSimpleControllerTemplate::Write(cFile &file) const {
