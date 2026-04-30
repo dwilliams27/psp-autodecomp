@@ -12,10 +12,19 @@
 
 class cBase;
 class cFile;
+class cType;
 
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 extern char cBaseclassdesc[];                       // @ 0x37E6A8
@@ -71,6 +80,7 @@ public:
 
     gcValLobbyInfo(cBase *parent);
     ~gcValLobbyInfo();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
@@ -96,6 +106,11 @@ inline gcValLobbyInfo::gcValLobbyInfo(cBase *parent) : gcLValue(parent) {
     mField8 = 0;
 }
 
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValLobbyInfo asm("D_0009F884");
+
 inline void *operator new(unsigned, void *p) { return p; }
 
 // ── gcValLobbyInfo::New(cMemPool *, cBase *) static @ 0x003496e4 ──
@@ -111,6 +126,29 @@ cBase *gcValLobbyInfo::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcValLobbyInfo::GetType(void) const @ 0x0034976c ──
+const cType *gcValLobbyInfo::GetType(void) const {
+    if (!type_gcValLobbyInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValLobbyInfo = cType::InitializeType(0, 0, 0x185, type_value,
+                                                    gcValLobbyInfo::New,
+                                                    0, 0, 0);
+    }
+    return type_gcValLobbyInfo;
 }
 
 // ── gcValLobbyInfo::Write(cFile &) const @ 0x00349884 ──
