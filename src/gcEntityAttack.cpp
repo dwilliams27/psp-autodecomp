@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 
@@ -10,10 +11,28 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cWriteBlock {
+public:
+    cFile *mFile;
+    int mPos;
+
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(unsigned int);
+    void End(void);
+};
+
+class cBaseArray {
+public:
+    void Write(cWriteBlock &) const;
+};
+
 class gcEntityAttack {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void Write(cFile &) const;
 };
 
 struct PoolBlock {
@@ -25,6 +44,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct WriteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *);
 };
 
 class gcEntityAnimationConfig;
@@ -88,4 +113,41 @@ const cType *gcEntityAttack::GetType(void) const {
                                            &gcEntityAttack::New, 0, 0, 0);
     }
     return D_0009A3F8;
+}
+
+void gcEntityAttack::Write(cFile &file) const {
+    cFile *out = &file;
+    const gcEntityAttack *self = this;
+    cWriteBlock wb(file, 6);
+
+    {
+        char *typePtr = *(char **)((const char *)self + 0x0C);
+        WriteEntry *entry = (WriteEntry *)(typePtr + 0x28);
+        char *base = (char *)self + 8;
+        entry->fn(base + entry->offset, out);
+    }
+
+    wb.Write(*(const int *)((const char *)self + 0x2C));
+    wb.Write(*(const int *)((const char *)self + 0x30));
+    ((const cBaseArray *)((const char *)self + 0x70))->Write(wb);
+
+    {
+        char *typePtr = *(char **)((const char *)self + 0x3C);
+        WriteEntry *entry = (WriteEntry *)(typePtr + 0x28);
+        char *base = (char *)self + 0x38;
+        entry->fn(base + entry->offset, wb.mFile);
+    }
+
+    wb.Write(*(const unsigned int *)((const char *)self + 0x34));
+    wb.Write(*(const bool *)((const char *)self + 0x54));
+    wb.Write(*(const bool *)((const char *)self + 0x55));
+
+    {
+        char *typePtr = *(char **)((const char *)self + 0x5C);
+        WriteEntry *entry = (WriteEntry *)(typePtr + 0x28);
+        char *base = (char *)self + 0x58;
+        entry->fn(base + entry->offset, wb.mFile);
+    }
+
+    wb.End();
 }
