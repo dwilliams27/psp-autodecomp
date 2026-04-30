@@ -116,9 +116,10 @@ cConfigPSP::cConfigPSP(cBase *parent) : cConfigBase(parent) {
     *(int *)((char *)this + 0x2B4) = 0xDE;
     *(unsigned char *)((char *)this + 0x2B8) = 1;
     int i = 0;
-    int value = 3;
+    char *name = (char *)this;
     const char *src = (const char *)0x36CA58;
-    char *name = (char *)this + 0x244;
+    int value = 3;
+    name += 0x244;
     void *self = this;
     do {
         cStrCopy(name, src, 10);

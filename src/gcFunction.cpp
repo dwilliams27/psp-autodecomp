@@ -106,21 +106,22 @@ void gcFunction::AssignCopy(const cBase *base) {
 }
 
 // ── gcFunction::Write(cFile &) const @ 0x0012F7A8 ──
-struct gcEventVEntry {
-    short adj;
+typedef void (*WriteFn)(cBase *, cFile *);
+
+struct TypeMethod {
+    short offset;
     short pad;
-    void (*fn)(const void *, cFile *);
+    WriteFn fn;
 };
 
 void gcFunction::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
-    ((const cObject *)this)->Write(file);
-    const gcEventVEntry *vt = *(const gcEventVEntry **)((const char *)this + 0x48);
-    const gcEventVEntry *e = vt + 5;
-    short adj = e->adj;
-    const char *base44 = (const char *)this + 0x44;
-    void (*fn)(const void *, cFile *) = e->fn;
-    fn(base44 + adj, wb.file);
+    cObject::Write(file);
+
+    TypeMethod *slot = (TypeMethod *)((char *)*(void **)((char *)this + 0x48) + 0x28);
+    cBase *base = (cBase *)((char *)this + 0x44);
+    slot->fn((cBase *)((char *)base + slot->offset), wb.file);
+
     wb.End();
 }
 
