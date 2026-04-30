@@ -27,6 +27,7 @@ public:
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
+    void PlatformRead(cFile &, cMemPool *);
     void OnRemovedFromWorld(void);
     bool NeedsSkinning(const eDynamicMesh *, int, int *) const;
     void *GetCurrentPhysicsController(void) const;

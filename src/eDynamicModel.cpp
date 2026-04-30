@@ -34,6 +34,32 @@ class cFile;
 class cBase;
 class cMemPool;
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+class eDynamicMeshObjectVisData {
+public:
+    char _data[0x88];
+    eDynamicMeshObjectVisData(void);
+    void Read(cReadBlock &, cMemPool *, unsigned int, int);
+};
+
 extern "C" {
     void eDynamicModel__eDynamicModel_cBaseptr(void *self, cBase *parent);
 }
@@ -49,6 +75,22 @@ struct DispatchEntry {
     short _pad;
     cType *(*fn)(void *, short, void *);
 };
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct cGUID {
+    int a;
+    int b;
+};
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
+void cFile_SetCurrentPos(void *, unsigned int);
+void cMemPool_GetValue(cMemPool *, const cGUID &, void **)
+    __asm__("__0fIcMemPoolIGetValueRC6FcGUIDPPv");
 
 void eDynamicGeom_Write(const void *, cFile &);
 
@@ -197,6 +239,52 @@ void eDynamicModel::Write(cFile &file) const {
     wb.End();
 }
 
+void eDynamicModel::PlatformRead(cFile &file, cMemPool *pool) {
+    cGUID guidArg;
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    cMemPool *visPool;
+    int pad24;
+    cGUID guid;
+    cGUID guidCopy;
+    char pad[8];
+    char hasVisData;
+    eDynamicMeshObjectVisData *result;
+    eDynamicMeshObjectVisData *obj;
+    __asm__ volatile("" : : "m"(pad), "m"(pad24));
+
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+
+    visPool = 0;
+    guidCopy.a = 0x812D2B72;
+    guidCopy.b = 0xB1E8A1F9;
+    guid.a = 0x812D2B72;
+    guid.b = 0xB1E8A1F9;
+    guidArg = guid;
+    cMemPool_GetValue(pool, guidArg, (void **)&visPool);
+
+    cFileSystem::Read(*(void **)rb._data[0], &hasVisData, 1);
+    unsigned int has = hasVisData != 0;
+    if (has != 0) {
+        void *block = ((void **)visPool)[9];
+        char *allocTable = ((PoolBlock *)block)->allocTable;
+        AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+        short off = rec->offset;
+        void *base = (char *)block + off;
+        result = 0;
+        obj = (eDynamicMeshObjectVisData *)rec->fn(base, 0x88, 0, 0, -1);
+        if (obj != 0) {
+            new (obj) eDynamicMeshObjectVisData;
+            result = obj;
+        }
+        *(eDynamicMeshObjectVisData **)((char *)this + 0xF0) = result;
+        result->Read(rb, visPool, 0x116, 0xC);
+    }
+}
+
 void eDynamicModel::SetSkin(cHandleT<eSkin> skin1, int type, int skin2, cTimeValue time) {
     *(cHandleT<eSkin> *)((char *)this + 0xFC) = skin1;
     SetMaterialSet(type, time);
@@ -254,8 +342,8 @@ void eDynamicModel::CastRay(const eCollisionInfo &info, const mRay &ray, mCollid
 
 void eDynamicModel::ClearPartialAnimationController(int idx) {
     if (idx < 0) return;
-    char *ptr = *(char **)((char *)this + 0x128);
     int count = 0;
+    char *ptr = *(char **)((char *)this + 0x128);
     if (ptr != 0) {
         count = *(int *)(ptr - 4) & 0x3FFFFFFF;
     }
