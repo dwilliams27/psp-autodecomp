@@ -6,7 +6,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
@@ -49,6 +52,7 @@ public:
     void *mData;
     void *mOwner;
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
 };
 
@@ -73,8 +77,25 @@ public:
     void Write(cFile &) const;
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 // ─────────────────────────────────────────────────────────────────────────
-// gcFormatString @ 0x0027c258 / 0x0027c43c / 0x0027c94c
+// gcFormatString @ 0x0027c258 / 0x0027c43c / 0x0027c94c / 0x0027d058
 // ─────────────────────────────────────────────────────────────────────────
 
 class gcFormatString : public gcStringValue {
@@ -88,29 +109,27 @@ public:
     void GetName(char *) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    ~gcFormatString();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 extern char gcFormatStringvirtualtable[];
+extern char cBaseclassdesc[];
 extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F4C4;
-
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
-    short offset;
-    short pad;
-    void *(*fn)(void *, int, int, int, int);
-};
 
 void gcFormatString::AssignCopy(const cBase *src) {
     gcFormatString *o = dcast<gcFormatString>(src);
     this->mPair.mHandle = o->mPair.mHandle;
     __asm__ volatile("" ::: "memory");
-    this->mPair.mSubHandle = o->mPair.mSubHandle;
+    cSubHandleT<gcString> subHandle = o->mPair.mSubHandle;
+    this->mPair.mSubHandle = subHandle;
     this->mArray0 = o->mArray0;
     this->mArray1 = o->mArray1;
 }
@@ -166,6 +185,22 @@ void gcFormatString::GetName(char *buf) const {
     char local[4096];
     this->mPair.GetName(local, false, (char *)1);
     cStrCat(buf, local);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcFormatString::~gcFormatString() {
+    *(void **)((char *)this + 4) = gcFormatStringvirtualtable;
+    void *arr1 = (char *)this + 0x18;
+    void *arr0 = (char *)this + 0x10;
+    if (arr1 != 0) {
+        ((cBaseArray *)arr1)->RemoveAll();
+    }
+    if (arr0 != 0) {
+        ((cBaseArray *)arr0)->RemoveAll();
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
