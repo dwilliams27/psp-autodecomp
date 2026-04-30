@@ -8,6 +8,7 @@ class gcDoSetEventObjectArray;
 
 extern "C" void gcAction_gcAction(gcDoSetEventObjectArray *, cBase *);
 extern "C" void gcAction_Write(const gcDoSetEventObjectArray *, cFile &);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 
 extern char gcDoSetEventObjectArrayvirtualtable[];
 
@@ -29,6 +30,7 @@ public:
 
 class cBaseArray {
 public:
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
 };
 
@@ -42,6 +44,8 @@ public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
+    ~gcDoSetEventObjectArray(void);
 };
 
 extern const char gcDoSetEventObjectArray_base_name[] asm("D_0036D894");
@@ -62,6 +66,28 @@ struct AllocEntry {
     short pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+void *cMemPool_GetPoolFromPtr(const void *);
+
+inline void gcDoSetEventObjectArray::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 const cType *gcDoSetEventObjectArray::GetType(void) const {
     if (!type_gcDoSetEventObjectArray) {
@@ -120,4 +146,34 @@ cBase *gcDoSetEventObjectArray::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoSetEventObjectArray::~gcDoSetEventObjectArray(void) {
+    *(void **)((char *)this + 4) = gcDoSetEventObjectArrayvirtualtable;
+
+    cBaseArray *items = (cBaseArray *)((char *)this + 0x10);
+
+    if ((void *)((char *)this + 0x18) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x18);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x18) = 0;
+        }
+    }
+
+    if (items != 0) {
+        items->RemoveAll();
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

@@ -4,6 +4,9 @@
 class cMemPool;
 class cType;
 
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern char gcDoStateFunctionvirtualtable[];
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -23,10 +26,37 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+class cBaseArray {
+public:
+    void RemoveAll(void);
+};
+
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+void *cMemPool_GetPoolFromPtr(const void *);
+
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
 static cType *type_action asm("D_000385D4");
 static cType *type_gcDoStateFunction asm("D_0009F6FC");
+
+inline void gcDoStateFunction::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 int gcDoStateFunction::GetMaxChildren(void) const {
     return 4;
@@ -103,4 +133,34 @@ void gcDoStateFunction::AssignCopy(const cBase *other) {
         }
     }
     *this = *(const gcDoStateFunction *)copy;
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoStateFunction::~gcDoStateFunction(void) {
+    *(void **)((char *)this + 4) = gcDoStateFunctionvirtualtable;
+
+    cBaseArray *items = (cBaseArray *)((char *)this + 0x14);
+
+    if ((void *)((char *)this + 0x1C) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x1C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x1C) = 0;
+        }
+    }
+
+    if (items != 0) {
+        items->RemoveAll();
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
