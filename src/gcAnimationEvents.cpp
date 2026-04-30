@@ -58,6 +58,7 @@ extern cType *D_000385DC;
 extern cType *D_00099AB8;
 
 void *cMemPool_GetPoolFromPtr(const void *);
+void gcEvent_gcEvent(void *, cBase *, const char *);
 
 extern "C" {
     void gcAnimationEvents__gcAnimationEvents_cBaseptr(void *, cBase *);
@@ -68,6 +69,7 @@ template <class T> T *dcast(const cBase *);
 
 class gcAnimationEvents {
 public:
+    gcAnimationEvents(cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
@@ -81,6 +83,15 @@ inline void operator delete(void *p) {
     DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
     short off = rec->offset;
     rec->fn((char *)block + off, p);
+}
+
+gcAnimationEvents::gcAnimationEvents(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(void **)((char *)this + 4) = gcAnimationEventvirtualtable;
+    gcEvent_gcEvent((char *)this + 0x08, (cBase *)this, (const char *)0x36DB40);
+    gcEvent_gcEvent((char *)this + 0x24, (cBase *)this, (const char *)0x36DB4C);
+    gcEvent_gcEvent((char *)this + 0x40, (cBase *)this, (const char *)0x36DB58);
+    gcEvent_gcEvent((char *)this + 0x5C, (cBase *)this, (const char *)0x36DB64);
 }
 
 cBase *gcAnimationEvents::New(cMemPool *pool, cBase *parent) {

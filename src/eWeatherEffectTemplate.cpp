@@ -89,6 +89,30 @@ extern "C" {
 
 template <class T> T *dcast(const cBase *);
 
+#pragma control sched=2
+
+// eWeatherEffectTemplate::eWeatherEffectTemplate(cBase *) @ 0x00061384
+eWeatherEffectTemplate::eWeatherEffectTemplate(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = eGeomTemplatevirtualtable;
+    *(volatile int *)((char *)this + 0x44) = 0x1F4;
+    *(volatile float *)((char *)this + 0x48) = 0.0f;
+    *(volatile float *)((char *)this + 0x4C) = -90.0f;
+    *(volatile float *)((char *)this + 0x50) = 1.0f;
+    *(volatile float *)((char *)this + 0x54) = 0.1f;
+    *(volatile float *)((char *)this + 0x58) = 0.0f;
+    *(volatile float *)((char *)this + 0x5C) = 0.0f;
+    *(volatile float *)((char *)this + 0x60) = 50.0f;
+    *(volatile float *)((char *)this + 0x64) = 10.0f;
+    *(volatile float *)((char *)this + 0x68) = 1.0f;
+    *(volatile float *)((char *)this + 0x6C) = 0.25f;
+    *(volatile int *)((char *)this + 0x70) = 0;
+    *(volatile unsigned char *)((char *)this + 0x74) = 0;
+    *(volatile float *)((char *)this + 0x78) = 10.0f;
+    *(volatile float *)((char *)this + 0x7C) = 2.5f;
+    *(volatile float *)((char *)this + 0x80) = 10.0f;
+    *(volatile float *)((char *)this + 0x84) = 100.0f;
+}
+
 #pragma control sched=1
 
 // eWeatherEffectTemplate::~eWeatherEffectTemplate(void) @ 0x00061448
