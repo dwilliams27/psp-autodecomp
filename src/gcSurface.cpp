@@ -5,6 +5,19 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cFile;
 class cMemPool;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class cObject {
 public:
     cObject &operator=(const cObject &);
@@ -31,6 +44,7 @@ class gcSurface : public eSurface {
 public:
     gcSurface(cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -53,6 +67,12 @@ struct TypeDispatchEntry {
     short pad;
     void (*fn)(void *, int);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046A18;
+extern cType *D_0009F570;
 
 // 0x00289f4c
 void gcSurface::AssignCopy(const cBase *base) {
@@ -114,6 +134,33 @@ cBase *gcSurface::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0028a0b4
+const cType *gcSurface::GetType(void) const {
+    if (D_0009F570 == 0) {
+        if (D_00046A18 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                           (const char *)0x36D89C,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                       &cNamed::New, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00046A18 = cType::InitializeType(0, 0, 0x39, D_000385E4,
+                                               0, (const char *)0x36DA4C,
+                                               (const char *)0x36DA58, 5);
+        }
+        D_0009F570 = cType::InitializeType(0, 0, 0x7E, D_00046A18,
+                                           &gcSurface::New, 0, 0, 0);
+    }
+    return D_0009F570;
 }
 
 // 0x00137ce4

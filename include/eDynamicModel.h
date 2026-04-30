@@ -5,6 +5,7 @@ class cBase;
 class cMemPool;
 class cFile;
 class cTimeValue;
+class cType;
 class eDynamicMesh;
 class eCollisionInfo;
 class eContactCollector;
@@ -19,6 +20,7 @@ struct mOCS;
 class eDynamicModel {
 public:
     eDynamicModel(cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
     void OnRemovedFromWorld(void);

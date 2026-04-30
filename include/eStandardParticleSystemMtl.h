@@ -4,9 +4,11 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class eStandardParticleSystemMtl {
 public:
+    const cType *GetType(void) const;
     void CreateData(void);
     void PlatformFree(void);
     void PlatformRead(cFile &, cMemPool *);

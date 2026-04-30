@@ -4,6 +4,7 @@
 //   gcBipedControllerTemplate::Write(cFile &) const                    @ 0x00140F84  ( 88B)
 //   gcBipedControllerTemplate::gcBipedControllerTemplate(cBase *)      @ 0x001410D8  ( 68B)
 //   gcBipedControllerTemplate::~gcBipedControllerTemplate(void)        @ 0x002A7964  (204B)
+//   gcBipedControllerTemplate::GetType(void) const                     @ 0x002A7854  (272B)
 //
 // Inheritance chain:
 //   cBase -> gcEntityControllerTemplate -> gcCreatureControllerTemplate ->
@@ -16,6 +17,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -28,6 +38,10 @@ public:
 extern char gcBipedControllerTemplateclassdesc[];        // 0x38BB60 (live, set in ctor)
 extern char gcEntityControllerTemplate_dtor_classdesc[]; // 0x388738 (= gcEntityAttackSetvirtualtable+0x10)
 extern char cBase_dtor_classdesc[];                      // 0x37E6A8 (= cFastMemAllocatorvirtualtable+0x50)
+extern cType *D_000385DC;
+extern cType *D_0009A400;
+extern cType *D_0009F5A4;
+extern cType *D_0009F5FC;
 
 extern "C" {
     void cBaseArray__RemoveAll_void(void *);
@@ -53,6 +67,7 @@ class gcBipedControllerTemplate : public gcCreatureControllerTemplate {
 public:
     gcBipedControllerTemplate(cBase *);
     ~gcBipedControllerTemplate();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -100,4 +115,26 @@ gcBipedControllerTemplate::~gcBipedControllerTemplate() {
     if (p1) cBaseArray__RemoveAll_void(p1);
     if (p2) cBaseArray__RemoveAll_void(p2);
     *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
+
+// ── gcBipedControllerTemplate::GetType(void) const @ 0x002A7854 ──
+const cType *gcBipedControllerTemplate::GetType(void) const {
+    if (D_0009F5FC == 0) {
+        if (D_0009F5A4 == 0) {
+            if (D_0009A400 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009A400 = cType::InitializeType(0, 0, 0x9A, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F5A4 = cType::InitializeType(0, 0, 0xB8, D_0009A400,
+                                               0, 0, 0, 0);
+        }
+        D_0009F5FC = cType::InitializeType(0, 0, 0xBA, D_0009F5A4,
+                                           0, 0, 0, 0);
+    }
+    return D_0009F5FC;
 }

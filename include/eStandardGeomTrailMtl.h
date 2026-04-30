@@ -4,9 +4,12 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class eStandardGeomTrailMtl {
 public:
+    eStandardGeomTrailMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void PlatformRead(cFile &, cMemPool *);
     void Unapply(void) const;

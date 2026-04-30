@@ -4,9 +4,12 @@
 class cFile;
 class cBase;
 class cMemPool;
+class cType;
 
 class eStandardWeatherEffectMtl {
 public:
+    eStandardWeatherEffectMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);

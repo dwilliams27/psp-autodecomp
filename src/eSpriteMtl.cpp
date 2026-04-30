@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -21,6 +22,19 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct DeleteRecord {
@@ -44,6 +58,7 @@ public:
 
     eSpriteMtl(cBase *);
     ~eSpriteMtl(void);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -55,6 +70,11 @@ public:
 };
 
 extern char eSpriteMtlvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FEC;
+extern cType *D_00041038;
 
 // ── eSpriteMtl::Write @ 0x00031944 ──
 void eSpriteMtl::Write(cFile &file) const {
@@ -77,4 +97,33 @@ eSpriteMtl::eSpriteMtl(cBase *parent) : eMaterial(parent) {
 // `if (flags & 1) operator delete(this)` deleting tail (inlined).
 eSpriteMtl::~eSpriteMtl(void) {
     *(void **)((char *)this + 4) = eSpriteMtlvirtualtable;
+}
+
+// ── eSpriteMtl::GetType @ 0x001E3D0C ──
+const cType *eSpriteMtl::GetType(void) const {
+    if (D_00041038 == 0) {
+        if (D_00040FEC == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36CD74, (const char *)0x36CD7C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        &cNamed::New,
+                        0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040FEC = cType::InitializeType(
+                0, 0, 0x10, D_000385E4, 0,
+                (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
+        }
+        D_00041038 = cType::InitializeType(0, 0, 0x3F, D_00040FEC,
+                                           0, 0, 0, 0);
+    }
+    return D_00041038;
 }

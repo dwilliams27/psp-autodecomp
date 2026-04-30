@@ -18,7 +18,9 @@ public:
 
     int GetNumExternalDependencies(void) const;
     eTextureMap(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     eTextureMap &operator=(const eTextureMap &);
     void CreateData(void);
 
@@ -27,6 +29,8 @@ public:
 
 class eProjectedModelMtl {
 public:
+    eProjectedModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -41,6 +45,7 @@ class eWorld;
 class mOCS;
 class mVec3;
 class eTexture;
+class cType;
 class eDrawInfo;
 class eColor;
 class cBase;
@@ -51,6 +56,7 @@ class cMemPool;
 class eShadowFillModelMtl {
 public:
     eShadowFillModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -71,6 +77,7 @@ public:
 
     eBumpOffsetMap(cBase *);
     ~eBumpOffsetMap(void);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     void Apply(int, const eCamera *, const eWorld *) const;
@@ -101,6 +108,8 @@ public:
 
 class eDynamicLightHeightmapMtl {
 public:
+    eDynamicLightHeightmapMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
@@ -115,6 +124,7 @@ public:
 class eDynamicLightModelMtl {
 public:
     eDynamicLightModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
@@ -128,6 +138,8 @@ public:
 
 class eOnePassModelMtl {
 public:
+    const cType *GetType(void) const;
+    eOnePassModelMtl &operator=(const eOnePassModelMtl &);
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -138,6 +150,7 @@ public:
 class eProjectedDynamicMtl {
 public:
     eProjectedDynamicMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
@@ -150,6 +163,7 @@ public:
 class eProjectedHeightmapMtl {
 public:
     eProjectedHeightmapMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
@@ -170,30 +184,35 @@ class cMemPool;
 class eReflectionModelMtl {
 public:
     eReflectionModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static eReflectionModelMtl *New(cMemPool *, cBase *);
 };
 
 class eRefractionModelMtl {
 public:
     eRefractionModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void Unapply(void) const;
     void CreateData(void);
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
+    eRefractionModelMtl &operator=(const eRefractionModelMtl &);
     static eRefractionModelMtl *New(cMemPool *, cBase *);
 };
 
 class eShadowVolumeModelMtl {
 public:
     ~eShadowVolumeModelMtl();
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     int Read(cFile &, cMemPool *);
@@ -232,6 +251,7 @@ public:
 class eSilhouetteModelMtl {
 public:
     eSilhouetteModelMtl(cBase *);
+    const cType *GetType(void) const;
     void PlatformFree(void);
     void CreateData(void);
     void PlatformRead(cFile &, cMemPool *);
@@ -239,6 +259,7 @@ public:
     void Unapply(void) const;
     float GetSilhouetteOffset(const eDrawInfo &) const;
     void Write(cFile &) const;
+    eSilhouetteModelMtl &operator=(const eSilhouetteModelMtl &);
     static eSilhouetteModelMtl *New(cMemPool *, cBase *);
 };
 

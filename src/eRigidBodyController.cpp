@@ -9,6 +9,15 @@
 class cBase;
 class cMemPool;
 class cFile;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 #pragma control sched=1
 
@@ -49,6 +58,7 @@ public:
     char _extra[0xC];   // brings size to 0x160
     eRigidBodyController(cBase *);
     ~eRigidBodyController();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -62,6 +72,11 @@ public:
         fn(base, p);
     }
 };
+
+extern cType *D_000385DC;
+extern cType *D_000469D8;
+extern cType *D_00046BD4;
+extern cType *D_00046C08;
 
 // ── eRigidBodyController::Write(cFile &) const @ 0x000767c0 ──
 void eRigidBodyController::Write(cFile &file) const {
@@ -93,4 +108,30 @@ cBase *eRigidBodyController::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *eRigidBodyController::GetType(void) const {
+    if (D_00046C08 == 0) {
+        if (D_00046BD4 == 0) {
+            if (D_000469D8 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                D_000469D8 = cType::InitializeType(0, 0, 0x232, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_00046BD4 = cType::InitializeType(0, 0, 0x233, D_000469D8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046BD4;
+        cBase *(*factory)(cMemPool *, cBase *) = eRigidBodyController::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C08 = cType::InitializeType(0, 0, 0x234, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C08;
 }

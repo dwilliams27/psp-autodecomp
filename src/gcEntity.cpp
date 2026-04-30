@@ -4,6 +4,24 @@ extern const mVec3 mVec3_Zero;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009A408;
+
 struct gcEntityAllocRec {
     short offset;
     short pad;
@@ -23,6 +41,29 @@ cBase *gcEntity::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcEntity::GetType(void) const {
+    if (D_0009A408 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009A408 = cType::InitializeType(0, 0, 0x8C, D_000385E4,
+                                           &gcEntity::New,
+                                           (const char *)0x36D968,
+                                           (const char *)0x36D974, 0);
+    }
+    return D_0009A408;
 }
 
 gcPlayer *gcEntity::GetPlayer(void) const {

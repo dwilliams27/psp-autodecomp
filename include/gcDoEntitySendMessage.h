@@ -21,11 +21,14 @@ public:
 class gcDoEntitySendPartialControllerMessage {
 public:
     gcDoEntitySendPartialControllerMessage(cBase *);
+    void AssignCopy(const cBase *);
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
+    const cType *GetType(void) const;
     void SetChild(int, gcExpression *);
     static cBase *New(cMemPool *, cBase *);
+    gcDoEntitySendPartialControllerMessage &operator=(const gcDoEntitySendPartialControllerMessage &);
     void Write(cFile &) const;
 };
 
@@ -34,6 +37,7 @@ public:
     gcDoEvaluation(cBase *);
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
+    const cType *GetType(void) const;
     void SetBranch(int, class gcExpression *);
     int IsElseIf(void) const;
     void GetText(char *) const;
@@ -47,6 +51,7 @@ public:
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
+    const cType *GetType(void) const;
     void SetChild(int, gcExpression *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;

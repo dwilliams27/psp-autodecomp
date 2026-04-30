@@ -7,6 +7,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -54,6 +63,7 @@ public:
     // 0x1C: int (set to 0 in ctor)
     // 0x20: bool
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -65,6 +75,13 @@ extern "C" {
 extern char gcDoTriggerActivatevirtualtable[];
 extern char gcDoTriggerActivate_desobj_vtable[];
 extern char gcDoTriggerActivate_vtable1[];
+extern const char gcDoTriggerActivate_base_name[];
+extern const char gcDoTriggerActivate_base_desc[];
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoTriggerActivate;
 
 struct PoolBlock {
     char  _pad[0x1C];
@@ -76,6 +93,23 @@ struct AllocEntry {
     short _pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+// ── gcDoTriggerActivate::GetType @ 0x00308818 ──
+const cType *gcDoTriggerActivate::GetType(void) const {
+    if (!type_gcDoTriggerActivate) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(gcDoTriggerActivate_base_name, gcDoTriggerActivate_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoTriggerActivate = cType::InitializeType(0, 0, 0xFB, type_action, gcDoTriggerActivate::New, 0, 0, 0);
+    }
+    return type_gcDoTriggerActivate;
+}
 
 // ── gcDoTriggerActivate::New @ 0x00308758 ──
 cBase *gcDoTriggerActivate::New(cMemPool *pool, cBase *parent) {

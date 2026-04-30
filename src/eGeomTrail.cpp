@@ -5,6 +5,14 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -40,12 +48,17 @@ class eGeomTrail : public eDynamicGeom {
 public:
     eGeomTrail(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     char _trailPad[0x30];
 };
 
 extern char eGeomTrailvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_00040FF4;
+extern cType *D_000469C0;
+extern cType *D_00046C2C;
 
 extern "C" {
     void eGeomTrail__eGeomTrail_cBaseptr(void *self, cBase *parent);
@@ -99,4 +112,31 @@ cBase *eGeomTrail::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eGeomTrail::GetType(void) const @ 0x00211D30 ──
+const cType *eGeomTrail::GetType(void) const {
+    if (D_00046C2C == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469C0;
+        cBase *(*factory)(cMemPool *, cBase *) = eGeomTrail::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C2C = cType::InitializeType(0, 0, 0x34, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C2C;
 }

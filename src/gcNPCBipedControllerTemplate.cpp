@@ -13,6 +13,15 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -31,6 +40,8 @@ public:
 
 class gcBipedControllerTemplate {
 public:
+    gcBipedControllerTemplate(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -38,12 +49,29 @@ extern "C" {
 void *dcastdcast_gcNPCBipedControllerTemplateptr__constcBaseptr(const cBase *);
 }
 
+extern char gcNPCBipedControllerTemplateclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009A400;
+extern cType *D_0009F5A4;
+extern cType *D_0009F5FC;
+extern cType *D_0009F790;
+
 class gcNPCBipedControllerTemplate : public gcBipedControllerTemplate {
 public:
+    gcNPCBipedControllerTemplate(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+// ── gcNPCBipedControllerTemplate::gcNPCBipedControllerTemplate(cBase *) @ 0x00154B90 ──
+gcNPCBipedControllerTemplate::gcNPCBipedControllerTemplate(cBase *parent)
+    : gcBipedControllerTemplate(parent) {
+    *(char **)((char *)this + 4) = gcNPCBipedControllerTemplateclassdesc;
+    *(int *)((char *)this + 0x60) = 1;
+    *(int *)((char *)this + 0x18) |= 1;
+}
 
 // ── gcNPCBipedControllerTemplate::Write(cFile &) const @ 0x00154A68 ──
 void gcNPCBipedControllerTemplate::Write(cFile &file) const {
@@ -86,6 +114,32 @@ void gcNPCBipedControllerTemplate::AssignCopy(const cBase *src) {
     *(unsigned char *)((char *)this + 0x50) = *(const unsigned char *)((char *)other + 0x50);
 
     *(int *)((char *)this + 0x60) = *(const int *)((char *)other + 0x60);
+}
+
+// ── gcNPCBipedControllerTemplate::GetType(void) const @ 0x0031CE98 ──
+const cType *gcNPCBipedControllerTemplate::GetType(void) const {
+    if (D_0009F790 == 0) {
+        if (D_0009F5FC == 0) {
+            if (D_0009F5A4 == 0) {
+                if (D_0009A400 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_0009A400 = cType::InitializeType(
+                        0, 0, 0x9A, D_000385DC, 0, 0, 0, 0);
+                }
+                D_0009F5A4 = cType::InitializeType(
+                    0, 0, 0xB8, D_0009A400, 0, 0, 0, 0);
+            }
+            D_0009F5FC = cType::InitializeType(
+                0, 0, 0xBA, D_0009F5A4, 0, 0, 0, 0);
+        }
+        D_0009F790 = cType::InitializeType(
+            0, 0, 0x100, D_0009F5FC, &gcNPCBipedControllerTemplate::New, 0, 0, 0);
+    }
+    return D_0009F790;
 }
 
 // ── gcNPCBipedControllerTemplate::New(cMemPool *, cBase *) static @ 0x0031CE1C ──

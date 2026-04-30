@@ -3,11 +3,28 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class cObject {
 public:
+    char _pad[0x44];
+
+    cObject(cBase *);
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
@@ -27,13 +44,14 @@ public:
 
 class gcEvent {
 public:
+    gcEvent(cBase *, const char *);
     gcEvent &operator=(const gcEvent &);
 };
 
-class gcRoomInstance {
+class gcRoomInstance : public cObject {
 public:
     gcRoomInstance(cBase *);
-
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -55,6 +73,47 @@ struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
 };
+
+extern "C" void gcEvent_ctor(void *, cBase *, const char *)
+    __asm__("__0oHgcEventctP6FcBasePCc");
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F59C;
+
+gcRoomInstance::gcRoomInstance(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x38B5D8;
+    *(int *)((char *)this + 0x44) = 0;
+    *(int *)((char *)this + 0x48) = 0;
+    gcEvent_ctor((char *)this + 0x4C, (cBase *)this, 0);
+    gcEvent_ctor((char *)this + 0x68, (cBase *)this, 0);
+    *(int *)((char *)this + 0x84) = 0;
+}
+
+const cType *gcRoomInstance::GetType(void) const {
+    if (D_0009F59C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F59C = cType::InitializeType(0, 0, 0x220, D_000385E4,
+                                           &gcRoomInstance::New,
+                                           (const char *)0x36DA70,
+                                           (const char *)0x36DA80,
+                                           2);
+    }
+    return D_0009F59C;
+}
 
 void gcRoomInstance::AssignCopy(const cBase *base) {
     gcRoomInstance *other = dcast<gcRoomInstance>(base);

@@ -24,6 +24,7 @@ public:
 
     void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *, unsigned int, int, const cHandleT<eMaterial> *, float) const;
     void Draw(const eDrawInfo &) const;
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void Update(cTimeValue);
 

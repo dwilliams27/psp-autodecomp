@@ -4,9 +4,12 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class eStandardSpriteMtl {
 public:
+    eStandardSpriteMtl(cBase *);
+    const cType *GetType(void) const;
     void CreateData(void);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;

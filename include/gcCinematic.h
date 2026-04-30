@@ -30,6 +30,7 @@ class cType;
 class gcCinematic {
 public:
     gcCinematic(cBase *);
+    const cType *GetType(void) const;
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;

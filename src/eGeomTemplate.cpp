@@ -4,6 +4,19 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cObject {
 public:
@@ -54,9 +67,14 @@ public:
     }
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
 };
 
 extern char eGeomTemplatevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A8;
 
 // ── eGeomTemplate::Write(cFile &) const @ 0x00040E30 ──
 void eGeomTemplate::Write(cFile &file) const {
@@ -75,6 +93,29 @@ int eGeomTemplate::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+// ── eGeomTemplate::GetType(void) const @ 0x001EBD20 ──
+const cType *eGeomTemplate::GetType(void) const {
+    if (D_000469A8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_000469A8 = cType::InitializeType(0, 0, 0x20, D_000385E4,
+                                           0, (const char *)0x36CE2C,
+                                           (const char *)0x36CE3C, 5);
+    }
+    return D_000469A8;
 }
 
 // ── eGeomTemplate::~eGeomTemplate(void) @ 0x001EBE44 ──

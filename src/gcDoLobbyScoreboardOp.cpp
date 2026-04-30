@@ -1,10 +1,36 @@
 #include "cBase.h"
 
 class cMemPool;
+class cFile;
+class cType;
 
 class gcDoLobbyScoreboardOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class gcDesiredValue {
+public:
+    void Write(cWriteBlock &) const;
 };
 
 struct PoolBlock {
@@ -19,7 +45,15 @@ struct AllocEntry {
 };
 
 void gcAction_gcAction(gcDoLobbyScoreboardOp *, cBase *);
+void gcAction_Write(const gcDoLobbyScoreboardOp *, cFile &);
 extern char gcDoLobbyScoreboardOpvirtualtable[];
+extern const char gcDoLobbyScoreboardOp_base_name[] asm("D_0036D894");
+extern const char gcDoLobbyScoreboardOp_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoLobbyScoreboardOp asm("D_0009F69C");
 
 cBase *gcDoLobbyScoreboardOp::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -43,4 +77,69 @@ cBase *gcDoLobbyScoreboardOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoLobbyScoreboardOp::GetType(void) const {
+    if (!type_gcDoLobbyScoreboardOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoLobbyScoreboardOp_base_name,
+                        gcDoLobbyScoreboardOp_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoLobbyScoreboardOp = cType::InitializeType(
+            0, 0, 0x123, type_action, gcDoLobbyScoreboardOp::New, 0, 0, 0);
+    }
+    return type_gcDoLobbyScoreboardOp;
+}
+
+void gcDoLobbyScoreboardOp::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    gcAction_Write(this, file);
+    wb.Write(*(int *)((char *)this + 0x0C));
+    wb.Write(*(int *)((char *)this + 0x10));
+    ((gcDesiredValue *)((char *)this + 0x14))->Write(wb);
+    ((gcDesiredValue *)((char *)this + 0x18))->Write(wb);
+
+    {
+        int value = *(int *)((char *)this + 0x1C);
+        int flag = 0;
+        if (value & 1) {
+            flag = 1;
+        }
+        cBase *ptr;
+        if (flag != 0) {
+            ptr = 0;
+        } else {
+            ptr = (cBase *)value;
+        }
+        wb.WriteBase(ptr);
+    }
+
+    {
+        int value = *(int *)((char *)this + 0x20);
+        int flag = 0;
+        if (value & 1) {
+            flag = 1;
+        }
+        cBase *ptr;
+        if (flag != 0) {
+            ptr = 0;
+        } else {
+            ptr = (cBase *)value;
+        }
+        wb.WriteBase(ptr);
+    }
+
+    ((gcDesiredValue *)((char *)this + 0x24))->Write(wb);
+    ((gcDesiredValue *)((char *)this + 0x28))->Write(wb);
+    wb.End();
 }

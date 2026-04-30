@@ -14,6 +14,7 @@ public:
     eDynamicMesh(cBase *);
     ~eDynamicMesh();
 
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void PlatformRead(cFile &, cMemPool *);

@@ -3,6 +3,15 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 extern "C" {
     void cStrCat(char *, const char *);
@@ -14,6 +23,11 @@ extern "C" {
 }
 
 extern char gcDoEvaluationvirtualtable[];
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoEvaluation;
 
 class cWriteBlock {
 public:
@@ -71,6 +85,29 @@ cBase *gcDoEvaluation::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x002d87a8, 280B
+const cType *gcDoEvaluation::GetType(void) const {
+    if (!type_gcDoEvaluation) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression,
+                                                0, 0, 0, 0);
+        }
+        type_gcDoEvaluation = cType::InitializeType(0, 0, 0x76, type_action,
+                                                     gcDoEvaluation::New,
+                                                     0, 0, 0);
+    }
+    return type_gcDoEvaluation;
 }
 
 // 0x0014b12c, 72B

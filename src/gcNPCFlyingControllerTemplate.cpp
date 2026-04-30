@@ -14,6 +14,15 @@
 
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -32,6 +41,8 @@ public:
 
 class gcFlyingControllerTemplate {
 public:
+    gcFlyingControllerTemplate(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -39,12 +50,29 @@ extern "C" {
 void *dcastdcast_gcNPCFlyingControllerTemplateptr__constcBaseptr(const cBase *);
 }
 
+extern char gcNPCFlyingControllerTemplateclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009A400;
+extern cType *D_0009F5A4;
+extern cType *D_0009F77C;
+extern cType *D_0009F798;
+
 class gcNPCFlyingControllerTemplate : public gcFlyingControllerTemplate {
 public:
+    gcNPCFlyingControllerTemplate(cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+// ── gcNPCFlyingControllerTemplate::gcNPCFlyingControllerTemplate(cBase *) @ 0x00155154 ──
+gcNPCFlyingControllerTemplate::gcNPCFlyingControllerTemplate(cBase *parent)
+    : gcFlyingControllerTemplate(parent) {
+    *(char **)((char *)this + 4) = gcNPCFlyingControllerTemplateclassdesc;
+    *(int *)((char *)this + 0x50) = 1;
+    *(int *)((char *)this + 0x18) |= 1;
+}
 
 // ── gcNPCFlyingControllerTemplate::Write(cFile &) const @ 0x0015502C ──
 void gcNPCFlyingControllerTemplate::Write(cFile &file) const {
@@ -85,6 +113,32 @@ void gcNPCFlyingControllerTemplate::AssignCopy(const cBase *src) {
     *(float *)((char *)this + 0x48) = *(const float *)((char *)other + 0x48);
 
     *(int *)((char *)this + 0x50) = *(const int *)((char *)other + 0x50);
+}
+
+// ── gcNPCFlyingControllerTemplate::GetType(void) const @ 0x0031D60C ──
+const cType *gcNPCFlyingControllerTemplate::GetType(void) const {
+    if (D_0009F798 == 0) {
+        if (D_0009F77C == 0) {
+            if (D_0009F5A4 == 0) {
+                if (D_0009A400 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_0009A400 = cType::InitializeType(
+                        0, 0, 0x9A, D_000385DC, 0, 0, 0, 0);
+                }
+                D_0009F5A4 = cType::InitializeType(
+                    0, 0, 0xB8, D_0009A400, 0, 0, 0, 0);
+            }
+            D_0009F77C = cType::InitializeType(
+                0, 0, 0x1AC, D_0009F5A4, 0, 0, 0, 0);
+        }
+        D_0009F798 = cType::InitializeType(
+            0, 0, 0x1AE, D_0009F77C, &gcNPCFlyingControllerTemplate::New, 0, 0, 0);
+    }
+    return D_0009F798;
 }
 
 // ── gcNPCFlyingControllerTemplate::New(cMemPool *, cBase *) static @ 0x0031D590 ──

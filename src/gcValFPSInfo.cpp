@@ -12,6 +12,7 @@
 
 class cBase;
 class cMemPool;
+class cType;
 
 // ──────────────────────────────────────────────────────────────────────────
 // Engine-side helper types used by ~gcValFPSInfo and gcValFPSInfo::New.
@@ -46,6 +47,7 @@ public:
     void  AssignCopy(const cBase *);
     void  GetText(char *) const;
     float Evaluate(void) const;
+    const cType *GetType(void) const;
     ~gcValFPSInfo();
 
     static cBase *New(cMemPool *, cBase *);
@@ -72,6 +74,14 @@ public:
 void  cStrAppend(char *, const char *, ...);
 gcValFPSInfo *dcast(const cBase *);
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 extern const char gcValFPSInfo_text[];
 extern char gcValFPSInfovirtualtable[];
 extern char cBaseclassdesc[];
@@ -80,6 +90,11 @@ extern void *g_fps_pInstance;
 extern int   g_fps_x;
 extern int   g_fps_y;
 extern float g_fps_rate;
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValFPSInfo;
 
 // ──────────────────────────────────────────────────────────────────────────
 // gcValFPSInfo::VisitReferences(...)  — matched
@@ -160,4 +175,26 @@ cBase *gcValFPSInfo::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcValFPSInfo::GetType(void) const {
+    if (!type_gcValFPSInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValFPSInfo = cType::InitializeType(0, 0, 0x2EB, type_value,
+                                                  gcValFPSInfo::New,
+                                                  0, 0, 0);
+    }
+    return type_gcValFPSInfo;
 }

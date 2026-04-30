@@ -3,10 +3,29 @@
 class cFile;
 class cMemPool;
 class cName;
+class cType;
 class eDynamicMeshNode;
 class eDynamicMeshBone;
 class eDynamicMeshLookAt;
 class eDynamicMeshVisData;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469B8;
+extern cType *D_00046A00;
 
 // ── Forward decls / helper types ──
 
@@ -39,6 +58,42 @@ eDynamicMesh *dcast(const cBase *);
 extern "C" void eDynamicMeshVisData___dtor_eDynamicMeshVisData_void(void *, int);
 
 void eDynamicMesh_eDynamicMesh(eDynamicMesh *, cBase *);
+
+const cType *eDynamicMesh::GetType(void) const {
+    if (D_00046A00 == 0) {
+        if (D_000469B8 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                cBase *(*factory)(cMemPool *, cBase *) =
+                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                __asm__ volatile("" : "+r"(factory));
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   factory, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            const char *name = (const char *)0x36CE40;
+            const char *desc = (const char *)0x36CE48;
+            const cType *parentType = D_000385E4;
+            __asm__ volatile("" : "+r"(parentType), "+r"(name), "+r"(desc));
+            D_000469B8 = cType::InitializeType(0, 0, 0xE, parentType,
+                                               0, name, desc, 1);
+        }
+        const cType *parentType = D_000469B8;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x1F3B7C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046A00 = cType::InitializeType(0, 0, 0x1C, parentType,
+                                           factory, 0, 0, 0);
+    }
+    return D_00046A00;
+}
 
 // ── HasSkin ──
 

@@ -15,6 +15,20 @@
 class cFile;
 class cFileHandle;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ─── helper class declarations ────────────────────────────────────────────
 class cObject {
@@ -86,6 +100,10 @@ extern "C" void gcPartialEntityControllerTemplate_gcPartialEntityControllerTempl
 extern char gcConstantclassdesc[];        // 0x389090
 extern char gcVariableclassdesc[];
 extern char gcLookAtControllerTemplateclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F42C;
 
 // ============================================================================
 // gcConstant — inherits cObject; mValue is a float at offset 0x44.
@@ -102,6 +120,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     // Inlined into the deleting-destructor tail; matches the pool-dispatch
@@ -161,6 +180,30 @@ cBase *gcConstant::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcConstant::GetType(void) const @ 0x002649bc ──
+const cType *gcConstant::GetType(void) const {
+    if (D_0009F42C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F42C = cType::InitializeType(0, 0, 0x7B, D_000385E4,
+                                           &gcConstant::New,
+                                           (const char *)0x36D994,
+                                           (const char *)0x36D9A0, 5);
+    }
+    return D_0009F42C;
 }
 
 // ── gcConstant::Read(cFile &, cMemPool *) @ 0x00124e4c ──

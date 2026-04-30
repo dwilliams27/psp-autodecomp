@@ -7,8 +7,20 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 extern "C" void gcAction_gcAction(void *, cBase *);
+
+class cType {
+public:
+    char _pad[0x1C];
+    const cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -45,10 +57,23 @@ public:
     //   +0x14 (= outer 0x20): (parent | 1)
     // 0x24: int field (set to 0)
     void Write(cFile &) const;
+    const cType *GetType(void) const;
+    void VisitReferences(unsigned int, cBase *,
+                         void (*)(cBase *, unsigned int, void *),
+                         void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
 };
 
 extern char gcDoSetEventEnumParamvirtualtable[];
+extern const char gcDoSetEventEnumParam_base_name[] asm("D_0036D894");
+extern const char gcDoSetEventEnumParam_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_cNamed asm("D_000385E0");
+static cType *type_cObject asm("D_000385E4");
+static cType *type_gcDoSetEventEnumParam asm("D_0009F6E4");
 
 struct PoolBlock {
     char pad[0x1C];
@@ -75,6 +100,19 @@ struct EntryTypeInfo {
     EntryWriteSlot mSlot;     // +0x28
 };
 
+struct TypeSlot {
+    short offset;
+    short pad;
+    const cType *(*fn)(void *);
+};
+
+class gcDesiredEnumerationEntry {
+public:
+    void VisitReferences(unsigned int, cBase *,
+                         void (*)(cBase *, unsigned int, void *),
+                         void *, unsigned int);
+};
+
 // ============================================================
 // 0x002fc4e0 — Write(cFile &) const, 120B
 // ============================================================
@@ -89,6 +127,94 @@ void gcDoSetEventEnumParam::Write(cFile &file) const {
 
     wb.Write(((int *)this)[9]);
     wb.End();
+}
+
+// ============================================================
+// 0x002fc3c8 — GetType(void) const, 280B
+// ============================================================
+const cType *gcDoSetEventEnumParam::GetType(void) const {
+    if (!type_gcDoSetEventEnumParam) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoSetEventEnumParam_base_name,
+                        gcDoSetEventEnumParam_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoSetEventEnumParam = cType::InitializeType(
+            0, 0, 0x154, type_action, gcDoSetEventEnumParam::New, 0, 0, 0);
+    }
+    return type_gcDoSetEventEnumParam;
+}
+
+// ============================================================
+// 0x002fc970 — VisitReferences(...), 500B
+// ============================================================
+void gcDoSetEventEnumParam::VisitReferences(
+    unsigned int flags,
+    cBase *ctx,
+    void (*cb)(cBase *, unsigned int, void *),
+    void *user,
+    unsigned int mask)
+{
+    gcDesiredEnumerationEntry *entry =
+        (gcDesiredEnumerationEntry *)((char *)this + 0xC);
+
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)this, user);
+    }
+    if (entry != 0) {
+        gcDesiredEnumerationEntry *typedEntry = 0;
+
+        if (!type_cObject) {
+            if (!type_cNamed) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoSetEventEnumParam_base_name,
+                        gcDoSetEventEnumParam_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_cNamed = cType::InitializeType(
+                    0, 0, 2, type_base,
+                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58,
+                    0, 0, 0);
+            }
+            type_cObject = cType::InitializeType(
+                0, 0, 3, type_cNamed, 0, 0, 0, 0);
+        }
+
+        void *vt = *(void **)((char *)this + 0x10);
+        TypeSlot *typeSlot = (TypeSlot *)((char *)vt + 8);
+        const cType *entryType = typeSlot->fn((char *)entry + typeSlot->offset);
+        int ok = 0;
+        if (type_cObject != 0 && entryType != 0) {
+            const cType *node = entryType;
+            do {
+                if (node == type_cObject) {
+                    ok = 1;
+                    break;
+                }
+                node = node->mParent;
+            } while (node != 0);
+        }
+        if (ok != 0) {
+            typedEntry = entry;
+        }
+
+        if (typedEntry == 0 || (((flags & 0xFE00) &
+                                 *(unsigned short *)((char *)typedEntry + 0x28)) == 0)) {
+            entry->VisitReferences(flags, (cBase *)this, cb, user, mask);
+        } else if (cb != 0) {
+            cb((cBase *)this, (unsigned int)(void *)entry, user);
+        }
+    }
 }
 
 // ============================================================

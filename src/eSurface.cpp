@@ -7,6 +7,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -21,6 +22,18 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class cHandle {
@@ -57,7 +70,9 @@ public:
 
     eSurface(cBase *);
     ~eSurface();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -72,8 +87,57 @@ public:
 };
 
 extern char eSurfacevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046A18;
 
 #pragma control sched=1
+
+// -- eSurface::GetType(void) const @ 0x001F61D4 --
+const cType *eSurface::GetType(void) const {
+    if (D_00046A18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385DC;
+                cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000385E4;
+        const char *kindName = (const char *)0x36D000;
+        const char *kindDesc = (const char *)0x36D00C;
+        __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+        D_00046A18 = cType::InitializeType(0, 0, 0x39, parentType, 0,
+                                           kindName, kindDesc, 5);
+    }
+    return D_00046A18;
+}
+
+// -- eSurface::eSurface(cBase *) @ 0x00053B48 --
+eSurface::eSurface(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = eSurfacevirtualtable;
+    *(int *)((char *)this + 0x44) = 1;
+    *(int *)((char *)this + 0x48) = 0;
+    *(volatile int *)((char *)this + 0x4C) = 0;
+    *(int *)((char *)this + 0x50) = 0;
+    *(float *)((char *)this + 0x54) = 1.0f;
+    *(float *)((char *)this + 0x58) = 5.0f;
+    float zero = 0.0f;
+    *(float *)((char *)this + 0x60) = zero;
+    *(float *)((char *)this + 0x64) = zero;
+    *(int *)((char *)this + 0x68) = 0xFFA0A0A0;
+}
 
 // -- eSurface::Write @ 0x00053774 --
 void eSurface::Write(cFile &file) const {

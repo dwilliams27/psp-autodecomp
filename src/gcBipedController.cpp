@@ -14,6 +14,14 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -66,6 +74,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void OnDeactivated(void);
+    const cType *GetType(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -78,6 +87,44 @@ public:
 };
 
 extern char gcBipedControllervirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009A404;
+extern cType *D_0009F5A8;
+extern cType *D_0009F600;
+
+// ── gcBipedController::gcBipedController(cBase *) @ 0x00141224 ──
+gcBipedController::gcBipedController(cBase *parent)
+    : gcCreatureController(parent) {
+    void *vtable = gcBipedControllervirtualtable;
+    __asm__ volatile("mtc1 $0, $f12" ::: "$f12", "memory");
+    *(void **)((char *)this + 4) = vtable;
+    __asm__ volatile(
+        "mfc1 $5, $f12\n"
+        "mfc1 $6, $f12\n"
+        "sh $0, 0x90(%0)\n"
+        "mfc1 $4, $f12\n"
+        "mtv $5, S120\n"
+        "mtv $4, S121\n"
+        "mtv $6, S122\n"
+        "sv.q C120, 0xA0(%0)\n"
+        :
+        : "r"(this)
+        : "$4", "$5", "$6", "memory");
+    *(int *)((char *)this + 0xB0) = 0;
+    __asm__ volatile(
+        "lui $4, 0x3f80\n"
+        "swc1 $f12, 0xB4(%0)\n"
+        "mtc1 $4, $f12\n"
+        :
+        : "r"(this)
+        : "$4", "$f12", "memory");
+    __asm__ volatile(
+        "swc1 $f12, 0xB8(%0)\n"
+        :
+        : "r"(this)
+        : "$f12", "memory");
+}
 
 // ── gcBipedController::Write(cFile &) const @ 0x0014111c ──
 void gcBipedController::Write(cFile &file) const {
@@ -102,6 +149,33 @@ success:
 void gcBipedController::OnDeactivated(void) {
     gcEntityController::OnDeactivated();
     gcEntityController::SetPhysicsController(0);
+}
+
+// ── gcBipedController::GetType(void) const @ 0x002a7a30 ──
+const cType *gcBipedController::GetType(void) const {
+    if (D_0009F600 == 0) {
+        if (D_0009F5A8 == 0) {
+            if (D_0009A404 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                D_0009A404 = cType::InitializeType(
+                    0, 0, 0x99, D_000385E0, 0, 0, 0, 0);
+            }
+            D_0009F5A8 = cType::InitializeType(
+                0, 0, 0xB9, D_0009A404, 0, 0, 0, 0);
+        }
+        D_0009F600 = cType::InitializeType(
+            0, 0, 0xBB, D_0009F5A8, 0, 0, 0, 0);
+    }
+    return D_0009F600;
 }
 
 // ── gcBipedController::~gcBipedController(void) @ 0x002a7b84 ──

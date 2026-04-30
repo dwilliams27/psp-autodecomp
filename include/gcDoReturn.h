@@ -42,7 +42,10 @@ public:
     void SetChild(int, gcExpression *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void GetText(char *) const;
+    const cType *GetType(void) const;
+    gcDoStateFunction &operator=(const gcDoStateFunction &);
 };
 
 class gcDoStateParentHandler {
@@ -54,6 +57,7 @@ public:
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     void GetText(char *) const;
+    const cType *GetType(void) const;
 };
 
 struct gcDoSwitchCaseData {
@@ -66,6 +70,7 @@ struct gcDoSwitchCaseData {
 class gcDoSwitchCase {
 public:
     gcDoSwitchCase(cBase *);
+    const cType *GetType(void) const;
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
     int GetExprFlags(void) const;
@@ -97,12 +102,15 @@ public:
     float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 class gcDoSwitch {
 public:
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 #endif

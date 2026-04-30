@@ -26,6 +26,8 @@ public:
 
     gcUITextControl(cBase *);
     ~gcUITextControl();
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 class gcUIEditBox : public gcUITextControl {
@@ -48,6 +50,7 @@ public:
         fn(block + off, p);
     }
 
+    const cType *GetType(void) const;
     int GetCursor(cHandleT<eSprite> *) const;
     void DeltaCursorPos(int);
     void Backspace(void);

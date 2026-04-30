@@ -12,6 +12,7 @@
 
 class cBase;
 class cFile;
+class cMemPool;
 
 template <class T> T *dcast(const cBase *);
 
@@ -44,6 +45,11 @@ class cType {
 public:
     char _p0[0x28];
     cTypeMethod write_m;    // 0x28
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class gcDesiredObject {
@@ -65,6 +71,8 @@ public:
 class gcValEntityIsInFluid : public gcValue {
 public:
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
 };
 
@@ -74,6 +82,34 @@ void gcValEntityIsInFluid::AssignCopy(const cBase *base) {
     const gcDesiredEntity *src = (const gcDesiredEntity *)((char *)other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(*src);
     *(cNameData *)((char *)this + 0x34) = *(const cNameData *)((char *)other + 0x34);
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValEntityIsInFluid;
+
+// 0x003340bc (280B) — GetType
+const cType *gcValEntityIsInFluid::GetType(void) const {
+    if (!type_gcValEntityIsInFluid) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValEntityIsInFluid =
+            cType::InitializeType(0, 0, 0x24E, type_value,
+                                  gcValEntityIsInFluid::New, 0, 0, 0);
+    }
+    return type_gcValEntityIsInFluid;
 }
 
 // 0x003341d4 (120B) — Write

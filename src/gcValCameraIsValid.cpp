@@ -12,6 +12,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -36,12 +37,39 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    char _pad[0x1C];
+    cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcValCameraIsValid : public gcValue {
 public:
     float Evaluate(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const cType *GetType(void) const;
+    void VisitReferences(unsigned int, cBase *,
+                         void (*)(cBase *, unsigned int, void *), void *,
+                         unsigned int);
     static cBase *New(cMemPool *, cBase *);
+};
+
+class gcDesiredCamera {
+public:
+    void VisitReferences(unsigned int, cBase *,
+                         void (*)(cBase *, unsigned int, void *), void *,
+                         unsigned int);
 };
 
 extern "C" {
@@ -76,6 +104,12 @@ struct cTypeMethod {
     short offset;
     short pad;
     void *fn;
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *);
 };
 
 // =============================================================================
@@ -140,6 +174,102 @@ int gcValCameraIsValid::Read(cFile &file, cMemPool *pool) {
     typedef void (*ReadFn)(void *, cFile *, void *);
     ((ReadFn)e->fn)(sub + e->offset, f, cMemPool_GetPoolFromPtr(sub));
     return 1;
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_named;
+static cType *type_object;
+static cType *type_gcValCameraIsValid;
+
+const cType *gcValCameraIsValid::GetType(void) const {
+    if (!type_gcValCameraIsValid) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValCameraIsValid = cType::InitializeType(
+            0, 0, 0x1C7, type_value, gcValCameraIsValid::New, 0, 0, 0);
+    }
+    return type_gcValCameraIsValid;
+}
+
+void gcValCameraIsValid::VisitReferences(unsigned int flags, cBase *ctx,
+                                         void (*cb)(cBase *, unsigned int,
+                                                    void *),
+                                         void *user, unsigned int mask) {
+    gcValCameraIsValid *self = this;
+    gcDesiredCamera *camera = (gcDesiredCamera *)((char *)self + 8);
+    if (cb != 0) {
+        cb(ctx, (unsigned int)(void *)self, user);
+    }
+    if (camera != 0) {
+        gcValCameraIsValid *owner = self;
+        gcDesiredCamera *matched = 0;
+        if (!type_object) {
+            if (!type_named) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_named = cType::InitializeType(0, 0, 2, type_base,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            type_object = cType::InitializeType(0, 0, 3, type_named,
+                                                0, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)self + 12);
+        cType *myType = type_object;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        cType *type = entry->fn((char *)camera + entry->offset);
+        int ok;
+
+        if (myType == 0) {
+            goto fail;
+        }
+        if (type != 0) {
+        loop:
+            if (type != myType) {
+                type = type->mParent;
+                if (type == 0) {
+                    goto fail;
+                }
+                goto loop;
+            }
+            ok = 1;
+        } else {
+fail:
+            ok = 0;
+        }
+        if (ok != 0) {
+            matched = camera;
+        }
+        if (matched != 0) {
+            unsigned int direct =
+                (((flags & 0xFE00) & *(unsigned short *)((char *)matched + 0x28)) != 0);
+            if (direct != 0) {
+                if (cb != 0) {
+                    cb((cBase *)owner, (unsigned int)(void *)camera, user);
+                }
+            } else {
+                camera->VisitReferences(flags, (cBase *)owner, cb, user, mask);
+            }
+        } else {
+            camera->VisitReferences(flags, (cBase *)owner, cb, user, mask);
+        }
+    }
 }
 
 // =============================================================================

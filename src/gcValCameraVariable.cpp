@@ -18,6 +18,14 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cMemPoolNS {
 public:
     static cMemPoolNS *GetPoolFromPtr(const void *);
@@ -63,6 +71,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     ~gcValCameraVariable(void);
     static void operator delete(void *p) {
         cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
@@ -127,6 +136,38 @@ void gcValCameraVariable::Write(cFile &file) const {
     wb.Write(mField40);
     wb.Write(mField44);
     wb.End();
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_variable;
+static cType *type_gcValCameraVariable;
+
+// 0x003224a4, 340B
+const cType *gcValCameraVariable::GetType(void) const {
+    if (!type_gcValCameraVariable) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValCameraVariable = cType::InitializeType(
+            0, 0, 0x253, type_variable, gcValCameraVariable::New, 0, 0, 0);
+    }
+    return type_gcValCameraVariable;
 }
 
 // 0x00322f2c, 136B

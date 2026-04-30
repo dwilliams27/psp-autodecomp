@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 struct mVec2 {
     float x;
     float y;
@@ -29,6 +30,18 @@ public:
     int _data;
 
     void Write(cWriteBlock &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 inline void *operator new(unsigned int, void *p) {
@@ -78,6 +91,7 @@ public:
     eSprite(cBase *);
     ~eSprite();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void SetTexCoord1(mVec2);
     bool GetTextureSize(mVec2 *) const;
@@ -94,6 +108,11 @@ public:
 };
 
 template <class T> T *dcast(const cBase *);
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00041110;
 
 struct CopyWord {
     int value;
@@ -152,6 +171,30 @@ cBase *eSprite::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// -- eSprite::GetType(void) const @ 0x001e7000 --
+const cType *eSprite::GetType(void) const {
+    if (D_00041110 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00041110 = cType::InitializeType(0, 0, 0x3D, D_000385E4,
+                                           &eSprite::New,
+                                           (const char *)0x36CDDC,
+                                           (const char *)0x36CDE4, 5);
+    }
+    return D_00041110;
 }
 
 // -- eSprite::~eSprite(void) @ 0x001e7428 --

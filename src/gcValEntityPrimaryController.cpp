@@ -31,6 +31,11 @@ public:
     cTypeMethod read_m;     // 0x30
     char _p1[0x40];         // to 0x78
     cTypeMethod text_m;     // 0x78
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class gcDesiredObject {
@@ -68,6 +73,11 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValEntityPrimaryController asm("D_0009F83C");
 
 // 0x0033b0a0 (72B) — AssignCopy
 void gcValEntityPrimaryController::AssignCopy(const cBase *base) {
@@ -108,6 +118,30 @@ cBase *gcValEntityPrimaryController::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0033b1ec (280B) — GetType
+const cType *gcValEntityPrimaryController::GetType(void) const {
+    if (!type_gcValEntityPrimaryController) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValEntityPrimaryController =
+            cType::InitializeType(0, 0, 0x1C9, type_value,
+                                  gcValEntityPrimaryController::New,
+                                  0, 0, 0);
+    }
+    return type_gcValEntityPrimaryController;
 }
 
 // 0x0033b304 (120B) — Write

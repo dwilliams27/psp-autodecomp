@@ -3,6 +3,19 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 struct DeleteRecord {
     short offset;
@@ -35,6 +48,7 @@ public:
     eRoomEnvironment(cBase *);
     ~eRoomEnvironment();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -51,6 +65,11 @@ public:
 };
 
 extern char eRoomEnvironmentvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046B10;
+extern int D_0036C7FC;
 
 extern "C" void eRoomEnvironment__eRoomEnvironment_cBaseptr(void *self, cBase *parent);
 
@@ -93,6 +112,21 @@ void eRoomEnvironment::Write(cFile &file) const {
     wb.End();
 }
 
+// eRoomEnvironment::eRoomEnvironment(cBase *) @ 0x0005c854
+eRoomEnvironment::eRoomEnvironment(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = eRoomEnvironmentvirtualtable;
+    *(int *)((char *)this + 0x44) = D_0036C7FC;
+    __asm__ volatile("" ::: "memory");
+    *(unsigned char *)((char *)this + 0x48) = 0;
+    *(float *)((char *)this + 0x4C) = 50.0f;
+    __asm__ volatile("" ::: "memory");
+    *(float *)((char *)this + 0x50) = 400.0f;
+    *(int *)((char *)this + 0x54) = 0;
+    *(int *)((char *)this + 0x58) = 0;
+    *(unsigned char *)((char *)this + 0x5C) = 0;
+    *(int *)((char *)this + 0x60) = 0;
+}
+
 // eRoomEnvironment::~eRoomEnvironment(void) @ 0x0005c8c0
 eRoomEnvironment::~eRoomEnvironment() {
     *(void **)((char *)this + 4) = eRoomEnvironmentvirtualtable;
@@ -130,4 +164,36 @@ cBase *eRoomEnvironment::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// eRoomEnvironment::GetType(void) const @ 0x00203e38
+const cType *eRoomEnvironment::GetType(void) const {
+    if (D_00046B10 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385DC;
+                cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000385E4;
+        cBase *(*factory)(cMemPool *, cBase *) = &eRoomEnvironment::New;
+        const char *kindName = (const char *)0x36CEBC;
+        const char *kindDesc = (const char *)0x36CED0;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory), "+r"(kindName),
+                         "+r"(kindDesc));
+        D_00046B10 = cType::InitializeType(0, 0, 0x235, parentType, factory,
+                                           kindName, kindDesc, 0);
+    }
+    return D_00046B10;
 }

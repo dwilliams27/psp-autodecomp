@@ -7,6 +7,7 @@
 class cBase;
 class cMemPool;
 class cFile;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -21,6 +22,19 @@ struct DeleteRecord {
 class cName {
 public:
     void Set(const char *, ...);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class cObject {
@@ -52,6 +66,7 @@ public:
     gcExternalCinematic(cBase *);
     ~gcExternalCinematic();
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
@@ -80,6 +95,11 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00099ACC;
 
 extern char gcExternalCinematicvirtualtable[];
 extern void gcCinematic_gcCinematic(void *self, cBase *parent);
@@ -176,4 +196,29 @@ cBase *gcExternalCinematic::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcExternalCinematic::GetType(void) const @ 0x002439d4 ──
+const cType *gcExternalCinematic::GetType(void) const {
+    if (D_00099ACC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00099ACC = cType::InitializeType(0, 0, 0x209, D_000385E4,
+                                           &gcExternalCinematic::New,
+                                           (const char *)0x36D8F0,
+                                           (const char *)0x36D900,
+                                           1);
+    }
+    return D_00099ACC;
 }

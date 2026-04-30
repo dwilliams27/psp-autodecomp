@@ -2,11 +2,21 @@
 
 class cMemPool;
 class cFile;
+class cType;
 
 class gcDoLobbyOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cWriteBlock {
@@ -32,6 +42,13 @@ struct AllocRec {
 void gcAction_gcAction(gcDoLobbyOp *, cBase *);
 void gcAction_Write(const gcDoLobbyOp *, cFile &);
 extern char gcDoLobbyOpvirtualtable[];
+extern const char gcDoLobbyOp_base_name[] asm("D_0036D894");
+extern const char gcDoLobbyOp_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoLobbyOp asm("D_0009F698");
 
 cBase *gcDoLobbyOp::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -52,6 +69,27 @@ cBase *gcDoLobbyOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoLobbyOp::GetType(void) const {
+    if (!type_gcDoLobbyOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoLobbyOp_base_name, gcDoLobbyOp_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoLobbyOp = cType::InitializeType(
+            0, 0, 0x181, type_action, gcDoLobbyOp::New, 0, 0, 0);
+    }
+    return type_gcDoLobbyOp;
 }
 
 void gcDoLobbyOp::Write(cFile &file) const {

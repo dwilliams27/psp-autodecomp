@@ -10,6 +10,15 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cFile;
 class cMemPool;
 class cBase;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -21,6 +30,10 @@ public:
 
 extern char gcStringLValueclassdesc[];
 extern char gcPlayerStringsclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F458;
+extern cType *D_0009F7A4;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -62,6 +75,7 @@ public:
     }
 
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -88,4 +102,26 @@ cBase *gcPlayerStrings::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── GetType @ 0x0031e190 ──
+const cType *gcPlayerStrings::GetType(void) const {
+    if (D_0009F7A4 == 0) {
+        if (D_0009F458 == 0) {
+            if (D_0009F454 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F458 = cType::InitializeType(0, 0, 0x171, D_0009F454,
+                                               0, 0, 0, 0);
+        }
+        D_0009F7A4 = cType::InitializeType(0, 0, 0x1E1, D_0009F458,
+                                           &gcPlayerStrings::New, 0, 0, 0);
+    }
+    return D_0009F7A4;
 }

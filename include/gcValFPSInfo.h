@@ -2,6 +2,7 @@
 #define GCVALFPSINFO_H
 
 class cBase;
+class cType;
 
 class gcValFPSInfo {
 public:
@@ -11,6 +12,7 @@ public:
     void AssignCopy(const cBase *);
     void GetText(char *) const;
     float Evaluate(void) const;
+    const cType *GetType(void) const;
 
     int pad0;
     int pad4;

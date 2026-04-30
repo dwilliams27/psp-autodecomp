@@ -1,5 +1,13 @@
 #include "gcDoObjectForEachRelationship.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -16,6 +24,13 @@ void gcExpressionList_gcExpressionList(void *, void *);
 
 extern char gcDoObjectForEachRelationshipvirtualtable[];
 extern char gcDesiredEnumerationEntryvirtualtable[];
+extern const char gcDoObjectForEachRelationship_base_name[] asm("D_0036D894");
+extern const char gcDoObjectForEachRelationship_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoObjectForEachRelationship asm("D_0009F6B0");
 
 int gcDoObjectForEachRelationship::GetMaxBranches(void) const {
     return 1;
@@ -47,4 +62,27 @@ cBase *gcDoObjectForEachRelationship::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcDoObjectForEachRelationship::GetType(void) const {
+    if (!type_gcDoObjectForEachRelationship) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoObjectForEachRelationship_base_name,
+                        gcDoObjectForEachRelationship_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoObjectForEachRelationship = cType::InitializeType(
+            0, 0, 0x1A4, type_action,
+            gcDoObjectForEachRelationship::New, 0, 0, 0);
+    }
+    return type_gcDoObjectForEachRelationship;
 }

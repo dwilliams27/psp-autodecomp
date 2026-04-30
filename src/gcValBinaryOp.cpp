@@ -37,6 +37,14 @@ public:
     void End(void);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 // Function 1: 0x00320bd0, 8 bytes
 int gcValBinaryOp::GetMaxChildren(void) const {
     return 2;
@@ -81,6 +89,33 @@ void gcValBinaryOp::Write(cFile &file) const {
         off += 4;
     } while (i < 2);
     wb.End();
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValBinaryOp;
+
+const cType *gcValBinaryOp::GetType(void) const {
+    if (!type_gcValBinaryOp) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValBinaryOp = cType::InitializeType(0, 0, 0x6F, type_value,
+                                                   gcValBinaryOp::New,
+                                                   0, 0, 0);
+    }
+    return type_gcValBinaryOp;
 }
 
 // Function 5: 0x00320edc, 152 bytes

@@ -2,6 +2,7 @@
 #define GCVALCAMERAVALUE_H
 
 class cBase;
+class cType;
 class cFile;
 class cMemPool;
 
@@ -32,6 +33,7 @@ public:
     void GetText(char *) const;
     void Write(cFile &) const;
     float Evaluate(void) const;
+    const cType *GetType(void) const;
 
     // Inline so SNC inlines it into the deleting-destructor variant.
     static void operator delete(void *p) {

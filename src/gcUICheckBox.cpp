@@ -6,6 +6,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -42,17 +43,24 @@ public:
     static cMemPoolHelper *GetPoolFromPtr(const void *);
 };
 
+class gcUIControl {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcUITextControl {
 public:
     gcUITextControl(cBase *);
     ~gcUITextControl();
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcUICheckBox : public gcUITextControl {
 public:
     gcUICheckBox(cBase *);
     ~gcUICheckBox();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 
     static cBase *New(cMemPool *, cBase *);
@@ -67,11 +75,62 @@ public:
     }
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 extern char gcUICheckBoxvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009990C;
+extern cType *D_0009F40C;
+extern cType *D_0009F410;
+extern cType *D_0009F580;
+
+gcUICheckBox::gcUICheckBox(cBase *parent) : gcUITextControl(parent) {
+    *(void **)((char *)this + 4) = gcUICheckBoxvirtualtable;
+    *(int *)((char *)this + 0x110) = 0;
+    __vec_new((char *)this + 0x114, 3, 4, (void (*)(void *))0x1E74A4);
+}
 
 // SNC emits the null guard, base destructor call, and deleting tail.
 gcUICheckBox::~gcUICheckBox() {
     *(void **)((char *)this + 4) = gcUICheckBoxvirtualtable;
+}
+
+const cType *gcUICheckBox::GetType(void) const {
+    if (D_0009F580 == 0) {
+        if (D_0009F410 == 0) {
+            if (D_0009F40C == 0) {
+                if (D_0009990C == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                    }
+                    D_0009990C = cType::InitializeType(
+                        0, 0, 0x84, D_000385E0, 0, 0, 0, 0);
+                }
+                D_0009F40C = cType::InitializeType(
+                    0, 0, 0x201, D_0009990C, gcUIControl::New, 0, 0, 0);
+            }
+            D_0009F410 = cType::InitializeType(
+                0, 0, 0x200, D_0009F40C, gcUITextControl::New, 0, 0, 0);
+        }
+        D_0009F580 = cType::InitializeType(
+            0, 0, 0x7F, D_0009F410, gcUICheckBox::New, 0, 0, 0);
+    }
+    return D_0009F580;
 }
 
 void gcUICheckBox::Write(cFile &file) const {

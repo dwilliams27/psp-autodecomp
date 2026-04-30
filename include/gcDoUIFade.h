@@ -38,6 +38,7 @@ public:
 
     ~gcDoUIWidgetForEach(void);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
@@ -75,6 +76,7 @@ public:
     int GetExprFlags(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 class gcValCameraFollowEntity3rdVariable {

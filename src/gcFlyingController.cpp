@@ -9,6 +9,21 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009A404;
+extern cType *D_0009F5A8;
+extern cType *D_0009F780;
 
 struct DeleteRecord {
     short offset;
@@ -63,6 +78,7 @@ class gcFlyingController : public gcCreatureController {
 public:
     gcFlyingController(cBase *);
     ~gcFlyingController();
+    const cType *GetType(void) const;
     void Update(cTimeValue);
     void OnSelected();
     void OnDeselected();
@@ -80,6 +96,33 @@ public:
 };
 
 extern char gcFlyingControllervirtualtable[];
+
+// ── gcFlyingController::GetType(void) const @ 0x0031b7fc ──
+const cType *gcFlyingController::GetType(void) const {
+    if (D_0009F780 == 0) {
+        if (D_0009F5A8 == 0) {
+            if (D_0009A404 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                D_0009A404 = cType::InitializeType(
+                    0, 0, 0x99, D_000385E0, 0, 0, 0, 0);
+            }
+            D_0009F5A8 = cType::InitializeType(
+                0, 0, 0xB9, D_0009A404, 0, 0, 0, 0);
+        }
+        D_0009F780 = cType::InitializeType(
+            0, 0, 0x1AD, D_0009F5A8, 0, 0, 0, 0);
+    }
+    return D_0009F780;
+}
 
 // ── Update (0x00153f14) ──
 

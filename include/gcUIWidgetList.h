@@ -17,7 +17,9 @@ struct gcUICell {
 class gcUIWidgetList {
 public:
     gcUIWidgetList(cBase *);
+    void AssignCopy(const cBase *);
     void FillCell(gcUICell, int);
+    const cType *GetType(void) const;
     void PlayEffect(gcUIWidget::gcUIEffect);
     int IsUpdateEmpty(bool, bool) const;
     void Focus(bool, bool);

@@ -2,6 +2,25 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F448;
 
 struct AllocRec {
     short offset;
@@ -12,6 +31,7 @@ struct AllocRec {
 class gcEntityTemplate {
 public:
     gcEntityTemplate(cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -26,6 +46,32 @@ public:
     gcGeomCurveConfig(cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+// gcEntityTemplate::GetType(void) const @ 0x002688a8
+const cType *gcEntityTemplate::GetType(void) const {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(0, 0, 0x8E, D_000385E4,
+                                           &gcEntityTemplate::New,
+                                           (const char *)0x36D9B8,
+                                           (const char *)0x36D9C8,
+                                           5);
+    }
+    return D_0009F448;
+}
 
 // gcEntityTemplate::New(cMemPool *, cBase *) static @ 0x0026882c
 cBase *gcEntityTemplate::New(cMemPool *pool, cBase *parent) {

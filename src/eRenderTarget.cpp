@@ -1,5 +1,18 @@
 #include "eRenderTarget.h"
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FE8;
+extern cType *D_00041034;
+
 class cObject {
 public:
     cObject &operator=(const cObject &);
@@ -71,6 +84,34 @@ void eRenderTarget::Write(cFile &file) const {
     wb.Write(field_4D);
     wb.Write(field_4E);
     wb.End();
+}
+
+const cType *eRenderTarget::GetType(void) const {
+    if (D_00041034 == 0) {
+        if (D_00040FE8 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(
+                            (const char *)0x36CD74, (const char *)0x36CD7C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(
+                        0, 0, 2, D_000385DC,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040FE8 = cType::InitializeType(
+                0, 0, 0xA, D_000385E4, 0,
+                (const char *)0x36CDA8, (const char *)0x36CDB4, 5);
+        }
+        D_00041034 = cType::InitializeType(
+            0, 0, 0xD, D_00040FE8,
+            (cBase *(*)(cMemPool *, cBase *))0x1E3828, 0, 0, 0);
+    }
+    return D_00041034;
 }
 
 // ── Apply ──

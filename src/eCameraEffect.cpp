@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -14,6 +15,18 @@ public:
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 struct eCameraEffectLayout {
@@ -51,9 +64,15 @@ extern char eCameraEffectGeomvirtualtable[];
 extern "C" void cObject_cObject(void *, cBase *);
 extern "C" void eGeom_eGeom(void *, cBase *);
 
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00041008;
+
 class eCameraEffect : public cObject {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -99,4 +118,28 @@ void eCameraEffect::Write(cFile &file) const {
     wb.Write(self->mField58);
     wb.Write(self->mField5C);
     wb.End();
+}
+
+const cType *eCameraEffect::GetType(void) const {
+    if (D_00041008 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   (cBase *(*)(cMemPool *, cBase *))&cNamed::New,
+                                                   0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00041008 = cType::InitializeType(0, 0, 0x61, D_000385E4,
+                                           &eCameraEffect::New,
+                                           (const char *)0x36CD94,
+                                           (const char *)0x36CDA4, 5);
+    }
+    return D_00041008;
 }

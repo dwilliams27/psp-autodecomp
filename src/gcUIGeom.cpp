@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class eGeom;
 class eDynamicGeom;
 class gcUIGeom;
@@ -32,9 +33,18 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcUIGeom : public eDynamicGeom {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -48,6 +58,11 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+extern cType *D_000385DC;
+extern cType *D_00040FF4;
+extern cType *D_000469C0;
+extern cType *D_0009F58C;
 
 // ── gcUIGeom::Write(cFile &) const @ 0x0013b268 ──
 void gcUIGeom::Write(cFile &file) const {
@@ -72,6 +87,28 @@ int gcUIGeom::Read(cFile &file, cMemPool *pool) {
         return 0;
     }
     return result;
+}
+
+const cType *gcUIGeom::GetType(void) const {
+    if (D_0009F58C == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        D_0009F58C =
+            cType::InitializeType(0, 0, 0x82, D_000469C0, gcUIGeom::New,
+                                  0, 0, 0);
+    }
+    return D_0009F58C;
 }
 
 // ── gcUIGeom::New(cMemPool *, cBase *) static @ 0x00290cc0 ──

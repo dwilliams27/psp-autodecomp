@@ -8,6 +8,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -22,11 +23,24 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cObject {
 public:
     cObject(cBase *);
     ~cObject();
     cObject &operator=(const cObject &);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class eDynamicGeomTemplate {
@@ -58,6 +72,7 @@ public:
     eDynamicFluidTemplate(cBase *);
     ~eDynamicFluidTemplate();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -76,6 +91,13 @@ public:
 extern "C" {
     void eDynamicFluidTemplate__eDynamicFluidTemplate_cBaseptr(void *self, cBase *parent);
 }
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A8;
+extern cType *D_000469E0;
+extern cType *D_00046B20;
 
 // ── eDynamicFluidTemplate::AssignCopy(const cBase *) @ 0x002051ec ──
 #pragma control sched=1
@@ -107,6 +129,52 @@ cBase *eDynamicFluidTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+// ── eDynamicFluidTemplate::GetType(void) const @ 0x002052d8 ──
+#pragma control sched=1
+const cType *eDynamicFluidTemplate::GetType(void) const {
+    if (D_00046B20 == 0) {
+        if (D_000469E0 == 0) {
+            if (D_000469A8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            const char *name = (const char *)0x36CD74;
+                            const char *desc = (const char *)0x36CD7C;
+                            __asm__ volatile("" : "+r"(name), "+r"(desc));
+                            D_000385DC = cType::InitializeType(
+                                name, desc, 1, 0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385DC;
+                        cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, parentType, factory, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385E4;
+                __asm__ volatile("" : "+r"(parentType));
+                __asm__ volatile("" ::: "memory");
+                const char *kindName = (const char *)0x36CE2C;
+                const char *kindDesc = (const char *)0x36CE3C;
+                __asm__ volatile("" : "+r"(kindName), "+r"(kindDesc));
+                D_000469A8 = cType::InitializeType(
+                    0, 0, 0x20, parentType, 0, kindName, kindDesc, 5);
+            }
+            D_000469E0 = cType::InitializeType(0, 0, 0x22, D_000469A8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469E0;
+        cBase *(*factory)(cMemPool *, cBase *) = &eDynamicFluidTemplate::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046B20 = cType::InitializeType(
+            0, 0, 0x258, parentType, factory, 0, 0, 0);
+    }
+    return D_00046B20;
 }
 #pragma control sched=2
 

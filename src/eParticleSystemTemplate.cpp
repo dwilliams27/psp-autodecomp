@@ -5,11 +5,23 @@ class eParticle;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *, cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cObject {
+public:
+    cObject(cBase *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T>
@@ -23,14 +35,14 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
-class eParticleSystemTemplate {
+class eParticleSystemTemplate : public cObject {
 public:
+    eParticleSystemTemplate(cBase *);
     void Reset(cMemPool *, bool);
+    const cType *GetType(void) const;
     const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
-
-extern "C" void eParticleSystemTemplate__eParticleSystemTemplate_cBaseptr(void *, cBase *);
 
 struct AllocRec {
     short offset;
@@ -83,6 +95,108 @@ static cType *type_cBase;
 static cType *type_eGeom;
 static cType *type_eDynamicGeom;
 static cType *type_eParticleSystem;
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A8;
+extern cType *D_000469E0;
+extern cType *D_00046C40;
+
+// -- eParticleSystemTemplate::eParticleSystemTemplate(cBase *) @ 0x000b6c70 --
+eParticleSystemTemplate::eParticleSystemTemplate(cBase *parent) : cObject(parent) {
+    *(float *)((char *)this + 0x44) = 1000.0f;
+    *(void **)((char *)this + 4) = (void *)0x00384988;
+    *(float *)((char *)this + 0x48) = 0.0f;
+    *(unsigned char *)((char *)this + 0x4C) = 0;
+    *(unsigned char *)((char *)this + 0x4D) = 0;
+    *(int *)((char *)this + 0x50) = 10;
+    *(int *)((char *)this + 0x54) = 0;
+    __asm__ volatile(
+        "mfc1 $a0, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "mfc1 $a2, $f12\n"
+        "mtv $a0, S120\n"
+        "mtv $a1, S121\n"
+        "mtv $a2, S122\n"
+        "sv.q C120, 0x60($s0)"
+        ::: "a0", "a1", "a2", "memory");
+    *(float *)((char *)this + 0x70) = 0.0f;
+    *(float *)((char *)this + 0x74) = 0.0f;
+    *(int *)((char *)this + 0x78) = 0;
+    *(unsigned char *)((char *)this + 0x7C) = 0;
+    *(unsigned char *)((char *)this + 0x7D) = 0;
+    *(int *)((char *)this + 0x80) = 1;
+    *(int *)((char *)this + 0x84) = 1;
+    *(int *)((char *)this + 0x88) = 1;
+    *(int *)((char *)this + 0x8C) = 0;
+    *(int *)((char *)this + 0x90) = 0;
+    *(unsigned char *)((char *)this + 0x94) = 0;
+    *(float *)((char *)this + 0x98) = 0.0f;
+    __asm__ volatile(
+        "mfc1 $a0, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "mfc1 $a2, $f12\n"
+        "mtv $a0, S120\n"
+        "mtv $a1, S121\n"
+        "mtv $a2, S122\n"
+        "sv.q C120, 0xa0($s0)"
+        ::: "a0", "a1", "a2", "memory");
+    *(int *)((char *)this + 0xB0) = 0;
+    *(unsigned char *)((char *)this + 0xB4) = 0;
+    *(float *)((char *)this + 0xB8) = 90.0f;
+    *(float *)((char *)this + 0xBC) = 1.0f;
+    *(float *)((char *)this + 0xC0) = 0.1f;
+    *(float *)((char *)this + 0xC4) = 10.0f;
+    *(int *)((char *)this + 0xC8) = *(int *)0x36C7FC * 2;
+    *(float *)((char *)this + 0xCC) = 0.0f;
+    *(int *)((char *)this + 0xD0) = 0x1E;
+    *(float *)((char *)this + 0xD4) = 0.0f;
+    *(float *)((char *)this + 0xD8) = 180.0f;
+    *(float *)((char *)this + 0xDC) = 90.0f;
+    *(float *)((char *)this + 0xE0) = 1.0f;
+    *(float *)((char *)this + 0xE4) = 1.0f;
+    *(float *)((char *)this + 0xE8) = 0.0f;
+    *(float *)((char *)this + 0xEC) = 1.0f;
+    *(unsigned char *)((char *)this + 0xF0) = 0;
+    *(float *)((char *)this + 0xF4) = 0.0f;
+    *(float *)((char *)this + 0xF8) = 0.0f;
+    *(int *)((char *)this + 0xFC) = 2;
+    *(int *)((char *)this + 0x100) = 0;
+    *(int *)((char *)this + 0x104) = 0;
+    *(int *)((char *)this + 0x108) = -1;
+    *(int *)((char *)this + 0x10C) = -1;
+    *(float *)((char *)this + 0x110) = 1.0f;
+    *(float *)((char *)this + 0x114) = 1.0f;
+    *(float *)((char *)this + 0x118) = 0.0f;
+    *(float *)((char *)this + 0x11C) = 1.0f;
+    *(int *)((char *)this + 0x120) = 0;
+    *(int *)((char *)this + 0x124) = 0;
+    *(unsigned char *)((char *)this + 0x128) = 0;
+    __asm__ volatile(
+        "mfc1 $a0, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "mfc1 $a2, $f12\n"
+        "mtv $a0, S120\n"
+        "mtv $a1, S121\n"
+        "mtv $a2, S122\n"
+        "sv.q C120, 0x130($s0)"
+        ::: "a0", "a1", "a2", "memory");
+    *(int *)((char *)this + 0x140) = 0;
+    *(int *)((char *)this + 0x144) = 0;
+    *(int *)((char *)this + 0x150) = 0;
+    *(int *)((char *)this + 0x154) = 0;
+    *(int *)((char *)this + 0x158) = 0;
+    *(int *)((char *)this + 0x15C) = 0;
+    *(int *)((char *)this + 0x160) = 0;
+    __asm__ volatile(
+        "lui $a0, 0xbf80\n"
+        "mtc1 $a0, $f13\n"
+        "swc1 $f13, 0x180($s0)"
+        ::: "a0", "memory");
+    *(int *)((char *)this + 0x184) = 0;
+    *(float *)((char *)this + 0x44) = 300.0f;
+}
 
 // -- eParticleSystemTemplate::Reset(cMemPool *, bool) @ 0x0007b578 --
 #pragma control sched=1
@@ -160,6 +274,50 @@ const cType *eParticleSystemTemplate::GetInstanceType(void) const {
     return type_eParticleSystem;
 }
 
+// -- eParticleSystemTemplate::GetType(void) const @ 0x00214150 --
+const cType *eParticleSystemTemplate::GetType(void) const {
+    if (D_00046C40 == 0) {
+        if (D_000469E0 == 0) {
+            if (D_000469A8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            const char *name = (const char *)0x36CD74;
+                            const char *desc = (const char *)0x36CD7C;
+                            __asm__ volatile("" : "+r"(name), "+r"(desc));
+                            D_000385DC = cType::InitializeType(
+                                name, desc, 1, 0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385DC;
+                        cBase *(*factory)(cMemPool *, cBase *) = &cNamed::New;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, parentType, factory, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                const cType *parentType = D_000385E4;
+                __asm__ volatile("" : "+r"(parentType));
+                __asm__ volatile("" ::: "memory");
+                const char *kindName = (const char *)0x36CE2C;
+                const char *kindDesc = (const char *)0x36CE3C;
+                __asm__ volatile("" : "+r"(kindName), "+r"(kindDesc));
+                D_000469A8 = cType::InitializeType(
+                    0, 0, 0x20, parentType, 0, kindName, kindDesc, 5);
+            }
+            D_000469E0 = cType::InitializeType(0, 0, 0x22, D_000469A8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469E0;
+        cBase *(*factory)(cMemPool *, cBase *) = &eParticleSystemTemplate::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C40 = cType::InitializeType(0, 0, 0x31, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C40;
+}
+
 // -- eParticleSystemTemplate::New(cMemPool *, cBase *) static @ 0x002140d4 --
 cBase *eParticleSystemTemplate::New(cMemPool *pool, cBase *parent) {
     eParticleSystemTemplate *result = 0;
@@ -173,7 +331,7 @@ cBase *eParticleSystemTemplate::New(cMemPool *pool, cBase *parent) {
     eParticleSystemTemplate *obj =
         (eParticleSystemTemplate *)rec->fn(base, 0x190, 0x10, 0, 0);
     if (obj != 0) {
-        eParticleSystemTemplate__eParticleSystemTemplate_cBaseptr(obj, parent);
+        new (obj) eParticleSystemTemplate(parent);
         result = obj;
     }
     return (cBase *)result;

@@ -7,6 +7,14 @@ class cFile;
 class cMemPool;
 class mVec3;
 class mRay;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cObject {
 public:
@@ -66,6 +74,7 @@ class eStaticSunLight : public eStaticLight {
 public:
     eStaticSunLight(cBase *);
     ~eStaticSunLight();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -84,6 +93,11 @@ public:
 };
 
 extern char eStaticSunLightvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00046B30;
+extern cType *D_00046B40;
 
 extern "C" void eStaticSunLight_eStaticSunLight(eStaticSunLight *, cBase *);
 
@@ -102,8 +116,54 @@ void eStaticSunLight::Write(cFile &file) const {
     wb.End();
 }
 
+eStaticSunLight::eStaticSunLight(cBase *parent) : eStaticLight(parent) {
+    *(void **)((char *)this + 4) = eStaticSunLightvirtualtable;
+    __asm__ volatile("" ::: "memory");
+    *(float *)((char *)this + 0x90) = 0.0f;
+    *(float *)((char *)this + 0x94) = 0.0f;
+    *(int *)((char *)this + 0x98) = 0;
+    *(unsigned char *)((char *)this + 0x9C) = 1;
+}
+
 eStaticSunLight::~eStaticSunLight() {
     *(void **)((char *)this + 4) = eStaticSunLightvirtualtable;
+}
+
+const cType *eStaticSunLight::GetType(void) const {
+    if (D_00046B40 == 0) {
+        if (D_00046B30 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        const char *name = (const char *)0x36CD74;
+                        const char *desc = (const char *)0x36CD7C;
+                        __asm__ volatile("" : "+r"(name), "+r"(desc));
+                        D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385DC;
+                    cBase *(*factory)(cMemPool *, cBase *) =
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                    D_000385E0 = cType::InitializeType(0, 0, 2, parentType,
+                                                       factory, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            const cType *parentType = D_000385E4;
+            const char *kindName = (const char *)0x36CEE0;
+            const char *kindDesc = (const char *)0x36CEEC;
+            __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+            D_00046B30 = cType::InitializeType(0, 0, 0x4A, parentType,
+                                               0, kindName, kindDesc, 0);
+        }
+        const cType *parentType = D_00046B30;
+        cBase *(*factory)(cMemPool *, cBase *) = &eStaticSunLight::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046B40 = cType::InitializeType(0, 0, 0x4F, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046B40;
 }
 #pragma control sched=2
 

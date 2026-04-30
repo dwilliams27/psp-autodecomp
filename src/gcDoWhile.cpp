@@ -2,6 +2,7 @@
 
 class cFile;
 class cMemPool;
+class cType;
 
 extern "C" {
     void cStrCat(char *, const char *);
@@ -24,6 +25,14 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -36,6 +45,14 @@ struct AllocEntry {
 };
 
 inline void *operator new(unsigned int, void *p) { return p; }
+
+extern const char gcDoWhile_base_name[] asm("D_0036D894");
+extern const char gcDoWhile_base_desc[] asm("D_0036D89C");
+
+static cType *type_gcDoWhile asm("D_0009F760");
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
 
 class gcDoWhile {
 public:
@@ -50,6 +67,7 @@ public:
     void SetBranch(int, gcExpression *);
     void GetText(char *) const;
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 // 0x00318ea8, 8B
@@ -78,6 +96,23 @@ gcExpression *gcDoWhile::GetChild(int index) const {
 // 0x0015231c, 40B
 void gcDoWhile::GetText(char *buf) const {
     cStrCat(buf, "while");
+}
+
+// 0x00318c54, 280B
+const cType *gcDoWhile::GetType(void) const {
+    if (!type_gcDoWhile) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(gcDoWhile_base_name, gcDoWhile_base_desc, 1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoWhile = cType::InitializeType(0, 0, 0x1D1, type_action, gcDoWhile::New, 0, 0, 0);
+    }
+    return type_gcDoWhile;
 }
 
 void gcDoWhile::Write(cFile &file) const {

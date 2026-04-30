@@ -13,6 +13,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -25,6 +26,33 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+template <class T> T *dcast(const cBase *);
+
+struct CopyEntry {
+    short offset;
+    short pad;
+    cBase *(*fn)(void *, cMemPool *, cBase *);
+};
+
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
 };
 
 extern char gcValuevirtualtable[];
@@ -45,6 +73,8 @@ public:
     int mField10;
 
     gcValLobbyGameInfo(cBase *parent);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -97,4 +127,112 @@ void gcValLobbyGameInfo::Write(cFile &file) const {
     wb.Write(mField10);
     ((gcDesiredValue *)((char *)this + 12))->Write(wb);
     wb.End();
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValLobbyGameInfo;
+
+// ── gcValLobbyGameInfo::GetType(void) const @ 0x00348cc0 ──
+const cType *gcValLobbyGameInfo::GetType(void) const {
+    if (!type_gcValLobbyGameInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValLobbyGameInfo = cType::InitializeType(
+            0, 0, 0x186, type_value, gcValLobbyGameInfo::New, 0, 0, 0);
+    }
+    return type_gcValLobbyGameInfo;
+}
+
+// ── gcValLobbyGameInfo::AssignCopy(const cBase *) @ 0x00348ad4 ──
+void gcValLobbyGameInfo::AssignCopy(const cBase *base) {
+    void (*temp_a2_3)(void *, int);
+    short temp_a2_4;
+    short temp_a3;
+    cBase *(*temp_a3_2)(void *, cMemPool *, cBase *);
+    int temp_a2;
+    int temp_a0;
+    int temp_a0_4;
+    int var_a1;
+    int var_a1_2;
+    int var_a2;
+    int temp_s2;
+    int temp_s3;
+    int var_a1_3;
+    cMemPool *temp_a1;
+    int var_a2_2;
+    int var_a0_2;
+    void *temp_a2_2;
+    gcValLobbyGameInfo *temp_v0;
+
+    temp_v0 = dcast<gcValLobbyGameInfo>(base);
+    mField8 = temp_v0->mField8;
+    if ((char *)temp_v0 + 0xC != (char *)this + 0xC) {
+        temp_a2 = mFieldC;
+        var_a1 = 1;
+        temp_a0 = temp_a2 & 1;
+        if (temp_a0 != 0) {
+            var_a1 = 0;
+        }
+        if (var_a1 != 0) {
+            var_a1_2 = 0;
+            if (temp_a0 != 0) {
+                var_a1_2 = 1;
+            }
+            if (var_a1_2 != 0) {
+                var_a2 = temp_a2 & ~1;
+                var_a2 |= 1;
+            } else {
+                var_a2 = *(int *)temp_a2;
+                var_a2 |= 1;
+            }
+            mFieldC = var_a2;
+            if (temp_a2 != 0) {
+                temp_a2_2 = *(void **)(temp_a2 + 4);
+                temp_a3 = *(short *)((char *)temp_a2_2 + 0x50);
+                temp_a2_3 =
+                    *(void (**)(void *, int))((char *)temp_a2_2 + 0x54);
+                temp_a2_3((char *)temp_a2 + temp_a3, 3);
+            }
+        }
+
+        temp_s3 = temp_v0->mFieldC;
+        var_a1_3 = 1;
+        if (temp_s3 & 1) {
+            var_a1_3 = 0;
+        }
+        if (var_a1_3 != 0) {
+            temp_s2 = *(int *)(temp_s3 + 4) + 0x10;
+            temp_a2_4 = *(short *)temp_s2;
+            temp_a1 = cMemPool::GetPoolFromPtr((char *)this + 0xC);
+            temp_a0_4 = mFieldC;
+            var_a2_2 = 0;
+            if (temp_a0_4 & 1) {
+                var_a2_2 = 1;
+            }
+            if (var_a2_2 != 0) {
+                var_a0_2 = temp_a0_4 & ~1;
+            } else {
+                var_a0_2 = *(int *)temp_a0_4;
+            }
+            temp_a3_2 =
+                *(cBase * (**)(void *, cMemPool *, cBase *))(temp_s2 + 4);
+            mFieldC =
+                (int)temp_a3_2((char *)temp_s3 + temp_a2_4, temp_a1,
+                               (cBase *)var_a0_2);
+        }
+    }
+    mField10 = temp_v0->mField10;
 }

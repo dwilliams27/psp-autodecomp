@@ -10,6 +10,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -33,6 +34,18 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T> T *dcast(const cBase *);
 
 class eLensFlare : public cObject {
@@ -43,11 +56,16 @@ public:
 
     eLensFlare(cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
 extern char eLensFlarevirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000468CC;
 
 struct AllocRec {
     short offset;
@@ -102,4 +120,28 @@ cBase *eLensFlare::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *eLensFlare::GetType(void) const {
+    if (D_000468CC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))&cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_000468CC = cType::InitializeType(0, 0, 0x19B, D_000385E4,
+                                           &eLensFlare::New,
+                                           (const char *)0x36CDF4,
+                                           (const char *)0x36CE00, 1);
+    }
+    return D_000468CC;
 }

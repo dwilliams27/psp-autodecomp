@@ -5,6 +5,19 @@
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_00040FF4;
+extern cType *D_000469C0;
+extern cType *D_000469DC;
+
 template <class T> class cHandleT {
 public:
     int mHandle;
@@ -246,4 +259,25 @@ cBase *eDynamicModel::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *eDynamicModel::GetType(void) const {
+    if (D_000469DC == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        D_000469DC = cType::InitializeType(0, 0, 0x2D, D_000469C0,
+                                           &eDynamicModel::New, 0, 0, 0);
+    }
+    return D_000469DC;
 }

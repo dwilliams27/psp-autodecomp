@@ -8,6 +8,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -75,6 +84,7 @@ public:
     gcDesiredValue mDesired; // 0x18
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -111,6 +121,32 @@ cBase *gcDoViewportSetConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_action;
+static cType *type_gcDoViewportSetConfig;
+
+const cType *gcDoViewportSetConfig::GetType(void) const {
+    if (!type_gcDoViewportSetConfig) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoViewportSetConfig = cType::InitializeType(
+            0, 0, 0xA9, type_action, gcDoViewportSetConfig::New, 0, 0, 0);
+    }
+    return type_gcDoViewportSetConfig;
 }
 
 void gcDoViewportSetConfig::Write(cFile &file) const {

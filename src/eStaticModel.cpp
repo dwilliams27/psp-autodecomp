@@ -2,13 +2,47 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cType;
 class eCollisionInfo;
 class eContactCollector;
+class eStaticMeshVisData;
 class mCollideInfo;
 class mRay;
 class mSphere;
 struct mCollideHit;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+class eStaticMeshVisData {
+public:
+    int mData;
+    eStaticMeshVisData(void);
+    void Read(cReadBlock &, cMemPool *);
+};
 
 class ePhysics {
 public:
@@ -21,6 +55,10 @@ extern "C" {
 }
 
 extern char eStaticModelvirtualtable[];
+extern cType *D_000385DC;
+extern cType *D_00040FF4;
+extern cType *D_000469A4;
+extern cType *D_000469B4;
 
 struct AllocRec {
     short offset;
@@ -28,7 +66,19 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct cGUID {
+    int a;
+    int b;
+};
+
 typedef int v4sf_t __attribute__((mode(V4SF)));
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cWriteBlock {
 public:
@@ -45,6 +95,10 @@ public:
 };
 
 template <class T> T *dcast(const cBase *);
+
+void cFile_SetCurrentPos(void *, unsigned int);
+void cMemPool_GetValue(cMemPool *, const cGUID &, void **)
+    __asm__("__0fIcMemPoolIGetValueRC6FcGUIDPPv");
 
 // ── eStaticModel::OnRemovedFromWorld(void) @ 0x00043324 ──
 void eStaticModel::OnRemovedFromWorld(void) {
@@ -69,6 +123,71 @@ void eStaticModel::Write(cFile &file) const {
     wb.Write(3, (const float *)((const char *)this + 0x30));
     wb.Write((unsigned int)mField98);
     wb.End();
+}
+
+// ── eStaticModel::GetType(void) const @ 0x001ED138 ──
+const cType *eStaticModel::GetType(void) const {
+    if (D_000469B4 == 0) {
+        if (D_000469A4 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469A4 = cType::InitializeType(0, 0, 0x1A, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        D_000469B4 = cType::InitializeType(0, 0, 0x1D, D_000469A4,
+                                           &eStaticModel::New, 0, 0, 0);
+    }
+    return D_000469B4;
+}
+
+// ── eStaticModel::PlatformRead(cFile &, cMemPool *) @ 0x00041CE4 ──
+void eStaticModel::PlatformRead(cFile &file, cMemPool *pool) {
+    cGUID guidArg;
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    cMemPool *visPool;
+    cGUID guid;
+    cGUID guidCopy;
+    char pad[12];
+    char hasVisData;
+    eStaticMeshVisData *result;
+    eStaticMeshVisData *obj;
+    __asm__ volatile("" : : "m"(pad));
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+
+    visPool = 0;
+    guidCopy.a = 0x812D2B72;
+    guidCopy.b = 0xB1E8A1F9;
+    guid.a = 0x812D2B72;
+    guid.b = 0xB1E8A1F9;
+    guidArg = guid;
+    cMemPool_GetValue(pool, guidArg, (void **)&visPool);
+
+    cFileSystem::Read(*(void **)rb._data[0], &hasVisData, 1);
+    if ((unsigned char)(hasVisData != 0) != 0) {
+        void *block = ((void **)visPool)[9];
+        AllocRec *rec = (AllocRec *)(((PoolBlock *)block)->allocTable + 0x28);
+        short off = rec->offset;
+        void *base = (char *)block + off;
+        result = 0;
+        obj = (eStaticMeshVisData *)rec->fn(base, 4, 0, 0, -1);
+        if (obj != 0) {
+            new (obj) eStaticMeshVisData;
+            result = obj;
+        }
+        *(eStaticMeshVisData **)((char *)this + 0x90) = result;
+        result->Read(rb, visPool);
+    }
 }
 
 // ── eStaticModel::GetSweptContacts(...) const @ 0x0004271C ──

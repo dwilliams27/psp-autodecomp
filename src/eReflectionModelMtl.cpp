@@ -2,12 +2,38 @@
 
 // ── Forward class declarations ──
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class eColor {
 public:
     unsigned int mColor;
 };
 
 class eDrawInfo;
+
+class eMaterial {
+public:
+    eMaterial &operator=(const eMaterial &);
+};
+
+template <class T> T *dcast(const cBase *);
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cArrayBase {
+public:
+    cArrayBase &operator=(const cArrayBase &);
+};
 
 class eModelMtl {
 public:
@@ -43,6 +69,14 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FEC;
+extern cType *D_00040FF8;
+extern cType *D_00046B28;
+extern cType *D_00046C8C;
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
@@ -73,6 +107,55 @@ void eReflectionModelMtl::Unapply(void) const {
 }
 
 #pragma control sched=1
+
+// ── GetType ──
+
+const cType *eReflectionModelMtl::GetType(void) const {
+    if (D_00046C8C == 0) {
+        if (D_00046B28 == 0) {
+            if (D_00040FF8 == 0) {
+                if (D_00040FEC == 0) {
+                    if (D_000385E4 == 0) {
+                        if (D_000385E0 == 0) {
+                            if (D_000385DC == 0) {
+                                const char *name = (const char *)0x36CD74;
+                                const char *desc = (const char *)0x36CD7C;
+                                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                                D_000385DC = cType::InitializeType(
+                                    name, desc, 1, 0, 0, 0, 0, 0);
+                            }
+                            const cType *parentType = D_000385DC;
+                            cBase *(*factory)(cMemPool *, cBase *) =
+                                (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                            __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                            D_000385E0 = cType::InitializeType(
+                                0, 0, 2, parentType, factory, 0, 0, 0);
+                        }
+                        D_000385E4 = cType::InitializeType(
+                            0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385E4;
+                    const char *kindName = (const char *)0x36CDCC;
+                    const char *kindDesc = (const char *)0x36CDD8;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+                    D_00040FEC = cType::InitializeType(
+                        0, 0, 0x10, parentType, 0, kindName, kindDesc, 5);
+                }
+                D_00040FF8 = cType::InitializeType(0, 0, 0x12, D_00040FEC,
+                                                   0, 0, 0, 0);
+            }
+            D_00046B28 = cType::InitializeType(0, 0, 0x13, D_00040FF8,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046B28;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x2198BC;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C8C = cType::InitializeType(0, 0, 0x11F, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C8C;
+}
 
 // ── ApplyDynamic ──
 
@@ -151,4 +234,73 @@ eReflectionModelMtl *eReflectionModelMtl::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// ── AssignCopy ──
+
+void eReflectionModelMtl::AssignCopy(const cBase *base) {
+    eReflectionModelMtl *other = dcast<eReflectionModelMtl>(base);
+    ((eMaterial *)this)->operator=(*(const eMaterial *)other);
+    *(unsigned char *)((char *)this + 0x5C) =
+        *(const unsigned char *)((char *)other + 0x5C);
+    *(unsigned char *)((char *)this + 0x5D) =
+        *(const unsigned char *)((char *)other + 0x5D);
+    *(unsigned char *)((char *)this + 0x5E) =
+        *(const unsigned char *)((char *)other + 0x5E);
+    *(signed char *)((char *)this + 0x5F) =
+        *(const signed char *)((char *)other + 0x5F);
+    __asm__ volatile("" ::: "memory");
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x60))
+        ->operator=(*(const cArrayBase<cHandleT<eMaterial> > *)((char *)other + 0x60));
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x64))
+        ->operator=(*(const cArrayBase<cHandleT<eMaterial> > *)((char *)other + 0x64));
+    int *dstWord = (int *)((char *)this + 0x68);
+    int *srcWord = (int *)((char *)other + 0x68);
+    int word = *srcWord;
+    *dstWord = word;
+    dstWord = (int *)((char *)this + 0x6C);
+    srcWord = (int *)((char *)other + 0x6C);
+    word = *srcWord;
+    *dstWord = word;
+    *(int *)((char *)this + 0x70) = *(const int *)((char *)other + 0x70);
+    *(int *)((char *)this + 0x74) = *(const int *)((char *)other + 0x74);
+    *(int *)((char *)this + 0x78) = *(const int *)((char *)other + 0x78);
+    *(signed char *)((char *)this + 0x84) =
+        *(const signed char *)((char *)other + 0x84);
+    *(unsigned char *)((char *)this + 0x85) =
+        *(const unsigned char *)((char *)other + 0x85);
+    *(unsigned char *)((char *)this + 0x86) =
+        *(const unsigned char *)((char *)other + 0x86);
+    *(unsigned char *)((char *)this + 0x87) =
+        *(const unsigned char *)((char *)other + 0x87);
+    *(unsigned char *)((char *)this + 0x88) =
+        *(const unsigned char *)((char *)other + 0x88);
+    *(unsigned char *)((char *)this + 0x89) =
+        *(const unsigned char *)((char *)other + 0x89);
+    __asm__ volatile("" ::: "memory");
+    int i = 0;
+    int *dst = (int *)((char *)this + 0x8C);
+    int *src = (int *)((char *)other + 0x8C);
+    do {
+        int word0 = src[0];
+        int word1 = src[1];
+        int word2 = src[2];
+        dst[0] = word0;
+        dst[1] = word1;
+        dst[2] = word2;
+        int word3 = src[3];
+        int word4 = src[4];
+        dst[3] = word3;
+        dst[4] = word4;
+        i += 1;
+        dst += 5;
+        src += 5;
+    } while (i < 5);
+    {
+        int *dstWord2 = (int *)((char *)this + 0xF0);
+        int *srcWord2 = (int *)((char *)other + 0xF0);
+        __asm__ volatile("" : "+r"(dstWord2), "+r"(srcWord2));
+        int word2 = *srcWord2;
+        *dstWord2 = word2;
+    }
 }

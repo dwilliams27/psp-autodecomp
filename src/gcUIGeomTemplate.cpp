@@ -2,6 +2,7 @@
 
 class cMemPool;
 class cFile;
+class cType;
 
 class cObject {
 public:
@@ -40,10 +41,19 @@ public:
     gcEvent mEvent;           // 0x54
 
     gcUIGeomTemplate(cBase *);
+    const cType *GetType(void) const;
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct ParamWriteVtableEntry {
@@ -85,7 +95,45 @@ public:
     static void *GetLobby(void);
 };
 
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A8;
+extern cType *D_000469E0;
+extern cType *D_0009F590;
+
 void gcUIGeomTemplate::Reset(cMemPool *, bool) {
+}
+
+const cType *gcUIGeomTemplate::GetType(void) const {
+    if (D_0009F590 == 0) {
+        if (D_000469E0 == 0) {
+            if (D_000469A8 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                D_000469A8 = cType::InitializeType(
+                    0, 0, 0x20, D_000385E4, 0, (const char *)0x36DA5C,
+                    (const char *)0x36DA6C, 5);
+            }
+            D_000469E0 = cType::InitializeType(
+                0, 0, 0x22, D_000469A8, 0, 0, 0, 0);
+        }
+        D_0009F590 = cType::InitializeType(
+            0, 0, 0x83, D_000469E0, gcUIGeomTemplate::New, 0, 0, 0);
+    }
+    return D_0009F590;
 }
 
 // ── gcUIGeomTemplate::AssignCopy(const cBase *) @ 0x00290e54 ──

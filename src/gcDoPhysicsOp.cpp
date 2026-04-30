@@ -8,6 +8,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -54,10 +63,16 @@ public:
     gcDesiredValue mDesired;     // 0x10
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
 extern char gcDoPhysicsOpvirtualtable[];   // @ 0x43B8
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoPhysicsOp asm("D_0009F6B8");
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -87,4 +102,26 @@ cBase *gcDoPhysicsOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcDoPhysicsOp::GetType @ 0x002ec4c8 ──
+const cType *gcDoPhysicsOp::GetType(void) const {
+    if (!type_gcDoPhysicsOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoPhysicsOp = cType::InitializeType(
+            0, 0, 0x264, type_action, gcDoPhysicsOp::New, 0, 0, 0);
+    }
+    return type_gcDoPhysicsOp;
 }

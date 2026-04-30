@@ -4,6 +4,7 @@
 class gcExpression;
 class cBase;
 class cMemPool;
+class cType;
 
 class gcDoObjectForEachRelationship {
 public:
@@ -14,6 +15,7 @@ public:
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 };
 
 #endif

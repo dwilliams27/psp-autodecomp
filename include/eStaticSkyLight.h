@@ -17,6 +17,7 @@ public:
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
 
     int GetNumStratifiedSamples(void) const;
     void GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const;

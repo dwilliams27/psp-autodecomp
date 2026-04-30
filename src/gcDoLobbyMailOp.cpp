@@ -9,11 +9,21 @@
 
 class cMemPool;
 class cFile;
+class cType;
 
 class gcDoLobbyMailOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class cWriteBlock {
@@ -43,6 +53,13 @@ struct AllocEntry {
 void gcAction_gcAction(gcDoLobbyMailOp *, cBase *);
 void gcAction_Write(const gcDoLobbyMailOp *, cFile &);
 extern char gcDoLobbyMailOpvirtualtable[];
+extern const char gcDoLobbyMailOp_base_name[] asm("D_0036D894");
+extern const char gcDoLobbyMailOp_base_desc[] asm("D_0036D89C");
+
+static cType *type_action asm("D_000385D4");
+static cType *type_expression asm("D_000385D8");
+static cType *type_base asm("D_000385DC");
+static cType *type_gcDoLobbyMailOp asm("D_0009F694");
 
 // ── gcDoLobbyMailOp::New(cMemPool *, cBase *) @ 0x002e16c4 ──
 cBase *gcDoLobbyMailOp::New(cMemPool *pool, cBase *parent) {
@@ -62,6 +79,28 @@ cBase *gcDoLobbyMailOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcDoLobbyMailOp::GetType(void) const @ 0x002e1760 ──
+const cType *gcDoLobbyMailOp::GetType(void) const {
+    if (!type_gcDoLobbyMailOp) {
+        if (!type_action) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType(
+                        gcDoLobbyMailOp_base_name, gcDoLobbyMailOp_base_desc,
+                        1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(
+                    0, 0, 0x6A, type_base, 0, 0, 0, 0);
+            }
+            type_action = cType::InitializeType(
+                0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+        }
+        type_gcDoLobbyMailOp = cType::InitializeType(
+            0, 0, 0x1F3, type_action, gcDoLobbyMailOp::New, 0, 0, 0);
+    }
+    return type_gcDoLobbyMailOp;
 }
 
 // ── gcDoLobbyMailOp::Write(cFile &) @ 0x002e1878 ──
