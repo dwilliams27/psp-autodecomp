@@ -1,5 +1,17 @@
 class cBase;
 class cFile;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void free(void *);
 
 class cWriteBlock {
 public:
@@ -20,6 +32,7 @@ public:
     short mField1E;
 
     ePhysicsControllerConfig(cBase *);
+    ~ePhysicsControllerConfig();
     void Write(cFile &) const;
 };
 
@@ -36,7 +49,23 @@ public:
     unsigned int mField40;
 
     eSimulatedControllerConfig(cBase *);
+    ~eSimulatedControllerConfig();
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 #pragma control sched=1
@@ -70,4 +99,8 @@ eSimulatedControllerConfig::eSimulatedControllerConfig(cBase *parent)
     __asm__ volatile("" ::: "memory");
     mField3C = 1.3f;
     mField40 = 0;
+}
+
+eSimulatedControllerConfig::~eSimulatedControllerConfig() {
+    mVtable = (void *)0x383E98;
 }

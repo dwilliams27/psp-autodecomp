@@ -1,7 +1,16 @@
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 class cType {
 public:
@@ -20,6 +29,7 @@ public:
 
 class cBaseArray {
 public:
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
     cBaseArray &operator=(const cBaseArray &);
 };
@@ -38,6 +48,7 @@ public:
 class eVirtualTexture : public cObject {
 public:
     eVirtualTexture(cBase *);
+    ~eVirtualTexture();
     void Write(cFile &) const;
 };
 
@@ -48,10 +59,22 @@ public:
     void *field_54;
 
     eFilteredTexture(cBase *);
+    ~eFilteredTexture();
     const cType *GetType(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eFilteredTexture *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
 };
 
 extern cType *D_000385DC;
@@ -77,6 +100,21 @@ eFilteredTexture::eFilteredTexture(cBase *parent) : eVirtualTexture(parent) {
     *(void **)((char *)this + 4) = (void *)0x3852D0;
     field_50 = 0;
     field_54 = this;
+}
+
+#pragma control sched=2
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+#pragma control sched=1
+eFilteredTexture::~eFilteredTexture() {
+    *(void **)((char *)this + 4) = (void *)0x3852D0;
+    cBaseArray *arr = (cBaseArray *)((char *)this + 0x50);
+    __asm__ volatile("" : "+r"(arr));
+    if (arr != 0) {
+        arr->RemoveAll();
+    }
 }
 
 // ── eFilteredTexture::Write @ 0x00080fe8 ──
@@ -178,17 +216,6 @@ void eFilteredTexture::AssignCopy(const cBase *src) {
     ((cBaseArray *)((char *)this + 0x50))->operator=(*(cBaseArray *)((char *)&other + 0x50));
 }
 #pragma control sched=2
-
-extern "C" int sceKernelFreePartitionMemory(int);
-extern "C" int D_00034EC4;
-
-extern "C" void __free_heap(void) {
-    int heap = D_00034EC4;
-    if (heap != 0) {
-        sceKernelFreePartitionMemory(heap);
-        D_00034EC4 = 0;
-    }
-}
 
 class ePhysicsControllerConfig {
 public:
