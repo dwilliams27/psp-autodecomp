@@ -3,6 +3,9 @@
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void *memset(void *, int, unsigned int);
+
 class cBase;
 class cMemPool;
 class cType;
@@ -30,13 +33,36 @@ struct AllocEntry {
 
 class gcGameSettings {
 public:
-    char pad_000[0x30];
+    cBase *mParent;            // 0x00
+    void *mVtable;             // 0x04
+    void *mRefListA;           // 0x08
+    gcGameSettings *mSelfA;    // 0x0C
+    void *mRefListB;           // 0x10
+    gcGameSettings *mSelfB;    // 0x14
+    void *mArray18;            // 0x18
+    int mArray1C;              // 0x1C
+    gcGameSettings *mSelf20;   // 0x20
+    int mArray24;              // 0x24
+    gcGameSettings *mSelf28;   // 0x28
+    void *mArray2C;            // 0x2C
     int mFlags;                // 0x30
     int mActiveProfileIndex;   // 0x34
-    char pad_038[0x8];         // 0x38
+    int mField38;              // 0x38
+    int mProfileCount;         // 0x3C
     void *mProfiles;           // 0x40 (array of 24-byte profile headers)
-    char pad_044[0x10];        // 0x44
+    char mProfileHandles[0x10]; // 0x44
     gcProfile **mLoadedProfiles; // 0x54
+    gcGameSettings *mSelf58;   // 0x58
+    void *mProfileNames;       // 0x5C
+    int mProfileNameCount;     // 0x60
+    void *mField64;            // 0x64
+    void *mField68;            // 0x68
+    int mField6C;              // 0x6C
+    int mField70;              // 0x70
+    int mField74;              // 0x74
+    int mField78;              // 0x78
+    int mField7C;              // 0x7C
+    char mTail80[8];           // 0x80
 
     gcGameSettings(cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -45,6 +71,7 @@ public:
     int ProfileFind(const gcStringValue *) const;
     bool ProfileExists(const gcStringValue *) const;
     unsigned char ProfileIsCorrupt(const gcStringValue *) const;
+    int ProfileHeaderTimePlayed(const gcStringValue *) const;
     void OnProfileLoaded(gcProfile *);
     void HandleSaveGame(void);
     void SaveGameClear(int, int);
@@ -54,6 +81,39 @@ public:
 
 static cType *type_base;
 static cType *type_gcGameSettings;
+
+gcGameSettings::gcGameSettings(cBase *parent) {
+    mParent = parent;
+    mVtable = (void *)0x388010;
+    mRefListA = 0;
+    mSelfA = this;
+    mRefListB = 0;
+    mSelfB = this;
+    mArray18 = 0;
+    mArray1C = 0;
+    mSelf20 = this;
+    mArray24 = 0;
+    mSelf28 = this;
+    mArray2C = 0;
+    mFlags = 0;
+    mActiveProfileIndex = 0;
+    mField38 = 0;
+    mProfileCount = -1;
+    mProfiles = 0;
+    __vec_new(mProfileHandles, 2, 8, (void (*)(void *))0x2275F0);
+    mLoadedProfiles = 0;
+    mSelf58 = this;
+    mProfileNames = 0;
+    mProfileNameCount = -1;
+    mField64 = 0;
+    mField68 = 0;
+    mField6C = -1;
+    mField70 = 0;
+    mField74 = 0;
+    mField78 = 0;
+    mField7C = 0;
+    memset(mTail80, 0, 8);
+}
 
 cBase *gcGameSettings::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -107,6 +167,19 @@ unsigned char gcGameSettings::ProfileIsCorrupt(const gcStringValue *s) const {
     if (idx >= 0) {
         result = ((unsigned char *)mProfiles)[idx * 24];
     }
+    return result;
+}
+
+int gcGameSettings::ProfileHeaderTimePlayed(const gcStringValue *s) const {
+    int idx = ProfileFind(s);
+    if (idx >= 0) {
+        char *header = (char *)mProfiles + idx * 24;
+        header += 20;
+        __asm__ volatile("" : "+r"(header));
+        return *(int *)header;
+    }
+    volatile int result;
+    result = 0;
     return result;
 }
 
