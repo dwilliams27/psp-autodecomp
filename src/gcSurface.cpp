@@ -25,6 +25,7 @@ public:
 
 class eSurface : public cObject {
 public:
+    eSurface(cBase *);
     void Write(cFile &) const;
 };
 
@@ -73,6 +74,18 @@ extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00046A18;
 extern cType *D_0009F570;
+extern char gcSurfacevirtualtable[];
+extern "C" void gcEvent_ctor(void *, cBase *, const char *) asm("__0oHgcEventctP6FcBasePCc");
+
+// 0x00137fc8
+gcSurface::gcSurface(cBase *parent) : eSurface(parent) {
+    *(void **)((char *)this + 4) = gcSurfacevirtualtable;
+    gcEvent_ctor((char *)this + 0x6C, (cBase *)this, (const char *)0x36E304);
+    gcEvent_ctor((char *)this + 0x88, (cBase *)this, (const char *)0x36E310);
+    gcEvent_ctor((char *)this + 0xA4, (cBase *)this, (const char *)0x36E324);
+    gcEvent_ctor((char *)this + 0xC0, (cBase *)this, (const char *)0x36E334);
+    gcEvent_ctor((char *)this + 0xDC, (cBase *)this, (const char *)0x36E348);
+}
 
 // 0x00289f4c
 void gcSurface::AssignCopy(const cBase *base) {

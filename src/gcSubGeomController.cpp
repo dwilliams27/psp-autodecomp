@@ -3,6 +3,7 @@ class cFile;
 class cMemPool;
 
 extern "C" void free(void *);
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 
 struct cTypeMethod {
     short offset;
@@ -52,6 +53,7 @@ public:
     void *mVtable;
     int mField8;
 
+    gcSubGeomController(cBase *);
     ~gcSubGeomController(void);
     const cType *GetType(void) const;
 
@@ -78,6 +80,19 @@ extern cType *D_000385DC;
 extern cType *D_0009F64C;
 
 void gcLValue_Write(const gcValEntityTimeSince *, cFile &);
+
+gcSubGeomController::gcSubGeomController(cBase *parent) {
+    mParent = parent;
+    mVtable = gcSubGeomControllervirtualtable;
+    mField8 = 0;
+    float zero = 0.0f;
+    *(int *)((char *)this + 0x0C) = 0;
+    float one = 1.0f;
+    *(float *)((char *)this + 0x18) = zero;
+    *(float *)((char *)this + 0x10) = one;
+    *(float *)((char *)this + 0x14) = one;
+    __vec_new((char *)this + 0x1C, 1, 6, (void (*)(void *))0x24400C);
+}
 
 gcSubGeomController::~gcSubGeomController(void) {
     mField8 = 0;
