@@ -1,6 +1,7 @@
 class cBase;
 class cMemPool;
 class cType;
+class cFile;
 
 class cMemPool {
 public:
@@ -32,6 +33,7 @@ public:
     eConfigBase(cBase *);
     ~eConfigBase();
 
+    void Write(cFile &) const;
     const char *GetImageFileFormatName(void) const;
     int GetPhysicsMemPoolSize(void) const;
     const cType *GetType(void) const;
@@ -50,6 +52,18 @@ public:
     }
 };
 
+class cWriteBlock {
+public:
+    int _data[2];
+
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(unsigned char);
+    void Write(int);
+    void Write(float);
+    void End(void);
+};
+
 extern "C" {
     int ePhysics__GetPhysicsMemPoolSize_voidstatic(void);
     void eConfigBase__eConfigBase_cBaseptr(void *self, cBase *parent);
@@ -58,6 +72,39 @@ extern "C" {
 
 extern cType *D_000385DC;
 extern cType *D_00040E78;
+
+void eConfigBase::Write(cFile &file) const {
+    cWriteBlock wb(file, 0xB);
+    wb.Write(*(const int *)((const char *)this + 8));
+    wb.Write(*(const int *)((const char *)this + 0xC));
+    wb.Write(*(const int *)((const char *)this + 0x10));
+    wb.Write(*(const bool *)((const char *)this + 0x14));
+    wb.Write(*(const int *)((const char *)this + 0x18));
+    wb.Write(*(const int *)((const char *)this + 0x1C));
+    wb.Write(*(const int *)((const char *)this + 0x20));
+    wb.Write(*(const int *)((const char *)this + 0x24));
+    wb.Write(*(const bool *)((const char *)this + 0x28));
+    wb.Write(*(const bool *)((const char *)this + 0x29));
+    wb.Write(*(const bool *)((const char *)this + 0x2A));
+    wb.Write(*(const int *)((const char *)this + 0x2C));
+    wb.Write(*(const int *)((const char *)this + 0x30));
+    wb.Write(*(const float *)((const char *)this + 0x34));
+    wb.Write(*(const float *)((const char *)this + 0x38));
+    wb.Write(*(const float *)((const char *)this + 0x3C));
+    wb.Write(*(const float *)((const char *)this + 0x40));
+    wb.Write(*(const float *)((const char *)this + 0x44));
+    wb.Write(*(const unsigned char *)((const char *)this + 0x48));
+    wb.Write(*(const unsigned char *)((const char *)this + 0x49));
+    wb.Write(*(const float *)((const char *)this + 0x4C));
+    wb.Write(*(const float *)((const char *)this + 0x50));
+    wb.Write(*(const int *)((const char *)this + 0x54));
+    wb.Write(*(const int *)((const char *)this + 0x58));
+    wb.Write(*(const int *)((const char *)this + 0x5C));
+    wb.Write(*(const int *)((const char *)this + 0x60));
+    wb.Write(*(const int *)((const char *)this + 0x64));
+    wb.Write(*(const int *)((const char *)this + 0x68));
+    wb.End();
+}
 
 // ── eConfigBase::GetPhysicsMemPoolSize(void) const @ 0x0001cb18 ──
 int eConfigBase::GetPhysicsMemPoolSize(void) const {
