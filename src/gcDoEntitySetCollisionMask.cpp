@@ -19,6 +19,17 @@ public:
     void End(void);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcExpression {
 };
 
@@ -54,6 +65,14 @@ struct gcDoEntitySetCollisionMaskTypeInfo {
 
 extern const char gcDoEntitySetCollisionMask_base_name[];
 extern const char gcDoEntitySetCollisionMask_base_desc[];
+extern char D_00002F98[];
+extern char D_00000338[];
+
+extern "C" {
+void gcAction_ctor_cBase(void *, cBase *);
+void gcDesiredObject_ctor_cBase(void *, cBase *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
+}
 
 class gcDoEntitySetCollisionMask : public gcAction {
 public:
@@ -66,6 +85,62 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoEntitySetCollisionMask;
+
+cBase *gcDoEntitySetCollisionMask::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoEntitySetCollisionMask *result = 0;
+    gcDoEntitySetCollisionMask *obj =
+        (gcDoEntitySetCollisionMask *)entry->fn(base, 0x6C, 4, 0, 0);
+    if (obj != 0) {
+        gcAction_ctor_cBase(obj, parent);
+
+        int *obj_i = (int *)obj;
+        obj_i[1] = (int)D_00002F98;
+        obj_i[3] = 0;
+        obj_i[4] = 0;
+
+        void *desired = (char *)obj_i + 0x14;
+        gcDesiredObject_ctor_cBase(desired, (cBase *)obj);
+
+        obj_i[6] = (int)D_00000338;
+
+        gcDesiredEntityHelper_ctor((char *)obj + 0x20, 1, 0, 0);
+
+        obj_i[6] = 0x388A48;
+        obj_i[11] = 0x37E6A8;
+        obj_i[10] = (int)desired;
+        obj_i[11] = 0x388568;
+        ((char *)obj)[0x30] = 1;
+        ((char *)obj)[0x31] = 0;
+        obj_i[13] = 0;
+        obj_i[14] = 0;
+        obj_i[15] = (int)desired | 1;
+
+        desired = (char *)obj + 0x40;
+        gcDesiredObject_ctor_cBase(desired, (cBase *)obj);
+
+        obj_i[17] = (int)D_00000338;
+
+        gcDesiredEntityHelper_ctor((char *)obj + 0x4C, 1, 0, 0);
+
+        obj_i[22] = 0x37E6A8;
+        obj_i[17] = 0x388A48;
+        obj_i[21] = (int)desired;
+        obj_i[22] = 0x388568;
+        ((char *)obj)[0x5C] = 1;
+        ((char *)obj)[0x5D] = 0;
+        obj_i[24] = 0;
+        obj_i[25] = 0;
+        obj_i[26] = (int)desired | 1;
+
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 const cType *gcDoEntitySetCollisionMask::GetType(void) const {
     if (!type_gcDoEntitySetCollisionMask) {

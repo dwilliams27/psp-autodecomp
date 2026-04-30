@@ -25,6 +25,17 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcExpression {
 };
 
@@ -58,10 +69,78 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+extern char D_00002EB8[];
+extern char D_00000338[];
+
+extern "C" {
+void gcAction_ctor_cBase(void *, cBase *);
+void gcDesiredObject_ctor_cBase(void *, cBase *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
+}
+
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
 static cType *type_action asm("D_000385D4");
 static cType *type_gcDoEntitySetAttractor asm("D_0009F63C");
+
+cBase *gcDoEntitySetAttractor::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcDoEntitySetAttractor *result = 0;
+    gcDoEntitySetAttractor *obj =
+        (gcDoEntitySetAttractor *)entry->fn(base, 0x84, 4, 0, 0);
+    if (obj != 0) {
+        gcAction_ctor_cBase(obj, parent);
+
+        int *obj_i = (int *)obj;
+        obj_i[1] = (int)D_00002EB8;
+
+        void *desired = (char *)obj + 0x10;
+        obj_i[3] = 0;
+        gcDesiredObject_ctor_cBase(desired, (cBase *)obj);
+
+        obj_i[5] = (int)D_00000338;
+
+        gcDesiredEntityHelper_ctor((char *)obj + 0x1C, 0, 0, 0);
+
+        obj_i[5] = 0x388A48;
+        obj_i[10] = 0x37E6A8;
+        obj_i[9] = (int)desired;
+        obj_i[10] = 0x388568;
+        ((char *)obj)[0x2C] = 1;
+        ((char *)obj)[0x2D] = 0;
+        obj_i[12] = 0;
+        obj_i[13] = 0;
+        obj_i[14] = (int)desired | 1;
+
+        desired = (char *)obj + 0x3C;
+        gcDesiredObject_ctor_cBase(desired, (cBase *)obj);
+
+        obj_i[16] = (int)D_00000338;
+
+        gcDesiredEntityHelper_ctor((char *)obj + 0x48, 0, 0, 0);
+
+        obj_i[21] = 0x37E6A8;
+        obj_i[16] = 0x388A48;
+        obj_i[20] = (int)desired;
+        obj_i[21] = 0x388568;
+        ((char *)obj)[0x58] = 1;
+        ((char *)obj)[0x59] = 0;
+        obj_i[23] = 0;
+        obj_i[24] = 0;
+        obj_i[25] = (int)desired | 1;
+        *(short *)((char *)obj + 0x7C) = 0;
+        *(short *)((char *)obj + 0x7E) = 0;
+        ((char *)obj)[0x68] = 0;
+        obj_i[32] = (int)obj | 1;
+
+        result = obj;
+    }
+    return (cBase *)result;
+}
 
 const cType *gcDoEntitySetAttractor::GetType(void) const {
     if (!type_gcDoEntitySetAttractor) {
