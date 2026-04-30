@@ -77,6 +77,7 @@ public:
     }
     ~gcValEventVar();
     void AssignCopy(const cBase *);
+    float Evaluate(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static gcValEventVar *New(cMemPool *, cBase *);
@@ -95,11 +96,57 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
+extern void *g_expressionEvalStack;
+
 // ── AssignCopy ──  @ 0x0034282c, 56B
 void gcValEventVar::AssignCopy(const cBase *base) {
     gcValEventVar *src = dcast<gcValEventVar>(base);
     mField08 = src->mField08;
     mFieldC = src->mFieldC;
+}
+
+// ── Evaluate ──  @ 0x00342c60, 192B
+float gcValEventVar::Evaluate(void) const {
+    int selector = mField08;
+    int index;
+    int base;
+    int *ctx;
+    unsigned char *event;
+
+    switch (selector) {
+    case 0:
+        index = mFieldC;
+        ctx = (int *)g_expressionEvalStack;
+        base = 0;
+        if (ctx != 0) {
+            base = ctx[4];
+        }
+        return *(float *)((index << 2) + base + 8);
+    case 1:
+        index = mFieldC;
+        ctx = (int *)g_expressionEvalStack;
+        base = 0;
+        if (ctx != 0) {
+            base = ctx[4];
+        }
+        return *(float *)((index << 2) + base + 0x18);
+    case 2:
+        ctx = (int *)g_expressionEvalStack;
+        event = 0;
+        if (ctx != 0) {
+            event = (unsigned char *)ctx[3];
+        }
+        if (event[0x18] != 0) {
+            return 1.0f;
+        }
+        {
+            float zero;
+            __asm__ volatile("mtc1 $0,%0" : "=f"(zero));
+            return zero;
+        }
+    default:
+        return 0.0f;
+    }
 }
 
 // ── Write ──  @ 0x00342aac, 100B

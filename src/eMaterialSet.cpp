@@ -8,6 +8,7 @@ class cType;
 class cObject {
 public:
     char _pad[0x44];
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -38,9 +39,24 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cArray {
+public:
+    void Read(class cReadBlock &);
+};
+
+class eMaterial;
+
 class eMaterialSet : public cObject {
 public:
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -48,6 +64,15 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00040FF0;
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ── eMaterialSet::Write(cFile &) const @ 0x0002C30C ──
 void eMaterialSet::Write(cFile &file) const {
@@ -78,6 +103,19 @@ void eMaterialSet::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+// ── eMaterialSet::Read(cFile &, cMemPool *) @ 0x0002C3D0 ──
+int eMaterialSet::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((cArray<cHandleT<eMaterial> > *)((char *)this + 0x44))->Read(rb);
+    return result;
 }
 
 // ── eMaterialSet::GetType(void) const @ 0x001E15E0 ──
