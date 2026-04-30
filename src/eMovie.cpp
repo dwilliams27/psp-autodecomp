@@ -14,6 +14,8 @@ public:
 
 extern eMovie *D_0037D2E0;
 extern int D_0037D2F0;
+extern char D_0037D2E4[];
+extern char D_0037D2E8[];
 extern double D_0036CD30;
 extern int D_0036C7FC;
 extern char eBipedControllerTemplateclassdesc[];
@@ -93,6 +95,13 @@ void eMovie::Close(void) {
 
 void eMovie::Update(cTimeValue *tv) {
     eMoviePlatform__Update_cTimeValueptr((char *)this + 8, tv);
+}
+
+void eMovie::OnDraw(void) {
+    void (*callback)(void *) = *(void (**)(void *))D_0037D2E4;
+    if (callback != 0) {
+        callback(*(void **)D_0037D2E8);
+    }
 }
 
 void eMovie::Pause(void) {
