@@ -224,11 +224,19 @@ void eHeightmapTemplate::AssignCopy(const cBase *src) {
 #pragma control sched=2
 
 // ── GetExternalDependency @ 0x001f58e0 ──
+#pragma control sched=1
 void eHeightmapTemplate::GetExternalDependency(int, cFilename *out) const {
-    cStr filename;
-    filename = GetRelativeFilename();
-    ((cStr *)out)->Set((const char *)&filename);
+    register cFilename *target __asm__("$16");
+    register const eHeightmapTemplate *self __asm__("$5");
+    __asm__ volatile(
+        "or %0, %2, $0\n"
+        "or %1, %3, $0"
+        : "=r"(target), "=r"(self)
+        : "r"(out), "r"(this));
+    cStr filename = self->GetRelativeFilename();
+    ((cStr *)target)->Set((const char *)&filename);
 }
+#pragma control sched=2
 
 // ── GetRadius @ 0x001f5964 ──
 float eHeightmapTemplate::GetRadius(void) const {

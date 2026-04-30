@@ -157,7 +157,9 @@ struct _CopyBlob {
 
 void gcStreamedCinematicConfigGroup::AssignCopy(const cBase *base) {
     gcStreamedCinematicConfigGroup *src = dcast(base);
-    *(_CopyBlob *)((char *)this + 8) = *(_CopyBlob *)((char *)src + 8);
+    register _CopyBlob *srcBlob __asm__("$4") = (_CopyBlob *)((char *)src + 8);
+    register _CopyBlob *dstBlob __asm__("$6") = (_CopyBlob *)((char *)this + 8);
+    *dstBlob = *srcBlob;
     ((cBaseArray *)((char *)this + 0x20))->operator=(
         *(cBaseArray *)((char *)src + 0x20));
 }
