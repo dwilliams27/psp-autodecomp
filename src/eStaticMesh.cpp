@@ -34,12 +34,32 @@ public:
 class cObject {
 public:
     char _pad[0x44];
+    cObject(cBase *);
     cObject &operator=(const cObject &);
 };
 
-class eMesh : public cObject {
+class eMesh {
 public:
     void Write(cFile &) const;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemBlockSuspend {
+public:
+    int _data[1];
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -52,11 +72,19 @@ public:
 };
 
 class eStaticMeshVisLOD;
-
-class eStaticMesh : public eMesh {
+class eStaticMeshVisData {
 public:
+    int mData;
+    eStaticMeshVisData(void);
+    void Read(cReadBlock &, cMemPool *);
+};
+
+class eStaticMesh : public cObject {
+public:
+    eStaticMesh(cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -67,12 +95,44 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
-extern "C" void eStaticMesh__eStaticMesh_cBaseptr(void *, cBase *);
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct cGUID {
+    int a;
+    int b;
+};
+
+inline void *operator new(unsigned int, void *p) { return p; }
+
+void cFile_SetCurrentPos(void *, unsigned int);
+void cMemPool_GetValue(cMemPool *, const cGUID &, void **)
+    __asm__("__0fIcMemPoolIGetValueRC6FcGUIDPPv");
+
+extern char eMeshclassdesc[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_000469B8;
 extern cType *D_000469BC;
+
+// ── eStaticMesh::eStaticMesh(cBase *) @ 0x000449B4 ──
+eStaticMesh::eStaticMesh(cBase *parent) : cObject(parent) {
+    register int negOne __asm__("$4") = -1;
+    *(int *)((char *)this + 0x44) = 0;
+    register float zero __asm__("$f12") = 0.0f;
+    *(int *)((char *)this + 0x48) = negOne;
+    *(float *)((char *)this + 0x4C) = zero;
+    *(unsigned char *)((char *)this + 0x58) = 0;
+    *(void **)((char *)this + 0x04) = eMeshclassdesc;
+    *(int *)((char *)this + 0x5C) = 0;
+    *(int *)((char *)this + 0x60) = 0;
+    *(int *)((char *)this + 0x64) = 0;
+    *(float *)((char *)this + 0x50) = 128.0f;
+    *(float *)((char *)this + 0x54) = 0.0078125f;
+}
 
 // ── eStaticMesh::AssignCopy(const cBase *) @ 0x001ed82c ──
 void eStaticMesh::AssignCopy(const cBase *src) {
@@ -99,7 +159,7 @@ cBase *eStaticMesh::New(cMemPool *pool, cBase *parent) {
     eStaticMesh *result = 0;
     eStaticMesh *obj = (eStaticMesh *)rec->fn(base, 0x68, 4, 0, 0);
     if (obj != 0) {
-        eStaticMesh__eStaticMesh_cBaseptr(obj, parent);
+        new (obj) eStaticMesh(parent);
         result = obj;
     }
     return (cBase *)result;
@@ -174,4 +234,55 @@ void eStaticMesh::Write(cFile &file) const {
 
     wb.WriteBase(*(cBase *const *)((char *)this + 0x64));
     wb.End();
+}
+
+// ── eStaticMesh::PlatformRead(cFile &, cMemPool *) @ 0x00044790 ──
+void eStaticMesh::PlatformRead(cFile &file, cMemPool *pool) {
+    cGUID guidArg;
+    cMemBlockSuspend ms(pool);
+    cReadBlock rb(file, 1, true);
+    cMemPool *visPool;
+    int pad24;
+    cGUID guid;
+    cGUID guidCopy;
+    char pad[8];
+    char hasVisData;
+    eStaticMeshVisData *result;
+    eStaticMeshVisData *obj;
+    __asm__ volatile("" : : "m"(pad), "m"(pad24));
+
+    if ((unsigned int)rb._data[3] < 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return;
+    }
+
+    if (*(unsigned char *)((char *)this + 0x58) != 0) {
+        return;
+    }
+
+    visPool = 0;
+    guidCopy.a = 0x812D2B72;
+    guidCopy.b = 0xB1E8A1F9;
+    __asm__ volatile("" : "+m"(guidCopy));
+    guid.a = 0x812D2B72;
+    guid.b = 0xB1E8A1F9;
+    guidArg = guid;
+    cMemPool_GetValue(pool, guidArg, (void **)&visPool);
+
+    cFileSystem::Read(*(void **)rb._data[0], &hasVisData, 1);
+    unsigned int has = hasVisData != 0;
+    if (has != 0) {
+        void *block = ((void **)pool)[9];
+        AllocRec *rec = (AllocRec *)(((PoolBlock *)block)->allocTable + 0x28);
+        short off = rec->offset;
+        void *base = (char *)block + off;
+        result = 0;
+        obj = (eStaticMeshVisData *)rec->fn(base, 4, 0, 0, -1);
+        if (obj != 0) {
+            new (obj) eStaticMeshVisData;
+            result = obj;
+        }
+        *(eStaticMeshVisData **)((char *)this + 0x60) = result;
+        result->Read(rb, visPool);
+    }
 }
