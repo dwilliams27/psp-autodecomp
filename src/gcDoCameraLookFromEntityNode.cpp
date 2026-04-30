@@ -34,6 +34,17 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct VTableSlot {
+    short offset;
+    short _pad;
+    const cType *(*getType)(void *);
+};
+
+struct cTypeNode {
+    char pad[0x1C];
+    const cType *parent;
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -61,6 +72,8 @@ extern const char gcDoCameraLookFromEntityNode_base_desc[];
 class gcDoCameraLookFromEntityNode : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
+    gcDoCameraLookFromEntityNode &operator=(const gcDoCameraLookFromEntityNode &);
     const cType *GetType(void) const;
     void Write(cFile &) const;
 };
@@ -70,6 +83,64 @@ static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoCameraFollowEntity;
 static cType *type_gcDoCameraLookFromEntityNode;
+
+void gcDoCameraLookFromEntityNode::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    if (other != 0) {
+        if (!type_gcDoCameraLookFromEntityNode) {
+            if (!type_gcDoCameraFollowEntity) {
+                if (!type_action) {
+                    if (!type_expression) {
+                        if (!type_base) {
+                            type_base = cType::InitializeType(
+                                (const char *)0x36D894,
+                                (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        type_expression = cType::InitializeType(
+                            0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                    }
+                    type_action = cType::InitializeType(
+                        0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+                }
+                type_gcDoCameraFollowEntity = cType::InitializeType(
+                    0, 0, 0x24F, type_action, 0, 0, 0, 0);
+            }
+            type_gcDoCameraLookFromEntityNode = cType::InitializeType(
+                0, 0, 0x252, type_gcDoCameraFollowEntity,
+                gcDoCameraLookFromEntityNode::New, 0, 0, 0);
+        }
+        void *vt = ((void **)other)[1];
+        const cType *myType = type_gcDoCameraLookFromEntityNode;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = ((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+    *this = *(const gcDoCameraLookFromEntityNode *)copy;
+}
 
 cBase *gcDoCameraLookFromEntityNode::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];

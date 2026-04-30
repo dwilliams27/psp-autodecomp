@@ -38,6 +38,9 @@ public:
 
 class cType {
 public:
+    char _pad[0x1C];
+    const cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
@@ -66,10 +69,18 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
 class gcDesiredString {
 public:
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
+    gcDesiredString &operator=(const gcDesiredString &);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -91,6 +102,67 @@ void gcDesiredString::Write(cFile &file) const {
     ((const gcDesiredStringHelper *)((const char *)this + 12))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 24))->Write(wb);
     wb.End();
+}
+
+// ============================================================
+// 0x00270550 — AssignCopy(const cBase *), 360B
+// ============================================================
+void gcDesiredString::AssignCopy(const cBase *base) {
+    const gcDesiredString *other = 0;
+
+    if (base != 0) {
+        if (D_0009F474 == 0) {
+            if (D_0009F3F4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009F3F4 = cType::InitializeType(0, 0, 0x12C, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F474 = cType::InitializeType(0, 0, 0x215, D_0009F3F4,
+                                               &gcDesiredString::New,
+                                               0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *target = D_0009F474;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcDesiredString *)base;
+        }
+    }
+    operator=(*other);
 }
 
 // ============================================================
