@@ -220,9 +220,9 @@ gcStreamedCinematicConfigGroup::~gcStreamedCinematicConfigGroup() {
 void *gcStreamedCinematicConfigGroup::FindStreamedCinematic(
     const cGUIDT<gcStreamedCinematic> &guid, int *outIdx) const {
     int i = 0;
-    int offset = 0;
     int count = 0;
-    char *arr = (char *)m_arrayData;
+    register char *arr __asm__("$7") = (char *)m_arrayData;
+    register int offset __asm__("$4") = 0;
     for (;;) {
         count = 0;
         if (arr != 0) {

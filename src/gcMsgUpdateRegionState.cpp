@@ -137,11 +137,17 @@ nwMsg *gcMsgUpdateRegionState::New(nwMsgBuffer &buf) {
         int v0 = zb[0];
         int v1 = zb[1];
         zb[2] = v0;
-        zb[3] = v1;
-        void *vt = (void *)0x38ACC0;
-        char b = 0;
-        obj->vtable = vt;
-        obj->mB = b;
+        __asm__ volatile(
+            "lui $a1, 0x39\n\t"
+            "sw %1, 12($sp)\n\t"
+            "addiu $a1, $a1, -21312\n\t"
+            "ori $a3, $0, 0\n\t"
+            "sw $a1, 0(%0)\n\t"
+            "sb $a3, 4(%0)"
+            :
+            : "r"(obj), "r"(v1)
+            : "$a1", "$a3", "memory"
+        );
         int v2 = zb[2];
         int *p = (int *)((char *)obj + 8);
         int v3 = zb[3];
