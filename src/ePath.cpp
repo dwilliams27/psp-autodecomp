@@ -40,6 +40,9 @@ public:
 };
 
 extern "C" void ePathPoint_Write(const ePathPoint *, cWriteBlock &) asm("__0fKePathPointFWriteR6LcWriteBlockK");
+extern "C" ePathPoint *ePathPoint_ctor(ePathPoint *) asm("__0oKePathPointctv");
+extern "C" bool ePathPointArray_SetSize(cArrayBase<ePathPoint> *, int,
+                                         const ePathPoint *) asm("__0fKcArrayBase76KePathPoint_HSetSizeiRC9BA_b");
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
@@ -76,6 +79,20 @@ void ePath::Write(cFile &file) const {
 
     wb.Write(mTotalLength);
     wb.End();
+}
+
+void ePath::Reset(cMemPool *, bool needSize) {
+    ePathPoint *points = mPoints;
+    needSize = 1;
+    if (points != 0) {
+        unsigned int count = *(unsigned int *)((char *)points - 4);
+        needSize = (count & 0x3FFFFFFF) == 0;
+    }
+    if (needSize != 0) {
+        ePathPoint defaultPoint;
+        ePathPointArray_SetSize((cArrayBase<ePathPoint> *)&mPoints, 1,
+                                ePathPoint_ctor(&defaultPoint));
+    }
 }
 
 void ePath::AssignCopy(const cBase *base) {
