@@ -35,6 +35,12 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+struct cObject {
+    char _pad0[0x34];
+    cObject *prev;
+    cObject *next;
+};
+
 struct cGroupNode {
     char _pad0[0x28];
     unsigned short flags;
@@ -51,6 +57,7 @@ public:
     ~cGroup();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void OnObjectDeleted(cObject *);
     void RemoveAll(void);
     void ClearVisitedReferences(unsigned int);
 
@@ -97,31 +104,48 @@ const cType *cGroup::GetType(void) const {
 }
 
 void cGroup::Write(cFile &file) const {
-    register void *temp_s1 __asm__("$17");
-    void *var_a0;
-    void *var_s1;
     cWriteBlock wb(file, 2);
-    var_s1 = *(void **)((char *)this + 0xC);
-    if (var_s1 != 0) {
+    cGroupNode *node = mList;
+    if (node != 0) {
         do {
-            int write = *(unsigned short *)((char *)var_s1 + 0x28) & 4;
+            int write = node->flags & 4;
             write = write != 0;
             write = (unsigned char)write;
             if (write != 0) {
                 wb.Write(true);
-                ((cHandle *)((char *)var_s1 + 0x30))->Write(wb);
+                node->handle.Write(wb);
             }
-            temp_s1 = *(void **)((char *)var_s1 + 0x34);
-            if (temp_s1 != *(void **)((char *)this + 0xC)) {
-                var_a0 = temp_s1;
-            } else {
-                var_a0 = 0;
+            cGroupNode *nextNode = 0;
+            cGroupNode *next = node->next;
+            if (next != mList) {
+                nextNode = next;
             }
-            var_s1 = var_a0;
-        } while (var_s1 != 0);
+            node = nextNode;
+        } while (node != 0);
     }
     wb.Write(false);
     wb.End();
+}
+
+void cGroup::OnObjectDeleted(cObject *object) {
+    if (object != 0 && object->next != 0) {
+        cObject *prev = object->prev;
+        if (prev != 0) {
+            if ((cObject *)mList != object) {
+                goto notHead;
+            }
+            mList = (cGroupNode *)prev;
+            prev = object->prev;
+notHead:
+            object->next->prev = prev;
+            prev->next = object->next;
+            object->next = 0;
+            object->prev = 0;
+            if ((cObject *)mList == object) {
+                mList = 0;
+            }
+        }
+    }
 }
 
 void cGroup::ClearVisitedReferences(unsigned int flags) {
