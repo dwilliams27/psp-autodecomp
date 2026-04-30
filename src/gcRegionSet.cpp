@@ -9,7 +9,10 @@
 //   gcRegionSet::~gcRegionSet(void)       @ 0x0024602c (100B)
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
 
@@ -24,11 +27,24 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cGUID {
 public:
     int m0;
     int m4;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 extern char cBaseclassdesc[];                  // @ 0x37E6A8
@@ -77,6 +93,7 @@ public:
 
     ~gcRegionSet();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -98,14 +115,54 @@ void gcRegionSet::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
     wb.Write(*(const unsigned int *)((const char *)this + 0x18));
     wb.Write((int)2);
+    const cGUID *base = (const cGUID *)((const char *)this + 8);
+    int off;
+    __asm__ volatile("ori %0,$0,0" : "=r"(off));
     int i = 0;
-    int off = 0;
+    const cGUID *guid = (const cGUID *)((const char *)base + off);
     do {
-        ((const cGUID *)((const char *)this + 8 + off))->Write(wb);
+        guid->Write(wb);
         i++;
-        off += 8;
+        guid++;
     } while (i < 2);
     wb.End();
+}
+
+// ── Read ── @ 0x000ef860, 268B
+int gcRegionSet::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0,$0,1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    cFile *rbFile = (cFile *)rb._data[0];
+    register int version asm("a0") = 2;
+    if ((unsigned int)rb._data[3] != (unsigned int)version)
+        goto fail;
+    int countTemp;
+    countTemp = version;
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x18, 4);
+    cFileSystem::Read(*(void **)rb._data[0], &countTemp, 4);
+    int count = countTemp;
+    int i = 0;
+    if (i < count)
+        goto read_guid;
+    goto done;
+fail:
+    rbFile->SetCurrentPos(rb._data[1]);
+    return 0;
+read_guid:
+    {
+        cGUID *base = (cGUID *)((char *)this + 8);
+        int off;
+        __asm__ volatile("ori %0,$0,0" : "=r"(off));
+        cGUID *guid = (cGUID *)((char *)base + off);
+        do {
+            guid->Read(rb);
+            i++;
+            guid++;
+        } while (i < count);
+    }
+done:
+    return result;
 }
 
 // ── AssignCopy ── @ 0x00245bf8, 100B
