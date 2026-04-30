@@ -10,6 +10,7 @@ inline void *operator new(unsigned int, void *p) { return p; }
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
 };
 
@@ -51,6 +52,7 @@ class cFactory {
 public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void DeleteGroups(void);
 };
 
 class cMemPool {
@@ -84,17 +86,31 @@ struct PoolBlock {
     char *allocTable;
 };
 
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class gcGameGlobals : public cFactory {
 public:
     char _pad0[0x54];
     int mGroups[1];
 
     gcGameGlobals(cBase *);
+    ~gcGameGlobals(void);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 template <class T> T *dcast(const cBase *);
@@ -136,6 +152,8 @@ extern cType *D_000385E4;
 extern cType *D_00040C90;
 extern cType *D_0009A2FC;
 extern "C" int gcEnumerationGroup__IsManagedTypeExternalStatic_voidstatic(void);
+extern "C" void cObject___ctor_cObject_cBaseptr(void *, cBase *);
+extern "C" void cObject___dtor_cObject_void(void *, int);
 
 extern "C" cHandleT<gcEnumeration>
 gcGameGlobals_CreateSystemMessageEnumeration(
@@ -168,51 +186,55 @@ success:
 
 // ── gcGameGlobals::gcGameGlobals(cBase *) @ 0x00105b38 ──
 gcGameGlobals::gcGameGlobals(cBase *parent) {
+    cObject___ctor_cObject_cBaseptr(this, parent);
     int one = 1;
+    int flags = 0x800;
+    *(int *)((char *)this + 0x44) = one;
+    *(int *)((char *)this + 0x48) = flags;
+    *(void **)((char *)this + 4) = (void *)0x388080;
+    *(int *)((char *)this + 0x4C) = 0;
+    *(int *)((char *)this + 0x50) = 0;
+    *(gcGameGlobals **)0x37D850 = this;
     cHandleT<gcEnumeration> *systemMessages =
         (cHandleT<gcEnumeration> *)((char *)this + 0x4C);
     cHandleT<gcEnumeration> *connectionErrors =
         (cHandleT<gcEnumeration> *)((char *)this + 0x50);
     volatile cGUID guid;
-    gcEnumerationGroup *group;
-    gcEnumerationGroup *selected;
-
-    new ((cObject *)this) cObject(parent);
-    *(int *)((char *)this + 0x44) = one;
-    *(int *)((char *)this + 0x48) = 0x800;
-    *(void **)((char *)this + 4) = (void *)0x388080;
-    systemMessages->mIndex = 0;
-    connectionErrors->mIndex = 0;
-    *(gcGameGlobals **)0x37D850 = this;
-    guid.a = one;
-    guid.b = one;
     ((cName *)((char *)this + 8))->Set((const char *)0x36DC2C);
 
-    DispatchEntry *dispatch =
-        (DispatchEntry *)(*(char **)((char *)this + 4) + 0x70);
-    dispatch->fn((char *)this + dispatch->offset);
+    char *classdesc = *(char **)((char *)this + 4);
+    DispatchEntry *dispatch = (DispatchEntry *)(classdesc + 0x70);
+    short dispatchOffset = dispatch->offset;
+    void (*dispatchFn)(void *) = dispatch->fn;
+    dispatchFn((char *)this + dispatchOffset);
 
-    *(int *)((char *)this + 0x20) = one;
-    *(int *)((char *)this + 0x24) = one;
+    guid.a = one;
+    guid.b = one;
+    int *guidField = (int *)((char *)this + 0x20);
+    guidField[0] = 1;
+    guidField[1] = 1;
     *(int *)((char *)this + 0x44) &= ~1;
 
     cMemPool *pool = cMemPool::GetPoolFromPtr(this);
     pool->mOwner = this;
     void *block = pool->mBlock;
-    AllocRec *rec =
-        (AllocRec *)(*(char **)((char *)block + 0x1C) + 0x28);
-    group = (gcEnumerationGroup *)rec->fn(
-        (char *)block + rec->offset, 0x10, 4, 0, 0);
-    selected = 0;
+    char *allocTable = *(char **)((char *)block + 0x1C);
+    AllocRec *rec = (AllocRec *)(allocTable + 0x28);
+    short off = rec->offset;
+    void *(*allocFn)(void *, int, int, int, int) = rec->fn;
+    void *allocBase = (char *)block + off;
+    gcEnumerationGroup *selected = 0;
+    gcEnumerationGroup *group =
+        (gcEnumerationGroup *)allocFn(allocBase, 0x10, 4, 0, 0);
     if (group != 0) {
         int external = 0;
         if (gcEnumerationGroup__IsManagedTypeExternalStatic_voidstatic() == 0) {
             external = 1;
         }
+        external = (unsigned char)(external & 0xff);
         *(void **)((char *)group + 4) = (void *)0x37E6A8;
         *(gcGameGlobals **)group = this;
         *(void **)((char *)group + 4) = (void *)0x37EA80;
-        external = (unsigned char)(external & 0xff);
         *(unsigned char *)((char *)group + 8) =
             (unsigned char)(external & 0xff);
         *(int *)((char *)group + 0xC) = 0;
@@ -222,18 +244,31 @@ gcGameGlobals::gcGameGlobals(cBase *parent) {
     mGroups[0] = (int)selected;
     *(unsigned char *)((char *)selected + 8) = 1;
 
-    guid.b = 2;
+    int two = 2;
+    guid.a = one;
+    guid.b = two;
     *systemMessages =
         gcGameGlobals_CreateSystemMessageEnumeration(
             this, 0x31, (const char *)0x36DC3C, (const cGUID &)guid);
 
-    guid.b = 3;
+    int three = 3;
+    guid.a = one;
+    guid.b = three;
     *connectionErrors =
         gcGameGlobals_CreateConnectionErrorEnumeration(
             this, 0xB, (const char *)0x36DC44, (const cGUID &)guid);
 
     *(unsigned short *)((char *)this + 0x28) =
         (unsigned short)(*(unsigned short *)((char *)this + 0x28) | 0x10);
+}
+
+// ── gcGameGlobals::~gcGameGlobals(void) @ 0x00105d18 ──
+gcGameGlobals::~gcGameGlobals() {
+    *(void **)((char *)this + 4) = (void *)0x388080;
+    this->cFactory::DeleteGroups();
+    *(int *)0x37D850 = 0;
+    *(void **)((char *)this + 4) = (void *)0x37E9C0;
+    cObject___dtor_cObject_void(this, 0);
 }
 
 // ── gcGameGlobals::GetType(void) const @ 0x0024dce4 ──
