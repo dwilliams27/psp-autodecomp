@@ -21,7 +21,9 @@ public:
 
 class gcDesiredValue {
 public:
+    int mValue;
     void Write(cWriteBlock &) const;
+    gcDesiredValue &operator=(const gcDesiredValue &);
 };
 
 class cType {
@@ -31,6 +33,13 @@ public:
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
 };
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+template <class T> T dcast(const cBase *);
 
 extern char cBaseclassdesc[];
 extern char gcLobbyGameStringsclassdesc[];
@@ -86,9 +95,81 @@ public:
         mField10 = 0;
     }
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static gcLobbyGameStrings *New(cMemPool *, cBase *);
 };
+
+struct gcLobbyGameStringsDispatch {
+    short offset;
+    short pad;
+    int (*fn)(void *, cMemPool *, int);
+};
+
+struct gcLobbyGameStringsDestroyDispatch {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+inline gcDesiredValue &gcDesiredValue::operator=(const gcDesiredValue &other) {
+    if (&other != this) {
+        int oldValue = mValue;
+        int release = 1;
+        int oldTagged = oldValue & 1;
+        if (oldTagged != 0) {
+            release = 0;
+        }
+        if (release != 0) {
+            int releaseTagged = 0;
+            if (oldTagged != 0) {
+                releaseTagged = 1;
+            }
+            int stored;
+            if (releaseTagged != 0) {
+                stored = oldValue & -2;
+            } else {
+                stored = *(int *)oldValue;
+            }
+            mValue = stored | 1;
+            if (oldValue != 0) {
+                void *classDesc = *(void **)(oldValue + 4);
+                gcLobbyGameStringsDestroyDispatch *entry =
+                    (gcLobbyGameStringsDestroyDispatch *)((char *)classDesc + 0x50);
+                short offset = entry->offset;
+                void (*fn)(void *, int) = entry->fn;
+                fn((char *)oldValue + offset, 3);
+            }
+        }
+        int sourceValue = other.mValue;
+        int copy = 1;
+        if ((sourceValue & 1) != 0) {
+            copy = 0;
+        }
+        if (copy != 0) {
+            void *classDesc = *(void **)(sourceValue + 4);
+            gcLobbyGameStringsDispatch *entry =
+                (gcLobbyGameStringsDispatch *)((char *)classDesc + 0x10);
+            short offset = entry->offset;
+            void *sourceObject = (char *)sourceValue + offset;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(this);
+            int currentValue = mValue;
+            int currentTagged = 0;
+            if ((currentValue & 1) != 0) {
+                currentTagged = 1;
+            }
+            int currentObject;
+            if (currentTagged != 0) {
+                currentObject = currentValue & -2;
+            } else {
+                currentObject = *(int *)currentValue;
+            }
+            int (*fn)(void *, cMemPool *, int) = entry->fn;
+            mValue = fn(sourceObject, pool, currentObject);
+        }
+    }
+    return *this;
+}
 
 // ── Write ──  @ 0x002815b0, 112B
 void gcLobbyGameStrings::Write(cFile &file) const {
@@ -98,6 +179,14 @@ void gcLobbyGameStrings::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 12))->Write(wb);
     wb.Write(mField10);
     wb.End();
+}
+
+void gcLobbyGameStrings::AssignCopy(const cBase *base) {
+    gcLobbyGameStrings *other = dcast<gcLobbyGameStrings *>(base);
+    mField08 = other->mField08;
+    *(gcDesiredValue *)((char *)this + 0xC) =
+        *(const gcDesiredValue *)((char *)other + 0xC);
+    mField10 = other->mField10;
 }
 
 const cType *gcLobbyGameStrings::GetType(void) const {
