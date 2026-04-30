@@ -6,10 +6,15 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 
 extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -45,6 +50,17 @@ public:
     void Write(cFile &) const;
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 class gcDoSetEventEnumParam : public gcAction {
 public:
     // 0x0C: embedded gcDesiredEnumerationEntry sub-object
@@ -57,11 +73,22 @@ public:
     //   +0x14 (= outer 0x20): (parent | 1)
     // 0x24: int field (set to 0)
     void Write(cFile &) const;
+    ~gcDoSetEventEnumParam(void);
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        char *entries = ((char **)block)[7];
+        AllocEntry *slot = (AllocEntry *)(entries + 0x30);
+        short off = slot->offset;
+        void *(*fn)(void *, int, int, int, int) = slot->fn;
+        ((void (*)(void *, void *))fn)(block + off, p);
+    }
 };
 
 extern char gcDoSetEventEnumParamvirtualtable[];
@@ -75,15 +102,10 @@ static cType *type_cNamed asm("D_000385E0");
 static cType *type_cObject asm("D_000385E4");
 static cType *type_gcDoSetEventEnumParam asm("D_0009F6E4");
 
-struct PoolBlock {
-    char pad[0x1C];
-    char *allocTable;
-};
-
-struct AllocEntry {
+struct DtorSlot {
     short offset;
     short pad;
-    void *(*fn)(void *, int, int, int, int);
+    void (*fn)(void *, int);
 };
 
 // Type-info slot used for the embedded sub-object's virtual Write dispatch.
@@ -215,6 +237,36 @@ void gcDoSetEventEnumParam::VisitReferences(
             cb((cBase *)this, (unsigned int)(void *)entry, user);
         }
     }
+}
+
+// ============================================================
+// 0x002fcb64 — ~gcDoSetEventEnumParam(void), 248B
+// ============================================================
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoSetEventEnumParam::~gcDoSetEventEnumParam(void) {
+    *(void **)((char *)this + 4) = gcDoSetEventEnumParamvirtualtable;
+
+    if ((void *)((char *)this + 0x0C) != 0) {
+        *(void **)((char *)this + 0x10) = (void *)0x388568;
+        if ((void *)((char *)this + 0x20) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x20);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, 3);
+                *(int *)((char *)this + 0x20) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x10) = (void *)0x37E6A8;
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 // ============================================================
