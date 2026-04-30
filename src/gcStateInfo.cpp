@@ -6,7 +6,10 @@ class gcEnumeration;
 class gcEnumerationEntry;
 class gcEventParams;
 class gcEventStackData;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 template <class T>
 class cHandleT {
@@ -37,7 +40,6 @@ struct DeleteRecord {
 };
 
 extern "C" {
-void *cMemPool_GetPoolFromPtr(void *);
 void free(void *);
 void gcEnumeration__Get_intconst(void *, void *, int);
 }
@@ -55,11 +57,24 @@ public:
     int mField20;
 
     gcStateInfo();
+    ~gcStateInfo();
     float HandleUpdate(int dt, const gcEventParams &params, const gcEventStackData &stack);
     int IsValidState(const cHandlePairT<gcStateMachine, cSubHandleT<gcState> > &pair) const;
     void Reset(cHandleT<gcStateMachine> handle, const cHandlePairT<gcStateMachine, cSubHandleT<gcState> > &pair);
     float Send(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &pair,
                const gcEventParams &params, const gcEventStackData &stack);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+            short off = rec->offset;
+            rec->fn((char *)block + off, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 // The actual layout (from asm): 9 words + bytes at 4,5. Expose as raw bytes.
@@ -79,18 +94,7 @@ struct gcStateInfoLayout {
 };
 
 // ----- Function 2: gcStateInfo::~gcStateInfo() -----
-extern "C" void gcStateInfo___dtor_gcStateInfo_void(gcStateInfo *self, int flags) {
-    if (self != 0 && (flags & 1)) {
-        void *pool = cMemPool_GetPoolFromPtr(self);
-        if (pool != 0) {
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        } else {
-            free(self);
-        }
-    }
+gcStateInfo::~gcStateInfo() {
 }
 
 // ----- Function 1: gcStateInfo::gcStateInfo() -----
