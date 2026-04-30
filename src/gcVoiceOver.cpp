@@ -33,7 +33,9 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
-struct copy_word { int v; };
+static inline void copy_int_from_ptr(const int *src, int *dst) {
+    *dst = *src;
+}
 
 class cWriteBlock {
 public:
@@ -139,9 +141,8 @@ void gcVoiceOver::AssignCopy(const cBase *src) {
     int *dst68 = (int *)((char *)this + 0x68);
     int *src6C = (int *)((char *)other + 0x6C);
     *dst68 = *src68;
-    copy_word *src6CW = (copy_word *)src6C;
-    copy_word *dst6C = (copy_word *)((char *)this + 0x6C);
-    *dst6C = *src6CW;
+    __asm__ volatile("" ::: "memory");
+    copy_int_from_ptr(src6C, (int *)((char *)this + 0x6C));
 }
 
 // ── gcVoiceOver::Write @ 0x001211c4 ──

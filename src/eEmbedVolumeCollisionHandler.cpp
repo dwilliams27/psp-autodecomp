@@ -90,13 +90,13 @@ unsigned char eEmbedVolumeCollisionHandler::Run(void) {
         if (n1 > 0) {
             int arg1 = *(int *)((char *)this + 0x48b4);
             cb(cc, arg1, (char *)this + 0x12a0, n1);
+            cb = *(Cb *)((char *)this + 0x48b0);
         }
-        Cb cb2 = *(Cb *)((char *)this + 0x48b0);
-        if (cb2 != 0) {
+        if (cb != 0) {
             int n2 = counts[2];
             if (n2 > 0) {
                 int arg1 = *(int *)((char *)this + 0x48b4);
-                cb2(0, arg1, (char *)this + 0x24a0, n2);
+                cb(0, arg1, (char *)this + 0x24a0, n2);
             }
         }
     }
