@@ -1,5 +1,6 @@
 class cBase;
 class cFile;
+class cGUID;
 class cMemPool;
 
 class cObject {
@@ -22,8 +23,18 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cMemBlockAllocation {
+public:
+    cMemBlockAllocation(cMemPool *, unsigned int, bool);
+    ~cMemBlockAllocation();
+    char _pad[0x18];
+};
+
 class cType {
 public:
+    char _pad[0x1C];
+    const cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *, cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
@@ -47,6 +58,9 @@ public:
     void LoadLocalized(void);
     void LoadLocalized(const char *);
     int Load(void);
+    cObject *CreateObject(const cType *, const cGUID &, bool, unsigned int, bool);
+    cObject *FindObject(const cType *, const cGUID &, bool) const;
+    void *FindGroup(const cType *);
     void ClearVisitedReferences(unsigned int);
     void MarkForClean(unsigned int);
     void DeleteMarkedForClean(unsigned int, bool);
@@ -73,6 +87,12 @@ public:
     int _data[5];
     cReadBlock(cFile &, unsigned int, bool);
     ~cReadBlock(void);
+};
+
+class cGroup {
+public:
+    cObject *CreateObject(const cType *, const cGUID &, cMemPool *, bool, bool);
+    cObject *FindObject(const cGUID &) const;
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
@@ -124,6 +144,117 @@ void cFactory::LoadLocalized(void) {
     cType *type = entry->fn((char *)this + entry->offset);
     cObject_Static::GetLocalizedFilename(type, *(cGUID *)((char *)this + 32), &strBuf);
     this->LoadLocalized((const char *)strBuf);
+}
+
+cObject *cFactory::FindObject(const cType *type, const cGUID &guid,
+                              bool searchParents) const {
+    cObject *object;
+    cFactory *factory;
+    cGroup *group = (cGroup *)((cFactory *)this)->FindGroup(type);
+
+    if (group != 0) {
+        object = group->FindObject(guid);
+        if (object != 0) {
+            goto found;
+        }
+    }
+    if (((unsigned char)searchParents) == 0) {
+        goto not_found;
+    }
+    factory = *(cFactory *const *)this;
+    if (factory != 0) {
+        goto init;
+    }
+    factory = 0;
+    goto recurse_parent;
+
+not_found:
+    return 0;
+
+found:
+    return object;
+
+init: {
+        const char *baseName = (const char *)0x36C830;
+        const char *baseDesc = (const char *)0x36C838;
+        cBase *(*namedNew)(cMemPool *, cBase *) = &cNamed::New;
+
+loop:
+        if (D_00040C90 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType(baseName,
+                                                           baseDesc,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                       namedNew, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040C90 = cType::InitializeType(0, 0, 5, D_000385E4,
+                                               0, 0, 0, 0);
+        }
+
+        const cType *factoryType = D_00040C90;
+        char *classdesc = *(char **)((char *)factory + 4);
+        TypeDispatchEntry *entry = (TypeDispatchEntry *)(classdesc + 8);
+        cType *objType = entry->fn((char *)factory + entry->offset);
+        int isFactory;
+
+        if (factoryType == 0) {
+            isFactory = 0;
+        } else if (objType != 0) {
+            do {
+                if (objType == factoryType) {
+                    isFactory = 1;
+                    goto type_done;
+                }
+                objType = (cType *)objType->mParent;
+            } while (objType != 0);
+            isFactory = 0;
+        } else {
+            isFactory = 0;
+        }
+
+type_done:
+        if (isFactory == 0) {
+            goto advance_factory;
+        } else {
+            goto recurse_parent;
+        }
+advance_factory:
+        factory = *(cFactory **)factory;
+        if (factory != 0) {
+            goto loop;
+        }
+        factory = 0;
+    }
+
+recurse_parent:
+    if (factory == 0) {
+        goto not_found;
+    }
+    return factory->FindObject(type, guid, true);
+}
+
+cObject *cFactory::CreateObject(const cType *type, const cGUID &guid, bool flag,
+                                unsigned int size, bool flag2) {
+    cGroup *group = (cGroup *)this->FindGroup(type);
+    if (group == 0) {
+        return 0;
+    }
+
+    cMemPool *pool = cMemPool::GetPoolFromPtr(group);
+    if (size != 0) {
+        cMemBlockAllocation alloc(pool, size, false);
+        cObject *object = group->CreateObject(type, guid, pool, flag, flag2);
+        return object;
+    }
+
+    return group->CreateObject(type, guid, pool, flag, flag2);
 }
 
 // ── cFactory::Load(void) ──
