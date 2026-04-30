@@ -1,6 +1,10 @@
 #include "gcEntity.h"
 
 extern const mVec3 mVec3_Zero;
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void cHandlePairT_gcStateMachine_cSubHandleT_gcState____cHandlePairT_void__00233328(void *);
+extern "C" void eDynamicModel__eDynamicModel_cBaseptr(void *, cBase *);
+extern "C" void gcReplicationGroup__gcReplicationGroup_void__0024400C(void *);
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -36,6 +40,65 @@ struct gcEntityAllocRec {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+gcEntity::gcEntity(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x388880;
+    *(int *)((char *)this + 0x44) = 0;
+    __vec_new((char *)this + 0x48, 2, 8,
+              cHandlePairT_gcStateMachine_cSubHandleT_gcState____cHandlePairT_void__00233328);
+
+    *(int *)((char *)this + 0x58) = 0;
+    int neg = -1;
+    *(int *)((char *)this + 0x5C) = 0;
+    *(signed char *)((char *)this + 0x60) = neg;
+    *(unsigned char *)((char *)this + 0x61) = 0;
+    *(unsigned char *)((char *)this + 0x62) = 0;
+    *(unsigned char *)((char *)this + 0x63) = 0;
+    *(signed char *)((char *)this + 0x64) = neg;
+    *(signed char *)((char *)this + 0x65) = neg;
+    *(signed char *)((char *)this + 0x66) = neg;
+    *(signed char *)((char *)this + 0x67) = neg;
+    *(unsigned char *)((char *)this + 0x68) = 0;
+    *(short *)((char *)this + 0x6A) = neg;
+    *(int *)((char *)this + 0x6C) = 0;
+    *(int *)((char *)this + 0x70) = 0;
+    *(int *)((char *)this + 0x74) = 0;
+    *(int *)((char *)this + 0x78) = 0;
+
+    eDynamicModel__eDynamicModel_cBaseptr((char *)this + 0x80, (cBase *)this);
+
+    *(int *)((char *)this + 0x1D0) = 0;
+    *(gcEntity **)((char *)this + 0x1D4) = this;
+    *(int *)((char *)this + 0x1D8) = 0;
+    *(gcEntity **)((char *)this + 0x1DC) = this;
+    *(int *)((char *)this + 0x1E0) = 0;
+    *(gcEntity **)((char *)this + 0x1E4) = this;
+    *(int *)((char *)this + 0x1E8) = 0;
+    *(gcEntity **)((char *)this + 0x1EC) = this;
+    *(int *)((char *)this + 0x1F0) = 0;
+    *(gcEntity **)((char *)this + 0x1F4) = this;
+    *(int *)((char *)this + 0x1F8) = 0;
+    *(int *)((char *)this + 0x1FC) = 0;
+    *(int *)((char *)this + 0x200) = 0;
+    *(int *)((char *)this + 0x204) = 0;
+    *(int *)((char *)this + 0x208) = 0;
+    *(int *)((char *)this + 0x20C) = 0;
+    *(int *)((char *)this + 0x210) = 0;
+    *(gcEntity **)((char *)this + 0x214) = this;
+    *(int *)((char *)this + 0x218) = 0;
+    *(int *)((char *)this + 0x21C) = 0;
+    *(int *)((char *)this + 0x220) = 0;
+    *(int *)((char *)this + 0x224) = 0;
+    *(int *)((char *)this + 0x228) = 0;
+    *(int *)((char *)this + 0x22C) = 0;
+
+    __vec_new((char *)this + 0x230, 8, 6,
+              gcReplicationGroup__gcReplicationGroup_void__0024400C);
+
+    if ((unsigned char)((*(unsigned int *)0x37D858 & 8) != 0)) {
+        *(unsigned char *)((char *)this + 0x68) = *(int *)0x37D85C;
+    }
+}
 
 cBase *gcEntity::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -218,6 +281,26 @@ float gcEntity::GetSoundFrequencyOffset(int index) const {
         return 0.0f;
     success:
         return *(float *)((char *)arr[index] + 0x34);
+    }
+}
+
+float gcEntity::GetSoundVolumeOffset(int index) const {
+    int flags = *(int *)((char *)this + 0x5C);
+    int inactive = 1;
+    if (flags & 1) inactive = 0;
+    if (inactive) {
+        return 0.0f;
+    }
+    if (index < 0) goto fail;
+    {
+        int count = 0;
+        void **arr = *(void ***)((char *)this + 0x1D8);
+        if (arr != 0) count = *((int *)arr - 1);
+        if (index < count) goto success;
+    fail:
+        return 0.0f;
+    success:
+        return *(float *)((char *)arr[index] + 0x38);
     }
 }
 

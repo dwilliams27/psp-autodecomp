@@ -1,6 +1,7 @@
 #ifndef GCENTITY_H
 #define GCENTITY_H
 
+#include "cObject.h"
 #include "mVec3.h"
 
 class cBase;
@@ -8,7 +9,7 @@ class cMemPool;
 class cType;
 class gcPlayer;
 
-class gcEntity {
+class gcEntity : public cObject {
 public:
     gcEntity(cBase *);
     gcEntity &operator=(const gcEntity &);
@@ -24,6 +25,7 @@ public:
     void SetPreviousPrimaryController(bool);
     void SetPrimaryController(int, bool);
     float GetSoundFrequencyOffset(int) const;
+    float GetSoundVolumeOffset(int) const;
 };
 
 #endif
