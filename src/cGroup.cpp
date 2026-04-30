@@ -1,7 +1,19 @@
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+extern "C" void free(void *);
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -36,8 +48,24 @@ public:
     char _pad[0xC];
     cGroupNode *mList;
 
+    ~cGroup();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void RemoveAll(void);
+    void ClearVisitedReferences(unsigned int);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 class cListSubscriber {
@@ -48,6 +76,12 @@ public:
 extern cType *D_000385DC;
 extern cType *D_00038880;
 extern cType *D_00040C94;
+
+cGroup::~cGroup() {
+    *(void **)((char *)this + 4) = (void *)0x37EA80;
+    RemoveAll();
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
 
 const cType *cGroup::GetType(void) const {
     if (D_00040C94 == 0) {
@@ -88,6 +122,23 @@ void cGroup::Write(cFile &file) const {
     }
     wb.Write(false);
     wb.End();
+}
+
+void cGroup::ClearVisitedReferences(unsigned int flags) {
+    cGroupNode *node = mList;
+    if (node != 0) {
+        unsigned int mask = ~flags | 0xFFFF01FF;
+        do {
+            cGroupNode *nextNode = 0;
+            cGroupNode *next;
+            node->flags = node->flags & mask;
+            next = node->next;
+            if (next != mList) {
+                nextNode = next;
+            }
+            node = nextNode;
+        } while (node != 0);
+    }
 }
 
 const cType *cListSubscriber::GetType(void) const {
