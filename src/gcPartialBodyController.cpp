@@ -38,6 +38,11 @@ public:
     ~cReadBlock(void);
 };
 
+class cObject {
+public:
+    static int WillBeDeleted(const cBase *, const cMemPool *, unsigned int);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcPartialEntityController {
@@ -70,6 +75,7 @@ public:
     ~gcPartialBodyController();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void OnMemPoolReset(const cMemPool *, unsigned int);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static void operator delete(void *p) {
@@ -186,4 +192,16 @@ const cType *gcPartialBodyController::GetType(void) const {
                                            0, 0, 0);
     }
     return D_0009F5F4;
+}
+
+// =====================================================================
+// 0x00140594 — gcPartialBodyController::OnMemPoolReset(const cMemPool *, unsigned int)
+// =====================================================================
+void gcPartialBodyController::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
+    if (cObject::WillBeDeleted(*(cBase **)((char *)this + 0x38), pool, flags)) {
+        *(int *)((char *)this + 0x38) = 0;
+    }
+    if (cObject::WillBeDeleted(*(cBase **)((char *)this + 0x3C), pool, flags)) {
+        *(int *)((char *)this + 0x3C) = 0;
+    }
 }

@@ -1,4 +1,5 @@
 class ePoint;
+class cName;
 class cBase;
 class cMemPool;
 class cFile;
@@ -65,6 +66,12 @@ struct LookAtEntry {
     short pad1E;
 };
 
+struct LookAtNameEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, const cName &, int);
+};
+
 struct LookAtParent {
     char pad0[0x152];
     unsigned char b152;       // 0x152
@@ -96,6 +103,7 @@ public:
     int Read(cFile &, cMemPool *);
     void SetHPR(float heading, float pitch, float roll, bool snap);
     void LookAt(cHandleT<ePoint> p);
+    void AlignTo(const cName &);
     float GetHeading() const;
     float GetPitch() const;
     float GetRoll() const;
@@ -130,6 +138,20 @@ void gcLookAtController::LookAt(cHandleT<ePoint> p) {
     m_target = p;
     cHandleT<ePoint> *p2 = &m_target2;
     p2->mIndex = 0;
+}
+
+void gcLookAtController::AlignTo(const cName &name) {
+    *(short *)((char *)this + 0x40) = 3;
+    int *target = (int *)((char *)this + 0x38);
+    *target = 0;
+    int *target2 = (int *)((char *)this + 0x3C);
+    *target2 = 0;
+
+    char *base = (char *)m_parent + 0x80;
+    LookAtNameEntry *entry = (LookAtNameEntry *)(((char **)base)[1] + 0xE0);
+    short offset = entry->offset;
+    int (*fn)(void *, const cName &, int) = entry->fn;
+    *(short *)((char *)this + 0x42) = (short)fn(base + offset, name, 0);
 }
 
 float gcLookAtController::GetHeading() const {
