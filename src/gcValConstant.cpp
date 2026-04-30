@@ -12,6 +12,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -30,10 +31,19 @@ public:
     void Write(cFile &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class gcValConstant : public gcValue {
 public:
     char _pad0[8];          // 0x00 — cBase parent + vtable
     cHandle mHandle;        // 0x08
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -61,6 +71,34 @@ struct DeleteRecord {
     short pad;
     void (*fn)(void *, void *);
 };
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValConstant asm("D_0009F7F0");
+
+// ── GetType @ 0x0032541c ───────────────────────────────────────────────
+const cType *gcValConstant::GetType(void) const {
+    if (!type_gcValConstant) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValConstant = cType::InitializeType(0, 0, 0x9E, type_value,
+                                                   gcValConstant::New,
+                                                   0, 0, 0);
+    }
+    return type_gcValConstant;
+}
 
 // ── Write @ 0x00325534 ─────────────────────────────────────────────────
 void gcValConstant::Write(cFile &file) const {

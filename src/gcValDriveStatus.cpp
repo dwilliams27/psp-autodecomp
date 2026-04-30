@@ -14,6 +14,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cMemPoolNS {
 public:
@@ -48,6 +49,14 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 extern char gcValDriveStatusvirtualtable[];
 extern char gcValDriveStatus_cBase_vtable[];
 extern char cBaseclassdesc[];                                   // @ 0x37E6A8
@@ -70,6 +79,7 @@ public:
     int f8;
 
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
@@ -88,6 +98,11 @@ public:
 };
 
 gcValDriveStatus *dcast(const cBase *);
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValDriveStatus asm("D_0009F7F4");
 
 // ── gcValDriveStatus::AssignCopy(const cBase *) @ 0x00325B10 ──
 void gcValDriveStatus::AssignCopy(const cBase *base) {
@@ -113,6 +128,30 @@ cBase *gcValDriveStatus::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcValDriveStatus::GetType(void) const @ 0x00325BCC ──
+const cType *gcValDriveStatus::GetType(void) const {
+    if (!type_gcValDriveStatus) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                        type_base, 0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValDriveStatus = cType::InitializeType(0, 0, 0x20B,
+                                                      type_value,
+                                                      gcValDriveStatus::New,
+                                                      0, 0, 0);
+    }
+    return type_gcValDriveStatus;
 }
 
 // ── gcValDriveStatus::Write(cFile &) const @ 0x00325CE4 ──
