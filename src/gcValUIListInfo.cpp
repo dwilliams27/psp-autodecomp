@@ -2,6 +2,7 @@
 
 class cFile;
 class cMemPool;
+class cType;
 class gcValUIListInfo;
 
 class cWriteBlock {
@@ -20,6 +21,14 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 extern char gcValUIListInfovirtualtable[];
@@ -48,8 +57,14 @@ public:
     int pad18;
 
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValUIListInfo;
 
 // -----------------------------------------------------------------------------
 // gcValUIListInfo::New(cMemPool *, cBase *) static  @ 0x003628e0, 168B
@@ -84,4 +99,26 @@ void gcValUIListInfo::Write(cFile &file) const {
     wb.Write(mField);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+const cType *gcValUIListInfo::GetType(void) const {
+    if (!type_gcValUIListInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValUIListInfo = cType::InitializeType(0, 0, 0x1F1, type_value,
+                                                     gcValUIListInfo::New,
+                                                     0, 0, 0);
+    }
+    return type_gcValUIListInfo;
 }
