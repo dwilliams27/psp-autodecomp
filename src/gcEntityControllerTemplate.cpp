@@ -8,6 +8,11 @@ class cBase;
 class cMemPool;
 class gcEnumeration;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
@@ -20,6 +25,7 @@ public:
     void *mData;
     void *mOwner;
     void Reset(cMemPool *);
+    void RemoveAll(void);
 };
 
 template <class T>
@@ -36,9 +42,11 @@ public:
     int _pad10[3];          // 0x10..0x1B
     cBaseArray mArr2;       // 0x1C
 
+    ~gcEntityControllerTemplate();
     void Reset(cMemPool *, bool);
     const cType *GetType(void) const;
     int FindAnimationSet(cHandleT<gcEnumeration>) const;
+    static void operator delete(void *p);
 };
 
 // Set entry — cHandleT<gcEnumeration> at +8 (same shape as gcPartialBodyControllerSet)
@@ -50,6 +58,48 @@ public:
 
 extern cType *D_000385DC;
 extern cType *D_0009A400;
+extern char gcEntityControllerTemplate_dtor_classdesc[];
+extern char cBase_dtor_classdesc[];
+extern "C" void free(void *);
+
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+inline void gcEntityControllerTemplate::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oagcEntityControllerTemplatedtv, 0xcc\n");
+
+// =====================================================================
+// 0x0025d4c8 — ~gcEntityControllerTemplate(void)
+// =====================================================================
+gcEntityControllerTemplate::~gcEntityControllerTemplate() {
+    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
+    cBaseArray *arr1 = (cBaseArray *)((char *)this + 0x1C);
+    cBaseArray *arr0 = (cBaseArray *)((char *)this + 0x08);
+    if (arr1 != 0) {
+        arr1->RemoveAll();
+    }
+    if (arr0 != 0) {
+        arr0->RemoveAll();
+    }
+    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
 
 // =====================================================================
 // 0x0010fed8 — Reset(cMemPool *, bool)
@@ -92,7 +142,7 @@ int gcEntityControllerTemplate::FindAnimationSet(cHandleT<gcEnumeration> h) cons
             *(gcEntityControllerSet **)((char *)data + offset);
         const cHandleT<gcEnumeration> *eh =
             (const cHandleT<gcEnumeration> *)((const char *)e + 8);
-        if (*eh == h) {
+        if (((eh->mIndex ^ h.mIndex) == 0) & 0xFF) {
             return i;
         }
         i++;
