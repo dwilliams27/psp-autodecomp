@@ -10,6 +10,7 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     const class cType *GetType(void) const;
 };

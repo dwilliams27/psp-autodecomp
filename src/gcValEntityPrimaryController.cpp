@@ -18,6 +18,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -53,8 +62,15 @@ public:
 gcValEntityPrimaryController *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 void gcLValue_Write(const gcValEntityPrimaryController *, cFile &);
+int gcValue_Read(gcValEntityPrimaryController *, cFile &, cMemPool *);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+extern "C" {
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
 
 extern const char gcValEntityPrimaryController_text_fmt[];
 extern const char gcValEntityPrimaryController_text_arg[];
@@ -155,6 +171,26 @@ void gcValEntityPrimaryController::Write(cFile &file) const {
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     wb.Write(*(const int *)((const char *)this + 52));
     wb.End();
+}
+
+// 0x0033b37c (268B) — Read
+int gcValEntityPrimaryController::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (tag != version || gcValue_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+    char *sub = (char *)this + 8;
+    char *mType = *(char **)((char *)this + 12);
+    const cTypeMethod *e = (const cTypeMethod *)(mType + 48);
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)e->fn)(sub + e->offset, f, cMemPool_GetPoolFromPtr(sub));
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 52, 4);
+    return 1;
 }
 
 // 0x0033b530 (104B) — GetText
