@@ -16,12 +16,8 @@ void nwMsgConnectionAccepted::Write(cOutStream &, nwSocketHandle, const nwAddres
 }
 
 void nwMsgConnectionAccepted::Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle handle) {
-    volatile int vols[2];
-    nwConnectionHandle h;
-    h.mValue = vols[1];
-    vols[1] = handle.mValue;
-    if (nwSocket::GetConnection(h) != 0) {
-        nwSocket::GetConnection(h)->OnConnectionAccepted();
+    if (nwSocket::GetConnection(handle) != 0) {
+        nwSocket::GetConnection(handle)->OnConnectionAccepted();
     }
 }
 
@@ -153,4 +149,20 @@ void gcFloatSet::AssignCopy(const cBase *base) {
     ((gcNamedSet *)this)->mName = ((gcNamedSet *)src)->mName;
     __asm__ volatile("" ::: "memory");
     this->mArray = src->mArray;
+}
+
+extern int __exception_ptr;
+extern const char _exception_str[];
+
+namespace std {
+    class bad_exception {
+    public:
+        const char *what() const;
+    };
+}
+
+const char *std::bad_exception::what() const {
+    int value = __exception_ptr;
+    *(volatile int *)&__exception_ptr = value;
+    return _exception_str;
 }
