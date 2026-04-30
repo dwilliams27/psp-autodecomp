@@ -25,11 +25,25 @@ public:
     static int Read(cFileHandle *, void *, unsigned int);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char gcValMouseStatevirtualtable[];
 extern char gcValMouseStateDerivedvtable[];
 extern char cBaseclassdesc[];                                // @ 0x37E6A8
+
+class gcValNavMeshDirection {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
 
 gcValMouseState *dcast(const cBase *);
 void gcValue_Write(const gcValMouseState *, cFile &);
@@ -57,6 +71,12 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValMouseState;
+static cType *type_gcValNavMeshDirection;
+
 // -----------------------------------------------------------------------------
 // Function: gcValMouseState::New(cMemPool *, cBase *) static
 // -----------------------------------------------------------------------------
@@ -77,6 +97,49 @@ cBase *gcValMouseState::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcValMouseState::GetType(void) const {
+    if (!type_gcValMouseState) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValMouseState = cType::InitializeType(0, 0, 0x20E, type_value,
+                                                     gcValMouseState::New,
+                                                     0, 0, 0);
+    }
+    return type_gcValMouseState;
+}
+
+const cType *gcValNavMeshDirection::GetType(void) const {
+    if (!type_gcValNavMeshDirection) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValNavMeshDirection = cType::InitializeType(
+            0, 0, 0xFA, type_value, gcValNavMeshDirection::New, 0, 0, 0);
+    }
+    return type_gcValNavMeshDirection;
 }
 
 // -----------------------------------------------------------------------------
