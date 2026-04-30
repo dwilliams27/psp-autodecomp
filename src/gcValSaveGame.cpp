@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -27,6 +28,23 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *);
+};
+
+class cType {
+public:
+    char pad[0x1C];
+    cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 extern char cBaseclassdesc[];
 extern char D_00389508[];
 
@@ -43,7 +61,10 @@ public:
     int pad10;
     int pad14;
 
+    gcValSaveGame &operator=(const gcValSaveGame &);
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -51,6 +72,11 @@ class gcDesiredEntityTemplate {
 public:
     static cBase *New(cMemPool *, cBase *);
 };
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValSaveGame asm("D_0009F8D4");
 
 cBase *gcValSaveGame::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -73,6 +99,81 @@ cBase *gcValSaveGame::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcValSaveGame::GetType(void) const {
+    if (!type_gcValSaveGame) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValSaveGame = cType::InitializeType(0, 0, 0x1B6, type_value,
+                                                   gcValSaveGame::New,
+                                                   0, 0, 0);
+    }
+    return type_gcValSaveGame;
+}
+
+void gcValSaveGame::AssignCopy(const cBase *base) {
+    const gcValSaveGame *other = 0;
+
+    if (base != 0) {
+        if (!type_gcValSaveGame) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_gcValSaveGame = cType::InitializeType(
+                0, 0, 0x1B6, type_value, gcValSaveGame::New, 0, 0, 0);
+        }
+
+        DispatchEntry *entry =
+            (DispatchEntry *)((char *)*(void **)((char *)base + 4) + 8);
+        cType *wanted = type_gcValSaveGame;
+        cType *type = entry->fn((char *)base + entry->offset);
+        int ok;
+
+        if (wanted == 0) {
+            ok = 0;
+        } else if (type != 0) {
+        loop:
+            if (type == wanted) {
+                ok = 1;
+            } else {
+                type = type->mParent;
+                if (type != 0) {
+                    goto loop;
+                }
+                goto fail;
+            }
+        } else {
+fail:
+            ok = 0;
+        }
+        if (ok != 0) {
+            other = (const gcValSaveGame *)base;
+        }
+    }
+
+    operator=(*other);
 }
 
 void gcValSaveGame::Write(cFile &file) const {
