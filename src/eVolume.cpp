@@ -2,8 +2,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
@@ -39,13 +43,32 @@ inline void *operator new(unsigned int, void *p) { return p; }
 // ============================================================
 
 class eWorld;
+class eRoom;
 
 class eVolume {
 public:
+    struct DeleteRec {
+        short offset;
+        short pad;
+        void (*fn)(void *, void *);
+    };
+
     char _pad0[0x20];
     eWorld *mWorld;
 
     eVolume(cBase *);
+    ~eVolume();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
+
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     void UpdateLocalToWorld(void);
@@ -57,6 +80,86 @@ class eWorld {
 public:
     void UpdateVolumeLocation(eVolume *);
 };
+
+class eRoom {
+public:
+    void RemoveVolume(eVolume *);
+};
+
+#pragma control sched=1
+eVolume::eVolume(cBase *parent) {
+    *(cBase **)this = parent;
+    *(void **)((char *)this + 4) = (void *)0x382260;
+    *(int *)((char *)this + 8) = 2;
+    *(float *)((char *)this + 0xC) = 0.7071f;
+    __asm__ volatile(
+        "lui $a1, 0x3f80\n"
+        "mtc1 $a1, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "mfc1 $a2, $f12\n"
+        "mtc1 $zero, $f13\n"
+        "mfc1 $a3, $f13\n"
+        "mtv $a1, S120\n"
+        "mtv $a2, S121\n"
+        "mtv $a3, S122\n"
+        "sv.q C120, 0x10(%0)\n"
+        :
+        : "r"(this)
+        : "a1", "a2", "a3", "f12", "f13", "memory");
+    *(int *)((char *)this + 0x20) = 0;
+    *(int *)((char *)this + 0x24) = 0;
+    *(int *)((char *)this + 0x70) = 0;
+    *(unsigned char *)((char *)this + 0x74) = 0;
+    *(unsigned char *)((char *)this + 0x75) = 0;
+    *(int *)((char *)this + 0x78) = 0;
+    *(int *)((char *)this + 0x7C) = 0;
+    *(int *)((char *)this + 0x80) = 0;
+    __asm__ volatile(
+        "vmidt.q M000\n"
+        "vmov.q C120, C000\n"
+        "vmov.q C130, C010\n"
+        "vmov.q C200, C020\n"
+        "vmov.q C210, C030\n"
+        "sv.q C120, 0x30(%0)\n"
+        "sv.q C130, 0x40(%0)\n"
+        "sv.q C200, 0x50(%0)\n"
+        "sv.q C210, 0x60(%0)\n"
+        :
+        : "r"(this)
+        : "memory");
+}
+#pragma control sched=2
+
+#pragma control sched=1
+eVolume::~eVolume() {
+    *(void **)((char *)this + 4) = (void *)0x382260;
+    __asm__ volatile("" ::: "memory");
+    eRoom *room = *(eRoom **)((char *)this + 0x24);
+    __asm__ volatile("" : "+r"(room) :: "memory");
+    if (room != 0) {
+        room->RemoveVolume(this);
+    } else {
+        char *world = *(char **)((char *)this + 0x20);
+        if (world != 0 && *(void **)((char *)this + 0x78) != 0) {
+            char *next = *(char **)((char *)this + 0x7C);
+            if (next != 0) {
+                if (*(eVolume **)(world + 0x1C) == this) {
+                    *(char **)(world + 0x1C) = next;
+                }
+                *(void **)(*(char **)((char *)this + 0x78) + 0x7C) =
+                    next;
+                *(void **)(next + 0x78) = *(void **)((char *)this + 0x78);
+                *(int *)((char *)this + 0x78) = 0;
+                *(int *)((char *)this + 0x7C) = 0;
+                if (*(eVolume **)(world + 0x1C) == this) {
+                    *(int *)(world + 0x1C) = 0;
+                }
+            }
+        }
+    }
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
+#pragma control sched=2
 
 #pragma control sched=1
 void eVolume::UpdateLocalToWorld(void) {
