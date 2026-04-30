@@ -1,7 +1,18 @@
-#include "gcUIControl.h"
-
 class cBase;
 class cFile;
+class cMemPool;
+class cType;
+class eCamera;
+class mOCS;
+class mVec2;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -21,12 +32,61 @@ public:
 
 class gcUIWidget {
 public:
+    gcUIWidget(cBase *);
     gcUIWidget &operator=(const gcUIWidget &);
     void Write(cFile &) const;
 };
 
+class gcUIControl : public gcUIWidget {
+public:
+    gcUIControl(cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+    void OnDraw(const eCamera &, const mOCS &, const mVec2 &, const mVec2 &,
+                float, float, float, unsigned int);
+};
+
 template <class T>
 T dcast(const cBase *);
+
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009990C;
+extern cType *D_0009F40C;
+
+gcUIControl::gcUIControl(cBase *parent) : gcUIWidget(parent) {
+    *(void **)((char *)this + 4) = (void *)0x388D60;
+    *(int *)((char *)this + 0xB0) = 4;
+    __vec_new((char *)this + 0xB4, 3, 4, (void (*)(void *))0x1E74A4);
+    *(float *)((char *)this + 0xC0) = 32.0f;
+    *(float *)((char *)this + 0xC4) = 32.0f;
+}
+
+const cType *gcUIControl::GetType(void) const {
+    if (D_0009F40C == 0) {
+        if (D_0009990C == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC,
+                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+            }
+            D_0009990C =
+                cType::InitializeType(0, 0, 0x84, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F40C = cType::InitializeType(0, 0, 0x201, D_0009990C,
+                                           gcUIControl::New, 0, 0, 0);
+    }
+    return D_0009F40C;
+}
 
 void gcUIControl::AssignCopy(const cBase *base) {
     gcUIControl *other = dcast<gcUIControl *>(base);
@@ -64,5 +124,6 @@ void gcUIControl::Write(cFile &file) const {
     wb.End();
 }
 
-void gcUIControl::OnDraw(const eCamera &, const mOCS &, const mVec2 &, const mVec2 &, float, float, float, unsigned int) {
+void gcUIControl::OnDraw(const eCamera &, const mOCS &, const mVec2 &,
+                         const mVec2 &, float, float, float, unsigned int) {
 }
