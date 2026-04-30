@@ -4,6 +4,7 @@
 // floats, then two 16-byte (V4SF) blocks at 0x20 and 0x30.
 //
 // Functions matched here:
+//   eBodyWorldConstraint::eBodyWorldConstraint(cBase *)   @ 0x0006b440  (eAll_psp.obj)
 //   eBodyWorldConstraint::Read(cFile &, cMemPool *)        @ 0x0006b384  (eAll_psp.obj)
 //   eBodyWorldConstraint::Write(cFile &) const           @ 0x0006b338  (eAll_psp.obj)
 //   eBodyWorldConstraint::AssignCopy(const cBase *)      @ 0x0020992c  (eAll_psp.obj)
@@ -109,6 +110,30 @@ public:
 
 extern "C" {
     void eBodyWorldConstraint__eBodyWorldConstraint_cBaseptr(void *self, cBase *parent);
+}
+
+// -- eBodyWorldConstraint::eBodyWorldConstraint(cBase *) --  @ 0x0006b440, 92B
+eBodyWorldConstraint::eBodyWorldConstraint(cBase *parent)
+    : eSimulatedConstraint(parent) {
+    *(void **)((char *)this + 4) = eBodyWorldConstraintvirtualtable;
+    *(int *)((char *)this + 0x08) = 0;
+    *(int *)((char *)this + 0x10) = 0;
+
+    float z = 0.0f;
+    int x;
+    int y;
+    int w;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(w) : "f"(z));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x30(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(w), "r"(this)
+        : "memory");
 }
 
 // ── eBodyWorldConstraint::Read(cFile &, cMemPool *) ──  @ 0x0006b384, 188B

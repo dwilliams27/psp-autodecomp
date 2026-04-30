@@ -1,4 +1,7 @@
 // eBodyWorldConstraintConfig - config for a rigid-body-to-world constraint.
+//
+// Functions matched here:
+//   eBodyWorldConstraintConfig::eBodyWorldConstraintConfig(cBase *) @ 0x000760cc
 
 class cBase;
 class cFile;
@@ -100,6 +103,59 @@ public:
 template <class T> T *dcast(const cBase *);
 
 #pragma control sched=1
+
+// eBodyWorldConstraintConfig::eBodyWorldConstraintConfig(cBase *) @ 0x000760cc
+eBodyWorldConstraintConfig::eBodyWorldConstraintConfig(cBase *parent)
+    : ePhysicsConstraintConfig(parent) {
+    *(void **)((char *)this + 4) = eBodyWorldConstraintConfigvirtualtable;
+
+    float z = 0.0f;
+    int x;
+    int y;
+    int w;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(z));
+    __asm__ volatile(
+        "lui $a2, 0x3f80\n"
+        "mtc1 $a2, $f13\n"
+        "mfc1 $a2, $f13\n"
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv $a2, S122\n"
+        "sv.q C120, 0x20(%2)\n"
+        :
+        : "r"(x), "r"(y), "r"(this)
+        : "$a2", "memory");
+
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(w) : "f"(z));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x30(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(w), "r"(this)
+        : "memory");
+
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(z));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(w) : "f"(z));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x40(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(w), "r"(this)
+        : "memory");
+
+    mFloat50 = 45.0f;
+    mInt54 = 0;
+    mBool58 = true;
+    mBool59 = false;
+}
 
 // eBodyWorldConstraintConfig::~eBodyWorldConstraintConfig(void) @ 0x0007617c
 eBodyWorldConstraintConfig::~eBodyWorldConstraintConfig() {
