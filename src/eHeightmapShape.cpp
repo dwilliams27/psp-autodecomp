@@ -136,6 +136,11 @@ eHeightmapShape::eHeightmapShape(cBase *parent) {
 
 #pragma control sched=1
 
+// eHeightmapShape::Collide(const eBoxShape *, ...) — 0x000513b8
+int eHeightmapShape::Collide(const eBoxShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::BoxHeightmap(*shape, *this, a, ocs2, ocs1, info);
+}
+
 // eHeightmapShape::Collide(const eCapsuleShape *, ...) — 0x0005143c
 int eHeightmapShape::Collide(const eCapsuleShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::CapsuleHeightmap(*shape, *this, a, ocs2, ocs1, info);

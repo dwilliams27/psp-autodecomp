@@ -129,16 +129,13 @@ struct gcDesiredUIWidgetHelperData {
 
 void gcValUITexCoord::AssignCopy(const cBase *base) {
     gcValUITexCoord *other = dcast<gcValUITexCoord>(base);
-    __asm__ volatile("" ::: "memory");
-    gcDesiredUIWidgetHelperData *dst_h = (gcDesiredUIWidgetHelperData *)((char *)this + 8);
-    const gcDesiredUIWidgetHelperData *src_h = (const gcDesiredUIWidgetHelperData *)((const char *)other + 8);
-    dst_h->mField4 = src_h->mField4;
-    dst_h->mField0 = src_h->mField0;
-    dst_h->mField8 = src_h->mField8;
-    *(int *)((char *)this + 0x14) = *(const int *)((char *)other + 0x14);
-    *(int *)((char *)this + 0x18) = *(const int *)((char *)other + 0x18);
-    *(unsigned char *)((char *)this + 0x1C) = *(const unsigned char *)((char *)other + 0x1C);
-    *(float *)((char *)this + 0x20) = *(const float *)((char *)other + 0x20);
+    *(int *)((char *)this + 8) = *(const int *)((char *)other + 8);
+    *(cHandle *)((char *)this + 12) = *(const cHandle *)((char *)other + 12);
+    *(cHandle *)((char *)this + 16) = *(const cHandle *)((char *)other + 16);
+    mField14 = other->mField14;
+    mField18 = other->mField18;
+    mField1C = other->mField1C;
+    mField20 = other->mField20;
 }
 
 // ============================================================
