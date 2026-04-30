@@ -20,8 +20,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -73,6 +77,12 @@ struct WriteEntry {
     void (*fn)(void *, void *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct DispatchEntry {
     short offset;
     short pad;
@@ -88,15 +98,60 @@ public:
 
 class gcValEnumerationEntry : public gcValue {
 public:
+    ~gcValEnumerationEntry();
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern char gcValEnumerationEntry_inner_classdesc[];   // 0x000081D0
+extern char cBaseclassdesc[];                          // 0x0037E6A8
+extern char gcDesiredEnumerationEntryvirtualtable[];    // 0x00388568
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oVgcValEnumerationEntrydtv, 0xf0\n");
+
+// ── 0x0034273c — gcValEnumerationEntry::~gcValEnumerationEntry(void) ──
+gcValEnumerationEntry::~gcValEnumerationEntry() {
+    *(char **)((char *)this + 4) = gcValEnumerationEntry_inner_classdesc;
+    char *entry = (char *)this + 0x08;
+    if (entry != 0) {
+        *(char **)((char *)this + 0x0C) = gcDesiredEnumerationEntryvirtualtable;
+        char *slot = (char *)this + 0x1C;
+        if (slot != 0) {
+            int keep = 1;
+            int val = *(int *)((char *)this + 0x1C);
+            if (val & 1) {
+                keep = 0;
+            }
+            if (keep != 0 && val != 0) {
+                char *obj = (char *)val;
+                char *type = ((char **)obj)[1];
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(obj + off, (void *)3);
+                *(int *)((char *)this + 0x1C) = 0;
+            }
+        }
+        *(char **)((char *)this + 0x0C) = cBaseclassdesc;
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
@@ -179,6 +234,7 @@ void gcValEnumerationEntry::VisitReferences(
     }
     if (entry != 0) {
         gcValEnumerationEntry *owner = self;
+        __asm__ volatile("" ::: "memory");
         gcDesiredEnumerationEntry *matched = 0;
 
         if (!type_object) {
@@ -201,38 +257,43 @@ void gcValEnumerationEntry::VisitReferences(
         cType *type = dispatch->fn((char *)entry + dispatch->offset);
         int ok;
 
-        if (myType == 0) {
-            goto fail;
+        if (myType != 0) {
+            goto have_type;
         }
-        if (type != 0) {
-        loop:
-            if (type != myType) {
-                type = type->mParent;
-                if (type == 0) {
-                    goto fail;
-                }
-                goto loop;
+        ok = 0;
+        goto type_done;
+have_type:
+        if (type == 0) {
+            goto type_fail_after;
+        }
+        do {
+            if (type == myType) {
+                ok = 1;
+                goto type_done;
             }
-            ok = 1;
-        } else {
-fail:
-            ok = 0;
-        }
+            type = type->mParent;
+        } while (type != 0);
+type_fail_after:
+        ok = 0;
+type_done:
         if (ok != 0) {
             matched = entry;
         }
         if (matched != 0) {
-            unsigned char direct =
-                (((flags & 0xFE00) & *(unsigned short *)((char *)matched + 0x28)) != 0);
+            unsigned int direct =
+                (unsigned char)(((flags & 0xFE00) &
+                                 *(unsigned short *)((char *)matched + 0x28)) != 0);
             if (direct != 0) {
-                if (cb != 0) {
-                    cb((cBase *)owner, (unsigned int)(void *)entry, user);
-                }
-            } else {
-                entry->VisitReferences(flags, (cBase *)owner, cb, user, mask);
+                goto direct_callback;
             }
-        } else {
-            entry->VisitReferences(flags, (cBase *)owner, cb, user, mask);
         }
+        entry->VisitReferences(flags, (cBase *)owner, cb, user, mask);
+        goto done;
+direct_callback:
+        if (cb != 0) {
+            cb((cBase *)owner, (unsigned int)(void *)entry, user);
+        }
+done:
+        ;
     }
 }
