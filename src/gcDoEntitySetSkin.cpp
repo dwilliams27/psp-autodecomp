@@ -55,6 +55,16 @@ public:
     gcDoEntitySetSkin &operator=(const gcDoEntitySetSkin &);
 };
 
+class gcExpressionList {
+public:
+    gcExpressionList(cBase *);
+};
+
+class gcDoSwitch : public gcAction {
+public:
+    gcDoSwitch(cBase *);
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -81,10 +91,81 @@ struct VTableSlot {
 extern const char gcDoEntitySetSkin_base_name[];
 extern const char gcDoEntitySetSkin_base_desc[];
 
+extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void gcExpressionList_gcExpressionList(void *, cBase *);
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+extern char D_00000338[];
+extern char gcDoEntitySetSkinvirtualtable[];
+extern char gcDoSwitchvirtualtable[];
+
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
 static cType *type_action asm("D_000385D4");
 static cType *type_gcDoEntitySetSkin asm("D_0009F664");
+
+gcDoEntitySetSkin::gcDoEntitySetSkin(cBase *parent) {
+    gcAction_gcAction(this, parent);
+    mVTable = gcDoEntitySetSkinvirtualtable;
+
+    char *desired0 = (char *)this + 0x0C;
+    gcDesiredObject_gcDesiredObject(desired0, (cBase *)this);
+
+    void *desiredType = D_00000338;
+    *(void **)((char *)this + 0x10) = desiredType;
+
+    void *helper0 = (char *)this + 0x18;
+    int one = 1;
+    gcDesiredEntityHelper_ctor(helper0, 1, 0, 0);
+
+    void *helperDesc = (void *)0x388A48;
+    *(void **)((char *)this + 0x10) = helperDesc;
+    *(void **)((char *)this + 0x20) = desired0;
+
+    void *desiredVTable = (void *)0x388568;
+    *(void **)((char *)this + 0x24) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x28) = one;
+    *(unsigned char *)((char *)this + 0x29) = 0;
+    *(int *)((char *)this + 0x2C) = 0;
+    *(int *)((char *)this + 0x30) = 0;
+    *(int *)((char *)this + 0x34) = (int)desired0 | 1;
+
+    int selfFlag = (int)this | 1;
+    *(int *)((char *)this + 0x38) = 0;
+    *(int *)((char *)this + 0x3C) = selfFlag;
+
+    char *desired1 = (char *)this + 0x40;
+    gcDesiredObject_gcDesiredObject(desired1, (cBase *)this);
+    *(void **)((char *)this + 0x44) = desiredType;
+    gcDesiredEntityHelper_ctor((char *)this + 0x4C, 1, 0, 0);
+
+    *(void **)((char *)this + 0x44) = helperDesc;
+    *(void **)((char *)this + 0x54) = desired1;
+    *(void **)((char *)this + 0x58) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x5C) = one;
+    *(unsigned char *)((char *)this + 0x5D) = 0;
+    *(int *)((char *)this + 0x60) = 0;
+    *(int *)((char *)this + 0x64) = 0;
+    *(int *)((char *)this + 0x68) = (int)desired1 | 1;
+
+    gcDesiredObject_gcDesiredObject((char *)this + 0x6C, (cBase *)this);
+    *(int *)((char *)this + 0x78) = one;
+    *(int *)((char *)this + 0x7C) = 0;
+    *(void **)((char *)this + 0x70) = (void *)0x38A548;
+    *(int *)((char *)this + 0x80) = selfFlag;
+    *(int *)((char *)this + 0x84) = selfFlag;
+    *(int *)((char *)this + 0x88) = selfFlag;
+}
+
+gcDoSwitch::gcDoSwitch(cBase *parent) {
+    gcAction_gcAction(this, parent);
+    mVTable = gcDoSwitchvirtualtable;
+    *(unsigned int *)((char *)this + 0x0C) = (unsigned int)this | 1;
+    gcExpressionList_gcExpressionList((char *)this + 0x10, (cBase *)this);
+    gcExpressionList_gcExpressionList((char *)this + 0x18, (cBase *)this);
+}
 
 cBase *gcDoEntitySetSkin::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
