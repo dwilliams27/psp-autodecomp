@@ -7,7 +7,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cWriteBlock {
@@ -48,16 +51,65 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcEntityTemplateRelationship : public gcObjectRelationship {
 public:
+    ~gcEntityTemplateRelationship();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern cType *D_000385DC;
 static cType *type_gcObjectRelationship;
 static cType *type_gcEntityTemplateRelationship;
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0ocgcEntityTemplateRelationshipdtv, 0xf0\n");
+
+// 0x0031b530 — ~gcEntityTemplateRelationship(void)
+gcEntityTemplateRelationship::~gcEntityTemplateRelationship() {
+    *(char **)((char *)this + 4) = (char *)0x388928;
+    char *baseVtable = (char *)0x37E6A8;
+    char *sub = (char *)this + 8;
+    if (sub != 0) {
+        *(char **)((char *)this + 0xC) = (char *)0x388568;
+        char *slot = (char *)this + 0x1C;
+        if (slot != 0) {
+            int keep = 1;
+            int val = *(int *)((char *)this + 0x1C);
+            if (val & 1) {
+                keep = 0;
+            }
+            if (keep != 0 && val != 0) {
+                char *obj = (char *)val;
+                char *type = ((char **)obj)[1];
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(obj + off, (void *)3);
+                *(int *)((char *)this + 0x1C) = 0;
+            }
+        }
+        *(char **)((char *)this + 0xC) = baseVtable;
+    }
+    *(char **)((char *)this + 4) = baseVtable;
+}
 
 cBase *gcEntityTemplateRelationship::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
