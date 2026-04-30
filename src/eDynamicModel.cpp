@@ -18,6 +18,8 @@ extern cType *D_00040FF4;
 extern cType *D_000469C0;
 extern cType *D_000469DC;
 
+extern char eDynamicModelvirtualtable[];
+
 template <class T> class cHandleT {
 public:
     int mHandle;
@@ -42,6 +44,12 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short _pad;
+    cType *(*fn)(void *, short, void *);
+};
+
 void eDynamicGeom_Write(const void *, cFile &);
 
 class cWriteBlock {
@@ -59,6 +67,98 @@ void *eDynamicModel::GetCurrentPhysicsController(void) const {
     }
     return 0;
 }
+
+#pragma control sched=2
+
+eDynamicModel::eDynamicModel(cBase *parent) : eDynamicGeom(parent) {
+    *(void **)((char *)this + 4) = eDynamicModelvirtualtable;
+    *(int *)((char *)this + 0xF0) = 0;
+    *(int *)((char *)this + 0xF4) = 0;
+    *(int *)((char *)this + 0xF8) = 0;
+    *(int *)((char *)this + 0xFC) = 0;
+    *(int *)((char *)this + 0x100) = 0;
+    *(int *)((char *)this + 0x104) = 0;
+    *(short *)((char *)this + 0x108) = 0;
+    *(short *)((char *)this + 0x10A) = 0;
+    *(int *)((char *)this + 0x10C) = 0;
+    *(int *)((char *)this + 0x110) = 0;
+    *(int *)((char *)this + 0x114) = 0;
+    *(int *)((char *)this + 0x118) = 0;
+    *(int *)((char *)this + 0x11C) = (int)this;
+    *(int *)((char *)this + 0x120) = -1;
+    *(int *)((char *)this + 0x124) = 0;
+    *(int *)((char *)this + 0x128) = 0;
+    *(int *)((char *)this + 0x12C) = 0;
+    *(int *)((char *)this + 0x130) = 0;
+    *(int *)((char *)this + 0x134) = 0;
+    *(int *)((char *)this + 0x138) = 0;
+    *(unsigned char *)((char *)this + 0x13C) = 0;
+    *(int *)((char *)this + 0x148) = 0;
+}
+
+void eDynamicModel::AssignCopy(const cBase *base) {
+    const eDynamicModel *other = 0;
+
+    if (base != 0) {
+        if (D_000469DC == 0) {
+            if (D_000469C0 == 0) {
+                if (D_00040FF4 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                           (const char *)0x36CD7C,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                       0, 0, 0, 0);
+                }
+                D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                                   0, 0, 0, 0);
+            }
+            D_000469DC = cType::InitializeType(0, 0, 0x2D, D_000469C0,
+                                               &eDynamicModel::New, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((const char *)base + 4);
+        cType *target = D_000469DC;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((void *)((const char *)base + offset), offset, (void *)fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = *(cType **)((char *)type + 0x1C);
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const eDynamicModel *)base;
+        }
+    }
+
+    *this = *other;
+}
+
+#pragma control sched=1
 
 void *eDynamicModel::GetCurrentPhysicsController(void) {
     int idx = *(int *)((char *)this + 0x120);

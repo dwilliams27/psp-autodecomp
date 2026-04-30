@@ -1,6 +1,8 @@
 #ifndef EDYNAMICMODEL_H
 #define EDYNAMICMODEL_H
 
+#include "eDynamicGeom.h"
+
 class cBase;
 class cMemPool;
 class cFile;
@@ -17,9 +19,11 @@ class eSkin;
 template <class T> class cHandleT;
 struct mOCS;
 
-class eDynamicModel {
+class eDynamicModel : public eDynamicGeom {
 public:
     eDynamicModel(cBase *);
+    eDynamicModel &operator=(const eDynamicModel &);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
