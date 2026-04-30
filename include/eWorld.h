@@ -53,6 +53,7 @@ public:
     const eRoom *GetRoomFromPos(const eRoom *, const mVec3 &) const;
     int IsPointInFluidVolume(const eRoom *, const mVec3 &) const;
     static int GetNextCullId(void);
+    static void operator delete(void *);
 };
 
 #endif

@@ -1,13 +1,16 @@
 #include "eWorld.h"
 #include "mVec3.h"
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
-extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 static int sNextCullId;
 
@@ -130,20 +133,20 @@ void eWorld::RemoveSound(eSound *s) {
     }
 }
 
-extern "C" void eWorld___dtor_eWorld_void(eWorld *self, int flags) {
-    if (self != 0) {
-        int i = 0;
-        do {
-            i++;
-        } while (i < 3);
-        if (flags & 1) {
-            if (self != 0) {
-                void *pool = cMemPool_GetPoolFromPtr(self);
-                void *block = *(void **)((char *)pool + 0x24);
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            }
-        }
+inline void eWorld::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
     }
+}
+
+eWorld::~eWorld() {
+    int i = 0;
+    do {
+        i++;
+    } while (i < 3);
 }
