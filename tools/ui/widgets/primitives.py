@@ -19,10 +19,21 @@ def progress_bar(frac, width=10):
     return "\u25B0" * filled + "\u25B1" * (width - filled)  # ▰ ▱
 
 
-def size_cell(size_bytes):
-    """One ▰ per 10 bytes (capped), color-tiered by size, byte count trails."""
-    bars = max(1, size_bytes // 10)
-    bars = min(bars, 30)
+def size_cell(size_bytes, width=58, max_bytes=1000):
+    """Right-aligned size bar with a fixed byte counter.
+
+    The byte count is pinned to the right edge, and the proportional bar
+    grows leftward toward it. Values at or above max_bytes fill the bar.
+    """
+    counter = f"{size_bytes}B"
+    counter_width = max(6, len(counter))
+    bar_width = max(1, width - counter_width - 1)
+    frac = max(0.0, min(1.0, size_bytes / max_bytes if max_bytes else 0.0))
+    bars = int(round(frac * bar_width))
+    if size_bytes > 0:
+        bars = max(1, bars)
+    bars = min(bars, bar_width)
+
     if size_bytes < 50:
         style = f"dim {LEAF}"
     elif size_bytes < 128:
@@ -31,7 +42,10 @@ def size_cell(size_bytes):
         style = SUN
     else:
         style = f"bold {SUNLIT}"
+
     cell = Text()
+    cell.append(" " * (bar_width - bars))
     cell.append("\u25B0" * bars, style=style)
-    cell.append(f"  {size_bytes}B", style=DIM)
+    cell.append(" ")
+    cell.append(counter.rjust(counter_width), style=DIM)
     return cell

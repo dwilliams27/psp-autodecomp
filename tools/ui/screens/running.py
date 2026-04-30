@@ -75,6 +75,8 @@ _COMPARE_RE = re.compile(r"compare_func\.py\s+\S+\s+(0x[0-9a-fA-F]+)")
 
 # Maximum tiles rendered in the grid. Overflow slots get a compact strip.
 _MAX_TILES = 4
+_OUTCOME_NAME_WIDTH = 42
+_OUTCOME_SIZE_WIDTH = 58
 
 
 def _short_name(full_name):
@@ -773,8 +775,8 @@ class RunningScreen(Screen):
             tbl = Table.grid(padding=(0, 2), expand=True)
             tbl.add_column(width=2)
             tbl.add_column(style=BODY, width=10)
-            tbl.add_column(style=BODY, ratio=1)
-            tbl.add_column(justify="left", width=40)
+            tbl.add_column(style=BODY, width=_OUTCOME_NAME_WIDTH)
+            tbl.add_column(justify="right", width=_OUTCOME_SIZE_WIDTH)
             tbl.add_column(justify="right", width=22)
             tbl.add_column(style=DIM, justify="right", width=4)
             for o in state.outcomes:
@@ -794,8 +796,8 @@ class RunningScreen(Screen):
                 tbl.add_row(
                     Text(glyph, style=f"bold {color}"),
                     Text(label, style=color),
-                    o["name"],
-                    size_cell(o["size"]),
+                    _truncate(o["name"], _OUTCOME_NAME_WIDTH),
+                    size_cell(o["size"], width=_OUTCOME_SIZE_WIDTH),
                     tag_cell,
                     dur_cell,
                 )
