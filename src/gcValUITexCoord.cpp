@@ -15,7 +15,9 @@
 //   [0x20] mField20 (float)
 
 class cBase;
+class cFile;
 class cMemPool;
+class cType;
 
 template <class T> T *dcast(const cBase *);
 
@@ -23,12 +25,38 @@ extern char cBaseclassdesc[];   // @ 0x37E6A8
 extern char gcLValuevirtualtable[];
 extern char gcValUITexCoordvirtualtable[];
 
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(bool);
+    void Write(float);
+    void End(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class gcLValue {
+public:
+    cBase *mParent;
+    void *mVtable;
+    void Write(cFile &) const;
+};
+
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
+    void Write(cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -65,7 +93,9 @@ public:
     float  mField20;     // 0x20
 
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcValUITexCoord();
 
@@ -77,6 +107,12 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_variable asm("D_0009F3EC");
+static cType *type_gcValUITexCoord asm("D_0009F90C");
 
 // ============================================================
 // 0x0036655c — AssignCopy(const cBase *)
@@ -127,6 +163,48 @@ cBase *gcValUITexCoord::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ============================================================
+// 0x00366680 — GetType(void) const
+// ============================================================
+const cType *gcValUITexCoord::GetType(void) const {
+    if (!type_gcValUITexCoord) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValUITexCoord = cType::InitializeType(
+            0, 0, 0x96, type_variable, gcValUITexCoord::New, 0, 0, 0);
+    }
+    return type_gcValUITexCoord;
+}
+
+// ============================================================
+// 0x003667d4 — Write(cFile &) const
+// ============================================================
+void gcValUITexCoord::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    ((const gcLValue *)this)->Write(file);
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->Write(wb);
+    wb.Write(mField14);
+    wb.Write(mField18);
+    wb.Write(mField1C);
+    wb.Write(mField20);
+    wb.End();
 }
 
 // ============================================================
