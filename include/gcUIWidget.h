@@ -6,6 +6,8 @@ class gcUIDialog;
 class cTimeValue;
 class gcEventStackData;
 class cType;
+class cBase;
+class cFile;
 
 class gcUIWidget {
 public:
@@ -14,7 +16,10 @@ public:
     unsigned int mFlags;        // 0x24
 
     enum gcUIEffect {};
+    gcUIWidget(cBase *);
     const cType *GetType(void) const;
+    void Write(cFile &) const;
+    gcUIDialog *GetParentDialog(void) const;
     void OnGetSize(mVec2 *, mVec2 *, unsigned int) const;
     void *GetResizableSprites(void);
     bool NeedsEffectUpdate(void) const;
