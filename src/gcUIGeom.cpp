@@ -6,6 +6,11 @@ class eGeom;
 class eDynamicGeom;
 class gcUIGeom;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -30,9 +35,17 @@ public:
 class eDynamicGeom : public eGeom {
 public:
     eDynamicGeom(cBase *);
+    ~eDynamicGeom();
     eDynamicGeom &operator=(const eDynamicGeom &);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+};
+
+class gcUI {
+public:
+    void CloseAllDialogs(void);
+    void DeleteSpawned(void);
+    ~gcUI();
 };
 
 class cType {
@@ -46,12 +59,15 @@ public:
 class gcUIGeom : public eDynamicGeom {
 public:
     gcUIGeom(cBase *);
+    ~gcUIGeom();
     gcUIGeom &operator=(const gcUIGeom &);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+
+    static void operator delete(void *p);
 };
 
 extern "C" {
@@ -67,6 +83,12 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 struct TypeVtableEntry {
     short offset;
     short _pad;
@@ -77,6 +99,24 @@ extern cType *D_000385DC;
 extern cType *D_00040FF4;
 extern cType *D_000469C0;
 extern cType *D_0009F58C;
+
+inline void gcUIGeom::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
+// ── gcUIGeom::~gcUIGeom(void) @ 0x0013B3B4 ──
+gcUIGeom::~gcUIGeom() {
+    *(void **)((char *)this + 4) = (void *)0x38B300;
+    gcUI *ui = (gcUI *)((char *)this + 0xF0);
+    ui->CloseAllDialogs();
+    ui->DeleteSpawned();
+    ui->~gcUI();
+}
 
 // ── gcUIGeom::gcUIGeom(cBase *) @ 0x0013b370 ──
 gcUIGeom::gcUIGeom(cBase *parent) : eDynamicGeom(parent) {

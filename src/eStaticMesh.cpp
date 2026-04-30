@@ -3,6 +3,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -40,6 +45,7 @@ public:
 
 class eMesh {
 public:
+    ~eMesh();
     void Write(cFile &) const;
 };
 
@@ -69,6 +75,7 @@ class cArrayBase {
 public:
     void *mData;
     cArrayBase &operator=(const cArrayBase &);
+    void RemoveAll(void);
 };
 
 class eStaticMeshVisLOD;
@@ -79,14 +86,31 @@ public:
     void Read(cReadBlock &, cMemPool *);
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class eStaticMesh : public cObject {
 public:
     eStaticMesh(cBase *);
+    ~eStaticMesh();
     void AssignCopy(const cBase *);
+    void Free(void);
     const cType *GetType(void) const;
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 struct AllocRec {
@@ -110,6 +134,8 @@ inline void *operator new(unsigned int, void *p) { return p; }
 void cFile_SetCurrentPos(void *, unsigned int);
 void cMemPool_GetValue(cMemPool *, const cGUID &, void **)
     __asm__("__0fIcMemPoolIGetValueRC6FcGUIDPPv");
+extern "C" void eMesh___dtor_eMesh_void(eMesh *, int)
+    __asm__("__0oFeMeshdtv");
 
 extern char eMeshclassdesc[];
 extern cType *D_000385DC;
@@ -132,6 +158,21 @@ eStaticMesh::eStaticMesh(cBase *parent) : cObject(parent) {
     *(int *)((char *)this + 0x64) = 0;
     *(float *)((char *)this + 0x50) = 128.0f;
     *(float *)((char *)this + 0x54) = 0.0078125f;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── eStaticMesh::~eStaticMesh(void) @ 0x00044A24 ──
+eStaticMesh::~eStaticMesh() {
+    *(void **)((char *)this + 4) = (void *)0x380ED8;
+    Free();
+    cArrayBase<eStaticMeshVisLOD> *lods =
+        (cArrayBase<eStaticMeshVisLOD> *)((char *)this + 0x5C);
+    if (lods != 0) {
+        lods->RemoveAll();
+    }
+    eMesh___dtor_eMesh_void((eMesh *)this, 0);
 }
 
 // ── eStaticMesh::AssignCopy(const cBase *) @ 0x001ed82c ──
