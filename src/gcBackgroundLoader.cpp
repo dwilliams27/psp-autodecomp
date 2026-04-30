@@ -20,11 +20,27 @@ public:
 
 extern gcGame *gGameInstance;
 
+class gcViewport {
+public:
+    static int PausesGame(void);
+};
+
 struct gcMapObjectLoad {
     int mA;
     int mB;
     int mC;
     int mD;
+};
+
+struct gcThreadLoadDispatcher {
+    short offset;
+    short pad;
+    int (*fn)(void *);
+};
+
+struct gcThreadLoadManager {
+    int pad;
+    char *dispatchBase;
 };
 
 class cThread {
@@ -53,7 +69,7 @@ extern "C" void free(void *);
 class gcBackgroundLoader : public cThread {
 public:
     char pad_00[4];                             // 0x000
-    int mFlags;                                 // 0x004
+    volatile int mFlags;                        // 0x004
     void *mVtable;                              // 0x008
     int mField0C;                               // 0x00C
     unsigned char mField10;                     // 0x010
@@ -76,7 +92,9 @@ public:
     unsigned char mField82D;                    // 0x82D
 
     bool IsLoadingObject(void) const;
+    int ExitRenderLoop(void) const;
     void LoadLoadingScreen(void);
+    void LoadGameThread(void);
     void LoadObjects(void);
     void LoadMap(void);
     void PreLoad(void);
@@ -136,6 +154,27 @@ bool gcBackgroundLoader::IsLoadingObject(void) const {
         return mLoadTarget >= 0;
     }
     return false;
+}
+
+int gcBackgroundLoader::ExitRenderLoop(void) const {
+    int result = 0;
+    if ((((mFlags & 0x1000) != 0) & 0xFF) == 0) {
+        if (gcViewport::PausesGame() == 0) {
+            result = 1;
+        }
+    }
+    return result & 0xFF;
+}
+
+void gcBackgroundLoader::LoadGameThread(void) {
+    gcThreadLoadManager *mgr = *(gcThreadLoadManager **)0x37D854;
+    gcThreadLoadDispatcher *dispatch =
+        (gcThreadLoadDispatcher *)(mgr->dispatchBase + 0x80);
+    short offset = dispatch->offset;
+    int (*fn)(void *) = dispatch->fn;
+    if (fn((char *)mgr + offset) == 0) {
+        mLoadFailed = 1;
+    }
 }
 
 void gcBackgroundLoader::LoadLoadingScreen(void) {
