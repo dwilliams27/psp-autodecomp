@@ -31,17 +31,143 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct cTypeNode {
+    char pad[0x1C];
+    const cType *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short _pad;
+    const cType *(*getType)(void *);
+};
+
 class gcDoEntityPartialBodyAttack : public gcAction {
 public:
+    gcDoEntityPartialBodyAttack(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    gcDoEntityPartialBodyAttack &
+    operator=(const gcDoEntityPartialBodyAttack &);
 };
+
+extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+extern char D_00000338[];
+extern char D_00002978[];
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoEntityPartialBodyAttack asm("D_0009F624");
+
+void gcDoEntityPartialBodyAttack::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    if (other != 0) {
+        if (!type_gcDoEntityPartialBodyAttack) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C, 1,
+                            0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoEntityPartialBodyAttack = cType::InitializeType(
+                0, 0, 0x149, type_action,
+                gcDoEntityPartialBodyAttack::New, 0, 0, 0x80);
+        }
+        void *vt = ((void **)other)[1];
+        const cType *myType = type_gcDoEntityPartialBodyAttack;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = ((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+    *this = *(const gcDoEntityPartialBodyAttack *)copy;
+}
+
+gcDoEntityPartialBodyAttack::gcDoEntityPartialBodyAttack(cBase *parent) {
+    gcAction_gcAction(this, parent);
+
+    int *obj_i = (int *)this;
+    obj_i[1] = (int)D_00002978;
+
+    void *desired0 = (char *)this + 0x0C;
+    gcDesiredObject_gcDesiredObject(desired0, (cBase *)this);
+
+    obj_i[4] = (int)D_00000338;
+
+    gcDesiredEntityHelper_ctor((char *)this + 0x18, 1, 0, 0);
+
+    obj_i[4] = 0x388A48;
+    obj_i[8] = (int)desired0;
+    int *helperVTable = (int *)0x388568;
+    obj_i[9] = (int)helperVTable;
+    ((char *)this)[0x28] = 1;
+    ((char *)this)[0x29] = 0;
+    obj_i[11] = 0;
+    int desired0Encoded = (int)desired0 | 1;
+    obj_i[12] = 0;
+    obj_i[13] = desired0Encoded;
+    obj_i[14] = 0;
+    obj_i[15] = (int)this;
+    obj_i[16] = (int)helperVTable;
+    ((char *)this)[0x44] = 1;
+    ((char *)this)[0x45] = 0;
+    obj_i[18] = 0;
+    int encoded = (int)this | 1;
+    obj_i[19] = 0;
+    obj_i[20] = encoded;
+
+    void *desired1 = (char *)this + 0x54;
+    gcDesiredObject_gcDesiredObject(desired1, (cBase *)this);
+
+    obj_i[24] = 7;
+    obj_i[25] = 0;
+    obj_i[22] = 0x389270;
+    obj_i[26] = encoded;
+    obj_i[27] = 0;
+    obj_i[28] = (int)this;
+    obj_i[29] = (int)helperVTable;
+    ((char *)this)[0x78] = 1;
+    ((char *)this)[0x79] = 0;
+    obj_i[31] = 0;
+    obj_i[32] = 0;
+    obj_i[33] = encoded;
+}
 
 const cType *gcDoEntityPartialBodyAttack::GetType(void) const {
     if (!type_gcDoEntityPartialBodyAttack) {
