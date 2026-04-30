@@ -41,6 +41,14 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class eRigidBodyState {
+public:
+    char _pad0[0x30];
+    volatile v4sf_t position;
+
+    void Update(void);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 struct eBipedControllerAllocRec {
@@ -70,6 +78,7 @@ public:
     int Read(cFile &, cMemPool *);
 
     void ApplyImpulse(int, const mVec3 &, const mVec3 &);
+    void SetPosition(int, const mVec3 &);
     void ApplyForce(int, const mVec3 &, const mVec3 &);
     void ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &);
     void ApplyPositionedForce(int, const mVec3 &, const mVec3 &);
@@ -308,6 +317,25 @@ void eBipedController::ApplyImpulse(int, const mVec3 &impulse, const mVec3 &) {
     }
 }
 
+void eBipedController::SetPosition(int, const mVec3 &position) {
+    __asm__ volatile("" : : "r"(&position) : "$6");
+    int index = bodyIndex;
+    void *entries = bodyEntries;
+    void **entry = (void **)((char *)entries + (index * 8));
+    int ok = 0;
+    if (entry[0] != 0) {
+        if (entry[1] != 0) {
+            ok = 1;
+        }
+    }
+    ok = ok & 0xFF;
+    if (ok != 0) {
+        eRigidBodyState *body = (eRigidBodyState *)entry[0];
+        body->position = *(const v4sf_t *)&position;
+        body->Update();
+    }
+}
+
 #pragma control sched=2
 
 void eBipedController::InvalidateCacheEntries(eGeom *geom) {
@@ -335,6 +363,8 @@ void eBipedController::EnableWallWalk(bool enable) {
         );
     }
 }
+
+#pragma control sched=1
 
 void eBipedController::CollectContactCallBack(eContactCollector *coll, void *biped, eContact *contact, int idx) {
     if (biped != 0) {
