@@ -124,8 +124,22 @@ void eBipedControllerConfig::Write(cFile &file) const {
 // ── eBipedControllerConfig::AssignCopy(const cBase *) @ 0x002083ec ──
 void eBipedControllerConfig::AssignCopy(const cBase *base) {
     eBipedControllerConfig *other = dcast<eBipedControllerConfig>(base);
-    *(eBipedControllerConfigData *)((char *)this + 8) =
-        *(eBipedControllerConfigData *)((char *)other + 8);
+    int *src = (int *)((char *)other + 8);
+    int *dst = (int *)((char *)this + 8);
+    __asm__ volatile("" : "+r"(src), "+r"(dst));
+    int w0 = src[0];
+    int w1 = src[1];
+    int w2 = src[2];
+    dst[0] = w0;
+    dst[1] = w1;
+    dst[2] = w2;
+    __asm__ volatile("" ::: "memory");
+    int w3 = src[3];
+    int w4 = src[4];
+    int w5 = src[5];
+    dst[3] = w3;
+    dst[4] = w4;
+    dst[5] = w5;
     mField20 = other->mField20;
 }
 

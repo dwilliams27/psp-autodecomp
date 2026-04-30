@@ -31,10 +31,13 @@ struct eMeshShapeTriList {
 #pragma control sched=1
 // eMeshShapeTriList::Write(cWriteBlock &) const — 0x0004e950
 void eMeshShapeTriList::Write(cWriteBlock &wb) const {
-    wb.Write(mFlags);
-    wb.Write(mNumVerts);
-    wb.Write(mPad);
-    wb.Write(mNumTris);
+    cWriteBlock *out = &wb;
+    const eMeshShapeTriList *self = this;
+    __asm__ volatile("" : "+r"(out), "+r"(self));
+    out->Write(self->mFlags);
+    out->Write(self->mNumVerts);
+    out->Write(self->mPad);
+    out->Write(self->mNumTris);
 }
 
 // eMeshShapeTriList::Read(cReadBlock &) — 0x0004e9ac
