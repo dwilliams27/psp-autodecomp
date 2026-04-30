@@ -34,7 +34,9 @@ public:
 class gcDoQueryNavMesh {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    gcDoQueryNavMesh &operator=(const gcDoQueryNavMesh &);
     void Write(cFile &) const;
 };
 
@@ -47,6 +49,17 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct cTypeNode {
+    char pad[0x1C];
+    cTypeNode *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short _pad;
+    const cType *(*getType)(void *);
 };
 
 extern "C" void gcAction_gcAction(void *, cBase *);
@@ -106,6 +119,58 @@ const cType *gcDoQueryNavMesh::GetType(void) const {
             0, 0, 0x19D, type_action, gcDoQueryNavMesh::New, 0, 0, 0x80);
     }
     return type_gcDoQueryNavMesh;
+}
+
+void gcDoQueryNavMesh::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    if (other != 0) {
+        if (!type_gcDoQueryNavMesh) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(gcDoQueryNavMesh_base_name,
+                                                          gcDoQueryNavMesh_base_desc,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoQueryNavMesh = cType::InitializeType(
+                0, 0, 0x19D, type_action, gcDoQueryNavMesh::New, 0, 0, 0x80);
+        }
+        void *vt = ((void **)other)[1];
+        const cType *myType = type_gcDoQueryNavMesh;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = (const cType *)((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+    *this = *(const gcDoQueryNavMesh *)copy;
 }
 
 void gcDoQueryNavMesh::Write(cFile &file) const {
