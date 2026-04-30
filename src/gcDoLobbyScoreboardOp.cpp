@@ -7,8 +7,10 @@ class cType;
 class gcDoLobbyScoreboardOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    gcDoLobbyScoreboardOp &operator=(const gcDoLobbyScoreboardOp &);
 };
 
 class cType {
@@ -44,6 +46,17 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct cTypeNode {
+    char pad[0x1C];
+    cTypeNode *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short _pad;
+    const cType *(*getType)(void *);
+};
+
 void gcAction_gcAction(gcDoLobbyScoreboardOp *, cBase *);
 void gcAction_Write(const gcDoLobbyScoreboardOp *, cFile &);
 extern char gcDoLobbyScoreboardOpvirtualtable[];
@@ -77,6 +90,59 @@ cBase *gcDoLobbyScoreboardOp::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcDoLobbyScoreboardOp::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    if (other != 0) {
+        if (!type_gcDoLobbyScoreboardOp) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            gcDoLobbyScoreboardOp_base_name,
+                            gcDoLobbyScoreboardOp_base_desc,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoLobbyScoreboardOp = cType::InitializeType(
+                0, 0, 0x123, type_action, gcDoLobbyScoreboardOp::New, 0, 0, 0);
+        }
+        void *vt = ((void **)other)[1];
+        const cType *myType = type_gcDoLobbyScoreboardOp;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = (const cType *)((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+    *this = *(const gcDoLobbyScoreboardOp *)copy;
 }
 
 const cType *gcDoLobbyScoreboardOp::GetType(void) const {
