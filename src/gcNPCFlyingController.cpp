@@ -48,6 +48,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class gcEntityController {
 public:
     gcEntityController(cBase *);
@@ -64,6 +73,7 @@ class gcFlyingController : public gcCreatureController {
 public:
     gcFlyingController(cBase *);
     ~gcFlyingController();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -73,6 +83,7 @@ public:
     ~gcNPCFlyingController();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -121,11 +132,42 @@ extern "C" {
 extern "C" gcNPCFlyingController *dcast_gcNPCFlyingController(const cBase *)
     asm("__0FFdcast7P6VgcNPCFlyingController_PC6FcBase_9BA");
 
+// ── gcNPCFlyingController::Read(cFile &, cMemPool *) @ 0x00155380 ──
+int gcNPCFlyingController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcFlyingController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // ── gcNPCFlyingController::Write(cFile &) const @ 0x00155334 ──
 void gcNPCFlyingController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     this->gcFlyingController::Write(file);
     wb.End();
+}
+
+// ── gcNPCFlyingController::gcNPCFlyingController(cBase *) @ 0x0015543c ──
+gcNPCFlyingController::gcNPCFlyingController(cBase *parent)
+    : gcFlyingController(parent) {
+    void *vtable = gcNPCFlyingControllervirtualtable;
+    __asm__ volatile("mtc1 $0, $f12" ::: "$f12", "memory");
+    *(void **)((char *)this + 4) = vtable;
+    __asm__ volatile(
+        "mfc1 $5, $f12\n"
+        "mfc1 $6, $f12\n"
+        "mfc1 $4, $f12\n"
+        "mtv $5, S120\n"
+        "mtv $4, S121\n"
+        "mtv $6, S122\n"
+        "sv.q C120, 0xA0(%0)\n"
+        :
+        : "r"(this)
+        : "$4", "$5", "$6", "memory");
 }
 
 // ── gcNPCFlyingController::AssignCopy(const cBase *) @ 0x0031d810 ──
