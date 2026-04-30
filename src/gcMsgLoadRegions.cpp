@@ -3,7 +3,6 @@
 //   0x00124d10 Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle)
 
 class nwMsg;
-class cInStream;
 class nwAddress;
 class gcRegion;
 typedef int nwSocketHandle;
@@ -16,10 +15,25 @@ struct nwMsgBuffer {
 
 extern "C" void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
 
+class cInStream;
+class cOutStream {
+public:
+    unsigned char *mData;
+    int mCapacity;
+    int mBitPos;
+    int mCRC;
+    unsigned char mDirty;
+    char _pad11;
+    unsigned char mOverflow;
+    char _pad13;
+    int mCRCBitPos;
+};
+
 struct cGUID {
     int a;
     int b;
     void Read(cInStream &);
+    void Write(cOutStream &) const;
 };
 
 template <class T>
@@ -49,9 +63,30 @@ public:
     cGUIDT<gcRegion> mRegions[2];
     bool mFlag;
 
+    gcMsgLoadRegions(cGUIDT<gcRegion> *, bool);
     static nwMsg *New(nwMsgBuffer &);
+    void Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const;
     void Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle);
 };
+
+gcMsgLoadRegions::gcMsgLoadRegions(cGUIDT<gcRegion> *regions, bool flag) {
+    gcMsgLoadRegions *self = this;
+    cGUIDT<gcRegion> *regionBase = regions;
+    self->mVTable = (void *)0x389070;
+    __vec_new((char *)self + 4, 2, 8, (void (*)(void *))0x245578);
+    self->mFlag = flag;
+    int i = 0;
+    do {
+        cGUIDT<gcRegion> *dst = &((cGUIDT<gcRegion> *)((char *)self + 4))[i];
+        cGUIDT<gcRegion> *src = &regionBase[i];
+        int a = src->a;
+        int b = src->b;
+        dst->a = a;
+        dst->b = b;
+        __asm__ volatile("" ::: "memory");
+        i++;
+    } while (i < 2);
+}
 
 nwMsg *gcMsgLoadRegions::New(nwMsgBuffer &buf) {
     int cursor = buf.mOffset + 0x18;
@@ -65,6 +100,40 @@ nwMsg *gcMsgLoadRegions::New(nwMsgBuffer &buf) {
         result = (nwMsg *)obj;
     }
     return result;
+}
+
+void gcMsgLoadRegions::Write(cOutStream &stream, nwSocketHandle,
+                             const nwAddress &, nwConnectionHandle) const {
+    int i = 0;
+    const cGUIDT<gcRegion> *region = &mRegions[0];
+    do {
+        region->Write(stream);
+        i++;
+        region++;
+    } while (i < 2);
+
+    int value = mFlag & 0xFF;
+    int bitPos = stream.mBitPos;
+    int bit = bitPos & 7;
+    unsigned char *out = stream.mData + (bitPos >> 3);
+    int nextBit = bitPos + 1;
+    unsigned char overflow = stream.mOverflow;
+    stream.mBitPos = nextBit;
+
+    if (overflow == 0) {
+        if (stream.mCapacity < ((stream.mBitPos + 7) >> 3)) {
+            stream.mOverflow = 1;
+            overflow = stream.mOverflow;
+        }
+    }
+
+    unsigned int writable = overflow < 1U;
+
+    if ((writable & 0xFF) != 0) {
+        unsigned char old = *out;
+        int mask = 1 << bit;
+        *out = (old & ~mask) | ((value != 0) << bit);
+    }
 }
 
 void gcMsgLoadRegions::Read(cInStream &stream, nwSocketHandle,
