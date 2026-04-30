@@ -8,9 +8,13 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
-class cMemPool;
 class cType;
 class cBase;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -57,12 +61,57 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDesiredEnumerationEntry {
 public:
+    ~gcDesiredEnumerationEntry();
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oZgcDesiredEnumerationEntrydtv, 0xd4\n");
+
+// ============================================================
+// 0x0025b744 — ~gcDesiredEnumerationEntry(void), 212B
+// ============================================================
+gcDesiredEnumerationEntry::~gcDesiredEnumerationEntry() {
+    *(char **)((char *)this + 4) = gcDesiredEnumerationEntryvirtualtable;
+    char *slot = (char *)this + 0x14;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x14) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = gcDesiredEnumerationEntry_cBase_vtable;
+}
 
 // ============================================================
 // 0x0010eacc — Write(cFile &) const, 76B
