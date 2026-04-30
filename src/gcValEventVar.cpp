@@ -8,8 +8,10 @@
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cMemPoolNS {
 public:
@@ -22,6 +24,14 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void Write(int);
     void End(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 extern char cBaseclassdesc[];
@@ -67,6 +77,7 @@ public:
     }
     ~gcValEventVar();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static gcValEventVar *New(cMemPool *, cBase *);
 
@@ -123,4 +134,36 @@ gcValEventVar *gcValEventVar::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_variable;
+static cType *type_gcValEventVar;
+
+const cType *gcValEventVar::GetType(void) const {
+    if (!type_gcValEventVar) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValEventVar = cType::InitializeType(
+            0, 0, 0x9F, type_variable,
+            (cBase *(*)(cMemPool *, cBase *))gcValEventVar::New, 0, 0, 0);
+    }
+    return type_gcValEventVar;
 }
