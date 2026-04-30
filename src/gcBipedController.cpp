@@ -3,7 +3,9 @@
 // Functions:
 //   gcBipedController::Write(cFile &) const          @ 0x0014111c  (76B)
 //   gcBipedController::Read(cFile &, cMemPool *)     @ 0x00141168 (188B)
+//   gcBipedController::OnDeselected(void)            @ 0x0014200c  (80B)
 //   gcBipedController::OnDeactivated(void)           @ 0x00142154  (48B)
+//   gcBipedController::OnSnappedTo(const mOCS &, bool) @ 0x00142184  (68B)
 //   gcBipedController::~gcBipedController(void)      @ 0x002a7b84 (124B)
 //
 // gcBipedController inherits from gcCreatureController, which inherits
@@ -13,6 +15,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class mOCS;
 
 class cType {
 public:
@@ -55,7 +58,9 @@ public:
     ~gcEntityController();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void OnDeselected(void);
     void OnDeactivated(void);
+    void OnSnappedTo(const mOCS &, bool);
     void SetPhysicsController(const cType *);
 };
 
@@ -73,7 +78,9 @@ public:
     ~gcBipedController();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void OnDeselected(void);
     void OnDeactivated(void);
+    void OnSnappedTo(const mOCS &, bool);
     const cType *GetType(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -145,10 +152,32 @@ success:
     return result;
 }
 
+// ── gcBipedController::OnDeselected(void) @ 0x0014200c ──
+void gcBipedController::OnDeselected(void) {
+    int selected;
+
+    gcEntityController::OnDeselected();
+    selected = 0;
+    if (((int *)*(void **)this)[23] & 1) {
+        selected = 1;
+    }
+    if (selected & 0xFF) {
+        gcEntityController::SetPhysicsController(0);
+    }
+}
+
 // ── gcBipedController::OnDeactivated(void) @ 0x00142154 ──
 void gcBipedController::OnDeactivated(void) {
     gcEntityController::OnDeactivated();
     gcEntityController::SetPhysicsController(0);
+}
+
+// ── gcBipedController::OnSnappedTo(const mOCS &, bool) @ 0x00142184 ──
+void gcBipedController::OnSnappedTo(const mOCS &ocs, bool snapped) {
+    gcEntityController::OnSnappedTo(ocs, snapped);
+    if (snapped) {
+        *(float *)((char *)this + 0xB4) = 0.0f;
+    }
 }
 
 // ── gcBipedController::GetType(void) const @ 0x002a7a30 ──
