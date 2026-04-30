@@ -2,7 +2,9 @@
 //
 // Functions:
 //   0x00038230 eSprite::Write(cFile &) const
+//   0x00038470 eSprite::eSprite(cBase *)
 //   0x00038ce8 eSprite::SetTexCoord1(mVec2)
+//   0x00038d44 eSprite::SetTexCoord2(mVec2)
 //   0x001e6f84 eSprite::New(cMemPool *, cBase *) static
 //   0x001e7428 eSprite::~eSprite(void)
 
@@ -13,6 +15,8 @@ class cType;
 struct mVec2 {
     float x;
     float y;
+
+    mVec2(const mVec2 &);
 };
 
 class cWriteBlock {
@@ -94,6 +98,7 @@ public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
     void SetTexCoord1(mVec2);
+    void SetTexCoord2(mVec2);
     bool GetTextureSize(mVec2 *) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -118,6 +123,21 @@ struct CopyWord {
     int value;
 };
 
+// -- eSprite::eSprite(cBase *) @ 0x00038470 --
+eSprite::eSprite(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x3806A8;
+    mField44 = 0;
+    mField48._data = 0;
+    mField4C = 32.0f;
+    mField50 = 32.0f;
+    mField54 = 0.0f;
+    mField58 = 0.0f;
+    mField5C = 1.0f;
+    mField60 = 1.0f;
+    mField64 = 0.0f;
+    mField68 = 0.0f;
+}
+
 // -- eSprite::Write(cFile &) const @ 0x00038230 --
 void eSprite::Write(cFile &file) const {
     cWriteBlock wb(file, 4);
@@ -133,11 +153,21 @@ void eSprite::Write(cFile &file) const {
 
 // -- eSprite::SetTexCoord1(mVec2) @ 0x00038ce8 --
 void eSprite::SetTexCoord1(mVec2 texCoord) {
-    mVec2 textureSize;
+    float textureSize[2];
 
-    if (GetTextureSize(&textureSize)) {
-        mField54 = texCoord.x / textureSize.x;
-        mField58 = texCoord.y / textureSize.y;
+    if (GetTextureSize((mVec2 *)textureSize)) {
+        mField54 = texCoord.x / textureSize[0];
+        mField58 = texCoord.y / textureSize[1];
+    }
+}
+
+// -- eSprite::SetTexCoord2(mVec2) @ 0x00038d44 --
+void eSprite::SetTexCoord2(mVec2 texCoord) {
+    float textureSize[2];
+
+    if (GetTextureSize((mVec2 *)textureSize)) {
+        mField5C = texCoord.x / textureSize[0];
+        mField60 = texCoord.y / textureSize[1];
     }
 }
 
