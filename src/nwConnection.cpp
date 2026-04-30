@@ -75,6 +75,7 @@ public:
     };
 
     void StartConnection();
+    ~nwConnection();
     void ResendConnect();
     void TransportSend(const nwAddress &, const nwOutPacket &);
     void ReceivePing(nwInPacket &);
@@ -116,12 +117,70 @@ public:
     int mFieldCE4;              // 0xCE4
     unsigned int mFieldCE8;     // 0xCE8
     float mSendRate;            // 0xCEC
+
+    static void operator delete(void *p);
 };
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct nwConnectionDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct nwConnectionDeleteRecord4 {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, void *, short);
+};
+
+extern "C" void free(void *);
+
+inline void nwConnection::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        nwConnectionDeleteRecord *rec =
+            (nwConnectionDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
 
 // StartConnection: set state, kick off the connect handshake.
 void nwConnection::StartConnection() {
     mState = 1;
     mSocket->SendConnect(*(const nwAddress *)&mAddrHeader, (const char *)&mFlag50);
+}
+
+nwConnection::~nwConnection() {
+    if (mFieldCD8 != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr((void *)mFieldCD8);
+        char *block = ((char **)pool)[9];
+        nwConnectionDeleteRecord4 *rec =
+            (nwConnectionDeleteRecord4 *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *, void *, short) = rec->fn;
+        fn(block + off, (void *)mFieldCD8, (void *)fn, off);
+        mFieldCD8 = 0;
+    }
+    if (mFieldCE0 != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr((void *)mFieldCE0);
+        char *block = ((char **)pool)[9];
+        nwConnectionDeleteRecord4 *rec =
+            (nwConnectionDeleteRecord4 *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *, void *, short) = rec->fn;
+        fn(block + off, (void *)mFieldCE0, (void *)fn, off);
+        mFieldCE0 = 0;
+    }
 }
 
 // BuildMessage: write the message body through nwMsg's virtual serialize.
