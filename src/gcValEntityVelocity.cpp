@@ -18,6 +18,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -52,6 +61,7 @@ public:
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValEntityVelocity : public gcValue {
@@ -59,12 +69,19 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
 };
 
 void cStrAppend(char *, const char *, ...);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+extern "C" {
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
 
 extern const char gcValEntityVelocity_text_fmt[];   // @ 0x36DCB8
 extern const char gcValEntityVelocity_text_arg[];   // @ 0x36DAF0
@@ -133,6 +150,31 @@ void gcValEntityVelocity::Write(cFile &file) const {
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     wb.Write(*(const int *)((const char *)this + 8));
     wb.End();
+}
+
+// SNC emits this file-scope asm after the following function, padding Read.
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fTgcValEntityVelocityEReadR6FcFileP6IcMemPool, 0x10c\n");
+
+// 0x003412ec (268B) — Read
+int gcValEntityVelocity::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (tag != version || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+    char *sub = (char *)this + 12;
+    char *mType = *(char **)((char *)this + 16);
+    const cTypeMethod *e = (const cTypeMethod *)(mType + 48);
+    register char *target __asm__("$20") = sub + e->offset;
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)e->fn)(target, f, cMemPool_GetPoolFromPtr(sub));
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 8, 4);
+    return 1;
 }
 
 // 0x00341720 (88B) — GetText

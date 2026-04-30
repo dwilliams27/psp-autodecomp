@@ -33,6 +33,11 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class eDynamicModel {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T>
 class cHandleT {
 public:
@@ -102,6 +107,7 @@ extern char eDynamicModelTemplatevirtualtable[];
 class eDynamicModelTemplate : public cObject {
 public:
     void AssignCopy(const cBase *);
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -110,7 +116,10 @@ public:
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
 extern cType *D_000469A8;
+extern cType *D_000469C0;
+extern cType *D_000469DC;
 extern cType *D_000469E0;
 extern cType *D_000469FC;
 
@@ -220,6 +229,34 @@ const cType *eDynamicModelTemplate::GetType(void) const {
     }
     return D_000469FC;
 }
+// 0x0004c7bc (276B) — GetInstanceType
+#pragma control sched=1
+const cType *eDynamicModelTemplate::GetInstanceType(void) const {
+    if (D_000469DC == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(
+                        name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469C0;
+        cBase *(*factory)(cMemPool *, cBase *) = &eDynamicModel::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_000469DC = cType::InitializeType(0, 0, 0x2D, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_000469DC;
+}
+
 #pragma control sched=2
 void eDynamicModelTemplate::Write(cFile &file) const {
     const eDynamicModelTemplate *self = this;
