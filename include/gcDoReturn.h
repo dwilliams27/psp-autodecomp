@@ -102,6 +102,7 @@ public:
     float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 class gcDoSwitch {
