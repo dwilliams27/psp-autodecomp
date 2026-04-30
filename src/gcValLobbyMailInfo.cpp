@@ -15,6 +15,8 @@ class cMemPool;
 class cObject;
 class cType;
 
+template <class T> T dcast(const cBase *);
+
 extern char cBaseclassdesc[];
 extern char gcValLobbyMailInfovirtualtable[];
 extern char gcValObjectComparevirtualtable[];
@@ -31,6 +33,18 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct CloneEntry {
+    short offset;
+    short pad;
+    cBase *(*fn)(void *, cMemPool *, cBase *);
+};
+
+struct ReleaseEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -45,6 +59,11 @@ public:
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class gcDesiredValue {
@@ -66,6 +85,7 @@ public:
 
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
 };
 
@@ -90,6 +110,78 @@ static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_value asm("D_0009F3E8");
 static cType *type_gcValLobbyMailInfo asm("D_0009F888");
+
+// ── gcValLobbyMailInfo::AssignCopy(const cBase *) @ 0x00349e4c ──
+void gcValLobbyMailInfo::AssignCopy(const cBase *base) {
+    gcValLobbyMailInfo *other = dcast<gcValLobbyMailInfo *>(base);
+    int finalField;
+
+    if (&other->mField8 != &mField8) {
+        goto copyDesired;
+    }
+    finalField = other->mFieldC;
+    goto done;
+
+copyDesired:
+    {
+        int value = mField8;
+        int flag = 1;
+        int tag = value & 1;
+        if (tag != 0) {
+            flag = 0;
+        }
+        if (flag != 0) {
+            int old = value;
+            int flag2 = 0;
+            if (tag != 0) {
+                flag2 = 1;
+            }
+            if (flag2 != 0) {
+                value &= ~1;
+                value |= 1;
+            } else {
+                value = *(int *)value;
+                value |= 1;
+            }
+            mField8 = value;
+            if (old != 0) {
+                ReleaseEntry *entry =
+                    (ReleaseEntry *)(*(char **)(old + 4) + 0x50);
+                entry->fn((char *)old + entry->offset, 3);
+            }
+        }
+
+        __asm__ volatile("" ::: "memory");
+        int srcValue = other->mField8;
+        int srcFlag = 1;
+        int srcTag = srcValue & 1;
+        if (srcTag != 0) {
+            srcFlag = 0;
+        }
+        if (srcFlag != 0) {
+            int source = srcValue;
+            CloneEntry *entry =
+                (CloneEntry *)(*(char **)(source + 4) + 0x10);
+            short offset = entry->offset;
+            void *target = (char *)source + offset;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(&mField8);
+            int current = mField8;
+            int flag2 = 0;
+            if (current & 1) {
+                flag2 = 1;
+            }
+            if (flag2 != 0) {
+                current &= ~1;
+            } else {
+                current = *(int *)current;
+            }
+            mField8 = (int)entry->fn(target, pool, (cBase *)current);
+        }
+        finalField = other->mFieldC;
+    }
+done:
+    mFieldC = finalField;
+}
 
 // ── gcValLobbyMailInfo::New(cMemPool *, cBase *) static @ 0x00349f98 ──
 cBase *gcValLobbyMailInfo::New(cMemPool *pool, cBase *parent) {

@@ -28,16 +28,24 @@ public:
 
 class cType {
 public:
-    char _p0[0x28];
+    char _p0[0x1C];
+    cType *mParent;
+    char _p1[0x8];
     cTypeMethod write_m;    // 0x28
     cTypeMethod read_m;     // 0x30
-    char _p1[0x40];         // to 0x78
+    char _p2[0x40];         // to 0x78
     cTypeMethod text_m;     // 0x78
 
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *);
 };
 
 class cName {
@@ -64,8 +72,10 @@ public:
 class gcValEntityScreenValue {
 public:
     const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
+    gcValEntityScreenValue &operator=(const gcValEntityScreenValue &);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -79,6 +89,60 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_value;
 static cType *type_gcValEntityScreenValue;
+
+void gcValEntityScreenValue::AssignCopy(const cBase *base) {
+    const gcValEntityScreenValue *other = 0;
+
+    if (base != 0) {
+        if (!type_gcValEntityScreenValue) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_gcValEntityScreenValue = cType::InitializeType(
+                0, 0, 0x16C, type_value, gcValEntityScreenValue::New,
+                0, 0, 0);
+        }
+
+        DispatchEntry *entry =
+            (DispatchEntry *)((char *)*(void **)((char *)base + 4) + 8);
+        cType *wanted = type_gcValEntityScreenValue;
+        cType *type = entry->fn((char *)base + entry->offset);
+        int ok;
+
+        if (wanted == 0) {
+            ok = 0;
+        } else if (type != 0) {
+        loop:
+            if (type == wanted) {
+                ok = 1;
+            } else {
+                type = type->mParent;
+                if (type != 0) {
+                    goto loop;
+                }
+                goto fail;
+            }
+        } else {
+        fail:
+            ok = 0;
+        }
+        if (ok != 0) {
+            other = (const gcValEntityScreenValue *)base;
+        }
+    }
+
+    operator=(*other);
+}
 
 const cType *gcValEntityScreenValue::GetType(void) const {
     if (!type_gcValEntityScreenValue) {
