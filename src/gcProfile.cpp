@@ -1,7 +1,17 @@
 class cBase;
 class cFile;
+class cInStream;
 class cMemPool;
+class cOutStream;
+class cStrW;
 class cType;
+class gcTableTemplate;
+
+template <class T>
+class cArray;
+
+template <class T>
+class cHandleT;
 
 class cType {
 public:
@@ -34,6 +44,11 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class gcGameSettings {
+public:
+    static gcGameSettings *Get(void);
+};
+
 struct gcProfile_AllocRec {
     short offset;
     short _pad;
@@ -53,12 +68,32 @@ public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void WriteSaveGameVariables(cOutStream &);
+    void ReadSaveGameVariables(cInStream &);
     static cBase *New(cMemPool *, cBase *);
+    static void WriteVariables(cOutStream &, const cArray<cArray<float> > &);
+    static void ReadVariables(cInStream &, cArray<cArray<float> > &);
+    static void WriteStrings(cOutStream &, const cArray<cArray<cStrW> > &);
+    static void ReadStrings(cInStream &, cArray<cArray<cStrW> > &);
+    static void WriteTables(cOutStream &, const cArray<cHandleT<gcTableTemplate> > &);
+    static void ReadTables(cInStream &, cArray<cHandleT<gcTableTemplate> > &);
 };
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_0009A2F4;
+
+void gcProfile::WriteSaveGameVariables(cOutStream &stream) {
+    WriteVariables(stream, *(const cArray<cArray<float> > *)((char *)this + 0x228));
+    WriteStrings(stream, *(const cArray<cArray<cStrW> > *)((char *)this + 0x22C));
+    WriteTables(stream, *(const cArray<cHandleT<gcTableTemplate> > *)((char *)gcGameSettings::Get() + 0x2C));
+}
+
+void gcProfile::ReadSaveGameVariables(cInStream &stream) {
+    ReadVariables(stream, *(cArray<cArray<float> > *)((char *)this + 0x228));
+    ReadStrings(stream, *(cArray<cArray<cStrW> > *)((char *)this + 0x22C));
+    ReadTables(stream, *(cArray<cHandleT<gcTableTemplate> > *)((char *)gcGameSettings::Get() + 0x2C));
+}
 
 // ── gcProfile::Write(cFile &) const @ 0x000FECDC ──
 void gcProfile::Write(cFile &file) const {
