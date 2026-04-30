@@ -15,6 +15,8 @@ public:
     static void EndFrame(void);
     static void InvalidateTextureCache(void);
     static void PreFlip(void);
+    static void Clear(bool, bool, unsigned int, float, const struct eViewport *);
+    static void BeginStencil(int);
     static void EndStencil(void);
     static void ApplyVertexShader(const eCamera *, const eVertexShader *);
     static void SetAlphaWriteEnable(bool);
