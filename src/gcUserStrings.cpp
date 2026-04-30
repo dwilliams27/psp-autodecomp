@@ -11,8 +11,12 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cBase;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -42,6 +46,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 class cBase {
@@ -78,14 +88,51 @@ public:
         mField0C = 0;
     }
 
+    ~gcUserStrings();
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F598;
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oNgcUserStringsdtv, 0xd4\n");
+
+// -- gcUserStrings::~gcUserStrings @ 0x00292280 --
+gcUserStrings::~gcUserStrings() {
+    *(char **)((char *)this + 4) = gcUserStringsclassdesc;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── gcUserStrings::Write @ 0x00291d1c ──
 void gcUserStrings::Write(cFile &file) const {
