@@ -55,7 +55,14 @@ struct DeleteEntry {
     void (*fn)(void *, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 extern char gcValuevirtualtable[];
+extern char cBaseclassdesc[];
 extern char gcValLobbyGameInfovirtualtable[];
 
 class gcValue {
@@ -73,10 +80,20 @@ public:
     int mField10;
 
     gcValLobbyGameInfo(cBase *parent);
+    ~gcValLobbyGameInfo();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 inline gcValue::gcValue(cBase *parent) {
@@ -176,10 +193,15 @@ void gcValLobbyGameInfo::AssignCopy(const cBase *base) {
     int var_a0_2;
     void *temp_a2_2;
     gcValLobbyGameInfo *temp_v0;
+    int finalValue;
 
     temp_v0 = dcast<gcValLobbyGameInfo>(base);
     mField8 = temp_v0->mField8;
-    if ((char *)temp_v0 + 0xC != (char *)this + 0xC) {
+    if ((char *)temp_v0 + 0xC == (char *)this + 0xC) {
+        finalValue = temp_v0->mField10;
+        goto storeFinal;
+    }
+    {
         temp_a2 = mFieldC;
         var_a1 = 1;
         temp_a0 = temp_a2 & 1;
@@ -200,10 +222,10 @@ void gcValLobbyGameInfo::AssignCopy(const cBase *base) {
             }
             mFieldC = var_a2;
             if (temp_a2 != 0) {
-                temp_a2_2 = *(void **)(temp_a2 + 4);
-                temp_a3 = *(short *)((char *)temp_a2_2 + 0x50);
-                temp_a2_3 =
-                    *(void (**)(void *, int))((char *)temp_a2_2 + 0x54);
+                temp_a2_2 = *(char **)(temp_a2 + 4);
+                DeleteEntry *entry = (DeleteEntry *)((char *)temp_a2_2 + 0x50);
+                temp_a3 = entry->offset;
+                temp_a2_3 = entry->fn;
                 temp_a2_3((char *)temp_a2 + temp_a3, 3);
             }
         }
@@ -214,8 +236,11 @@ void gcValLobbyGameInfo::AssignCopy(const cBase *base) {
             var_a1_3 = 0;
         }
         if (var_a1_3 != 0) {
-            temp_s2 = *(int *)(temp_s3 + 4) + 0x10;
-            temp_a2_4 = *(short *)temp_s2;
+            temp_a0_4 = *(int *)(temp_s3 + 4);
+            temp_s2 = temp_a0_4 + 0x10;
+            CopyEntry *entry = (CopyEntry *)temp_s2;
+            temp_a2_4 = entry->offset;
+            temp_s3 += temp_a2_4;
             temp_a1 = cMemPool::GetPoolFromPtr((char *)this + 0xC);
             temp_a0_4 = mFieldC;
             var_a2_2 = 0;
@@ -227,12 +252,39 @@ void gcValLobbyGameInfo::AssignCopy(const cBase *base) {
             } else {
                 var_a0_2 = *(int *)temp_a0_4;
             }
-            temp_a3_2 =
-                *(cBase * (**)(void *, cMemPool *, cBase *))(temp_s2 + 4);
-            mFieldC =
-                (int)temp_a3_2((char *)temp_s3 + temp_a2_4, temp_a1,
-                               (cBase *)var_a0_2);
+            temp_a3_2 = entry->fn;
+            mFieldC = (int)temp_a3_2((void *)temp_s3, temp_a1,
+                                      (cBase *)var_a0_2);
+        }
+        finalValue = temp_v0->mField10;
+    }
+storeFinal:
+    mField10 = finalValue;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcValLobbyGameInfodtv, 0xd4\n");
+
+// ── gcValLobbyGameInfo::~gcValLobbyGameInfo(void) @ 0x003495e0 ──
+gcValLobbyGameInfo::~gcValLobbyGameInfo() {
+    *(char **)((char *)this + 4) = gcValLobbyGameInfovirtualtable;
+    char *slot = (char *)this + 0x0C;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DeleteEntry *rec = (DeleteEntry *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, int) = rec->fn;
+            fn(obj + off, 3);
+            *(int *)((char *)this + 0x0C) = 0;
         }
     }
-    mField10 = temp_v0->mField10;
+    *(char **)((char *)this + 4) = cBaseclassdesc;
 }
