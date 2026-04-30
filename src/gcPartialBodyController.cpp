@@ -9,6 +9,13 @@ class cFile;
 class cMemPool;
 class cType;
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -35,25 +42,50 @@ void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcPartialEntityController {
 public:
+    gcPartialEntityController(cBase *);
+    ~gcPartialEntityController();
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
 
+struct DeleteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+static inline void gcPBC_delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
 class gcPartialBodyController : public gcPartialEntityController {
 public:
+    gcPartialBodyController(cBase *);
+    ~gcPartialBodyController();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static void operator delete(void *p) {
+        gcPBC_delete(p);
+    }
 };
 
 extern cType *D_000385DC;
 extern cType *D_0009F5E0;
 extern cType *D_0009F5F4;
+extern char gcPartialBodyControllerclassdesc[];
 
 extern "C" {
     void gcPartialBodyController__gcPartialBodyController_cBaseptr(void *self, cBase *parent);
+    void *__vec_new(void *, int, int, void (*)(void *));
+    void gcReplicationGroup__gcReplicationGroup_void(void *);
 }
 
 struct AllocRec {
@@ -61,6 +93,37 @@ struct AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+// =====================================================================
+// 0x00140354 — gcPartialBodyController::gcPartialBodyController(cBase *)
+// =====================================================================
+gcPartialBodyController::gcPartialBodyController(cBase *parent)
+    : gcPartialEntityController(parent) {
+    *(char **)((char *)this + 4) = gcPartialBodyControllerclassdesc;
+    *(int *)((char *)this + 0x38) = 0;
+    *(int *)((char *)this + 0x3C) = 0;
+    *(int *)((char *)this + 0x40) = 0;
+    *(unsigned char *)((char *)this + 0x44) = 0;
+    *(float *)((char *)this + 0x48) = 1.0f;
+    __vec_new((char *)this + 0x4C, 1, 6, gcReplicationGroup__gcReplicationGroup_void);
+}
+
+// =====================================================================
+// 0x001403bc — gcPartialBodyController::~gcPartialBodyController(void)
+// =====================================================================
+gcPartialBodyController::~gcPartialBodyController() {
+    *(char **)((char *)this + 4) = gcPartialBodyControllerclassdesc;
+    if (*(void **)((char *)this + 0x40) != 0) {
+        void *ptr = *(void **)((char *)this + 0x40);
+        cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, ptr);
+        *(int *)((char *)this + 0x40) = 0;
+    }
+}
 
 // =====================================================================
 // 0x0014024c — gcPartialBodyController::Write(cFile &) const
