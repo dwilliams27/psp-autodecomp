@@ -9,6 +9,17 @@ class cBase;
 class cFile;
 class cMemPool;
 
+class cType {
+public:
+    char _pad[0x1C];
+    const cType *mParent;
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     cFile *_file;
@@ -25,6 +36,12 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+};
+
+struct DispatchEntry {
+    short offset;
+    short _pad;
+    cType *(*fn)(void *, short, void *);
 };
 
 typedef void (*DesiredWriteFn)(cBase *, cFile *);
@@ -54,6 +71,9 @@ struct AllocEntry {
 class gcTableString : public gcStringLValue {
 public:
     static cBase *New(cMemPool *, cBase *);
+    gcTableString &operator=(const gcTableString &);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -66,6 +86,10 @@ extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern char D_00000838[];
 extern char D_000015A8[];
 extern char D_0000A198[];
+extern cType *D_000385DC;
+extern cType *D_0009F454;
+extern cType *D_0009F458;
+extern cType *D_0009F574;
 
 cBase *gcTableString::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -91,6 +115,90 @@ cBase *gcTableString::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcTableString::AssignCopy(const cBase *base) {
+    const gcTableString *other = 0;
+
+    if (base != 0) {
+        if (D_0009F574 == 0) {
+            if (D_0009F458 == 0) {
+                if (D_0009F454 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                           (const char *)0x36D89C,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                                       0, 0, 0, 0);
+                }
+                D_0009F458 = cType::InitializeType(0, 0, 0x171, D_0009F454,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F574 = cType::InitializeType(0, 0, 0x219, D_0009F458,
+                                               &gcTableString::New,
+                                               0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *target = D_0009F574;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcTableString *)base;
+        }
+    }
+    operator=(*other);
+}
+
+const cType *gcTableString::GetType(void) const {
+    if (D_0009F574 == 0) {
+        if (D_0009F458 == 0) {
+            if (D_0009F454 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_0009F454 = cType::InitializeType(0, 0, 0x170, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_0009F458 = cType::InitializeType(0, 0, 0x171, D_0009F454,
+                                               0, 0, 0, 0);
+        }
+        D_0009F574 = cType::InitializeType(0, 0, 0x219, D_0009F458,
+                                           &gcTableString::New,
+                                           0, 0, 0);
+    }
+    return D_0009F574;
 }
 
 void gcTableString::Write(cFile &file) const {
