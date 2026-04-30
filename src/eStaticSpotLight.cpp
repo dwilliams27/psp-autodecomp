@@ -44,6 +44,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cHandle {
 public:
     int mIndex;
@@ -78,6 +92,7 @@ public:
     eStaticLight(cBase *);
     ~eStaticLight();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eStaticSpotLight : public eStaticLight {
@@ -85,6 +100,7 @@ public:
     eStaticSpotLight(cBase *);
     ~eStaticSpotLight();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
     void AssignCopy(const cBase *);
@@ -122,6 +138,22 @@ void eStaticSpotLight::Write(cFile &file) const {
     eStaticLight::Write(file);
     wb.Write(*(float *)((char *)this + 0x90));
     wb.End();
+}
+
+int eStaticSpotLight::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eStaticLight::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x90, 4);
+    }
+    return result;
 }
 
 eStaticSpotLight::eStaticSpotLight(cBase *parent) : eStaticLight(parent) {
