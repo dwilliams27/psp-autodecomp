@@ -37,6 +37,11 @@ public:
     void Write(cFile &) const;
 };
 
+class gcRegionSetGroup {
+public:
+    void ClearRegionSetState(int) const;
+};
+
 struct TypeMethod {
     short offset;
     short _pad;
@@ -220,4 +225,41 @@ void gcMap::ResetRegionStates(void) {
         mObjectLoadArray[i] = -1;
     }
     mLoadedCount = 0;
+}
+
+void gcMap::CaptureRegionStates(void) {
+    int i = 0;
+    gcMap *regions = this;
+    gcMap *map = this;
+    do {
+        gcRegionBase *region = (gcRegionBase *)regions->mLoadedRegions[0];
+        if (region != 0) {
+            map->CaptureRegionState(region);
+        }
+        i++;
+        regions = (gcMap *)((char *)regions + 4);
+    } while (i < 2);
+}
+
+void gcMap::ClearRegionSetState(int index, int state) {
+    gcRegionSetGroup *group;
+    gcRegionSetGroup **groups;
+    if (index >= 0) {
+        groups = *(gcRegionSetGroup ***)((char *)this + 0x398);
+        int count = 0;
+        if (groups != 0) {
+            count = ((int *)groups)[-1];
+        }
+        if (index < count) {
+            goto valid;
+        }
+    }
+    group = 0;
+    goto done;
+valid:
+    group = *(gcRegionSetGroup **)((char *)groups + (index << 2));
+done:
+    if (group != 0) {
+        group->ClearRegionSetState(state);
+    }
 }

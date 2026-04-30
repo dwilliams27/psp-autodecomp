@@ -2,6 +2,7 @@
 #define GCMAP_H
 
 class gcRegion;
+class gcRegionBase;
 class gcEntity;
 class cBase;
 class cMemPool;
@@ -40,6 +41,8 @@ public:
     void DeleteRegion(int);
     void DeleteDynamicLoadedObjects(int, cHandleT<gcEntity>);
     void ResetRegionStates(void);
+    void CaptureRegionStates(void);
+    void CaptureRegionState(gcRegionBase *);
     void ClearRegionSetState(int, int);
 
     char pad_000[0x140];
