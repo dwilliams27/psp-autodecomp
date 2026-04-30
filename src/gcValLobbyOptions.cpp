@@ -2,6 +2,7 @@
 
 class cBase;
 class cFile;
+class cType;
 
 class cMemPool {
 public:
@@ -11,6 +12,14 @@ public:
 class nwNetwork {
 public:
     static void *GetLobby(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -82,6 +91,7 @@ public:
 
     gcValLobbyOptions(cBase *parent);
     ~gcValLobbyOptions();
+    const cType *GetType(void) const;
     void GetText(char *) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -109,7 +119,68 @@ inline gcValLobbyOptions::gcValLobbyOptions(cBase *parent) : gcLValue(parent) {
     mField8 = 0;
 }
 
+class gcValLobbyScoreboardInfo {
+public:
+    const cType *GetType(void) const;
+    static cBase *New(cMemPool *, cBase *);
+};
+
 inline void *operator new(unsigned, void *p) { return p; }
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_variable;
+static cType *type_gcValLobbyOptions;
+static cType *type_gcValLobbyScoreboardInfo;
+
+// ── gcValLobbyOptions::GetType(void) const @ 0x0034aa7c ──
+const cType *gcValLobbyOptions::GetType(void) const {
+    if (!type_gcValLobbyOptions) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValLobbyOptions = cType::InitializeType(
+            0, 0, 0x1E4, type_variable, gcValLobbyOptions::New, 0, 0, 0);
+    }
+    return type_gcValLobbyOptions;
+}
+
+// ── gcValLobbyScoreboardInfo::GetType(void) const @ 0x0034b178 ──
+const cType *gcValLobbyScoreboardInfo::GetType(void) const {
+    if (!type_gcValLobbyScoreboardInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValLobbyScoreboardInfo = cType::InitializeType(
+            0, 0, 0x124, type_value, gcValLobbyScoreboardInfo::New, 0, 0, 0);
+    }
+    return type_gcValLobbyScoreboardInfo;
+}
 
 // ── gcValLobbyOptions::GetText(char *) const @ 0x0034ae98 ──
 void gcValLobbyOptions::GetText(char *buf) const {
