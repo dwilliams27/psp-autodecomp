@@ -3,6 +3,13 @@ class cFile;
 class cMemPool;
 class cType;
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -34,6 +41,7 @@ public:
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
 };
 
@@ -41,6 +49,22 @@ struct AllocRec {
     short offset;
     short _pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char _pad[0x1C];
+    char *allocTable;
+};
+
+struct HandleEntry {
+    char _pad[0x30];
+    int mId;
 };
 
 class gcState {
@@ -51,20 +75,78 @@ public:
     unsigned int mField28;
     cBaseArray mField2C;
 
+    gcState(cBase *);
+    ~gcState();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        rec->fn(block + off, p);
+    }
 };
 
 extern "C" {
-    void gcState__gcState_cBaseptr(void *self, cBase *parent);
     void *dcastdcast_gcStateptr__constcBaseptr(const cBase *);
 }
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_0009A3DC;
+extern void *D_00038890[];
+
+// ── gcState::gcState(cBase *) @ 0x0010ae68 ──
+gcState::gcState(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(short *)((char *)this + 0x1C) = 0;
+    *(short *)((char *)this + 0x1E) = 0;
+    *(char *)((char *)this + 8) = 0;
+    *(void **)((char *)this + 4) = (void *)0x3883D0;
+    *(int *)((char *)this + 0x20) = 0;
+
+    int parentHandle = *(int *)((char *)parent + 0x44);
+    HandleEntry *entry;
+    if (parentHandle == 0) {
+        entry = 0;
+    } else {
+        HandleEntry *lookup = (HandleEntry *)D_00038890[parentHandle & 0xFFFF];
+        entry = 0;
+        if (lookup != 0) {
+            if (lookup->mId == parentHandle) {
+                entry = lookup;
+            }
+        }
+    }
+
+    __asm__ volatile("" ::: "memory");
+    volatile int defaultIndex = 0;
+    int *defaultIndexPtr = (int *)&defaultIndex;
+    int handle = 0;
+    if (entry != 0) {
+        handle = entry->mId;
+    }
+    *(int *)((char *)this + 0x24) = handle;
+    int index = *defaultIndexPtr;
+    *(int *)((char *)this + 0x2C) = 0;
+    *(int *)((char *)this + 0x28) = index;
+    __asm__ volatile("" ::: "memory");
+    *(gcState **)((char *)this + 0x30) = this;
+}
+
+// ── gcState::~gcState(void) @ 0x00259728 ──
+gcState::~gcState() {
+    *(void **)((char *)this + 4) = (void *)0x3883D0;
+    void *array = (char *)this + 0x2C;
+    if (array != 0) {
+        ((cBaseArray *)array)->RemoveAll();
+    }
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
 
 // ── gcState::Write(cFile &) const @ 0x0010ac68 ──
 void gcState::Write(cFile &file) const {
@@ -87,7 +169,7 @@ cBase *gcState::New(cMemPool *pool, cBase *parent) {
     gcState *result = 0;
     gcState *obj = (gcState *)rec->fn(base, 0x34, 4, 0, 0);
     if (obj != 0) {
-        gcState__gcState_cBaseptr(obj, parent);
+        new (obj) gcState(parent);
         result = obj;
     }
     return (cBase *)result;
