@@ -7,7 +7,10 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cBase;
 
 class cType {
@@ -45,6 +48,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cBase {
 public:
     cBase *mOwner;          // 0
@@ -72,9 +81,20 @@ public:
         mField08 = (int)this | 1;
         mField0C = 0;
     }
+    ~gcLobbyUserStrings();
     void Write(cFile &) const;
     static gcLobbyUserStrings *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class gcNetworkConfigStrings {
@@ -95,6 +115,33 @@ extern cType *D_0009F504;
 extern cType *D_0009F554;
 extern cType *D_0009F5DC;
 extern cType *D_0009F5F0;
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcLobbyUserStringsdtv, 0xd4\n");
+
+// ── Destructor ──  @ 0x00284e24, 212B
+gcLobbyUserStrings::~gcLobbyUserStrings() {
+    *(char **)((char *)this + 4) = gcLobbyUserStringsclassdesc;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── GetType ──  @ 0x002847ac, 220B
 const cType *gcLobbyUserStrings::GetType(void) const {
