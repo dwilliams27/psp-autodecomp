@@ -4,11 +4,16 @@
 //   gcDesiredSoundData::Write(cFile &) const                 @ 0x00129950
 //   gcDesiredSoundData::New(cMemPool *, cBase *) static      @ 0x0026dd60
 //   gcDesiredSoundData::GetType(void) const                  @ 0x0026de00
+//   gcDesiredSoundData::~gcDesiredSoundData(void)            @ 0x0026dedc
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -40,6 +45,7 @@ void gcDesiredObject_gcDesiredObject(void *, cBase *);
 
 extern char gcDesiredObjectT_gcDesiredSoundData_gcDesiredSoundDataHelper_eSoundData_virtualtable[];
 extern char gcDesiredSoundDatavirtualtable[];
+extern char cBaseclassdesc[];
 
 extern cType *D_000385DC;
 extern cType *D_0009F3F4;
@@ -56,12 +62,56 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDesiredSoundData {
 public:
+    ~gcDesiredSoundData();
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcDesiredSoundDatadtv, 0xd4\n");
+
+// 0x0026dedc - gcDesiredSoundData::~gcDesiredSoundData(void)
+gcDesiredSoundData::~gcDesiredSoundData() {
+    *(char **)((char *)this + 4) =
+        gcDesiredObjectT_gcDesiredSoundData_gcDesiredSoundDataHelper_eSoundData_virtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // 0x00129950 - gcDesiredSoundData::Write(cFile &) const
 void gcDesiredSoundData::Write(cFile &file) const {
