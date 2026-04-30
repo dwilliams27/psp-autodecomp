@@ -3,8 +3,27 @@
 // instance's 1-based index into the supplied buffer.
 
 class cBase;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
+class gcUI {
+public:
+    ~gcUI();
+    void Reset(void);
+};
+
+struct ViewportPoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct ViewportAllocEntry {
+    short offset;
+    short _pad;
+    void *(*fn)(void *, int, int, int, int);
+};
 
 class cType {
 public:
@@ -22,12 +41,27 @@ public:
 
 class gcViewport {
 public:
+    typedef int gcConfig;
+
     gcViewport(cBase *);
+    ~gcViewport();
     void GetName(char *) const;
     void AssignCopy(const cBase *);
+    static void SetConfiguration(gcConfig);
+    static void SetFullscreen(bool);
     static cBase *New(cMemPool *, cBase *);
     static int PausesGame(void);
     const cType *GetType(void) const;
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        ViewportAllocEntry *rec =
+            (ViewportAllocEntry *)(((ViewportPoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        char *base = block + off;
+        void *(*fn)(void *, int, int, int, int) = rec->fn;
+        ((void (*)(void *, void *))fn)(base, p);
+    }
 };
 
 template <class T> T *dcast(const cBase *);
@@ -102,6 +136,31 @@ gcViewport::gcViewport(cBase *parent) {
     *(unsigned char *)((char *)this + 0x1380) = 0;
     *(unsigned char *)((char *)this + 0x1381) = 1;
     *(gcViewport **)((char *)this + 0x11F4) = this;
+}
+
+// ── gcViewport::~gcViewport(void) @ 0x000CCD94 ──
+gcViewport::~gcViewport() {
+    *(void **)((char *)this + 4) = (void *)0x387E28;
+    if ((char *)this + 0x10 != 0) {
+        ((gcUI *)((char *)this + 0x11F4))->~gcUI();
+    }
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
+
+// ── gcViewport::SetFullscreen(bool) static @ 0x000FDC34 ──
+void gcViewport::SetFullscreen(bool fullscreen) {
+    unsigned char value = fullscreen;
+    int *base = (int *)0x380000;
+    if (value != 0) {
+        int *src = (int *)0x380000;
+        int config = src[-0x9EE];
+        base[-0x9ED] = config;
+        gcViewport::SetConfiguration(0);
+        ((gcUI *)0x99928)->Reset();
+    } else {
+        gcViewport::SetConfiguration(base[-0x9ED]);
+    }
+    *(unsigned char *)0x37D844 = value;
 }
 
 // ── gcViewport::PausesGame(void) static @ 0x000FE08C ──
