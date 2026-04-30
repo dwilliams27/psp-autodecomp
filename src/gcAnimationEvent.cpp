@@ -113,7 +113,7 @@ struct AllocEntry {
 struct EventWriteSlot {
     short offset;
     short pad;
-    void (*fn)(void *, cFile &);
+    void (*fn)(void *, cFile *);
 };
 
 struct EventNameSlot {
@@ -176,12 +176,11 @@ const cType *gcAnimationEvent::GetType(void) const {
 void gcAnimationEvent::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.Write(mName.mIndex);
-    void *event = (char *)this + 0x0C;
-    void *vtable = *(void **)((char *)this + 0x10);
+    char *vtable = *(char **)((char *)this + 0x10);
     EventWriteSlot *slot = (EventWriteSlot *)((char *)vtable + 0x28);
     short offset = slot->offset;
-    void (*fn)(void *, cFile &) = slot->fn;
-    fn((char *)event + offset, *(cFile *)wb._data[0]);
+    void *event = (char *)this + 0x0C;
+    slot->fn((char *)event + offset, *(cFile **)&wb);
     wb.End();
 }
 

@@ -17,6 +17,15 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class gcEntity;
+
+class cMemBlockAllocation {
+public:
+    cMemBlockAllocation(void *, bool);
+    ~cMemBlockAllocation();
+    char _pad[0x18];
+};
+
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
@@ -33,6 +42,7 @@ public:
     gcEntityTemplate(cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    static void FreeDynamicInstance(gcEntity *);
 };
 
 class gcExternalVariable {
@@ -87,6 +97,20 @@ cBase *gcEntityTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// gcEntityTemplate::FreeDynamicInstance(gcEntity *) static @ 0x001275cc
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fQgcEntityTemplateTFreeDynamicInstanceP6IgcEntityT, 0x64\n");
+
+void gcEntityTemplate::FreeDynamicInstance(gcEntity *entity) {
+    cMemBlockAllocation alloc(entity, true);
+    if (entity != 0) {
+        int *vt = (int *)(((char **)entity)[1] + 0x50);
+        short thunk = *(short *)vt;
+        ((void (*)(char *, int))vt[1])((char *)entity + thunk, 3);
+    }
 }
 
 // gcExternalVariable::New(cMemPool *, cBase *) static @ 0x0027c0b4
