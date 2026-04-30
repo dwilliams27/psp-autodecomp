@@ -6,8 +6,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -55,25 +59,36 @@ struct EntityTypeInfoWrite {
     EntityWriteSlot mSlot;       // +0x28
 };
 
+struct DtorSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
 class gcDoTriggerActivate : public gcAction {
 public:
     // 0x0C: gcDesiredObject sub-object (vtable)
     // 0x10: gcDesiredObject secondary vtable (EntityTypeInfoWrite *)
+    // 0x14: owned object pointer
     // 0x18: int (set to 1 in ctor)
     // 0x1C: int (set to 0 in ctor)
     // 0x20: bool
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    ~gcDoTriggerActivate(void);
+    static void operator delete(void *);
 };
 
 // External constructors / vtables.
 extern "C" {
     void gcAction_gcAction(gcDoTriggerActivate *, cBase *);
+    void gcAction___dtor_gcAction_void(void *, int);
     void gcDesiredObject_gcDesiredObject(void *, void *);
 }
 extern char gcDoTriggerActivatevirtualtable[];
 extern char gcDoTriggerActivate_desobj_vtable[];
+extern char gcDoTriggerActivate_desobj_mid_vtable[] asm("D_00000978");
 extern char gcDoTriggerActivate_vtable1[];
 extern const char gcDoTriggerActivate_base_name[];
 extern const char gcDoTriggerActivate_base_desc[];
@@ -93,6 +108,16 @@ struct AllocEntry {
     short _pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+inline void gcDoTriggerActivate::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    char *entries = ((char **)block)[7];
+    AllocEntry *slot = (AllocEntry *)(entries + 0x30);
+    short off = slot->offset;
+    int (*fn)(void *, int, int, int, int) = slot->fn;
+    ((void (*)(void *, void *))fn)(block + off, p);
+}
 
 // ── gcDoTriggerActivate::GetType @ 0x00308818 ──
 const cType *gcDoTriggerActivate::GetType(void) const {
@@ -147,4 +172,35 @@ void gcDoTriggerActivate::Write(cFile &file) const {
 
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// 0x00308dbc - gcDoTriggerActivate::~gcDoTriggerActivate(void)
+gcDoTriggerActivate::~gcDoTriggerActivate(void) {
+    *(void **)((char *)this + 4) = gcDoTriggerActivatevirtualtable;
+
+    if ((void *)((char *)this + 0x0C) != 0) {
+        *(void * volatile *)((char *)this + 0x10) = gcDoTriggerActivate_desobj_vtable;
+        *(void * volatile *)((char *)this + 0x10) = gcDoTriggerActivate_desobj_mid_vtable;
+        *(void * volatile *)((char *)this + 0x10) = gcDoTriggerActivate_vtable1;
+        if ((void *)((char *)this + 0x14) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x14);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, 3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x10) = (void *)0x37E6A8;
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

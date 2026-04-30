@@ -6,8 +6,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -53,10 +57,17 @@ struct TimerTypeInfoWrite {
     TimerWriteSlot mSlot;     // +0x28
 };
 
+struct DtorSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
 class gcDoTimerActivate : public gcAction {
 public:
     // 0x0C: gcDesiredObject sub-object
     // 0x10: gcDesiredObject secondary vtable (TimerTypeInfoWrite *)
+    // 0x14: owned object pointer
     // 0x18: int (set to 1 in ctor)
     // 0x1C: int (set to 0 in ctor)
     // 0x20: bool
@@ -64,15 +75,19 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    ~gcDoTimerActivate(void);
+    static void operator delete(void *);
 };
 
 extern "C" {
     void gcAction_gcAction(gcDoTimerActivate *, cBase *);
+    void gcAction___dtor_gcAction_void(void *, int);
     void gcDesiredObject_gcDesiredObject(void *, void *);
 }
 
 extern char gcDoTimerActivatevirtualtable[];
 extern char gcDoTimerActivate_desobj_vtable[];
+extern char gcDoTimerActivate_desobj_mid_vtable[] asm("D_000008D8");
 extern char gcDoTimerActivate_vtable1[];
 extern const char gcDoTimerActivate_base_name[] asm("D_0036D894");
 extern const char gcDoTimerActivate_base_desc[] asm("D_0036D89C");
@@ -92,6 +107,16 @@ struct AllocEntry {
     short _pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+inline void gcDoTimerActivate::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    char *entries = ((char **)block)[7];
+    AllocEntry *slot = (AllocEntry *)(entries + 0x30);
+    short off = slot->offset;
+    int (*fn)(void *, int, int, int, int) = slot->fn;
+    ((void (*)(void *, void *))fn)(block + off, p);
+}
 
 // 0x00307cc0 - gcDoTimerActivate::New(cMemPool *, cBase *) static
 cBase *gcDoTimerActivate::New(cMemPool *pool, cBase *parent) {
@@ -153,4 +178,35 @@ void gcDoTimerActivate::Write(cFile &file) const {
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.Write(*(const bool *)((char *)this + 0x21));
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// 0x0030836c - gcDoTimerActivate::~gcDoTimerActivate(void)
+gcDoTimerActivate::~gcDoTimerActivate(void) {
+    *(void **)((char *)this + 4) = gcDoTimerActivatevirtualtable;
+
+    if ((void *)((char *)this + 0x0C) != 0) {
+        *(void * volatile *)((char *)this + 0x10) = gcDoTimerActivate_desobj_vtable;
+        *(void * volatile *)((char *)this + 0x10) = gcDoTimerActivate_desobj_mid_vtable;
+        *(void * volatile *)((char *)this + 0x10) = gcDoTimerActivate_vtable1;
+        if ((void *)((char *)this + 0x14) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x14);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, 3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x10) = (void *)0x37E6A8;
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
