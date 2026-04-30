@@ -8,10 +8,24 @@
 
 class cBase;
 class cFile;
+class cMemPool;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcString;
@@ -91,6 +105,7 @@ public:
     gcStringTable(cBase *);
     ~gcStringTable();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     gcString *GetSubObject(cSubHandleT<gcString>, int) const;
     cHandlePairT<gcStringTable, cSubHandleT<gcString> > GetStringHandle(int) const;
     int IsValid(cSubHandleT<gcString>, int) const;
@@ -105,6 +120,10 @@ public:
 };
 
 extern char gcStringTableclassdesc[];   // 0x386E38
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00099904;
 
 extern "C" void gcStringTable_construct(void *self, cBase *parent);
 
@@ -150,6 +169,30 @@ gcStringTable::~gcStringTable() {
     if (arr != 0) {
         ((cBaseArray *)arr)->RemoveAll();
     }
+}
+
+// ── gcStringTable::GetType(void) const @ 0x0023b460 ──
+const cType *gcStringTable::GetType(void) const {
+    if (D_00099904 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_00099904 = cType::InitializeType(0, 0, 0x11C, D_000385E4,
+                                           &gcStringTable::New,
+                                           (const char *)0x36D8B8,
+                                           (const char *)0x36D8C8, 5);
+    }
+    return D_00099904;
 }
 
 // ── gcStringTable::GetStringHandle(int) const @ 0x000d6f48 ──
