@@ -18,6 +18,7 @@ public:
     float *mData;
     cArrayFloat &operator=(const cArrayFloat &);
     void Read(cInStream &);
+    void Read(class cReadBlock &);
 };
 
 class cWriteBlock {
@@ -33,6 +34,13 @@ class cOutStream {
 public:
     void Write(int, int, bool);
     void Write(float, bool);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
 };
 
 extern char gcTableColumnclassdesc[];
@@ -54,6 +62,8 @@ struct AllocEntry {
 
 struct gcTableColumnFloat;
 float cAtoF(const wchar_t *);
+extern "C" int cStrFormat(wchar_t *, const wchar_t *, ...);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 gcTableColumnFloat *dcast(const cBase *);
 
 struct gcTableColumn {
@@ -61,6 +71,7 @@ struct gcTableColumn {
     void *mClassDesc;
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct gcTableColumnFloat : public gcTableColumn {
@@ -75,6 +86,7 @@ struct gcTableColumnFloat : public gcTableColumn {
 
     void Set(int row, float value);
     float Get(int row) const;
+    void Get(int row, wchar_t *buf, int bufsize) const;
     void Read(cInStream &stream);
     void AssignCopy(const cBase *other);
     void Set(int row, const wchar_t *text, bool flag);
@@ -83,6 +95,7 @@ struct gcTableColumnFloat : public gcTableColumn {
     const cType *GetType(void) const;
     void Write(cFile &file) const;
     void Write(cOutStream &os) const;
+    int Read(cFile &file, cMemPool *pool);
 };
 
 cBase *gcTableColumnFloat::New(cMemPool *pool, cBase *parent) {
@@ -123,6 +136,10 @@ void gcTableColumnFloat::Set(int row, float value) {
 
 float gcTableColumnFloat::Get(int row) const {
     return mValues.mData[row];
+}
+
+void gcTableColumnFloat::Get(int row, wchar_t *buf, int bufsize) const {
+    cStrFormat(buf, (const wchar_t *)0x36DF74, mValues.mData[row]);
 }
 
 void gcTableColumnFloat::Read(cInStream &stream) {
@@ -167,4 +184,14 @@ void gcTableColumnFloat::Write(cOutStream &os) const {
         os.Write(mValues.mData[i], true);
         i++;
     }
+}
+
+int gcTableColumnFloat::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1 || gcTableColumn::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    mValues.Read(rb);
+    return 1;
 }
