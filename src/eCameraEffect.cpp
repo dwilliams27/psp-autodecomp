@@ -3,6 +3,10 @@ class cFile;
 class cMemPool;
 class cType;
 
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+template <class T> T *dcast(const cBase *);
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -14,6 +18,8 @@ public:
 
 class cBaseArray {
 public:
+    cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
 };
 
@@ -27,6 +33,11 @@ public:
 class cNamed {
 public:
     static cBase *New(cMemPool *, cBase *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 struct eCameraEffectLayout {
@@ -44,7 +55,20 @@ struct eCameraEffectLayout {
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject();
+    cObject &operator=(const cObject &);
     void Write(cFile &) const;
+};
+
+class eGeom {
+public:
+    eGeom(cBase *);
+};
+
+struct eCameraEffectDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 struct eCameraEffectPoolBlock {
@@ -63,6 +87,7 @@ extern char eCameraEffectGeomvirtualtable[];
 
 extern "C" void cObject_cObject(void *, cBase *);
 extern "C" void eGeom_eGeom(void *, cBase *);
+extern "C" void eGeom___dtor_eGeom_void(void *, int);
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
@@ -72,8 +97,20 @@ extern cType *D_00041008;
 class eCameraEffect : public cObject {
 public:
     static cBase *New(cMemPool *, cBase *);
-    const cType *GetType(void) const;
+    ~eCameraEffect();
     void Write(cFile &) const;
+    const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        eCameraEffectDeleteRecord *rec =
+            (eCameraEffectDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // 0x001e31f0 - eCameraEffect::New(cMemPool *, cBase *) static
@@ -102,6 +139,64 @@ cBase *eCameraEffect::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x001e30d4 - eCameraEffect::AssignCopy(const cBase *)
+void eCameraEffect::AssignCopy(const cBase *base) {
+    eCameraEffect *other = dcast<eCameraEffect>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    ((cBaseArray *)((char *)this + 0x44))->operator=(
+        *(const cBaseArray *)((char *)other + 0x44));
+    *(unsigned char *)((char *)this + 0x4C) =
+        *(const unsigned char *)((char *)other + 0x4C);
+    *(unsigned char *)((char *)this + 0x4D) =
+        *(const unsigned char *)((char *)other + 0x4D);
+    *(unsigned char *)((char *)this + 0x4E) =
+        *(const unsigned char *)((char *)other + 0x4E);
+    *(float *)((char *)this + 0x50) = *(const float *)((char *)other + 0x50);
+    *(float *)((char *)this + 0x54) = *(const float *)((char *)other + 0x54);
+    *(float *)((char *)this + 0x58) = *(const float *)((char *)other + 0x58);
+    *(float *)((char *)this + 0x5C) = *(const float *)((char *)other + 0x5C);
+    *(v4sf_t *)((char *)this + 0xA0) = *(const v4sf_t *)((char *)other + 0xA0);
+    *(v4sf_t *)((char *)this + 0x70) = *(const v4sf_t *)((char *)other + 0x70);
+    *(v4sf_t *)((char *)this + 0x80) = *(const v4sf_t *)((char *)other + 0x80);
+    *(v4sf_t *)((char *)this + 0x90) = *(const v4sf_t *)((char *)other + 0x90);
+    float valueBC = *(const float *)((char *)other + 0xBC);
+    *(v4sf_t *)((char *)this + 0xB0) = *(const v4sf_t *)((char *)other + 0xB0);
+    *(float *)((char *)this + 0xBC) = valueBC;
+    *(int *)((char *)this + 0xC0) = *(const int *)((char *)other + 0xC0);
+    *(int *)((char *)this + 0xC4) = *(const int *)((char *)other + 0xC4);
+    *(int *)((char *)this + 0xC8) = *(const int *)((char *)other + 0xC8);
+    *(int *)((char *)this + 0xCC) = *(const int *)((char *)other + 0xCC);
+    *(int *)((char *)this + 0xD0) = *(const int *)((char *)other + 0xD0);
+    *(float *)((char *)this + 0xD4) = *(const float *)((char *)other + 0xD4);
+    *(float *)((char *)this + 0xD8) = *(const float *)((char *)other + 0xD8);
+    *(int *)((char *)this + 0xDC) = *(const int *)((char *)other + 0xDC);
+    *(int *)((char *)this + 0xE0) = *(const int *)((char *)other + 0xE0);
+    *(int *)((char *)this + 0xE4) = *(const int *)((char *)other + 0xE4);
+    *(int *)((char *)this + 0xE8) = *(const int *)((char *)other + 0xE8);
+    *(unsigned char *)((char *)this + 0xEC) =
+        *(const unsigned char *)((char *)other + 0xEC);
+    *(unsigned char *)((char *)this + 0xED) =
+        *(const unsigned char *)((char *)other + 0xED);
+}
+
+// SNC emitted a branch-loop pad in this function's symbol range.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// 0x001e3674 - eCameraEffect::~eCameraEffect(void)
+eCameraEffect::~eCameraEffect() {
+    *(void **)((char *)this + 4) = eCameraEffectvirtualtable;
+    eGeom *geom = (eGeom *)((char *)this + 0x60);
+    cBaseArray *array = (cBaseArray *)((char *)this + 0x44);
+    if (geom != 0) {
+        *(void **)((char *)this + 0x64) = eCameraEffectGeomvirtualtable;
+        eGeom___dtor_eGeom_void(geom, 0);
+    }
+    if (array != 0) {
+        array->RemoveAll();
+    }
 }
 
 // 0x0002d258 - eCameraEffect::Write(cFile &) const
