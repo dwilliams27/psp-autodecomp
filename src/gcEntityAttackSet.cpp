@@ -11,8 +11,11 @@ class cFile {
 public:
     void SetCurrentPos(unsigned int);
 };
-class cMemPool;
 class gcEntityAttack;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -37,6 +40,12 @@ public:
     void Read(void *);
     void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
 };
 
 class cReadBlock {
@@ -72,8 +81,17 @@ public:
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    ~gcEntityAttackSet();
     static cBase *New(cMemPool *, cBase *);
     static int GetAttackIndex(const cBaseArray &, const gcEntityAttack *, int *, const gcEntityAttack *);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 gcEntityAttackSet *dcast(const cBase *);
@@ -93,14 +111,6 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
-
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-void *cMemPool_GetPoolFromPtr(void *);
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
@@ -159,11 +169,11 @@ int gcEntityAttackSet::GetAttackIndex(
         int *setIndex,
         const gcEntityAttack *attackIndexOut) {
     int neg = -1;
-    void **arg0 = (void **)&sets;
     *(int *)attackIndexOut = neg;
     *setIndex = neg;
-    int outerIndex = 0;
-    void *outerData = *arg0;
+    int outerIndex;
+    __asm__ volatile("ori %0,$0,0" : "=r"(outerIndex));
+    void *outerData = sets.mData;
     int outerOffset = 0;
 loop_1:
     {
@@ -172,9 +182,10 @@ loop_1:
             outerSize = ((int *)outerData)[-1];
         }
         if (outerIndex < outerSize) {
-            gcEntityAttackSet *set =
-                *(gcEntityAttackSet **)((char *)*arg0 + outerOffset);
+            void *outerReload = *(void * volatile *)&sets.mData;
             int innerIndex = 0;
+            gcEntityAttackSet *set =
+                *(gcEntityAttackSet **)((char *)outerReload + outerOffset);
             int innerOffset = 0;
             cBaseArray *inner = (cBaseArray *)((char *)set + 12);
 loop_5:
@@ -183,19 +194,19 @@ loop_5:
             if (innerData != 0) {
                 innerSize = ((int *)innerData)[-1];
             }
-            if (innerIndex >= innerSize) {
-                outerIndex++;
-                outerOffset += 4;
-                goto loop_1;
+            if (innerIndex < innerSize) {
+                if (*(gcEntityAttack **)((char *)inner->mData + innerOffset) == attack) {
+                    *setIndex = outerIndex;
+                    *(int *)attackIndexOut = innerIndex;
+                    return 1;
+                }
+                innerIndex++;
+                innerOffset += 4;
+                goto loop_5;
             }
-            if (*(gcEntityAttack **)((char *)set->mArray.mData + innerOffset) == attack) {
-                *setIndex = outerIndex;
-                *(int *)attackIndexOut = innerIndex;
-                return 1;
-            }
-            innerIndex++;
-            innerOffset += 4;
-            goto loop_5;
+            outerIndex++;
+            outerOffset += 4;
+            goto loop_1;
         }
     }
     return 0;
@@ -351,28 +362,18 @@ cBase *gcEntityAttackSet::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oRgcEntityAttackSetdtv, 0x98\n");
+
 // ============================================================
 // 0x0025cb14 — destructor
 // ============================================================
-extern "C" {
-
-void gcEntityAttackSet___dtor_gcEntityAttackSet_void(
-        gcEntityAttackSet *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = gcEntityAttackSetvirtualtable;
-        void *arr = (char *)self + 12;
-        if (arr != 0) {
-            ((cBaseArray *)arr)->RemoveAll();
-        }
-        ((void **)self)[1] = cBaseclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
+gcEntityAttackSet::~gcEntityAttackSet() {
+    ((void **)this)[1] = gcEntityAttackSetvirtualtable;
+    void *arr = (char *)this + 12;
+    if (arr != 0) {
+        ((cBaseArray *)arr)->RemoveAll();
     }
-}
-
+    ((void **)this)[1] = cBaseclassdesc;
 }
