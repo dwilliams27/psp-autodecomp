@@ -12,6 +12,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class mOCS;
 
 class cType {
 public:
@@ -53,6 +54,8 @@ class gcBipedController : public gcCreatureController {
 public:
     gcBipedController(cBase *);
     ~gcBipedController();
+    void OnSnappedTo(const mOCS &, unsigned int)
+        __asm__("__0fRgcBipedControllerLOnSnappedToRC6EmOCSb");
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
@@ -63,6 +66,8 @@ public:
     ~gcPCBipedController();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void OnSnappedTo(const mOCS &, unsigned int)
+        __asm__("__0fTgcPCBipedControllerLOnSnappedToRC6EmOCSb");
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -72,6 +77,8 @@ extern "C" {
     void gcPCBipedController__gcPCBipedController_cBaseptr(void *self, cBase *parent);
     void gcEntityController___dtor_gcEntityController_void(void *self, int flags);
     void *cMemPool_GetPoolFromPtr(const void *);
+    void gcBipedController_OnSnappedTo_raw(gcBipedController *, const mOCS &, unsigned int)
+        __asm__("__0fRgcBipedControllerLOnSnappedToRC6EmOCSb");
 }
 
 struct AllocRec {
@@ -120,6 +127,26 @@ void gcPCBipedController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcBipedController *)this)->Write(file);
     wb.End();
+}
+
+// ── gcPCBipedController::OnSnappedTo(const mOCS &, bool) @ 0x00152f88 ──
+void gcPCBipedController::OnSnappedTo(const mOCS &ocs, unsigned int snapped) {
+    unsigned int doReset = snapped & 0xFF;
+    gcBipedController_OnSnappedTo_raw(this, ocs, doReset);
+    if (doReset != 0) {
+        __asm__ volatile(
+            "mtc1 $0, $f12\n"
+            "mfc1 $4, $f12\n"
+            "mfc1 $5, $f12\n"
+            "mfc1 $6, $f12\n"
+            "mtv $4, S120\n"
+            "mtv $5, S121\n"
+            "mtv $6, S122\n"
+            "sv.q C120, 0xC0(%0)\n"
+            :
+            : "r"(this)
+            : "$4", "$5", "$6", "$f12", "memory");
+    }
 }
 
 // ── gcPCBipedController::Read(cFile &, cMemPool *) @ 0x001527a0 ──
@@ -262,38 +289,43 @@ void gcPCBipedController::AssignCopy(const cBase *base) {
     unsigned char *dst1 = (unsigned char *)this + 0x28;
     unsigned char *src1 = (unsigned char *)other + 0x28;
     do {
+        register unsigned char *srcNext __asm__("$9");
+        register unsigned char *dstNext __asm__("$10");
         int word0 = *(int *)(src1 + 0x00);
-        unsigned char *src8 = src1 + 0x08;
-        unsigned char *dst8 = dst1 + 0x08;
+        srcNext = src1 + 0x08;
+        dstNext = dst1 + 0x08;
         *(int *)(dst1 + 0x00) = word0;
         *(unsigned char *)(dst1 + 0x04) = *(unsigned char *)(src1 + 0x04);
         *(unsigned char *)(dst1 + 0x05) = *(unsigned char *)(src1 + 0x05);
-        int word8 = *(int *)(src8 + 0x00);
-        *(int *)(dst8 + 0x00) = word8;
-        unsigned char *srcC = src1 + 0x0C;
-        int wordC = *(int *)(srcC + 0x00);
-        unsigned char *src10 = src1 + 0x10;
-        unsigned char *dstC = dst1 + 0x0C;
-        *(int *)(dstC + 0x00) = wordC;
-        int word10 = *(int *)(src10 + 0x00);
-        unsigned char *src14 = src1 + 0x14;
-        unsigned char *dst10 = dst1 + 0x10;
-        *(int *)(dst10 + 0x00) = word10;
-        int word14 = *(int *)(src14 + 0x00);
-        unsigned char *src18 = src1 + 0x18;
-        unsigned char *dst14 = dst1 + 0x14;
-        *(int *)(dst14 + 0x00) = word14;
-        int word18 = *(int *)(src18 + 0x00);
-        unsigned char *src1C = src1 + 0x1C;
-        unsigned char *dst18 = dst1 + 0x18;
-        *(int *)(dst18 + 0x00) = word18;
-        int word1C = *(int *)(src1C + 0x00);
-        unsigned char *dst1C = dst1 + 0x1C;
-        *(int *)(dst1C + 0x00) = word1C;
-        unsigned char *dst20 = dst1 + 0x20;
-        int word20 = *(int *)(src1 + 0x20);
+        __asm__ volatile("" : "+r"(srcNext), "+r"(dstNext) :: "memory");
+        int word8 = *(int *)srcNext;
+        srcNext = src1 + 0x0C;
+        *(int *)dstNext = word8;
+        register int wordNext __asm__("$9");
+        register unsigned char *dstAfter __asm__("$8");
+        register unsigned char *srcAfter __asm__("$10");
+        wordNext = *(int *)srcNext;
+        dstAfter = dst1 + 0x0C;
+        srcAfter = src1 + 0x10;
+        *(int *)dstAfter = wordNext;
+        wordNext = *(int *)srcAfter;
+        dstAfter = dst1 + 0x10;
+        srcAfter = src1 + 0x14;
+        *(int *)dstAfter = wordNext;
+        wordNext = *(int *)srcAfter;
+        dstAfter = dst1 + 0x14;
+        srcAfter = src1 + 0x18;
+        *(int *)dstAfter = wordNext;
+        wordNext = *(int *)srcAfter;
+        dstAfter = dst1 + 0x18;
+        srcAfter = src1 + 0x1C;
+        *(int *)dstAfter = wordNext;
+        wordNext = *(int *)srcAfter;
+        dstAfter = dst1 + 0x1C;
+        *(int *)dstAfter = wordNext;
+        int word20 = ((int *)src1)[8];
         i += 1;
-        *(int *)(dst20 + 0x00) = word20;
+        ((int *)dst1)[8] = word20;
         src1 += 0x24;
         dst1 += 0x24;
     } while (i < 2U);
