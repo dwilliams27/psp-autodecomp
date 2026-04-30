@@ -50,6 +50,9 @@ struct AllocEntry {
 };
 
 extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
 extern "C" void __0fKcTimeValueEReadR6JcInStream(void *, cInStream &);
 extern "C" void __0fKcTimeValueFWriteR6KcOutStreamK(const void *, cOutStream &);
 
@@ -185,12 +188,14 @@ void gcCinematicInstance::HandleStreamedCinematicDelete(void) {
 // Function 6: 0x000eaf50, 120 bytes — Read
 int gcCinematicInstance::Read(cFile &file, cMemPool *pool) {
     int result = 1;
-    __asm__ volatile("" ::: "memory");
-    cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 
