@@ -34,6 +34,7 @@ void cMemAllocator::EndBlock(cMemBlockAllocation *, cMemBlockAllocation *) {
 }
 
 void cThread::Start(void) {
+    __asm__ volatile("" ::: "memory");
     if (m_threadId > 0) {
         int *p = &m_flags;
         *p |= 0x1000;
