@@ -1,12 +1,16 @@
 #include "cBase.h"
 
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cFile;
 class cType;
 
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject();
     cObject &operator=(const cObject &);
 };
 
@@ -31,6 +35,12 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class gcUIGeomTemplate : public cObject {
 public:
     char _pad[0x44];          // cObject internals
@@ -41,11 +51,19 @@ public:
     gcEvent mEvent;           // 0x54
 
     gcUIGeomTemplate(cBase *);
+    ~gcUIGeomTemplate();
     const cType *GetType(void) const;
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 class cType {
@@ -101,6 +119,8 @@ extern cType *D_000385E4;
 extern cType *D_000469A8;
 extern cType *D_000469E0;
 extern cType *D_0009F590;
+extern char gcUIGeomTemplatevirtualtable[];
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
 
 void gcUIGeomTemplate::Reset(cMemPool *, bool) {
 }
@@ -184,6 +204,12 @@ gcUIGeomTemplate::gcUIGeomTemplate(cBase *parent) : cObject(parent) {
     mField4C = 0x1E0;
     mField50 = 1.0f;
     gcEvent__gcEvent_cBaseptr_constcharptr((char *)this + 0x54, (cBase *)this, 0);
+}
+
+gcUIGeomTemplate::~gcUIGeomTemplate() {
+    *(void **)((char *)this + 4) = gcUIGeomTemplatevirtualtable;
+    gcEvent___dtor_gcEvent_void((char *)this + 0x54, 2);
+    *(void **)((char *)this + 4) = (void *)0x380C18;
 }
 
 void gcUIGeomTemplate::Write(cFile &file) const {

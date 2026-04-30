@@ -12,6 +12,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -23,6 +28,7 @@ public:
 class cBaseArray {
 public:
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
 };
 
@@ -30,6 +36,7 @@ class cObject {
 public:
     char _pad[0x44];
     cObject(cBase *);
+    ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
@@ -48,6 +55,12 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class eLensFlare : public cObject {
 public:
     int mField44;            // 0x44 (cBaseArray.count)
@@ -55,10 +68,18 @@ public:
     unsigned int mField4C;   // 0x4C
 
     eLensFlare(cBase *);
+    ~eLensFlare();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
 };
 
 extern char eLensFlarevirtualtable[];
@@ -104,6 +125,19 @@ eLensFlare::eLensFlare(cBase *parent) : cObject(parent) {
     mField44 = 0;
     mField48 = (void *)this;
     mField4C = (unsigned int)-1;
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── eLensFlare::~eLensFlare @ 0x0003bf30 ──
+eLensFlare::~eLensFlare() {
+    *(void **)((char *)this + 4) = eLensFlarevirtualtable;
+    cBaseArray *array = (cBaseArray *)((char *)this + 0x44);
+    if (array != 0) {
+        array->RemoveAll();
+    }
 }
 
 // ── eLensFlare::New @ 0x001e8868 ──
