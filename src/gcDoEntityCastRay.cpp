@@ -53,13 +53,91 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+extern "C" void gcAction_ctor(void *, cBase *)
+    __asm__("gcAction__gcAction_cBaseptr__0012F4C8");
+extern "C" void gcEvent_ctor(void *, cBase *, const char *)
+    __asm__("gcEvent__gcEvent_cBaseptr_constcharptr__000D60F0");
+extern "C" void gcDesiredObject_ctor(void *, cBase *)
+    __asm__("gcDesiredObject__gcDesiredObject_cBaseptr__0011B6F4");
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+extern "C" void gcDesiredCamera_ctor(void *, cBase *)
+    __asm__("gcDesiredCamera__gcDesiredCamera_cBaseptr__001215D0");
+
 extern const char gcDoEntityCastRay_base_name[];
 extern const char gcDoEntityCastRay_base_desc[];
+extern char D_00000338[];
+extern char D_00002428[];
 
 static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoEntityCastRay;
+
+gcDoEntityCastRay::gcDoEntityCastRay(cBase *parent) {
+    gcAction_ctor(this, parent);
+
+    *(void **)((char *)this + 0x04) = D_00002428;
+    *(short *)((char *)this + 0x20) = 0;
+    *(short *)((char *)this + 0x22) = 0;
+    *(unsigned char *)((char *)this + 0x0C) = 0;
+    *(short *)((char *)this + 0x38) = 0;
+    *(short *)((char *)this + 0x3A) = 0;
+    *(unsigned char *)((char *)this + 0x24) = 0;
+
+    gcEvent_ctor((char *)this + 0x3C, (cBase *)this, (const char *)0x36E5D4);
+
+    char *desired = (char *)this + 0x58;
+    gcDesiredObject_ctor(desired, (cBase *)this);
+
+    *(void **)((char *)this + 0x5C) = D_00000338;
+
+    void *helper = (char *)this + 0x64;
+    int one = 1;
+    gcDesiredEntityHelper_ctor(helper, 1, 0, 0);
+    *(void **)((char *)this + 0x5C) = (void *)0x388A48;
+    *(void **)((char *)this + 0x6C) = desired;
+    void *desiredVTable = (void *)0x388568;
+    *(void **)((char *)this + 0x70) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x74) = one;
+    *(unsigned char *)((char *)this + 0x75) = 0;
+    *(int *)((char *)this + 0x78) = 0;
+    *(int *)((char *)this + 0x7C) = 0;
+    *(int *)((char *)this + 0x80) = (int)desired | 1;
+
+    gcDesiredCamera_ctor((char *)this + 0x84, (cBase *)this);
+
+    int encoded = (int)this | 1;
+    *(int *)((char *)this + 0xBC) = one;
+    *(int *)((char *)this + 0xC0) = encoded;
+    *(int *)((char *)this + 0xC4) = encoded;
+    *(int *)((char *)this + 0xC8) = encoded;
+    *(int *)((char *)this + 0xCC) = encoded;
+    *(int *)((char *)this + 0xD0) = encoded;
+    *(int *)((char *)this + 0xD4) = 0;
+    *(int *)((char *)this + 0xD8) = encoded;
+    *(int *)((char *)this + 0xDC) = encoded;
+    *(int *)((char *)this + 0xE0) = encoded;
+    *(int *)((char *)this + 0xE4) = encoded;
+    *(int *)((char *)this + 0xE8) = encoded;
+    *(int *)((char *)this + 0xEC) = encoded;
+    *(int *)((char *)this + 0xF0) = -1;
+    *(unsigned char *)((char *)this + 0xF4) = 0;
+    *(unsigned char *)((char *)this + 0xF5) = 0;
+    *(unsigned char *)((char *)this + 0xF6) = 0;
+    *(void **)((char *)this + 0xF8) = this;
+    *(void **)((char *)this + 0xFC) = desiredVTable;
+    *(unsigned char *)((char *)this + 0x100) = one;
+    *(unsigned char *)((char *)this + 0x101) = 0;
+    *(int *)((char *)this + 0x104) = 0;
+    *(int *)((char *)this + 0x108) = 0;
+    *(int *)((char *)this + 0x10C) = encoded;
+    *(int *)((char *)this + 0x110) = encoded;
+    *(int *)((char *)this + 0x114) = encoded;
+    *(int *)((char *)this + 0x118) = encoded;
+    *(int *)((char *)this + 0x11C) = encoded;
+    *(unsigned char *)((char *)this + 0x120) = 0;
+}
 
 cBase *gcDoEntityCastRay::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
