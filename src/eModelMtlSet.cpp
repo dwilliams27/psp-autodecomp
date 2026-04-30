@@ -1,5 +1,6 @@
 // eModelMtlSet.cpp — decompiled from eAll_psp.obj
 //   0x0005eac8  eModelMtlSet::Write(cFile &) const
+//   0x0005eb14  eModelMtlSet::Read(cFile &, cMemPool *)
 //   0x00205934  eModelMtlSet::AssignCopy(const cBase *)
 //   0x00205980  eModelMtlSet::New(cMemPool *, cBase *) static
 //
@@ -29,6 +30,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 class cObject {
 public:
@@ -67,12 +77,14 @@ public:
 class eGeomMtlSet : public cObject {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eModelMtlSet : public eGeomMtlSet {
 public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
@@ -95,6 +107,18 @@ void eModelMtlSet::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eGeomMtlSet *)this)->Write(file);
     wb.End();
+}
+
+// ── eModelMtlSet::Read(cFile &, cMemPool *) @ 0x0005EB14 ──
+int eModelMtlSet::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eGeomMtlSet *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eModelMtlSet::AssignCopy(const cBase *) @ 0x00205934 ──

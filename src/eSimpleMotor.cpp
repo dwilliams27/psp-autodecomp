@@ -3,6 +3,7 @@
 // Functions matched here:
 //   eSimpleMotor::eSimpleMotor(cBase *)         @ 0x0006b840  56B
 //   eSimpleMotor::Write(cFile &) const          @ 0x0006b738  76B
+//   eSimpleMotor::Read(cFile &, cMemPool *)     @ 0x0006b784  188B
 //   eSimpleMotor::~eSimpleMotor(void)           @ 0x0006b878  124B
 //   eSimpleMotor::New(cMemPool *, cBase *)      @ 0x00209bd0  124B
 
@@ -27,6 +28,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 struct DeleteRecord {
     short offset;
@@ -56,6 +66,7 @@ public:
     eSimulatedMotor(cBase *);
     ~eSimulatedMotor();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern char eSimpleMotorvirtualtable[];
@@ -69,6 +80,7 @@ public:
     ~eSimpleMotor();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -99,6 +111,18 @@ void eSimpleMotor::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     eSimulatedMotor::Write(file);
     wb.End();
+}
+
+// ── eSimpleMotor::Read(cFile &, cMemPool *) @ 0x0006B784 ──
+int eSimpleMotor::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eSimulatedMotor *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eSimpleMotor::AssignCopy(const cBase *) @ 0x00209b78 ──
