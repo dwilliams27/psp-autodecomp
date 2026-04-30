@@ -46,8 +46,15 @@ struct DeleteRec {
     void (*fn)(void *, void *);
 };
 
+struct VTableSlot {
+    short offset;
+    short pad;
+    void *(*fn)(void *);
+};
+
 class gcExpressionList {
 public:
+    gcExpressionList(cBase *);
     gcExpressionList &operator=(const gcExpressionList &other);
     void Write(cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -55,15 +62,14 @@ public:
 
 class gcEvent {
 public:
-    char _pad0[8];
-    gcExpressionList mExprList;     // +0x08
-    char _pad1[4];                  // pad so mField10 lands at +0x10
+    char _pad0[0x10];
     int mField10;                   // +0x10
     mutable cGUID mGUID;            // +0x14
 
     gcEvent(cBase *, const char *);
     ~gcEvent();
     gcEvent &operator=(const gcEvent &other);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -82,11 +88,23 @@ public:
 extern cType *D_000385DC;
 extern cType *D_000998FC;
 extern char gcEventvirtualtable[];
+extern "C" void gcExpressionList_ctor(void *, cBase *) __asm__("__0oQgcExpressionListctP6FcBase");
 extern "C" void gcExpressionList_dtor(void *, int) __asm__("__0oQgcExpressionListdtv");
 
+gcEvent::gcEvent(cBase *parent, const char *name) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(void **)((char *)this + 4) = gcEventvirtualtable;
+    gcExpressionList_ctor((char *)this + 8, (cBase *)this);
+    *(const char **)((char *)this + 0x10) = name;
+    *(int *)((char *)this + 0x14) = 0;
+    *(int *)((char *)this + 0x18) = 0;
+}
+
 gcEvent &gcEvent::operator=(const gcEvent &other) {
-    mExprList = other.mExprList;
-    mField10 = other.mField10;
+    *(gcExpressionList *)((char *)this + 8) =
+        *(const gcExpressionList *)((const char *)&other + 8);
+    *(int *)((char *)this + 0x10) =
+        *(const int *)((const char *)&other + 0x10);
     return *this;
 }
 
@@ -104,7 +122,7 @@ void gcEvent::Write(cFile &file) const {
     if (!valid) {
         mGUID = cGUID::Generate();
     }
-    mExprList.Write(wb);
+    ((gcExpressionList *)((char *)this + 8))->Write(wb);
     wb.Write(*guid);
     wb.End();
 }
@@ -137,9 +155,55 @@ const cType *gcEvent::GetType(void) const {
     return D_000998FC;
 }
 
+void gcEvent::AssignCopy(const cBase *base) {
+    const cBase *copy = 0;
+
+    if (base != 0) {
+        if (D_000998FC == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000998FC = cType::InitializeType(0, 0, 0x69, D_000385DC,
+                                               &gcEvent::New, 0, 0, 0);
+        }
+
+        void *vt = ((void **)base)[1];
+        void *myType = D_000998FC;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short off = slot->offset;
+        void *(*getType)(void *) = slot->fn;
+        void *type = getType((char *)base + off);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done_type;
+        }
+        if (type != 0) {
+        loop_type:
+            if (type == myType) {
+                ok = 1;
+                goto done_type;
+            }
+            type = *(void **)((char *)type + 0x1C);
+            if (type != 0) {
+                goto loop_type;
+            }
+        }
+        ok = 0;
+    done_type:
+        if (ok != 0) {
+            copy = base;
+        }
+    }
+    *this = *(const gcEvent *)copy;
+}
+
 void gcEvent::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(cBase *, unsigned int, void *), void *user, unsigned int mask) {
     if (cb != 0) {
         cb(ctx, (unsigned int)(void *)this, user);
     }
-    this->mExprList.VisitReferences(flags, (cBase *)this, cb, user, mask);
+    ((gcExpressionList *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
 }
