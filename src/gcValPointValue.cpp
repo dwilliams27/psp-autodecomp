@@ -1,6 +1,9 @@
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cWriteBlock {
@@ -24,9 +27,11 @@ public:
 
 class gcValPointValue : public gcValue {
 public:
+    ~gcValPointValue();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    static void operator delete(void *);
 };
 
 class cType {
@@ -54,6 +59,12 @@ struct cTypeMethod {
     void (*fn)(void *, cFile *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 extern char cBaseclassdesc[];
 extern char D_000005B8[];
 extern char D_00009A80[];
@@ -64,6 +75,49 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_value;
 static cType *type_gcValPointValue;
+
+inline void gcValPointValue::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DtorDeleteRecord *rec =
+        (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oPgcValPointValuedtv, 0x108\n");
+
+gcValPointValue::~gcValPointValue() {
+    *(void **)((char *)this + 4) = D_00009A80;
+    char *desired = (char *)this + 0x10;
+    if (desired != 0) {
+        *(void * volatile *)((char *)this + 0x14) = (void *)0x389760;
+        *(void * volatile *)((char *)this + 0x14) = D_000005B8;
+        *(void * volatile *)((char *)this + 0x14) = (void *)0x3889A8;
+        char *slot = (char *)this + 0x18;
+        if (slot != 0) {
+            int keep = 1;
+            int val = *(int *)((char *)this + 0x18);
+            if (val & 1) {
+                keep = 0;
+            }
+            if (keep != 0 && val != 0) {
+                char *obj = (char *)val;
+                char *type = ((char **)obj)[1];
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(obj + off, (void *)3);
+                *(int *)((char *)this + 0x18) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x14) = cBaseclassdesc;
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
 
 cBase *gcValPointValue::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];

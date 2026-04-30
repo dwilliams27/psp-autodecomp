@@ -25,6 +25,7 @@ public:
     char _pad[0x44];
 
     cObject(cBase *);
+    ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
@@ -45,16 +46,19 @@ public:
 class gcEvent {
 public:
     gcEvent(cBase *, const char *);
+    ~gcEvent();
     gcEvent &operator=(const gcEvent &);
 };
 
 class gcRoomInstance : public cObject {
 public:
     gcRoomInstance(cBase *);
+    ~gcRoomInstance();
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
 };
 
 struct AllocEntry {
@@ -69,10 +73,30 @@ struct TypeDispatchEntry {
     void (*fn)(void *, int);
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
 };
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct HandleEntry {
+    char pad[0x30];
+    int handle;
+    char pad2[0xC8];
+    int roomInstance;
+};
+
+extern HandleEntry *D_00038890[];
 
 extern "C" void gcEvent_ctor(void *, cBase *, const char *)
     __asm__("__0oHgcEventctP6FcBasePCc");
@@ -81,6 +105,46 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_0009F59C;
+
+inline void gcRoomInstance::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteRecord *rec =
+        (DeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
+gcRoomInstance::~gcRoomInstance() {
+    *(void **)((char *)this + 4) = (void *)0x38B5D8;
+
+    int value = *(int *)((char *)this + 0x44);
+    int valid;
+    if (value == 0) {
+        valid = 0;
+    } else {
+        HandleEntry *entry = D_00038890[value & 0xFFFF];
+        HandleEntry *found = 0;
+        if (entry != 0) {
+            if (entry->handle == value) {
+                found = entry;
+            }
+        }
+        valid = found != 0;
+    }
+
+    if ((valid & 0xFF) != 0) {
+        HandleEntry *entry = 0;
+        if (value != 0) {
+            entry = D_00038890[value & 0xFFFF];
+        }
+        entry->roomInstance = 0;
+    }
+
+    ((gcEvent *)((char *)this + 0x68))->~gcEvent();
+    ((gcEvent *)((char *)this + 0x4C))->~gcEvent();
+}
 
 gcRoomInstance::gcRoomInstance(cBase *parent) : cObject(parent) {
     *(void **)((char *)this + 4) = (void *)0x38B5D8;
