@@ -93,6 +93,8 @@ cBase *gcValEntityHasAnimation::New(cMemPool *pool, cBase *parent) {
         (gcValEntityHasAnimation *)entry->fn(base, 0x4C, 4, 0, 0);
     if (obj != 0) {
         register void *type0 asm("a0");
+        register void *type1 asm("a0");
+        register void *helper_desc asm("a0");
 
         ((void **)obj)[1] = (void *)(0x380000 - 6488);
         __asm__ volatile("lui %0,0x0" : "=r"(type0));
@@ -101,10 +103,13 @@ cBase *gcValEntityHasAnimation::New(cMemPool *pool, cBase *parent) {
         ((void **)obj)[1] = type0;
         char *sub = (char *)obj + 8;
         gcDesiredObject_ctor(sub, obj);
-        ((char **)obj)[3] = D_00000338;
+        __asm__ volatile("lui %0,0x0\n\taddiu %0,%0,0x338" : "=r"(type1));
+        ((void **)obj)[3] = type1;
         gcDesiredEntityHelper_ctor((char *)obj + 0x14, 1, 0, 0);
+        __asm__ volatile("lui %0,0x39\n\taddiu %0,%0,-0x75b8"
+                         : "=r"(helper_desc));
         ((void **)obj)[8] = (void *)(0x380000 - 6488);
-        ((void **)obj)[3] = (void *)0x388A48;
+        ((void **)obj)[3] = helper_desc;
         ((char **)obj)[7] = sub;
         ((void **)obj)[8] = (void *)0x388568;
         ((char *)obj)[0x24] = 1;
