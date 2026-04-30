@@ -29,9 +29,11 @@ public:
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
     gcExpression *GetChild(int) const;
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    gcDoSetValue &operator=(const gcDoSetValue &);
 };
 
 class gcDoStateFunction {
