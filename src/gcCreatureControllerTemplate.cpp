@@ -11,8 +11,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 extern const char gcCreatureControllerTemplate_typeName[];  // 0x36D894 — "cBase"
 extern const char gcCreatureControllerTemplate_typeDesc[];  // 0x36D89C — "Base"
@@ -38,7 +42,13 @@ public:
     ~cReadBlock(void);
 };
 
+class cBaseArray {
+public:
+    void RemoveAll(void);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void free(void *);
 
 class gcEntityControllerTemplate {
 public:
@@ -48,16 +58,57 @@ public:
 
 class gcCreatureControllerTemplate : public gcEntityControllerTemplate {
 public:
+    ~gcCreatureControllerTemplate();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
 };
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
+
+extern char gcEntityControllerTemplate_dtor_classdesc[];
+extern char cBase_dtor_classdesc[];
 
 // Static type-cache slots — addresses 0x385DC, 0x9A400, 0x9F5A4 in the binary.
 // Relocation masking in compare_func handles distinct addresses.
 static cType *type_gcCreature_base;
 static cType *type_gcCreature_mid;
 static cType *type_gcCreature;
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0ocgcCreatureControllerTemplatedtv, 0xcc\n");
+
+// -- gcCreatureControllerTemplate::~gcCreatureControllerTemplate(void) --
+gcCreatureControllerTemplate::~gcCreatureControllerTemplate() {
+    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
+    cBaseArray *arr1 = (cBaseArray *)((char *)this + 0x1C);
+    cBaseArray *arr0 = (cBaseArray *)((char *)this + 0x08);
+    if (arr1 != 0) {
+        arr1->RemoveAll();
+    }
+    if (arr0 != 0) {
+        arr0->RemoveAll();
+    }
+    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
+}
 
 // ── gcCreatureControllerTemplate::Write(cFile &) const ──
 void gcCreatureControllerTemplate::Write(cFile &file) const {
