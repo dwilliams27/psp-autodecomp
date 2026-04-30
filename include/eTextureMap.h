@@ -3,6 +3,8 @@
 
 #include "eRenderTarget.h"
 
+class cFilename;
+
 class cMemPool {
 public:
     static float GetSizeScale(void);
@@ -23,6 +25,7 @@ public:
     void AssignCopy(const cBase *);
     eTextureMap &operator=(const eTextureMap &);
     void CreateData(void);
+    void GetExternalDependency(int, cFilename *) const;
 
     static eTextureMap *New(cMemPool *, cBase *);
 };
@@ -50,7 +53,6 @@ class eDrawInfo;
 class eColor;
 class cBase;
 class cFile;
-class cFilename;
 class cMemPool;
 
 class eShadowFillModelMtl {

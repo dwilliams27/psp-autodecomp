@@ -12,6 +12,26 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class cFilename;
+
+class cStr {
+public:
+    char _data[256];
+    void Set(const char *, ...);
+};
+
+class cLanguage {
+public:
+    enum cLanguages {
+        kLang0 = 0,
+    };
+};
+
+extern "C" int cGetCurrentPlatform(void);
+extern int gSomePlatformDefault;
+extern "C" void eTextureMap__GetRelativeFilename_unsignedint_cLanguage__cLanguagesconst(
+    cStr *, const eTextureMap *, unsigned int, cLanguage::cLanguages);
+
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
@@ -195,6 +215,29 @@ fail:
 // ── CreateData ──
 
 void eTextureMap::CreateData(void) {
+}
+
+// ── GetExternalDependency ──
+
+void eTextureMap::GetExternalDependency(int, cFilename *out) const {
+    cStr filename;
+    cStr temp;
+    cStr *ret = &temp;
+    __asm__ volatile("" : : "r"(ret) : "memory");
+    unsigned int platform = 9;
+    int usePlatform = ((*(const unsigned short *)((const char *)this + 0x28) & 2) != 0) & 0xFF;
+    if (usePlatform != 0) {
+        platform = (unsigned int)cGetCurrentPlatform();
+    }
+    int lang = 0xC;
+    int useLang = ((*(const unsigned short *)((const char *)this + 0x28) & 0x100) != 0) & 0xFF;
+    if (useLang != 0) {
+        lang = gSomePlatformDefault;
+    }
+    eTextureMap__GetRelativeFilename_unsignedint_cLanguage__cLanguagesconst(
+        ret, this, platform, (cLanguage::cLanguages)lang);
+    filename = temp;
+    ((cStr *)out)->Set((const char *)&filename);
 }
 
 // ── New ──

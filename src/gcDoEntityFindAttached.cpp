@@ -9,7 +9,18 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -25,6 +36,13 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void Write(int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 class cMemPool {
@@ -44,6 +62,7 @@ public:
     int mFieldC;    // 0x0C — accessed by derived GetText
     char _padCto64[0x54];
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *, char *, bool) const;
     ~gcDoEntityFindAttachedBase(void);
 };
@@ -111,6 +130,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     ~gcDoEntityFindAttached(void);
     static cBase *New(cMemPool *, cBase *);
@@ -182,6 +202,21 @@ void gcDoEntityFindAttached::Write(cFile &file) const {
     gcDoEntityFindAttachedBase::Write(file);
     wb.Write(mField64);
     wb.End();
+}
+
+// ── Read @ 0x002b0b58 ──────────────────────────────────────────────────
+int gcDoEntityFindAttached::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1) goto fail;
+    if (gcDoEntityFindAttachedBase::Read(file, pool) != 0) goto success;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+success:
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], &mField64, 4);
+    return result;
 }
 
 // ── GetText @ 0x002b0d50 ───────────────────────────────────────────────
