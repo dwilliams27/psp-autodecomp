@@ -64,8 +64,14 @@ class eDynamicLightTemplate : public cObject {
 public:
     eDynamicLightTemplate(cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eDynamicLight {
+public:
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -84,9 +90,12 @@ public:
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
 extern cType *D_000469A8;
+extern cType *D_000469C0;
 extern cType *D_000469E0;
 extern cType *D_00046C14;
+extern cType *D_00046C18;
 
 extern "C" {
     void eDynamicLightTemplate__eDynamicLightTemplate_cBaseptr(void *self, cBase *parent);
@@ -111,24 +120,26 @@ void eDynamicLightTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eDynamicGeomTemplate *)this)->Write(file);
 
-    cHandle *handles0 = *(cHandle **)((const char *)this + 0x48);
     int count0 = 0;
-    if (handles0 != 0) {
-        count0 = *((int *)handles0 - 1) & 0x3FFFFFFF;
+    int *handles = *(int **)((char *)this + 0x48);
+    if (handles != 0) {
+        count0 = handles[-1] & 0x3FFFFFFF;
     }
     wb.Write(count0);
 
-    cHandle *handles = *(cHandle **)((const char *)this + 0x48);
     int count = 0;
+    handles = *(int **)((char *)this + 0x48);
     if (handles != 0) {
-        count = *((int *)handles - 1) & 0x3FFFFFFF;
+        count = handles[-1] & 0x3FFFFFFF;
     }
-    int offset = 0;
+    int *handleBase = handles;
+
     int i = 0;
+    int offset = 0;
     if (i < count) {
-        cHandle *handle = handles + offset;
+        int *handle = handleBase + offset;
         do {
-            handle->Write(wb);
+            ((cHandle *)handle)->Write(wb);
             i++;
             handle++;
         } while (i < count);
@@ -136,6 +147,35 @@ void eDynamicLightTemplate::Write(cFile &file) const {
 
     wb.Write(*(const float *)((const char *)this + 0x4C));
     wb.End();
+}
+#pragma control sched=2
+
+// -- eDynamicLightTemplate::GetInstanceType(void) const @ 0x00077658 --
+#pragma control sched=1
+const cType *eDynamicLightTemplate::GetInstanceType(void) const {
+    if (D_00046C18 == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(
+                        name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469C0;
+        cBase *(*factory)(cMemPool *, cBase *) = &eDynamicLight::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C18 = cType::InitializeType(0, 0, 0x5A, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C18;
 }
 #pragma control sched=2
 
