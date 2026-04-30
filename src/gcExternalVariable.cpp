@@ -26,6 +26,7 @@ public:
     cObject &operator=(const cObject &);
     ~cObject();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -35,6 +36,20 @@ public:
     void Write(float);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 template <class T> T *dcast(const cBase *);
 
@@ -59,6 +74,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -109,6 +125,19 @@ void gcExternalVariable::Write(cFile &file) const {
     cObject::Write(file);
     wb.Write(mField44);
     wb.End();
+}
+
+// gcExternalVariable::Read(cFile &, cMemPool *) @ 0x0012f620
+int gcExternalVariable::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((cObject *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x44, 4);
+    return result;
 }
 
 // gcExternalVariable::~gcExternalVariable(void) @ 0x0012f72c
