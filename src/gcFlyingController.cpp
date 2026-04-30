@@ -70,6 +70,7 @@ public:
 
 class gcCreatureController : public gcEntityController {
 public:
+    gcCreatureController(cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -95,7 +96,17 @@ public:
     }
 };
 
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 extern char gcFlyingControllervirtualtable[];
+
+// ── gcFlyingController::gcFlyingController(cBase *) @ 0x00153ec0 ──
+gcFlyingController::gcFlyingController(cBase *parent)
+    : gcCreatureController(parent) {
+    *(void **)((char *)this + 4) = gcFlyingControllervirtualtable;
+    *(short *)((char *)this + 0x90) = 0;
+    *(short *)((char *)this + 0x92) = 0;
+    __vec_new((char *)this + 0x94, 1, 6, (void (*)(void *))0x24400C);
+}
 
 // ── gcFlyingController::GetType(void) const @ 0x0031b7fc ──
 const cType *gcFlyingController::GetType(void) const {

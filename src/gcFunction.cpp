@@ -42,6 +42,7 @@ public:
 class cObject {
 public:
     char _pad[0x44];
+    cObject(cBase *);
     ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
@@ -81,12 +82,21 @@ public:
 };
 
 extern "C" void gcFunction__gcFunction_cBaseptr(void *self, cBase *parent);
+extern "C" void gcEvent_ctor(void *, cBase *, const char *)
+    __asm__("__0oHgcEventctP6FcBasePCc");
 extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
 extern char gcFunctionvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_0009F4C8;
+
+// ── gcFunction::gcFunction(cBase *) @ 0x0012F900 ──
+gcFunction::gcFunction(cBase *parent)
+    : cObject(parent) {
+    *(void **)((char *)this + 4) = gcFunctionvirtualtable;
+    gcEvent_ctor((char *)this + 0x44, (cBase *)this, 0);
+}
 
 // ── gcFunction::AssignCopy(const cBase *) @ 0x0027D108 ──
 void gcFunction::AssignCopy(const cBase *base) {
