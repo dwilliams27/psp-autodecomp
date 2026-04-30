@@ -8,8 +8,24 @@ public:
     void *mClassDesc;
 };
 
+class cFile;
 class cMemPool;
 class cType;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void Write(int, const wchar_t *);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
 
 class cType {
 public:
@@ -53,6 +69,7 @@ public:
 
     gcString(cBase *);
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };
@@ -73,18 +90,52 @@ void gcString::AssignCopy(const cBase *base) {
     int v08 = *hold_ptr(&src->mField08);
     *hold_ptr(&mField08) = v08;
     int v0C = *hold_ptr(&src->mField0C);
-    *hold_ptr(&mField0C) = v0C;
+    int *dst0C = hold_ptr(&mField0C);
     int *srcp = hold_ptr(&src->mField10.a);
+    *dst0C = v0C;
+    int *dstp;
     int v10 = *srcp;
-    int *dstp = hold_ptr(&mField10.a);
+    dstp = hold_ptr(&mField10.a);
     srcp = hold_ptr(&src->mField10.b);
     *dstp = v10;
-    int v14 = *srcp;
-    *hold_ptr(&mField10.b) = v14;
+    *hold_ptr(&mField10.b) = *srcp;
     mText = src->mText;
     mName = src->mName;
     int v20 = *hold_ptr(&src->mField20);
     *hold_ptr(&mField20) = v20;
+}
+
+// ── gcString::Write(cFile &) const @ 0x000d6214 ──
+void gcString::Write(cFile &file) const {
+    cWriteBlock wb(file, 5);
+
+    const wchar_t *text = *(const wchar_t * const *)((const char *)this + 0x18);
+    wb.Write(text != 0 ? (*((const int *)text - 1) & 0x3FFFFFFF) : 0);
+
+    text = *(const wchar_t * const *)((const char *)this + 0x18);
+    int textCount = 0;
+    if (text != 0) {
+        textCount = *((const int *)text - 1) & 0x3FFFFFFF;
+    }
+    wb.Write(textCount, text);
+
+    wb.Write((unsigned int)mField20);
+    ((const cHandle *)&mField08)->Write(wb);
+    wb.Write((unsigned int)mField0C);
+    ((const cHandle *)&mField10.a)->Write(wb);
+    wb.Write((unsigned int)mField10.b);
+
+    text = (const wchar_t *)mName.mData;
+    wb.Write(text != 0 ? (*((const int *)text - 1) & 0x3FFFFFFF) : 0);
+
+    text = (const wchar_t *)mName.mData;
+    textCount = 0;
+    if (text != 0) {
+        textCount = *((const int *)text - 1) & 0x3FFFFFFF;
+    }
+    wb.Write(textCount, text);
+
+    wb.End();
 }
 
 // ── gcString::New(cMemPool *, cBase *) static @ 0x0023a92c ──
