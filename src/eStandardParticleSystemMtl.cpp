@@ -35,6 +35,10 @@ public:
 
 void cFile_SetCurrentPos(void *, unsigned int);
 
+extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
+
+extern char eStandardParticleSystemMtlvirtualtable[];
+
 #pragma control sched=1
 
 // ── Trivial stubs ──
@@ -46,6 +50,17 @@ void eStandardParticleSystemMtl::Unapply(void) const {
 }
 
 void eStandardParticleSystemMtl::CreateData(void) {
+}
+
+// ── Constructor ──
+
+eStandardParticleSystemMtl::eStandardParticleSystemMtl(cBase *parent) {
+    eGeomMtl_eGeomMtl(this, parent);
+    ((int *)this)[0x68 / 4] = -1;
+    ((void **)this)[0x04 / 4] = eStandardParticleSystemMtlvirtualtable;
+    __asm__ volatile("" ::: "memory");
+    ((unsigned char *)this)[0x5C] |= 8;
+    CreateData();
 }
 
 // ── Write ──

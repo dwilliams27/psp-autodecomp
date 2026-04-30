@@ -8,6 +8,7 @@ class cType;
 
 class eStandardParticleSystemMtl {
 public:
+    eStandardParticleSystemMtl(cBase *);
     const cType *GetType(void) const;
     void CreateData(void);
     void PlatformFree(void);

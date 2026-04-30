@@ -107,6 +107,15 @@ extern "C" {
 }
 
 #pragma control sched=1
+// ── 0x0008bfb8 — eSpriteFilter(cBase *), 72B ──
+eSpriteFilter::eSpriteFilter(cBase *parent) : eTextureFilter(parent) {
+    mClassDesc = eSpriteFiltervirtualtable;
+    mField10.mId = 0;
+    mField14 = false;
+    mField18 = 0xFF000000;
+    mField1C = false;
+}
+
 // ── 0x0008bdcc — Write(cFile &) const, 124B ──
 void eSpriteFilter::Write(cFile &file) const {
     cWriteBlock wb(file, 4);
