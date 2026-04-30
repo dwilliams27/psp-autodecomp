@@ -1,6 +1,8 @@
 // src/eStaticPointLight.cpp
 // Functions:
 //   0x0005eec4  eStaticPointLight::Write(cFile &) const                       eAll_psp.obj
+//   0x0005ef10  eStaticPointLight::Read(cFile &, cMemPool *)                  eAll_psp.obj
+//   0x0005efcc  eStaticPointLight::eStaticPointLight(cBase *)                 eAll_psp.obj
 //   0x0005f000  eStaticPointLight::~eStaticPointLight(void)                    eAll_psp.obj
 //   0x0005f15c  eStaticPointLight::GetSampleRay(mRay*, mVec3*, const mVec3&, const mVec3&) const   eAll_psp.obj
 //   0x00205df0  eStaticPointLight::AssignCopy(const cBase *)                  eAll_psp.obj
@@ -34,6 +36,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cObject {
 public:
     cObject &operator=(const cObject &);
@@ -63,6 +74,7 @@ public:
     eStaticLight(cBase *);
     ~eStaticLight();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eStaticPointLight : public eStaticLight {
@@ -70,6 +82,7 @@ public:
     eStaticPointLight(cBase *);
     ~eStaticPointLight();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
     void AssignCopy(const cBase *);
@@ -106,6 +119,24 @@ void eStaticPointLight::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eStaticLight *)this)->Write(file);
     wb.End();
+}
+
+// ── 0x0005ef10 — Read(cFile &, cMemPool *) ──
+int eStaticPointLight::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eStaticLight::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+// ── 0x0005efcc — eStaticPointLight(cBase *) ──
+eStaticPointLight::eStaticPointLight(cBase *parent)
+    : eStaticLight(parent) {
+    *(void **)((char *)this + 4) = eStaticPointLightvirtualtable;
 }
 
 // ── 0x0005f000 — ~eStaticPointLight(void) ──
