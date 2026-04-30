@@ -17,8 +17,27 @@ public:
     ~cReadBlock(void);
 };
 
-class eLightGridNode;
-class eLightGridSample;
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void End(void);
+};
+
+class eLightGridNode {
+public:
+    int mPacked;
+
+    void Write(cWriteBlock &) const;
+};
+
+class eLightGridSample {
+public:
+    short mValues[4];
+
+    void Write(cWriteBlock &) const;
+};
 
 template <class T>
 class cArrayBase {
@@ -42,6 +61,7 @@ public:
 
     eLightGrid(cBase *);
     int Read(cFile &, cMemPool *);
+    void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -104,13 +124,15 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+#pragma control sched=1
 cBase *eLightGrid::New(cMemPool *pool, cBase *parent) {
+    eLightGrid *result = 0;
+    __asm__ volatile("" : "+r"(result));
     void *block = ((void **)pool)[9];
     char *allocTable = ((PoolBlock *)block)->allocTable;
     AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
     short off = entry->offset;
     void *base = (char *)block + off;
-    eLightGrid *result = 0;
     eLightGrid *obj = (eLightGrid *)entry->fn(base, 0x10, 4, 0, 0);
     if (obj != 0) {
         new (obj) eLightGrid(parent);
@@ -118,6 +140,69 @@ cBase *eLightGrid::New(cMemPool *pool, cBase *parent) {
     }
     return (cBase *)result;
 }
+#pragma control sched=2
+
+// --- Write ---
+#pragma control sched=1
+void eLightGrid::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+
+    int *nodes = (int *)mNodes._data;
+    int nodeCount = 0;
+    if (nodes != 0) {
+        nodeCount = nodes[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(nodeCount);
+
+    int *nodeBase = (int *)mNodes._data;
+    int count = 0;
+    if (nodeBase != 0) {
+        count = nodeBase[-1] & 0x3FFFFFFF;
+    }
+
+    int nodeIndex = 0;
+    if (nodeIndex < count) {
+        int nodeOffset;
+        __asm__ volatile("" : "=r"(nodeOffset) : "0"(0));
+        eLightGridNode *node = (eLightGridNode *)((char *)nodeBase + nodeOffset);
+        do {
+            node->Write(wb);
+            nodeIndex++;
+            node++;
+        } while (nodeIndex < count);
+    }
+    __asm__ volatile("" ::: "memory");
+
+    int *samples = (int *)mSamples._data;
+    int sampleCount = 0;
+    if (samples != 0) {
+        sampleCount = samples[-1] & 0x3FFFFFFF;
+    }
+    const eLightGrid *self = this;
+    __asm__ volatile("" : "=&r"(self) : "0"(self));
+    wb.Write(sampleCount);
+
+    int sampleTotal = 0;
+    eLightGridSample *sampleBase = (eLightGridSample *)self->mSamples._data;
+    if (sampleBase != 0) {
+        sampleTotal = ((int *)sampleBase)[-1] & 0x3FFFFFFF;
+    }
+
+    int sampleIndex = 0;
+    if (sampleIndex < sampleTotal) {
+        int sampleOffset;
+        __asm__ volatile("" : "=r"(sampleOffset) : "0"(0));
+        eLightGridSample *sample = (eLightGridSample *)((char *)sampleBase + sampleOffset);
+        do {
+            sample->Write(wb);
+            sampleIndex++;
+            sample++;
+        } while (sampleIndex < sampleTotal);
+    }
+
+    wb.End();
+}
+#pragma control sched=2
 
 // --- GetType ---
 #pragma control sched=1
