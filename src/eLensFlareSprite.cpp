@@ -35,6 +35,8 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 // Pool-block layout (mirrors other class destructors / ::New).
 struct PoolBlock {
     char pad[0x1C];
@@ -69,6 +71,7 @@ public:
     float mField18;
     float mField1C;
 
+    eLensFlareSprite(cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -77,12 +80,20 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
-// External constructor (defined elsewhere; eLensFlareSprite::eLensFlareSprite
-// @ 0x0003bbc8, not yet matched). Invoked from ::New via safe-name wrapper.
-extern "C" void eLensFlareSprite_eLensFlareSprite(void *self, cBase *parent);
-
 extern cType *D_000385DC;
 extern cType *D_000468C8;
+
+// ── 0x0003bbc8 — eLensFlareSprite(cBase *), 68B ──
+eLensFlareSprite::eLensFlareSprite(cBase *parent) {
+    mOwner = parent;
+    mClassDesc = (void *)0x3807E8;
+    mField8 = 0;
+    mFieldC.mId = 0;
+    mField10 = 0.0f;
+    mField14 = 1.0f;
+    mField18 = 1.0f;
+    mField1C = 180.0f;
+}
 
 // ── 0x001e8378 — AssignCopy(const cBase *), 96B ──
 void eLensFlareSprite::AssignCopy(const cBase *base) {
@@ -147,7 +158,7 @@ cBase *eLensFlareSprite::New(cMemPool *pool, cBase *parent) {
     eLensFlareSprite *result = 0;
     eLensFlareSprite *obj = (eLensFlareSprite *)rec->fn(base, 0x20, 4, 0, 0);
     if (obj != 0) {
-        eLensFlareSprite_eLensFlareSprite(obj, parent);
+        new (obj) eLensFlareSprite(parent);
         result = obj;
     }
     return (cBase *)result;

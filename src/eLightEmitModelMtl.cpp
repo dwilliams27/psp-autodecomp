@@ -44,6 +44,7 @@ public:
     eOnePassModelMtl(cBase *);
     ~eOnePassModelMtl(void);
     eOnePassModelMtl &operator=(const eOnePassModelMtl &);
+    void CreateData(void);
     void Write(cFile &) const;
 };
 
@@ -75,8 +76,18 @@ extern char eLightEmitModelMtlvirtualtable[];
 template <class T>
 T dcast(const cBase *);
 
-// ── eLightEmitModelMtl::Write @ 0x00082ca8 ──
+// ── eLightEmitModelMtl::eLightEmitModelMtl @ 0x00082df8 ──
 #pragma control sched=1
+eLightEmitModelMtl::eLightEmitModelMtl(cBase *parent)
+    : eOnePassModelMtl(parent) {
+    *(void **)((char *)this + 4) = eLightEmitModelMtlvirtualtable;
+    mField80 = 1.0f;
+    __asm__ volatile("" ::: "memory");
+    mField84 = 0xFFFFFFFF;
+    eOnePassModelMtl::CreateData();
+}
+
+// ── eLightEmitModelMtl::Write @ 0x00082ca8 ──
 void eLightEmitModelMtl::Write(cFile &file) const {
     cWriteBlock wb(file, 3);
     eOnePassModelMtl::Write(file);
