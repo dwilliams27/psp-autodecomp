@@ -9,6 +9,7 @@ public:
 };
 
 extern char gcValUnaryOpvirtualtable[];
+extern char cBaseclassdesc[];
 void cStrCat(char *, const char *);
 void gcValUnaryOp_gcValUnaryOp(gcValUnaryOp *, cBase *);
 
@@ -22,6 +23,32 @@ gcValUnaryOp::gcValUnaryOp(cBase *parent) {
     *(char **)((char *)this + 4) = gcValUnaryOpvirtualtable;
     *(int *)((char *)this + 8) = 0;
     *(int *)((char *)this + 0xC) = (int)this | 1;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oMgcValUnaryOpdtv, 0xd4\n");
+
+gcValUnaryOp::~gcValUnaryOp(void) {
+    *(char **)((char *)this + 4) = gcValUnaryOpvirtualtable;
+    char *slot = (char *)this + 0x0C;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            gcValUnaryOp_DeleteRecord *rec = (gcValUnaryOp_DeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
 }
 
 int gcValUnaryOp::GetExprFlags(void) const {
