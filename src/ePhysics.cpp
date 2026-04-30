@@ -39,9 +39,13 @@ public:
 class eSimulatedController {
 public:
     bool IsSleeping(void) const;
+    void ClearExternalForces(void);
+    void IntegrateLocalToWorld(float);
 
     char _pad0[0x12];
     bool m_wasSleeping;  // 0x12
+    char _pad13[0x141];
+    eSimulatedController *m_pNext;  // 0x154
 };
 
 class eConfigBase {
@@ -56,23 +60,55 @@ public:
 
 class ePhysics {
 public:
+    ePhysics(void);
+
     static ePhysics *Get(void);
     static int GetPhysicsMemPoolSize(void);
 
     void AddToUpdateList(eBipedController *);
     void AddToUpdateList(eSimulatedController *);
     void AddMotor(eSimulatedMotor *);
+    void ClearExternalForcesAndIntegrateLocalToWorld(float);
     void RemoveFromUpdateList(eSimulatedController *);
     void UpdateController(eSimulatedController *);
 
     static ePhysics *s_pPhysics;
 
-    char _pad0[0x0C];
+    int m_unknown0;                          // 0x00
+    int m_unknown4;                          // 0x04
+    int m_unknown8;                          // 0x08
     eSimulatedController *m_pSimCtrlList;  // 0x0C
-    char _pad1[0x04];
+    int m_unknown10;                         // 0x10
     eSimulatedMotor *m_pMotorList;         // 0x14
     eBipedController *m_pBipedList;        // 0x18
+    float m_gravity;                         // 0x1C
+    char m_broadphase[0x1C];                 // 0x20
+    bool m_unknown3C;                        // 0x3C
+    char _pad3D[0x0F];
+    int m_unknown4C;                         // 0x4C
 };
+
+class eBroadphase {
+public:
+    eBroadphase(void);
+};
+
+extern "C" void eBroadphase_ctor(void *) __asm__("__0oLeBroadphasectv");
+
+// ── Constructor ────────────────────────────────────────────────────────────
+ePhysics::ePhysics(void) {
+    m_unknown0 = 2;
+    m_unknown4 = 10;
+    m_unknown8 = 10;
+    m_pSimCtrlList = 0;
+    m_unknown10 = 0;
+    m_pMotorList = 0;
+    m_pBipedList = 0;
+    m_gravity = 9.8f;
+    eBroadphase_ctor(m_broadphase);
+    m_unknown3C = 0;
+    m_unknown4C = 0;
+}
 
 // ── Get ────────────────────────────────────────────────────────────────────
 ePhysics *ePhysics::Get(void) {
@@ -132,5 +168,17 @@ void ePhysics::UpdateController(eSimulatedController *ctrl) {
     if (ctrl->IsSleeping() != ctrl->m_wasSleeping) {
         RemoveFromUpdateList(ctrl);
         AddToUpdateList(ctrl);
+    }
+}
+
+// ── ClearExternalForcesAndIntegrateLocalToWorld ────────────────────────────
+void ePhysics::ClearExternalForcesAndIntegrateLocalToWorld(float dt) {
+    eSimulatedController *ctrl = m_pSimCtrlList;
+    if (ctrl != 0) {
+        do {
+            ctrl->ClearExternalForces();
+            ctrl->IntegrateLocalToWorld(dt);
+            ctrl = ctrl->m_pNext;
+        } while (ctrl != m_pSimCtrlList);
     }
 }
