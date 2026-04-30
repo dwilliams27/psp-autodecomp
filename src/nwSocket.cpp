@@ -1,11 +1,19 @@
 // nwSocket: network socket wrapper around a transport, with a fixed-size
 // connection array.
 
-typedef int nwConnectionHandle;
-
 class nwAddress;
 
 class nwSocketHandle {
+public:
+    int mValue;
+};
+
+class nwConnectionHandle {
+public:
+    int mValue;
+};
+
+class cTimeValue {
 public:
     int mValue;
 };
@@ -25,7 +33,7 @@ struct TransportObj {
 
 struct ConnLite {
     void *unk0;
-    int   mHandle;    // at offset 4
+    nwConnectionHandle mHandle;    // at offset 4
 };
 
 }  // namespace
@@ -68,12 +76,15 @@ public:
     void AddressFromString(const char *, nwAddress *) const;
     nwConnectionHandle GetConnection(int) const;
     void ReceiveReject(nwInPacket &, nwConnectionHandle);
+    void Update(cTimeValue);
+    static void UpdateAll(cTimeValue);
+    static nwConnection *GetConnection(nwConnectionHandle);
 };
 
 extern "C" {
     void cStrCopy(char *, const char *);
     void nwSocket___dtor_nwSocket_void(nwSocket *, int);
-    nwConnection *nwSocket__GetConnection_nwConnectionHandlestatic(nwConnectionHandle);
+    extern nwSocket *D_00034958[];
 }
 
 // ------------------------------------------------------------------
@@ -92,15 +103,15 @@ void nwSocket::Destroy(void) {
 
 // ------------------------------------------------------------------
 nwConnectionHandle nwSocket::GetConnection(int idx) const {
-    volatile int result;
+    nwConnectionHandle result;
     if (idx >= 0 && idx < mMaxConnections) {
         ConnLite *c = (ConnLite *)mConnections[idx];
         if (c != 0) {
-            int *p = &c->mHandle;
+            nwConnectionHandle *p = &c->mHandle;
             return *p;
         }
     }
-    result = 0;
+    result.mValue = 0;
     return result;
 }
 
@@ -123,11 +134,25 @@ nwSocket::nwSocket(nwTransport *transport, nwSocketHandle handle,
 
 // ------------------------------------------------------------------
 void nwSocket::ReceiveReject(nwInPacket &packet, nwConnectionHandle handle) {
-    int spill[2];  // sp[0]=handle spill, sp[4]=value
-    spill[0] = handle;
-    packet.Read(spill[1], 32, true);
-    nwConnectionHandle h = spill[0];
-    if (nwSocket__GetConnection_nwConnectionHandlestatic(h) != 0) {
-        nwSocket__GetConnection_nwConnectionHandlestatic(h)->SetError((nwConnection::nwConnectionError)spill[1]);
+    int rejectedError;
+
+    packet.Read(rejectedError, 32, true);
+    if (nwSocket::GetConnection(handle) != 0) {
+        nwSocket::GetConnection(handle)->SetError((nwConnection::nwConnectionError)rejectedError);
     }
+}
+
+// ------------------------------------------------------------------
+void nwSocket::UpdateAll(cTimeValue dt) {
+    int i = 0;
+    nwSocket **socket = D_00034958;
+
+    do {
+        nwSocket *s = *socket;
+        if (s != 0) {
+            s->Update(dt);
+        }
+        i += 1;
+        socket += 1;
+    } while (i < 1);
 }
