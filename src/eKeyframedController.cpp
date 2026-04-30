@@ -32,7 +32,6 @@ public:
     int mField10;
     int mField14;
     eKeyframedControllerImpl(cBase *);
-    void GetVelocity(int, mVec3 *, mVec3 *) const;
 };
 
 class eKeyframedController;
@@ -90,11 +89,7 @@ void __attribute__((naked)) eKeyframedController::GetVelocity(int idx, const mVe
 }
 
 // eKeyframedController::GetVelocity(int, mVec3 *, mVec3 *) const @ 0x000750d4
-// Matches byte-exact at -Xsched=1 (confirmed via file-rename test). At the
-// default -Xsched=2 used for eKeyframedController.cpp, SNC fills the load-use
-// delay between the two consecutive lw's with the sll, producing 8 bytes of
-// diff. Needs a Makefile override: $(BUILD_DIR)/src/eKeyframedController%.o: CFLAGS := $(ECFLAGS)
-void eKeyframedControllerImpl::GetVelocity(int idx, mVec3 *out_a, mVec3 *out_b) const {
+void eKeyframedController::GetVelocity(int idx, mVec3 *out_a, mVec3 *out_b) const {
     v4sf_t *v = (v4sf_t *)(**(char ***)((char *)this + 0x10) + idx * 192);
     *(v4sf_t *)out_b = v[5];
     *(v4sf_t *)out_a = v[4];
