@@ -73,6 +73,13 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
+    __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+extern char D_00000338[];
+extern char D_00002B38[];
 extern const char gcDoEntityPlayPartialBodyAnimation_base_name[];
 extern const char gcDoEntityPlayPartialBodyAnimation_base_desc[];
 
@@ -121,9 +128,7 @@ const cType *gcDoEntityPlayPartialBodyAnimation::GetType(void) const {
 }
 
 void gcDoEntityPlayPartialBodyAnimation::AssignCopy(const cBase *other) {
-    const cBase *src = other;
     const cBase *copy = 0;
-
     if (other != 0) {
         if (!type_gcDoEntityPlayPartialBodyAnimation) {
             if (!type_action) {
@@ -146,36 +151,81 @@ void gcDoEntityPlayPartialBodyAnimation::AssignCopy(const cBase *other) {
         }
         void *vt = ((void **)other)[1];
         const cType *myType = type_gcDoEntityPlayPartialBodyAnimation;
-        short off = *(short *)((char *)vt + 8);
-        const cType *(*getType)(void *) =
-            *(const cType *(**)(void *))((char *)vt + 12);
-        const cType *type = getType((char *)other + off);
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
         int ok;
 
         if (myType == 0) {
-            goto fail;
+            ok = 0;
+            goto done;
         }
         if (type != 0) {
         loop:
-            if (type != myType) {
-                type = *(const cType **)((char *)type + 0x1C);
-                if (type == 0) {
-                    goto fail;
-                }
-                if (type != myType) {
-                    goto loop;
-                }
+            if (type == myType) {
+                ok = 1;
+                goto done;
             }
-            ok = 1;
-        } else {
-fail:
-            ok = 0;
+            type = (const cType *)((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
         }
+        ok = 0;
+    done:
         if (ok != 0) {
             copy = other;
         }
     }
     *this = *(const gcDoEntityPlayPartialBodyAnimation *)copy;
+}
+
+gcDoEntityPlayPartialBodyAnimation::gcDoEntityPlayPartialBodyAnimation(
+    cBase *parent) {
+    gcAction_gcAction(this, parent);
+
+    int *obj_i = (int *)this;
+    obj_i[1] = (int)D_00002B38;
+
+    void *desired0 = (char *)this + 0x0C;
+    gcDesiredObject_gcDesiredObject(desired0, (cBase *)this);
+
+    obj_i[4] = (int)D_00000338;
+
+    gcDesiredEntityHelper_ctor((char *)this + 0x18, 1, 0, 0);
+
+    obj_i[4] = 0x388A48;
+    obj_i[8] = (int)desired0;
+    obj_i[9] = 0x388568;
+    ((char *)this)[0x28] = 1;
+    ((char *)this)[0x29] = 0;
+    obj_i[11] = 0;
+    int desired0Encoded = (int)desired0 | 1;
+    obj_i[12] = 0;
+    obj_i[13] = desired0Encoded;
+    obj_i[14] = (int)this;
+    obj_i[15] = 0x388568;
+    ((char *)this)[0x40] = 1;
+    ((char *)this)[0x41] = 0;
+    obj_i[17] = 0;
+    int encoded = (int)this | 1;
+    obj_i[18] = 0;
+    obj_i[19] = encoded;
+    obj_i[20] = 0;
+    obj_i[21] = (int)this;
+    obj_i[22] = 0x388568;
+    ((char *)this)[0x5C] = 1;
+    ((char *)this)[0x5D] = 0;
+    obj_i[24] = 0;
+    obj_i[25] = 0;
+    obj_i[26] = encoded;
+
+    gcDesiredObject_gcDesiredObject((char *)this + 0x6C, (cBase *)this);
+
+    obj_i[30] = 7;
+    obj_i[31] = 0;
+    obj_i[28] = 0x389130;
 }
 
 void gcDoEntityPlayPartialBodyAnimation::Write(cFile &file) const {
