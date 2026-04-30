@@ -10,6 +10,22 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+template <class T> T *dcast(const cBase *);
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -43,6 +59,8 @@ public:
     int field_10;
 
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
 };
 
@@ -58,6 +76,18 @@ struct eAllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct CloneEntry {
+    short offset;
+    short pad;
+    cBase *(*fn)(void *, cMemPool *, cBase *);
+};
+
+struct ReleaseEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
 };
 
 // ── Write(cFile &) const  @ 0x0034f0b4 ──
@@ -89,4 +119,93 @@ cBase *gcValLobbyUserInfo::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── AssignCopy(const cBase *)  @ 0x0034edb4 ──
+void gcValLobbyUserInfo::AssignCopy(const cBase *base) {
+    gcValLobbyUserInfo *temp_v0 = dcast<gcValLobbyUserInfo>(base);
+    int *temp_s2 = (int *)((char *)this + 0xC);
+
+    *(int *)((char *)this + 8) = *(int *)((char *)temp_v0 + 8);
+    if ((int *)((char *)temp_v0 + 0xC) != temp_s2) {
+        int value = *temp_s2;
+        int flag = 1;
+        int tag = value & 1;
+        if (tag != 0) {
+            flag = 0;
+        }
+        if (flag != 0) {
+            int old = value;
+            int flag2 = 0;
+            if (tag != 0) {
+                flag2 = 1;
+            }
+            if (flag2 != 0) {
+                value &= ~1;
+                value |= 1;
+            } else {
+                value = *(int *)value;
+                value |= 1;
+            }
+            *temp_s2 = value;
+            if (old != 0) {
+                ReleaseEntry *entry =
+                    (ReleaseEntry *)(*(char **)(old + 4) + 0x50);
+                entry->fn((char *)old + entry->offset, 3);
+            }
+        }
+
+        value = *(int *)((char *)temp_v0 + 0xC);
+        flag = 1;
+        if (value & 1) {
+            flag = 0;
+        }
+        if (flag != 0) {
+            int source = value;
+            CloneEntry *entry =
+                (CloneEntry *)(*(char **)(source + 4) + 0x10);
+            cMemPool *pool = cMemPool::GetPoolFromPtr(temp_s2);
+            int current = *(int *)((char *)this + 0xC);
+            int flag2 = 0;
+            if (current & 1) {
+                flag2 = 1;
+            }
+            if (flag2 != 0) {
+                current &= ~1;
+            } else {
+                current = *(int *)current;
+            }
+            *(int *)((char *)this + 0xC) =
+                (int)entry->fn((char *)source + entry->offset, pool,
+                               (cBase *)current);
+        }
+    }
+    *(int *)((char *)this + 0x10) = *(int *)((char *)temp_v0 + 0x10);
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValLobbyUserInfo;
+
+// ── GetType(void) const  @ 0x0034ef9c ──
+const cType *gcValLobbyUserInfo::GetType(void) const {
+    if (!type_gcValLobbyUserInfo) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValLobbyUserInfo = cType::InitializeType(
+            0, 0, 0x1CA, type_value, gcValLobbyUserInfo::New, 0, 0, 0);
+    }
+    return type_gcValLobbyUserInfo;
 }
