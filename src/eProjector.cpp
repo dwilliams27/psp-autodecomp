@@ -38,6 +38,7 @@ public:
     eDynamicGeom(cBase *);
     ~eDynamicGeom();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     char _dynPad[0x58];
 };
 
@@ -64,6 +65,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void Reset(cMemPool *, bool);
     void Update(cTimeValue);
     static cBase *New(cMemPool *, cBase *);
@@ -87,6 +89,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 template <class T> T *dcast(const cBase *);
 
@@ -224,4 +235,16 @@ void eProjector::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     eDynamicGeom::Write(file);
     wb.End();
+}
+
+// eProjector::Read(cFile &, cMemPool *) — 0x0007D35C
+int eProjector::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eDynamicGeom::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }

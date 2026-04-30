@@ -32,6 +32,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void Reset(cMemPool *, bool);
     void Update(cTimeValue);
 };
