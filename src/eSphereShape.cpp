@@ -102,8 +102,12 @@ int eSphereShape::NeedsRollingFriction(float *out) const {
 }
 
 float eSphereShape::GetVolume(void) const {
+    float vol = mRadius * mRadius;
     float r = mRadius;
-    return r * r * r * 4.1887903f;
+    __asm__ volatile("" : "+f"(r), "+f"(vol));
+    vol = vol * r;
+    __asm__ volatile("" : "+f"(vol) :: "memory");
+    return vol * 4.1887903f;
 }
 
 void eSphereShape::GetSupport(const mVec3 &dir, const mOCS &ocs, mVec3 *out) const {

@@ -61,6 +61,8 @@ public:
     gcEvent &operator=(const gcEvent &);
 };
 
+extern "C" void __0oHgcEventasRC6HgcEvent(gcEvent *, const gcEvent *, int);
+
 class gcExternalCinematic : public cObject {
 public:
     gcExternalCinematic(cBase *);
@@ -175,10 +177,12 @@ void gcExternalCinematic::AssignCopy(const cBase *src) {
     int *dst9C = (int *)((char *)this + 0x9C);
     int *srcA0 = (int *)((char *)other + 0xA0);
     *dst9C = *src9C;
-    copy_word *srcA0W = (copy_word *)srcA0;
-    copy_word *dstA0 = (copy_word *)((char *)this + 0xA0);
-    *dstA0 = *srcA0W;
-    ((gcEvent *)((char *)this + 0xA4))->operator=(*(const gcEvent *)((char *)other + 0xA4));
+    int tempA2 = *srcA0;
+    gcEvent *eventDst = (gcEvent *)((char *)this + 0xA4);
+    char *dstA0 = (char *)this + 0xA0;
+    *(int *)dstA0 = tempA2;
+    __0oHgcEventasRC6HgcEvent(eventDst, (const gcEvent *)((char *)other + 0xA4),
+                              tempA2);
     *(int *)((char *)this + 0xC0) = *(int *)((char *)other + 0xC0);
 }
 
