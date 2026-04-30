@@ -6,6 +6,37 @@ class cFile;
 class cMemPool;
 class cBase;
 class cReadBlock;
+class cType;
+
+template <class T> T *dcast(const cBase *);
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cObject {
+public:
+    cObject &operator=(const cObject &);
+};
+
+class cBaseArray {
+public:
+    cBaseArray &operator=(const cBaseArray &);
+};
+
+class gcEvent {
+public:
+    gcEvent &operator=(const gcEvent &);
+};
 
 class cWriteBlock {
 public:
@@ -50,6 +81,8 @@ public:
     gcStreamedCinematic(cBase *, bool);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void RemoveFromWorld(void);
     static unsigned char IsFullscreenInProgress(void);
     static unsigned char HasFullscreenStarted(void);
@@ -65,6 +98,11 @@ extern char cObjectvirtualtable_for_gcStreamedCinematic[];   // 0x37E9C0
 extern int gcStreamedCinematic_currentIndex;                 // 0x37D7D0
 extern gcStreamedCinematic *gcStreamedCinematic_table[];     // 0x37D7D4
 extern void *gcStreamedCinematic_root;                       // 0x37D7FC
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040C90;
+extern cType *D_00099AD4;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -185,6 +223,96 @@ void gcStreamedCinematic::Write(cFile &file) const {
 int *gcStreamedCinematic::GetGroups(int *count) {
     *count = 0x1B;
     return (int *)((char *)this + 0xD4);
+}
+
+// ──────────────────────────────────────────────────────
+// 0x00244064 (292B) — AssignCopy(const cBase *)
+// ──────────────────────────────────────────────────────
+void gcStreamedCinematic::AssignCopy(const cBase *base) {
+    gcStreamedCinematic *other = dcast<gcStreamedCinematic>(base);
+    ((cObject *)this)->operator=(*(const cObject *)other);
+    *(int *)((char *)this + 0x44) = *(int *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x48) = *(int *)((char *)other + 0x48);
+    ((cObject *)((char *)this + 0x4C))->operator=(
+        *(const cObject *)((char *)other + 0x4C));
+    ((cBaseArray *)((char *)this + 0x90))->operator=(
+        *(const cBaseArray *)((char *)other + 0x90));
+    *(unsigned char *)((char *)this + 0x98) =
+        *(unsigned char *)((char *)other + 0x98);
+    *(unsigned char *)((char *)this + 0x99) =
+        *(unsigned char *)((char *)other + 0x99);
+    *(unsigned char *)((char *)this + 0x9A) =
+        *(unsigned char *)((char *)other + 0x9A);
+
+    char *var_a1 = (char *)other + 0x9C;
+    int temp_a0 = *(int *)var_a1;
+    char *var_a2 = (char *)this + 0x9C;
+    var_a1 = (char *)other + 0xA0;
+    char *var_a0 = (char *)this + 0xA0;
+    *(int *)var_a2 = temp_a0;
+    int temp_a1 = *(int *)var_a1;
+    var_a2 = (char *)other + 0xA4;
+    *(int *)var_a0 = temp_a1;
+    temp_a1 = *(int *)var_a2;
+    var_a0 = (char *)this + 0xA4;
+    var_a2 = (char *)other + 0xA8;
+    var_a1 = (char *)this + 0xA8;
+    *(int *)var_a0 = temp_a1;
+    int temp_a2 = *(int *)var_a2;
+    *(int *)var_a1 = temp_a2;
+
+    ((gcEvent *)((char *)this + 0xAC))->operator=(
+        *(const gcEvent *)((char *)other + 0xAC));
+    *(int *)((char *)this + 0xC8) = *(int *)((char *)other + 0xC8);
+    *(int *)((char *)this + 0xCC) = *(int *)((char *)other + 0xCC);
+    *(unsigned char *)((char *)this + 0xD0) =
+        *(unsigned char *)((char *)other + 0xD0);
+
+    int var_i = 0;
+    void *src_loop = other;
+    void *dst_loop = this;
+    do {
+        int temp_a3 = *(int *)((char *)src_loop + 0xD4);
+        var_i += 1;
+        *(int *)((char *)dst_loop + 0xD4) = temp_a3;
+        src_loop = (char *)src_loop + 4;
+    } while ((dst_loop = (char *)dst_loop + 4, var_i < 0x1B));
+
+    *(unsigned char *)((char *)this + 0x140) =
+        *(unsigned char *)((char *)other + 0x140);
+    *(unsigned char *)((char *)this + 0x141) =
+        *(unsigned char *)((char *)other + 0x141);
+    *(int *)((char *)this + 0x144) = *(int *)((char *)other + 0x144);
+}
+
+// ──────────────────────────────────────────────────────
+// 0x00244208 (356B) — GetType(void) const
+// ──────────────────────────────────────────────────────
+const cType *gcStreamedCinematic::GetType(void) const {
+    if (D_00099AD4 == 0) {
+        if (D_00040C90 == 0) {
+            if (D_000385E4 == 0) {
+                if (D_000385E0 == 0) {
+                    if (D_000385DC == 0) {
+                        D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                           (const char *)0x36D89C,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                       &cNamed::New, 0, 0, 0);
+                }
+                D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                                   0, 0, 0, 0);
+            }
+            D_00040C90 = cType::InitializeType(0, 0, 5, D_000385E4,
+                                               0, 0, 0, 0);
+        }
+        D_00099AD4 = cType::InitializeType(0, 0, 0x16B, D_00040C90,
+                                           &gcStreamedCinematic::New,
+                                           (const char *)0x36D8F0,
+                                           (const char *)0x36D8FC, 1);
+    }
+    return D_00099AD4;
 }
 
 // ──────────────────────────────────────────────────────
