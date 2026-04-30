@@ -59,6 +59,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cOutStream &) const;
+    void DeleteSpawned(void);
     void RemoveFromDestroyList(gcUIDialog *);
 };
 
@@ -83,6 +84,7 @@ public:
 
 class gcUIDialog {
 public:
+    static void FreeDynamicInstance(gcUIDialog *);
     void Write(cOutStream &) const;
 };
 
@@ -182,6 +184,20 @@ block_13:
         __asm__ volatile("" ::: "memory");
         *var_a1 = var_a2_4 | (zero << var_a0);
     }
+}
+
+// ── DeleteSpawned ──  @ 0x000e0a08, 100B
+void gcUI::DeleteSpawned(void) {
+    int i = 0;
+    if (i < *(int *)((char *)this + 0x15C)) {
+        gcUI_DestroySlotScan *scan = (gcUI_DestroySlotScan *)this;
+        do {
+            gcUIDialog::FreeDynamicInstance(scan->slot);
+            i++;
+            scan = (gcUI_DestroySlotScan *)((char *)scan + 4);
+        } while (i < *(int *)((char *)this + 0x15C));
+    }
+    *(int *)((char *)this + 0x15C) = 0;
 }
 
 // ── RemoveFromDestroyList ──  @ 0x000e177c, 96B

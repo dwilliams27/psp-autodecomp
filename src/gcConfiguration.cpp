@@ -101,7 +101,14 @@ public:
     cType *GetCoreConfigType(void);
     cType *GetEngineConfigType(void);
     cType *GetNetworkConfigType(void);
+    static gcConfiguration *Create(void);
+    static bool Initialize(void);
     static cBase *New(cMemPool *, cBase *);
+};
+
+class gcGameGlobals {
+public:
+    static void *Create(void);
 };
 
 gcConfiguration::gcConfiguration(cBase *parent) : cObject(parent) {
@@ -198,6 +205,20 @@ void gcConfiguration::Write(cFile &file) const {
     wb.WriteBase(mField4C);
     wb.WriteBase(mField50);
     wb.End();
+}
+
+// ── gcConfiguration::Initialize(void) static @ 0x000f07d4 ──
+bool gcConfiguration::Initialize(void) {
+    gcConfiguration *config = gcConfiguration::Create();
+    if (config != 0) {
+        DispatchEntry *dispatch =
+            (DispatchEntry *)(*(char **)((char *)config + 4) + 0x80);
+        if (((int (*)(void *))dispatch->fn)((char *)config + dispatch->offset) != 0) {
+            gcGameGlobals::Create();
+            return true;
+        }
+    }
+    return false;
 }
 
 // ── gcConfiguration::New(cMemPool *, cBase *) static @ 0x002466b0 ──
