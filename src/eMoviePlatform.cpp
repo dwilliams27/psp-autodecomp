@@ -1,4 +1,5 @@
 #include "thread.h"
+#include <utility/utility_module.h>
 
 extern "C" void __0oNcFilePlatformctv(void *);
 extern "C" void *memset(void *, int, unsigned int);
@@ -7,10 +8,12 @@ class eMoviePlatform {
 public:
     char _pad_00[0x2B0];
     int control_eventFlag;             // 0x2B0
-    char _pad_2B4[0x2D8 - 0x2B4];      // 0x2B4 - 0x2D8
+    char _pad_2B4[0x2C4 - 0x2B4];      // 0x2B4 - 0x2C4
+    int m_dispbuf_sema;                // 0x2C4
+    char _pad_2C8[0x2D8 - 0x2C8];      // 0x2C8 - 0x2D8
     unsigned int m_dispbuf_pts[2];     // 0x2D8
-    unsigned int m_dispbuf_writeIdx;   // 0x2E0
-    unsigned int m_dispbuf_readIdx;    // 0x2E4
+    int m_dispbuf_writeIdx;            // 0x2E0
+    int m_dispbuf_readIdx;             // 0x2E4
     int m_dispbuf_start;               // 0x2E8
     int m_dispbuf_end;                 // 0x2EC
     char _pad_2F0[0x318 - 0x2F0];      // 0x2F0 - 0x318
@@ -34,6 +37,7 @@ public:
     unsigned int dispbuf_getPts(void);
     unsigned int soundbuf_getPts(void);
     int dispbuf_getDrawbuf(void);
+    void dispbuf_dataSet(void);
     int dispbuf_checkDecodeEnd(void);
     int soundbuf_getDrawbuf(void);
 
@@ -48,6 +52,7 @@ public:
     int read_isEnd(void);
     int read_getCapacity(void);
     int read_isFull(void);
+    static bool Initialize(void);
 };
 
 #pragma control sched=1
@@ -198,6 +203,14 @@ int eMoviePlatform::dispbuf_getDrawbuf(void) {
     return result;
 }
 
+void eMoviePlatform::dispbuf_dataSet(void) {
+    sceKernelWaitSema(m_dispbuf_sema, 1, 0);
+    int next = (m_dispbuf_writeIdx + 1) % m_dispbuf_end;
+    m_dispbuf_start = m_dispbuf_start + 1;
+    m_dispbuf_writeIdx = next;
+    sceKernelSignalSema(m_dispbuf_sema, 1);
+}
+
 int eMoviePlatform::dispbuf_checkDecodeEnd(void) {
     if (control_getCondition() & 8) {
         *(int *)((char *)this + 0x2F4) = 0xFF;
@@ -234,4 +247,20 @@ int eMoviePlatform::read_isFull(void) {
         return 1;
     }
     return read_getCapacity() == 0;
+}
+
+bool eMoviePlatform::Initialize(void) {
+    int module = sceUtilityLoadModule(0x303);
+    *(int *)0x37D060 = module;
+    if (module < 0) {
+        return false;
+    }
+
+    int sema = sceKernelCreateSema((const char *)0x36CFEC, 0, 1, 1, 0);
+    *(int *)0x37D05C = sema;
+    if (sema < 0) {
+        return false;
+    }
+
+    return true;
 }
