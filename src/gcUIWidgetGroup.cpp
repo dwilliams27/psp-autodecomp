@@ -49,6 +49,10 @@ extern cType *D_000385E0;
 extern cType *D_0009990C;
 extern cType *D_00099920;
 
+extern "C" void gcUIWidgetGroup_GetCellPos_vec(const gcUIWidgetGroup *, float *,
+                                               const short *)
+    __asm__("__0fPgcUIWidgetGroupKGetCellPos6IgcUICellK");
+
 gcUIWidgetGroup::gcUIWidgetGroup(cBase *parent) : gcUIWidget(parent) {
     *(void **)((char *)this + 4) = (void *)0x387058;
     *(int *)((char *)this + 0xB0) = 0x21;
@@ -249,4 +253,12 @@ void *gcUIWidgetGroup::GetResizableSprites(void) {
         return (char *)this + 0xC8;
     }
     return ((gcUIWidget *)this)->GetResizableSprites();
+}
+
+float gcUIWidgetGroup::GetCellPos(gcUICell cell, int axis) const {
+    float work[2];
+    float *pos = work;
+    gcUICell local = cell;
+    gcUIWidgetGroup_GetCellPos_vec(this, pos, (const short *)&local);
+    return pos[axis];
 }

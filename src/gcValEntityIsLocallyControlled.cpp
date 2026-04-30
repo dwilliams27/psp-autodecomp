@@ -45,6 +45,7 @@ public:
 class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
+    class gcEntity *Get(bool) const;
 };
 
 class gcValue {
@@ -52,11 +53,17 @@ public:
     void Write(cFile &) const;
 };
 
+class gcEntity {
+public:
+    int IsLocallyControlled(void) const;
+};
+
 class gcValEntityIsLocallyControlled : public gcValue {
 public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    float Evaluate(void) const;
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -160,6 +167,12 @@ void gcValEntityIsLocallyControlled::Write(cFile &file) const {
     typedef void (*WriteFn)(void *, cFile *);
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     wb.End();
+}
+
+// ── gcValEntityIsLocallyControlled::Evaluate(void) const @ 0x00334E08 (80B) ──
+float gcValEntityIsLocallyControlled::Evaluate(void) const {
+    gcEntity *entity = ((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
+    return (entity != 0 && entity->IsLocallyControlled()) ? 1.0f : 0.0f;
 }
 
 // ── gcValEntityIsLocallyControlled::GetText(char *) const @ 0x00334E58 (80B) ──

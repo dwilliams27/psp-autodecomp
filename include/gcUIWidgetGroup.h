@@ -2,6 +2,8 @@
 #define GCUIWIDGETGROUP_H
 
 #include "gcUIWidget.h"
+#include "gcUIWidgetList.h"
+#include "mVec2.h"
 
 class cBase;
 class cMemPool;
@@ -20,6 +22,8 @@ public:
     void SetDimensions(int, int);
     void DeleteAllWidgets(bool);
     void InsertInDrawOrder(int, gcUIWidget *, gcUIWidget *);
+    mVec2 GetCellPos(gcUICell) const;
+    float GetCellPos(gcUICell, int) const;
 };
 
 #endif
