@@ -15,6 +15,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 // ──────────────────────────────────────────────────────────────────────────
 // Engine-side helper types used by Write/Read/New/dtor below.
@@ -86,6 +87,7 @@ public:
     void  GetText(char *) const;
     void  AssignCopy(const cBase *);
     float Evaluate(void) const;
+    const cType *GetType(void) const;
     int   Read(cFile &, cMemPool *);
 
     static cBase *New(cMemPool *, cBase *);
@@ -104,6 +106,14 @@ public:
 
 inline void *operator new(unsigned, void *p) { return p; }
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 // External symbols / helpers
 void  cStrCat(char *, const char *);
 gcValNumber *dcast(const cBase *);
@@ -113,6 +123,11 @@ extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern const char gcValNumber_fmt[];
 extern char gcValNumbervirtualtable[];
 extern char cBaseclassdesc[];
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValNumber asm("D_0009F4B4");
 
 // ──────────────────────────────────────────────────────────────────────────
 // gcValNumber::gcValNumber(cBase *, float)  @ 0x0012f0e4, 28B
@@ -179,6 +194,28 @@ cBase *gcValNumber::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+const cType *gcValNumber::GetType(void) const {
+    if (!type_gcValNumber) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValNumber = cType::InitializeType(0, 0, 0x72, type_value,
+                                                 gcValNumber::New,
+                                                 0, 0, 0);
+    }
+    return type_gcValNumber;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
