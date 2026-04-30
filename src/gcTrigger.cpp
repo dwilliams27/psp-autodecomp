@@ -32,22 +32,33 @@ public:
 
 class cHandle {
 public:
+    int mValue;
     void Write(cWriteBlock &) const;
 };
 
 class cObject {
 public:
+    char _pad[0x44];
+    cObject(cBase *);
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
 
 class gcEvent {
 public:
+    char _pad[0x1C];
+    gcEvent(cBase *, const char *);
     gcEvent &operator=(const gcEvent &);
+};
+
+class eVolume {
+public:
+    eVolume(cBase *);
 };
 
 template <class T> class cArrayBase {
 public:
+    T *mData;
     cArrayBase &operator=(const cArrayBase &);
 };
 
@@ -74,8 +85,12 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_0009F4A4;
+extern "C" void gcEvent_ctor(void *, cBase *, const char *)
+    __asm__("__0oHgcEventctP6FcBasePCc");
+extern "C" void eVolume_ctor(void *, cBase *)
+    __asm__("__0oHeVolumectP6FcBase");
 
-class gcTrigger {
+class gcTrigger : public cObject {
 public:
     gcTrigger(cBase *);
     void AssignCopy(const cBase *);
@@ -83,7 +98,32 @@ public:
     void Write(cFile &) const;
 
     static cBase *New(cMemPool *, cBase *);
+
+    char mEvent44[0x1C];
+    char mEvent60[0x1C];
+    char mEvent7C[0x1C];
+    cArrayBase<cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > > mPairs;
+    unsigned int mValue9C;
+    bool mFlagA0;
+    char _padA1[3];
+    int mValueA4;
+    cHandle mHandleA8;
+    int _padAC;
 };
+
+gcTrigger::gcTrigger(cBase *parent)
+    : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x38A1E0;
+    gcEvent_ctor((char *)this + 0x44, (cBase *)this, (const char *)0x36DF84);
+    gcEvent_ctor((char *)this + 0x60, (cBase *)this, (const char *)0x36DF8C);
+    gcEvent_ctor((char *)this + 0x7C, (cBase *)this, (const char *)0x36DF98);
+    *(int *)((char *)this + 0x98) = 0;
+    *(int *)((char *)this + 0x9C) = -1;
+    *(unsigned char *)((char *)this + 0xA0) = 1;
+    *(int *)((char *)this + 0xA4) = 4;
+    *(int *)((char *)this + 0xA8) = 0;
+    eVolume_ctor((char *)this + 0xB0, (cBase *)this);
+}
 
 // -- gcTrigger::New(cMemPool *, cBase *) static @ 0x00276f70 --
 cBase *gcTrigger::New(cMemPool *pool, cBase *parent) {
@@ -177,7 +217,7 @@ void gcTrigger::AssignCopy(const cBase *base) {
 void gcTrigger::Write(cFile &file) const {
     cWriteBlock wb(file, 4);
     ((const cObject *)this)->Write(file);
-    wb.Write(*(const unsigned char *)((const char *)this + 0xA0));
+    wb.Write(mFlagA0);
 
     {
         char *typePtr = *(char **)((const char *)this + 0x48);
@@ -207,28 +247,29 @@ void gcTrigger::Write(cFile &file) const {
         entry->fn(base + entry->offset, wb._data[0]);
     }
 
-    wb.Write(*(const int *)((const char *)this + 0xA4));
-    ((const cHandle *)((const char *)this + 0xA8))->Write(wb);
+    wb.Write(mValueA4);
+    mHandleA8.Write(wb);
 
     {
-        void *temp_s2 = *(void *const *)((const char *)this + 0x98);
+        register void *temp_s2 __asm__("s2");
+        temp_s2 = mPairs.mData;
         int var_a0 = 0;
         if (temp_s2 != 0) {
             var_a0 = ((int *)temp_s2)[-1] & 0x3FFFFFFF;
         }
         wb.Write(var_a0);
-    }
 
-    {
-        void *temp_s2_2 = *(void *const *)((const char *)this + 0x98);
-        int var_s1 = 0;
-        if (temp_s2_2 != 0) {
-            var_s1 = ((int *)temp_s2_2)[-1] & 0x3FFFFFFF;
+        temp_s2 = mPairs.mData;
+        register int var_s1 __asm__("$17") = 0;
+        if (temp_s2 != 0) {
+            var_s1 = ((int *)temp_s2)[-1] & 0x3FFFFFFF;
         }
 
+        void *base = temp_s2;
         int var_s2 = 0;
         if (!(var_s2 < var_s1)) goto write_done;
-        int var_s3 = (int)temp_s2_2 + var_s2;
+        int var_s3 = 0;
+        var_s3 = (int)base + var_s3;
 write_loop:
         ((const cHandle *)var_s3)->Write(wb);
         wb.Write(*(unsigned int *)(var_s3 + 4));
@@ -241,6 +282,6 @@ write_done:
         ;
     }
 
-    wb.Write(*(const unsigned int *)((const char *)this + 0x9C));
+    wb.Write(mValue9C);
     wb.End();
 }
