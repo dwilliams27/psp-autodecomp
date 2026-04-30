@@ -12,6 +12,11 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class eHeightmap {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 inline void *operator new(unsigned int, void *p) { return p; }
 
 extern "C" void eHeightmapTemplateData___dtor_eHeightmapTemplateData_void(void *, int);
@@ -46,6 +51,7 @@ public:
     void PlatformFree(void);
     float GetRadius(void) const;
     void GetExternalDependency(int, cFilename *) const;
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     cStr GetRelativeFilename(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -55,9 +61,12 @@ extern char eHeightmapTemplatevirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
+extern cType *D_000469A4;
 extern cType *D_000469A8;
 extern cType *D_000469AC;
 extern cType *D_00046A0C;
+extern cType *D_00046A10;
 
 class cNamed {
 public:
@@ -157,6 +166,35 @@ const cType *eHeightmapTemplate::GetType(void) const {
 }
 #pragma control sched=2
 
+// ── GetInstanceType @ 0x00052380 ──
+#pragma control sched=1
+const cType *eHeightmapTemplate::GetInstanceType(void) const {
+    if (D_00046A10 == 0) {
+        if (D_000469A4 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(
+                        name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469A4 = cType::InitializeType(0, 0, 0x1A, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469A4;
+        cBase *(*factory)(cMemPool *, cBase *) = &eHeightmap::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046A10 = cType::InitializeType(0, 0, 0x55, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046A10;
+}
+#pragma control sched=2
+
 // ── AssignCopy @ 0x001f55e8 ──
 #pragma control sched=1
 void eHeightmapTemplate::AssignCopy(const cBase *src) {
@@ -195,13 +233,13 @@ void eHeightmapTemplate::GetExternalDependency(int, cFilename *out) const {
 // ── GetRadius @ 0x001f5964 ──
 float eHeightmapTemplate::GetRadius(void) const {
     float extent = (float)(*(int *)((char *)this + 0x68) - 1) * *(float *)((char *)this + 0x70);
-    float z = *(float *)((char *)this + 0x74);
     float result;
     __asm__ volatile(
         "vzero.t C120\n"
+        "lwc1 $f14, 0x74(%2)\n"
         "mfc1 $a0, %1\n"
         "mfc1 $a1, %1\n"
-        "mfc1 $a2, %2\n"
+        "mfc1 $a2, $f14\n"
         "mtv $a0, S130\n"
         "mtv $a1, S131\n"
         "mtv $a2, S132\n"
@@ -211,7 +249,7 @@ float eHeightmapTemplate::GetRadius(void) const {
         "mfv $a0, S100\n"
         "mtc1 $a0, %0\n"
         : "=f"(result)
-        : "f"(extent), "f"(z)
+        : "f"(extent), "r"(this)
         : "a0", "a1", "a2"
     );
     return result * 0.5f;
