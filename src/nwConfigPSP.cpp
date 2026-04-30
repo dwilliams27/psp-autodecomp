@@ -45,6 +45,7 @@ struct DeleteRecord {
 
 class nwConfigBase {
 public:
+    nwConfigBase(cBase *);
     ~nwConfigBase();
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -53,6 +54,7 @@ public:
 
 class nwConfigPSP : public nwConfigBase {
 public:
+    nwConfigPSP(cBase *);
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -93,6 +95,7 @@ struct AllocRec {
 };
 
 extern "C" {
+    void cStrCopy(char *, const char *, int);
     void nwConfigPSP__nwConfigPSP_cBaseptr(void *self, cBase *parent);
 }
 
@@ -101,6 +104,13 @@ void cFile_SetCurrentPos(void *, unsigned int);
 extern cType *D_000385DC;
 extern cType *D_0009F924;
 extern cType *D_0009F928;
+
+// ── nwConfigPSP::nwConfigPSP(cBase *) @ 0x001a5144 ──
+nwConfigPSP::nwConfigPSP(cBase *parent) : nwConfigBase(parent) {
+    *(void **)((char *)this + 4) = (void *)0x38D948;
+    cStrCopy((char *)this + 0x60, (const char *)0x371178, 0x20);
+    cStrCopy((char *)this + 0x80, (const char *)0x371180, 0x40);
+}
 
 // ── nwConfigPSP::Write(cFile &) const @ 0x001a4ff4 ──
 void nwConfigPSP::Write(cFile &file) const {

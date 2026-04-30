@@ -1,10 +1,14 @@
 // nwSocket: network socket wrapper around a transport, with a fixed-size
 // connection array.
 
-typedef int nwSocketHandle;
 typedef int nwConnectionHandle;
 
 class nwAddress;
+
+class nwSocketHandle {
+public:
+    int mValue;
+};
 
 namespace {
 
@@ -51,7 +55,7 @@ public:
     int mField04;                   // 0x04
     int mMaxConnections;            // 0x08
     nwConnection **mConnections;    // 0x0C
-    nwSocketHandle mHandle;         // 0x10
+    int mHandle;                    // 0x10
     unsigned int mField14;          // 0x14
     char mName[8];                  // 0x18
     unsigned char mFlag20;          // 0x20
@@ -107,7 +111,7 @@ nwSocket::nwSocket(nwTransport *transport, nwSocketHandle handle,
       mField04(field04),
       mMaxConnections(maxConn),
       mConnections(0),
-      mHandle(handle),
+      mHandle(handle.mValue),
       mField14(field14),
       mFlag20(0),
       mField24(0),
