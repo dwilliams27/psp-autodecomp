@@ -2,6 +2,18 @@ class cBase;
 class cMemPool;
 class cType;
 class eMaterial;
+class cFile;
+
+class cWriteBlock {
+public:
+    int _data[2];
+
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void Write(float);
+    void End(void);
+};
 
 class cType {
 public:
@@ -13,7 +25,9 @@ public:
 
 class cObject {
 public:
+    cObject(cBase *);
     cObject &operator=(const cObject &);
+    void Write(cFile &) const;
 };
 
 class cNamed {
@@ -36,14 +50,32 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
-class eFontCharKern;
+class cHandle {
+public:
+    int _data;
+
+    void Write(cWriteBlock &) const;
+};
+
+class eFontCharKern {
+public:
+    char _data[0xE];
+
+    void Write(cWriteBlock &) const;
+};
+
+inline void *operator new(unsigned int, void *p) {
+    return p;
+}
 
 class eFont : public cObject {
 public:
     class ePageInfo;
 
+    eFont(cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -59,6 +91,94 @@ struct AllocRec {
 };
 
 extern "C" void eFont__eFont_cBaseptr(void *, cBase *);
+
+// -- eFont::eFont(cBase *) @ 0x00039710 --
+eFont::eFont(cBase *parent) : cObject(parent) {
+    *(void **)((char *)this + 4) = (void *)0x380748;
+    *(int *)((char *)this + 0x44) = 0;
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x48))->mData = 0;
+    *(float *)((char *)this + 0x4C) = 1.0f;
+    *(float *)((char *)this + 0x50) = 16.0f;
+    *(float *)((char *)this + 0x54) = 16.0f;
+    *(float *)((char *)this + 0x58) = 0.0f;
+    ((cArrayBase<eFontCharKern> *)((char *)this + 0x5C))->mData = 0;
+    ((cArrayBase<eFont::ePageInfo> *)((char *)this + 0x60))->mData = 0;
+}
+
+// -- eFont::Write(cFile &) const @ 0x00039278 --
+void eFont::Write(cFile &file) const {
+    int var_a0;
+    int var_s0;
+    int var_s1;
+    int var_s1_2;
+    int var_s1_3;
+    int var_s2;
+    void *temp_a0;
+    void *temp_a0_2;
+    void *temp_a0_3;
+    void *temp_a1;
+    void *var_s2_2;
+    void *var_s3;
+
+    cWriteBlock wb(file, 8);
+    ((const cObject *)this)->Write(file);
+
+    temp_a0 = ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x48))->mData;
+    var_s1 = 0;
+    if (temp_a0 != 0) {
+        var_s1 = *(int *)((char *)temp_a0 - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(var_s1);
+
+    temp_a0_2 = ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x48))->mData;
+    var_s1_2 = 0;
+    if (temp_a0_2 != 0) {
+        var_s1_2 = *(int *)((char *)temp_a0_2 - 4) & 0x3FFFFFFF;
+    }
+    int *baseHandles = (int *)temp_a0_2;
+    var_s2 = 0;
+    if (var_s2 < var_s1_2) {
+        int offset = 0;
+        int *handle = baseHandles + offset;
+        do {
+            ((const cHandle *)handle)->Write(wb);
+            var_s2 += 1;
+            handle++;
+        } while (var_s2 < var_s1_2);
+    }
+
+    wb.Write(*(const float *)((const char *)this + 0x4C));
+    wb.Write(*(const float *)((const char *)this + 0x50));
+    wb.Write(*(const float *)((const char *)this + 0x54));
+    wb.Write(*(const unsigned int *)((const char *)this + 0x44));
+    wb.Write(*(const float *)((const char *)this + 0x58));
+
+    temp_a1 = ((cArrayBase<eFontCharKern> *)((char *)this + 0x5C))->mData;
+    var_a0 = 0;
+    if (temp_a1 != 0) {
+        var_a0 = *(int *)((char *)temp_a1 - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(var_a0);
+
+    temp_a0_3 = ((cArrayBase<eFontCharKern> *)((char *)this + 0x5C))->mData;
+    var_s0 = 0;
+    if (temp_a0_3 != 0) {
+        var_s0 = *(int *)((char *)temp_a0_3 - 4) & 0x3FFFFFFF;
+    }
+    char *baseKerns = (char *)temp_a0_3;
+    var_s1_3 = 0;
+    if (var_s1_3 < var_s0) {
+        int offset = 0;
+        eFontCharKern *kern = (eFontCharKern *)(baseKerns + offset);
+        do {
+            kern->Write(wb);
+            var_s1_3 += 1;
+            kern = (eFontCharKern *)((char *)kern + 0xE);
+        } while (var_s1_3 < var_s0);
+    }
+
+    wb.End();
+}
 
 // -- eFont::AssignCopy(const cBase *) @ 0x001e7948 --
 void eFont::AssignCopy(const cBase *src) {
@@ -84,7 +204,7 @@ cBase *eFont::New(cMemPool *pool, cBase *parent) {
     eFont *result = 0;
     eFont *obj = (eFont *)rec->fn(base, 0x64, 4, 0, 0);
     if (obj != 0) {
-        eFont__eFont_cBaseptr(obj, parent);
+        new (obj) eFont(parent);
         result = obj;
     }
     return (cBase *)result;
