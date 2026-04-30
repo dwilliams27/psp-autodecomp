@@ -32,6 +32,11 @@ public:
     const cType *GetType(void) const;
 };
 
+struct eSimulatedBodyEntry {
+    char _pad[0x20];
+    void *body;
+};
+
 extern cType *D_000385DC;
 extern cType *D_000469D8;
 extern cType *D_000469E8;
@@ -94,6 +99,59 @@ void eSimulatedController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const ePhysicsController *)this)->Write(file);
     wb.End();
+}
+
+bool eSimulatedController::IsSleeping(void) const {
+    int i;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(i));
+    char *entries = (char *)bodyEntries;
+    int mask = 0x3FFFFFFF;
+    int offset;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(offset));
+    do {
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)(entries - 4) & mask;
+        }
+        if (i < count) {
+            eSimulatedBodyEntry *entry = (eSimulatedBodyEntry *)(entries + offset);
+            void *body = entry->body;
+            i++;
+            if ((*(unsigned short *)((char *)body + 0x98) & 0x40) == 0) {
+                return false;
+            }
+            offset += 0x30;
+        } else {
+            return true;
+        }
+    } while (true);
+}
+
+bool eSimulatedController::IsInFluid(void) const {
+    bool result = false;
+    int i;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(i));
+    char *entries = (char *)bodyEntries;
+    int mask = 0x3FFFFFFF;
+    int offset;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(offset));
+    do {
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)(entries - 4) & mask;
+        }
+        if (i < count) {
+            eSimulatedBodyEntry *entry = (eSimulatedBodyEntry *)(entries + offset);
+            void *body = entry->body;
+            int inFluid = (*(unsigned short *)((char *)body + 0x98) & 0x10) != 0;
+            inFluid &= 0xFF;
+            result = (bool)(result | inFluid);
+            i++;
+            offset += 0x30;
+        } else {
+            return result;
+        }
+    } while (true);
 }
 
 const cType *eBipedController::GetType(void) const {

@@ -23,6 +23,8 @@ public:
     eSimulatedController(cBase *);
     void InvalidateCacheEntries(eGeom *);
     void RemoveContacts(void);
+    bool IsSleeping(void) const;
+    bool IsInFluid(void) const;
     int GetCollisionMask(void) const;
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
     int Read(cFile &, cMemPool *);
