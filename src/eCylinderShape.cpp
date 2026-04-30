@@ -112,10 +112,15 @@ void eCylinderShape::GetInertialTensor(float mass, mVec3 *out) const {
     __asm__ volatile("mfc1 %0, %1" : "=r"(b) : "f"(xy));
     __asm__ volatile("mfc1 %0, %1" : "=r"(c) : "f"(z));
     __asm__ volatile(
+        ".set push\n"
+        ".set noreorder\n"
         "mtv %0, S120\n"
         "mtv %1, S121\n"
         "mtv %2, S122\n"
-        "sv.q C120, 0(%3)\n"
+        "jr $ra\n"
+        "sv.q C120, 0($a1)\n"
+        "addu $zero, %3, $zero\n"
+        ".set pop\n"
         :: "r"(a), "r"(b), "r"(c), "r"(out)
         : "memory"
     );
