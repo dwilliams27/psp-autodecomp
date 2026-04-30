@@ -91,10 +91,10 @@ eNavMesh::eNavMesh(cBase *parent) : cObject(parent) {
     *(int *)((char *)this + 0x4C) = 0;
     *(int *)((char *)this + 0x80) = 0;
     *(unsigned char *)((char *)this + 0x84) = 0;
-    int i = 0;
-    int *p;
     if (D_00037C128 < 0) {
-        p = D_0001AF48;
+        int i = 0;
+        __asm__ volatile("" : "+r"(i));
+        int *p = D_0001AF48;
         do {
             *p = 0;
             i += 1;
