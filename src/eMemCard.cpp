@@ -20,14 +20,18 @@ class cMemCardScopedLock {
     int *mMutex;
     bool mActive;
 public:
-    cMemCardScopedLock() {
+    cMemCardScopedLock(bool active) {
         mMutex = &gMemCardState.mutex;
-        mActive = true;
+        __asm__ volatile("" : : "r"(mMutex));
+        mActive = active;
+        __asm__ volatile("" ::: "memory");
         sceKernelLockMutex(gMemCardState.mutex, 1, 0);
     }
     ~cMemCardScopedLock() {
         if (mActive) {
-            sceKernelUnlockMutex(*mMutex, 1);
+            int mutex = *mMutex;
+            __asm__ volatile("" : : "r"(mutex));
+            sceKernelUnlockMutex(mutex, 1);
         }
     }
 };
@@ -36,20 +40,28 @@ void eMemCard::Initialize(void) {
     eMemCardPlatform::Initialize();
 }
 
+#pragma control sched=1
+
 unsigned char eMemCard::CardDifferent(void) {
-    cMemCardScopedLock lock;
+    cMemCardScopedLock lock(true);
     return gMemCardDifferent;
 }
 
 unsigned char eMemCard::CardPresent(void) {
-    cMemCardScopedLock lock;
-    unsigned char present = gMemCardPresent;
-    gMemCardStatus = present ? 0 : 3;
+    cMemCardScopedLock lock(true);
+    int status = 3;
+    unsigned char *presentPtr = &gMemCardPresent;
+    unsigned char present = *presentPtr;
+    if (present) {
+        status = 0;
+    }
+    gMemCardStatus = status;
+    __asm__ volatile("" ::: "memory");
     return present;
 }
 
 unsigned char eMemCard::CardChanged(void) {
-    cMemCardScopedLock lock;
+    cMemCardScopedLock lock(true);
     gMemCardStatus = gMemCardPresent ? 0 : 3;
     unsigned char changed = gMemCardChanged;
     gMemCardChanged = 0;
@@ -57,10 +69,12 @@ unsigned char eMemCard::CardChanged(void) {
 }
 
 int eMemCard::GetCardFreeSpace(void) {
-    cMemCardScopedLock lock;
+    cMemCardScopedLock lock(true);
     gMemCardStatus = gMemCardPresent ? 0 : 3;
     return gMemCardState.freeBlocks << 5;
 }
+
+#pragma control sched=2
 
 void eMemCard::SetSlot(int) {
     *(int *)0x37D2CC = 0;
