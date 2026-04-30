@@ -17,6 +17,7 @@ extern "C" {
     void cStrCat(char *, const char *);
     void gcAction_gcAction(void *, cBase *);
     void gcAction_Write(const void *, cFile &);
+    void gcAction___dtor_gcAction_void(void *, int);
     void gcExpressionList_gcExpressionList(void *, cBase *);
     float gcExpressionList_Evaluate(const void *);
     void gcExpressionList_Write(const void *, void *);
@@ -48,6 +49,23 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+class gcExpressionList {
+public:
+    ~gcExpressionList(void);
+};
+
 typedef float (*gcExprVFn)(const void *);
 struct gcExprVEntry {
     short adj;
@@ -58,8 +76,33 @@ struct gcExprVEntry {
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
+void *cMemPool_GetPoolFromPtr(const void *);
+
+inline void gcDoEvaluation::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
+
 int gcDoEvaluation::GetMaxBranches(void) const {
     return 2;
+}
+
+gcExpression *gcDoEvaluation::GetBranch(int index) const {
+    int saved = index;
+    gcExpression *result;
+    if (index == 0) {
+        result = *(gcExpression **)((const char *)this + 0x10);
+    } else {
+        index = 0;
+        if (saved == 1) {
+            index = (int)*(gcExpression **)((const char *)this + 0x18);
+        }
+        result = (gcExpression *)index;
+    }
+    return result;
 }
 
 // 0x0014b048, 84B
@@ -164,4 +207,31 @@ void gcDoEvaluation::Write(cFile &file) const {
     gcExpressionList_Write((char *)this + 0x10, &wb);
     gcExpressionList_Write((char *)this + 0x18, &wb);
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoEvaluation::~gcDoEvaluation(void) {
+    *(void **)((char *)this + 4) = gcDoEvaluationvirtualtable;
+
+    ((gcExpressionList *)((char *)this + 0x18))->~gcExpressionList();
+    ((gcExpressionList *)((char *)this + 0x10))->~gcExpressionList();
+
+    if ((void *)((char *)this + 0x0C) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

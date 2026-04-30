@@ -37,8 +37,11 @@ public:
 class gcDoEvaluation {
 public:
     gcDoEvaluation(cBase *);
+    ~gcDoEvaluation(void);
+    static void operator delete(void *);
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;
+    gcExpression *GetBranch(int) const;
     const cType *GetType(void) const;
     void SetBranch(int, class gcExpression *);
     int IsElseIf(void) const;
