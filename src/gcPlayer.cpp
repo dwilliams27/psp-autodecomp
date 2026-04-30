@@ -1,6 +1,11 @@
 #include "gcPlayer.h"
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 void cStrCopy(char *, const char *);
+char *cStrFormat(char *, const char *, ...);
+extern void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void gcReplicationGroup__gcReplicationGroup_void__0024400C(void *);
 
 class cWriteBlock {
 public:
@@ -20,8 +25,6 @@ extern float gcPlayer_s_fLocalControllerStrength[8];     // 0x37D8A4
 
 extern char cBaseclassdesc[];                            // @ 0x37E6A8
 
-extern "C" void gcPlayer__gcPlayer_cBaseptr(void *self, cBase *parent);
-
 struct gcPlayer_AllocRec {
     short offset;
     short _pad;
@@ -38,6 +41,28 @@ public:
 
 extern const char gcPlayer_type_name[];                  // @ 0x36D894
 extern const char gcPlayer_type_desc[];                  // @ 0x36D89C
+
+// -----------------------------------------------------------------------------
+// gcPlayer::gcPlayer(cBase *)
+// -----------------------------------------------------------------------------
+gcPlayer::gcPlayer(cBase *parent) {
+    *(cBase **)this = parent;
+    *(void **)((char *)this + 4) = (void *)0x388BC8;
+    *(int *)((char *)this + 8) = 0;
+    *(int *)((char *)this + 0x20) = -1;
+    *(int *)((char *)this + 0x24) = -1;
+    *(int *)((char *)this + 0x28) = 0;
+    *(int *)((char *)this + 0x2C) = 0;
+    *(int *)((char *)this + 0x30) = -1;
+    *(unsigned char *)((char *)this + 0x34) = 1;
+    *(unsigned char *)((char *)this + 0x35) = 0;
+    *(unsigned char *)((char *)this + 0x36) = 0;
+    *(float *)((char *)this + 0x38) = 0.0f;
+    __vec_new((char *)this + 0x3C, 1, 6,
+              gcReplicationGroup__gcReplicationGroup_void__0024400C);
+    cStrFormat((char *)this + 0x0C, (const char *)0x36DE48,
+               ((char *)this - gcPlayer_s_pPlayers) / 68);
+}
 
 // -----------------------------------------------------------------------------
 // gcPlayer::GetCamera(void) const
@@ -147,8 +172,9 @@ gcPlayer::~gcPlayer() {
 // -----------------------------------------------------------------------------
 gcPlayer *gcPlayer::GetPlayerForCamera(const gcCamera *cam) {
     gcPlayer *p = (gcPlayer *)gcPlayer_s_pPlayers;
-    char *viewports = gcViewport_s_viewports;
+    __asm__ volatile("" ::: "memory");
     int i = 0;
+    char *viewports = gcViewport_s_viewports;
     do {
         int vpIdx = *(int *)((char *)p + 48);
         if (vpIdx >= 0) {
@@ -230,7 +256,7 @@ cBase *gcPlayer::New(cMemPool *pool, cBase *parent) {
     gcPlayer *result = 0;
     gcPlayer *obj = (gcPlayer *)rec->fn(base, 0x44, 4, 0, 0);
     if (obj != 0) {
-        gcPlayer__gcPlayer_cBaseptr(obj, parent);
+        new (obj) gcPlayer(parent);
         result = obj;
     }
     return (cBase *)result;

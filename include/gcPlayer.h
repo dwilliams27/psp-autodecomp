@@ -21,6 +21,7 @@ namespace gcPlayer_priv {
 
 class gcPlayer {
 public:
+    gcPlayer(cBase *);
     static void HandleClientWarp(void);
     static void ResetController(int);
     static void ResetControllers(void);
