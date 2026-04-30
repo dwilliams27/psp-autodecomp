@@ -139,6 +139,10 @@ const cType *gcFlyingControllerTemplate::GetType(void) const {
     return D_0009F77C;
 }
 
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oagcFlyingControllerTemplatedtv, 0xcc\n");
+
 // ── ~gcFlyingControllerTemplate() ──
 gcFlyingControllerTemplate::~gcFlyingControllerTemplate() {
     *(char **)((char *)this + 4) = gcFlyingControllerTemplatevirtualtable;

@@ -112,15 +112,17 @@ void gcEventStackData::Read(cInStream &stream) {
         } while (i < 2U);
     }
 
-    int i = 0;
-    float *dstFloat = mFloats8;
-    do {
-        stream.Read(*dstFloat, true);
-        i++;
-        dstFloat++;
-    } while (i < 4);
+    {
+        int readCount = 0;
+        float *dstFloat = mFloats8;
+        do {
+            stream.Read(*dstFloat, true);
+            readCount++;
+            dstFloat++;
+        } while (readCount < 4);
+    }
 
-    i = 0;
+    int i = 0;
     gcEventStackHandle *readHandle = mHandles;
     do {
         readHandle->mHandle.Read(stream);
