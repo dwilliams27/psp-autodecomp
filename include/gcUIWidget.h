@@ -17,6 +17,7 @@ public:
 
     enum gcUIEffect {};
     gcUIWidget(cBase *);
+    ~gcUIWidget(void);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     gcUIDialog *GetParentDialog(void) const;

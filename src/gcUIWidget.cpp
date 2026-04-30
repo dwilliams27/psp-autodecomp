@@ -2,7 +2,16 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 class cType {
 public:
@@ -38,13 +47,43 @@ public:
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void RemoveAll(void);
 };
 
 extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+void cObject___dtor_cObject_void(void *, int);
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
+class cFactory {
+public:
+    void DeleteGroups(void);
+};
+
+class gcLoadingScreen : public cFactory {
+public:
+    ~gcLoadingScreen();
+};
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_0009990C;
+
+gcUIWidget::~gcUIWidget() {
+    *(void **)((char *)this + 0x04) = (void *)0x386F48;
+    void *array = (char *)this + 0x70;
+    if (array != 0) {
+        ((cBaseArray *)array)->RemoveAll();
+    }
+    *(void **)((char *)this + 0x04) = (void *)0x37E6A8;
+}
 
 const cType *gcUIWidget::GetType(void) const {
     if (D_0009990C == 0) {
@@ -150,4 +189,12 @@ gcUIWidget::gcUIWidget(cBase *parent) {
         i += 1;
         handle += 1;
     } while (i < 4);
+}
+
+gcLoadingScreen::~gcLoadingScreen() {
+    *(void **)((char *)this + 0x04) = (void *)0x387C60;
+    cFactory::DeleteGroups();
+    *(int *)0x37D7E8 = 0;
+    *(void **)((char *)this + 0x04) = (void *)0x37E9C0;
+    cObject___dtor_cObject_void(this, 0);
 }
