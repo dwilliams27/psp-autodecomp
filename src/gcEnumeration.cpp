@@ -12,6 +12,17 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -32,6 +43,7 @@ public:
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
 };
@@ -40,6 +52,7 @@ class cBaseArray {
 public:
     void *mData;
     void *mOwner;
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
     void Write(cWriteBlock &) const;
 };
@@ -74,7 +87,17 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    ~gcEnumeration();
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // ── gcEnumeration::AssignCopy(const cBase *) @ 0x00238d04 ──
@@ -121,4 +144,17 @@ void gcEnumeration::Write(cFile &file) const {
     wb.Write(mField50);
     mHandle.Write(wb);
     wb.End();
+}
+
+// Original object keeps this branch-loop pad inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oNgcEnumerationdtv, 0x98\n");
+
+// ── gcEnumeration::~gcEnumeration(void) @ 0x00239628 ──
+gcEnumeration::~gcEnumeration() {
+    *(void **)((char *)this + 4) = (void *)0x386BB8;
+    if ((char *)this + 0x44 != 0) {
+        ((cBaseArray *)((char *)this + 0x44))->RemoveAll();
+    }
 }
