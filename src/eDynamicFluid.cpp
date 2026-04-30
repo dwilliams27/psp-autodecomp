@@ -24,6 +24,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 void eDynamicGeom___dtor_eDynamicGeom_void(void *, int);
 void *cMemPool_GetPoolFromPtr(void *);
 
@@ -59,6 +68,18 @@ void eDynamicFluid::Write(cFile &file) const {
 }
 
 #pragma control sched=1
+// eDynamicFluid::Read(cFile &, cMemPool *) — 0x0005DCCC
+int eDynamicFluid::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eDynamicGeom::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // eDynamicFluid::Update(cTimeValue) — 0x0005DE70
 void eDynamicFluid::Update(cTimeValue) {
     if (*(unsigned char *)((char *)this + 0x8C) & 4) {

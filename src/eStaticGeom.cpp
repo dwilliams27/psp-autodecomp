@@ -42,14 +42,25 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class eGeom {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eStaticGeom : public eGeom {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
 };
 
@@ -65,6 +76,18 @@ void eStaticGeom::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const eGeom *)this)->Write(file);
     wb.End();
+}
+
+// ── eStaticGeom::Read(cFile &, cMemPool *) ──
+int eStaticGeom::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && ((eGeom *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eStaticGeom::GetType(void) const ──
