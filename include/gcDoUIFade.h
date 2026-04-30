@@ -76,6 +76,7 @@ public:
     int GetExprFlags(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
 };
 
 class gcValCameraFollowEntity3rdVariable {
