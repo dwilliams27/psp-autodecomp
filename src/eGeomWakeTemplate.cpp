@@ -55,6 +55,11 @@ public:
     void Write(cFile &) const;
 };
 
+class eGeomWake {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T> T dcast(const cBase *);
 
 struct AllocRec {
@@ -74,6 +79,7 @@ public:
     eGeomWakeTemplate(cBase *);
     ~eGeomWakeTemplate(void);
     void AssignCopy(const cBase *);
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -98,9 +104,60 @@ extern cType *D_000469A8;
 extern cType *D_000469E0;
 extern cType *D_00046C30;
 
+static cType *type_cBase;
+static cType *type_eGeom;
+static cType *type_eDynamicGeom;
+static cType *type_eGeomWake;
+
 struct eGeomWakeTemplateWord {
     int value;
 };
+
+// ── eGeomWakeTemplate::eGeomWakeTemplate(cBase *) @ 0x00079d30 ──
+#pragma control sched=1
+eGeomWakeTemplate::eGeomWakeTemplate(cBase *parent) : cObject(parent) {
+    *(volatile float *)((char *)this + 0x44) = 1000.0f;
+    *(volatile void **)((char *)this + 4) = (void *)0x00384740;
+    *(volatile int *)((char *)this + 0x48) = 10;
+    *(volatile int *)((char *)this + 0x4C) = 0;
+    *(volatile int *)((char *)this + 0x50) = 20;
+    *(volatile int *)((char *)this + 0x54) = 2;
+    *(volatile float *)((char *)this + 0x58) = 0.25f;
+    *(volatile float *)((char *)this + 0x5C) = 0.5f;
+    *(volatile float *)((char *)this + 0x60) = 0.5f;
+    *(volatile float *)((char *)this + 0x64) = 12.0f;
+    *(volatile float *)((char *)this + 0x68) = 0.1f;
+    *(volatile float *)((char *)this + 0x6C) = 0.2f;
+    *(volatile int *)((char *)this + 0x70) = -1;
+}
+
+// ── eGeomWakeTemplate::GetInstanceType(void) const @ 0x00079ddc ──
+#pragma control sched=1
+const cType *eGeomWakeTemplate::GetInstanceType(void) const {
+    if (type_eGeomWake == 0) {
+        if (type_eDynamicGeom == 0) {
+            if (type_eGeom == 0) {
+                if (type_cBase == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    type_cBase = cType::InitializeType(name, desc, 1,
+                                                       0, 0, 0, 0, 0);
+                }
+                type_eGeom = cType::InitializeType(0, 0, 0x16, type_cBase,
+                                                   0, 0, 0, 0);
+            }
+            type_eDynamicGeom = cType::InitializeType(0, 0, 0x17, type_eGeom,
+                                                      0, 0, 0, 0);
+        }
+        const cType *parentType = type_eDynamicGeom;
+        cBase *(*factory)(cMemPool *, cBase *) = eGeomWake::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        type_eGeomWake = cType::InitializeType(0, 0, 0x257, parentType,
+                                               factory, 0, 0, 0);
+    }
+    return type_eGeomWake;
+}
 
 // ── eGeomWakeTemplate::AssignCopy(const cBase *) @ 0x0021207c ──
 #pragma control sched=1
