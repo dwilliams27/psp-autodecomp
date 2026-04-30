@@ -61,6 +61,7 @@ public:
     void *m_owner;                // 0x24
 
     void Write(cFile &) const;
+    int FindRegionSet(unsigned int) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -83,6 +84,36 @@ void gcRegionSetGroup::Write(cFile &file) const {
 }
 
 // ============================================================
+// 0x000efa8c — FindRegionSet(unsigned int) const
+// ============================================================
+int gcRegionSetGroup::FindRegionSet(unsigned int id) const {
+    void **items = (void **)m_arrayData;
+    int i = 0;
+    int offset = 0;
+    int count;
+
+    do {
+        count = 0;
+        if (items != 0) {
+            count = ((int *)items)[-1];
+        }
+        if (i >= count) {
+            break;
+        }
+        void *regionSet = *(void **)((char *)items + offset);
+        if (regionSet != 0) {
+            unsigned int regionId = *(volatile unsigned int *)((char *)regionSet + 0x18);
+            if (regionId == id) {
+                return i;
+            }
+        }
+        i++;
+        offset += 4;
+    } while (1);
+    return -1;
+}
+
+// ============================================================
 // 0x00246090 — AssignCopy(const cBase *)
 // ============================================================
 struct _CopyBlob6 {
@@ -91,7 +122,20 @@ struct _CopyBlob6 {
 
 void gcRegionSetGroup::AssignCopy(const cBase *base) {
     gcRegionSetGroup *other = dcast(base);
-    *(_CopyBlob6 *)((char *)this + 8) = *(const _CopyBlob6 *)((const char *)other + 8);
+    const int *src = (const int *)((const char *)other + 8);
+    int w0 = src[0];
+    int *dst = (int *)((char *)this + 8);
+    int w1 = src[1];
+    int w2 = src[2];
+    dst[0] = w0;
+    int w3 = src[3];
+    dst[1] = w1;
+    int w4 = src[4];
+    dst[2] = w2;
+    int w5 = src[5];
+    dst[3] = w3;
+    dst[4] = w4;
+    dst[5] = w5;
     ((cBaseArray *)((char *)this + 0x20))->operator=(
         *(cBaseArray *)((char *)other + 0x20));
 }
