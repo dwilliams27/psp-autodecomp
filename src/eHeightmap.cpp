@@ -63,6 +63,7 @@ eHeightmap::eHeightmap(cBase *base) : eGeom(base) {
     *(void **)((char *)this + 0x90) = 0;
 }
 
+#pragma control sched=1
 void eHeightmap::PlatformFree(void) {
     void *data = *(void **)((char *)this + 0x90);
     if (data != 0) {
@@ -72,12 +73,11 @@ void eHeightmap::PlatformFree(void) {
 }
 
 int eHeightmap::GetSurface(int idx) const {
-    char *arr = *(char **)((char *)*(void **)((char *)this + 0x60) + 0x7C);
+    char *arr = *(char * volatile *)((char *)*(void **)((char *)this + 0x60) + 0x7C);
     char *entry = arr + idx * 20 + 12;
     return *(int *)entry;
 }
 
-#pragma control sched=1
 void eHeightmap::GetEmbedContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, eContactCollector *) const {
     const eCollisionInfo *infoReg = &info;
     __asm__ volatile("" ::: "$8");
