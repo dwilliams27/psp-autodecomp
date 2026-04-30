@@ -37,10 +37,22 @@ struct PoolBlock {
     char *allocTable;
 };
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct AllocEntry {
     short offset;
     short pad;
     int (*fn)(void *, int, int, int, int);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
 };
 
 void gcDoUserOp::Write(cFile &file) const {
@@ -88,4 +100,39 @@ const cType *gcDoUserOp::GetType(void) const {
             0, 0, 0x288, type_action, gcDoUserOp::New, 0, 0, 0);
     }
     return type_gcDoUserOp;
+}
+
+void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+
+inline void gcDoUserOp::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoUserOp::~gcDoUserOp(void) {
+    *(void **)((char *)this + 4) = gcDoUserOpvirtualtable;
+
+    if ((void *)((char *)this + 0x10) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
