@@ -51,6 +51,11 @@ public:
     void Write(cFile &) const;
 };
 
+class eGeomCurve {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T> T dcast(const cBase *);
 
 struct AllocRec {
@@ -97,6 +102,7 @@ public:
     eGeomCurveTemplate(cBase *);
     ~eGeomCurveTemplate(void);
     void AssignCopy(const cBase *);
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -117,13 +123,68 @@ extern char eGeomTemplatevirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
 extern cType *D_000469A8;
+extern cType *D_000469C0;
 extern cType *D_000469E0;
 extern cType *D_00046C1C;
+extern cType *D_00046C20;
 
 struct eGeomCurveTemplateWord {
     int value;
 };
+
+// eGeomCurveTemplate::eGeomCurveTemplate(cBase *) @ 0x00077f48
+#pragma control sched=1
+eGeomCurveTemplate::eGeomCurveTemplate(cBase *parent) : cObject(parent) {
+    *(volatile float *)((char *)this + 0x44) = 1000.0f;
+    *(void **)((char *)this + 4) = eGeomTemplatevirtualtable;
+    *(volatile int *)((char *)this + 0x48) = 0;
+    *(volatile int *)((char *)this + 0x4C) = 10;
+    *(volatile float *)((char *)this + 0x50) = 0.25f;
+    *(volatile unsigned char *)((char *)this + 0x54) = 1;
+    *(volatile float *)((char *)this + 0x58) = 1.0f;
+    *(volatile float *)((char *)this + 0x5C) = 1.0f;
+    *(volatile float *)((char *)this + 0x60) = 1.0f;
+    *(volatile float *)((char *)this + 0x64) = 0.0f;
+    *(volatile float *)((char *)this + 0x68) = 0.0f;
+    *(volatile int *)((char *)this + 0x6C) = 0;
+    *(volatile unsigned char *)((char *)this + 0x70) = 0;
+    *(volatile float *)((char *)this + 0x74) = 0.0f;
+    unsigned int one = 1;
+    __asm__ volatile("" : "+r"(one));
+    *(volatile unsigned int *)((char *)this + 0x78) = one;
+}
+#pragma control sched=2
+
+// eGeomCurveTemplate::GetInstanceType(void) const @ 0x00077fdc
+#pragma control sched=1
+const cType *eGeomCurveTemplate::GetInstanceType(void) const {
+    if (D_00046C20 == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    const char *name = (const char *)0x36CD74;
+                    const char *desc = (const char *)0x36CD7C;
+                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                    D_000385DC = cType::InitializeType(
+                        name, desc, 1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(
+                    0, 0, 0x16, D_000385DC, 0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(
+                0, 0, 0x17, D_00040FF4, 0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469C0;
+        cBase *(*factory)(cMemPool *, cBase *) = &eGeomCurve::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C20 = cType::InitializeType(0, 0, 0x1D4, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C20;
+}
+#pragma control sched=2
 
 // eGeomCurveTemplate::AssignCopy(const cBase *) @ 0x00210814
 #pragma control sched=1
