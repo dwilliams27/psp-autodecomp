@@ -3,7 +3,11 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cReadBlock;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cType {
@@ -32,13 +36,23 @@ public:
     int m_n4;
     int m_n5;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
 
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+    void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 template <class T> class cGUIDT {
@@ -60,9 +74,16 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 extern char gcStreamedCinematicConfigGroupclassdesc[];
 
 void gcStreamedCinematicConfigGroup_ctor(void *, cBase *);
+void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcStreamedCinematicConfigGroup : public cNamed {
 public:
@@ -70,11 +91,21 @@ public:
     void *m_owner;                // 0x24
 
     gcStreamedCinematicConfigGroup(cBase *);
+    ~gcStreamedCinematicConfigGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void *FindStreamedCinematic(const cGUIDT<gcStreamedCinematic> &, int *) const;
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteEntry *entry = (DeleteEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = entry->offset;
+        void (*fn)(void *, void *) = entry->fn;
+        fn(block + off, p);
+    }
 };
 
 gcStreamedCinematicConfigGroup *dcast(const cBase *);
@@ -102,6 +133,20 @@ void gcStreamedCinematicConfigGroup::Write(cFile &file) const {
     cNamed::Write(file);
     ((cBaseArray *)((char *)this + 0x20))->Write(wb);
     wb.End();
+}
+
+// ── Read ──
+
+int gcStreamedCinematicConfigGroup::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || cNamed::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((cBaseArray *)((char *)this + 0x20))->Read(rb);
+    return result;
 }
 
 // ── AssignCopy ──
@@ -153,6 +198,21 @@ const cType *gcStreamedCinematicConfigGroup::GetType(void) const {
                                            0, 0, 0);
     }
     return D_00099ADC;
+}
+
+// SNC emitted a branch-loop pad in this destructor's symbol range.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── Destructor ──
+
+gcStreamedCinematicConfigGroup::~gcStreamedCinematicConfigGroup() {
+    *(void **)((char *)this + 4) = gcStreamedCinematicConfigGroupclassdesc;
+    void *array = (char *)this + 0x20;
+    if (array != 0) {
+        ((cBaseArray *)array)->RemoveAll();
+    }
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
 }
 
 // ── FindStreamedCinematic ──
