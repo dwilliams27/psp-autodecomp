@@ -11,6 +11,8 @@
 //   ePhysics::GetPhysicsMemPoolSize() static
 //   ePhysics::AddToUpdateList(eBipedController *)
 //   ePhysics::AddMotor(eSimulatedMotor *)
+//   ePhysics::RemoveFromUpdateList(eBipedController *)
+//   ePhysics::RemoveMotor(eSimulatedMotor *)
 //   ePhysics::UpdateController(eSimulatedController *)
 
 class eBipedController;
@@ -69,7 +71,9 @@ public:
     void AddToUpdateList(eSimulatedController *);
     void AddMotor(eSimulatedMotor *);
     void ClearExternalForcesAndIntegrateLocalToWorld(float);
+    void RemoveFromUpdateList(eBipedController *);
     void RemoveFromUpdateList(eSimulatedController *);
+    void RemoveMotor(eSimulatedMotor *);
     void UpdateController(eSimulatedController *);
 
     static ePhysics *s_pPhysics;
@@ -158,6 +162,52 @@ void ePhysics::AddMotor(eSimulatedMotor *motor) {
         m_pMotorList = motor;
         motor->m_pPrev = motor;
         motor->m_pNext = motor;
+    }
+}
+
+// ── RemoveFromUpdateList(eBipedController *) ───────────────────────────────
+void ePhysics::RemoveFromUpdateList(eBipedController *item) {
+    if ((item != 0) && (item->m_pNext != 0)) {
+        eBipedController *prev = item->m_pPrev;
+        if (prev != 0) {
+            if (m_pBipedList == item) {
+                m_pBipedList = prev;
+                prev = item->m_pPrev;
+                __asm__ volatile("");
+            }
+            item->m_pNext->m_pPrev = prev;
+            __asm__ volatile("" : "+r"(prev) : : "memory");
+            eBipedController *next2 = item->m_pNext;
+            prev->m_pNext = next2;
+            item->m_pNext = 0;
+            item->m_pPrev = 0;
+            if (m_pBipedList == item) {
+                m_pBipedList = 0;
+            }
+        }
+    }
+}
+
+// ── RemoveMotor ────────────────────────────────────────────────────────────
+void ePhysics::RemoveMotor(eSimulatedMotor *motor) {
+    if ((motor != 0) && (motor->m_pNext != 0)) {
+        eSimulatedMotor *prev = motor->m_pPrev;
+        if (prev != 0) {
+            if (m_pMotorList == motor) {
+                m_pMotorList = prev;
+                prev = motor->m_pPrev;
+                __asm__ volatile("");
+            }
+            motor->m_pNext->m_pPrev = prev;
+            __asm__ volatile("" : "+r"(prev) : : "memory");
+            eSimulatedMotor *next2 = motor->m_pNext;
+            prev->m_pNext = next2;
+            motor->m_pNext = 0;
+            motor->m_pPrev = 0;
+            if (m_pMotorList == motor) {
+                m_pMotorList = 0;
+            }
+        }
     }
 }
 
