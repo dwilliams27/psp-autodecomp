@@ -77,11 +77,17 @@ int eHeightmap::GetSurface(int idx) const {
     return *(int *)entry;
 }
 
+#pragma control sched=1
 void eHeightmap::GetEmbedContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, eContactCollector *) const {
-    char *shape = ((char **)&info)[1];
-    int *entry = (int *)(((char **)shape)[1] + 0xB0);
-    ((void (*)(char *, int, const mSphere *, const eCollisionInfo &))entry[1])(shape + *(short *)entry, idx, sphere, info);
+    const eCollisionInfo *infoReg = &info;
+    __asm__ volatile("" ::: "$8");
+    char *shape = *(char * const volatile *)((char *)infoReg + 4);
+    int *entry = (int *)((char **)shape)[1];
+    entry += 44;
+    ((void (*)(char *, int, const mSphere *, const eCollisionInfo &))entry[1])(
+        shape + *(short *)entry, idx, sphere, *infoReg);
 }
+#pragma control sched=2
 
 void eHeightmap::GetSweptContacts(const eCollisionInfo &info, int idx, const mSphere *sphere, const mCollideInfo *ci, eContactCollector *) const {
     char *shape = ((char **)&info)[1];
@@ -219,24 +225,10 @@ void eHeightmap::Write(cFile &file) const {
 
 // ── eHeightmap::~eHeightmap — 0x0005293c ──
 #pragma control sched=1
-extern "C" void eHeightmap___dtor_eHeightmap_void(eHeightmap *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eHeightmapvirtualtable;
-        self->PlatformFree();
-        *(void **)((char *)self + 4) = eGeomvirtualtable;
-        eGeom___dtor_eGeom_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            char *allocTable = *(char **)((char *)block + 0x1C);
-            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-            short off = rec->offset;
-            __asm__ volatile("" ::: "memory");
-            void *base = (char *)block + off;
-            void (*fn)(void *, void *) = rec->fn;
-            fn(base, self);
-        }
-    }
+eHeightmap::~eHeightmap(void) {
+    *(void **)((char *)this + 4) = eHeightmapvirtualtable;
+    PlatformFree();
+    *(void * volatile *)((char *)this + 4) = eGeomvirtualtable;
 }
 
 #pragma control sched=2

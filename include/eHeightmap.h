@@ -17,7 +17,20 @@ class cFile;
 
 class eHeightmap : public eGeom {
 public:
+    struct _DelRec { short offset; short pad; void (*fn)(void *, void *); };
     eHeightmap(cBase *);
+    ~eHeightmap(void);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        void *block = *(void **)((char *)pool + 0x24);
+        char *allocTable = *(char **)((char *)block + 0x1C);
+        _DelRec *rec = (_DelRec *)(allocTable + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        void *base = (char *)block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
     static eHeightmap *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
     void PlatformFree(void);
