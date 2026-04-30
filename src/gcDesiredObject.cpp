@@ -7,10 +7,15 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 
 extern "C" int cStrAppend(char *, const char *, ...);
+extern "C" void free(void *);
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -29,6 +34,8 @@ public:
 
 extern cType *D_000385DC;   // shared cBase root type cache
 extern cType *D_0009F3F4;   // gcDesiredObject type cache
+extern char gcDesiredObjectvirtualtable[];
+extern char cBaseclassdesc[];
 
 struct gcDesiredObjectCastSlot {
     short mOffset;                              // +0
@@ -53,16 +60,64 @@ struct cBaseWithName {
     const char *mName;                          // +0x0C
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDesiredObject {
 public:
     cBase *mParent;                             // +0x00
     gcDesiredObjectTypeInfo *mTypeInfo;         // +0x04
     int mField8;                                // +0x08
 
+    ~gcDesiredObject(void);
+    static void operator delete(void *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void GetName(char *) const;
 };
+
+inline void gcDesiredObject::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oPgcDesiredObjectdtv, 0xf0\n");
+
+// 0x0025f67c - gcDesiredObject::~gcDesiredObject(void)
+gcDesiredObject::~gcDesiredObject(void) {
+    *(char **)((char *)this + 4) = gcDesiredObjectvirtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── gcDesiredObject::Write @ 0x0011b578 ──
 void gcDesiredObject::Write(cFile &file) const {

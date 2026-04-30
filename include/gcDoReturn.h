@@ -54,6 +54,8 @@ public:
 
 class gcDoStateParentHandler {
 public:
+    ~gcDoStateParentHandler(void);
+    static void operator delete(void *);
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
