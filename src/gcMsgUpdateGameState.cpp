@@ -6,9 +6,14 @@
 
 class nwMsg;
 class cInStream;
+class cOutStream;
 class nwAddress;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+
+#ifndef NW_HANDLE_TYPES_DEFINED
+#define NW_HANDLE_TYPES_DEFINED
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
+#endif
 
 struct nwMsgBuffer {
     char _pad[0x4B0];
@@ -27,6 +32,21 @@ struct cInStreamBits {
     int mBitPos;             // 0x8
 };
 
+struct cOutStreamBits {
+    unsigned char *mBuf;     // 0x00
+    int mCapacity;           // 0x04
+    int mBitPos;             // 0x08
+    int mCRC;                // 0x0C
+    unsigned char mDirty;    // 0x10
+    unsigned char mPad11;    // 0x11
+    unsigned char mOverflow; // 0x12
+};
+
+class cGUID {
+public:
+    void Write(cOutStream &) const;
+};
+
 class gcReplicationVisitor {
 public:
     int mMode;                // 0x00
@@ -39,6 +59,7 @@ public:
     bool mByteSwap;           // 0x19
 
     void SetNetStream(cInStream *, nwConnectionHandle, bool, bool);
+    void SetNetStream(cOutStream *, nwConnectionHandle, bool, bool);
 };
 
 class gcReplicationManager {
@@ -53,6 +74,7 @@ public:
     static nwMsg *New(nwMsgBuffer &);
     nwMsgType *GetType() const;
     void Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle);
+    void Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const;
 
     void *mVTable;       // 0x00
     bool mFlag;          // 0x04
@@ -62,6 +84,12 @@ class gcMsgUpdateMapState {
 public:
     static nwMsg *New(nwMsgBuffer &);
     nwMsgType *GetType() const;
+    void Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const;
+
+    void *mVTable;       // 0x00
+    bool mFlag;          // 0x04
+    char _pad5[3];
+    cGUID mGuid;         // 0x08
 };
 
 // -----------------------------------------------------------------------------
@@ -72,9 +100,7 @@ public:
 //   offset 0xC0 of the global gcReplicationManager (at 0x37D854).
 // -----------------------------------------------------------------------------
 void gcMsgUpdateGameState::Read(cInStream &stream, nwSocketHandle sock, const nwAddress &, nwConnectionHandle conn) {
-    volatile nwSocketHandle vol_sock = sock;
-    volatile nwConnectionHandle vol_conn = conn;
-    (void)vol_sock;
+    (void)sock;
     cInStreamBits *bs = (cInStreamBits *)&stream;
     int pos = bs->mBitPos;
     unsigned char *data = bs->mBuf;
@@ -87,7 +113,6 @@ void gcMsgUpdateGameState::Read(cInStream &stream, nwSocketHandle sock, const nw
     *bpPtr = pos;
     mFlag = (*byte & mask) != 0;
 
-    nwConnectionHandle local_conn = vol_conn;
     gcReplicationVisitor visitor;
     visitor.mMode = 0x802;
     visitor.mOutStream = 0;
@@ -96,13 +121,120 @@ void gcMsgUpdateGameState::Read(cInStream &stream, nwSocketHandle sock, const nw
     visitor.mNetConnection = -1;
     visitor.mReadActive = 0;
     visitor.mWriteEnabled = true;
-    visitor.SetNetStream(&stream, local_conn, mFlag, true);
+    visitor.SetNetStream(&stream, conn, mFlag, true);
 
     gcReplicationManager *mgr = *(gcReplicationManager **)0x37D854;
     if (mgr) {
         char *vtable = *(char **)((char *)mgr + 4);
         struct Entry { short thisOff; short pad; void (*fn)(void *, gcReplicationVisitor *); };
         Entry *entry = (Entry *)(vtable + 0xC0);
+        short off = entry->thisOff;
+        void (*fn)(void *, gcReplicationVisitor *) = entry->fn;
+        fn((char *)mgr + off, &visitor);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// 0x00130598 — gcMsgUpdateGameState::Write
+// -----------------------------------------------------------------------------
+void gcMsgUpdateGameState::Write(cOutStream &stream, nwSocketHandle sock, const nwAddress &, nwConnectionHandle conn) const {
+    (void)sock;
+
+    cOutStreamBits *bs = (cOutStreamBits *)&stream;
+    int flag = mFlag & 0xFF;
+    int pos = bs->mBitPos;
+    int bit = pos & 7;
+    unsigned char *data = bs->mBuf;
+    unsigned char *byte = data + (pos >> 3);
+    pos = pos + 1;
+    unsigned char overflow = bs->mOverflow;
+    bs->mBitPos = pos;
+
+
+    if (overflow == 0) {
+        int newPos = ((cOutStreamBits *)&stream)->mBitPos;
+        int size = ((cOutStreamBits *)&stream)->mCapacity;
+        if (size < ((newPos + 7) >> 3)) {
+            ((cOutStreamBits *)&stream)->mOverflow = 1;
+        }
+    }
+
+    if ((unsigned char)(((cOutStreamBits *)&stream)->mOverflow == 0)) {
+        unsigned char cur = *byte;
+        int mask = ~(1 << bit);
+        int bitValue = (flag != 0);
+        *byte = (unsigned char)((cur & mask) | (bitValue << bit));
+    }
+
+    gcReplicationVisitor visitor;
+    visitor.mMode = 0x101;
+    visitor.mOutStream = 0;
+    visitor.mInStream = 0;
+    visitor.mStreamPos = -1;
+    visitor.mNetConnection = -1;
+    visitor.mReadActive = 0;
+    visitor.mWriteEnabled = true;
+    visitor.SetNetStream(&stream, conn, mFlag, true);
+
+    gcReplicationManager *mgr = *(gcReplicationManager **)0x37D854;
+    if (mgr) {
+        char *vtable = *(char **)((char *)mgr + 4);
+        struct Entry { short thisOff; short pad; void (*fn)(void *, gcReplicationVisitor *); };
+        Entry *entry = (Entry *)(vtable + 0xC0);
+        short off = entry->thisOff;
+        void (*fn)(void *, gcReplicationVisitor *) = entry->fn;
+        fn((char *)mgr + off, &visitor);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// 0x0013341c — gcMsgUpdateMapState::Write
+// -----------------------------------------------------------------------------
+void gcMsgUpdateMapState::Write(cOutStream &stream, nwSocketHandle sock, const nwAddress &, nwConnectionHandle conn) const {
+    (void)sock;
+
+    mGuid.Write(stream);
+    int flag = mFlag & 0xFF;
+    int pos = ((cOutStreamBits *)&stream)->mBitPos;
+    unsigned char *data = ((cOutStreamBits *)&stream)->mBuf;
+    int bit = pos & 7;
+    unsigned char *byte = data + (pos >> 3);
+    pos = pos + 1;
+    unsigned char overflow = ((cOutStreamBits *)&stream)->mOverflow;
+    ((cOutStreamBits *)&stream)->mBitPos = pos;
+
+
+    if (overflow == 0) {
+        int newPos = ((cOutStreamBits *)&stream)->mBitPos;
+        int capacity = ((cOutStreamBits *)&stream)->mCapacity;
+        int size = capacity;
+        if (size < ((newPos + 7) >> 3)) {
+            ((cOutStreamBits *)&stream)->mOverflow = 1;
+        }
+    }
+
+    if ((unsigned char)(((cOutStreamBits *)&stream)->mOverflow == 0)) {
+        unsigned char cur = *byte;
+        int mask = ~(1 << bit);
+        int bitValue = (flag != 0);
+        *byte = (unsigned char)((cur & mask) | (bitValue << bit));
+    }
+
+    gcReplicationVisitor visitor;
+    visitor.mMode = 0x101;
+    visitor.mOutStream = 0;
+    visitor.mInStream = 0;
+    visitor.mStreamPos = -1;
+    visitor.mNetConnection = -1;
+    visitor.mReadActive = 0;
+    visitor.mWriteEnabled = true;
+    visitor.SetNetStream(&stream, conn, mFlag, true);
+
+    gcReplicationManager *mgr = *(gcReplicationManager **)0x37D7FC;
+    if (mgr) {
+        char *vtable = *(char **)((char *)mgr + 4);
+        struct Entry { short thisOff; short pad; void (*fn)(void *, gcReplicationVisitor *); };
+        Entry *entry = (Entry *)(vtable + 0xD0);
         short off = entry->thisOff;
         void (*fn)(void *, gcReplicationVisitor *) = entry->fn;
         fn((char *)mgr + off, &visitor);
