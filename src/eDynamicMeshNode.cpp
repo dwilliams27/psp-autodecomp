@@ -28,12 +28,15 @@ public:
 
 // 0x0004cc8c - eDynamicMeshNode::Write(cWriteBlock &) const
 void eDynamicMeshNode::Write(cWriteBlock &wb) const {
-    wb.Write(mField0);
-    wb.Write(3, mVec40);
-    wb.Write(3, mVec10);
-    wb.Write(3, mVec20);
-    wb.Write(3, mVec30);
-    mName.Write(wb);
+    cWriteBlock *out = &wb;
+    const eDynamicMeshNode *self = this;
+    __asm__ volatile("" : "+r"(out), "+r"(self));
+    out->Write(self->mField0);
+    out->Write(3, self->mVec40);
+    out->Write(3, self->mVec10);
+    out->Write(3, self->mVec20);
+    out->Write(3, self->mVec30);
+    self->mName.Write(*out);
 }
 
 #pragma control sched=2

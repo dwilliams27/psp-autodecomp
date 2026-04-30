@@ -8,6 +8,9 @@ struct cGUID {
 class cFile {
 public:
     cFileHandle *mHandle;
+
+    unsigned int GetCurrentPos(void) const;
+    void SetCurrentPos(unsigned int);
 };
 
 class cFileSystem {
@@ -18,7 +21,9 @@ public:
 class cWriteBlock {
 public:
     cFile *mFile;
+    unsigned int mOffset;
 
+    cWriteBlock(cFile &, unsigned int);
     void Write(bool);
     void Write(char);
     void Write(unsigned char);
@@ -39,6 +44,17 @@ public:
 };
 
 extern unsigned char gByteSwap;
+
+cWriteBlock::cWriteBlock(cFile &file, unsigned int type) : mFile(&file) {
+    unsigned int pos = file.GetCurrentPos() + 3;
+    pos >>= 2;
+    mOffset = pos << 2;
+    mFile->SetCurrentPos(mOffset);
+    Write((int)0xBBBBBBBB);
+    mOffset += 4;
+    Write(0);
+    Write(type);
+}
 
 void cWriteBlock::Write(bool data) {
     unsigned char tmp = (unsigned int)data;
