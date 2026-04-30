@@ -11,7 +11,10 @@ class cFile {
 public:
     void SetCurrentPos(unsigned int);
 };
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class gcEntityAnimationConfig;
 
 class cType {
@@ -31,7 +34,7 @@ public:
 
 class cBaseArray {
 public:
-    void *mData;
+    void * volatile mData;
     void *mOwner;
     void SetSize(int);
     void Write(cWriteBlock &) const;
@@ -40,11 +43,17 @@ public:
     cBaseArray &operator=(const cBaseArray &);
 };
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class cReadBlock {
 public:
     int _data[5];
-    cReadBlock(cFile &, unsigned int, bool);
     ~cReadBlock(void);
+    cReadBlock(cFile &, unsigned int, bool);
 };
 
 class gcNamedSetName {
@@ -73,8 +82,17 @@ public:
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    ~gcEntityAnimationConfigSet();
     static cBase *New(cMemPool *, cBase *);
     static int GetAnimationIndex(const cBaseArray &, const gcEntityAnimationConfig *, int *, const gcEntityAnimationConfig *);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 gcEntityAnimationConfigSet *dcast(const cBase *);
@@ -93,12 +111,6 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
-};
-
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
 };
 
 void *cMemPool_GetPoolFromPtr(void *);
@@ -137,7 +149,7 @@ struct VTableSlotVisit {
 // ============================================================
 int gcEntityAnimationConfigSet::GetSize(void) const {
     int size = 0;
-    int *data = (int *)mArray.mData;
+    int *data = *(int **)((const char *)this + 12);
     if (data != 0) {
         size = data[-1];
     }
@@ -160,11 +172,11 @@ int gcEntityAnimationConfigSet::GetAnimationIndex(
         int *setIndex,
         const gcEntityAnimationConfig *animIndexOut) {
     int neg = -1;
-    void **arg0 = (void **)&sets;
     *(int *)animIndexOut = neg;
     *setIndex = neg;
     int outerIndex = 0;
-    void *outerData = *arg0;
+    __asm__ volatile("" : "+r"(outerIndex));
+    void *outerData = sets.mData;
     int outerOffset = 0;
 loop_1:
     {
@@ -173,30 +185,33 @@ loop_1:
             outerSize = ((int *)outerData)[-1];
         }
         if (outerIndex < outerSize) {
-            gcEntityAnimationConfigSet *set =
-                *(gcEntityAnimationConfigSet **)((char *)*arg0 + outerOffset);
+            __asm__ volatile("" ::: "memory");
+            void *outerDataReload = sets.mData;
             int innerIndex = 0;
+            void *inner = (char *)outerDataReload + outerOffset;
+            inner = *(void **)inner;
             int innerOffset = 0;
-            cBaseArray *inner = (cBaseArray *)((char *)set + 12);
+            inner = (char *)inner + 12;
 loop_5:
-            void *innerData = inner->mData;
+            void *innerData = *(void **)inner;
             int innerSize = 0;
             if (innerData != 0) {
                 innerSize = ((int *)innerData)[-1];
             }
-            if (innerIndex >= innerSize) {
+            if (innerIndex < innerSize) {
+                if (*(gcEntityAnimationConfig **)((char *)*(void **)inner + innerOffset) == config) {
+                    *setIndex = outerIndex;
+                    *(int *)animIndexOut = innerIndex;
+                    return 1;
+                }
+                innerIndex++;
+                innerOffset += 4;
+                goto loop_5;
+            } else {
                 outerIndex++;
                 outerOffset += 4;
                 goto loop_1;
             }
-            if (*(gcEntityAnimationConfig **)((char *)set->mArray.mData + innerOffset) == config) {
-                *setIndex = outerIndex;
-                *(int *)animIndexOut = innerIndex;
-                return 1;
-            }
-            innerIndex++;
-            innerOffset += 4;
-            goto loop_5;
         }
     }
     return 0;
@@ -350,28 +365,18 @@ cBase *gcEntityAnimationConfigSet::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oagcEntityAnimationConfigSetdtv, 0x98\n");
+
 // ============================================================
 // 0x0025ad30 — destructor
 // ============================================================
-extern "C" {
-
-void gcEntityAnimationConfigSet___dtor_gcEntityAnimationConfigSet_void(
-        gcEntityAnimationConfigSet *self, int flags) {
-    if (self != 0) {
-        ((void **)self)[1] = gcEntityAnimationConfigSetvirtualtable;
-        void *arr = (char *)self + 12;
-        if (arr != 0) {
-            ((cBaseArray *)arr)->RemoveAll();
-        }
-        ((void **)self)[1] = cBaseclassdesc;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
+gcEntityAnimationConfigSet::~gcEntityAnimationConfigSet() {
+    ((void **)this)[1] = gcEntityAnimationConfigSetvirtualtable;
+    void *arr = (char *)this + 12;
+    if (arr != 0) {
+        ((cBaseArray *)arr)->RemoveAll();
     }
-}
-
+    ((void **)this)[1] = cBaseclassdesc;
 }
