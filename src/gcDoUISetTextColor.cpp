@@ -59,6 +59,7 @@ class gcDesiredUIWidgetHelper {
 public:
     char _pad[12];   // 3 ints
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -72,6 +73,7 @@ public:
     ~gcDoUISetTextColor();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
@@ -93,9 +95,12 @@ public:
 extern char gcDoUISetTextColorvirtualtable[];
 extern const char gcDoUISetTextColor_base_name[] asm("D_0036D894");
 extern const char gcDoUISetTextColor_base_desc[] asm("D_0036D89C");
+extern const char gcDoUISetTextColor_fmt[] asm("D_0036F0E8");
+extern const char gcDoUISetTextColor_arg[] asm("D_0036DAF0");
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 gcDoUISetTextColor *dcast(const cBase *);
+void cStrAppend(char *, const char *, ...);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -201,6 +206,14 @@ void gcDoUISetTextColor::Write(cFile &file) const {
     wb.Write(mTextColorInt);
     wb.Write(mTextColorUint);
     wb.End();
+}
+
+// ── gcDoUISetTextColor::GetText @ 0x00315310 ──
+void gcDoUISetTextColor::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->GetText(local);
+    cStrAppend(buf, gcDoUISetTextColor_fmt, local, gcDoUISetTextColor_arg, mTextColorUint);
 }
 
 // ── gcDoUISetTextColor::VisitReferences @ 0x00315370 ──

@@ -2,6 +2,29 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcDesiredTableTemplate;
+class gcDesiredTableTemplateHelper;
+class gcEvent;
+class gcValue;
+
+template <class T>
+class cBaseArrayT {
+public:
+    void *mData;
+    int mSize;
+};
+
+class gcTableTemplate {
+public:
+    void Query(const cBaseArrayT<gcValue *> &, cBaseArrayT<gcValue *>,
+               const gcEvent &, cBaseArrayT<gcValue *>, cBaseArrayT<gcValue *>);
+};
+
+template <class T, class H, class O>
+class gcDesiredObjectT {
+public:
+    H *Get(bool) const;
+};
 
 class cType {
 public:
@@ -34,6 +57,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
 };
 
 struct PoolBlock {
@@ -139,4 +163,19 @@ void gcDoTableQuery::Write(cFile &file) const {
     cBase *base3 = (cBase *)((char *)this + 0x68);
     slot3->fn((cBase *)((char *)base3 + slot3->offset), wb._file);
     wb.End();
+}
+
+float gcDoTableQuery::Evaluate(void) const {
+    gcDesiredTableTemplateHelper *table =
+        ((const gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate> *)((const char *)this + 0x0C))->Get(true);
+    float result = 1.0f;
+    if (table != 0) {
+        ((gcTableTemplate *)table)->Query(
+            *(const cBaseArrayT<gcValue *> *)((const char *)this + 0x20),
+            *(cBaseArrayT<gcValue *> *)((const char *)this + 0x28),
+            *(const gcEvent *)((const char *)this + 0x30),
+            *(cBaseArrayT<gcValue *> *)((const char *)this + 0x4C),
+            *(cBaseArrayT<gcValue *> *)((const char *)this + 0x68));
+    }
+    return result;
 }
