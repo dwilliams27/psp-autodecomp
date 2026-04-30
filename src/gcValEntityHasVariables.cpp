@@ -14,6 +14,7 @@ public:
 
 class cHandle {
 public:
+    int mId;
     void Write(cWriteBlock &) const;
 };
 
@@ -40,6 +41,7 @@ public:
 class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
+    void *Get(bool) const;
 };
 
 class gcValue {
@@ -53,15 +55,21 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
+    void GetText(char *) const;
 };
 
 template <class T> T *dcast(const cBase *);
+void cStrAppend(char *, const char *, ...);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+extern "C" int gcEntity_HasVariables(void *, cHandle)
+    asm("__0fIgcEntityMHasVariables6IcHandleT76NgcEnumeration_K");
 
 extern char cBaseclassdesc[];
 extern char gcValEntityHasVariablesvirtualtable[];
 extern char D_00000338[];
+extern void *D_00038890[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -78,6 +86,13 @@ struct gcValVTEntry {
     short this_adjust;
     short pad;
     void (*fn)(void *, cFile *);
+};
+
+struct HandleObject {
+    char pad0[0x1C];
+    short nameLen;
+    char pad1[0x12];
+    int handle;
 };
 
 static cType *type_base;
@@ -161,4 +176,61 @@ void gcValEntityHasVariables::Write(cFile &file) const {
                                            (cFile *)wb._data[0]);
     ((const cHandle *)((char *)this + 0x34))->Write(wb);
     wb.End();
+}
+
+// ── gcValEntityHasVariables::Evaluate(void) const @ 0x00331ad4 ──
+float gcValEntityHasVariables::Evaluate(void) const {
+    void *entity = ((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
+    float result;
+    if (entity != 0) {
+        result = (float)gcEntity_HasVariables(entity,
+                                             *(cHandle *)((const char *)this + 52));
+    } else {
+        result = 0.0f;
+    }
+    return result;
+}
+
+// ── gcValEntityHasVariables::GetText(char *) const @ 0x00331b20 ──
+void gcValEntityHasVariables::GetText(char *buf) const {
+    const cTypeMethod *e =
+        (const cTypeMethod *)((char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 120);
+    char *base = (char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)e->fn)(base + e->offset, buf);
+
+    register const char *fmt __asm__("$4") = (const char *)0x36F2C8;
+    int h = *(const int *)((const char *)this + 52);
+    HandleObject *obj;
+    if (h == 0) {
+        obj = 0;
+    } else {
+        HandleObject *cand = (HandleObject *)D_00038890[h & 0xFFFF];
+        obj = 0;
+        if (cand != 0) {
+            if (cand->handle == h) {
+                obj = cand;
+            }
+        }
+    }
+
+    const char *text;
+    if (obj != 0) {
+        unsigned int empty = (obj->nameLen == 0);
+        empty &= 0xFF;
+        if (empty) {
+            text = (const char *)0x36DAB8;
+            goto object_done;
+        }
+        text = (const char *)obj + 8;
+object_done:
+        __asm__ volatile("" : : "r"(text));
+        goto append;
+    } else if (h != 0) {
+        text = (const char *)0x36DAC4;
+    } else {
+        text = (const char *)0x36DACC;
+    }
+append:
+    cStrAppend(buf, fmt, text);
 }
