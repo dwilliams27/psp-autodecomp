@@ -80,11 +80,17 @@ int eLightGrid::Read(cFile &file, cMemPool *) {
 }
 
 // --- AssignCopy ---
+#pragma control sched=1
 void eLightGrid::AssignCopy(const cBase *src) {
-    eLightGrid &rhs = *dcast<eLightGrid>(src);
-    mNodes = rhs.mNodes;
-    mSamples = rhs.mSamples;
+    eLightGrid *rhs = dcast<eLightGrid>(src);
+    cArrayBase<eLightGridNode> *srcNodes =
+        (cArrayBase<eLightGridNode> *)((char *)rhs + 8);
+    __asm__ volatile("" : "+r"(srcNodes));
+    ((cArrayBase<eLightGridNode> *)((char *)this + 8))->operator=(*srcNodes);
+    ((cArrayBase<eLightGridSample> *)((char *)this + 0xC))->operator=(
+        *(cArrayBase<eLightGridSample> *)((char *)rhs + 0xC));
 }
+#pragma control sched=2
 
 // --- New ---
 struct PoolBlock {
@@ -114,12 +120,22 @@ cBase *eLightGrid::New(cMemPool *pool, cBase *parent) {
 }
 
 // --- GetType ---
+#pragma control sched=1
 const cType *eLightGrid::GetType(void) const {
     if (!type_eLightGrid) {
         if (!type_base) {
-            type_base = cType::InitializeType(eLightGrid_base_name, eLightGrid_base_desc, 1, 0, 0, 0, 0, 0);
+            const char *name = eLightGrid_base_name;
+            const char *desc = eLightGrid_base_desc;
+            __asm__ volatile("" : "+r"(name), "+r"(desc));
+            type_base = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
         }
-        type_eLightGrid = cType::InitializeType(0, 0, 0x1BA, type_base, &eLightGrid::New, 0, 0, 0);
+        __asm__ volatile("" ::: "memory");
+        const cType *base = type_base;
+        __asm__ volatile("" : "+r"(base));
+        cBase *(*factory)(cMemPool *, cBase *) = &eLightGrid::New;
+        __asm__ volatile("" : "+r"(factory));
+        type_eLightGrid = cType::InitializeType(0, 0, 0x1BA, base, factory, 0, 0, 0);
     }
     return type_eLightGrid;
 }
+#pragma control sched=2
