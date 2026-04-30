@@ -3,6 +3,7 @@
 
 class cBase;
 class cMemPool;
+class cType;
 class gcExpression;
 
 class gcValUnaryOp {
@@ -12,6 +13,7 @@ public:
     gcExpression *GetChild(int) const;
     int GetExprFlags(void) const;
     void GetText(char *) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
