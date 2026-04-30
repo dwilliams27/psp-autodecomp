@@ -136,7 +136,20 @@ success:
 #pragma control sched=1
 void eKeyframedControllerConfig::AssignCopy(const cBase *base) {
     eKeyframedControllerConfig *other = dcast(base);
-    *(eKCCData *)((char *)this + 8) = *(eKCCData *)((char *)other + 8);
+    int *dst = (int *)((char *)this + 8);
+    int *src = (int *)((char *)other + 8);
+    int w0 = src[0];
+    int w1 = src[1];
+    int w2 = src[2];
+    dst[0] = w0;
+    dst[1] = w1;
+    dst[2] = w2;
+    w0 = src[3];
+    w1 = src[4];
+    w2 = src[5];
+    dst[3] = w0;
+    dst[4] = w1;
+    dst[5] = w2;
 }
 #pragma control sched=2
 
