@@ -2,8 +2,16 @@ class nwMsg;
 class cOutStream;
 class cInStream;
 class nwAddress;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+
+class nwSocketHandle {
+public:
+    int mValue;
+};
+
+class nwConnectionHandle {
+public:
+    int mValue;
+};
 
 struct nwMsgBuffer {
     char _pad[0x4B0];
@@ -65,12 +73,10 @@ nwMsgType *gcMsgSynchronize::GetType() const {
 }
 
 void gcMsgSynchronize::Write(cOutStream &s, nwSocketHandle sock, const nwAddress &, nwConnectionHandle conn) const {
-    volatile nwSocketHandle vol_sock = sock;
-    volatile nwConnectionHandle vol_conn = conn;
     unsigned int seed1;
     unsigned int seed2;
-    (void)vol_sock; (void)vol_conn;
     cGetRandomSeed(&seed1, &seed2);
+    __asm__ volatile("" : : "m"(sock), "m"(conn));
     ((cOutStreamRef *)&s)->Write(seed1, 0x20, true);
     ((cOutStreamRef *)&s)->Write(seed2, 0x20, true);
 }
