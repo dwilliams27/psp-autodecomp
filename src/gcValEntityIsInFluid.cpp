@@ -76,12 +76,75 @@ public:
     void Write(cFile &) const;
 };
 
+void gcDesiredObject_ctor(void *, void *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+extern char cBaseclassdesc[];
+extern char D_00000338[];
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
 // 0x00333f38 (120B) — AssignCopy
 void gcValEntityIsInFluid::AssignCopy(const cBase *base) {
     gcValEntityIsInFluid *other = dcast<gcValEntityIsInFluid>(base);
     const gcDesiredEntity *src = (const gcDesiredEntity *)((char *)other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(*src);
     *(cNameData *)((char *)this + 0x34) = *(const cNameData *)((char *)other + 0x34);
+}
+
+// 0x00333fb0 (268B) — New
+cBase *gcValEntityIsInFluid::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValEntityIsInFluid *result = 0;
+    gcValEntityIsInFluid *obj =
+        (gcValEntityIsInFluid *)entry->fn(base, 0x4C, 4, 0, 0);
+    if (obj != 0) {
+        register void *type0 asm("a0");
+        register void *type1 asm("a0");
+        register void *helper_desc asm("a0");
+
+        ((void **)obj)[1] = (void *)0x37E6A8;
+        __asm__ volatile("lui %0,0x0" : "=r"(type0));
+        ((cBase **)obj)[0] = parent;
+        __asm__ volatile("addiu %0,%0,0x7648" : "+r"(type0));
+        ((void **)obj)[1] = type0;
+        char *sub = (char *)obj + 8;
+        gcDesiredObject_ctor(sub, obj);
+        __asm__ volatile("lui %0,0x0\n\taddiu %0,%0,0x338"
+                         : "=r"(type1));
+        ((void **)obj)[3] = type1;
+        gcDesiredEntityHelper_ctor((char *)obj + 0x14, 1, 0, 0);
+        __asm__ volatile("lui %0,0x39\n\taddiu %0,%0,-0x75b8"
+                         : "=r"(helper_desc));
+        ((void **)obj)[8] = (void *)0x37E6A8;
+        ((void **)obj)[3] = helper_desc;
+        ((char **)obj)[7] = sub;
+        ((void **)obj)[8] = (void *)0x388568;
+        ((char *)obj)[0x24] = 1;
+        ((char *)obj)[0x25] = 0;
+        ((int *)obj)[10] = 0;
+        int sub_or_1 = (int)sub | 1;
+        ((int *)obj)[11] = 0;
+        ((int *)obj)[12] = sub_or_1;
+        ((short *)obj)[0x24] = 0;
+        ((short *)obj)[0x25] = 0;
+        ((char *)obj)[0x34] = 0;
+        result = obj;
+    }
+    return (cBase *)result;
 }
 
 static cType *type_base;
