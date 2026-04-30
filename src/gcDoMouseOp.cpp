@@ -59,8 +59,22 @@ struct AllocEntry {
 
 typedef void (*WriteFn)(void *, cFile *);
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+void *cMemPool_GetPoolFromPtr(const void *);
 
 extern char gcDoMouseOpvirtualtable[];
 extern char D_000006F8[];
@@ -80,9 +94,19 @@ public:
     cHandle mHandle;
 
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    ~gcDoMouseOp(void);
 };
+
+inline void gcDoMouseOp::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 // 0x002e7814 - gcDoMouseOp::New(cMemPool *, cBase *) static
 cBase *gcDoMouseOp::New(cMemPool *pool, cBase *parent) {
@@ -145,4 +169,34 @@ void gcDoMouseOp::Write(cFile &file) const {
     ((WriteFn)entry->fn)(base + entry->offset, *(cFile **)&wb._data[0]);
 
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoMouseOp::~gcDoMouseOp(void) {
+    *(void **)((char *)this + 4) = gcDoMouseOpvirtualtable;
+
+    if ((void *)((char *)this + 0x18) != 0) {
+        *(void * volatile *)((char *)this + 0x1C) = D_003898A0;
+        *(void * volatile *)((char *)this + 0x1C) = D_000006F8;
+        *(void * volatile *)((char *)this + 0x1C) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x20) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x20);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, 3);
+                *(int *)((char *)this + 0x20) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x1C) = (void *)0x37E6A8;
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
