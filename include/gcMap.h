@@ -10,6 +10,13 @@ class cFile;
 class cType;
 
 template <class T>
+class cGUIDT {
+public:
+    int mA;
+    int mB;
+};
+
+template <class T>
 class cHandleT {
 public:
     int mIndex;
@@ -43,6 +50,9 @@ public:
     void ResetRegionStates(void);
     void CaptureRegionStates(void);
     void CaptureRegionState(gcRegionBase *);
+    void ApplyRegionStates(void);
+    void ApplyRegionState(gcRegionBase *);
+    gcRegion *FindLoadedRegion(const cGUIDT<gcRegion> &) const;
     void ClearRegionSetState(int, int);
 
     char pad_000[0x140];

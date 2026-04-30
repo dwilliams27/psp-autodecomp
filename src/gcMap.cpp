@@ -241,6 +241,47 @@ void gcMap::CaptureRegionStates(void) {
     } while (i < 2);
 }
 
+void gcMap::ApplyRegionStates(void) {
+    int i = 0;
+    gcMap *regions = this;
+    gcMap *map = this;
+    do {
+        gcRegionBase *region = (gcRegionBase *)regions->mLoadedRegions[0];
+        if (region != 0) {
+            map->ApplyRegionState(region);
+        }
+        i++;
+        regions = (gcMap *)((char *)regions + 4);
+    } while (i < 2);
+}
+
+gcRegion *gcMap::FindLoadedRegion(const cGUIDT<gcRegion> &guid) const {
+    int i = 0;
+    gcRegion *const *regions = mLoadedRegions;
+    do {
+        gcRegion *region = *regions;
+        if (region != 0) {
+            int match = 0;
+            if (*(int *)((char *)region + 0x20) == guid.mA) {
+                match = (unsigned char)match;
+                if (*(int *)((char *)region + 0x24) == guid.mB) {
+                    match = 1;
+                    goto matched_path;
+                }
+            } else {
+matched_path:
+                match = (unsigned char)match;
+            }
+            if (match != 0) {
+                return region;
+            }
+        }
+        i++;
+        regions++;
+    } while (i < 2);
+    return 0;
+}
+
 void gcMap::ClearRegionSetState(int index, int state) {
     gcRegionSetGroup *group;
     gcRegionSetGroup **groups;
