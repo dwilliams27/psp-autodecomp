@@ -1,6 +1,8 @@
 class cBase;
 class cFile;
 class cMemPool;
+class gcEntity;
+class gcPlayer;
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -42,6 +44,14 @@ public:
     void Write(cFile &) const;
 };
 
+void gcDesiredObject_ctor(void *, void *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+class gcEntity {
+public:
+    gcPlayer *GetPlayer(void) const;
+};
+
 class gcValControllerState : public gcValue {
 public:
     gcValControllerState(cBase *);
@@ -49,10 +59,38 @@ public:
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    static int GetEntityControllerId(gcEntity *);
 };
 
 extern const char gcValControllerState_base_name[];
 extern const char gcValControllerState_base_desc[];
+
+gcValControllerState::gcValControllerState(cBase *parent) {
+    ((void **)this)[0] = parent;
+    ((void **)this)[1] = (void *)0x388AE8;
+    ((int *)this)[2] = 1;
+    ((int *)this)[3] = 0;
+    ((int *)this)[4] = 0xE;
+
+    char *desired = (char *)this + 0x14;
+    gcDesiredObject_ctor(desired, this);
+    register void *desiredType asm("a0");
+    __asm__ volatile("lui %0,0x0\n\taddiu %0,%0,0x338"
+                     : "=r"(desiredType));
+    ((void **)this)[6] = desiredType;
+    gcDesiredEntityHelper_ctor((char *)this + 0x20, 1, 0, 0);
+    ((void **)this)[6] = (void *)0x388A48;
+    ((void **)this)[10] = desired;
+    ((void **)this)[11] = (void *)0x388568;
+    ((char *)this)[0x30] = 1;
+    ((char *)this)[0x31] = 0;
+    ((int *)this)[13] = 0;
+    int desiredOrSelf = (int)desired | 1;
+    ((int *)this)[14] = 0;
+    register int thisOrSelf asm("a1") = (int)this | 1;
+    ((int *)this)[15] = desiredOrSelf;
+    ((int *)this)[16] = thisOrSelf;
+}
 
 cBase *gcValControllerState::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -112,4 +150,17 @@ const cType *gcValControllerState::GetType(void) const {
             0, 0, 0x89, type_value, gcValControllerState::New, 0, 0, 0);
     }
     return type_gcValControllerState;
+}
+
+int gcValControllerState::GetEntityControllerId(gcEntity *entity) {
+    if (entity) {
+        gcPlayer *player = entity->GetPlayer();
+        int result = -1;
+        __asm__ volatile("" : "+r"(result) :: "memory");
+        if (player) {
+            result = *(int *)((char *)player + 0x20);
+        }
+        return result;
+    }
+    return *(int *)0x37D880;
 }
