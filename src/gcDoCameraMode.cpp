@@ -47,6 +47,18 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct DtorSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
+struct PoolDeleteSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDoCameraMode : public gcAction {
 public:
     char _pad0C[0x38];        // 0x0C
@@ -55,6 +67,8 @@ public:
 
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    ~gcDoCameraMode(void);
+    static void operator delete(void *);
 };
 
 class gcDoCameraOp : public gcAction {
@@ -66,11 +80,29 @@ public:
 extern const char gcDoCameraMode_base_name[] asm("D_0036D894");
 extern const char gcDoCameraMode_base_desc[] asm("D_0036D89C");
 
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern "C" void gcDesiredCamera___dtor_gcDesiredCamera_void(void *, int);
+extern char gcDoCameraModevirtualtable[];
+extern "C" void free(void *);
+void *cMemPool_GetPoolFromPtr(const void *);
+
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoCameraMode asm("D_0009F5B8");
 static cType *type_gcDoCameraOp asm("D_0009F5C8");
+
+inline void gcDoCameraMode::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    if (pool != 0) {
+        void *block = *(void **)((char *)pool + 0x24);
+        char *entries = *(char **)((char *)block + 0x1C);
+        PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+        slot->fn((char *)block + slot->offset, ptr);
+    } else {
+        free(ptr);
+    }
+}
 
 // 0x002946d8 - gcDoCameraMode::GetType(void) const
 const cType *gcDoCameraMode::GetType(void) const {
@@ -130,4 +162,30 @@ void gcDoCameraMode::Write(cFile &file) const {
     mDesired.Write(wb);
     wb.Write(mMode);
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// 0x00294de0 - gcDoCameraMode::~gcDoCameraMode(void)
+gcDoCameraMode::~gcDoCameraMode(void) {
+    *(void **)((char *)this + 4) = gcDoCameraModevirtualtable;
+
+    if ((void *)((char *)this + 0x44) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x44);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x44) = 0;
+        }
+    }
+
+    gcDesiredCamera___dtor_gcDesiredCamera_void((char *)this + 0x0C, 2);
+    gcAction___dtor_gcAction_void(this, 0);
 }

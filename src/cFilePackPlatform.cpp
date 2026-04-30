@@ -44,6 +44,17 @@ void cFilePackPlatform::PackClose(void) {
     }
 }
 
+void cFilePackPlatform::PackFree(void *ptr) {
+    if (ptr != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, ptr);
+    }
+}
+
 cFilePackPlatform::~cFilePackPlatform() {
     if (mPackData != 0) {
         PackFree(mPackData);
