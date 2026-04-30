@@ -12,6 +12,10 @@
 // cStr::Read(cReadBlock &)
 // ============================================================
 
+typedef char *va_list;
+
+extern "C" int vsnprintf(char *, unsigned int, const char *, va_list);
+
 class cFileHandle;
 
 class cFileSystem {
@@ -28,8 +32,34 @@ public:
 class cStr {
 public:
     char _data[256];
+    cStr(const char *, ...);
     void Read(cReadBlock &);
 };
+
+// ── cStr::cStr ── @ 0x00004b38
+cStr::cStr(const char *fmt, ...) {
+    int frame_pad;
+    __asm__ volatile("" : "=m"(frame_pad));
+    register va_list args asm("a3");
+    __asm__ volatile("sw $6, 0x18($sp)");
+    __asm__ volatile("sw $7, 0x1c($sp)");
+    __asm__ volatile("sw $8, 0x20($sp)");
+    __asm__ volatile("sw $9, 0x24($sp)");
+    __asm__ volatile("sw $10, 0x28($sp)");
+    __asm__ volatile("sw $11, 0x2c($sp)");
+
+    if (fmt == 0) {
+        _data[0] = 0;
+    } else {
+        __asm__ volatile("lui $4, 0x0");
+        __asm__ volatile("addiu $4, $4, 0x10");
+        __asm__ volatile("andi $4, $4, 0xffff");
+        __asm__ volatile("addu $7, $sp, $4");
+        __asm__ volatile("addiu %0, $7, 0x8" : "=r"(args));
+        vsnprintf(_data, 0x100, fmt, args);
+        _data[0xff] = 0;
+    }
+}
 
 void cStr::Read(cReadBlock &rb) {
     cFileSystem::Read((cFileHandle *)*(void **)rb.mHandle, this, 0x100);

@@ -3,6 +3,30 @@
 
 extern int *gSpeakerConfigTable[];
 
+eAudioChannel::eAudioChannel() {
+    mFlags = 0;
+    mHandle = 0;
+    mState = 0;
+    mVolume = 1.0f;
+    mPitch = 1.0f;
+    mField14 = 0;
+    mPanLeft = 1.0f;
+    mPanRight = 1.0f;
+    mField20 = 0.0f;
+    mDistanceScale = 1.0f;
+    mFlag2C = 0;
+    mMinDist = 1.0f;
+    mMaxDist = 1.0f;
+    mField38 = 0;
+    mFlag3C = 0;
+    mField40 = 1.0f;
+    mField44 = 1.0f;
+    mField48 = 0;
+    mListenerPtr = 0;
+    mSpeakerConfig = 0;
+    mField54 = 0;
+}
+
 void eAudioChannel::CalcPanning(int numSpeakers, const mOCS *speakers, float *output) const {
     float localPos[4] __attribute__((aligned(16)));
 
