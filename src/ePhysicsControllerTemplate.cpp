@@ -77,6 +77,7 @@ ePhysicsControllerTemplate::ePhysicsControllerTemplate(cBase *b) {
 }
 
 // --- Write ---
+#pragma control sched=1
 void ePhysicsControllerTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 5);
     mArr1.Write(wb);
@@ -87,6 +88,7 @@ void ePhysicsControllerTemplate::Write(cFile &file) const {
 }
 
 // --- GetType ---
+#pragma control sched=2
 const cType *ePhysicsControllerTemplate::GetType(void) const {
     if (!s_type_ePhysicsControllerTemplate) {
         if (!s_type_base) {
@@ -137,7 +139,13 @@ extern "C" void ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_voi
     }
 }
 
+// This size override must precede the method definition; SNC's emitted function
+// body still places the two words after the normal epilogue.
+__asm__(".word 0x1000ffff\n.word 0x00000000\n");
+__asm__(".size __0faePhysicsControllerTemplateWCreateAndResetInstanceP6IcMemPoolP6NeDynamicModelPC6aePhysicsControllerTemplatePP6SePhysicsControllerT, 0x120\n");
+
 // --- CreateAndResetInstance ---
+#pragma control sched=1
 struct VtEntry {
     short adj;
     short _pad;
@@ -149,40 +157,57 @@ void ePhysicsControllerTemplate::CreateAndResetInstance(
     const ePhysicsControllerTemplate *tpl,
     ePhysicsController **out)
 {
-    ePhysicsController *existing = *out;
-
     if (tpl == 0) {
-        if (existing != 0) {
+        if (*out != 0) {
+            ePhysicsController *existing = *out;
             void *vt = *(void **)((char *)existing + 4);
-            VtEntry *e = (VtEntry *)((char *)vt + 0x50);
-            ((void (*)(void *, int))e->fn)((char *)existing + e->adj, 3);
+            register VtEntry *e __asm__("$5") = (VtEntry *)((char *)vt + 0x50);
+            __asm__ volatile("" : "+r"(e));
+            register short adj __asm__("$6") = e->adj;
+            void *adjusted = (char *)existing + adj;
+            register void (*fn)(void *, int) __asm__("$6") = (void (*)(void *, int))e->fn;
+            fn(adjusted, 3);
             *out = 0;
         }
         return;
     }
 
-    if (existing == 0 || *(const ePhysicsControllerTemplate **)((char *)existing + 8) != tpl) {
-        if (existing != 0) {
+    if (*out == 0 || *(const ePhysicsControllerTemplate **)((char *)(*out) + 8) != tpl) {
+        if (*out != 0) {
+            ePhysicsController *existing = *out;
             void *vt = *(void **)((char *)existing + 4);
-            VtEntry *e = (VtEntry *)((char *)vt + 0x50);
-            ((void (*)(void *, int))e->fn)((char *)existing + e->adj, 3);
+            register VtEntry *e __asm__("$5") = (VtEntry *)((char *)vt + 0x50);
+            __asm__ volatile("" : "+r"(e));
+            register short adj __asm__("$6") = e->adj;
+            void *adjusted = (char *)existing + adj;
+            register void (*fn)(void *, int) __asm__("$6") = (void (*)(void *, int))e->fn;
+            fn(adjusted, 3);
             *out = 0;
         }
         void *tvt = *(void **)((char *)tpl + 4);
-        VtEntry *te = (VtEntry *)((char *)tvt + 0x78);
-        void *typeObj = ((void *(*)(void *))te->fn)((char *)tpl + te->adj);
+        register VtEntry *te __asm__("$5") = (VtEntry *)((char *)tvt + 0x78);
+        __asm__ volatile("" : "+r"(te));
+        register short typeAdj __asm__("$4") = te->adj;
+        void *typeAdjusted = (char *)tpl + typeAdj;
+        register void *(*typeFn)(void *) __asm__("$5") = (void *(*)(void *))te->fn;
+        void *typeObj = typeFn(typeAdjusted);
         void *(*creator)(cMemPool *, eDynamicModel *) =
             *(void *(**)(cMemPool *, eDynamicModel *))((char *)typeObj + 0x10);
         ePhysicsController *created = (ePhysicsController *)creator(pool, model);
         *out = created;
         *(const ePhysicsControllerTemplate **)((char *)created + 8) = tpl;
         *(eDynamicModel **)((char *)(*out) + 0xC) = model;
-        existing = *out;
     }
 
-    if (existing != 0) {
+    if (*out != 0) {
+        ePhysicsController *existing = *out;
         void *vt = *(void **)((char *)existing + 4);
-        VtEntry *e = (VtEntry *)((char *)vt + 0x38);
-        ((void (*)(void *, cMemPool *, int))e->fn)((char *)existing + e->adj, pool, 1);
+        register VtEntry *e __asm__("$5") = (VtEntry *)((char *)vt + 0x38);
+        __asm__ volatile("" : "+r"(e));
+        register short adj __asm__("$6") = e->adj;
+        void *adjusted = (char *)existing + adj;
+        register void (*fn)(void *, cMemPool *, int) __asm__("$7") =
+            (void (*)(void *, cMemPool *, int))e->fn;
+        fn(adjusted, pool, 1);
     }
 }
