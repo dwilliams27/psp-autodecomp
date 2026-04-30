@@ -4,8 +4,18 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cMemPoolNS {
+public:
+    static cMemPoolNS *GetPoolFromPtr(const void *);
+};
 class cType;
 class gcExpression;
+
+struct gcValTrinaryOpDeleteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 struct gcValTrinaryOpData {
     char _pad[0x08];
@@ -17,6 +27,14 @@ struct gcValTrinaryOpData {
 class gcValTrinaryOp {
 public:
     gcValTrinaryOp(cBase *);
+    ~gcValTrinaryOp(void);
+    static void operator delete(void *p) {
+        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        gcValTrinaryOpDeleteRec *rec =
+            (gcValTrinaryOpDeleteRec *)(((char **)block)[7] + 0x30);
+        rec->fn(block + rec->offset, p);
+    }
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
     void SetChild(int, gcExpression *);

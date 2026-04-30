@@ -14,6 +14,10 @@ public:
 };
 
 void gcValue_Write(const gcValTrinaryOp *, cFile &);
+void cBaseArray_SetSize(void *, int);
+void cBaseArray_RemoveAll(void *);
+extern char gcValTrinaryOpvirtualtable[];
+extern char cBaseclassdesc[];
 
 class cType {
 public:
@@ -30,6 +34,25 @@ struct AllocRec {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+gcValTrinaryOp::gcValTrinaryOp(cBase *parent) {
+    *(cBase **)((char *)this + 0) = parent;
+    *(void **)((char *)this + 4) = gcValTrinaryOpvirtualtable;
+    *(int *)((char *)this + 8) = 0;
+    *(int *)((char *)this + 12) = 0;
+    *(int *)((char *)this + 16) = 0;
+    *(gcValTrinaryOp **)((char *)this + 20) = this;
+    cBaseArray_SetSize((char *)this + 16, 3);
+}
+
+gcValTrinaryOp::~gcValTrinaryOp(void) {
+    *(void **)((char *)this + 4) = gcValTrinaryOpvirtualtable;
+    void *children = (char *)this + 16;
+    if (children != 0) {
+        cBaseArray_RemoveAll(children);
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
 
 gcExpression *gcValTrinaryOp::GetChild(int index) const {
     gcValTrinaryOpData *self = (gcValTrinaryOpData *)this;
