@@ -11,7 +11,9 @@ public:
     gcValConsoleInfo(cBase *);
     int Evaluate(void) const;
     int EvaluateCommon(void) const;
+    gcValConsoleInfo &operator=(const gcValConsoleInfo &);
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
 

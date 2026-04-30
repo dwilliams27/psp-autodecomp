@@ -20,6 +20,9 @@ public:
 
 class cType {
 public:
+    char pad[0x1C];
+    cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *, cBase *(*)(cMemPool *, cBase *), const char *, const char *, unsigned int);
 };
 
@@ -38,6 +41,12 @@ struct AllocEntry {
     short offset;
     short pad;
     int (*fn)(void *, int, int, int, int);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *);
 };
 
 // -----------------------------------------------------------------------------
@@ -123,4 +132,60 @@ const cType *gcValConsoleInfo::GetType(void) const {
         type_final = cType::InitializeType(0, 0, 0x1E0, type_6C, gcValConsoleInfo::New, 0, 0, 0);
     }
     return type_final;
+}
+
+// -----------------------------------------------------------------------------
+// Function 6: gcValConsoleInfo::AssignCopy(const cBase *)
+// -----------------------------------------------------------------------------
+void gcValConsoleInfo::AssignCopy(const cBase *base) {
+    const gcValConsoleInfo *other = 0;
+
+    if (base != 0) {
+        if (!type_final) {
+            if (!type_6C) {
+                if (!type_6A) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_6A = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_6C = cType::InitializeType(
+                    0, 0, 0x6C, type_6A, 0, 0, 0, 0x80);
+            }
+            type_final = cType::InitializeType(
+                0, 0, 0x1E0, type_6C, gcValConsoleInfo::New, 0, 0, 0);
+        }
+
+        DispatchEntry *entry =
+            (DispatchEntry *)((char *)*(void **)((char *)base + 4) + 8);
+        cType *wanted = type_final;
+        cType *type = entry->fn((char *)base + entry->offset);
+        int ok;
+
+        if (wanted == 0) {
+            ok = 0;
+        } else if (type != 0) {
+        loop:
+            if (type == wanted) {
+                ok = 1;
+            } else {
+                type = type->mParent;
+                if (type != 0) {
+                    goto loop;
+                }
+                goto fail;
+            }
+        } else {
+        fail:
+            ok = 0;
+        }
+        if (ok != 0) {
+            other = (const gcValConsoleInfo *)base;
+        }
+    }
+
+    operator=(*other);
 }
