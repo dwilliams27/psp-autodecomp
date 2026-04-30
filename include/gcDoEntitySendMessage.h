@@ -9,6 +9,7 @@ class cType;
 
 class gcDoEntitySendMessage {
 public:
+    void AssignCopy(const cBase *);
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
@@ -16,6 +17,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    gcDoEntitySendMessage &operator=(const gcDoEntitySendMessage &);
 };
 
 class gcDoEntitySendPartialControllerMessage {
