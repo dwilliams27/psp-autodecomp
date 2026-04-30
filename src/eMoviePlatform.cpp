@@ -1,5 +1,8 @@
 #include "thread.h"
 
+extern "C" void __0oNcFilePlatformctv(void *);
+extern "C" void *memset(void *, int, unsigned int);
+
 class eMoviePlatform {
 public:
     char _pad_00[0x2B0];
@@ -24,6 +27,7 @@ public:
     char _pad_378[0x38C - 0x378];      // 0x378 - 0x38C
     int m_read_state;                  // 0x38C
 
+    eMoviePlatform(void);
     int dispbuf_getCapacity(void);
     int soundbuf_getCapacity(void);
     void dispbuf_setPts(unsigned int);
@@ -45,6 +49,95 @@ public:
     int read_getCapacity(void);
     int read_isFull(void);
 };
+
+#pragma control sched=1
+
+eMoviePlatform::eMoviePlatform(void) {
+    *(int *)((char *)this + 0x000) = 0;
+    *(int *)((char *)this + 0x004) = 0;
+    *(int *)((char *)this + 0x008) = 0;
+    __0oNcFilePlatformctv((char *)this + 0x090);
+
+    *(unsigned char *)((char *)this + 0x1B0) = 0;
+    *(int *)((char *)this + 0x1BC) = 0;
+    *(unsigned char *)((char *)this + 0x1C0) = 0;
+    *(int *)((char *)this + 0x1B8) = 0;
+    *(int *)((char *)this + 0x1B4) = 0;
+    __asm__ volatile("" ::: "memory");
+    int neg = -1;
+    *(int *)((char *)this + 0x1C4) = neg;
+    *(int *)((char *)this + 0x1C8) = neg;
+    *(int *)((char *)this + 0x1CC) = neg;
+    *(int *)((char *)this + 0x1D0) = 0;
+    *(int *)((char *)this + 0x1D4) = 0;
+    *(int *)((char *)this + 0x1D8) = 0;
+    *(int *)((char *)this + 0x1DC) = 0;
+    *(int *)((char *)this + 0x1E0) = 0;
+    *(int *)((char *)this + 0x1E4) = 0;
+    *(int *)((char *)this + 0x1E8) = 0;
+    *(int *)((char *)this + 0x1EC) = 0;
+    *(int *)((char *)this + 0x1F0) = 0;
+    *(int *)((char *)this + 0x1FC) = 0;
+    *(int *)((char *)this + 0x290) = 0;
+    *(int *)((char *)this + 0x294) = 0;
+    *(int *)((char *)this + 0x298) = 0;
+    *(unsigned char *)((char *)this + 0x29C) = 0;
+    *(int *)((char *)this + 0x2A0) = neg;
+    *(int *)((char *)this + 0x2A4) = 0;
+    *(unsigned char *)((char *)this + 0x2AC) = 0;
+    *(int *)((char *)this + 0x2B0) = neg;
+    *(int *)((char *)this + 0x2B4) = neg;
+    *(int *)((char *)this + 0x2C0) = neg;
+    *(int *)((char *)this + 0x2C4) = neg;
+    *(int *)((char *)this + 0x2C8) = neg;
+    *(int *)((char *)this + 0x2CC) = 0;
+    *(int *)((char *)this + 0x2E0) = 0;
+    *(int *)((char *)this + 0x2E4) = 0;
+    *(int *)((char *)this + 0x2E8) = 0;
+    *(int *)((char *)this + 0x2EC) = 0;
+    *(int *)((char *)this + 0x2F0) = 0;
+    *(int *)((char *)this + 0x2F4) = 0;
+    *(int *)((char *)this + 0x2F8) = 0;
+    *(int *)((char *)this + 0x2FC) = 0;
+    *(int *)((char *)this + 0x300) = neg;
+    *(int *)((char *)this + 0x304) = neg;
+    *(int *)((char *)this + 0x328) = 0;
+    *(int *)((char *)this + 0x32C) = 0;
+    *(int *)((char *)this + 0x330) = 0;
+    *(int *)((char *)this + 0x334) = 0;
+    *(int *)((char *)this + 0x338) = 0;
+    *(int *)((char *)this + 0x33C) = 0;
+    *(int *)((char *)this + 0x340) = 0;
+    *(int *)((char *)this + 0x344) = 0;
+    *(int *)((char *)this + 0x348) = 0;
+    *(int *)((char *)this + 0x34C) = 0;
+    *(int *)((char *)this + 0x368) = 0;
+    *(int *)((char *)this + 0x36C) = 0;
+    *(int *)((char *)this + 0x370) = 0;
+    *(int *)((char *)this + 0x374) = 0;
+    *(int *)((char *)this + 0x378) = 0;
+    *(int *)((char *)this + 0x37C) = 0;
+    *(int *)((char *)this + 0x380) = neg;
+    *(int *)((char *)this + 0x384) = 0;
+    *(int *)((char *)this + 0x388) = 0;
+    *(int *)((char *)this + 0x38C) = 0;
+
+    memset((char *)this + 0x00C, 0, 0x004);
+    memset((char *)this + 0x010, 0, 0x080);
+    memset((char *)this + 0x1F4, 0, 0x008);
+    memset((char *)this + 0x200, 0, 0x040);
+    memset((char *)this + 0x240, 0, 0x040);
+    memset((char *)this + 0x280, 0, 0x010);
+    memset((char *)this + 0x2B8, 0, 0x008);
+    memset((char *)this + 0x2D0, 0, 0x008);
+    memset((char *)this + 0x2D8, 0, 0x008);
+    memset((char *)this + 0x308, 0, 0x010);
+    memset((char *)this + 0x318, 0, 0x010);
+    memset((char *)this + 0x350, 0, 0x008);
+    memset((char *)this + 0x358, 0, 0x010);
+}
+
+#pragma control sched=2
 
 int eMoviePlatform::dispbuf_getCapacity(void) {
     return m_dispbuf_end - m_dispbuf_start;
