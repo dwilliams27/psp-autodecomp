@@ -29,6 +29,7 @@ public:
     int CanSweep(void) const;
     const cType *GetType(void) const;
     float GetVolume(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     int NeedsRollingFriction(float *) const;
     void GetAABB(mBox *, const mOCS &) const;

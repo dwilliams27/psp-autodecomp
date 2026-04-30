@@ -1,5 +1,4 @@
 #include "eSphereShape.h"
-#include "eShape.h"
 #include "eBoxShape.h"
 #include "eMultiSphereShape.h"
 #include "eCapsuleShape.h"
@@ -43,8 +42,24 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // Free-function wrapper for eShape::Write (resolved via linker; jal is masked)
 void eShape_Write(const void *, cFile &);
+int eShape_Read(void *, cFile &, cMemPool *);
+void eShape_ComputeMinAxis(void *);
 
 // Helper wrappers (resolved at link time; relocations are masked during byte-compare)
 void eShape_eShape(void *, cBase *);
@@ -177,6 +192,22 @@ void eSphereShape::Write(cFile &file) const {
     eShape_Write(this, file);
     wb.Write(mRadius);
     wb.End();
+}
+
+// eSphereShape::Read(cFile &, cMemPool *) — 0x00067b54
+int eSphereShape::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && eShape_Read(this, file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    void *h = *(void **)rb._data[0];
+    __asm__ volatile("" : "+r"(h));
+    cFileSystem::Read(h, &mRadius, 4);
+    eShape_ComputeMinAxis(this);
+    return result;
 }
 #pragma control sched=2
 
