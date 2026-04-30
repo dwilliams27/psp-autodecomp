@@ -42,6 +42,11 @@ public:
     cTypeMethod read_m;     // 0x30
     char _p1[0x40];
     cTypeMethod text_m;     // 0x78
+
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 class gcDesiredObject {
@@ -61,6 +66,7 @@ public:
 class gcValEntityIsActive : public gcValue {
 public:
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -114,6 +120,34 @@ cBase *gcValEntityIsActive::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValEntityIsActive;
+
+// 0x003324f8 (280B) — GetType
+const cType *gcValEntityIsActive::GetType(void) const {
+    if (!type_gcValEntityIsActive) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValEntityIsActive =
+            cType::InitializeType(0, 0, 0x158, type_value,
+                                  gcValEntityIsActive::New, 0, 0, 0);
+    }
+    return type_gcValEntityIsActive;
 }
 
 // 0x00332610 (108B) — Write
