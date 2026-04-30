@@ -14,6 +14,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -34,6 +35,14 @@ struct gcDesiredValue {
     void Write(cWriteBlock &) const;
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 
 extern char gcLValuevirtualtable[];
@@ -51,9 +60,16 @@ public:
     gcDesiredUIWidgetHelper mHelper;
     gcDesiredValue mValue;
 
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_variable;
+static cType *type_gcValUITextParam;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -92,4 +108,32 @@ void gcValUITextParam::Write(cFile &file) const {
     ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x14))->Write(wb);
     wb.End();
+}
+
+const cType *gcValUITextParam::GetType(void) const {
+    if (!type_gcValUITextParam) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                            type_base, 0, 0,
+                                                            0, 0);
+                }
+                type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                                   0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(0, 0, 0x6D, type_value,
+                                                  0, 0, 0, 0);
+        }
+        type_gcValUITextParam = cType::InitializeType(0, 0, 0x97,
+                                                      type_variable,
+                                                      gcValUITextParam::New,
+                                                      0, 0, 0);
+    }
+    return type_gcValUITextParam;
 }
