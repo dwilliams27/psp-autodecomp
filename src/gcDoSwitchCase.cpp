@@ -4,6 +4,7 @@
 class cBaseArray {
 public:
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
     void SetSize(int);
 };
 
@@ -27,6 +28,7 @@ public:
 class gcExpressionList {
 public:
     gcExpressionList(cBase *);
+    ~gcExpressionList(void);
     gcExpressionList &operator=(const gcExpressionList &);
     void Write(cWriteBlock &) const;
 };
@@ -35,9 +37,15 @@ gcDoSwitchCase *dcast(const cBase *);
 
 void gcDoSwitchCase__gcDoSwitchCase_cBaseptr(gcDoSwitchCase *, cBase *);
 void gcAction_gcAction(gcDoSwitchCase *, cBase *);
+void gcAction___dtor_gcAction_void(void *, int);
 void gcAction_Write(const gcDoSwitchCase *, cFile &);
 void gcValue_Write(const void *, cFile &);
 void gcExpressionList_gcExpressionList(void *, cBase *);
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 extern char gcDoSwitchCasevirtualtable[];
 
@@ -79,6 +87,19 @@ struct AllocEntry {
     short _pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+struct DeleteEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+inline void gcDoSwitchCase::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteEntry *entry = (DeleteEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+    entry->fn(block + entry->offset, p);
+}
 
 // 0x0014fec0, 96B
 gcDoSwitchCase::gcDoSwitchCase(cBase *parent) {
@@ -122,6 +143,20 @@ void gcDoSwitchCase::AssignCopy(const cBase *base) {
     self[2] = self[2] | (src[2] & 3);
     ((cBaseArray *)((char *)this + 0xC))->operator=(*(const cBaseArray *)((char *)other + 0xC));
     ((gcExpressionList *)((char *)this + 0x14))->operator=(*(const gcExpressionList *)((char *)other + 0x14));
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoSwitchCase::~gcDoSwitchCase() {
+    ((void **)this)[1] = gcDoSwitchCasevirtualtable;
+    ((gcExpressionList *)((char *)this + 0x14))->~gcExpressionList();
+    cBaseArray *children = (cBaseArray *)((char *)this + 0xC);
+    if (children != 0) {
+        children->RemoveAll();
+    }
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 cBase *gcDoSwitchCase::New(cMemPool *pool, cBase *parent) {

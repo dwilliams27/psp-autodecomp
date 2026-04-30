@@ -6,6 +6,8 @@ class cTimeValue;
 class eMovie {
 public:
     eMovie(void);
+    ~eMovie(void);
+    static void operator delete(void *);
     static void Initialize(void);
     void Close(void);
     void Update(cTimeValue *);

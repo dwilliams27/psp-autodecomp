@@ -72,6 +72,8 @@ struct gcDoSwitchCaseData {
 class gcDoSwitchCase {
 public:
     gcDoSwitchCase(cBase *);
+    ~gcDoSwitchCase(void);
+    static void operator delete(void *);
     const cType *GetType(void) const;
     int GetMaxChildren(void) const;
     int GetMaxBranches(void) const;

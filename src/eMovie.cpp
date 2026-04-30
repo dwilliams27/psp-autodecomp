@@ -7,6 +7,10 @@
 
 class cBase;
 class cFile;
+class cFilePlatform {
+public:
+    ~cFilePlatform(void);
+};
 
 extern eMovie *D_0037D2E0;
 extern int D_0037D2F0;
@@ -21,9 +25,6 @@ extern "C" {
     void eMoviePlatform__Update_cTimeValueptr(void *self, cTimeValue *tv);
     unsigned long long sceKernelGetSystemTimeWide(void);
     int sceKernelSysClock2USecWide(unsigned long long clk, int *sec, int *usec);
-    void eMovie__Close_void(eMovie *self);
-    void cFilePlatform___dtor_cFilePlatform_void(void *self, int flags);
-    void *cMemPool_GetPoolFromPtr(const void *);
     void free(void *);
 }
 
@@ -59,6 +60,19 @@ struct eMovieDeleteRecord {
     short _pad;
     void (*fn)(void *, void *);
 };
+
+inline void eMovie::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        void *block = *(void **)((char *)pool + 0x24);
+        __asm__ volatile("" ::: "memory");
+        eMovieDeleteRecord *rec =
+            (eMovieDeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        rec->fn((char *)block + rec->offset, p);
+    } else {
+        free(p);
+    }
+}
 
 eMovie::eMovie(void) {
     __asm__ volatile("" ::: "memory");
@@ -141,26 +155,13 @@ bool eUser::PlatformSignIn(void) {
 }
 
 // --- eMovie::~eMovie(void) @ 0x00056d78 ---
-extern "C" void eMovie___dtor_eMovie_void(eMovie *self, int flags) {
-    if (self != 0) {
-        eMovie__Close_void(self);
-        D_0037D2E0 = 0;
-        D_0037D2F0 = 0;
-        void *mp = (char *)self + 8;
-        if (mp != 0) {
-            cFilePlatform___dtor_cFilePlatform_void((char *)self + 0x98, 2);
-        }
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                __asm__ volatile("" ::: "memory");
-                eMovieDeleteRecord *rec = (eMovieDeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                rec->fn((char *)block + rec->offset, self);
-            } else {
-                free(self);
-            }
-        }
+eMovie::~eMovie() {
+    Close();
+    D_0037D2E0 = 0;
+    D_0037D2F0 = 0;
+    void *platformBase = (char *)this + 8;
+    if (platformBase != 0) {
+        ((cFilePlatform *)((char *)this + 0x98))->~cFilePlatform();
     }
 }
 
