@@ -57,6 +57,7 @@ public:
     void Reset(cMemPool *, bool);
     static void UpdateProfile(void);
     void Chain(cHandleT<gcCinematic>, cHandle, float);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void Write(cOutStream &) const;
     int Read(cFile &, cMemPool *);

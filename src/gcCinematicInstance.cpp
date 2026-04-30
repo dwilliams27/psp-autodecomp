@@ -53,6 +53,8 @@ extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
 extern "C" void __0fKcTimeValueEReadR6JcInStream(void *, cInStream &);
 extern "C" void __0fKcTimeValueFWriteR6KcOutStreamK(const void *, cOutStream &);
 
+template <class T> T *dcast(const cBase *);
+
 extern char *D_0037D7C8;
 extern gcStreamedCinematic *D_0037D7D4[2];
 extern cType *D_000385DC;
@@ -63,6 +65,55 @@ void gcCinematicInstance::Chain(cHandleT<gcCinematic> cinematic, cHandle handle,
     mChainCinematic = cinematic;
     mChainHandle = handle;
     mChainTime = time;
+}
+
+// Function 1a: 0x00243cf0, 264 bytes
+void gcCinematicInstance::AssignCopy(const cBase *base) {
+    gcCinematicInstance *other = dcast<gcCinematicInstance>(base);
+    int *src8 = (int *)((char *)other + 8);
+    int value8 = *src8;
+    int *dst8 = (int *)((char *)this + 8);
+    *dst8 = value8;
+    *(float *)((char *)this + 0xC) = *(float *)((char *)other + 0xC);
+    int *src10 = (int *)((char *)other + 0x10);
+    int value10 = *src10;
+    int *dst10 = (int *)((char *)this + 0x10);
+    int *src14 = (int *)((char *)other + 0x14);
+    int *dst14 = (int *)((char *)this + 0x14);
+    *dst10 = value10;
+    int value14 = *src14;
+    *dst14 = value14;
+    *(int *)((char *)this + 0x18) = *(int *)((char *)other + 0x18);
+    *(int *)((char *)this + 0x1C) = *(int *)((char *)other + 0x1C);
+    int *src20 = (int *)((char *)other + 0x20);
+    int value20 = *src20;
+    int *dst20 = (int *)((char *)this + 0x20);
+    *dst20 = value20;
+    *(unsigned char *)((char *)this + 0x24) =
+        *(unsigned char *)((char *)other + 0x24);
+    *(int *)((char *)this + 0x28) = *(int *)((char *)other + 0x28);
+    *(int *)((char *)this + 0x2C) = *(int *)((char *)other + 0x2C);
+    *(int *)((char *)this + 0x30) = *(int *)((char *)other + 0x30);
+    *(int *)((char *)this + 0x34) = *(int *)((char *)other + 0x34);
+    *(unsigned char *)((char *)this + 0x38) =
+        *(unsigned char *)((char *)other + 0x38);
+    *(unsigned char *)((char *)this + 0x39) =
+        *(unsigned char *)((char *)other + 0x39);
+    *(unsigned char *)((char *)this + 0x3A) =
+        *(unsigned char *)((char *)other + 0x3A);
+    int *src3C = (int *)((char *)other + 0x3C);
+    int value3C = *src3C;
+    int *dst3C = (int *)((char *)this + 0x3C);
+    int *src40 = (int *)((char *)other + 0x40);
+    int *dst40 = (int *)((char *)this + 0x40);
+    *dst3C = value3C;
+    int value40 = *src40;
+    *dst40 = value40;
+    *(float *)((char *)this + 0x44) = *(float *)((char *)other + 0x44);
+    *(int *)((char *)this + 0x48) = *(int *)((char *)other + 0x48);
+    *(int *)((char *)this + 0x4C) = *(int *)((char *)other + 0x4C);
+    *(int *)((char *)this + 0x50) = *(int *)((char *)other + 0x50);
+    *(int *)((char *)this + 0x54) = *(int *)((char *)other + 0x54);
 }
 
 // Function 2: 0x000eaf28, 40 bytes
