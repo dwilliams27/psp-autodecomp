@@ -29,13 +29,15 @@ class cType;
 
 class gcCinematic {
 public:
+    ~gcCinematic();
+    static void FreeDynamicInstance(class gcCinematicInstance *);
     gcCinematic(cBase *);
     const cType *GetType(void) const;
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
-    static void FreeDynamicInstance(class gcCinematicInstance *);
+    static void operator delete(void *);
 };
 
 struct gcDialogHolder {

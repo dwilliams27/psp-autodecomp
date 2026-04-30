@@ -7,6 +7,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -38,6 +43,7 @@ public:
 class cBaseArray {
 public:
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
     void Write(cWriteBlock &) const;
 };
 
@@ -72,6 +78,26 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void cObject___dtor_cObject_void(void *, int);
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
+
+inline void gcCinematic::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+}
+
 // Previously matched stubs kept.
 void gcCinematic::Reset(cMemPool *, bool) {
 }
@@ -88,6 +114,34 @@ void gcReplicationVisitor::SetNetConnection(int connection) {
 
 void gcReplicationVisitor::SetMemCardStream(cInStream *stream) {
     mInStream = stream;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oLgcCinematicdtv, 0xe4\n");
+
+// ─────────────────────────────────────────────────────
+// 0x000ea8f8 (228B) — gcCinematic::~gcCinematic
+// ─────────────────────────────────────────────────────
+gcCinematic::~gcCinematic() {
+    char *vtableBase = (char *)0x00380000;
+    char *vtable = vtableBase + 0x74D8;
+    __asm__ volatile("" : "+r"(vtable));
+    char *inst = *(char **)((char *)this + 0x7C);
+    *(char **)((char *)this + 4) = vtable;
+    char *items = (char *)this + 0x44;
+    while (inst != NULL) {
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)inst)[1] + 0x50);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(inst + off, (void *)3);
+        inst = *(char **)((char *)this + 0x7C);
+    }
+    gcEvent___dtor_gcEvent_void((char *)this + 0x60, 2);
+    if (items != NULL) {
+        ((cBaseArray *)items)->RemoveAll();
+    }
+    cObject___dtor_cObject_void(this, 0);
 }
 
 // ─────────────────────────────────────────────────────
@@ -120,6 +174,10 @@ const cType *gcCinematic::GetType(void) const {
 // ─────────────────────────────────────────────────────
 // 0x000eaac4 (64B) — gcCinematic::FreeDynamicInstance
 // ─────────────────────────────────────────────────────
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fLgcCinematicTFreeDynamicInstanceP6TgcCinematicInstanceT, 0x40\n");
+
 void gcCinematic::FreeDynamicInstance(gcCinematicInstance *inst) {
     if (inst != NULL) {
         int *vt = (int *)(((char **)inst)[1] + 0x50);
