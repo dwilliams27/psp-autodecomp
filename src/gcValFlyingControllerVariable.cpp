@@ -38,6 +38,10 @@ struct cTypeMethod {
 
 class cType {
 public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
     char _p0[0x28];
     cTypeMethod write_m;    // 0x28
     cTypeMethod read_m;     // 0x30
@@ -88,6 +92,12 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_variable;
+static cType *type_gcValFlyingControllerVariable;
 
 // 0x003436fc (72B) — AssignCopy
 void gcValFlyingControllerVariable::AssignCopy(const cBase *base) {
@@ -174,4 +184,30 @@ void gcValFlyingControllerVariable::GetText(char *buf) const {
     cStrAppend(buf,
                gcValFlyingControllerVariable_text_fmt,
                gcValFlyingControllerVariable_text_arg);
+}
+
+const cType *gcValFlyingControllerVariable::GetType(void) const {
+    if (!type_gcValFlyingControllerVariable) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValFlyingControllerVariable = cType::InitializeType(
+            0, 0, 0x1B0, type_variable, gcValFlyingControllerVariable::New,
+            0, 0, 0);
+    }
+    return type_gcValFlyingControllerVariable;
 }
