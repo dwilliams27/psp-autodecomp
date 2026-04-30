@@ -47,6 +47,12 @@ public:
 
 extern char gcLobbyScoreboardRowStringsvirtualtable[];
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -63,9 +69,19 @@ public:
     int _b8;    // 0x08 - gcDesiredValue tagged self-ptr
     int mField; // 0x0C
 
+    ~gcLobbyScoreboardRowStrings();
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static gcLobbyScoreboardRowStrings *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern cType *D_000385DC;
@@ -118,4 +134,31 @@ gcLobbyScoreboardRowStrings *gcLobbyScoreboardRowStrings::New(cMemPool *pool, cB
         result = (gcLobbyScoreboardRowStrings *)p;
     }
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0obgcLobbyScoreboardRowStringsdtv, 0xd4\n");
+
+// ── gcLobbyScoreboardRowStrings::~gcLobbyScoreboardRowStrings(void)  @ 0x002843d8, 212B ──
+gcLobbyScoreboardRowStrings::~gcLobbyScoreboardRowStrings() {
+    *(char **)((char *)this + 4) = gcLobbyScoreboardRowStringsvirtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(int *)((char *)this + 4) = 0x37E6A8;
 }
