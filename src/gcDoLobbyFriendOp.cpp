@@ -14,7 +14,9 @@ class cType;
 class gcDoLobbyFriendOp {
 public:
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     const cType *GetType(void) const;
+    ~gcDoLobbyFriendOp(void);
     void Write(cFile &) const;
 };
 
@@ -45,20 +47,42 @@ struct PoolBlock {
     char *allocTable;
 };
 
+struct PoolDeleteSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct AllocEntry {
     short offset;
     short pad;
     int (*fn)(void *, int, int, int, int);
 };
 
+struct DtorSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
 void gcAction_gcAction(gcDoLobbyFriendOp *, cBase *);
 void gcAction_Write(const gcDoLobbyFriendOp *, cFile &);
+void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyFriendOpvirtualtable[];
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoLobbyFriendOp asm("D_0009F690");
+
+inline void gcDoLobbyFriendOp::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    PoolDeleteSlot *slot = (PoolDeleteSlot *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 // ── gcDoLobbyFriendOp::New(cMemPool *, cBase *) @ 0x002e09e4 ──
 cBase *gcDoLobbyFriendOp::New(cMemPool *pool, cBase *parent) {
@@ -110,4 +134,29 @@ void gcDoLobbyFriendOp::Write(cFile &file) const {
     ((gcDesiredValue *)((char *)this + 0x10))->Write(wb);
     wb.Write(*(bool *)((char *)this + 0x14));
     wb.End();
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── gcDoLobbyFriendOp::~gcDoLobbyFriendOp(void) @ 0x002e1324 ──
+gcDoLobbyFriendOp::~gcDoLobbyFriendOp(void) {
+    *(void **)((char *)this + 4) = gcDoLobbyFriendOpvirtualtable;
+
+    if ((void *)((char *)this + 0x10) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorSlot *slot = (DtorSlot *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, 3);
+            *(int *)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
