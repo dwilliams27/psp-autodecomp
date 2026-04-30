@@ -23,6 +23,8 @@ public:
     void Read(cReadBlock &);
 };
 
+#pragma control sched=1
+
 // ── eDynamicMeshExtrudedShadowEdge::Write(cWriteBlock &) const @ 0x0004d260 ──
 void eDynamicMeshExtrudedShadowEdge::Write(cWriteBlock &wb) const {
     wb.Write(2, (const unsigned short *)this);
@@ -31,6 +33,13 @@ void eDynamicMeshExtrudedShadowEdge::Write(cWriteBlock &wb) const {
 
 // ── eDynamicMeshExtrudedShadowEdge::Read(cReadBlock &) @ 0x0004d2ac ──
 void eDynamicMeshExtrudedShadowEdge::Read(cReadBlock &rb) {
-    cFileSystem::Read(*(void **)rb._data[0], this, 4);
-    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 4, 4);
+    cReadBlock *in = &rb;
+    eDynamicMeshExtrudedShadowEdge *self = this;
+    __asm__ volatile("" : "+r"(in), "+r"(self));
+    void *handle = *(void **)in->_data[0];
+    cFileSystem::Read(handle, self, 4);
+    handle = *(void **)in->_data[0];
+    cFileSystem::Read(handle, (char *)self + 4, 4);
 }
+
+#pragma control sched=2
