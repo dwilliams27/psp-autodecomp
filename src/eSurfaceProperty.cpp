@@ -19,6 +19,14 @@ public:
     static void Read(void *handle, void *buf, unsigned int size);
 };
 
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(unsigned int);
+    void End(void);
+};
+
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 template <class T> T *dcast(const cBase *);
@@ -26,15 +34,25 @@ template <class T> T *dcast(const cBase *);
 class cNamed {
 public:
     int Read(cFile &, cMemPool *);
+    void Write(cFile &) const;
 };
 
 class eSurfaceProperty : public cNamed {
 public:
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
 };
 
 #pragma control sched=1
+
+// ── eSurfaceProperty::Write(cFile &) const @ 0x0005364c ──
+void eSurfaceProperty::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    cNamed::Write(file);
+    wb.Write(*(const unsigned int *)((const char *)this + 0x20));
+    wb.End();
+}
 
 // ── eSurfaceProperty::Read(cFile &, cMemPool *) @ 0x000536a4 ──
 int eSurfaceProperty::Read(cFile &file, cMemPool *pool) {
