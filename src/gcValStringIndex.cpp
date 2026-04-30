@@ -54,6 +54,7 @@ public:
 
 class gcDesiredString : public gcDesiredObject {
 public:
+    void *Get(bool) const;
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
@@ -69,6 +70,7 @@ public:
 class gcValStringIndex : public gcValue {
 public:
     static cBase *New(cMemPool *, cBase *);
+    float Evaluate(void) const;
     void Write(cFile &) const;
     void GetText(char *) const;
     const cType *GetType(void) const;
@@ -152,6 +154,19 @@ void gcValStringIndex::Write(cFile &file) const {
     wb.End();
 }
 
+// 0x0035ebcc (76B) - Evaluate
+float gcValStringIndex::Evaluate(void) const {
+    void *str = ((const gcDesiredString *)((const char *)this + 8))->Get(true);
+    char *index = (char *)str;
+    if (str != 0) {
+        goto nonzero;
+    }
+    return 0.0f;
+nonzero:
+    index += 32;
+    return (float)(int)(*(unsigned int *)index & 0xffff);
+}
+
 // 0x0035ec18 (80B) — GetText
 void gcValStringIndex::GetText(char *buf) const {
     const cTypeMethod *e =
@@ -199,6 +214,7 @@ void gcValStringIndex::VisitReferences(
     }
     if (temp_s4 != 0) {
         gcValStringIndex *owner = self;
+        __asm__ volatile("" ::: "memory");
         gcDesiredString *var_s6 = 0;
 
         if (!type_object) {
@@ -221,34 +237,44 @@ void gcValStringIndex::VisitReferences(
         short temp_a1 = dispatch->offset;
         cType *(*temp_a2)(void *) = dispatch->fn;
         cType *var_s3 = temp_a2((char *)temp_s4 + temp_a1);
-        int var_a0 = 0;
+        int var_a0;
 
-        if (temp_s0 != 0 && var_s3 != 0) {
-            cType *node = var_s3;
-            do {
-                if (node == temp_s0) {
-                    var_a0 = 1;
-                    break;
-                }
-                node = node->mParent;
-            } while (node != 0);
+        if (temp_s0 != 0) {
+            goto have_type;
         }
+        var_a0 = 0;
+        goto type_done;
+have_type:
+        if (var_s3 != 0) {
+            do {
+                if (var_s3 == temp_s0) {
+                    var_a0 = 1;
+                    goto type_done;
+                }
+                var_s3 = var_s3->mParent;
+            } while (var_s3 != 0);
+        }
+        var_a0 = 0;
+type_done:
         if (var_a0 != 0) {
             var_s6 = temp_s4;
         }
 
         if (var_s6 != 0) {
-            if ((unsigned char)((((flags & 0xFE00) &
-                                  *(unsigned short *)((char *)var_s6 + 0x28)) != 0))) {
-                if (cb != 0) {
-                    cb((cBase *)owner, (unsigned int)(void *)temp_s4, user);
-                }
-            } else {
-                goto block_23;
+            unsigned int direct =
+                (unsigned char)((((flags & 0xFE00) &
+                                  *(unsigned short *)((char *)var_s6 + 0x28)) != 0));
+            if (direct != 0) {
+                goto direct_callback;
             }
-        } else {
-block_23:
-            temp_s4->VisitReferences(flags, (cBase *)owner, cb, user, mask);
         }
+        temp_s4->VisitReferences(flags, (cBase *)owner, cb, user, mask);
+        goto done;
+direct_callback:
+        if (cb != 0) {
+            cb((cBase *)owner, (unsigned int)(void *)temp_s4, user);
+        }
+done:
+        ;
     }
 }
