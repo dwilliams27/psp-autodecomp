@@ -58,26 +58,92 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
-#pragma control sched=1
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct AllocEntry {
+    short offset;
+    short pad;
+    void *(*fn)(void *, int, int, int, int);
+};
+
+void gcDesiredObject_ctor(void *, void *);
+void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+cBase *gcValEntitySoundFrequency::New(cMemPool *pool, cBase *parent) {
+    void *block = ((void **)pool)[9];
+    char *allocTable = ((PoolBlock *)block)->allocTable;
+    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
+    short off = entry->offset;
+    void *base = (char *)block + off;
+    gcValEntitySoundFrequency *result = 0;
+    gcValEntitySoundFrequency *obj =
+        (gcValEntitySoundFrequency *)entry->fn(base, 0x3C, 4, 0, 0);
+    if (obj != 0) {
+        ((void **)obj)[1] = (void *)0x37E6A8;
+        {
+            register void *type0 asm("a0");
+            __asm__ volatile("lui %0,0x0" : "=r"(type0));
+            ((cBase **)obj)[0] = parent;
+            __asm__ volatile("addiu %0,%0,0x7e38" : "+r"(type0));
+            ((void **)obj)[1] = type0;
+        }
+        char *sub = (char *)obj + 8;
+        gcDesiredObject_ctor(sub, obj);
+        {
+            register void *type1 asm("a0");
+            __asm__ volatile("lui %0,0x0\n\taddiu %0,%0,0x338"
+                             : "=r"(type1));
+            ((void **)obj)[3] = type1;
+        }
+        gcDesiredEntityHelper_ctor((char *)obj + 0x14, 1, 0, 0);
+        {
+            register void *helper_desc asm("a0");
+            __asm__ volatile("lui %0,0x39\n\taddiu %0,%0,-0x75b8"
+                             : "=r"(helper_desc));
+            ((void **)obj)[8] = (void *)0x37E6A8;
+            ((void **)obj)[3] = helper_desc;
+        }
+        ((char **)obj)[7] = sub;
+        ((void **)obj)[8] = (void *)0x388568;
+        ((char *)obj)[0x24] = 1;
+        ((char *)obj)[0x25] = 0;
+        ((int *)obj)[10] = 0;
+        int sub_or_1 = (int)sub | 1;
+        ((int *)obj)[11] = 0;
+        int obj_or_1 = (int)obj | 1;
+        ((int *)obj)[12] = sub_or_1;
+        ((int *)obj)[13] = obj_or_1;
+        {
+            register int one asm("a0");
+            __asm__ volatile("ori %0,$zero,0x1" : "=r"(one));
+            ((char *)obj)[0x38] = 0;
+            ((char *)obj)[0x39] = one;
+            ((char *)obj)[0x3A] = one;
+        }
+        result = obj;
+    }
+    return (cBase *)result;
+}
+
 void gcValEntitySoundFrequency::Write(cFile &file) const {
-    const gcValEntitySoundFrequency *self = this;
-    __asm__ volatile("" : "+r"(self));
     cWriteBlock wb(file, 3);
-    ((const gcLValue *)self)->Write(file);
+    gcLValue::Write(file);
 
     const cTypeMethod *entity_write =
-        (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)self + 8))->mType + 0x28);
-    const char *entity_base = (const char *)self + 8;
+        &((const gcDesiredObject *)((const char *)this + 8))->mType->write_m;
+    char *entity_base = (char *)this + 8;
     typedef void (*WriteFn)(void *, cFile *);
-    ((WriteFn)entity_write->fn)((void *)(entity_base + entity_write->offset), wb.file);
+    ((WriteFn)entity_write->fn)(entity_base + entity_write->offset, wb.file);
 
-    ((const gcDesiredValue *)((const char *)self + 0x34))->Write(wb);
-    wb.Write(*(const bool *)((const char *)self + 0x38));
-    wb.Write(*(const bool *)((const char *)self + 0x39));
-    wb.Write(*(const bool *)((const char *)self + 0x3A));
+    ((const gcDesiredValue *)((const char *)this + 0x34))->Write(wb);
+    wb.Write(*(const bool *)((const char *)this + 0x38));
+    wb.Write(*(const bool *)((const char *)this + 0x39));
+    wb.Write(*(const bool *)((const char *)this + 0x3A));
     wb.End();
 }
-#pragma control sched=2
 
 static cType *type_base;
 static cType *type_expression;
