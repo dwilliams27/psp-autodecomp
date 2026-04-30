@@ -10,6 +10,9 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class eCamera;
+class eRenderSurface;
+class eWorld;
 
 class cObject {
 public:
@@ -58,6 +61,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class eVRAMMgrHelper {
+public:
+    static void SetTextureFromSurface(const eRenderSurface *, bool);
+};
+
+extern eRenderSurface D_00098338;
+
 #pragma control sched=1
 
 class eVirtualTexture {
@@ -65,6 +84,7 @@ public:
     eVirtualTexture(cBase *);
     ~eVirtualTexture();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eShadowVolumeTexture : public eVirtualTexture {
@@ -72,6 +92,8 @@ public:
     eShadowVolumeTexture(cBase *);
     ~eShadowVolumeTexture();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void Apply(int, const eCamera *, const eWorld *) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -104,9 +126,29 @@ void eShadowVolumeTexture::Write(cFile &file) const {
     wb.End();
 }
 
+// ── eShadowVolumeTexture::Read(cFile &, cMemPool *) @ 0x00086ae4 ──
+int eShadowVolumeTexture::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eVirtualTexture::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // ── eShadowVolumeTexture::~eShadowVolumeTexture(void) @ 0x00086bd4 ──
 eShadowVolumeTexture::~eShadowVolumeTexture() {
     *(void **)((char *)this + 4) = (void *)0x385AA0;
+}
+
+// ── eShadowVolumeTexture::Apply(int, const eCamera *, const eWorld *) const @ 0x00086c50 ──
+void eShadowVolumeTexture::Apply(int, const eCamera *, const eWorld *) const {
+    eRenderSurface *surface = &D_00098338;
+    eVRAMMgrHelper::SetTextureFromSurface(surface, false);
+    *(unsigned short *)((char *)this + 0x48) = *(unsigned short *)((char *)surface + 0x0C);
+    *(unsigned short *)((char *)this + 0x4A) = *(unsigned short *)((char *)surface + 0x0E);
 }
 
 // ── eShadowVolumeTexture::AssignCopy(const cBase *) @ 0x0021ae54 ──
