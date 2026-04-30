@@ -48,6 +48,7 @@ public:
 class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
+    void *Get(bool) const;
 };
 
 class gcValEntityHasConstants {
@@ -56,16 +57,21 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
+    void GetText(char *) const;
 };
 
 template <class T> T *dcast(const cBase *);
 void gcLValue_Write(const gcValEntityHasConstants *, cFile &);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrAppend(char *, const char *, ...);
+extern "C" int gcEntity_HasConstants(void *, cHandle) asm("__0fIgcEntityMHasConstants6IcHandleT76NgcEnumeration_K");
 
 extern char cBaseclassdesc[];
 extern char gcValEntityHasConstantsvirtualtable[];
 extern char D_00000338[];
+extern void *D_00038890[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -76,6 +82,13 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct HandleObject {
+    char pad0[0x1C];
+    short nameLen;
+    char pad1[0x12];
+    int handle;
 };
 
 static cType *type_base asm("D_000385DC");
@@ -159,4 +172,67 @@ void gcValEntityHasConstants::Write(cFile &file) const {
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     ((const cHandle *)((const char *)this + 52))->Write(wb);
     wb.End();
+}
+
+// 0x0032fd28 (76B) — Evaluate
+float gcValEntityHasConstants::Evaluate(void) const {
+    void *entity = ((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
+    float result;
+    if (entity != 0) {
+        result = (float)gcEntity_HasConstants(entity,
+                                             *(cHandle *)((const char *)this + 52));
+    } else {
+        result = 0.0f;
+    }
+    return result;
+}
+
+// 0x0032fd74 (232B) — GetText
+void gcValEntityHasConstants::GetText(char *buf) const {
+    const cTypeMethod *e =
+        (const cTypeMethod *)((char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 120);
+    char *base = (char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)e->fn)(base + e->offset, buf);
+
+    register const char *fmt __asm__("$4") = (const char *)0x36F2A0;
+    int h = *(const int *)((const char *)this + 52);
+    HandleObject *obj;
+    if (h == 0) {
+        obj = 0;
+    } else {
+        HandleObject *cand = (HandleObject *)D_00038890[h & 0xFFFF];
+        obj = 0;
+        if (cand != 0) {
+            if (cand->handle == h) {
+                obj = cand;
+            }
+        }
+    }
+
+    const char *text;
+    if (obj == 0) {
+        goto no_object;
+    }
+    {
+        unsigned int empty = (obj->nameLen == 0);
+        empty &= 0xFF;
+        text = (const char *)obj + 8;
+        if (!empty) {
+            goto object_done;
+        }
+        text = (const char *)0x36DAB8;
+        goto object_done;
+    }
+object_done:
+    __asm__ volatile("" ::: "memory");
+    goto append;
+no_object:
+    if (h != 0) {
+        text = (const char *)0x36DAC4;
+    } else {
+        text = (const char *)0x36DACC;
+    }
+append:
+    cStrAppend(buf, fmt, text);
 }
