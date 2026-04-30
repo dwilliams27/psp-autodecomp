@@ -17,10 +17,14 @@ bool eInputKeyboard::PlatformPresent() {
     return false;
 }
 
+#pragma control sched=2
+
 void eInputKeyboard::RecheckPresent() {
     KeyState *s = (KeyState *)D_000454A8;
     s->present = 1;
 }
+
+#pragma control sched=1
 
 void eInputKeyboard::Reset() {
     ((KeyState *)D_000454A8)->Reset();

@@ -69,6 +69,19 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class ePhysicsMotorConfig {
+public:
+    char _pad[0x38];
+    int startOffset;
+    unsigned char enabled;
+};
+
+class eSimulatedController {
+public:
+    char _pad[0x38];
+    char *base;
+};
+
 extern char eSimpleMotorvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_00046BCC;
@@ -79,6 +92,7 @@ public:
     eSimpleMotor(cBase *);
     ~eSimpleMotor();
     void AssignCopy(const cBase *);
+    void Initialize(ePhysicsMotorConfig *, eSimulatedController *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
@@ -143,6 +157,16 @@ void eSimpleMotor::AssignCopy(const cBase *base) {
 // through operator delete (pool/block lookup + slot fn).
 eSimpleMotor::~eSimpleMotor() {
     *(void **)((char *)this + 4) = eSimpleMotorvirtualtable;
+}
+
+// ── eSimpleMotor::Initialize(ePhysicsMotorConfig *, eSimulatedController *) @ 0x0006ba30 ──
+void eSimpleMotor::Initialize(ePhysicsMotorConfig *cfg, eSimulatedController *ctrl) {
+    *(eSimulatedController **)((char *)this + 0x18) = ctrl;
+    *(ePhysicsMotorConfig **)((char *)this + 8) = cfg;
+    char *base = ((volatile eSimulatedController *)ctrl)->base;
+    int startOffset = cfg->startOffset;
+    *(char **)((char *)this + 0x1C) = base + startOffset * 48;
+    *(unsigned char *)((char *)this + 0x14) = cfg->enabled;
 }
 
 // ── eSimpleMotor::New(cMemPool *, cBase *) static @ 0x00209bd0 ──
