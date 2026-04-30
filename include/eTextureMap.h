@@ -212,6 +212,7 @@ public:
 
 class eShadowVolumeModelMtl {
 public:
+    eShadowVolumeModelMtl(cBase *);
     ~eShadowVolumeModelMtl();
     const cType *GetType(void) const;
     void PlatformFree(void);

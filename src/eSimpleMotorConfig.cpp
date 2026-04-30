@@ -85,6 +85,34 @@ public:
 
 #pragma control sched=1
 
+// ── eSimpleMotorConfig::eSimpleMotorConfig(cBase *) @ 0x0007640c ──
+eSimpleMotorConfig::eSimpleMotorConfig(cBase *parent)
+    : ePhysicsMotorConfig(parent) {
+    *(void **)((char *)this + 4) = eSimpleMotorConfigvirtualtable;
+
+    float zero = 0.0f;
+    int x;
+    int y;
+    int z;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(zero));
+    float one = 1.0f;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(z) : "f"(one));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x20(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(z), "r"(this));
+
+    *(float *)((char *)this + 0x30) = 45.0f;
+    *(float *)((char *)this + 0x34) = 0.1f;
+    *(int *)((char *)this + 0x38) = 0;
+    *(unsigned char *)((char *)this + 0x3C) = 1;
+    *(unsigned char *)((char *)this + 0x3D) = 0;
+}
+
 // ── eSimpleMotorConfig::~eSimpleMotorConfig(void) @ 0x00076494 ──
 eSimpleMotorConfig::~eSimpleMotorConfig() {
     *(void **)((char *)this + 4) = eSimpleMotorConfigvirtualtable;

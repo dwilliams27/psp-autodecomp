@@ -36,6 +36,9 @@ struct eShadowVolumeModelMtl_Fields {
     bool mField75;
 };
 
+extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
+extern char eShadowVolumeModelMtlvirtualtable[];
+
 // ── PlatformFree (trivial stub — sched-agnostic) ──
 
 void eShadowVolumeModelMtl::PlatformFree(void) {
@@ -90,6 +93,28 @@ const cType *eShadowVolumeModelMtl::GetType(void) const {
                                            0, 0, 0);
     }
     return D_00046C98;
+}
+
+// ── Constructor @ 0x0008627c ──
+
+eShadowVolumeModelMtl::eShadowVolumeModelMtl(cBase *parent) {
+    eGeomMtl_eGeomMtl(this, parent);
+    ((int *)this)[0x68 / 4] = -1;
+    ((int *)this)[0x6C / 4] = 0;
+    ((int *)this)[0x70 / 4] = 0;
+    *(void **)((char *)this + 4) = eShadowVolumeModelMtlvirtualtable;
+    register unsigned int enabled __asm__("$4");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(enabled));
+    ((unsigned char *)this)[0x74] = enabled;
+    ((unsigned char *)this)[0x75] = enabled;
+    CreateData();
+    ((unsigned char *)this)[0x5C] = 0x4A;
+    signed char mode = 5;
+    __asm__ volatile("" : "+r"(mode));
+    if (((unsigned char *)this)[0x75] != 0) {
+        mode = 4;
+    }
+    ((signed char *)this)[0x5F] = mode;
 }
 
 // ── Write @ 0x00086010 ──
