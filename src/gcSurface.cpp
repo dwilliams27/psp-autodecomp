@@ -3,7 +3,10 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -26,12 +29,20 @@ public:
 class eSurface : public cObject {
 public:
     eSurface(cBase *);
+    ~eSurface();
     void Write(cFile &) const;
 };
 
 class gcEvent {
 public:
+    ~gcEvent();
     gcEvent &operator=(const gcEvent &);
+};
+
+struct DeleteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 class cWriteBlock {
@@ -44,10 +55,19 @@ public:
 class gcSurface : public eSurface {
 public:
     gcSurface(cBase *);
+    ~gcSurface();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 template <class T> T *dcast(const cBase *);
@@ -87,6 +107,16 @@ gcSurface::gcSurface(cBase *parent) : eSurface(parent) {
     gcEvent_ctor((char *)this + 0xDC, (cBase *)this, (const char *)0x36E348);
 }
 
+// 0x0028a21c
+gcSurface::~gcSurface() {
+    *(void **)((char *)this + 4) = gcSurfacevirtualtable;
+    ((gcEvent *)((char *)this + 0xDC))->~gcEvent();
+    ((gcEvent *)((char *)this + 0xC0))->~gcEvent();
+    ((gcEvent *)((char *)this + 0xA4))->~gcEvent();
+    ((gcEvent *)((char *)this + 0x88))->~gcEvent();
+    ((gcEvent *)((char *)this + 0x6C))->~gcEvent();
+}
+
 // 0x00289f4c
 void gcSurface::AssignCopy(const cBase *base) {
     gcSurface *other = dcast<gcSurface>(base);
@@ -105,7 +135,7 @@ void gcSurface::AssignCopy(const cBase *base) {
         value = *(int *)src4c;
         dst = (char *)this + 0x4C;
         __asm__ volatile("" : "+r"(dst));
-        char *src50 = (char *)other + 0x50;
+        register char *src50 __asm__("$6") = (char *)other + 0x50;
         __asm__ volatile("" : "+r"(src50));
         *(int *)dst = value;
         value = *(int *)src50;
@@ -121,12 +151,13 @@ void gcSurface::AssignCopy(const cBase *base) {
     {
         char *src = (char *)other + 0x68;
         __asm__ volatile("" : "+r"(src));
-        int value = *(int *)src;
-        char *dst = (char *)this + 0x68;
-        __asm__ volatile("" : "+r"(dst));
+        register int value __asm__("$6") = *(int *)src;
+        register char *dst __asm__("$5") = (char *)this + 0x68;
+        gcEvent *event0 = (gcEvent *)((char *)this + 0x6C);
+        __asm__ volatile("" : "+r"(event0), "+r"(value), "+r"(dst));
         *(int *)dst = value;
+        event0->operator=(*(const gcEvent *)((char *)other + 0x6C));
     }
-    ((gcEvent *)((char *)this + 0x6C))->operator=(*(const gcEvent *)((char *)other + 0x6C));
     ((gcEvent *)((char *)this + 0x88))->operator=(*(const gcEvent *)((char *)other + 0x88));
     ((gcEvent *)((char *)this + 0xA4))->operator=(*(const gcEvent *)((char *)other + 0xA4));
     ((gcEvent *)((char *)this + 0xC0))->operator=(*(const gcEvent *)((char *)other + 0xC0));
