@@ -75,6 +75,17 @@ static cType *type_eTextureFilter;
 static cType *type_eWaterFilter;
 
 #pragma control sched=1
+// ── 0x0008c7a0 — eWaterFilter(cBase *) ──
+eWaterFilter::eWaterFilter(cBase *parent) : eTextureFilter(parent) {
+    *(void **)((char *)this + 4) = eWaterFiltervirtualtable;
+    *(int *)((char *)this + 0x10) = 0;
+    *(int *)((char *)this + 0x14) = 0;
+    *(float *)((char *)this + 0x18) = 1.0f;
+    __asm__ volatile("" ::: "memory");
+    *(float *)((char *)this + 0x1C) = 0.0f;
+    *(float *)((char *)this + 0x20) = 0.0f;
+}
+
 // ── 0x0008c7f4 — ~eWaterFilter(void) ──
 eWaterFilter::~eWaterFilter() {
     *(void **)((char *)this + 4) = eWaterFiltervirtualtable;
