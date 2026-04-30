@@ -26,6 +26,7 @@ public:
 
 class cMemPool {
 public:
+    static cMemPool *GetPoolFromPtr(const void *);
     static cMemPool *GetPoolFromPtr(const void *, short);
 };
 
@@ -78,6 +79,7 @@ public:
 
 extern char gcValNetworkStatevirtualtable[];
 extern char gcValNetworkState_cBase_vtable[];
+extern char cBaseclassdesc[];
 
 class gcValNetworkState : public gcValue {
 public:
@@ -86,6 +88,7 @@ public:
     int mField8;
     int mField0C;
 
+    ~gcValNetworkState();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
@@ -93,7 +96,7 @@ public:
 
     // Inlined into the deleting-destructor variant.
     static void operator delete(void *p) {
-        cMemPoolNS *pool = cMemPoolNS::GetPoolFromPtr(p);
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
         AllocEntry *rec = (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x30);
         short off = rec->offset;
@@ -102,6 +105,33 @@ public:
         ((void (*)(void *, void *))fn)(base, p);
     }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oRgcValNetworkStatedtv, 0xd4\n");
+
+// ── gcValNetworkState::~gcValNetworkState(void) @ 0x00353700 ──
+gcValNetworkState::~gcValNetworkState() {
+    *(char **)((char *)this + 4) = gcValNetworkStatevirtualtable;
+    char *slot = (char *)this + 0x0C;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            ReleaseEntry *rec = (ReleaseEntry *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, int) = rec->fn;
+            fn(obj + off, 3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // ── gcValNetworkState::Write(cFile &) const @ 0x00352f5c ──
 void gcValNetworkState::Write(cFile &file) const {
@@ -133,20 +163,27 @@ cBase *gcValNetworkState::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fRgcValNetworkStateKAssignCopyPC6FcBase, 0x138\n");
+
 void gcValNetworkState::AssignCopy(const cBase *base) {
     void (*temp_a2_3)(void *, int);
     short temp_a1_2;
     short temp_a3;
+    int temp_a3_i;
     cBase *(*temp_a3_2)(void *, cMemPool *, cBase *);
     int temp_a0;
     int temp_a0_2;
+    int temp_a1_3;
+    int temp_a1_4;
+    int var_a1;
+    int var_a1_2;
     int temp_a2;
     int temp_s1;
     int temp_s2;
     int var_a0;
     int var_a0_2;
-    int var_a1;
-    int var_a1_2;
     int var_a2;
     int var_a2_2;
     cMemPool *temp_v0_2;
@@ -154,19 +191,25 @@ void gcValNetworkState::AssignCopy(const cBase *base) {
     void *temp_a2_2;
     gcValNetworkState *temp_v0;
 
-    temp_v0 = dcast<gcValNetworkState>(base);
     temp_s1 = (int)this + 0xC;
-    *(int *)((char *)this + 8) = *(int *)((char *)temp_v0 + 8);
-    if ((int)temp_v0 + 0xC != temp_s1) {
-        temp_a2 = *(int *)temp_s1;
+    temp_v0 = dcast<gcValNetworkState>(base);
+    temp_s2 = (int)temp_v0;
+    temp_a0 = *(int *)((char *)temp_s2 + 8);
+    temp_a1_4 = temp_s2 + 0xC;
+    *(int *)((char *)this + 8) = temp_a0;
+    if (temp_a1_4 != temp_s1) {
         var_a1 = 1;
-        temp_a0 = temp_a2 & 1;
+        temp_a2 = *(int *)((char *)this + 0xC);
+        temp_a0 = temp_a2;
+        temp_a0 = temp_a0 & 1;
         if (temp_a0 != 0) {
             var_a1 = 0;
         }
         if (var_a1 != 0) {
+            temp_a3_i = temp_a0;
+            temp_a0 = temp_a2;
             var_a1_2 = 0;
-            if (temp_a0 != 0) {
+            if (temp_a3_i != 0) {
                 var_a1_2 = 1;
             }
             if (var_a1_2 != 0) {
@@ -174,26 +217,28 @@ void gcValNetworkState::AssignCopy(const cBase *base) {
             } else {
                 var_a2 = *(int *)temp_a2;
             }
-            *(int *)temp_s1 = var_a2 | 1;
-            if (temp_a2 != 0) {
-                temp_a2_2 = *(void **)(temp_a2 + 4);
-                temp_a3 = *(short *)((char *)temp_a2_2 + 0x50);
-                temp_a2_3 =
-                    *(void (**)(void *, int))((char *)temp_a2_2 + 0x54);
-                temp_a2_3((char *)temp_a2 + temp_a3, 3);
+            *(int *)((char *)this + 0xC) = var_a2 | 1;
+            if (temp_a0 != 0) {
+                temp_a2_2 = *(void **)(temp_a0 + 4);
+                ReleaseEntry *entry = (ReleaseEntry *)((char *)temp_a2_2 + 0x50);
+                temp_a3 = entry->offset;
+                temp_a2_3 = entry->fn;
+                temp_a2_3((char *)temp_a0 + temp_a3, 3);
             }
         }
 
-        temp_s2 = *(int *)((char *)temp_v0 + 0xC);
+        temp_s2 = *(int *)((char *)temp_s2 + 0xC);
         var_a0 = 1;
         if (temp_s2 & 1) {
             var_a0 = 0;
         }
         if (var_a0 != 0) {
             temp_a1 = *(void **)(temp_s2 + 4);
-            temp_a1_2 = *(short *)((char *)temp_a1 + 0x10);
-            temp_v0_2 = cMemPool::GetPoolFromPtr((void *)temp_s1, temp_a1_2);
-            temp_a0_2 = *(int *)temp_s1;
+            temp_s1 = (int)temp_a1 + 0x10;
+            temp_a1_2 = *(short *)temp_s1;
+            temp_s2 += temp_a1_2;
+            temp_v0_2 = cMemPool::GetPoolFromPtr((char *)this + 0xC);
+            temp_a0_2 = *(int *)((char *)this + 0xC);
             var_a2_2 = 0;
             if (temp_a0_2 & 1) {
                 var_a2_2 = 1;
@@ -203,11 +248,12 @@ void gcValNetworkState::AssignCopy(const cBase *base) {
             } else {
                 var_a0_2 = *(int *)temp_a0_2;
             }
+            temp_a1_3 = (int)temp_v0_2;
             temp_a3_2 =
-                *(cBase * (**)(void *, cMemPool *, cBase *))((char *)temp_a1 +
-                                                             0x14);
-            *(int *)temp_s1 = (int)temp_a3_2((char *)temp_s2 + temp_a1_2,
-                                             temp_v0_2, (cBase *)var_a0_2);
+                *(cBase * (**)(void *, cMemPool *, cBase *))(temp_s1 + 4);
+            *(int *)((char *)this + 0xC) =
+                (int)temp_a3_2((void *)temp_s2, (cMemPool *)temp_a1_3,
+                               (cBase *)var_a0_2);
         }
     }
 }
