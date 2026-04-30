@@ -3,6 +3,8 @@
 struct nwConnection {
     char _pad[0x20];
     int status;
+    char _pad24[4];
+    int flags;
 };
 
 struct nwSocketHandleStruct {
@@ -23,6 +25,7 @@ public:
 
 extern gcGame *gpGame;
 extern nwConnectionHandle gClientConnection;
+extern nwConnectionHandle D_0009A3C8;
 
 void gcNetGame::SetMaxConnections(int n) {
     *(int *)0x37D860 = n;
@@ -54,6 +57,16 @@ int gcNetGame::IsClientConnected(void) {
     int result = 0;
     if (nwSocket::GetConnection(gClientConnection) != 0) {
         if (nwSocket::GetConnection(gClientConnection)->status == 2) {
+            result = 1;
+        }
+    }
+    return result & 0xFF;
+}
+
+int gcNetGame::IsServerReady(void) {
+    int result = 0;
+    if (nwSocket::GetConnection(D_0009A3C8) != 0) {
+        if (nwSocket::GetConnection(D_0009A3C8)->flags & 1) {
             result = 1;
         }
     }

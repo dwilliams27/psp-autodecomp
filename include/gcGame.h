@@ -40,6 +40,7 @@ public:
     static void ResetAllNetworkConnections(void);
     static void SendAllBufferedMessages(void);
     static int IsClientConnected(void);
+    static int IsServerReady(void);
 };
 
 class gcEntityController {

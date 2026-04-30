@@ -10,6 +10,7 @@ struct cGUIDT {
 
 class gcLoadingScreen;
 class gcMap;
+class gcRegion;
 class gcStreamedCinematic;
 class gcStreamedCinematicConfig;
 
@@ -81,7 +82,8 @@ public:
     char pad_12[0x14 - 0x12];                   // 0x012
     cGUIDT<gcMap> mMapGuid;                     // 0x014
     cGUIDT<gcLoadingScreen> mLoadingScreenGuid; // 0x01C
-    char pad_24[0x34 - 0x24];                   // 0x024
+    cGUIDT<gcRegion> mRegionGuid;               // 0x024
+    char pad_2C[0x34 - 0x2C];                   // 0x02C
     cGUIDT<gcStreamedCinematic> mCinematicGuid; // 0x034
     gcMapObjectLoad mObjectLoad;                // 0x03C
     char pad_4C[0x80C - 0x4C];                  // 0x04C
@@ -91,7 +93,8 @@ public:
     int mField818;                              // 0x818
     int mField81C;                              // 0x81C
     int mLoadTarget;                            // 0x820
-    char pad_824[8];                            // 0x824
+    int mRegionTarget;                          // 0x824
+    int mField828;                              // 0x828
     unsigned char mLoadFailed;                  // 0x82C
     unsigned char mField82D;                    // 0x82D
 
@@ -103,6 +106,7 @@ public:
     void LoadMap(void);
     void LoadStreamedCinematic(void);
     void PreLoad(void);
+    void Load(const cGUIDT<gcRegion> &guid, int target);
     void Load(const cGUIDT<gcStreamedCinematic> &guid);
     static int LoadObjectsStatic(int, gcMapObjectLoad *);
     gcBackgroundLoader(void);
@@ -216,5 +220,12 @@ void gcBackgroundLoader::LoadStreamedCinematic(void) {
 void gcBackgroundLoader::Load(const cGUIDT<gcStreamedCinematic> &guid) {
     PreLoad();
     mCinematicGuid = guid;
+    Start();
+}
+
+void gcBackgroundLoader::Load(const cGUIDT<gcRegion> &guid, int target) {
+    PreLoad();
+    mRegionGuid = guid;
+    mRegionTarget = target;
     Start();
 }
