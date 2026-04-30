@@ -1,6 +1,8 @@
 #include "gcUIWidgetGroup.h"
 #include "gcUIWidget.h"
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 class cType {
 public:
     char _pad[0x1C];
@@ -10,6 +12,24 @@ public:
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class eSprite;
+
+template <class T> class cHandleT {
+public:
+    int _data;
+};
+
+template <class T> class cArrayBase {
+public:
+    T *mData;
+    cArrayBase &operator=(const cArrayBase &);
 };
 
 struct cTypeMethod {
@@ -29,13 +49,99 @@ extern cType *D_000385E0;
 extern cType *D_0009990C;
 extern cType *D_00099920;
 
-extern "C" {
-    void gcUIWidgetGroup__gcUIWidgetGroup_cBaseptr(void *self, cBase *parent);
+gcUIWidgetGroup::gcUIWidgetGroup(cBase *parent) : gcUIWidget(parent) {
+    *(void **)((char *)this + 4) = (void *)0x387058;
+    *(int *)((char *)this + 0xB0) = 0x21;
+    *(float *)((char *)this + 0xB4) = 0.0f;
+    *(float *)((char *)this + 0xB8) = 0.0f;
+    *(int *)((char *)this + 0xBC) = 0;
+    *(int *)((char *)this + 0xC0) = 0;
+    *(int *)((char *)this + 0xC4) = 0;
+    *(int *)((char *)this + 0xC8) = 0;
+    *(float *)((char *)this + 0xCC) = 0.0f;
+    *(float *)((char *)this + 0xD0) = 0.0f;
+    *(short *)((char *)this + 0xD4) = 0;
 }
 
-void gcUIWidgetGroup__operator_eq_constgcUIWidgetGroupref(
-    gcUIWidgetGroup *, const gcUIWidgetGroup &)
-    asm("__0oPgcUIWidgetGroupasRC6PgcUIWidgetGroup");
+gcUIWidgetGroup &gcUIWidgetGroup::operator=(const gcUIWidgetGroup &other) {
+    ((gcUIWidget *)this)->operator=(*(const gcUIWidget *)&other);
+    DeleteAllWidgets(true);
+
+    int width = 0;
+    const int *srcWidthArray = *(const int *const *)((const char *)&other + 0xC0);
+    const int *srcHeightArray =
+        *(const int *const *)((const char *)&other + 0xC4);
+    if (srcWidthArray != 0) {
+        width = srcWidthArray[-1] & 0x3FFFFFFF;
+    }
+
+    int height = 0;
+    if (srcHeightArray != 0) {
+        height = srcHeightArray[-1] & 0x3FFFFFFF;
+    }
+
+    SetDimensions(width, height);
+    *(int *)((char *)this + 0xB0) =
+        *(const int *)((const char *)&other + 0xB0);
+    ((cArrayBase<cHandleT<eSprite> > *)((char *)this + 0xC8))->operator=(
+        *(const cArrayBase<cHandleT<eSprite> > *)((const char *)&other + 0xC8));
+    *(float *)((char *)this + 0xB4) =
+        *(const float *)((const char *)&other + 0xB4);
+    *(float *)((char *)this + 0xB8) =
+        *(const float *)((const char *)&other + 0xB8);
+    *(float *)((char *)this + 0xCC) =
+        *(const float *)((const char *)&other + 0xCC);
+    *(float *)((char *)this + 0xD0) =
+        *(const float *)((const char *)&other + 0xD0);
+
+    cMemPool *pool = cMemPool::GetPoolFromPtr(this);
+
+    int dstWidth = 0;
+    const int *dstWidthArray = *(const int *const *)((char *)this + 0xC0);
+    const int *dstHeightArray = *(const int *const *)((char *)this + 0xC4);
+    if (dstWidthArray != 0) {
+        dstWidth = dstWidthArray[-1] & 0x3FFFFFFF;
+    }
+
+    int dstHeight = 0;
+    if (dstHeightArray != 0) {
+        dstHeight = dstHeightArray[-1] & 0x3FFFFFFF;
+    }
+
+    int cellCount = dstWidth;
+    cellCount *= dstHeight;
+    int cell = 0;
+    if (cell < cellCount) {
+        __asm__ volatile("" ::: "memory");
+        char *cellHeads = *(char **)((const char *)&other + 0xBC);
+        int offset = 0;
+        do {
+            gcUIWidget *widget = *(gcUIWidget **)(cellHeads + offset);
+            if (widget != 0) {
+                do {
+                    char *dispatch = *(char **)((char *)widget + 4);
+                    struct CopyEntry {
+                        short offset;
+                        short pad;
+                        gcUIWidget *(*fn)(void *, cMemPool *, cBase *);
+                    };
+                    CopyEntry *entry = (CopyEntry *)(dispatch + 0x10);
+                    gcUIWidget *copy =
+                        entry->fn((char *)widget + entry->offset, pool,
+                                  (cBase *)this);
+                    InsertInDrawOrder(cell, copy, 0);
+                    widget = *(gcUIWidget **)((char *)widget + 0x68);
+                    cellHeads = *(char **)((const char *)&other + 0xBC);
+                } while (widget != *(gcUIWidget **)(cellHeads + offset));
+            }
+            cell += 1;
+            offset += 4;
+            cellHeads = *(char **)((const char *)&other + 0xBC);
+        } while (cell < cellCount);
+    }
+
+    return *this;
+}
 
 cBase *gcUIWidgetGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -46,7 +152,7 @@ cBase *gcUIWidgetGroup::New(cMemPool *pool, cBase *parent) {
     gcUIWidgetGroup *result = 0;
     gcUIWidgetGroup *obj = (gcUIWidgetGroup *)rec->fn(base, 0xD8, 4, 0, 0);
     if (obj != 0) {
-        gcUIWidgetGroup__gcUIWidgetGroup_cBaseptr(obj, parent);
+        new (obj) gcUIWidgetGroup(parent);
         result = obj;
     }
     return (cBase *)result;
@@ -124,7 +230,7 @@ loop:
             other = (gcUIWidgetGroup *)base;
         }
     }
-    gcUIWidgetGroup__operator_eq_constgcUIWidgetGroupref(this, *other);
+    this->operator=(*other);
 }
 
 int gcUIWidgetGroup::NeedsEffectUpdate(void) const {
