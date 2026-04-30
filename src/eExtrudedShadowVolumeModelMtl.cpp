@@ -41,8 +41,8 @@ extern "C" void eShadowVolumeModelMtl_eShadowVolumeModelMtl(void *, cBase *);
 
 extern char eExtrudedShadowVolumeModelMtlclassdesc[];
 
-eExtrudedShadowVolumeModelMtl::eExtrudedShadowVolumeModelMtl(cBase *parent) {
-    eShadowVolumeModelMtl_eShadowVolumeModelMtl(this, parent);
+eExtrudedShadowVolumeModelMtl::eExtrudedShadowVolumeModelMtl(cBase *parent)
+    : eShadowVolumeModelMtl(parent) {
     ((void **)this)[0x4 / 4] = eExtrudedShadowVolumeModelMtlclassdesc;
     CreateData();
 }
