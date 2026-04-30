@@ -4,11 +4,13 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class gcValMouseState {
 public:
     ~gcValMouseState(void);
     static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);

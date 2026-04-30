@@ -3,6 +3,7 @@
 
 class gcExpression;
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 
@@ -14,6 +15,10 @@ public:
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    gcDoObjectForEachRelationship &
+    operator=(const gcDoObjectForEachRelationship &);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };

@@ -1,11 +1,44 @@
 #include "gcDoObjectForEachRelationship.h"
 
+class cFile;
+
+class cWriteBlock {
+public:
+    cFile *_file;
+    int _pos;
+
+    cWriteBlock(cFile &, unsigned int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class gcExpressionList {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class gcAction {
+public:
+    void Write(cFile &) const;
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+struct cTypeNode {
+    char pad[0x1C];
+    cTypeNode *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short pad;
+    const cType *(*getType)(void *);
 };
 
 struct PoolBlock {
@@ -17,6 +50,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct WriteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *);
 };
 
 void gcAction_gcAction(void *, cBase *);
@@ -85,4 +124,86 @@ const cType *gcDoObjectForEachRelationship::GetType(void) const {
             gcDoObjectForEachRelationship::New, 0, 0, 0);
     }
     return type_gcDoObjectForEachRelationship;
+}
+
+void gcDoObjectForEachRelationship::Write(cFile &file) const {
+    cWriteBlock wb(file, 2);
+    ((const gcAction *)this)->Write(file);
+
+    int value = ((const int *)this)[3];
+    int flag = 0;
+    int tagged = value & 1;
+    if (tagged != 0) {
+        flag = 1;
+    }
+    cBase *ptr;
+    if (flag != 0) {
+        ptr = 0;
+    } else {
+        ptr = (cBase *)value;
+    }
+    wb.WriteBase(ptr);
+
+    char *typeInfo = *(char **)((const char *)this + 0x14);
+    WriteRec *rec = (WriteRec *)(typeInfo + 0x28);
+    short off = rec->offset;
+    void *base = (char *)this + 0x10;
+    rec->fn((char *)base + off, wb._file);
+
+    ((const gcExpressionList *)((const char *)this + 0x28))->Write(wb);
+    wb.End();
+}
+
+void gcDoObjectForEachRelationship::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    if (other != 0) {
+        if (!type_gcDoObjectForEachRelationship) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            gcDoObjectForEachRelationship_base_name,
+                            gcDoObjectForEachRelationship_base_desc,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoObjectForEachRelationship = cType::InitializeType(
+                0, 0, 0x1A4, type_action,
+                gcDoObjectForEachRelationship::New, 0, 0, 0);
+        }
+        void *vt = ((void **)other)[1];
+        const cType *myType = type_gcDoObjectForEachRelationship;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short voff = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + voff);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = (const cType *)((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+    *this = *(const gcDoObjectForEachRelationship *)copy;
 }

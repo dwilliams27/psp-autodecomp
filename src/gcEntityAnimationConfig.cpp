@@ -8,12 +8,40 @@
 #include "cBase.h"
 
 class cMemPool;
+class cFile;
 
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    cFile *mFile;
+    int mPos;
+
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class cBaseArray {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class gcDesiredValue {
+public:
+    void Write(cWriteBlock &) const;
 };
 
 class gcEntityAnimationConfig {
@@ -33,6 +61,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void Write(cFile &) const;
     gcEntityAnimationConfig &operator=(const gcEntityAnimationConfig &);
 };
 
@@ -197,4 +226,102 @@ void gcEntityAnimationConfig::AssignCopy(const cBase *other) {
         }
     }
     *this = *(const gcEntityAnimationConfig *)var_s2;
+}
+
+// ============================================================
+// 0x000e9508 — Write(cFile &) const
+// ============================================================
+void gcEntityAnimationConfig::Write(cFile &file) const {
+    cWriteBlock wb(file, 5);
+    ((const cHandle *)((const char *)this + 8))->Write(wb);
+
+    int *temp_a0 = *(int *const *)((const char *)this + 0xC);
+    int var_s1 = 0;
+    if (temp_a0 != 0) {
+        var_s1 = temp_a0[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(var_s1);
+
+    int *temp_a0_2 = *(int *const *)((const char *)this + 0xC);
+    int var_s1_2 = 0;
+    if (temp_a0_2 != 0) {
+        var_s1_2 = temp_a0_2[-1] & 0x3FFFFFFF;
+    }
+    int var_s2 = 0;
+    if (var_s2 < var_s1_2) {
+        int var_s3 = 0;
+        int *var_a0_2 = temp_a0_2;
+        var_s3 = (int)var_a0_2 + var_s3;
+loop_1:
+        {
+            ((const cHandle *)var_s3)->Write(wb);
+            var_s2 += 1;
+            if (var_s2 < var_s1_2) {
+                var_s3 += 4;
+                goto loop_1;
+            }
+        }
+    }
+
+    wb.Write(*(const unsigned int *)((const char *)this + 0x18));
+
+    int var_a0 = *(const int *)((const char *)this + 0x14);
+    int var_a2 = 0;
+    int temp_a1 = var_a0 & 1;
+    if (temp_a1 != 0) {
+        var_a2 = 1;
+    }
+
+    if (var_a2 == 0) {
+        var_a2 = ((var_a0 == 0) & 0xFF) != 0;
+    } else {
+        var_a2 = 1;
+    }
+
+    int var_a2_3 = 0;
+    if (var_a2 == 0) {
+        if (temp_a1 != 0) {
+            var_a2_3 = 1;
+        }
+
+        int var_a2_4 = var_a0;
+        if (var_a2_3 != 0) {
+            var_a2_4 = 0;
+        }
+
+        int var_a3 = 0;
+        int var_a2_5;
+        if (((*(int *)((char *)var_a2_4 + 0x10) == 0) & 0xFF)
+            && ((*(int *)((char *)var_a2_4 + 0x2C) == 0) & 0xFF)
+            && ((*(int *)((char *)var_a2_4 + 0x48) == 0) & 0xFF)) {
+            var_a2_5 = 0 & 0xFF;
+            if ((*(int *)((char *)var_a2_4 + 0x64) == 0) & 0xFF) {
+                var_a3 = 1;
+                goto block_22;
+            }
+        } else {
+block_22:
+            var_a2_5 = var_a3 & 0xFF;
+        }
+
+        var_a2_3 = temp_a1;
+        if (var_a2_5 != 0) {
+            wb.WriteBase(0);
+        } else {
+            int var_a1 = 0;
+            if (var_a2_3 != 0) {
+                var_a1 = 1;
+            }
+            if (var_a1 != 0) {
+                var_a0 = 0;
+            }
+            wb.WriteBase((const cBase *)var_a0);
+        }
+    } else {
+        wb.WriteBase(0);
+    }
+
+    ((const cBaseArray *)((const char *)this + 0x1C))->Write(wb);
+    ((const gcDesiredValue *)((const char *)this + 0x10))->Write(wb);
+    wb.End();
 }

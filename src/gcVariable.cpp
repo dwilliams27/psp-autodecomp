@@ -13,8 +13,17 @@
 class cFile;
 class cFileHandle;
 class cMemPool;
+class cType;
 
 // ─── helper class declarations ────────────────────────────────────────────
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cObject {
 public:
     cObject(cBase *);
@@ -37,6 +46,11 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class cWriteBlock {
@@ -75,6 +89,10 @@ struct DeleteRecord {
 };
 
 extern char gcVariableclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F4D4;
 
 // ============================================================================
 // gcVariable — inherits cObject; mValue is a float at offset 0x44.
@@ -87,6 +105,7 @@ public:
     gcVariable(cBase *);
     ~gcVariable();
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
@@ -104,6 +123,30 @@ void gcVariable::AssignCopy(const cBase *src) {
     gcVariable *other = dcast<gcVariable>(src);
     cObject::operator=(*other);
     mValue = other->mValue;
+}
+
+// ── gcVariable::GetType(void) const @ 0x0027df48 ──
+const cType *gcVariable::GetType(void) const {
+    if (D_0009F4D4 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
+                                               0, 0, 0, 0);
+        }
+        D_0009F4D4 = cType::InitializeType(0, 0, 0x79, D_000385E4,
+                                           &gcVariable::New,
+                                           (const char *)0x36DA24,
+                                           (const char *)0x36DA30, 4);
+    }
+    return D_0009F4D4;
 }
 
 // ── gcVariable::Write(cFile &) const @ 0x001303b8 ──

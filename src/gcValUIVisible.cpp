@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -25,6 +26,14 @@ public:
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 struct gcDesiredUIWidgetHelper {
     int _a;
@@ -61,6 +70,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_variable asm("D_0009F3EC");
+static cType *type_gcValUIVisible asm("D_0009F918");
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -76,6 +91,7 @@ class gcValUIVisible : public gcLValue {
 public:
     gcDesiredUIWidgetHelper mHelper;
 
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -95,6 +111,32 @@ public:
         fn(base, p);
     }
 };
+
+// ── gcValUIVisible::GetType(void) const @ 0x00369BDC ──
+const cType *gcValUIVisible::GetType(void) const {
+    if (!type_gcValUIVisible) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValUIVisible = cType::InitializeType(
+            0, 0, 0x94, type_variable, gcValUIVisible::New, 0, 0, 0);
+    }
+    return type_gcValUIVisible;
+}
 
 // ── gcValUIVisible::New(cMemPool *, cBase *) static @ 0x00369B44 ──
 cBase *gcValUIVisible::New(cMemPool *pool, cBase *parent) {

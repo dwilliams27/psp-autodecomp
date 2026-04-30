@@ -15,6 +15,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -24,6 +25,14 @@ public:
     void Write(bool);
     void Write(float);
     void End(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct gcDesiredUIWidgetHelper {
@@ -69,6 +78,7 @@ public:
     float mField1C;
 
     ~gcValUIPosition();
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
@@ -104,6 +114,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_variable asm("D_0009F3EC");
+static cType *type_gcValUIPosition asm("D_0009F904");
+
 // ── gcValUIPosition::AssignCopy(const cBase *) @ 0x00363cac ──
 void gcValUIPosition::AssignCopy(const cBase *base) {
     gcValUIPosition *other = dcast<gcValUIPosition>(base);
@@ -113,6 +129,32 @@ void gcValUIPosition::AssignCopy(const cBase *base) {
     mField14 = other->mField14;
     mField18 = other->mField18;
     mField1C = other->mField1C;
+}
+
+// ── gcValUIPosition::GetType(void) const @ 0x00363dc4 ──
+const cType *gcValUIPosition::GetType(void) const {
+    if (!type_gcValUIPosition) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValUIPosition = cType::InitializeType(
+            0, 0, 0x91, type_variable, gcValUIPosition::New, 0, 0, 0);
+    }
+    return type_gcValUIPosition;
 }
 
 // ── gcValUIPosition::New(cMemPool *, cBase *) static @ 0x00363d14 ──

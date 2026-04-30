@@ -1,6 +1,9 @@
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 class cType {
 public:
@@ -8,6 +11,17 @@ public:
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(int, const int *);
+    void Write(int, const char *);
+    void End(void);
 };
 
 class cMemPool {
@@ -31,6 +45,7 @@ class cConfigBase {
 public:
     cConfigBase(cBase *);
     ~cConfigBase();
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -40,6 +55,7 @@ public:
     ~cConfigPSP();
 
     const cType *GetType(void) const;
+    void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -57,9 +73,7 @@ extern cType *D_000385DC;
 extern cType *D_00038888;
 extern cType *D_0003888C;
 
-extern "C" {
-    void cConfigPSP__cConfigPSP_cBaseptr(void *self, cBase *parent);
-}
+void cStrCopy(char *, const char *, int);
 
 // cConfigPSP::New(cMemPool *, cBase *) static @ 0x001c6bf8
 cBase *cConfigPSP::New(cMemPool *pool, cBase *parent) {
@@ -71,10 +85,48 @@ cBase *cConfigPSP::New(cMemPool *pool, cBase *parent) {
     cConfigPSP *result = 0;
     cConfigPSP *obj = (cConfigPSP *)rec->fn(base, 0x2BC, 4, 0, 0);
     if (obj != 0) {
-        cConfigPSP__cConfigPSP_cBaseptr(obj, parent);
+        new (obj) cConfigPSP(parent);
         result = obj;
     }
     return (cBase *)result;
+}
+
+// cConfigPSP::Write(cFile &) const @ 0x000087b4
+void cConfigPSP::Write(cFile &file) const {
+    cWriteBlock wb(file, 3);
+    cConfigBase::Write(file);
+    wb.Write(8);
+    wb.Write(10);
+    int i = 0;
+    const char *name = (const char *)this + 0x244;
+    do {
+        wb.Write(10, name);
+        i += 1;
+        name += 10;
+    } while (i < 8);
+    wb.Write(8, (const int *)((const char *)this + 0x294));
+    wb.Write(*(const int *)((const char *)this + 0x2B4));
+    wb.Write(false);
+    wb.End();
+}
+
+// cConfigPSP::cConfigPSP(cBase *) @ 0x00008a28
+cConfigPSP::cConfigPSP(cBase *parent) : cConfigBase(parent) {
+    *(void **)((char *)this + 4) = (void *)0x37E838;
+    *(int *)((char *)this + 0x2B4) = 0xDE;
+    *(unsigned char *)((char *)this + 0x2B8) = 1;
+    int i = 0;
+    int value = 3;
+    const char *src = (const char *)0x36CA58;
+    char *name = (char *)this + 0x244;
+    void *self = this;
+    do {
+        cStrCopy(name, src, 10);
+        *(int *)((char *)self + 0x294) = value;
+        i += 1;
+        name += 10;
+        self = (char *)self + 4;
+    } while (i < 8);
 }
 
 // cConfigPSP::GetType(void) const @ 0x001c6c74

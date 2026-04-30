@@ -17,6 +17,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -26,6 +27,14 @@ public:
     void Write(bool);
     void Write(float);
     void End(void);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 struct gcDesiredUIWidgetHelper {
@@ -69,6 +78,7 @@ public:
     float mField1C;
 
     ~gcValUISize();
+    const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -100,11 +110,43 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_variable asm("D_0009F3EC");
+static cType *type_gcValUISize asm("D_0009F908");
+
 template <class T> T *dcast(const cBase *);
 
 struct cHandle {
     int mId;
 };
+
+// ── gcValUISize::GetType(void) const @ 0x0036537c ──
+const cType *gcValUISize::GetType(void) const {
+    if (!type_gcValUISize) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValUISize = cType::InitializeType(
+            0, 0, 0x92, type_variable, gcValUISize::New, 0, 0, 0);
+    }
+    return type_gcValUISize;
+}
 
 // ── gcValUISize::AssignCopy(const cBase *) @ 0x00365264 ──
 void gcValUISize::AssignCopy(const cBase *base) {

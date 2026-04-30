@@ -3,6 +3,7 @@
 class cFile;
 class cMemPool;
 class gcValMapLoading;
+class cType;
 
 class cWriteBlock {
 public:
@@ -54,7 +55,16 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const cType *GetType(void) const;
     void GetText(char *) const;
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
 };
 
 // -----------------------------------------------------------------------------
@@ -105,6 +115,33 @@ void gcValMapLoading::Write(cFile &file) const {
 void gcValMapLoading::GetText(char *buf) const {
     cStrAppend(buf, gcValMapLoading_fmt, gcValGetText_text,
                mFlag ? gcValMapLoading_text_true : gcValMapLoading_text_false);
+}
+
+static cType *type_base;
+static cType *type_expression;
+static cType *type_value;
+static cType *type_gcValMapLoading;
+
+const cType *gcValMapLoading::GetType(void) const {
+    if (!type_gcValMapLoading) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A, type_base,
+                                                        0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValMapLoading = cType::InitializeType(0, 0, 0x190, type_value,
+                                                     gcValMapLoading::New,
+                                                     0, 0, 0);
+    }
+    return type_gcValMapLoading;
 }
 
 // -----------------------------------------------------------------------------

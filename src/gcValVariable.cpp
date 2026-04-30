@@ -10,6 +10,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -53,6 +62,7 @@ public:
     cHandle mHandle;      // 0x8
     gcValVariable(cBase *parent);
     ~gcValVariable();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -80,6 +90,40 @@ inline gcValVariable::gcValVariable(cBase *parent) : gcLValue(parent) {
 }
 
 inline void *operator new(unsigned, void *p) { return p; }
+
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_variable asm("D_0009F3EC");
+static cType *type_gcValVariable asm("D_0009F920");
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValVariable::GetType(void) const  @ 0x0036aa68, 340B
+// ─────────────────────────────────────────────────────────────────────────
+const cType *gcValVariable::GetType(void) const {
+    if (!type_gcValVariable) {
+        if (!type_variable) {
+            if (!type_value) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_value = cType::InitializeType(
+                    0, 0, 0x6C, type_expression, 0, 0, 0, 0x80);
+            }
+            type_variable = cType::InitializeType(
+                0, 0, 0x6D, type_value, 0, 0, 0, 0);
+        }
+        type_gcValVariable = cType::InitializeType(
+            0, 0, 0x9D, type_variable, gcValVariable::New, 0, 0, 0);
+    }
+    return type_gcValVariable;
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // gcValVariable::Write(cFile &) const  @ 0x0036abbc, 88B

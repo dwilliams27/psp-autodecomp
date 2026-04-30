@@ -19,6 +19,14 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class nwNetwork {
 public:
     static void *GetLobby(void);
@@ -76,11 +84,17 @@ public:
 extern char gcValLobbySessionStatus_gcValue_vtable[];
 extern char gcValLobbySessionStatusvirtualtable[];
 
+static cType *type_base asm("D_000385DC");
+static cType *type_expression asm("D_000385D8");
+static cType *type_value asm("D_0009F3E8");
+static cType *type_gcValLobbySessionStatus asm("D_0009F898");
+
 class gcValLobbySessionStatus : public gcValue {
 public:
     int mField8;
 
     ~gcValLobbySessionStatus();
+    const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     float Evaluate(void) const;
@@ -115,6 +129,28 @@ cBase *gcValLobbySessionStatus::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcValLobbySessionStatus::GetType(void) const @ 0x0034e584 ──
+const cType *gcValLobbySessionStatus::GetType(void) const {
+    if (!type_gcValLobbySessionStatus) {
+        if (!type_value) {
+            if (!type_expression) {
+                if (!type_base) {
+                    type_base = cType::InitializeType((const char *)0x36D894,
+                                                      (const char *)0x36D89C,
+                                                      1, 0, 0, 0, 0, 0);
+                }
+                type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                        type_base, 0, 0, 0, 0);
+            }
+            type_value = cType::InitializeType(0, 0, 0x6C, type_expression,
+                                               0, 0, 0, 0x80);
+        }
+        type_gcValLobbySessionStatus = cType::InitializeType(
+            0, 0, 0x19E, type_value, gcValLobbySessionStatus::New, 0, 0, 0);
+    }
+    return type_gcValLobbySessionStatus;
 }
 
 // ── gcValLobbySessionStatus::Write(cFile &) const @ 0x0034e69c ──
