@@ -1,5 +1,3 @@
-#include "eRenderSurface.h"
-
 // ── eVRAMMgr allocator interface ──
 
 class eVRAMMgr {
@@ -18,6 +16,7 @@ public:
 extern "C" void free(void *);
 
 // Global head of the linked list of render surfaces.
+class eRenderSurface;
 extern eRenderSurface *gRenderSurfaceHead;
 
 struct DeleteRecord {
@@ -25,6 +24,38 @@ struct DeleteRecord {
     short _pad;
     void (*fn)(void *, void *);
 };
+
+class eRenderSurface {
+public:
+    unsigned int field_0;
+    int mVRAMPage;
+    int mSizeBytes;
+    short mWidth;
+    short mHeight;
+    unsigned short mBytesPerPixel;
+    short mPixelFormat;
+    eRenderSurface *mPrev;
+    eRenderSurface *mNext;
+
+    eRenderSurface(void);
+    ~eRenderSurface(void);
+    static void operator delete(void *p) {
+        void *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            __asm__ volatile("" ::: "memory");
+            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+            short off = rec->offset;
+            rec->fn((char *)block + off, p);
+        } else {
+            free(p);
+        }
+    }
+    void Initialize(int, int, unsigned int, bool, int);
+    void Uninitialize(void);
+};
+
+#pragma control sched=1
 
 // ── Constructor ──
 
@@ -68,27 +99,11 @@ void eRenderSurface::Uninitialize(void) {
 
 // ── Destructor ──
 
-extern "C" {
-
-void eRenderSurface___dtor_eRenderSurface_void(eRenderSurface *self, int flags) {
-    if (self != 0) {
-        self->Uninitialize();
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                __asm__ volatile("" ::: "memory");
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
-    }
+eRenderSurface::~eRenderSurface(void) {
+    Uninitialize();
 }
 
-}
+#pragma control sched=2
 
 // ── Initialize ──
 
