@@ -41,8 +41,10 @@ public:
     gcRegion *GetLoadedRegion(int) const;
     void OnRegionDeleted(gcRegion *);
     void LoadObjectBackgroundEnd(void);
+    int AddToWorld(void);
     void PostUpdate(void);
     void HandleCinematicSkip(void);
+    void CancelCurrentCinematic(void);
     void LoadObjectBackgroundBegin(cHandleT<gcEntity>);
     void UnloadAllRegions(void);
     void DeleteRegion(int);

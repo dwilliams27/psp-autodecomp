@@ -1,4 +1,5 @@
 #include "gcMap.h"
+#include "gcStreamedCinematic.h"
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -27,19 +28,69 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
 };
 
+class eWorld;
+
+class eWeatherSystem {
+public:
+    void AddToWorld(eWorld *);
+};
+
 class gcRegionBase {
 public:
+    int AddToWorld(void);
     void Write(cFile &) const;
+};
+
+class gcViewport {
+public:
+    static void AddToWorld(eWorld *);
+};
+
+class gcCinematicInstance {
+public:
+    char pad_00[0x38];
+    unsigned char mStopFlag;  // 0x38
+
+    void Stop(bool);
 };
 
 class gcRegionSetGroup {
 public:
     void ClearRegionSetState(int) const;
+};
+
+struct TypeMethodPool {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cMemPool *, int);
+};
+
+struct TypeMethodInt2 {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int, int);
+};
+
+struct TypeMethod4 {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
+struct TypeMethod1 {
+    short offset;
+    short _pad;
+    void (*fn)(void *);
 };
 
 struct TypeMethod {
@@ -54,12 +105,28 @@ public:
     cType *mType;
 };
 
+struct gcMapCinematicState {
+    int mA;
+    int mB;
+};
+
+struct gcMapRegionState {
+    char pad_00[0x64];
+    void *mWorld;            // 0x64
+    char pad_68[0x18];
+    gcMapRegionState *mPrev; // 0x80
+    gcMapRegionState *mNext; // 0x84
+};
+
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00040C90;
 extern cType *D_00099AE0;
 extern cType *D_00099B04;
+extern gcMapRegionState *D_0037D0EC;
+extern int gcStreamedCinematic_currentIndex;
+extern gcStreamedCinematic *gcStreamedCinematic_table[];
 
 struct gcMap_AllocRec {
     short offset;
@@ -192,6 +259,71 @@ void gcMap::PostUpdate(void) {
     HandleCinematicSkip();
 }
 
+int gcMap::AddToWorld(void) {
+    gcViewport::AddToWorld(*(eWorld **)((char *)this + 0x50));
+
+    gcMapCinematicState state;
+    gcMapCinematicState *statePtr = &state;
+    int *worldField = (int *)((char *)*(int *)((char *)this + 0x50) + 0x20);
+    int *valuePtr = (int *)((char *)this + 0x58);
+    int value = *valuePtr;
+    statePtr->mA = value;
+    statePtr->mB = value;
+    *worldField = value;
+
+    if (!((gcRegionBase *)this)->AddToWorld()) {
+        return 0;
+    }
+
+    ((eWeatherSystem *)*(int *)((char *)this + 0x1F4))
+        ->AddToWorld(*(eWorld **)((char *)this + 0x50));
+
+    gcMapRegionState *region = *(gcMapRegionState **)((char *)this + 0x1FC);
+    void *world = *(void **)((char *)this + 0x50);
+    if (world == region->mWorld) {
+    } else {
+        TypeMethodInt2 *entry70 =
+            (TypeMethodInt2 *)(*(char **)((char *)region + 4) + 0x70);
+        region->mWorld = world;
+        entry70->fn((char *)region + entry70->offset, 4, 0);
+
+        if (region->mWorld != 0) {
+            if (region->mPrev == 0 || region->mNext == 0) {
+                gcMapRegionState *head = D_0037D0EC;
+                if (head != 0) {
+                    region->mPrev = head->mPrev;
+                    region->mNext = D_0037D0EC;
+                    region->mPrev->mNext = region;
+                    region->mNext->mPrev = region;
+                } else {
+                    D_0037D0EC = region;
+                    region->mNext = region;
+                    region->mPrev = region;
+                }
+            }
+        }
+
+        TypeMethod1 *entryC0 =
+            (TypeMethod1 *)(*(char **)((char *)region + 4) + 0xC0);
+        entryC0->fn((char *)region + entryC0->offset);
+    }
+
+    int i = 0;
+    gcMap *regions = this;
+    do {
+        gcRegion *loaded = regions->mLoadedRegions[0];
+        if (loaded != 0) {
+            char *typePtr = *(char **)((char *)loaded + 4);
+            TypeMethod1 *entry = (TypeMethod1 *)(typePtr + 0xC0);
+            entry->fn((char *)loaded + entry->offset);
+        }
+        i++;
+        regions = (gcMap *)((char *)regions + 4);
+    } while (i < 2);
+
+    return 1;
+}
+
 void gcMap::LoadObjectBackgroundBegin(cHandleT<gcEntity> handle) {
     if (!(mFlags & 0x40000)) {
         mLoadBackgroundHandle = handle;
@@ -203,6 +335,63 @@ void gcMap::LoadObjectBackgroundBegin(cHandleT<gcEntity> handle) {
 void gcMap::UnloadAllRegions(void) {
     for (int i = 0; i < 2; i++) {
         DeleteRegion(i);
+    }
+}
+
+void gcMap::CancelCurrentCinematic(void) {
+    gcStreamedCinematic *other =
+        gcStreamedCinematic_table[gcStreamedCinematic_currentIndex < 1];
+
+    if (!(mFlags & 8) && other != 0 && *(unsigned char *)((char *)other + 0x99) != 0) {
+        char *typePtr = *(char **)((char *)this + 4);
+        TypeMethodPool *entry58 = (TypeMethodPool *)(typePtr + 0x58);
+        entry58->fn((char *)this + entry58->offset,
+                    cMemPool::GetPoolFromPtr(other), 0);
+
+        typePtr = *(char **)((char *)other + 4);
+        TypeMethod4 *entry50 = (TypeMethod4 *)(typePtr + 0x50);
+        entry50->fn((char *)other + entry50->offset, 3);
+
+        gcMapCinematicState cleared;
+        cleared.mA = 0;
+        cleared.mB = 0;
+        gcMapCinematicState *state =
+            (gcMapCinematicState *)((char *)this + 0x3DC);
+        *state = cleared;
+        mFlags &= 0xFFDFFFFF;
+        *(int *)((char *)this + 0x3D8) = 0;
+    }
+
+    gcStreamedCinematic *current =
+        gcStreamedCinematic_table[gcStreamedCinematic_currentIndex];
+    if (current != 0 && *(unsigned char *)((char *)current + 0x99) != 0) {
+        gcCinematicInstance *instance = current->mpCinematicInstance;
+        if (instance != 0 && instance->mStopFlag == 0) {
+            gcMapCinematicState *state =
+                (gcMapCinematicState *)((char *)this + 0x3DC);
+            gcMapCinematicState saved;
+            gcMapCinematicState *savedPtr = &saved;
+            *savedPtr = *state;
+            instance->Stop(false);
+
+            int same = 0;
+            if (state->mA == savedPtr->mA) {
+                same = (unsigned char)same;
+                if (state->mB == savedPtr->mB) {
+                    same = 1;
+                }
+            } else {
+                same = (unsigned char)same;
+            }
+
+            if (same != 0) {
+                gcMapCinematicState cleared;
+                cleared.mA = 0;
+                cleared.mB = 0;
+                *state = cleared;
+                mFlags &= 0xFFDFFFFF;
+            }
+        }
     }
 }
 
