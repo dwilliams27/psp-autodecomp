@@ -1,3 +1,5 @@
+#include "mVec3.h"
+
 // eSkyGeomTemplate — sky-geometry template object. 48-byte object derived
 // from cBase. Payload starts at offset 8: a 4-byte handle/index field,
 // a byte flag, a V4SF quad, and three FPU scalars.
@@ -18,8 +20,7 @@ class cType;
 // that downcasts via classdesc lookup.
 template <class T> T *dcast(const cBase *);
 
-// External constructor (defined elsewhere; eSkyGeomTemplate::eSkyGeomTemplate
-// @ 0x0005cba8, not yet matched). Invoked from ::New via safe-name wrapper.
+// External constructor wrapper used by the already-matched ::New body.
 extern "C" void eSkyGeomTemplate_eSkyGeomTemplate(void *self, cBase *parent);
 
 // Pool-block layout (mirrors other class destructors / ::New).
@@ -71,6 +72,7 @@ class eSkyGeomTemplate {
 public:
     char _pad[0x30];
 
+    eSkyGeomTemplate(cBase *);
     ~eSkyGeomTemplate();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
@@ -92,9 +94,39 @@ public:
 
 extern const char eSkyGeomTemplate_base_name[];
 extern const char eSkyGeomTemplate_base_desc[];
+extern char eSkyGeomTemplateclassdesc[];
 
 static cType *type_base;
 static cType *type_eSkyGeomTemplate;
+
+// ── eSkyGeomTemplate ──  @ 0x0005cba8, 84B
+#pragma control sched=1
+eSkyGeomTemplate::eSkyGeomTemplate(cBase *parent) {
+    *(cBase **)this = parent;
+    *(void **)((char *)this + 4) = eSkyGeomTemplateclassdesc;
+    *(int *)((char *)this + 8) = 0;
+    *(unsigned char *)((char *)this + 0x0C) = 0;
+
+    float zero = 0.0f;
+    int x;
+    int y;
+    int z;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(z) : "f"(zero));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x10(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(z), "r"(this));
+
+    *(float *)((char *)this + 0x20) = zero;
+    *(float *)((char *)this + 0x24) = zero;
+    *(float *)((char *)this + 0x28) = 1.0f;
+}
+#pragma control sched=2
 
 // ── ~eSkyGeomTemplate ──  @ 0x0005cbfc, 100B
 //
@@ -188,3 +220,78 @@ void eSkyGeomTemplate::Write(cFile &file) const {
     wb.End();
 }
 #pragma control sched=2
+
+class eSphereCast {
+public:
+    eSphereCast(const mVec3 &, const mVec3 &, float, unsigned int, int);
+};
+
+// ── eSphereCast ──  @ 0x0024908c, 240B
+eSphereCast::eSphereCast(const mVec3 &origin, const mVec3 &end, float radius,
+                         unsigned int mask, int flags) {
+    *(unsigned int *)((char *)this + 0x00) = mask;
+    *(int *)((char *)this + 0x04) = 0;
+    *(unsigned char *)((char *)this + 0x18) = 1;
+    *(unsigned char *)((char *)this + 0x19) = 0;
+    *(float *)((char *)this + 0x20) = 3.4028235e38f;
+
+    float zero = 0.0f;
+    int x;
+    int y;
+    int z;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(z) : "f"(zero));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x30(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(z), "r"(this));
+
+    int one;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(x) : "f"(zero));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(y) : "f"(zero));
+    float onef = 1.0f;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(one) : "f"(onef));
+    __asm__ volatile(
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "sv.q C120, 0x40(%3)\n"
+        :
+        : "r"(x), "r"(y), "r"(one), "r"(this));
+
+    *(int *)((char *)this + 0x50) = -1;
+    *(int *)((char *)this + 0x54) = -1;
+    *(int *)((char *)this + 0x58) = 0;
+    *(int *)((char *)this + 0x5C) = 0;
+    *(int *)((char *)this + 0x60) = flags;
+
+    *(v4sf_t *)((char *)this + 0x70) = *(const v4sf_t *)&origin;
+    *(v4sf_t *)((char *)this + 0x80) = *(const v4sf_t *)&end;
+    *(float *)((char *)this + 0x90) = radius;
+    *(v4sf_t *)((char *)this + 0xA0) = *(const v4sf_t *)&origin;
+    *(float *)((char *)this + 0xAC) = radius;
+    *(v4sf_t *)((char *)this + 0xB0) = *(const v4sf_t *)&origin;
+    *(v4sf_t *)((char *)this + 0xC0) = *(const v4sf_t *)&end;
+
+    int length_bits;
+    __asm__ volatile(
+        "lv.q C130, 0x0(%1)\n"
+        "vsub.t C120, C120, C130\n"
+        "sv.q C120, 0xD0(%2)\n"
+        "vdot.t S100, C120, C120\n"
+        "vcmp.s ez, S100\n"
+        "vrsq.s S101, S100\n"
+        "vsqrt.s S102, S100\n"
+        "vpfxs 1, Y, Z, W\n"
+        "vcmovt.s S101, S100, 0\n"
+        "vscl.t C120, C120, S101\n"
+        "sv.q C120, 0xD0(%2)\n"
+        "mfv %0, S102\n"
+        : "=r"(length_bits)
+        : "r"(&origin), "r"(this));
+    *(float *)((char *)this + 0xE0) = *(float *)&length_bits;
+}
