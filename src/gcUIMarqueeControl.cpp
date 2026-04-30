@@ -51,6 +51,29 @@ public:
     void Write(cFile &) const;
 };
 
+class gcUIDialog;
+class gcDoUIShowDialog;
+
+class cHandle {
+public:
+    int mKey;
+};
+
+class gcUI {
+public:
+    gcUIDialog *OpenDialog(gcUIDialog *, const gcDoUIShowDialog *, cHandle,
+                           cHandle, float, float, float);
+};
+
+class gcUIStackDialog {
+public:
+    gcUIDialog *mDialog;
+    bool mDrawTwice;
+
+    gcUIStackDialog(gcUIDialog *, bool);
+    void Draw(void);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -86,6 +109,34 @@ extern cType *D_0009990C;
 extern cType *D_0009F40C;
 extern cType *D_0009F410;
 extern cType *D_0009F594;
+extern char gcUIMarqueeControlvirtualtable[];
+
+// ── gcUIMarqueeControl::gcUIMarqueeControl(cBase *) @ 0x0013BF58 ──
+gcUIMarqueeControl::gcUIMarqueeControl(cBase *parent)
+    : gcUITextControl(parent) {
+    *(void **)((char *)this + 4) = gcUIMarqueeControlvirtualtable;
+    *(int *)((char *)this + 0x110) = 0;
+    *(int *)((char *)this + 0x114) = *(int *)0x36C7FC;
+    *(int *)((char *)this + 0x118) = 0;
+    *(int *)((char *)this + 0x11C) = 0x20;
+    *(float *)((char *)this + 0x120) = 0.0f;
+}
+
+// ── gcUIStackDialog::gcUIStackDialog(gcUIDialog *, bool) @ 0x0010958C ──
+gcUIStackDialog::gcUIStackDialog(gcUIDialog *dialog, bool drawTwice) {
+    mDialog = 0;
+    mDrawTwice = drawTwice;
+    if (dialog != 0) {
+        cHandle zero0 = {0};
+        cHandle zero1 = {0};
+        mDialog = ((gcUI *)0x99928)->OpenDialog(dialog, 0, zero0, zero1,
+                                                0.0f, 0.0f, 0.0f);
+    }
+    if (mDrawTwice) {
+        Draw();
+        Draw();
+    }
+}
 
 // ── gcUIMarqueeControl::IsUpdateEmpty(bool, bool) const @ 0x0013C164 ──
 // If `a` is true, the marquee considers itself non-empty. Otherwise it falls
@@ -158,8 +209,6 @@ void gcUIMarqueeControl::Write(cFile &file) const {
 // Canonical C++ destructor. SNC's ABI auto-generates the (this != 0) guard,
 // the chain call to ~gcUITextControl(), and the deleting-tail dispatch
 // through operator delete.
-extern char gcUIMarqueeControlvirtualtable[];
-
 gcUIMarqueeControl::~gcUIMarqueeControl() {
     *(void **)((char *)this + 4) = gcUIMarqueeControlvirtualtable;
 }
