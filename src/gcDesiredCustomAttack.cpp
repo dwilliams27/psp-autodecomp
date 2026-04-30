@@ -39,6 +39,8 @@ public:
 void gcDesiredObject_gcDesiredObject(void *, cBase *);
 
 extern char D_00000478[];
+extern char cBaseclassdesc[];
+extern char gcDesiredObject_dtor_classdesc[];
 
 extern cType *D_000385DC;
 extern cType *D_0009F3F4;
@@ -55,12 +57,94 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct ReleaseEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class gcDesiredEnumeration {
+public:
+    ~gcDesiredEnumeration();
+};
+
 class gcDesiredCustomAttack {
 public:
+    ~gcDesiredCustomAttack();
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DeleteEntry *entry = (DeleteEntry *)(((char **)block)[7] + 0x30);
+    short off = entry->offset;
+    void (*fn)(void *, void *) = entry->fn;
+    fn(block + off, p);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oUgcDesiredEnumerationdtv, 0xd4\n");
+
+// 0x0026a01c - gcDesiredEnumeration::~gcDesiredEnumeration(void)
+gcDesiredEnumeration::~gcDesiredEnumeration() {
+    *(void **)((char *)this + 4) = gcDesiredObject_dtor_classdesc;
+    if ((char *)this + 8 != 0) {
+        int keep = 1;
+        int value = *(int *)((char *)this + 8);
+        if ((value & 1) != 0) {
+            keep = 0;
+        }
+        if (keep && value) {
+            void *desc = *(void **)((char *)value + 4);
+            ReleaseEntry *entry = (ReleaseEntry *)((char *)desc + 0x50);
+            short off = entry->offset;
+            void (*fn)(void *, int) = entry->fn;
+            fn((char *)value + off, 3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oVgcDesiredCustomAttackdtv, 0xd4\n");
+
+// 0x00267218 - gcDesiredCustomAttack::~gcDesiredCustomAttack(void)
+gcDesiredCustomAttack::~gcDesiredCustomAttack() {
+    *(void **)((char *)this + 4) = gcDesiredObject_dtor_classdesc;
+    if ((char *)this + 8 != 0) {
+        int keep = 1;
+        int value = *(int *)((char *)this + 8);
+        if ((value & 1) != 0) {
+            keep = 0;
+        }
+        if (keep && value) {
+            void *desc = *(void **)((char *)value + 4);
+            ReleaseEntry *entry = (ReleaseEntry *)((char *)desc + 0x50);
+            short off = entry->offset;
+            void (*fn)(void *, int) = entry->fn;
+            fn((char *)value + off, 3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
 
 // 0x00125938 - gcDesiredCustomAttack::Write(cFile &) const
 void gcDesiredCustomAttack::Write(cFile &file) const {
