@@ -6,8 +6,24 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -26,6 +42,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 // gcAction layout (matches gcAction.cpp).
 class gcExpression {
 public:
@@ -39,10 +62,12 @@ public:
     unsigned int  mNext;        // 0x08
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 // Dispatch slot in gcDesiredObject's secondary vtable (at this+0x10).
 typedef void (*EntityWriteFn)(cBase *, cFile *);
+typedef void (*EntityReadFn)(void *, cFile *, cMemPool *);
 
 struct EntityWriteSlot {
     short          mOffset;     // +0
@@ -50,9 +75,35 @@ struct EntityWriteSlot {
     EntityWriteFn  mFn;         // +4
 };
 
+struct EntityReadSlot {
+    short        mOffset;       // +0
+    short        _pad;          // +2
+    EntityReadFn mFn;           // +4
+};
+
 struct EntityTypeInfoWrite {
     char            _pad[0x28];
     EntityWriteSlot mSlot;       // +0x28
+};
+
+struct EntityTypeInfoRead {
+    char           _pad[0x30];
+    EntityReadSlot mSlot;        // +0x30
+};
+
+class ePortal {
+public:
+    void Activate(bool);
+};
+
+class gcDesiredPortal;
+class gcDesiredPortalHelper : public ePortal {
+};
+
+template <class T, class H, class O>
+class gcDesiredObjectT {
+public:
+    H *Get(bool) const;
 };
 
 class gcDoPortalActivate : public gcAction {
@@ -65,6 +116,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
 };
 
 // External constructors / vtables.
@@ -149,4 +202,42 @@ void gcDoPortalActivate::Write(cFile &file) const {
     slot->mFn((cBase *)((char *)embedded + slot->mOffset), wb._file);
 
     wb.End();
+}
+
+// ── gcDoPortalActivate::Read @ 0x00319894 ──
+int gcDoPortalActivate::Read(cFile &file, cMemPool *pool) {
+    register int result asm("s3");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1)
+        goto fail;
+    if (!gcAction::Read(file, pool))
+        goto fail;
+    goto success;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+
+success:
+    char active;
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], &active, 1);
+    *(bool *)((char *)this + 0x20) = active != 0;
+
+    EntityTypeInfoRead *ti = *(EntityTypeInfoRead **)((char *)this + 0x10);
+    EntityReadSlot *slot = &ti->mSlot;
+    char *embedded = (char *)this + 0x0C;
+    slot->mFn(embedded + slot->mOffset,
+              (cFile *)rb._data[0],
+              cMemPool::GetPoolFromPtr(embedded));
+    return result;
+}
+
+// ── gcDoPortalActivate::Evaluate @ 0x003199a0 ──
+float gcDoPortalActivate::Evaluate(void) const {
+    gcDesiredPortalHelper *portal =
+        ((const gcDesiredObjectT<gcDesiredPortal, gcDesiredPortalHelper, ePortal> *)((const char *)this + 0x0C))->Get(true);
+    if (portal != 0) {
+        portal->Activate(*(const bool *)((const char *)this + 0x20));
+    }
+    return 1.0f;
 }
