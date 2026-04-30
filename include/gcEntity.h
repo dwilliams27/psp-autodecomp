@@ -11,6 +11,8 @@ class gcPlayer;
 class gcEntity {
 public:
     gcEntity(cBase *);
+    gcEntity &operator=(const gcEntity &);
+    void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     static void OnFullscreenCinematicStarting(void);

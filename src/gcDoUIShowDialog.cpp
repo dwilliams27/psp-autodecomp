@@ -4,6 +4,9 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cType {
 public:
+    char _pad[0x1C];
+    const cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
@@ -25,10 +28,18 @@ extern const char gcDoUIShowDialog_base_desc[];
 class gcDoUIShowDialog {
 public:
     gcDoUIShowDialog(cBase *);
+    gcDoUIShowDialog &operator=(const gcDoUIShowDialog &);
+    void AssignCopy(const cBase *);
     void GetName(char *) const;
     void *GetUI(void) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
 };
 
 // ============================================================================
@@ -157,4 +168,68 @@ const cType *gcDoUIShowDialog::GetType(void) const {
         type_gcDoUIShowDialog = cType::InitializeType(0, 0, 0x8A, type_action, gcDoUIShowDialog::New, 0, 0, 0);
     }
     return type_gcDoUIShowDialog;
+}
+
+// ============================================================================
+// gcDoUIShowDialog::AssignCopy(const cBase *)  @ 0x0028c21c  420B
+// ============================================================================
+void gcDoUIShowDialog::AssignCopy(const cBase *other) {
+    const gcDoUIShowDialog *copy = 0;
+
+    if (other != 0) {
+        if (!type_gcDoUIShowDialog) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            gcDoUIShowDialog_base_name, gcDoUIShowDialog_base_desc,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoUIShowDialog = cType::InitializeType(
+                0, 0, 0x8A, type_action, gcDoUIShowDialog::New, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)other + 4);
+        cType *target = type_gcDoUIShowDialog;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)other + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            copy = (const gcDoUIShowDialog *)other;
+        }
+    }
+    operator=(*copy);
 }
