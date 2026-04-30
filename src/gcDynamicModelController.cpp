@@ -17,8 +17,12 @@
 //               as gcGeomCurveController::New / eConfigBase::New.
 
 class cBase;
-class cFile;
 class cMemPool;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -36,6 +40,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
 
 // Base-class write helper (resolved at link time; jal relocation is masked
 // during compare_func.py byte comparison). Same convention as
@@ -78,6 +91,7 @@ public:
     char _pad[0x24];
     gcSubGeomController(cBase *);
     ~gcSubGeomController();
+    int Read(cFile &, cMemPool *);
 };
 
 class gcDynamicModelController : public gcSubGeomController {
@@ -86,6 +100,7 @@ public:
 
     gcDynamicModelController(cBase *);
     ~gcDynamicModelController();
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
@@ -118,6 +133,24 @@ void gcDynamicModelController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcSubGeomController_Write(this, file);
     wb.End();
+}
+
+// ── gcDynamicModelController::Read(cFile &, cMemPool *) @ 0x0014a5a0 ──
+int gcDynamicModelController::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcSubGeomController::Read(file, pool)) goto success;
+    ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+// ── gcDynamicModelController::gcDynamicModelController(cBase *) @ 0x0014a65c ──
+gcDynamicModelController::gcDynamicModelController(cBase *parent) : gcSubGeomController(parent) {
+    *(void **)((char *)this + 4) = gcDynamicModelControllervirtualtable;
+    __vec_new((char *)this + 0x24, 1, 6, (void (*)(void *))0x24400C);
 }
 
 // ── gcDynamicModelController::~gcDynamicModelController(void) @ 0x0014a6a8 ──
