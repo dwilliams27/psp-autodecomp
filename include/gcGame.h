@@ -13,6 +13,8 @@ public:
 class cBase;
 class cMemPool;
 class cType;
+template <class T> class cGUIDT;
+class gcMap;
 
 class gcGame {
 public:
@@ -27,6 +29,7 @@ public:
     void DeleteLoadingScreen(void);
     void Reset(cMemPool *, bool);
     void DeleteMap(void);
+    int GetMapIndex(const cGUIDT<gcMap> &) const;
     static void OnMovieDraw(void *);
     static cBase *New(cMemPool *, cBase *);
 };
@@ -34,13 +37,16 @@ public:
 class gcNetGame {
 public:
     static int StartServer(void);
+    static void Update(cTimeValue);
     static void CheckSynchronization(void);
     static void SetMaxConnections(int);
     static int GetMaxConnections(void);
     static void ResetAllNetworkConnections(void);
+    static void SetAllSendMaskOnOff(unsigned int, unsigned int);
     static void SendAllBufferedMessages(void);
     static int IsClientConnected(void);
     static int IsServerReady(void);
+    static int GetNumActiveConnections(unsigned int);
 };
 
 class gcEntityController {
