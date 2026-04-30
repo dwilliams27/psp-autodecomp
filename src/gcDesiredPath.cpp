@@ -9,8 +9,12 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -49,6 +53,7 @@ void gcDesiredObject_gcDesiredObject(void *, cBase *);
 
 extern char gcDesiredObjectT_gcDesiredPath_gcDesiredPathHelper_ePath_virtualtable[];
 extern char gcDesiredEventParamsvirtualtable[];
+extern char cBaseclassdesc[];
 
 extern cType *D_000385DC;
 extern cType *D_0009F3F4;
@@ -65,15 +70,58 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDesiredPath : public gcDesiredObject {
 public:
     int mType;
     cHandle mHandle;
 
+    ~gcDesiredPath();
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oNgcDesiredPathdtv, 0xd4\n");
+
+gcDesiredPath::~gcDesiredPath() {
+    *(char **)((char *)this + 4) =
+        gcDesiredObjectT_gcDesiredPath_gcDesiredPathHelper_ePath_virtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DeleteRecord *rec = (DeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 void gcDesiredPath::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
