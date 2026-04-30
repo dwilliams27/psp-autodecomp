@@ -45,6 +45,12 @@ struct ReleaseEntry {
     void (*fn)(void *, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -68,6 +74,8 @@ public:
 
 class gcDesiredValue {
 public:
+    int mValue;
+
     void Write(cWriteBlock &) const;
 };
 
@@ -80,13 +88,24 @@ public:
 
 class gcValLobbyMailInfo : public gcValue {
 public:
-    int mField8;   // 0x08 — start of embedded gcDesiredValue
+    gcDesiredValue mDesired;   // 0x08 — start of embedded gcDesiredValue
     int mFieldC;   // 0x0C — int field written by wb.Write before gcDesiredValue::Write
 
+    ~gcValLobbyMailInfo();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((AllocBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class gcValObjectCompare : public gcValue {
@@ -111,12 +130,39 @@ static cType *type_base asm("D_000385DC");
 static cType *type_value asm("D_0009F3E8");
 static cType *type_gcValLobbyMailInfo asm("D_0009F888");
 
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcValLobbyMailInfodtv, 0xd4\n");
+
+// ── gcValLobbyMailInfo::~gcValLobbyMailInfo(void) @ 0x0034a8f0 ──
+gcValLobbyMailInfo::~gcValLobbyMailInfo() {
+    *(void **)((char *)this + 4) = gcValLobbyMailInfovirtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
 // ── gcValLobbyMailInfo::AssignCopy(const cBase *) @ 0x00349e4c ──
 void gcValLobbyMailInfo::AssignCopy(const cBase *base) {
     gcValLobbyMailInfo *other = dcast<gcValLobbyMailInfo *>(base);
     int finalField;
 
-    if (&other->mField8 != &mField8) {
+    if (&other->mDesired != &mDesired) {
         goto copyDesired;
     }
     finalField = other->mFieldC;
@@ -124,7 +170,7 @@ void gcValLobbyMailInfo::AssignCopy(const cBase *base) {
 
 copyDesired:
     {
-        int value = mField8;
+        int value = mDesired.mValue;
         int flag = 1;
         int tag = value & 1;
         if (tag != 0) {
@@ -143,7 +189,7 @@ copyDesired:
                 value = *(int *)value;
                 value |= 1;
             }
-            mField8 = value;
+            mDesired.mValue = value;
             if (old != 0) {
                 ReleaseEntry *entry =
                     (ReleaseEntry *)(*(char **)(old + 4) + 0x50);
@@ -152,7 +198,7 @@ copyDesired:
         }
 
         __asm__ volatile("" ::: "memory");
-        int srcValue = other->mField8;
+        int srcValue = other->mDesired.mValue;
         int srcFlag = 1;
         int srcTag = srcValue & 1;
         if (srcTag != 0) {
@@ -164,8 +210,8 @@ copyDesired:
                 (CloneEntry *)(*(char **)(source + 4) + 0x10);
             short offset = entry->offset;
             void *target = (char *)source + offset;
-            cMemPool *pool = cMemPool::GetPoolFromPtr(&mField8);
-            int current = mField8;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(&mDesired);
+            int current = mDesired.mValue;
             int flag2 = 0;
             if (current & 1) {
                 flag2 = 1;
@@ -175,7 +221,7 @@ copyDesired:
             } else {
                 current = *(int *)current;
             }
-            mField8 = (int)entry->fn(target, pool, (cBase *)current);
+            mDesired.mValue = (int)entry->fn(target, pool, (cBase *)current);
         }
         finalField = other->mFieldC;
     }
