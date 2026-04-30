@@ -2,6 +2,7 @@
 
 extern "C" void *memset(void *, int, unsigned int);
 extern "C" void free(void *);
+extern "C" int sceKernelGetThreadId(void);
 
 class cMemPool {
 public:
@@ -30,6 +31,7 @@ public:
     cDynamicMemAllocator(const char *, unsigned int, unsigned int, void *);
     ~cDynamicMemAllocator();
     void LogAllocations(void) const;
+    void *GetBlock(void);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         if (pool != 0) {
@@ -73,6 +75,15 @@ cDynamicMemAllocator::~cDynamicMemAllocator() {
 }
 
 void cDynamicMemAllocator::LogAllocations(void) const {
+}
+
+void *cDynamicMemAllocator::GetBlock(void) {
+    void *block = 0;
+    if (*(volatile int *)((char *)this + 0x1B8) == -1 ||
+        *(volatile int *)((char *)this + 0x1B8) == sceKernelGetThreadId()) {
+        block = *(void **)((char *)this + 0x1B4);
+    }
+    return block;
 }
 
 int cFileSystem::Create(const char *) {

@@ -6,6 +6,17 @@ extern "C" int sceCtrlSetIdleCancelThreshold(int iUnHoldThreshold, int iHoldThre
 
 extern "C" int cGetCurrentPlatform(void);
 
+int eInputJoystick::GetFirstPresentController() {
+    int controller = 0;
+    do {
+        if (PlatformControllerPresent(controller)) {
+            return controller;
+        }
+        controller++;
+    } while (controller < 4);
+    return -1;
+}
+
 void eInputJoystick::PlatformPreUpdate() {
 }
 

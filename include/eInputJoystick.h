@@ -11,6 +11,7 @@ public:
     enum eButton {};
 
     static bool Initialize();
+    static int GetFirstPresentController();
     static void RecheckPresent();
     static void Draw(const eCamera &cam);
     static void DrawPointer(int idx, const eCamera &cam);
