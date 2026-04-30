@@ -2,13 +2,18 @@
 //   0x0027f17c New(cMemPool *, cBase *) static            (140B)
 //   0x0027f2e4 Write(cFile &) const                       (88B)
 //   0x0027f33c Read(cFile &, cMemPool *)                  (200B)
+//   0x0027f804 ~gcLanguageStrings(void)                   (212B)
 //
 // Layout: derives from gcStringValue, embeds gcDesiredValue at offset 0x8.
 // Total size 0xC.
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -34,6 +39,7 @@ public:
 void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char gcLanguageStringsvirtualtable[];
+extern char cBaseclassdesc[];
 extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F4E4;
@@ -50,12 +56,28 @@ public:
     void Read(cReadBlock &);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcLanguageStrings : public gcStringValue {
 public:
+    ~gcLanguageStrings();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static gcLanguageStrings *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec = (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 // 0x0027f208 — GetType(void) const
@@ -125,4 +147,31 @@ gcLanguageStrings *gcLanguageStrings::New(cMemPool *pool, cBase *parent) {
         result = (gcLanguageStrings *)p;
     }
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oRgcLanguageStringsdtv, 0xd4\n");
+
+// 0x0027f804 - gcLanguageStrings::~gcLanguageStrings(void)
+gcLanguageStrings::~gcLanguageStrings() {
+    *(char **)((char *)this + 4) = gcLanguageStringsvirtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
 }
