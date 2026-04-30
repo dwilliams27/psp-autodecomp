@@ -84,15 +84,21 @@ nwMsg *gcMsgAssignPlayerId::New(nwMsgBuffer &buf) {
         volatile int zb[3];
         zb[0] = 0;
         int reuse = zb[0];
-        zb[1] = reuse;
+        unsigned int vt_hi;
+        __asm__ ("lui %0, 0x39" : "=r"(vt_hi));
         zb[2] = reuse;
-        obj->mVTable = (void *)0x38AB00;
-        obj->mNum1 = -1;
-        obj->mNum2 = -1;
+        zb[1] = reuse;
+        void *vt = (void *)(vt_hi - 21760);
+        int neg1 = -1;
+        obj->mVTable = vt;
+        obj->mNum1 = neg1;
+        obj->mNum2 = neg1;
         int  v = zb[2];
         int *p = (int *)((char *)obj + 12);
         *p = v;
-        cStrCopy(&obj->mName[0], (const char *)0x36D944);
+        unsigned int str_hi;
+        __asm__ ("lui %0, 0x37" : "=r"(str_hi));
+        cStrCopy(&obj->mName[0], (const char *)(str_hi - 9916));
         result = (nwMsg *)obj;
     }
     return result;
@@ -108,8 +114,9 @@ void gcMsgAssignPlayerId::Write(cOutStream &s, nwSocketHandle, const nwAddress &
     ((cHandle *)((char *)this + 12))->Write(s);
     int len = cStrLength(&mName[0]) & 0xFFFF;
     {
+        unsigned int len_arg = (unsigned int)(len & 0xFFFF);
         bool sign2 = true;
-        ((cOutStreamRef *)&s)->Write((unsigned int)(len & 0xFFFF), 0x10, sign2);
+        ((cOutStreamRef *)&s)->Write(len_arg, 0x10, sign2);
     }
     for (int i = 0; i < len; i++) {
         bool sign = false;
