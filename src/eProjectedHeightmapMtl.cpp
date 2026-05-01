@@ -20,6 +20,7 @@ extern cType *D_00046C88;
 class eHeightmapMtl {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -46,9 +47,12 @@ public:
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
+
+extern "C" void eMaterial___dtor_eMaterial_void(void *, int);
 
 #pragma control sched=1
 
@@ -112,6 +116,33 @@ void eProjectedHeightmapMtl::Write(cFile &file) const {
     ((cHandle *)((char *)h + 4))->Write(wb);
 
     wb.End();
+}
+
+// ── Read ──
+
+int eProjectedHeightmapMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eHeightmapMtl *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    *(int *)((char *)this + 0x48) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x48);
+        __asm__ volatile("" ::: "memory");
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    *(int *)((char *)this + 0x4C) = 0;
+    __asm__ volatile("" ::: "memory");
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x4C);
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    PlatformRead(file, pool);
+    CreateData();
+    return result;
 }
 
 // ── PlatformRead ──
@@ -211,6 +242,86 @@ void eProjectedHeightmapMtl::AssignCopy(const cBase *src) {
     ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x64))->operator=(*(cArrayBase<cHandleT<eMaterial> > *)((char *)&other + 0x64));
     __asm__ volatile("" ::: "memory");
     *(cHandleVal *)((char *)this + 0x68) = *(cHandleVal *)((char *)&other + 0x68);
+}
+
+// ── Destructor ──
+
+struct eProjectedHeightmapMtlDeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oYeProjectedHeightmapMtldtv, 0x1b8\n");
+
+eProjectedHeightmapMtl::~eProjectedHeightmapMtl() {
+    *(void **)((char *)this + 4) = eProjectedHeightmapMtlclassdesc;
+    PlatformFree();
+    *(void **)((char *)this + 4) = (void *)0x380018;
+
+    void *field60 = (char *)this + 0x60;
+    void *field64 = (char *)this + 0x64;
+    if (field64 != 0) {
+        void *entries = *(void **)((char *)this + 0x64);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eProjectedHeightmapMtlDeleteRec *rec =
+                    (eProjectedHeightmapMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x64) = 0;
+        }
+    }
+
+    if (field60 != 0) {
+        void *entries = *(void **)((char *)this + 0x60);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eProjectedHeightmapMtlDeleteRec *rec =
+                    (eProjectedHeightmapMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x60) = 0;
+        }
+    }
+
+    eMaterial___dtor_eMaterial_void(this, 0);
 }
 
 // ── Header extensions for methods not declared in eTextureMap.h ──

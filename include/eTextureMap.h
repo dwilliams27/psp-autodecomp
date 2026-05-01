@@ -186,15 +186,35 @@ public:
 class eProjectedHeightmapMtl {
 public:
     eProjectedHeightmapMtl(cBase *);
+    ~eProjectedHeightmapMtl(void);
     const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eCamera &, const eWorld *, const mOCS &, float, float, const mVec3 &, float, int, const eTexture *, unsigned int) const;
     void Unapply(void) const;
     void CreateData(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void PlatformRead(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
+    static void operator delete(void *p) __attribute__((always_inline)) {
+        struct DeleteRecord {
+            short offset;
+            short pad;
+            void (*fn)(void *, void *);
+        };
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            char *allocTable = ((char **)block)[7];
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
     static eProjectedHeightmapMtl *New(cMemPool *, cBase *);
 };
 
