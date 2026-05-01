@@ -81,9 +81,11 @@ public:
     unsigned int mField24;     // +36
 
     ePhysicsControllerTemplate(cBase *b);
+    ~ePhysicsControllerTemplate(void);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    static void operator delete(void *);
 
     static void CreateAndResetInstance(cMemPool *pool, eDynamicModel *model,
                                        const ePhysicsControllerTemplate *tpl,
@@ -203,32 +205,34 @@ struct DeleteRecord {
 
 extern "C" void free(void *);
 
-extern "C" void ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_void(
-    ePhysicsControllerTemplate *self, int flags)
-{
-    if (self != 0) {
-        self->mClassDesc = ePhysicsControllerTemplateclassdesc;
-        cBaseArray *a3 = &self->mArr3;
-        cBaseArray *a2 = &self->mArr2;
-        cBaseArray *a1 = &self->mArr1;
-        if (a3 != 0) a3->RemoveAll();
-        if (a2 != 0) a2->RemoveAll();
-        if (a1 != 0) a1->RemoveAll();
-        self->mClassDesc = ePhysicsControllerTemplate_base_classdesc;
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                __asm__ volatile("" ::: "memory");
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
+inline void ePhysicsControllerTemplate::operator delete(void *p) {
+    void *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        void *block = *(void **)((char *)pool + 0x24);
+        __asm__ volatile("" ::: "memory");
+        DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        short off = rec->offset;
+        rec->fn((char *)block + off, p);
+    } else {
+        free(p);
     }
 }
+
+__asm__(".word 0x1000ffff\n.word 0x00000000\n");
+__asm__(".size __0oaePhysicsControllerTemplatedtv, 0xe8\n");
+
+#pragma control sched=1
+ePhysicsControllerTemplate::~ePhysicsControllerTemplate() {
+    mClassDesc = ePhysicsControllerTemplateclassdesc;
+    cBaseArray *a3 = &mArr3;
+    cBaseArray *a2 = &mArr2;
+    cBaseArray *a1 = &mArr1;
+    if (a3 != 0) a3->RemoveAll();
+    if (a2 != 0) a2->RemoveAll();
+    if (a1 != 0) a1->RemoveAll();
+    mClassDesc = ePhysicsControllerTemplate_base_classdesc;
+}
+#pragma control sched=2
 
 // This size override must precede the method definition; SNC's emitted function
 // body still places the two words after the normal epilogue.
