@@ -14,6 +14,17 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 template <class T> T *dcast(const cBase *);
 
 extern char *gcViewport_s_viewports;
@@ -139,6 +150,22 @@ void gcPlayer::GetName(char *dest) const {
 void gcPlayer::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.End();
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::Read(cFile &, cMemPool *)  @ 0x0011ed2c, 120B
+// -----------------------------------------------------------------------------
+int gcPlayer::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // -----------------------------------------------------------------------------

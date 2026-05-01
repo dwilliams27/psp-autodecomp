@@ -45,6 +45,7 @@ public:
     void SetEntity(cHandleT<gcEntity>);
     void *GetCamera(void) const;
     void GetName(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;

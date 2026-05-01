@@ -184,3 +184,87 @@ void eDynamicLightHeightmapMtl::AssignCopy(const cBase *src) {
     __asm__ volatile("" ::: "memory");
     *(cHandleVal *)((char *)this + 0x68) = *(cHandleVal *)((char *)&other + 0x68);
 }
+
+// ── Destructor ──
+
+extern "C" void eMaterial___dtor_eMaterial_void(void *, int);
+
+struct eDynamicLightHeightmapMtlDeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oZeDynamicLightHeightmapMtldtv, 0x1b8\n");
+
+eDynamicLightHeightmapMtl::~eDynamicLightHeightmapMtl() {
+    *(void **)((char *)this + 4) = (void *)0x385160;
+    PlatformFree();
+    *(void **)((char *)this + 4) = (void *)0x380018;
+
+    void *field64 = (char *)this + 0x64;
+    void *entries = field64;
+    __asm__ volatile("" : "+r"(entries));
+    void *field60 = (char *)this + 0x60;
+    if (field64 != 0) {
+        entries = *(void **)((char *)this + 0x64);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eDynamicLightHeightmapMtlDeleteRec *rec =
+                    (eDynamicLightHeightmapMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x64) = 0;
+        }
+    }
+
+    if (field60 != 0) {
+        entries = *(void **)((char *)this + 0x60);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eDynamicLightHeightmapMtlDeleteRec *rec =
+                    (eDynamicLightHeightmapMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x60) = 0;
+        }
+    }
+
+    eMaterial___dtor_eMaterial_void(this, 0);
+}

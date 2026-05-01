@@ -42869,7 +42869,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000517a4",
       "0x00051914",
@@ -53180,7 +53180,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -53188,6 +53188,18 @@
       {
         "session": "1e3a0f6c",
         "notes": "GetVelocity has a scalar bool-check section (instructions 1-16) and two paths: a zero vector store (17-26) and a VFPU rigid-body velocity computation (27-45). The VFPU compute path (vtfm3.t, vcrsp.t, vsub.t, vadd.t) and zero path both match byte-for-byte when compiled. The ONLY mismatch is the scalar entry-computation and bool-check section.\n\nSpecific issues: (a) SNC schedules 'sll a1,a1,4' BEFORE 'lw a0,56(a0)', causing the entry pointer to land in t0 instead of a1, cascading into wrong register allocation for the entire bool section. Expected has lw first. Tested -Xsched=1 and -Xsched=2 -- identical output. (b) SNC CSEs 'entry+0x20' into a register (addiu a0,t0,32 + lw t1,0(a0)) instead of using direct-offset lw t0,32(a1). (c) Missing 'andi a0,a0,0xff' bool cast pattern. (d) Uses beqz instead of bnezl for the hasBodies check (fixed by restructuring if/else order -- bnezl appeared with 'if(!hasBodies){zero;return;}' pattern). (e) Stack frame: the 48-byte frame (for VFPU scratch) requires a local variable, but SNC at -O2 eliminates unused locals even with 'r' constraints on .word asm blocks. A .word approach for the scalar section produces exact bytes but the compiler either omits the stack frame prologue (no local seen) or adds wrong epilogue (nop instead of addiu sp,sp,48 in jr delay slot). The function is very close -- the VFPU and zero paths are perfect -- but the scalar bool scheduling cannot be matched from C."
+      },
+      {
+        "session": "da2fe209",
+        "notes": "Closest source is in src/eSimulatedController.cpp. It compiles to a 17-byte mismatch: the stack frame, zero-vector path, bnezl branch, and VFPU compute block all match, but the scalar entry/active prelude keeps the computed entry pointer in a0 and the boolean in a1. Expected keeps the entry pointer in a1, loads body/cache via 32(a1)/36(a1), and uses a0 for the boolean and final bnezl delay-slot body load. Tried normal C pointer arithmetic, int-offset arithmetic, register locals, explicit bodyEntries load into $a0, and a small inline pointer-compute asm; SNC either ignored the requested $a1 local or made the prelude worse. The permuter ran for 300 seconds (9504 candidates, 4305 compiled), improving 18 bytes to 17 but not matching.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:43:47Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/da2fe209/0006c490__agent_self_reported_failure__src_eSimulatedController.cpp"
       }
     ],
     "mangled_symbol": "__0fUeSimulatedControllerLGetVelocityiRC6FmVec3P6FmVec3K"
@@ -53645,14 +53657,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00358ff4",
       "0x003595ac"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerNGetMotorIndexRC6FcNameK"
+    "mangled_symbol": "__0fUeSimulatedControllerNGetMotorIndexRC6FcNameK",
+    "failure_notes": [
+      {
+        "session": "da2fe209",
+        "notes": "Closest source reconstructs the motor array at this+0x44, the element->named indirection at +8, and the cName layout at named+8. The initial cArray count pattern and the first loads now largely match, including lw t0,8(a3), lh a3,28(t0), and the zero-length branch shape. Remaining mismatch is in the cName comparison tail: SNC emits beql for the length equality case and keeps the end pointer/name pointer in a3/t0, while expected uses bne/beq with specific delay-slot moves (move t2,a3 for length, move a3,a1 for the name word pointer, end in t0). Tried combined comparison, nested goto comparison, typed cNamedLike direct fields, lenCopy temporaries, and register-binding the name word pointer; the compiler still chooses a different branch/register layout.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:43:47Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/da2fe209/0006d200__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006d2cc",
@@ -56763,7 +56789,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00049f44"
     ],
@@ -61600,7 +61626,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -61608,7 +61634,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oZeDynamicLightHeightmapMtldtv"
+    "mangled_symbol": "__0oZeDynamicLightHeightmapMtldtv",
+    "failure_notes": [
+      {
+        "session": "dd71eb79",
+        "notes": "Closest source is a canonical C++ destructor in src/eDynamicLightHeightmapMtl.cpp with inline array cleanup and deleting-destructor tail. It emits the correct 440-byte symbol including the trailing infinite-loop padding, calls PlatformFree(), clears both arrays at 0x64 and 0x60, calls eMaterial::~eMaterial(this, 0), and emits the operator-delete tail. Final compare is 10/440 bytes different. The only remaining diff is the first array cleanup register allocation: compiled code keeps the 0x60 field address in s2 and the 0x64 array data in s3, while the target has the 0x60 field address in s3 and the 0x64 array data in s2. The second array cleanup and all other bytes match after relocation masking.\n\nTried hand-expanded cleanup, moving the destructor block to end-of-file to get the .size/padding correct, volatile/register locals for s2/s3, wrapper destructor form, delaying the 0x60 field computation, keeping the data pointer live with an empty asm constraint, and a local sched=2 override. The wrapper form added an extra saved register; sched=2 worsened to 24 bytes. tools/permuter.py ran for 300 seconds, generated 7392 candidates, compiled 3570, and found zero improvement from the 10-byte baseline. This is retryable, not an unmatchable_bnel case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:54:46Z",
+        "src_file": "src/eDynamicLightHeightmapMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/dd71eb79/000809d4__agent_self_reported_failure__src_eDynamicLightHeightmapMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00080b8c",
@@ -95318,7 +95358,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -95326,7 +95366,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fIgcPlayerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcPlayer.cpp",
+    "symbol_name": "__0fIgcPlayerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "dd71eb79",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:54:46Z"
   },
   {
     "address": "0x0011eda4",
@@ -120850,7 +120898,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00108300",
@@ -120883,7 +120931,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000ec8e0",
