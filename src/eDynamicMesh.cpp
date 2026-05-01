@@ -105,6 +105,7 @@ int eDynamicMesh::HasSkin() const {
 
 // ── PlatformFree ──
 
+#pragma control sched=1
 void eDynamicMesh::PlatformFree() {
     void *vd = *(void **)((char *)this + 0x7C);
     if (vd != 0) {
