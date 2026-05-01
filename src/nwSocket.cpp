@@ -42,6 +42,7 @@ struct ConnLite {
 
 class nwTransport {
 public:
+    void Destroy(void);
     bool Send(const nwAddress &, const nwOutPacket &);
 };
 
@@ -75,7 +76,26 @@ public:
         ERROR_TIMEOUT = 1,
         ERROR_REJECTED = 2
     };
+    ~nwConnection();
+    void Close();
     void SetError(nwConnectionError);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct nwSocketDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct nwSocketDeleteRecord4 {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, void *, short);
 };
 
 class cInStream {
@@ -100,6 +120,8 @@ public:
     int mField2C;                   // 0x2C
 
     nwSocket(nwTransport *, nwSocketHandle, unsigned int, int, int);
+    ~nwSocket();
+    static void operator delete(void *);
     void Destroy(void);
     void AddressFromString(const char *, nwAddress *) const;
     nwConnectionHandle GetConnection(int) const;
@@ -115,8 +137,25 @@ public:
 extern "C" {
     void cStrCopy(char *, const char *);
     int cStrLength(const char *);
+    void free(void *);
     void nwSocket___dtor_nwSocket_void(nwSocket *, int);
     extern nwSocket *D_00034958[];
+}
+
+inline void nwSocket::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            nwSocketDeleteRecord *rec =
+                (nwSocketDeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, p);
+        } else {
+            free(p);
+        }
+    }
 }
 
 // ------------------------------------------------------------------
@@ -162,6 +201,41 @@ nwSocket::nwSocket(nwTransport *transport, nwSocketHandle handle,
       mField2C(0)
 {
     cStrCopy(mName, "");
+}
+
+// ------------------------------------------------------------------
+nwSocket::~nwSocket() {
+    if (mConnections != 0) {
+        int i = 0;
+        int offset = 0;
+        if (i < mMaxConnections) {
+            do {
+                nwConnection *conn = *(nwConnection **)((char *)mConnections + offset);
+                if (conn != 0) {
+                    conn->Close();
+                    conn = *(nwConnection **)((char *)mConnections + offset);
+                    if (conn != 0) {
+                        delete conn;
+                        *(nwConnection **)((char *)mConnections + offset) = 0;
+                    }
+                }
+                i++;
+                offset += 4;
+            } while (i < mMaxConnections);
+        }
+        if (mConnections != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(mConnections);
+            char *block = ((char **)pool)[9];
+            nwSocketDeleteRecord4 *rec =
+                (nwSocketDeleteRecord4 *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *, void *, short) = rec->fn;
+            fn(block + off, mConnections, (void *)fn, off);
+            mConnections = 0;
+        }
+    }
+    mTransport->Destroy();
+    D_00034958[((unsigned int)(mHandle & 0xFF)) >> 8] = 0;
 }
 
 // ------------------------------------------------------------------

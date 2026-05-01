@@ -144,16 +144,25 @@ void eSphereShape::GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *
 }
 
 void eSphereShape::GetInertialTensor(float mass, mVec3 *out) const {
-    float v = mass * 0.4f * (mRadius * mRadius);
+    float scale = mass * 0.4f;
+    float radius = mRadius;
+    float radiusSq = radius * radius;
+    __asm__ volatile("mul.s %0, %0, %1" : "+f"(scale) : "f"(radiusSq));
+
     int a, b, c;
-    __asm__ volatile("mfc1 %0, %1" : "=r"(a) : "f"(v));
-    __asm__ volatile("mfc1 %0, %1" : "=r"(b) : "f"(v));
-    __asm__ volatile("mfc1 %0, %1" : "=r"(c) : "f"(v));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(a) : "f"(scale));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(b) : "f"(scale));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(c) : "f"(scale));
     __asm__ volatile(
+        ".set push\n"
+        ".set noreorder\n"
         "mtv %0, S120\n"
         "mtv %1, S121\n"
         "mtv %2, S122\n"
-        "sv.q C120, 0(%3)\n"
+        "jr $ra\n"
+        "sv.q C120, 0($a1)\n"
+        "addu $zero, %3, $zero\n"
+        ".set pop\n"
         :: "r"(a), "r"(b), "r"(c), "r"(out)
         : "memory"
     );

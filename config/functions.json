@@ -8343,7 +8343,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053ac",
       "0x000053c8",
@@ -29957,7 +29957,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0008d924",
       "0x0008dbac",
@@ -29979,7 +29979,21 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeVideoKBeginFramevT"
+    "mangled_symbol": "__0fGeVideoKBeginFramevT",
+    "failure_notes": [
+      {
+        "session": "fd760f1c",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:45:48Z",
+        "src_file": "src/eVideo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/fd760f1c/0002f7b0__post_revert_compile_failed__src_eVideo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002f848",
@@ -30655,13 +30669,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000b995c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeVideoUInitializeRegisteredvT"
+    "mangled_symbol": "__0fGeVideoUInitializeRegisteredvT",
+    "failure_notes": [
+      {
+        "session": "fd760f1c",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:45:48Z",
+        "src_file": "src/eVideo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/fd760f1c/0003059c__post_revert_compile_failed__src_eVideo.cpp"
+      }
+    ]
   },
   {
     "address": "0x00030634",
@@ -42909,7 +42937,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
@@ -42920,7 +42948,21 @@
       "0x00096c70"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeHeightmapShapePGetLocalSupportPC6FmVec3TBRC6FmVec3UiTDP6ReCollisionSupportK"
+    "mangled_symbol": "__0fPeHeightmapShapePGetLocalSupportPC6FmVec3TBRC6FmVec3UiTDP6ReCollisionSupportK",
+    "failure_notes": [
+      {
+        "session": "9bf42d29",
+        "notes": "Implemented a real C++/VFPU version of eHeightmapShape::GetLocalSupport using the expected argument mapping (verts in a1/s0, edge normals in a2/s1, mask in t0/s2, support normal in t1/s3, output in t2/s4). Read the VFPU struct-copy, FPU scheduling, delay-slot, and branch-likely docs. Tried an inline VFPU dot helper, union/int-bit float conversion, swapping edge pointer/index declaration order to reproduce the expected s7=edge pointer and s1=edge index shape, and sched=1/sched=2 local variants. The closest build compiles but still differs by 479/676 bytes; the main root cause is that SNC does not preserve the VFPU normal vector in C120 across the edge and vertex loops from this source, so it reloads both dot operands, and the mfc/mts/fabsf setup still fails to put the mtc1 in the expected jal delay slot. Next retry should hand-inline the edge-loop dot pattern so C120 is loaded once before the loop and refreshed only on the failed-edge path, while keeping the surrounding metadata writes in C++.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:46:16Z",
+        "src_file": "src/eHeightmapShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/9bf42d29/00051500__agent_self_reported_failure__src_eHeightmapShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000517a4",
@@ -42932,7 +42974,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00023448",
@@ -42943,7 +42985,21 @@
       "0x00051928"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPeHeightmapShapeMGetTileVertsP6FmVec3iTCK"
+    "mangled_symbol": "__0fPeHeightmapShapeMGetTileVertsP6FmVec3iTCK",
+    "failure_notes": [
+      {
+        "session": "9bf42d29",
+        "notes": "Implemented eHeightmapShape::GetTileVerts in C++ with the matched D_00038890 handle-table lookup pattern and scalar height-grid generation. Tried nested if lookup, short-circuit lookup, explicit unsigned-short index, barriers after the second lookup, corrected signed half-width rounding, and sched=1/sched=2 local variants. The best disassembly has the same overall control flow, no branch-likely in the second lookup, and the same arithmetic sequence through setup, but SNC allocates handle/template temporaries in the opposite t0/t1 roles and schedules the inner 5x5 loop differently (it hoists the column mtc1/lwc1 ahead of the destination-index arithmetic and uses v1/t4/f17 where the original keeps stores folded through v0/t3/f15). Current compare is 255/368 bytes different, so this is retryable source/register-allocation work rather than a bnel/unmatchable case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:46:16Z",
+        "src_file": "src/eHeightmapShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/9bf42d29/000517a4__agent_self_reported_failure__src_eHeightmapShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00051914",
@@ -50220,11 +50276,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerRGetColliderHeightvK"
+    "mangled_symbol": "__0fQeBipedControllerRGetColliderHeightvK",
+    "failure_notes": [
+      {
+        "session": "1af4a202",
+        "notes": "Implemented real C++ for eBipedController::GetColliderHeight with the expected bounds-check layout and VFPU setup. Read snc-struct-vfpu-codegen, snc-branch-likely, and snc-delay-slots. Tried sched=2 and local sched=1, goto-based zero-return layout, declaration-order changes for count/entries, pointer-indexing vs char* addressing, scoped entry/body/shape temporaries, and memory/register barriers around the VFPU setup. Current output matches through the bounds checks, including entries in $a0 and count/offset in $a1, but after the valid branch SNC keeps the entry pointer live and emits shape/adjusted in $a0, then reloads from the saved entry pointer after the VFPU block. Original keeps shape/adjusted in $a1 and recomputes entries + index*8 after the VFPU store. Current symbol is 168B vs expected 180B with 52 zipped byte diffs from offset 0x52 onward due to that missing recompute/register allocation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:41:18Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1af4a202/00065aa0__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00065b54",
@@ -51318,7 +51388,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -51328,7 +51398,15 @@
         "notes": "GetInertialTensor: 50/64 bytes differ (but most of that is due to size/alignment shift). Scalar arithmetic part (mass*0.4*r*r) matches perfectly \u2014 first 13 instructions (0x00-0x30) are byte-identical. Mismatch is at the tail:\n\nExpected: [mtv,mtv,mtv, jr ra, sv.q C120,0(a1)] \u2014 15 insns = 60 bytes, sv.q in jr delay slot.\nOurs:     [mtv,mtv,mtv, sv.q C120,0(a1), jr ra, nop] \u2014 16 insns = 64 bytes, sv.q before jr, nop in delay slot.\n\nTried: (1) Single asm block with mtv+sv.q+memory clobber (our current) \u2014 sv.q trapped inside asm. (2) Native V4SF: 'typedef int v4sf_t __attribute__((mode(V4SF)))'; asm writes S120/S121/S122; then '*(v4sf_t*)out = q' to trigger SNC-owned sv.q. SNC emits spurious 'lv.q C?,-offset(zero)' at entry (uninitialized v4sf read). (3) Separate asm mtv block + 'vmov.q q,C120' capture + v4sf store. Emits extra vmov.q (+4 bytes) before sv.q.\n\nRoot cause: the 3 mtv's write S120-S122 (part of matrix C120) but SNC can't see the dependency when q is declared as a plain v4sf_t. The native v4sf_t approach documented in docs/decisions/007 works for pure struct copies but not for the 'mtv-fill-then-store' pattern where the VFPU reg is filled scalar-by-scalar via asm. Need an asm syntax that tells SNC 'this asm block writes to the quad VFPU reg backing variable q' while SNC still generates the sv.q itself. Recommend human investigation into whether '+x'(q) with SNC-specific subscript syntax (e.g. %0[0], %0[1], %0[2]) can target individual scalars of a v4sf_t; this is undocumented in the repo's research so far."
       }
     ],
-    "mangled_symbol": "__0fMeSphereShapeRGetInertialTensorfP6FmVec3K"
+    "mangled_symbol": "__0fMeSphereShapeRGetInertialTensorfP6FmVec3K",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeRGetInertialTensorfP6FmVec3K",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a6f5f8bf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:51:49Z"
   },
   {
     "address": "0x000685f8",
@@ -56443,7 +56521,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -56456,7 +56534,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCylinderShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOeCylinderShapeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "de883e5d",
+        "notes": "Implemented eCylinderShape::Read using the matched cReadBlock/eSphereShape::Read pattern, cFileSystem::Read for radius/halfHeight, old hull virtual delete, pool allocation, eConvexHullShape construction, MakeCylinder, and ComputeMinAxis. The generated function is structurally close but is 392B versus the expected 400B, which includes the known trailing self-branch/nop pattern after the success epilogue.\n\nThe main byte differences are in the old-hull virtual dispatch and allocation scheduling: the original uses bnezl with the vtable load in the delay slot, keeps the slot pointer in a1 for the addiu/lh/lw sequence, and has li s3,0 in the no-old-hull branch delay. The current source either gets the branch-likely with the wrong temp register or gets the newHull initialization placement but loses branch-likely. The final 8 bytes are also the cReadBlock/read-method trailing infinite-loop artifact noted in the task guidance.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:46:25Z",
+        "src_file": "src/eCylinderShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/de883e5d/00074148__agent_self_reported_failure__src_eCylinderShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000742d8",
@@ -56635,7 +56727,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56771,13 +56863,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCylinderShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K"
+    "mangled_symbol": "__0fOeCylinderShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "de883e5d",
+        "notes": "Implemented eCylinderShape::GetSupport as canonical C++ with fabsf control flow and targeted VFPU inline asm for dot/scale/normalize operations. The first scalar prologue and fabsf calls are close, but the current closest build is 456B versus the expected 464B. Attempts to force the 64-byte frame and preload C130/C120 before the branch produced the correct size but introduced extra saved FPU registers and large register-allocation drift, so I reverted to the smaller/cleaner source for retry.\n\nThe remaining mismatch appears to be scheduler/register-allocation shape around the VFPU preload and sign branch. Original keeps only f20/f22 and s0-s4, loads row2/position before the fabsf epsilon compare, and uses a multiply-by-sign branch rather than SNC's optimized neg.s/bc1fl form. A next attempt should focus on forcing the 16-byte local stack gap without introducing f24/f26, and on preserving the original sign-branch shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:46:25Z",
+        "src_file": "src/eCylinderShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/de883e5d/00074888__agent_self_reported_failure__src_eCylinderShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00074a58",
@@ -95994,7 +96100,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001202b8"
     ],
@@ -109905,7 +110011,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -118681,7 +118787,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a54fc",
       "0x001a58c0",
@@ -118785,7 +118891,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a5658",
       "0x001a58c8",
@@ -121067,7 +121173,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001a51a8",
@@ -121079,7 +121185,15 @@
       "0x001a7bd8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oInwSocketdtv"
+    "mangled_symbol": "__0oInwSocketdtv",
+    "src_file": "src/nwSocket.cpp",
+    "symbol_name": "__0oInwSocketdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a6f5f8bf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:51:49Z"
   },
   {
     "address": "0x001a81b4",
@@ -193274,11 +193388,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOgcDoEvaluationISetChildiP6MgcExpression"
+    "mangled_symbol": "__0fOgcDoEvaluationISetChildiP6MgcExpression",
+    "failure_notes": [
+      {
+        "session": "1af4a202",
+        "notes": "Implemented gcDoEvaluation::SetChild in its canonical class file using the gcDoSetValue tagged-owned-child pattern narrowed to this+0xC. Declaration order was critical: declaring the scratch flag before val makes SNC allocate the expected $a0 scratch and $a1 tagged value. The emitted live function body is byte-identical for the first 232 bytes (verified with a direct byte comparison: zero diffs over the emitted symbol). Remaining failure is only symbol size/tail: expected has the two unreachable words 'b .; nop' after the normal epilogue for total 240B, but the emitted symbol stops at 232B. Tried the existing .size/file-scope .word tail pattern before SetChild, after SetChild, and moving SetChild before New in source order; SNC placed or dropped those words outside the SetChild-to-next-symbol span, so compare_func still reports size mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:41:18Z",
+        "src_file": "src/gcDoEvaluation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1af4a202/002d8904__agent_self_reported_failure__src_gcDoEvaluation.cpp"
+      }
+    ]
   },
   {
     "address": "0x002d89f4",
