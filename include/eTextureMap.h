@@ -126,15 +126,35 @@ public:
 class eDynamicLightModelMtl {
 public:
     eDynamicLightModelMtl(cBase *);
+    ~eDynamicLightModelMtl(void);
     const cType *GetType(void) const;
     void PlatformFree(void);
     void Apply(const eCamera *, const eWorld *) const;
     void ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Unapply(void) const;
     void CreateData(void);
+    int Read(cFile &, cMemPool *);
     void PlatformRead(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    static void operator delete(void *p) __attribute__((always_inline)) {
+        struct DeleteRecord {
+            short offset;
+            short pad;
+            void (*fn)(void *, void *);
+        };
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            char *allocTable = ((char **)block)[7];
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
     static eDynamicLightModelMtl *New(cMemPool *, cBase *);
 };
 

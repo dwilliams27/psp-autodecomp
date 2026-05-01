@@ -61657,7 +61657,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -61668,7 +61668,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeDynamicLightModelMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fVeDynamicLightModelMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eDynamicLightModelMtl.cpp",
+    "symbol_name": "__0fVeDynamicLightModelMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1c97b88c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:25:35Z"
   },
   {
     "address": "0x00080ccc",
@@ -61753,7 +61761,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -61761,7 +61769,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeDynamicLightModelMtldtv"
+    "mangled_symbol": "__0oVeDynamicLightModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "1c97b88c",
+        "notes": "Closest source is a canonical C++ destructor with inline class-local operator delete and the matched two-word destructor tail. After relocation masking the function is 10/440 bytes off: the only remaining body differences are register allocation in the first cArray cleanup block. Original uses s3 for the saved field60 address and s2 for entries; SNC keeps emitting s2 for the saved field address and s3 for the first entries pointer, while the second cleanup block and deleting destructor tail match structurally.\n\nTried the matched eHeightmapShape/eBipedController destructor pattern, direct field addressing, field60 pointer reuse vs direct loads/stores, register-pinned locals using s3/$19 and s2/$18, and reordering entries/field60 declarations. Read docs/research/snc-delay-slots.md before the later variants. Ran tools/permuter.py for 300s from the 10-byte baseline: 7,584 candidates generated, 3,543 compiled, no improvement. This is retryable register-allocation/source-shape work, not bnel/unmatchable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:25:35Z",
+        "src_file": "src/eDynamicLightModelMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1c97b88c/00080df8__agent_self_reported_failure__src_eDynamicLightModelMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00080fb0",
@@ -62743,7 +62765,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -62837,7 +62859,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",

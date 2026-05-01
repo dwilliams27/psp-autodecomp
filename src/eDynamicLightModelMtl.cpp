@@ -33,6 +33,7 @@ class eModelMtl {
 public:
     void ApplyCommonDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -41,6 +42,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 #pragma control sched=2
 
@@ -142,6 +152,21 @@ void eDynamicLightModelMtl::Write(cFile &file) const {
     wb.End();
 }
 
+// ── Read ──
+
+int eDynamicLightModelMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eModelMtl *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    PlatformRead(file, pool);
+    CreateData();
+    return result;
+}
+
 // ── Constructor ──
 
 extern "C" void eGeomMtl_eGeomMtl(void *, cBase *);
@@ -236,4 +261,87 @@ void eDynamicLightModelMtl::AssignCopy(const cBase *src) {
     *(cHandle *)((char *)this + 0x6C) = *(cHandle *)((char *)&other + 0x6C);
     __asm__ volatile("" ::: "memory");
     ((int *)this)[0x70 / 4] = ((int *)&other)[0x70 / 4];
+}
+
+// ── Destructor ──
+
+extern "C" void eMaterial___dtor_eMaterial_void(void *, int);
+
+struct eDynamicLightModelMtlDeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oVeDynamicLightModelMtldtv, 0x1b8\n");
+
+eDynamicLightModelMtl::~eDynamicLightModelMtl() {
+    *(void **)((char *)this + 4) = eDynamicLightModelMtlclassdesc;
+    PlatformFree();
+    *(void **)((char *)this + 4) = (void *)0x380018;
+
+    void *entries;
+    void *field60 = (char *)this + 0x60;
+    void *field64 = (char *)this + 0x64;
+    if (field64 != 0) {
+        entries = *(void **)((char *)this + 0x64);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eDynamicLightModelMtlDeleteRec *rec =
+                    (eDynamicLightModelMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x64) = 0;
+        }
+    }
+
+    if (field60 != 0) {
+        void *entries = *(void **)((char *)this + 0x60);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                eDynamicLightModelMtlDeleteRec *rec =
+                    (eDynamicLightModelMtlDeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x60) = 0;
+        }
+    }
+
+    eMaterial___dtor_eMaterial_void(this, 0);
 }
