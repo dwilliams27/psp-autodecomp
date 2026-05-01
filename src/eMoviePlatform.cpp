@@ -14,7 +14,9 @@ public:
     int control_eventFlag;             // 0x2B0
     char _pad_2B4[0x2C4 - 0x2B4];      // 0x2B4 - 0x2C4
     int m_dispbuf_sema;                // 0x2C4
-    char _pad_2C8[0x2D8 - 0x2C8];      // 0x2C8 - 0x2D8
+    int m_dispbuf_eventFlag;           // 0x2C8
+    char _pad_2CC[0x2D0 - 0x2CC];      // 0x2CC - 0x2D0
+    int m_dispbuf_buf[2];              // 0x2D0
     unsigned int m_dispbuf_pts[2];     // 0x2D8
     int m_dispbuf_writeIdx;            // 0x2E0
     int m_dispbuf_readIdx;             // 0x2E4
@@ -38,6 +40,9 @@ public:
 
     eMoviePlatform(void);
     int dispbuf_getCapacity(void);
+    int startCheck(void);
+    int dispbuf_delete(void);
+    int checkDecodeEnd(void);
     int soundbuf_getCapacity(void);
     void dispbuf_setPts(unsigned int);
     unsigned int dispbuf_getPts(void);
@@ -170,6 +175,53 @@ int eMoviePlatform::dispbuf_getCapacity(void) {
 
 int eMoviePlatform::soundbuf_getCapacity(void) {
     return m_soundbuf_end - m_soundbuf_start;
+}
+
+int eMoviePlatform::startCheck(void) {
+    if (dispbuf_getCapacity() != 0) {
+        goto check_decode;
+    }
+
+    if (*(int *)((char *)this + 0x294) != 0) {
+        if (soundbuf_getCapacity() != 0) {
+            goto check_decode;
+        }
+    }
+
+    if (read_isFull() != 0) {
+        goto set_condition;
+    }
+
+check_decode:
+    if (checkDecodeEnd() != 0) {
+set_condition:
+        control_setCondition(1);
+        return 0;
+    }
+
+    return -1;
+}
+
+int eMoviePlatform::dispbuf_delete(void) {
+    int sema = m_dispbuf_sema;
+    if (sema > 0) {
+        sceKernelDeleteSema(sema);
+        m_dispbuf_sema = -1;
+    }
+
+    int flag = m_dispbuf_eventFlag;
+    if (flag > 0) {
+        sceKernelDeleteEventFlag(flag);
+        m_dispbuf_eventFlag = -1;
+    }
+
+    int i = 0;
+    int size = m_dispbuf_end;
+    for (; i < size; i++) {
+        m_dispbuf_buf[i] = 0;
+        m_dispbuf_pts[i] = 0;
+    }
+    return 0;
 }
 
 void eMoviePlatform::dispbuf_setPts(unsigned int pts) {
