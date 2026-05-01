@@ -1,4 +1,5 @@
 struct cFileHandle;
+class cBase;
 
 struct cGUID {
     int a;
@@ -16,6 +17,21 @@ public:
 class cFileSystem {
 public:
     static int Write(cFileHandle *, const void *, unsigned int);
+};
+
+struct cBaseDispatchRecord {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+typedef void *(*cBaseGetTypeFn)(void *);
+typedef void (*cBaseWriteFn)(void *, cFile *);
+
+class cType {
+public:
+    int _pad0;
+    unsigned int mTypeId;
 };
 
 class cWriteBlock {
@@ -41,6 +57,7 @@ public:
     void Write(int, const short *);
     void Write(int, const unsigned short *);
     void Write(int, const wchar_t *);
+    void WriteBase(const cBase *);
     void End(void);
 };
 
@@ -229,6 +246,23 @@ void cWriteBlock::Write(int count, const short *data) {
 void cWriteBlock::Write(int count, const bool *data) {
     for (int i = 0; i < count; i++) {
         Write(data[i]);
+    }
+}
+
+void cWriteBlock::WriteBase(const cBase *base) {
+    unsigned int typeId = 0xFFFFFFFF;
+    if (base != 0) {
+        cBaseDispatchRecord *entry =
+            (cBaseDispatchRecord *)(*(char **)((char *)base + 4) + 8);
+        cType *type =
+            (cType *)((cBaseGetTypeFn)entry->fn)((char *)base + entry->offset);
+        typeId = type->mTypeId;
+    }
+    Write(typeId);
+    if (base != 0) {
+        cBaseDispatchRecord *entry =
+            (cBaseDispatchRecord *)(*(char **)((char *)base + 4) + 0x28);
+        ((cBaseWriteFn)entry->fn)((char *)base + entry->offset, mFile);
     }
 }
 

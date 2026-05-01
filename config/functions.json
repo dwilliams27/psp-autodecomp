@@ -8250,7 +8250,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005704"
     ],
@@ -8331,7 +8331,15 @@
       "0x0035dc84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLcWriteBlockJWriteBasePC6FcBase"
+    "mangled_symbol": "__0fLcWriteBlockJWriteBasePC6FcBase",
+    "src_file": "src/cWriteBlock.cpp",
+    "symbol_name": "__0fLcWriteBlockJWriteBasePC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "69d9b285",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:54:20Z"
   },
   {
     "address": "0x00005c90",
