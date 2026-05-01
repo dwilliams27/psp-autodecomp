@@ -1,0 +1,138 @@
+[
+  {
+    "address": "0x0008d63c",
+    "reason": "sched=1 retry: eRenderSurface Initialize was reported near-miss after sched=1 neighbors matched"
+  },
+  {
+    "address": "0x0007fa50",
+    "reason": "sched=1 class retry: eTextureFilter Write, missing override evidence"
+  },
+  {
+    "address": "0x0007fa9c",
+    "reason": "sched=1 class retry: eTextureFilter Read, missing override evidence"
+  },
+  {
+    "address": "0x0007fb90",
+    "reason": "sched=1 class retry: eTextureFilter destructor, missing override evidence"
+  },
+  {
+    "address": "0x0008eb64",
+    "reason": "sched=1 retry: eDynamicMeshVisTriList Read had large sched=2 structural diff"
+  },
+  {
+    "address": "0x000743d0",
+    "reason": "sched=1 calibration: eCylinderShape CastRay thunk"
+  },
+  {
+    "address": "0x00074430",
+    "reason": "sched=1 calibration: eCylinderShape GetSweptContacts thunk"
+  },
+  {
+    "address": "0x00074460",
+    "reason": "sched=1 calibration: eCylinderShape GetEmbedContacts thunk"
+  },
+  {
+    "address": "0x00074858",
+    "reason": "sched=1 calibration: eCylinderShape GetVolumeUnderPlane thunk"
+  },
+  {
+    "address": "0x000513e4",
+    "reason": "sched=1 retry: eHeightmapShape Collide(Sphere) thunk"
+  },
+  {
+    "address": "0x00051410",
+    "reason": "sched=1 retry: eHeightmapShape Collide(MultiSphere) thunk"
+  },
+  {
+    "address": "0x0004b918",
+    "reason": "transition sched=1 island: ePhysicsControllerTemplate Read"
+  },
+  {
+    "address": "0x0004bab4",
+    "reason": "transition sched=1 island: ePhysicsControllerTemplate destructor had exact manual sched=1 note"
+  },
+  {
+    "address": "0x0004e1fc",
+    "reason": "transition sched=1 retry: eDynamicMesh PlatformFree, remaining issue localized"
+  },
+  {
+    "address": "0x0006b518",
+    "reason": "neighbor evidence: eBodyWorldConstraint non-constructor methods use sched=1"
+  },
+  {
+    "address": "0x0006b8f4",
+    "reason": "neighbor evidence: eSimpleMotor non-constructor methods use sched=1"
+  },
+  {
+    "address": "0x00069cdc",
+    "reason": "boundary sched=1 retry below 0x06e000: eEmbedVolumeCollisionHandler Run"
+  },
+  {
+    "address": "0x0006f834",
+    "reason": "sched=1 retry: eConstraintSolver PreSolve"
+  },
+  {
+    "address": "0x0006f8b0",
+    "reason": "sched=1 retry: eConstraintSolver Solve"
+  },
+  {
+    "address": "0x00065454",
+    "reason": "best near-miss: eBipedController PostUpdate was only 5 bytes off"
+  },
+  {
+    "address": "0x00108420",
+    "reason": "best near-miss: gcNetGame Update was 12 bytes off"
+  },
+  {
+    "address": "0x00020168",
+    "reason": "best near-miss: eWorld UpdateVolumeLocation had localized 4-byte gap"
+  },
+  {
+    "address": "0x0027169c",
+    "reason": "best near-miss: gcTableColumnShort SetSize localized copy-loop issue"
+  },
+  {
+    "address": "0x000f50fc",
+    "reason": "best near-miss: gcMap CancelCurrentCinematic was 4 bytes short"
+  },
+  {
+    "address": "0x0001fb84",
+    "reason": "best near-miss: eWorld GetRoomFromPos was 8 bytes short"
+  },
+  {
+    "address": "0x0000acec",
+    "reason": "branch-likely retry: cFactory FindObject isolated tail block"
+  },
+  {
+    "address": "0x00043c60",
+    "reason": "sched/source-shape A/B: eStaticModel AddDrawInfos node overload"
+  },
+  {
+    "address": "0x00043b30",
+    "reason": "sched/source-shape A/B: eStaticModel AddDrawInfos LOD overload"
+  },
+  {
+    "address": "0x002719f0",
+    "reason": "postlude retry: gcTableColumnShort destructor missing tail"
+  },
+  {
+    "address": "0x0014f6a0",
+    "reason": "postlude retry: gcDoSetValue SetChild missing tail"
+  },
+  {
+    "address": "0x00272020",
+    "reason": "postlude retry: gcTableColumnFloat destructor missing tail"
+  },
+  {
+    "address": "0x0011f3b0",
+    "reason": "near-miss retry: gcPlayer SetEntity was 8 bytes short"
+  },
+  {
+    "address": "0x001a871c",
+    "reason": "near-miss retry: nwSocket SendConnect was 16 bytes short"
+  },
+  {
+    "address": "0x0014b174",
+    "reason": "branch-likely retry: gcDoEvaluation IsElseIf loop shape is clear"
+  }
+]
