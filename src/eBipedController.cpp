@@ -87,6 +87,9 @@ public:
     void GetVelocity(int, mVec3 *, mVec3 *) const;
     void InvalidateCacheEntries(eGeom *);
     void EnableWallWalk(bool);
+    int IsFalling(void) const;
+    int IsSliding(void) const;
+    int IsOnGround(void) const;
     const cType *GetType(void) const;
 
     void CollectContact(eContactCollector *, eContact *, int);
@@ -362,6 +365,43 @@ void eBipedController::EnableWallWalk(bool enable) {
             :: "r"(a), "r"(b), "r"(c), "r"(this)
         );
     }
+}
+
+#pragma control sched=2
+
+int eBipedController::IsFalling(void) const {
+    int grounded = 0;
+    if (*(void **)((char *)this + 0x44) != 0) {
+        float contact = *(float *)((char *)this + 0x40);
+        __asm__ volatile("" ::: "memory");
+        if (contact < 0.002f) {
+            grounded = 1;
+        }
+    }
+    grounded &= 0xFF;
+    int result = 0;
+    if (grounded == 0) {
+        if (*(float *)((char *)this + 0x90) > 0.0f &&
+            *(unsigned char *)((char *)this + 0x34) == 0) {
+            result = 1;
+        }
+    }
+    return result & 0xFF;
+}
+
+#pragma control sched=1
+
+int eBipedController::IsSliding(void) const {
+    int result = 0;
+    if (IsOnGround() == 0) {
+        if (*(float *)((char *)this + 0x90) > 0.0f) {
+            if (*(unsigned char *)((char *)this + 0x34) != 0 ||
+                *(unsigned char *)((char *)this + 0x35) != 0) {
+                result = 1;
+            }
+        }
+    }
+    return result & 0xFF;
 }
 
 #pragma control sched=1

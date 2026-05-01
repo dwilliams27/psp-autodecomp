@@ -50138,7 +50138,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -50154,7 +50154,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -50342,13 +50342,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001414d4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerJIsFallingvK"
+    "mangled_symbol": "__0fQeBipedControllerJIsFallingvK",
+    "src_file": "src/eBipedController.cpp",
+    "symbol_name": "__0fQeBipedControllerJIsFallingvK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "05def18a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:40:12Z"
   },
   {
     "address": "0x00065f70",
@@ -50360,7 +50368,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00065fe0"
     ],
@@ -50368,7 +50376,15 @@
       "0x001416a4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeBipedControllerJIsSlidingvK"
+    "mangled_symbol": "__0fQeBipedControllerJIsSlidingvK",
+    "src_file": "src/eBipedController.cpp",
+    "symbol_name": "__0fQeBipedControllerJIsSlidingvK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "05def18a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:40:12Z"
   },
   {
     "address": "0x00065fe0",
