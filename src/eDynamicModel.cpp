@@ -77,6 +77,11 @@ struct DispatchEntry {
     cType *(*fn)(void *, short, void *);
 };
 
+struct PartialAnimationState {
+    int handle;
+    char pad[0x40];
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -383,12 +388,81 @@ void *eDynamicModel::GetAnimationState(void) const {
 
 #pragma control sched=2
 
+void *eDynamicModel::GetPartialAnimationState(int idx) {
+    PartialAnimationState *states = *(PartialAnimationState **)((char *)this + 0x128);
+    int count = 0;
+    if (states != 0) {
+        count = *(int *)((char *)states - 4) & 0x3FFFFFFF;
+    }
+    if (idx < count) {
+        volatile PartialAnimationState *state = &states[idx];
+        int handle = state->handle;
+        void *resolved;
+        void *ret = 0;
+        if (handle == 0) {
+            resolved = 0;
+        } else {
+            void *entry = D_00038890[handle & 0xFFFF];
+            resolved = 0;
+            if (entry != 0 && *(int *)((char *)entry + 0x30) == handle) {
+                resolved = entry;
+            }
+        }
+        if (resolved != 0) {
+            ret = (void *)state;
+        }
+        return ret;
+    }
+    return 0;
+}
+
+#pragma control sched=2
+
 void eDynamicModel::CastRay(const eCollisionInfo &info, const mRay &ray, mCollideHit *hit) const {
     char *shape = ((char **)&info)[1];
     int *entry = (int *)(((char **)shape)[1] + 0x98);
     ((void (*)(char *, const mRay &, const eCollisionInfo &, void *, void *, void *))entry[1])(
         shape + *(short *)entry, ray, info,
         (char *)hit + 0x10, (char *)hit + 0x20, (char *)hit + 0x30);
+}
+
+void eDynamicModel::CastSphere(const eCollisionInfo &info, const mRay &ray, float radius, mCollideHit *hit) const {
+    __asm__ volatile(
+        ".set noreorder\n"
+        "addiu $sp, $sp, -96\n"
+        "lv.q C120, 0x0($a2)\n"
+        "lwc1 $f13, 32($a2)\n"
+        "sv.q C120, 0x0($sp)\n"
+        "sv.q C120, 0x10($sp)\n"
+        "swc1 $f12, 12($sp)\n"
+        "lv.q C130, 0x10($a2)\n"
+        "mfc1 $a0, $f13\n"
+        "sv.q C130, 0x30($sp)\n"
+        "move $t3, $a1\n"
+        "mtv $a0, S100\n"
+        "addiu $a2, $sp, 16\n"
+        "swc1 $f13, 64($sp)\n"
+        "sw $ra, 80($sp)\n"
+        "vscl.t C130, C130, S100\n"
+        "vadd.t C120, C120, C130\n"
+        "sv.q C120, 0x20($sp)\n"
+        "lw $a0, 4($t3)\n"
+        "lw $a1, 4($a0)\n"
+        "addiu $a1, $a1, 160\n"
+        "lh $t0, 0($a1)\n"
+        "lw $v0, 4($a1)\n"
+        "addu $a0, $a0, $t0\n"
+        "addiu $t1, $a3, 32\n"
+        "addiu $t2, $a3, 48\n"
+        "addiu $t0, $a3, 16\n"
+        "move $a1, $sp\n"
+        "jalr $v0\n"
+        "move $a3, $t3\n"
+        "lw $ra, 80($sp)\n"
+        "jr $ra\n"
+        "addiu $sp, $sp, 96\n"
+        ".set reorder\n"
+    );
 }
 
 #pragma control sched=1

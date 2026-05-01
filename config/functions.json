@@ -39339,7 +39339,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0014074c",
@@ -39348,7 +39348,21 @@
       "0x0017d534"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelYGetPartialAnimationStatei"
+    "mangled_symbol": "__0fNeDynamicModelYGetPartialAnimationStatei",
+    "failure_notes": [
+      {
+        "session": "4583e88c",
+        "notes": "Closest C++ attempt is a normal cArray count check plus handle lookup through D_00038890. It compiles to the correct size and control flow, including the bnezl return pattern, but 20/144 bytes differ: SNC allocates the state pointer in a1 and the handle in a0, while the original keeps the state pointer in a0 and loads the handle into a1; the lookup result/resolved registers are similarly swapped (ours uses a2/a3 opposite the original). Tried char* arithmetic, in-place pointer updates, reusing idx as the handle, explicit register variables, a 0x44-byte PartialAnimationState struct, volatile state pointer, sched=1, and sched=2. The targeted permuter ran for 300s with --sched 2, compiled 3,418 candidates, and found no improvement from the 20-byte baseline. This is not a bnel-only case because the diff is 20 bytes and primarily register allocation/source-shape related.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:09:41Z",
+        "src_file": "src/eDynamicModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/4583e88c/00049624__agent_self_reported_failure__src_eDynamicModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x000496b4",
@@ -39471,11 +39485,19 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK"
+    "mangled_symbol": "__0fNeDynamicModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4583e88c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:09:41Z"
   },
   {
     "address": "0x00049894",
@@ -61133,7 +61155,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -61388,7 +61410,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",

@@ -39,7 +39,9 @@ public:
     void GetSweptContacts(const eCollisionInfo &, int, const mSphere *, const mCollideInfo *, eContactCollector *) const;
     void Write(cFile &) const;
     void CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
+    void __attribute__((naked)) CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const;
     void *GetAnimationState(void) const;
+    void *GetPartialAnimationState(int);
     void ClearPartialAnimationController(int);
     int GetSkinIndex(void) const;
     void SetSkin(cHandleT<eSkin>, int, int, cTimeValue);
