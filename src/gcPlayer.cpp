@@ -48,6 +48,8 @@ public:
     static void *GetConnection(nwConnectionHandle);
 };
 
+extern "C" void *__0fInwSocketNGetConnection6SnwConnectionHandleT(int);
+
 struct gcPlayer_AllocRec {
     short offset;
     short _pad;
@@ -111,6 +113,24 @@ public:
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
 };
+
+class gcReplicationVisitor;
+
+struct gcPlayer_TypeDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, gcReplicationVisitor &);
+};
+
+static inline char *gcPlayer_GetReplicatePlayer(int index, int offset, int valid) {
+    char *player = 0;
+    if (index >= 0) {
+        if (valid != 0) {
+            player = gcPlayer_s_pPlayers + offset;
+        }
+    }
+    return player;
+}
 
 extern const char gcPlayer_type_name[];                  // @ 0x36D894
 extern const char gcPlayer_type_desc[];                  // @ 0x36D89C
@@ -330,6 +350,50 @@ gcPlayer *gcPlayer::GetPlayerForConnection(nwConnectionHandle conn) {
         } while (i < 8);
     }
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::FindAvailablePlayer(void) static
+// -----------------------------------------------------------------------------
+int gcPlayer::FindAvailablePlayer(void) {
+    int i = 0;
+    int offset = 0;
+    do {
+        char *player = gcPlayer_s_pPlayers + offset;
+        int *words = (int *)player;
+        int *handle = (int *)(player + 0x28);
+        if (words[8] < 0) {
+            if (__0fInwSocketNGetConnection6SnwConnectionHandleT(*handle) == 0) {
+                return i;
+            }
+        }
+        i++;
+        offset += 0x44;
+    } while (i < 8);
+    return -1;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::MemCardReplicate(gcReplicationVisitor &) static
+// -----------------------------------------------------------------------------
+void gcPlayer::MemCardReplicate(gcReplicationVisitor &v) {
+    int i = 0;
+    int keepGoing = 1;
+    int offset = 0;
+    do {
+        char *player = gcPlayer_GetReplicatePlayer(i, offset, keepGoing);
+        char *dispatchPlayer = player;
+        __asm__ volatile("" : "+r"(dispatchPlayer));
+        if (dispatchPlayer != 0) {
+            char *classdesc = *(char **)(dispatchPlayer + 4);
+            gcPlayer_TypeDispatchEntry *entry =
+                (gcPlayer_TypeDispatchEntry *)(classdesc + 0x70);
+            entry->fn(player + entry->offset, v);
+        }
+        i++;
+        keepGoing = i < 8;
+        offset += 0x44;
+    } while (keepGoing != 0);
 }
 
 // -----------------------------------------------------------------------------

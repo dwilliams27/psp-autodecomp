@@ -8,6 +8,7 @@ class cBase;
 class cMemPool;
 class cType;
 class nwConnectionHandle;
+class gcReplicationVisitor;
 
 template <class T>
 class cHandleT {
@@ -44,6 +45,8 @@ public:
     static void AssignLocalControllers(bool);
     static gcPlayer *GetPlayerForConnection(nwConnectionHandle);
     static gcPlayer *GetPlayerForCamera(const gcCamera *);
+    static int FindAvailablePlayer(void);
+    static void MemCardReplicate(gcReplicationVisitor &);
     static cBase *New(cMemPool *, cBase *);
     void SetEntity(cHandleT<gcEntity>);
     void *GetCamera(void) const;
