@@ -175,6 +175,22 @@ def compile_src(src_file: str, build_dir: str = "build/src",
     else:
         o_path = build_dir + "/" + os.path.basename(rel) + ".o"
 
+    full_o = os.path.join(cwd, o_path) if cwd else o_path
+    # `run_overnight.sh` executes agents as the `autodecomp` user, so
+    # build/src can contain objects owned by another account. SNC opens
+    # the output path for writing directly; if an old 0644 object exists,
+    # verification fails with "Could not open output file" even though the
+    # source compiles. Unlink first so the compiler creates a fresh object.
+    try:
+        os.unlink(full_o)
+    except FileNotFoundError:
+        pass
+    except PermissionError:
+        # Directory ACLs usually still allow deletion even when chmod would
+        # fail. If unlink is genuinely blocked, leave the original make
+        # error to report the exact failing path.
+        pass
+
     result = subprocess.run(
         ["make", "-B", o_path], capture_output=True, text=True,
         cwd=cwd,
@@ -184,7 +200,6 @@ def compile_src(src_file: str, build_dir: str = "build/src",
         raise CompileFailed(
             f"compile failed for {src_file}: {stderr[:500]}"
         )
-    full_o = os.path.join(cwd, o_path) if cwd else o_path
     if not os.path.exists(full_o):
         raise RuntimeError(
             f"make succeeded for {src_file} but {full_o} not found"

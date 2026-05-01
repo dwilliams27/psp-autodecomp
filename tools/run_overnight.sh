@@ -104,4 +104,4 @@ echo ""
 # --preserve-env=OPENAI_API_KEY lets the codex backend use a parent-exported key
 # (no-op if unset; codex falls through to its own auth.json).
 # Embed repo path directly in the command string since -i sanitizes env.
-sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -c "cd '$REPO_DIR' && python3 tools/orchestrator.py $*"
+sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -c "umask 0002 && cd '$REPO_DIR' && python3 tools/orchestrator.py $*"

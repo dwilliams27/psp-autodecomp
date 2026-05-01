@@ -3370,7 +3370,49 @@ def main():
         # teardown happens last, after commits have flushed —
         # `git worktree remove` on a tree with uncommitted changes
         # would lose work otherwise.
+        interrupted_contexts = [
+            ctx for ctx, _slot_idx in in_flight.values()
+        ]
         executor.shutdown(wait=True)
+        if interrupted_contexts:
+            log(f"Interrupted with {len(interrupted_contexts)} active "
+                f"session(s); reverting their in-progress DB rows and "
+                f"ledger files.")
+            with db_lock:
+                reset_count = 0
+                for ctx in interrupted_contexts:
+                    for func in ctx.batch:
+                        target = addr_index.get(func["address"])
+                        if target and target.get("match_status") == "in_progress":
+                            target["match_status"] = "untried"
+                            reset_count += 1
+                    counters["total_attempted"] -= len(ctx.batch)
+                    if ctx.queue_kind == "shootout":
+                        schedule.unmark_shootout_attempted(
+                            ctx.identity,
+                            [f["address"] for f in ctx.batch])
+                if reset_count:
+                    save_db(functions)
+                    log(f"  Reset {reset_count} in-progress function(s) "
+                        f"to untried.")
+            for ctx in interrupted_contexts:
+                try:
+                    ledger, _out = partition_dirty_paths(
+                        ctx.exact_paths, ctx.sibling_prefixes,
+                        worktree=ctx.worktree)
+                    if ledger:
+                        revert_paths(ledger, worktree=ctx.worktree)
+                        log(f"  Reverted {len(ledger)} interrupted ledger "
+                            f"path(s) for session {ctx.session_id}.")
+                except BaseException as e:
+                    log(f"  Interrupted-session cleanup failed for "
+                        f"{ctx.session_id}: {type(e).__name__}: {e}")
+                    log_event(log_path, {
+                        "event": "interrupted_cleanup_failed",
+                        "session_id": ctx.session_id,
+                        "worktree": ctx.worktree,
+                        "error": str(e),
+                    })
         commit_queue.put(None)
         commit_thread.join()
         if shootout_worktrees:

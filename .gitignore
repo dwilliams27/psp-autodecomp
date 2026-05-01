@@ -5,6 +5,7 @@ asm/
 assets/
 expected/
 logs/
+backups/
 __pycache__/
 *.pyc
 .DS_Store
