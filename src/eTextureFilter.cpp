@@ -87,19 +87,29 @@ void eTextureFilter::Write(cFile &file) const {
 
 // ── Read ──
 
+#pragma control sched=1
 int eTextureFilter::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
-        return 0;
+    unsigned int version = rb._data[3];
+    if (version == 1) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        m_handle1.mIndex = 0;
+        __asm__ volatile("" ::: "memory");
+        cHandle *h = &m_handle1;
+        h->Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(h));
     }
-    m_handle1.mIndex = 0;
-    m_handle1.Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(&m_handle1));
     m_handle2.mIndex = 0;
-    m_handle2.Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(&m_handle2));
+    __asm__ volatile("" ::: "memory");
+    cHandle *h = (cHandle *)((char *)this + 0x0C);
+    h->Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(h));
     return result;
 }
+#pragma control sched=2
 
 // ── GetType ──
 
