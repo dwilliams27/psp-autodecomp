@@ -22,6 +22,7 @@ extern unsigned short gcPlayer_s_nLastBoundController;  // 0x37D2FA
 extern char *gcPlayer_s_pPlayers;                        // 0x37D87C, stride 68
 extern int gcPlayer_s_nLocalControllerId[8];             // 0x37D884
 extern float gcPlayer_s_fLocalControllerStrength[8];     // 0x37D8A4
+extern void *D_00038890[];
 
 extern char cBaseclassdesc[];                            // @ 0x37E6A8
 
@@ -30,6 +31,40 @@ struct gcPlayer_AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+struct gcPlayer_HandleEntry {
+    char pad_000[0x30];
+    int handle;
+    char pad_034[0x33];
+    signed char player;
+};
+
+static inline int gcPlayer_IsValidEntityHandle(int handle) {
+    int valid;
+    if (handle == 0) {
+        valid = 0;
+    } else {
+        gcPlayer_HandleEntry *entry =
+            (gcPlayer_HandleEntry *)D_00038890[handle & 0xFFFF];
+        gcPlayer_HandleEntry *found = 0;
+        if (entry != 0) {
+            valid = found != 0;
+            if (entry->handle == handle) {
+                found = entry;
+            }
+        }
+        valid = found != 0;
+    }
+    return valid & 0xFF;
+}
+
+static inline gcPlayer_HandleEntry *gcPlayer_GetEntityFromHandle(int handle) {
+    gcPlayer_HandleEntry *entry = 0;
+    if (handle != 0) {
+        entry = (gcPlayer_HandleEntry *)D_00038890[handle & 0xFFFF];
+    }
+    return entry;
+}
 
 class cType {
 public:
@@ -190,6 +225,29 @@ gcPlayer *gcPlayer::GetPlayerForCamera(const gcCamera *cam) {
         p = (gcPlayer *)((char *)p + 68);
     } while (i < 8);
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::SetEntity(cHandleT<gcEntity>)
+// -----------------------------------------------------------------------------
+void gcPlayer::SetEntity(cHandleT<gcEntity> handle) {
+    int current;
+    if (((((current = *(int *)((char *)this + 8)) ==
+           *(volatile int *)&handle)) & 0xFF) == 0) {
+        if (gcPlayer_IsValidEntityHandle(current) != 0) {
+            gcPlayer_GetEntityFromHandle(current)->player = -1;
+        }
+
+        int nextHandle = *(volatile int *)&handle;
+        int *entityHandle = (int *)((char *)this + 8);
+        *entityHandle = nextHandle;
+
+        int next = *(int *)((char *)this + 8);
+        if (gcPlayer_IsValidEntityHandle(next) != 0) {
+            gcPlayer_HandleEntry *entry = gcPlayer_GetEntityFromHandle(next);
+            entry->player = ((char *)this - gcPlayer_s_pPlayers) / 68;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

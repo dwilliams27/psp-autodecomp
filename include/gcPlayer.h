@@ -3,9 +3,16 @@
 
 class cFile;
 class gcCamera;
+class gcEntity;
 class cBase;
 class cMemPool;
 class cType;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
 
 namespace gcPlayer_priv {
     struct DeleteRecord {
@@ -33,6 +40,7 @@ public:
     static void AssignLocalController(int, bool);
     static gcPlayer *GetPlayerForCamera(const gcCamera *);
     static cBase *New(cMemPool *, cBase *);
+    void SetEntity(cHandleT<gcEntity>);
     void *GetCamera(void) const;
     void GetName(char *) const;
     void Write(cFile &) const;
