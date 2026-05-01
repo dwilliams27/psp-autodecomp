@@ -81801,7 +81801,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000f73bc",
       "0x000f7c1c",
@@ -81812,7 +81812,15 @@
       "0x0034fd30"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapMIsMapLoadingbT"
+    "mangled_symbol": "__0fFgcMapMIsMapLoadingbT",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapMIsMapLoadingbT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "140c25e4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:08:10Z"
   },
   {
     "address": "0x000f18d4",
@@ -81886,7 +81894,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f73bc",
       "0x000f7cb8",
@@ -82230,7 +82238,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f286c"
     ],
@@ -83316,13 +83324,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f6370"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fFgcMapiIsDynamicallyLoadedObjectSetToLoadRC6FcGUIDK"
+    "mangled_symbol": "__0fFgcMapiIsDynamicallyLoadedObjectSetToLoadRC6FcGUIDK",
+    "failure_notes": [
+      {
+        "session": "140c25e4",
+        "notes": "Closest source is an offset-based do/while scan over the dynamic object records at 0x99B18 + 8 with a 0x14 stride. It compiles to the correct 120-byte function size, but still differs by 47 bytes. Manual variants tried: direct pointer walk mirroring FindLoadedRegion, explicit pre-loop pointer setup with goto, do/while pointer increment, int* indexing for the second GUID word, named extern globals, sched=1 pragma, and offset-based indexing. The best shape has the same bottom-tested loop and no branch-likely issue, but SNC allocates count/base/offset/current into different registers and recomputes current as base-plus-offset each iteration instead of the original's one-time conversion of offset 0 into the first record pointer.\n\nRan tools/permuter.py for 600 seconds with --save-best. It improved the baseline from 52 differing bytes to 47 bytes but did not match. Diff is far above the <=8-byte bnel/unmatchable threshold and the differing instructions are register allocation/setup shape, not bnel/beql vs bne/beq+nop, so this remains retryable failed.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:08:10Z",
+        "src_file": "src/gcMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/140c25e4/000f62f8__agent_self_reported_failure__src_gcMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f6370",

@@ -4,6 +4,12 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
+class cGUID {
+public:
+    int mA;
+    int mB;
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -36,6 +42,15 @@ public:
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+};
+
+class gcBackgroundLoader {
+public:
+    char pad_00[0x830];
+
+    gcBackgroundLoader(void);
+    ~gcBackgroundLoader(void);
+    bool IsLoadingMap(bool) const;
 };
 
 class eWorld;
@@ -401,6 +416,49 @@ void gcMap::DeleteDynamicLoadedObjects(int arg0, cHandleT<gcEntity> handle) {
         mDeleteDynamicHandle = handle;
         *(int *)0x0037D7F4 = arg0;
     }
+}
+
+int gcMap::IsMapLoading(bool includeMapLoad) {
+    static gcBackgroundLoader loader;
+    gcBackgroundLoader *loaderPtr = &loader;
+    int result = 0;
+    if (loaderPtr != 0 && loaderPtr->IsLoadingMap(includeMapLoad)) {
+        result = 1;
+    }
+    return result & 0xFF;
+}
+
+int gcMap::IsDynamicallyLoadedObjectSetToLoad(const cGUID &guid) const {
+    int count = *(int *)0x0037D7F8;
+    int i = 0;
+    __asm__ volatile("" ::: "memory");
+    if (i < count) {
+        char *base = (char *)0x00099B18;
+        char *guidBase = base + 8;
+        int offset = 0;
+        int guidA = guid.mA;
+        do {
+        int matchMasked;
+        int match = 0;
+        int *current = (int *)(offset + guidBase);
+        if (current[0] == guidA) {
+            matchMasked = match & 0xFF;
+            if (current[1] == guid.mB) {
+                match = 1;
+                goto matched_path;
+            }
+        } else {
+matched_path:
+            matchMasked = match & 0xFF;
+        }
+        if (matchMasked != 0) {
+            return 1;
+        }
+        i++;
+        offset += 0x14;
+        } while (i < count);
+    }
+    return 0;
 }
 
 void gcMap::ResetRegionStates(void) {

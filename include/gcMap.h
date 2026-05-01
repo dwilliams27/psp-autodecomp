@@ -8,6 +8,7 @@ class cBase;
 class cMemPool;
 class cFile;
 class cType;
+class cGUID;
 
 template <class T>
 class cGUIDT {
@@ -56,6 +57,8 @@ public:
     void ApplyRegionState(gcRegionBase *);
     gcRegion *FindLoadedRegion(const cGUIDT<gcRegion> &) const;
     void ClearRegionSetState(int, int);
+    int IsDynamicallyLoadedObjectSetToLoad(const cGUID &) const;
+    static int IsMapLoading(bool);
 
     char pad_000[0x140];
     int mFlags;                             // 0x140
