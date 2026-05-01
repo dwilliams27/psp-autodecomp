@@ -95,6 +95,49 @@ void eKeyframedController::GetVelocity(int idx, mVec3 *out_a, mVec3 *out_b) cons
     *(v4sf_t *)out_a = v[4];
 }
 
+// eKeyframedController::GetInvMass(int, float *, mVec3 *) const @ 0x00075100
+void eKeyframedController::GetInvMass(int, float *inv_mass, mVec3 *out) const {
+    *inv_mass = 0.0f;
+    register int ix __asm__("a0");
+    register int iy __asm__("a1");
+    register int iz __asm__("a2");
+    __asm__ volatile("mfc1 %0, $f12" : "=r"(ix));
+    __asm__ volatile("mfc1 %0, $f12" : "=r"(iy));
+    __asm__ volatile("mfc1 %0, $f12" : "=r"(iz));
+    v4sf_t zero;
+    __asm__ volatile(
+        "mtv %1, S120\n"
+        "mtv %2, S121\n"
+        "mtv %3, S122\n"
+        "vmov.q %0, C120\n"
+        : "=v"(zero)
+        : "r"(ix), "r"(iy), "r"(iz)
+        : "memory");
+    *(v4sf_t *)out = zero;
+}
+
+// eKeyframedController::GetLocalToWorld(int, mOCS *) const @ 0x00075128
+void eKeyframedController::GetLocalToWorld(int, mOCS *out) const {
+    v4sf_t row0;
+    v4sf_t row1;
+    v4sf_t row2;
+    v4sf_t row3;
+    __asm__ volatile(
+        "vmidt.q M000\n"
+        "vmov.q %0, C000\n"
+        "vmov.q %1, C010\n"
+        "vmov.q %2, C020\n"
+        "vmov.q %3, C030\n"
+        : "=v"(row0), "=v"(row1), "=v"(row2), "=v"(row3)
+        :
+        : "memory");
+    v4sf_t *rows = (v4sf_t *)out;
+    rows[0] = row0;
+    rows[1] = row1;
+    rows[2] = row2;
+    rows[3] = row3;
+}
+
 void eKeyframedController::ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &) {
 }
 

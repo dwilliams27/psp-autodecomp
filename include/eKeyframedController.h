@@ -14,6 +14,8 @@ public:
     void Deactivate(eDynamicModel *);
     void __attribute__((naked)) GetVelocity(int, const mVec3 &, mVec3 *) const;
     void GetVelocity(int, mVec3 *, mVec3 *) const;
+    void GetInvMass(int, float *, mVec3 *) const;
+    void GetLocalToWorld(int, mOCS *) const;
     void GetPosition(int, mVec3 *) const;
     void SetPosition(int, const mVec3 &);
     void ApplyImpulse(int, const mVec3 &, const mVec3 &);

@@ -42237,14 +42237,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002b970"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPeHeightmapShapedtv"
+    "mangled_symbol": "__0oPeHeightmapShapedtv",
+    "src_file": "src/eHeightmapShape.cpp",
+    "symbol_name": "__0oPeHeightmapShapedtv"
   },
   {
     "address": "0x000507dc",
@@ -42256,7 +42258,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -42264,6 +42266,18 @@
       {
         "session": "fef30d10",
         "notes": "GetAABB is 100% VFPU with no C/C++ equivalent. The 8 instructions are: 3x (vpfxs prefix + vmov.t C120,C000) + jr ra + nop. There are NO memory stores at all \u2014 the function never writes to its mBox* argument (a0 is untouched) and never stores C120 anywhere. Each of the 3 vmov.t writes to the same dest register C120 (same encoding 0xd0008006), so the first two are immediately overwritten; only the last one (setting C120 to (0,0,1) with W from C000) survives, and even it is never stored. This is effectively dead code from the compiler's perspective \u2014 possibly a stub/placeholder in the original source that emitted explicit VFPU instructions via inline asm without stores.\n\nPer CLAUDE.md rules, a function that's 100% inline asm is banned: 'If a function genuinely cannot be expressed in C/C++ (e.g., 100% VFPU computation), mark it failed, do NOT bypass with assembly.' This function has zero scalar C equivalent \u2014 vpfxs (VFPU source prefix) and vmov.t on C120 have no intrinsic in SNC's VFPU type system (V4SF/V16SF only support load/store, not arithmetic, and C120 is a column register not directly exposed). The only way to emit these exact bytes is a file-scope or function-scope __asm__ block reproducing the disassembly verbatim, which is explicitly forbidden. Marking failed."
+      },
+      {
+        "session": "126b2744",
+        "notes": "Tried the existing empty-stub shape, reviewed the eSphereShape::GetAABB VFPU-prefix exemplar, and checked the native VFPU docs. The target is six instructions of dead VFPU state setup (vpfxs/vmov.t repeated for X/Y/Z) followed by jr/nop, with no use of this, mBox*, or mOCS& and no memory stores. C/C++ source with no observable side effect correctly compiles to only jr/nop, leaving a 24-byte size gap.\n\nThe only known way to emit the missing bytes is to copy the vpfxs/vmov.t sequence in inline assembly, which would make the function overwhelmingly assembly and violates the repo rule against pure-assembly matches. No sched flag issue is indicated; the problem is that these VFPU prefix/move side effects have no C-level equivalent or SNC builtin form.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:26:16Z",
+        "src_file": "src/eHeightmapShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/126b2744/000507dc__agent_self_reported_failure__src_eHeightmapShape.cpp"
       }
     ],
     "mangled_symbol": "__0fPeHeightmapShapeHGetAABBP6EmBoxRC6EmOCSK"
@@ -56197,7 +56211,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56207,7 +56221,9 @@
         "notes": "eCylinderShape::Collide(const eShape*, int, int, const mOCS&, const mOCS&, eCollisionContactInfo*) const \u2014 48/172 bytes diff. Structure is correct: (a) virtual dispatch via vtable entry at +0xF8 with shape/arg swaps (b, a, ocs2, ocs1), (b) post-call loop that negates each contact's normal quad (info+0x20, stride 0x40), (c) two return paths (1 on hit, 0 on miss).\n\nTwo divergence sources:\n\n1. **Argument-shuffle register allocation (prologue ~32 bytes):** Expected performs the GPR moves BEFORE loading the vtable (`move s0,t2; move t2,t0; move t0,a2; move a2,a0` then `lw a0,4(a1)` \u2192 vtable into a0). My build loads vtable FIRST into t3 (`lw t3,4(a1); move v0,t0; move s0,t2; ...`). This cascades: expected uses a0/t3 for the thunk offset/fn-ptr access; mine uses t3/a2. Tried structuring the dispatch as a single expression with no intermediate `vtable`/`entry` variables \u2014 register allocator still picks t3 for vtable because the fn-ptr lookup is a live expression when the shuffles start.\n\n2. **Loop register allocation (~16 bytes):** Expected assigns `i \u2192 a1` and `p \u2192 a0`; mine assigns `i \u2192 a0` and `p \u2192 a1`. Tried swapping source declaration order (`char *p = ...; int i = 0;` vs `int i = 0; char *p = ...`) and moving `int i = 0` into vs out of the `if (hit)` block \u2014 both made it worse (110/172 when moved inside). The compiler's allocation seems tied to the argument-shuffle choices above, not source order.\n\nThe fundamental issue is that without `virtual` on eShape::Collide(const eCylinderShape*) in eShape.h, I'm reconstructing the vtable dispatch manually via a fn-ptr call through a struct (CollideVtableEntry), and the compiler sees it as a plain indirect call \u2014 so it orders the instruction stream differently than a true `shape->Collide(this, ...)` virtual call would.\n\nAdding `virtual` to eShape.h is NOT a viable fix: eShape has 39 matched functions (plus 9 matched derived classes: eBoxShape, eSphereShape, eCapsuleShape, eMultiSphereShape, eTriangleShape, eHeightmapShape, eCompoundShape, eMeshShape, eDynamicGeom) that all rely on the current non-virtual layout with manual `*(void**)(this+4) = vtable` installs. Adding a virtual keyword would insert an implicit vtable slot at offset 0, breaking every ctor's layout assumption.\n\nFor the next agent: the cleanest fix is likely to write the vtable dispatch portion (instructions 0x12c..0x168 in source) in a single monolithic `__asm__ volatile` block that does the exact `lw/addiu/lh/addu/lw/<moves>/jalr` sequence, then let C handle the loop. This accepts that the jalr delay slot (`move t2,s0`) won't match because inline asm forbids delay-slot fill \u2014 but that's ONE instruction diff instead of ~12. OR investigate whether the hooks `\"j\"(...)` / `\"f\"(...)` constraints can force the compiler to defer vtable-ptr loading until after the shuffle moves. Also worth trying: declare a local function pointer typedef with an explicit calling convention attribute to see if SNC treats it differently."
       }
     ],
-    "mangled_symbol": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCylinderShape.cpp",
+    "symbol_name": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000747b8",
@@ -56577,7 +56593,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56599,7 +56615,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56609,7 +56625,9 @@
         "notes": "GetLocalToWorld(int, mOCS *) const \u2014 40B. Body is 100% VFPU: vmidt.q M000 (identity matrix), 4x vmov.q copying rows into C120/C130/C200/C210, 4x sv.q stores with the last in jr delay slot. Per doc 007, vmidt.q and vmov.q have no C equivalent (V4SF/V16SF only support load/store, not arithmetic or moves). This means the entire function must be inline asm, which (a) is banned by CLAUDE.md and (b) can't place sv.q in the jr delay slot anyway (doc snc-delay-slots). Marking failed per norm: 'If a function genuinely cannot be expressed in C/C++ (e.g., 100% VFPU computation), mark it failed, do NOT bypass with assembly.' Future unlock path: expose a C idiom for vmidt.q + matrix-copy so the stores can come from V16SF struct assignments."
       }
     ],
-    "mangled_symbol": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK"
+    "mangled_symbol": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK",
+    "src_file": "src/eKeyframedController.cpp",
+    "symbol_name": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK"
   },
   {
     "address": "0x00075150",
@@ -142880,7 +142898,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -142892,7 +142910,9 @@
         "session": "b5330389",
         "notes": "Scheduler-ordering divergence in InitializeType arg setup, not source-fixable with available pragmas. Wrote the standard tri-static-init pattern (matches eCameraEffectGeom/gcStringSet form):\n\n  if (!t3) { if (!t2) { if (!t1) { t1 = InitializeType(name, desc, 1, 0,...); } t2 = InitializeType(0,0,0x227,t1,0,...); } t3 = InitializeType(0,0,0x2E7,t2,&New,...); }\n\nWith default sched=2 the function compiles to 220B (not 216B) \u2014 sched=2 hoists 'lui t0' to before the inner bnez (matching eCameraEffectGeom/gcStringSet 220B style). Expected eHeightmapShape::GetType is uniquely 216B (no hoist) AND uses standard prologue (sw s0/s1/s2/ra in order at 0..12). Switching to '#pragma control sched=1' fixes (a) the 220\u2192216 size, (b) the standard prologue, and (c) the second InitializeType call (which has no string args) now matches byte-for-byte after relocation masking.\n\nRemaining 18-word diff is in calls 1 and 3, where sched=1 reorders args:\n  Expected (call 1):  lui a0; addiu a0; lui a1; addiu a1; li a2; move a3; move t0..t2; jal; move t3 (delay)\n  Compiled (call 1):  li a2; move a3; move t0..t3; lui a0; addiu a0; lui a1; jal; addiu a1 (delay)\n  Expected (call 3):  lw a3; lui t0; addiu t0; move a0; move a1; li a2; move t1..t2; jal; move t3 (delay)\n  Compiled (call 3):  lw a3; move a0; move a1; li a2; move t1..t3; lui t0; jal; addiu t0 (delay)\n\nIn both, the original schedules the heavy lui+addiu pair EARLY then puts a single-cycle 'move t3, zero' in the jal delay slot. Our SNC at sched=1 schedules simple moves early and splits the lui+addiu pair across the jal. Permuter ran 60s/1008 candidates with zero improvement (sched=2 baseline 50B differ; tried at sched=2). Tried no-pragma (sched=2 default \u2192 220B, prologue wrong), pragma sched=1 (216B, args reordered).\n\nRoot cause: scheduler heuristic divergence between SNC builds. Neither sched=1 nor sched=2 produces this exact form. The only way the 'heavy-load early + simple-in-delay' pattern can be reproduced with our current SNC is unknown; suspect this requires an undiscovered Xmopt/Xxopt level or a slightly different SNC version. Source restructurings tried (locals to force eval order, function pointer cast variants) cannot influence schedule order at this granularity. Recommendation: park this until either (a) compiler-internals work on scheduling pass yields a pragma we can use, or (b) we discover a different InitializeType signature trick. Source left in-place with sched=1 pragma since that yields the best partial result (216B, correct prologue, call 2 fully matched). Removed the pragma block before submitting? No \u2014 left it in place; it's the closer-to-match form so future agents can iterate from there."
       }
-    ]
+    ],
+    "src_file": "src/eHeightmapShape.cpp",
+    "symbol_name": "__0fPeHeightmapShapeHGetTypevK"
   },
   {
     "address": "0x001f4d94",
@@ -142928,7 +142948,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -142936,6 +142956,18 @@
       {
         "session": "fef30d10",
         "notes": "GetInertialTensor(float, mVec3*) is effectively `*v = mVec3(0,0,0)` but compiled via an unusual VFPU routing: `mtc1 zero, f12; mfc1 a0, f12; mfc1 a2, f12; mfc1 a3, f12; mtv a0,S120; mtv a2,S121; mtv a3,S122; jr ra; sv.q C120, 0(a1)`. The float arg is clobbered via mtc1 $zero,$f12 and then 3x mfc1 pulls zero into a0/a2/a3 (not a1, because a1 holds the mVec3* destination). Then mtv routes to S120-S122 and sv.q stores all 4 lanes of C120 (S123 is unset \u2014 garbage written to the 4th word, implying mVec3 is 16-byte-aligned padding).\n\nThe pattern matches eCapsuleShape.cpp's 'Zero path' (lines 66-73) exactly \u2014 inline asm sequence of mtc1/mfc1/mtv/sv.q. That existing match used file-scope inline asm for the entire function body, but CLAUDE.md now explicitly bans that approach: 'If a function is >50% inline asm by instruction count, you're doing it wrong \u2014 restructure or report it as failed.' This function has 9 instructions total; any C/C++ decomp would require at least 8 of them to be inline asm (mtc1, 3x mfc1, 3x mtv, sv.q), which is ~90% asm.\n\nSNC's VFPU native types (v4sf_t) per docs/decisions/007 only support load/store, not zero-init arithmetic. `__builtin_ftovs(0.0f)` would generate the mtc1+mfc1+mtv route for a single scalar, but generating the specific register pattern (a0/a2/a3 skipping a1 because a1 holds the ptr) and having sv.q placed in the jr delay slot would require SNC to auto-schedule across C-level __builtin_ftovs calls \u2014 which the permuter might find but I couldn't reach via clean C.\n\nMarking failed. A retry agent could try: three `__builtin_ftovs(0.0f)` assignments to three vs_t locals + explicit V4SF construction via intrinsics (if any exist), OR accept the inline-asm convention per eCapsuleShape.cpp precedent if the norm is relaxed."
+      },
+      {
+        "session": "126b2744",
+        "notes": "Closest non-banned attempt uses native VFPU scalar builtins: three zero float values, empty FPU barriers to stop full CSE, __builtin_ftovs for VS values, then VS stores to out. With local sched=1 it compiles to mtc1 zero,f12; three mfc1 a0,f12; three mtv/mthc2 scalar moves; and scalar cop2 stores. That is 36B like the target but still differs in 18 bytes because SNC reuses a0 instead of a0/a2/a3 and lowers the stores as scalar swc2/gsswrc1 rather than a single sv.q C120 in the jr delay slot.\n\nAlso tried plain scalar float stores (20B swc1 form), a union/v4sf_t local copy (stack frame plus gslbx/gssbx, 24/36 bytes different), native vector initializer syntax (SNC parse error), and both sched=2 and sched=1. The documented constructor-codegen recipe can emit the target via explicit mfc1/mtv/sv.q inline asm, but this 9-instruction function would be mostly assembly and violates the current no-pure-assembly rule. tools/permuter.py was attempted for the 18-byte diff, but it cannot compile this file because it omits the required -Xvfpumatrix=1 -Xvfpuscalar=8 flags for sources declaring VFPU native types; I did not patch tooling per repo rules.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:26:16Z",
+        "src_file": "src/eHeightmapShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/126b2744/001f4d9c__agent_self_reported_failure__src_eHeightmapShape.cpp"
       }
     ],
     "mangled_symbol": "__0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K"
@@ -148137,7 +148169,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -148149,7 +148181,9 @@
         "session": "2b4fc0a1",
         "notes": "50/216 byte diff using the canonical 3-level lazy-init cType pattern (root cType, parent eShape cType, self cType) with kinds 0x227/0x22B and a call to cType::InitializeType. Verified via compare_func.py that `eHeightmapShape::GetType` \u2014 currently flagged matched in the function DB and used as the reference template \u2014 actually produces an identical 50/216 mismatch, so this is the same unsolved compiler divergence rather than a flaw in this implementation. Diff is in the InitializeType arg-setup prologue: SNC at sched=1 emits zero-moves and constants before the lui/addiu pairs, but the target lays out lui/addiu first. May be a -Xmopt or -Xxopt variant we have not characterized, or the original used a slightly different InitializeType macro/inline expansion. Worth a focused investigation on this single divergence \u2014 fixing it likely matches a large family of GetType functions across the codebase."
       }
-    ]
+    ],
+    "src_file": "src/eCylinderShape.cpp",
+    "symbol_name": "__0fOeCylinderShapeHGetTypevK"
   },
   {
     "address": "0x0020dd40",
