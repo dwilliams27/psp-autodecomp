@@ -108,6 +108,7 @@ public:
     void ReceiveReject(nwInPacket &, nwConnectionHandle);
     void Update(cTimeValue);
     static void UpdateAll(cTimeValue);
+    static nwSocket *GetSocket(nwSocketHandle);
     static nwConnection *GetConnection(nwConnectionHandle);
 };
 
@@ -161,6 +162,74 @@ nwSocket::nwSocket(nwTransport *transport, nwSocketHandle handle,
       mField2C(0)
 {
     cStrCopy(mName, "");
+}
+
+// ------------------------------------------------------------------
+nwSocket *nwSocket::GetSocket(nwSocketHandle handle) {
+    unsigned int value = handle.mValue;
+    register int zero __asm__("$0");
+
+    if (((zero == value) & 0xFF) != 0) {
+        goto zeroReturn;
+    }
+
+    nwSocket *socket = D_00034958[(unsigned int)(value & 0xFF) >> 8];
+    nwSocket *result = 0;
+    if (socket != 0) {
+        goto hasSocket;
+    }
+    goto done;
+
+zeroReturn:
+    return 0;
+
+hasSocket:
+    if ((value == socket->mHandle) & 0xFF) {
+        __asm__ volatile("" ::: "memory");
+        result = socket;
+    }
+
+done:
+    return result;
+}
+
+// ------------------------------------------------------------------
+nwConnection *nwSocket::GetConnection(nwConnectionHandle handle) {
+    int value = handle.mValue;
+    register unsigned int zero __asm__("$0");
+
+    if (((zero == value) & 0xFF) != 0) {
+        goto zeroReturn;
+    }
+
+    unsigned int socketIndex = (unsigned int)(value & 0xFF00) >> 8;
+    nwSocket **slot = D_00034958 + socketIndex;
+    nwSocket *socket = *slot;
+    if (socket == 0) {
+        goto zeroReturn;
+    }
+    int index = value & 0xFF;
+    if (index >= socket->mMaxConnections) {
+        goto zeroReturn;
+    }
+    nwConnection *connection = socket->mConnections[index];
+    nwConnection *result = 0;
+    if (connection != 0) {
+        goto hasConnection;
+    }
+    goto done;
+
+zeroReturn:
+    return 0;
+
+hasConnection:
+    if ((value == ((ConnLite *)connection)->mHandle.mValue) & 0xFF) {
+        __asm__ volatile("" ::: "memory");
+        result = connection;
+    }
+
+done:
+    return result;
 }
 
 // ------------------------------------------------------------------
