@@ -7289,7 +7289,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004fec"
     ],
@@ -7313,7 +7313,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T08:10:12Z"
       }
-    ]
+    ],
+    "src_file": "src/cWriteBlock.cpp",
+    "symbol_name": "__0fLcWriteBlockFWrites",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b694947f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:24:37Z"
   },
   {
     "address": "0x000055d0",
@@ -7800,7 +7808,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004fec"
     ],
@@ -7894,7 +7902,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T11:44:53Z"
       }
-    ]
+    ],
+    "src_file": "src/cWriteBlock.cpp",
+    "symbol_name": "__0fLcWriteBlockFWritef",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b694947f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:24:37Z"
   },
   {
     "address": "0x000057f0",
@@ -42240,7 +42256,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56181,7 +56197,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56561,7 +56577,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56583,7 +56599,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -142912,7 +142928,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -148121,7 +148137,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

@@ -88,7 +88,9 @@ void cWriteBlock::Write(int count, const wchar_t *data) {
 void cWriteBlock::Write(short data) {
     short tmp;
     if (gByteSwap) {
-        tmp = (short)(((data & 0xff00) >> 8) | ((data & 0xff) << 8));
+        int val = data;
+        __asm__ volatile("sll %0,%0,16\n\tsra %0,%0,16" : "+r"(val));
+        tmp = (short)(((val & 0xff00) >> 8) | ((val & 0xff) << 8));
     } else {
         tmp = data;
     }
@@ -151,13 +153,18 @@ void cWriteBlock::Write(unsigned int data) {
 }
 
 void cWriteBlock::Write(float data) {
-    unsigned int u = *(unsigned int *)&data;
+    int bits = *(int *)&data;
+    unsigned int u = (unsigned int)bits;
+    unsigned int tmp;
     if (gByteSwap) {
         unsigned int hi = ((u & 0xFF000000) >> 24) | ((u & 0xFF0000) >> 8);
         unsigned int lo = ((u & 0xFF00) << 8) | ((u & 0xFF) << 24);
-        u = hi | lo;
+        tmp = hi | lo;
+    } else {
+        tmp = u;
     }
-    int bits = (int)u;
+    u = tmp;
+    bits = (int)u;
     cFileSystem::Write(mFile->mHandle, &bits, 4);
 }
 
