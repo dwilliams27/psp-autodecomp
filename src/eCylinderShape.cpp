@@ -8,6 +8,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class eCollisionContactInfo;
+class mRay;
 class mSphere;
 class mCollideInfo;
 class eCollisionInfo;
@@ -81,6 +82,13 @@ struct CastSphereVtableEntry {
               const eCollisionInfo &collisionInfo, mVec3 *pos, mVec3 *normal, float *time);
 };
 
+struct CastRayVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const mRay &ray, const eCollisionInfo &collisionInfo,
+              mVec3 *pos, mVec3 *normal, float *time);
+};
+
 // eCylinderShape::Write(cFile &) const — 0x000740e4
 #pragma control sched=1
 void eCylinderShape::Write(cFile &file) const {
@@ -101,6 +109,16 @@ eCylinderShape::eCylinderShape(cBase *parent) {
     mHalfHeight = 1.0f;
     __asm__ volatile("" ::: "memory");
     _unk88 = 0;
+}
+#pragma control sched=2
+
+// eCylinderShape::CastRay(...) const — 0x000743d0
+#pragma control sched=1
+int eCylinderShape::CastRay(const mRay &ray, const eCollisionInfo &collisionInfo,
+                            mVec3 *pos, mVec3 *normal, float *time) const {
+    void *shape = (void *)_unk88;
+    CastRayVtableEntry *entry = (CastRayVtableEntry *)(*(char **)((char *)shape + 4) + 0x98);
+    return entry->fn((char *)shape + entry->thisOffset, ray, collisionInfo, pos, normal, time);
 }
 #pragma control sched=2
 
