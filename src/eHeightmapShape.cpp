@@ -141,6 +141,11 @@ int eHeightmapShape::Collide(const eBoxShape *shape, int a, int, const mOCS &ocs
     return eCollision::BoxHeightmap(*shape, *this, a, ocs2, ocs1, info);
 }
 
+// eHeightmapShape::Collide(const eSphereShape *, ...) — 0x000513e4
+int eHeightmapShape::Collide(const eSphereShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    return eCollision::SphereHeightmap(*shape, *this, a, ocs2, ocs1, info);
+}
+
 // eHeightmapShape::Collide(const eCapsuleShape *, ...) — 0x0005143c
 int eHeightmapShape::Collide(const eCapsuleShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::CapsuleHeightmap(*shape, *this, a, ocs2, ocs1, info);
