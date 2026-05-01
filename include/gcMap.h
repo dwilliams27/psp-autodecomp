@@ -59,6 +59,9 @@ public:
     gcRegion *FindLoadedRegion(const cGUIDT<gcRegion> &) const;
     void ClearRegionSetState(int, int);
     int IsDynamicallyLoadedObjectSetToLoad(const cGUID &) const;
+    int IsStreamedCinematicChained(void) const;
+    void GetRegionSetName(unsigned int, char *) const;
+    int FindRegionSet(unsigned int, int *, int *) const;
     static int IsMapLoading(bool);
     static int IsObjectLoading(void);
 

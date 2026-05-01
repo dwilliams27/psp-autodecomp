@@ -80,8 +80,25 @@ public:
     void Stop(bool);
 };
 
+class gcStreamedCinematicConfig;
+
+class gcGame {
+public:
+    static const gcStreamedCinematicConfig *FindStreamedCinematicAll(
+        const cGUIDT<gcStreamedCinematic> &);
+};
+
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
+};
+
 class gcRegionSetGroup {
 public:
+    char pad_00[0x20];
+    void **m_arrayData;
+
     void ClearRegionSetState(int) const;
 };
 
@@ -115,6 +132,12 @@ struct TypeMethod {
     void (*fn)(void *, cFile *);
 };
 
+struct TypeMethodStr {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cStr *);
+};
+
 class TypedObject {
 public:
     int _parent;
@@ -143,6 +166,9 @@ extern cType *D_00099B04;
 extern gcMapRegionState *D_0037D0EC;
 extern int gcStreamedCinematic_currentIndex;
 extern gcStreamedCinematic *gcStreamedCinematic_table[];
+
+void cStrCopy(char *, const char *);
+char *cStrFormat(char *, const char *, ...);
 
 struct gcMap_AllocRec {
     short offset;
@@ -474,6 +500,98 @@ matched_path:
         } while (i < count);
     }
     return 0;
+}
+
+void gcMap::GetRegionSetName(unsigned int id, char *name) const {
+    const gcMap *map = this;
+    char *out = name;
+    const char *empty = (const char *)0x36DAF0;
+    cStrCopy(out, empty);
+
+    int groupIndex;
+    int regionIndex;
+    if (map->FindRegionSet(id, &groupIndex, &regionIndex) != 0) {
+        gcRegionSetGroup **groups =
+            *(gcRegionSetGroup ***)((const char *)map + 0x398);
+        gcRegionSetGroup *group =
+            *(gcRegionSetGroup **)((char *)groups + (groupIndex << 2));
+        if (group != 0) {
+            cStr text(empty);
+            void *regionSet;
+            int count;
+            void **sets;
+            if (regionIndex < 0) {
+                goto noRegionSet;
+            }
+            count = 0;
+            sets = group->m_arrayData;
+            if (sets != 0) {
+                count = ((int *)sets)[-1];
+            }
+            if (regionIndex < count) {
+                goto validRegionSet;
+            }
+noRegionSet:
+            regionSet = 0;
+            goto haveRegionSet;
+validRegionSet:
+            regionSet = *(void **)((char *)sets + (regionIndex << 2));
+haveRegionSet:
+            {
+                void *regionSetCheck = regionSet;
+                if (regionSetCheck == 0) {
+                    goto formatName;
+                }
+                TypeMethodStr *entry =
+                    (TypeMethodStr *)(*(char **)((char *)regionSetCheck + 4) +
+                                      0x40);
+                entry->fn((char *)regionSet + entry->offset, &text);
+            }
+
+formatName:
+            cStrFormat(out, (const char *)0x36DBB8, (char *)group + 8, &text);
+        }
+    }
+}
+
+int gcMap::IsStreamedCinematicChained(void) const {
+    if (mFlags & 0x400) {
+        return 0;
+    }
+
+    gcStreamedCinematic *current =
+        gcStreamedCinematic_table[gcStreamedCinematic_currentIndex];
+    int chained = 0;
+    if (current != 0) {
+        if (*(unsigned char *)((char *)current + 0x99) != 0) {
+            chained = 1;
+        }
+    }
+
+    const gcStreamedCinematicConfig *cinematic =
+        *(const gcStreamedCinematicConfig *const *)((const char *)this + 0x3D8);
+    chained &= 0xFF;
+    if (cinematic == 0) {
+        int hasCinematic = 0;
+        int guidA = *(int *)((const char *)this + 0x3DC);
+        if (guidA != 0 || *(int *)((const char *)this + 0x3E0) != 0) {
+            hasCinematic = 1;
+        }
+        hasCinematic &= 0xFF;
+        if (hasCinematic != 0) {
+            cinematic = gcGame::FindStreamedCinematicAll(
+                *(const cGUIDT<gcStreamedCinematic> *)((const char *)this + 0x3DC));
+        }
+    }
+
+    int result = 0;
+    if (cinematic != 0 && chained == 0) {
+        int flag = (mFlags & 0x4000) != 0;
+        if ((flag & 0xFF) == *(unsigned char *)((const char *)cinematic + 0x1C)) {
+            result = 1;
+        }
+    }
+    return result & 0xFF;
 }
 
 void gcMap::ResetRegionStates(void) {
