@@ -12,6 +12,28 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+class eRoomAABBTree {
+public:
+    int Contains(const mVec3 &) const;
+};
+
+struct HandleEntry {
+    char pad[48];
+    int handle;
+};
+
+struct HandleValue {
+    int value;
+};
+
+struct HandleRawValues {
+    int pad;
+    int room;
+    int set;
+};
+
+extern HandleEntry *D_00038890[];
+
 static int sNextCullId;
 
 void eWorld::LockWorld(bool lock) const {
@@ -95,6 +117,63 @@ int eWorld::IsPointInFluidVolume(const eRoom *room, const mVec3 &pos) const {
     const eRoom *r = GetRoomFromPos(room, pos);
     if (r) {
         return r->IsPointInFluidVolume(pos);
+    }
+    return 0;
+}
+
+const eRoom *eWorld::GetRoomFromPos(const eRoom *room, const mVec3 &pos) const {
+    volatile HandleValue roomHeld;
+    volatile HandleValue setHeld;
+    volatile HandleRawValues raw;
+
+    if (room != 0) {
+        raw.room = room->Contains(pos);
+        roomHeld.value = raw.room;
+        int value = roomHeld.value;
+        HandleEntry *found;
+        if (value == 0) {
+            found = 0;
+        } else {
+            HandleEntry *entry = D_00038890[value & 0xFFFF];
+            HandleEntry *valid = 0;
+            if (entry != 0) {
+                found = valid;
+                if (entry->handle == value) {
+                    valid = entry;
+                }
+            }
+            found = valid;
+        }
+        if (found != 0) {
+            return (const eRoom *)found;
+        }
+    }
+
+    eRoomSet *set = roomSetList;
+    if (set != 0) {
+        do {
+            raw.set = ((const eRoomAABBTree *)((char *)set + 0x44))->Contains(pos);
+            setHeld.value = raw.set;
+            int value = setHeld.value;
+            HandleEntry *found;
+            if (value == 0) {
+                found = 0;
+            } else {
+                HandleEntry *entry = D_00038890[value & 0xFFFF];
+                HandleEntry *valid = 0;
+                if (entry != 0) {
+                    found = valid;
+                    if (entry->handle == value) {
+                        valid = entry;
+                    }
+                }
+                found = valid;
+            }
+            if (found != 0) {
+                return (const eRoom *)found;
+            }
+            set = set->prevRoomSet;
+        } while (set != roomSetList);
     }
     return 0;
 }

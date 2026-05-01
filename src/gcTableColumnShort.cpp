@@ -1,7 +1,10 @@
 class cBase;
 class cFile;
 class cInStream;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cOutStream;
 
 class cReadBlock {
@@ -63,6 +66,8 @@ extern cType *D_0009F480;
 struct gcTableColumnShort : public gcTableColumn {
     cArrayShort mValues;
 
+    ~gcTableColumnShort(void);
+    static void operator delete(void *);
     void Read(cInStream &stream);
     void AssignCopy(const cBase *other);
     void Get(int row, wchar_t *buf, int bufsize) const;
@@ -85,6 +90,63 @@ struct AllocEntry {
     short pad;
     int (*fn)(void *, int, int, int, int);
 };
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+inline void gcTableColumnShort::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcTableColumnShortdtv, 0x120\n");
+
+// 0x002719f0, 288B
+gcTableColumnShort::~gcTableColumnShort(void) {
+    *(char **)((char *)this + 4) = (char *)0x389B50;
+    char *slot = (char *)this + 8;
+    if (slot != 0) {
+        char *data = *(char **)((char *)this + 8);
+        int count = 0;
+        if (data != 0) {
+            count = ((int *)data)[-1] & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (data != 0) {
+            data -= 4;
+            if (data != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(data);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *rec =
+                    (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(block + off, data);
+            }
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+    if (this != 0) {
+        *(char **)((char *)this + 4) = (char *)0x37E6A8;
+    }
+}
 
 // 0x002719d4, 28B
 void gcTableColumnShort::Read(cInStream &stream) {

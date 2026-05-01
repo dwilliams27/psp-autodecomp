@@ -12,6 +12,7 @@ class eCompoundShape;
 class eConvexHullShape;
 class eCylinderShape;
 class eMeshShape;
+class eMultiSphereShape;
 class eShape;
 class eSphereShape;
 class mBox;
@@ -26,6 +27,7 @@ public:
     void GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
+    int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCylinderShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

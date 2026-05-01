@@ -8,9 +8,13 @@ class cBase;
 class cFile;
 class cMemPool;
 class eCollisionContactInfo;
+class mRay;
 class mSphere;
+class mPlane;
 class mCollideInfo;
 class eCollisionInfo;
+class eContactCollector;
+class eDragAreaUtil;
 
 extern char eCylinderShapevirtualtable[];
 
@@ -81,6 +85,34 @@ struct CastSphereVtableEntry {
               const eCollisionInfo &collisionInfo, mVec3 *pos, mVec3 *normal, float *time);
 };
 
+struct CastRayVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const mRay &ray, const eCollisionInfo &collisionInfo,
+              mVec3 *pos, mVec3 *normal, float *time);
+};
+
+struct SweptContactsVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, int idx, const mSphere *sphere, const mCollideInfo *collideInfo,
+              const eCollisionInfo &collisionInfo, eContactCollector *collector);
+};
+
+struct EmbedContactsVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, int idx, const mSphere *sphere,
+              const eCollisionInfo &collisionInfo, eContactCollector *collector);
+};
+
+struct VolumeUnderPlaneVtableEntry {
+    short thisOffset;
+    short pad;
+    void (*fn)(void *self, eDragAreaUtil *util, const mPlane &plane, const mOCS &ocs,
+               float *volume, mVec3 *center);
+};
+
 // eCylinderShape::Write(cFile &) const — 0x000740e4
 #pragma control sched=1
 void eCylinderShape::Write(cFile &file) const {
@@ -104,6 +136,16 @@ eCylinderShape::eCylinderShape(cBase *parent) {
 }
 #pragma control sched=2
 
+// eCylinderShape::CastRay(...) const — 0x000743d0
+#pragma control sched=1
+int eCylinderShape::CastRay(const mRay &ray, const eCollisionInfo &collisionInfo,
+                            mVec3 *pos, mVec3 *normal, float *time) const {
+    void *shape = (void *)_unk88;
+    CastRayVtableEntry *entry = (CastRayVtableEntry *)(*(char **)((char *)shape + 4) + 0x98);
+    return entry->fn((char *)shape + entry->thisOffset, ray, collisionInfo, pos, normal, time);
+}
+#pragma control sched=2
+
 // eCylinderShape::CastSphere(...) const — 0x00074400
 #pragma control sched=1
 int eCylinderShape::CastSphere(const mSphere &sphere, const mCollideInfo &collideInfo,
@@ -113,6 +155,33 @@ int eCylinderShape::CastSphere(const mSphere &sphere, const mCollideInfo &collid
     CastSphereVtableEntry *entry = (CastSphereVtableEntry *)(*(char **)((char *)shape + 4) + 0xA0);
     return entry->fn((char *)shape + entry->thisOffset, sphere, collideInfo, collisionInfo,
                      pos, normal, time);
+}
+#pragma control sched=2
+
+// eCylinderShape::GetSweptContacts(...) const — 0x00074430
+#pragma control sched=1
+int eCylinderShape::GetSweptContacts(int idx, const mSphere *sphere,
+                                     const mCollideInfo *collideInfo,
+                                     const eCollisionInfo &collisionInfo,
+                                     eContactCollector *collector) const {
+    void *shape = (void *)_unk88;
+    SweptContactsVtableEntry *entry =
+        (SweptContactsVtableEntry *)(*(char **)((char *)shape + 4) + 0xA8);
+    return entry->fn((char *)shape + entry->thisOffset, idx, sphere, collideInfo,
+                     collisionInfo, collector);
+}
+#pragma control sched=2
+
+// eCylinderShape::GetEmbedContacts(...) const — 0x00074460
+#pragma control sched=1
+int eCylinderShape::GetEmbedContacts(int idx, const mSphere *sphere,
+                                     const eCollisionInfo &collisionInfo,
+                                     eContactCollector *collector) const {
+    void *shape = (void *)_unk88;
+    EmbedContactsVtableEntry *entry =
+        (EmbedContactsVtableEntry *)(*(char **)((char *)shape + 4) + 0xB0);
+    return entry->fn((char *)shape + entry->thisOffset, idx, sphere, collisionInfo,
+                     collector);
 }
 #pragma control sched=2
 
@@ -162,6 +231,18 @@ float eCylinderShape::GetVolume(void) const {
     __asm__ volatile("" : "+f"(height));
 
     return area * height;
+}
+#pragma control sched=2
+
+// eCylinderShape::GetVolumeUnderPlane(...) const — 0x00074858
+#pragma control sched=1
+void eCylinderShape::GetVolumeUnderPlane(eDragAreaUtil *util, const mPlane &plane,
+                                         const mOCS &ocs, float *volume,
+                                         mVec3 *center) const {
+    void *shape = (void *)_unk88;
+    VolumeUnderPlaneVtableEntry *entry =
+        (VolumeUnderPlaneVtableEntry *)(*(char **)((char *)shape + 4) + 0x130);
+    entry->fn((char *)shape + entry->thisOffset, util, plane, ocs, volume, center);
 }
 #pragma control sched=2
 

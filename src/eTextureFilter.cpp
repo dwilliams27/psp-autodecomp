@@ -6,10 +6,15 @@
 //   eTextureFilter::~eTextureFilter(void)              — 0x0007FB90
 //   eTextureFilter::GetType(void) const                — 0x00216EAC
 
-class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cBase;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cReadBlock {
 public:
@@ -52,6 +57,12 @@ extern const char eTextureFilter_base_desc[];
 static cType *type_base;
 static cType *type_eTextureFilter;
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class eTextureFilter {
 public:
     cBase *m_parent;    // offset 0
@@ -60,9 +71,25 @@ public:
     cHandle m_handle2;  // offset 12 (4 bytes)
 
     eTextureFilter(cBase *);
+    ~eTextureFilter();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            char *allocTable = *(char **)((char *)block + 0x1C);
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            void *base = (char *)block + off;
+            __asm__ volatile("" ::: "memory");
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 // ── Constructor ──
@@ -76,28 +103,40 @@ eTextureFilter::eTextureFilter(cBase *parent) {
 
 // ── Write ──
 
+#pragma control sched=1
 void eTextureFilter::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     m_handle1.Write(wb);
     m_handle2.Write(wb);
     wb.End();
 }
+#pragma control sched=2
 
 // ── Read ──
 
+#pragma control sched=1
 int eTextureFilter::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
-        return 0;
+    unsigned int version = rb._data[3];
+    if (version == 1) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        m_handle1.mIndex = 0;
+        __asm__ volatile("" ::: "memory");
+        cHandle *h = &m_handle1;
+        h->Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(h));
     }
-    m_handle1.mIndex = 0;
-    m_handle1.Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(&m_handle1));
     m_handle2.mIndex = 0;
-    m_handle2.Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(&m_handle2));
+    __asm__ volatile("" ::: "memory");
+    cHandle *h = (cHandle *)((char *)this + 0x0C);
+    h->Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(h));
     return result;
 }
+#pragma control sched=2
 
 // ── GetType ──
 
@@ -116,32 +155,8 @@ const cType *eTextureFilter::GetType(void) const {
 
 // ── Destructor ──
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-extern "C" {
-
-void eTextureFilter___dtor_eTextureFilter_void(eTextureFilter *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eTextureFiltervirtualtable;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                char *allocTable = *(char **)((char *)block + 0x1C);
-                DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-                short off = rec->offset;
-                void *base = (char *)block + off;
-                void (*fn)(void *, void *) = rec->fn;
-                fn(base, self);
-            } else {
-                free(self);
-            }
-        }
-    }
+#pragma control sched=1
+eTextureFilter::~eTextureFilter(void) {
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
 }
-
-}
+#pragma control sched=2

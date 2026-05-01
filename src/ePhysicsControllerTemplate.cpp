@@ -22,6 +22,33 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cName {
+public:
+    union {
+        int _data[6];
+        struct {
+            int _pad0[5];
+            short mTail0;
+            short mTail1;
+        };
+    };
+    void Read(cReadBlock &);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class ePhysicsController;
 class eDynamicModel;
 class ePhysicsControllerTemplate;
@@ -32,6 +59,7 @@ public:
     cBase *mOwner;
     void RemoveAll(void);
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 extern char ePhysicsControllerTemplateclassdesc[];
@@ -53,8 +81,11 @@ public:
     unsigned int mField24;     // +36
 
     ePhysicsControllerTemplate(cBase *b);
+    ~ePhysicsControllerTemplate(void);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    static void operator delete(void *);
 
     static void CreateAndResetInstance(cMemPool *pool, eDynamicModel *model,
                                        const ePhysicsControllerTemplate *tpl,
@@ -87,6 +118,68 @@ void ePhysicsControllerTemplate::Write(cFile &file) const {
     wb.End();
 }
 
+#pragma control sched=1
+// --- Read ---
+int ePhysicsControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 5, true);
+    unsigned int version = (unsigned int)rb._data[3];
+
+    if (version >= 6 || version < 1) goto fail;
+    if (version != 1) goto read_arr1;
+
+    {
+        cName name;
+        __asm__ volatile("" ::: "memory");
+        name.mTail0 = 0;
+        name.mTail1 = 0;
+        *(char *)&name = 0;
+        name.Read(rb);
+        int *dst = (int *)((char *)*(cBase **)mArr1.mCount + 8);
+        int n0 = name._data[0];
+        int n1 = name._data[1];
+        int n2 = name._data[2];
+        dst[0] = n0;
+        dst[1] = n1;
+        dst[2] = n2;
+        int n3 = name._data[3];
+        int n4 = name._data[4];
+        int n5 = name._data[5];
+        dst[3] = n3;
+        dst[4] = n4;
+        dst[5] = n5;
+        version = (unsigned int)rb._data[3];
+        goto after_arr1;
+    }
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read_arr1:
+    mArr1.Read(rb);
+    version = (unsigned int)rb._data[3];
+after_arr1:
+    if (version >= 3) {
+        mArr2.Read(rb);
+        version = (unsigned int)rb._data[3];
+    }
+
+    if (version >= 4) {
+        mArr3.Read(rb);
+        version = (unsigned int)rb._data[3];
+    }
+
+    if (version >= 5) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mField20, 4);
+    }
+
+    return result;
+}
+
 // --- GetType ---
 #pragma control sched=2
 const cType *ePhysicsControllerTemplate::GetType(void) const {
@@ -112,32 +205,34 @@ struct DeleteRecord {
 
 extern "C" void free(void *);
 
-extern "C" void ePhysicsControllerTemplate___dtor_ePhysicsControllerTemplate_void(
-    ePhysicsControllerTemplate *self, int flags)
-{
-    if (self != 0) {
-        self->mClassDesc = ePhysicsControllerTemplateclassdesc;
-        cBaseArray *a3 = &self->mArr3;
-        cBaseArray *a2 = &self->mArr2;
-        cBaseArray *a1 = &self->mArr1;
-        if (a3 != 0) a3->RemoveAll();
-        if (a2 != 0) a2->RemoveAll();
-        if (a1 != 0) a1->RemoveAll();
-        self->mClassDesc = ePhysicsControllerTemplate_base_classdesc;
-        if (flags & 1) {
-            void *pool = cMemPool::GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                __asm__ volatile("" ::: "memory");
-                DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short off = rec->offset;
-                rec->fn((char *)block + off, self);
-            } else {
-                free(self);
-            }
-        }
+inline void ePhysicsControllerTemplate::operator delete(void *p) {
+    void *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        void *block = *(void **)((char *)pool + 0x24);
+        __asm__ volatile("" ::: "memory");
+        DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+        short off = rec->offset;
+        rec->fn((char *)block + off, p);
+    } else {
+        free(p);
     }
 }
+
+__asm__(".word 0x1000ffff\n.word 0x00000000\n");
+__asm__(".size __0oaePhysicsControllerTemplatedtv, 0xe8\n");
+
+#pragma control sched=1
+ePhysicsControllerTemplate::~ePhysicsControllerTemplate() {
+    mClassDesc = ePhysicsControllerTemplateclassdesc;
+    cBaseArray *a3 = &mArr3;
+    cBaseArray *a2 = &mArr2;
+    cBaseArray *a1 = &mArr1;
+    if (a3 != 0) a3->RemoveAll();
+    if (a2 != 0) a2->RemoveAll();
+    if (a1 != 0) a1->RemoveAll();
+    mClassDesc = ePhysicsControllerTemplate_base_classdesc;
+}
+#pragma control sched=2
 
 // This size override must precede the method definition; SNC's emitted function
 // body still places the two words after the normal epilogue.
