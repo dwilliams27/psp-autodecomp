@@ -5,6 +5,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -74,7 +79,16 @@ struct VTableSlot {
 
 class gcExpressionList {
 public:
+    void Read(class cReadBlock &);
     ~gcExpressionList(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 typedef float (*gcExprVFn)(const void *);
@@ -284,6 +298,61 @@ void gcDoEvaluation::Write(cFile &file) const {
     gcExpressionList_Write((char *)this + 0x10, &wb);
     gcExpressionList_Write((char *)this + 0x18, &wb);
     wb.End();
+}
+
+// 0x0014aeec, 348B
+int gcDoEvaluation::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1 || !((gcAction *)this)->Read(file, pool)) {
+        ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+        return 0;
+    }
+
+    int val = ((int *)this)[3];
+    int tag = val & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    cBase *ref;
+    if (flag != 0) {
+        ref = 0;
+    } else {
+        ref = (cBase *)val;
+    }
+    cBase *out = ref;
+
+    int tagged = 0;
+    if (tag != 0) {
+        tagged = 1;
+    }
+
+    cBase *parent;
+    if (tagged != 0) {
+        parent = (cBase *)(val & ~1);
+    } else {
+        parent = *(cBase **)val;
+    }
+
+    void *childPool = cMemPool_GetPoolFromPtr((char *)this + 0x0C);
+    rb.ReadBase((cMemPool *)childPool, parent, out);
+
+    int newVal;
+    if ((int)out == 0) {
+        __asm__ volatile("" ::: "memory");
+        newVal = ((int)parent) | 1;
+    } else {
+        newVal = (int)out;
+    }
+    __asm__ volatile("" ::: "memory");
+    ((int *)this)[3] = newVal;
+
+    ((gcExpressionList *)((char *)this + 0x10))->Read(rb);
+    ((gcExpressionList *)((char *)this + 0x18))->Read(rb);
+    return result;
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.

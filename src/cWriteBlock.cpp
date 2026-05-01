@@ -41,6 +41,7 @@ public:
     void Write(int, const short *);
     void Write(int, const unsigned short *);
     void Write(int, const wchar_t *);
+    void End(void);
 };
 
 extern unsigned char gByteSwap;
@@ -229,4 +230,13 @@ void cWriteBlock::Write(int count, const bool *data) {
     for (int i = 0; i < count; i++) {
         Write(data[i]);
     }
+}
+
+void cWriteBlock::End(void) {
+    unsigned int pos = (mFile->GetCurrentPos() + 3) >> 2;
+    pos <<= 2;
+    mFile->SetCurrentPos(mOffset);
+    Write(pos);
+    mFile->SetCurrentPos(pos);
+    Write((int)0xBEBEBEBE);
 }

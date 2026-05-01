@@ -8250,7 +8250,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005704"
     ],
@@ -8343,7 +8343,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053ac",
       "0x000053c8",
@@ -8929,7 +8929,15 @@
       "0x0036abbc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLcWriteBlockDEndv"
+    "mangled_symbol": "__0fLcWriteBlockDEndv",
+    "src_file": "src/cWriteBlock.cpp",
+    "symbol_name": "__0fLcWriteBlockDEndv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "88bdaae4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:51:58Z"
   },
   {
     "address": "0x00005d00",
@@ -110011,7 +110019,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -110023,7 +110031,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoEvaluationEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcDoEvaluationEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "88bdaae4",
+        "notes": "Implemented gcDoEvaluation::Read(cFile &, cMemPool *) as real C++ in src/gcDoEvaluation.cpp using the matched tagged-pointer ReadBase pattern from gcDoReturn/gcDesiredValue: cReadBlock(file, 1, true), version check, gcAction::Read, rewind-on-fail, tagged next/action pointer resolution, cMemPool_GetPoolFromPtr(this+0x0C), ReadBase, null fallback to parent|1, both gcExpressionList::Read calls, destructor, and s3 success return. The closest source is size-exact at 348 bytes and compare_func reports 34/348 differing bytes. Objdump shows the body matches from the post-constructor rb._data[3] load onward, including the formerly tricky post-ReadBase bnez/nop/b+ori sequence.\n\nThe remaining diff is confined to the cReadBlock prologue/register-save scheduler region before the constructor call: original order is sw s0, sw s2, move s2, move s0, sw s1, sw s3, move s1, li s3, move a0, li a2, sw ra, jal; our SNC emits sw s0, sw s1, sw s2, move s2, move s1, move s0, sw s3, sw ra, li s3, move a0, li a2, jal. Tried plain result=1, fixed register result, inline ori result, sched=1 pragma, gcAction-style self/file/pool aliases, if/else, goto, ternary-style, and memory barriers around the null fallback. The permuter was attempted for 300s but failed to start because it could not isolate this target in the multi-function source object. This matches the known cReadBlock Read prologue scheduler blocker described in the prompt, so leaving as failed rather than marking unmatchable_bnel.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:51:58Z",
+        "src_file": "src/gcDoEvaluation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/88bdaae4/0014aeec__agent_self_reported_failure__src_gcDoEvaluation.cpp"
+      }
+    ]
   },
   {
     "address": "0x0014b048",

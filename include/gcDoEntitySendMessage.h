@@ -48,6 +48,7 @@ public:
     void GetText(char *) const;
     float Evaluate(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
 
