@@ -51,6 +51,7 @@ public:
     gcBackgroundLoader(void);
     ~gcBackgroundLoader(void);
     bool IsLoadingMap(bool) const;
+    bool IsLoadingObject(void) const;
 };
 
 class eWorld;
@@ -428,6 +429,20 @@ int gcMap::IsMapLoading(bool includeMapLoad) {
     return result & 0xFF;
 }
 
+int gcMap::IsObjectLoading(void) {
+    if (*(int *)0x0037D7F8 > 0) {
+        return 1;
+    }
+
+    static gcBackgroundLoader loader;
+    gcBackgroundLoader *loaderPtr = &loader;
+    int result = 0;
+    if (loaderPtr != 0 && loaderPtr->IsLoadingObject()) {
+        result = 1;
+    }
+    return result & 0xFF;
+}
+
 int gcMap::IsDynamicallyLoadedObjectSetToLoad(const cGUID &guid) const {
     int count = *(int *)0x0037D7F8;
     int i = 0;
@@ -527,6 +542,27 @@ matched_path:
         regions++;
     } while (i < 2);
     return 0;
+}
+
+void gcMap::GetLoadedRegions(cGUIDT<gcRegion> *regions) const {
+    int offset = 0;
+    int i = 0;
+    cGUIDT<gcRegion> *out = &regions[offset];
+    do {
+        gcRegion *region = GetLoadedRegion(i);
+        cGUIDT<gcRegion> zero;
+        const cGUIDT<gcRegion> *src;
+        if (region != 0) {
+            src = (const cGUIDT<gcRegion> *)((char *)region + 0x20);
+        } else {
+            zero.mA = 0;
+            zero.mB = 0;
+            src = &zero;
+        }
+        *out = *src;
+        i++;
+        out++;
+    } while (i < 2);
 }
 
 void gcMap::ClearRegionSetState(int index, int state) {

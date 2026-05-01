@@ -61155,7 +61155,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -61167,7 +61167,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeBumpOffsetMapEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOeBumpOffsetMapEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "f977a451",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:12:28Z",
+        "src_file": "src/eBumpOffsetMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/f977a451/0008022c__post_revert_compile_failed__src_eBumpOffsetMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x00080334",
@@ -61410,7 +61424,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -61421,7 +61435,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZeDynamicLightHeightmapMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZeDynamicLightHeightmapMtlEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "f977a451",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:12:28Z",
+        "src_file": "src/eBumpOffsetMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/f977a451/000807dc__post_revert_compile_failed__src_eBumpOffsetMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x000808b0",
@@ -61629,7 +61657,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -61725,7 +61753,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -81916,7 +81944,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000f73bc",
       "0x000f7cb8",
@@ -81926,7 +81954,15 @@
       "0x0034fd30"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapPIsObjectLoadingvT"
+    "mangled_symbol": "__0fFgcMapPIsObjectLoadingvT",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapPIsObjectLoadingvT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81ea16a0",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:12:47Z"
   },
   {
     "address": "0x000f1a40",
@@ -82260,7 +82296,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000f286c"
     ],
@@ -82269,7 +82305,15 @@
       "0x00124018"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapQGetLoadedRegionsP6GcGUIDT76IgcRegion_K"
+    "mangled_symbol": "__0fFgcMapQGetLoadedRegionsP6GcGUIDT76IgcRegion_K",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapQGetLoadedRegionsP6GcGUIDT76IgcRegion_K",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81ea16a0",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:12:47Z"
   },
   {
     "address": "0x000f2904",
@@ -199918,7 +199962,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -199976,7 +200020,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"

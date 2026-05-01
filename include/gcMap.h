@@ -40,6 +40,7 @@ public:
     void *GetGroups(int *) ;
     void *GetContainedFactories(int *);
     gcRegion *GetLoadedRegion(int) const;
+    void GetLoadedRegions(cGUIDT<gcRegion> *) const;
     void OnRegionDeleted(gcRegion *);
     void LoadObjectBackgroundEnd(void);
     int AddToWorld(void);
@@ -59,6 +60,7 @@ public:
     void ClearRegionSetState(int, int);
     int IsDynamicallyLoadedObjectSetToLoad(const cGUID &) const;
     static int IsMapLoading(bool);
+    static int IsObjectLoading(void);
 
     char pad_000[0x140];
     int mFlags;                             // 0x140
