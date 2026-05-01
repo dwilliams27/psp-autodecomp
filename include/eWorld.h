@@ -18,6 +18,7 @@ public:
     eRoom *prevRoom;    // 0x108
     eRoom *nextRoom;    // 0x10C
 
+    int Contains(const mVec3 &) const;
     int IsPointInFluidVolume(const mVec3 &) const;
 };
 
