@@ -19,6 +19,15 @@ struct GpuCmdList {
     int *ptr;
 };
 
+struct eVideoConfig {
+    char pad[0x28];
+    unsigned char useVirtual;
+    unsigned char keepAspect;
+    char pad2[2];
+    unsigned int width;
+    int height;
+};
+
 extern GpuCmdList D_000984D0;
 
 void eVideo::EndStencil(void) {
@@ -46,6 +55,39 @@ void eVideo::InvalidateTextureCache(void) {
 
 void eVideo::SetDefaultVideoMode(void) {
     eVideo::SetVideoMode((eVideoMode)0);
+}
+
+void eVideo::GetVirtualWidthHeight(int *width, int *height) {
+    eVideo::GetMaxWidthHeight(width, height);
+
+    eVideoConfig *config = *(eVideoConfig **)0x37D0C8;
+    if (config != 0 && config->useVirtual != 0) {
+        if (config->keepAspect != 0) {
+            eVideo::GetAspectWidthHeight(config->width, config->height, width, height);
+        } else {
+            *width = config->width;
+            *height = config->height;
+        }
+    }
+}
+
+void eVideo::GetAspectWidthHeight(int width, int height, int *outWidth, int *outHeight) {
+    int currentWidth = *outWidth;
+    int currentHeight = *outHeight;
+
+    if (((float)currentWidth / (float)currentHeight) < ((float)width / (float)height)) {
+        unsigned int scaledHeight = width;
+        scaledHeight *= currentHeight;
+        *outHeight = (int)scaledHeight / currentWidth;
+        *outWidth = width;
+        return;
+    }
+
+    unsigned int scaledWidth = height;
+    scaledWidth *= currentWidth;
+    *outWidth = (int)scaledWidth / currentHeight;
+    *outHeight = height;
+    __asm__ volatile("" ::: "memory");
 }
 
 void eVideo::Flip(void) {

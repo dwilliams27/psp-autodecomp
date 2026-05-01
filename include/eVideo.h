@@ -25,6 +25,8 @@ public:
     static int IsWidescreen(void);
     static struct eViewport *GetFullscreenViewport(void);
     static void GetMaxWidthHeight(int *, int *);
+    static void GetVirtualWidthHeight(int *, int *);
+    static void GetAspectWidthHeight(int, int, int *, int *);
     static void GetViewport(struct eViewport *);
     static void GetScissor(struct eViewport *);
     static void SetFullscreenViewport(const struct eViewport &);

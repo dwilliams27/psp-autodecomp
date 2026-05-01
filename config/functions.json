@@ -7922,7 +7922,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004fec"
     ],
@@ -8153,7 +8153,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004fec"
     ],
@@ -29811,7 +29811,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0002f68c",
       "0x0002f724"
@@ -29822,7 +29822,15 @@
       "0x0009fc88"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeVideoVGetVirtualWidthHeightPiTBT"
+    "mangled_symbol": "__0fGeVideoVGetVirtualWidthHeightPiTBT",
+    "src_file": "src/eVideo.cpp",
+    "symbol_name": "__0fGeVideoVGetVirtualWidthHeightPiTBT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b9c3ac43",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:35:01Z"
   },
   {
     "address": "0x0002f724",
@@ -29834,14 +29842,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0002de40",
       "0x0002f6a0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeVideoUGetAspectWidthHeightiTBPiTDT"
+    "mangled_symbol": "__0fGeVideoUGetAspectWidthHeightiTBPiTDT",
+    "src_file": "src/eVideo.cpp",
+    "symbol_name": "__0fGeVideoUGetAspectWidthHeightiTBPiTDT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b9c3ac43",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:35:01Z"
   },
   {
     "address": "0x0002f7b0",
