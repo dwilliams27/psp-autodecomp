@@ -48,6 +48,8 @@ public:
     int soundbuf_getDrawbuf(void);
     int GetWorkAreaFreeSize(int);
     int soundbuf_setBuf(void);
+    void soundbuf_delete(void);
+    int read_create(void);
 
     int avsync_create(void);
     void avsync_delete(void);
@@ -62,6 +64,7 @@ public:
     int read_isEnd(void);
     int read_getCapacity(void);
     int read_isFull(void);
+    static int read_func(unsigned int, void *);
     static bool Initialize(void);
 };
 
@@ -272,6 +275,25 @@ int eMoviePlatform::soundbuf_setBuf(void) {
     return 0;
 }
 
+void eMoviePlatform::soundbuf_delete(void) {
+    int sema = m_soundbuf_sema;
+    if (sema > 0) {
+        sceKernelDeleteSema(sema);
+        m_soundbuf_sema = -1;
+    }
+
+    int i = 0;
+    int size = m_soundbuf_end;
+    for (; i < size; i++) {
+        m_soundbuf_buf[i] = 0;
+        m_soundbuf_pts[i] = 0;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        *(int *)((char *)this + i * 4 + 0x350) = 0;
+    }
+}
+
 void eMoviePlatform::control_delete(void) {
     if (*(unsigned char *)((char *)this + 0x2AC) != 0) {
         sceDisplaySetVblankCallback(0, 0, 0);
@@ -323,6 +345,22 @@ int eMoviePlatform::read_isFull(void) {
         return 1;
     }
     return read_getCapacity() == 0;
+}
+
+int eMoviePlatform::read_create(void) {
+    int thread = sceKernelCreateThread((const char *)0x36CFE0, read_func, 0x12, 0x2000, 0, 0);
+    *(int *)((char *)this + 0x380) = thread;
+    if (thread >= 0) {
+        int state = 1;
+        __asm__ volatile("" ::: "memory");
+        int start = *(int *)((char *)this + 0x1E4);
+        *(int *)((char *)this + 0x38C) = state;
+        int end = *(int *)((char *)this + 0x1F0);
+        *(int *)((char *)this + 0x388) = start;
+        *(int *)((char *)this + 0x384) = end;
+        return 1;
+    }
+    return 0;
 }
 
 bool eMoviePlatform::Initialize(void) {
