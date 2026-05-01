@@ -38984,7 +38984,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0004e550"
     ],
@@ -38994,7 +38994,15 @@
       "0x00171e80"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelRGetSubObjectIndexRC6FcNameiK"
+    "mangled_symbol": "__0fNeDynamicModelRGetSubObjectIndexRC6FcNameiK",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelRGetSubObjectIndexRC6FcNameiK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "dd686f35",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:57:04Z"
   },
   {
     "address": "0x00047be8",
@@ -39315,7 +39323,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0014074c",
@@ -39447,7 +39455,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -141941,11 +141949,19 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelTGetSubObjectToWorldiP6EmOCSK"
+    "mangled_symbol": "__0fNeDynamicModelTGetSubObjectToWorldiP6EmOCSK",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelTGetSubObjectToWorldiP6EmOCSK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "dd686f35",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:57:04Z"
   },
   {
     "address": "0x001f0034",

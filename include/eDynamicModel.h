@@ -33,6 +33,8 @@ public:
     void *GetCurrentPhysicsController(void) const;
     void *GetCurrentPhysicsController(void);
     void GetColliderToWorld(int, mOCS *) const;
+    int GetSubObjectIndex(const cName &, int) const;
+    void GetSubObjectToWorld(int, mOCS *) const;
     void GetEmbedContacts(const eCollisionInfo &, int, const mSphere *, eContactCollector *) const;
     void GetSweptContacts(const eCollisionInfo &, int, const mSphere *, const mCollideInfo *, eContactCollector *) const;
     void Write(cFile &) const;

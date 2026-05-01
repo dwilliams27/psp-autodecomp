@@ -19,6 +19,7 @@ extern cType *D_000469C0;
 extern cType *D_000469DC;
 
 extern char eDynamicModelvirtualtable[];
+extern void *D_00038890[];
 
 template <class T> class cHandleT {
 public:
@@ -216,6 +217,58 @@ void eDynamicModel::GetColliderToWorld(int idx, mOCS *out) const {
     *(v4sf_t *)((char *)out + 0x00) = src[0];
     *(v4sf_t *)((char *)out + 0x10) = src[1];
     *(v4sf_t *)((char *)out + 0x20) = src[2];
+}
+
+#pragma control sched=2
+
+int eDynamicModel::GetSubObjectIndex(const cName &name, int idx) const {
+    void *mesh = *(void **)((char *)this + 0x60);
+    eDynamicMesh *resolved = 0;
+    if (mesh != 0) {
+        int handle = *(int *)((char *)mesh + 0x48);
+        if (handle == 0) {
+            resolved = 0;
+        } else {
+            void *entry = D_00038890[handle & 0xFFFF];
+            resolved = 0;
+            if (entry != 0 && *(int *)((char *)entry + 0x30) == handle) {
+                resolved = (eDynamicMesh *)entry;
+            }
+        }
+    }
+    if (resolved == 0) {
+        return -1;
+    }
+    return resolved->GetNodeIndex(name, idx);
+}
+
+#pragma control sched=2
+
+void eDynamicModel::GetSubObjectToWorld(int idx, mOCS *out) const {
+    char *src;
+    if (idx < 0) {
+        if (*(unsigned char *)((char *)this + 0x8C) & 4) {
+            int *vt = *(int **)((char *)this + 4);
+            int *entry = (int *)((char *)vt + 0xB8);
+            short adj = *(short *)entry;
+            void (*fn)(void *) = (void (*)(void *))entry[1];
+            fn((char *)this + adj);
+        }
+        src = (char *)this + 0x10;
+    } else {
+        src = *(char **)((char *)this + 0xF8) + idx * 0x40;
+    }
+    __asm__ volatile(
+        "lv.q C120, 0x30(%0)\n"
+        "sv.q C120, 0x30(%1)\n"
+        "lv.q C120, 0x0(%0)\n"
+        "sv.q C120, 0x0(%1)\n"
+        "lv.q C120, 0x10(%0)\n"
+        "sv.q C120, 0x10(%1)\n"
+        "lv.q C120, 0x20(%0)\n"
+        "sv.q C120, 0x20(%1)\n"
+        : : "r"((const void *)src), "r"((void *)out)
+    );
 }
 
 #pragma control sched=2
