@@ -75,6 +75,7 @@ void eEmbedVolumeCollisionHandler::GetResolveVector(mVec3 *out) {
 
 // 0x00069cdc, 180B: Main Run entry — clears contacts, processes collisions,
 // dispatches callbacks for first and second contact lists.
+#pragma control sched=1
 unsigned char eEmbedVolumeCollisionHandler::Run(void) {
     eContactCollector *cc = (eContactCollector *)((char *)this + 0x40);
     eContactCollector__ClearAllContacts_void(cc);
@@ -102,6 +103,7 @@ unsigned char eEmbedVolumeCollisionHandler::Run(void) {
     }
     return *(unsigned char *)((char *)this + 0x48b8);
 }
+#pragma control sched=2
 
 // ── eSimulatedMotor ──────────────────────────────────────────────────────
 extern char eSimulatedMotorclassdesc[];
