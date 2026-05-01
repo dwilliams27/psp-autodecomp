@@ -7,6 +7,7 @@
 //   eBodyWorldConstraint::eBodyWorldConstraint(cBase *)   @ 0x0006b440  (eAll_psp.obj)
 //   eBodyWorldConstraint::Read(cFile &, cMemPool *)        @ 0x0006b384  (eAll_psp.obj)
 //   eBodyWorldConstraint::Write(cFile &) const           @ 0x0006b338  (eAll_psp.obj)
+//   eBodyWorldConstraint::Initialize(ePhysicsConstraintConfig *, eSimulatedController *) @ 0x0006b518 (eAll_psp.obj)
 //   eBodyWorldConstraint::AssignCopy(const cBase *)      @ 0x0020992c  (eAll_psp.obj)
 //   eBodyWorldConstraint::~eBodyWorldConstraint(void)    @ 0x0006b49c  (eAll_psp.obj)
 //   eBodyWorldConstraint::OnPositionChanged(void)        @ 0x0006b5b0  (eAll_psp.obj)
@@ -18,6 +19,8 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class ePhysicsConstraintConfig;
+class eSimulatedController;
 
 class cType {
 public:
@@ -55,6 +58,12 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct InitRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *, void *);
+};
+
 // Pool delete-slot record — same shape as in other shape destructors.
 struct DeleteRecord {
     short offset;
@@ -90,6 +99,7 @@ public:
 
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void Initialize(ePhysicsConstraintConfig *, eSimulatedController *);
     void AssignCopy(const cBase *);
     void OnPositionChanged(void);
     const cType *GetType(void) const;
@@ -134,6 +144,51 @@ eBodyWorldConstraint::eBodyWorldConstraint(cBase *parent)
         :
         : "r"(x), "r"(y), "r"(w), "r"(this)
         : "memory");
+}
+
+// -- eBodyWorldConstraint::Initialize(ePhysicsConstraintConfig *, eSimulatedController *) --  @ 0x0006b518, 152B
+void eBodyWorldConstraint::Initialize(ePhysicsConstraintConfig *cfg, eSimulatedController *ctrl) {
+    *(eSimulatedController **)((char *)this + 0x0C) = ctrl;
+    *(ePhysicsConstraintConfig **)((char *)this + 0x08) = cfg;
+
+    char *jointBase = *(char **)((char *)ctrl + 0x38);
+    int index = *(int *)((char *)cfg + 0x54);
+    char *joint = jointBase + index * 0x30;
+    *(char **)((char *)this + 0x10) = joint;
+
+    char *bodyMat;
+    __asm__ volatile(
+        "lw %0, 0x20(%1)\n"
+        "lv.q C120, 0x30(%0)\n"
+        "sv.q C120, 0x30(%2)\n"
+        : "=r"(bodyMat)
+        : "r"(joint), "r"(this)
+        : "memory");
+
+    char *cfgPos = (char *)cfg + 0x30;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "lw %0, 0x20(%2)\n"
+        "lv.q C000, 0(%0)\n"
+        "lv.q C010, 0x10(%0)\n"
+        "lv.q C020, 0x20(%0)\n"
+        "lv.q C030, 0x30(%0)\n"
+        "vtfm3.t C130, E000, C120\n"
+        : "=r"(bodyMat)
+        : "r"(cfgPos), "r"(joint)
+        : "memory");
+    v4sf_t out = *(v4sf_t *)((char *)this + 0x30);
+    __asm__ volatile("vadd.t %0, %0, C130" : "+v"(out));
+    *(v4sf_t *)((char *)this + 0x30) = out;
+
+    InitRecord *rec = (InitRecord *)(*(char **)((char *)ctrl + 4) + 0xA0);
+    short off = rec->offset;
+    char *target = (char *)ctrl + off;
+    int callIndex = *(int *)((char *)cfg + 0x54);
+    void *arg2 = (char *)this + 0x18;
+    void *arg3 = (char *)this + 0x20;
+    void (*fn)(void *, int, void *, void *) = rec->fn;
+    fn(target, callIndex, arg2, arg3);
 }
 
 // ── eBodyWorldConstraint::Read(cFile &, cMemPool *) ──  @ 0x0006b384, 188B
