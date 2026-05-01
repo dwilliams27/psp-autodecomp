@@ -6,7 +6,10 @@ extern "C" void *memset(void *, int, unsigned int);
 
 class eMoviePlatform {
 public:
-    char _pad_00[0x2B0];
+    int m_workAreaBase;                // 0x000
+    int m_workAreaSize;                // 0x004
+    int m_workAreaCurrent;             // 0x008
+    char _pad_00C[0x2B0 - 0x00C];
     int control_eventFlag;             // 0x2B0
     char _pad_2B4[0x2C4 - 0x2B4];      // 0x2B4 - 0x2C4
     int m_dispbuf_sema;                // 0x2C4
@@ -16,10 +19,12 @@ public:
     int m_dispbuf_readIdx;             // 0x2E4
     int m_dispbuf_start;               // 0x2E8
     int m_dispbuf_end;                 // 0x2EC
-    char _pad_2F0[0x318 - 0x2F0];      // 0x2F0 - 0x318
-    unsigned int m_soundbuf_pts[2];    // 0x318
-    char _pad_320[0x32C - 0x320];      // 0x320 - 0x32C
-    unsigned int m_soundbuf_readIdx;   // 0x32C
+    char _pad_2F0[0x304 - 0x2F0];      // 0x2F0 - 0x304
+    int m_soundbuf_sema;               // 0x304
+    int m_soundbuf_buf[4];             // 0x308
+    unsigned int m_soundbuf_pts[4];    // 0x318
+    int m_soundbuf_writeIdx;           // 0x328
+    int m_soundbuf_readIdx;            // 0x32C
     int m_soundbuf_start;              // 0x330
     int m_soundbuf_end;                // 0x334
     char _pad_338[0x358 - 0x338];      // 0x338 - 0x358
@@ -40,6 +45,8 @@ public:
     void dispbuf_dataSet(void);
     int dispbuf_checkDecodeEnd(void);
     int soundbuf_getDrawbuf(void);
+    int GetWorkAreaFreeSize(int);
+    int soundbuf_setBuf(void);
 
     void avsync_delete(void);
     int avsync_video_getPts(void);
@@ -53,6 +60,13 @@ public:
     int read_getCapacity(void);
     int read_isFull(void);
     static bool Initialize(void);
+};
+
+class cVolatile {
+public:
+    static int s_pBase;
+
+    static int GetFreeSize(int);
 };
 
 #pragma control sched=1
@@ -226,6 +240,33 @@ int eMoviePlatform::soundbuf_getDrawbuf(void) {
         result = *(int *)((char *)this + idx * 4 + 0x308);
     }
     return result;
+}
+
+int eMoviePlatform::GetWorkAreaFreeSize(int align) {
+    int useVolatile = (cVolatile::s_pBase != 0) & 0xff;
+    if (useVolatile != 0) {
+        return cVolatile::GetFreeSize(align);
+    }
+    int base = m_workAreaBase;
+    if (base == 0) {
+        return 0;
+    }
+    int n = align;
+    if (n < 4) {
+        n = 4;
+    }
+    unsigned int un = (unsigned int)(n + 3) >> 2 << 2;
+    unsigned int m1 = un - 1;
+    unsigned int aligned = ((unsigned int)m_workAreaSize + m1) / un * un;
+    return m_workAreaCurrent - (int)(aligned - (unsigned int)base);
+}
+
+int eMoviePlatform::soundbuf_setBuf(void) {
+    sceKernelWaitSema(m_soundbuf_sema, 1, 0);
+    m_soundbuf_start = m_soundbuf_start + 1;
+    sceKernelSignalSema(m_soundbuf_sema, 1);
+    m_soundbuf_writeIdx = (m_soundbuf_writeIdx + 1) % m_soundbuf_end;
+    return 0;
 }
 
 #pragma control sched=1
