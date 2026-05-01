@@ -22,6 +22,33 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cName {
+public:
+    union {
+        int _data[6];
+        struct {
+            int _pad0[5];
+            short mTail0;
+            short mTail1;
+        };
+    };
+    void Read(cReadBlock &);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class ePhysicsController;
 class eDynamicModel;
 class ePhysicsControllerTemplate;
@@ -32,6 +59,7 @@ public:
     cBase *mOwner;
     void RemoveAll(void);
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 extern char ePhysicsControllerTemplateclassdesc[];
@@ -54,6 +82,7 @@ public:
 
     ePhysicsControllerTemplate(cBase *b);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
 
     static void CreateAndResetInstance(cMemPool *pool, eDynamicModel *model,
@@ -85,6 +114,68 @@ void ePhysicsControllerTemplate::Write(cFile &file) const {
     mArr3.Write(wb);
     wb.Write(mField20);
     wb.End();
+}
+
+#pragma control sched=1
+// --- Read ---
+int ePhysicsControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 5, true);
+    unsigned int version = (unsigned int)rb._data[3];
+
+    if (version >= 6 || version < 1) goto fail;
+    if (version != 1) goto read_arr1;
+
+    {
+        cName name;
+        __asm__ volatile("" ::: "memory");
+        name.mTail0 = 0;
+        name.mTail1 = 0;
+        *(char *)&name = 0;
+        name.Read(rb);
+        int *dst = (int *)((char *)*(cBase **)mArr1.mCount + 8);
+        int n0 = name._data[0];
+        int n1 = name._data[1];
+        int n2 = name._data[2];
+        dst[0] = n0;
+        dst[1] = n1;
+        dst[2] = n2;
+        int n3 = name._data[3];
+        int n4 = name._data[4];
+        int n5 = name._data[5];
+        dst[3] = n3;
+        dst[4] = n4;
+        dst[5] = n5;
+        version = (unsigned int)rb._data[3];
+        goto after_arr1;
+    }
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read_arr1:
+    mArr1.Read(rb);
+    version = (unsigned int)rb._data[3];
+after_arr1:
+    if (version >= 3) {
+        mArr2.Read(rb);
+        version = (unsigned int)rb._data[3];
+    }
+
+    if (version >= 4) {
+        mArr3.Read(rb);
+        version = (unsigned int)rb._data[3];
+    }
+
+    if (version >= 5) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mField20, 4);
+    }
+
+    return result;
 }
 
 // --- GetType ---
