@@ -35,6 +35,7 @@ public:
 struct eSimulatedBodyEntry {
     char _pad[0x20];
     void *body;
+    void *cache;
 };
 
 extern cType *D_000385DC;
@@ -46,6 +47,19 @@ extern cType *D_00046BF8;
 extern "C" void *__vec_new(void *, int, int, void *);
 extern "C" void *eSimulatedContact__eSimulatedContact_void__00209D24(void *);
 void cFile_SetCurrentPos(void *, unsigned int);
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class eRigidBodyState {
+public:
+    char _pad0[0x30];
+    volatile v4sf_t position;
+    char _pad1[0x68];
+    unsigned int collisionMask;
+
+    void Update(void);
+    void UpdatePairs(void);
+};
 
 #pragma control sched=2
 eSimulatedController::eSimulatedController(cBase *parent)
@@ -150,6 +164,56 @@ bool eSimulatedController::IsInFluid(void) const {
             offset += 0x30;
         } else {
             return result;
+        }
+    } while (true);
+}
+
+void eSimulatedController::SetPosition(int index, const mVec3 &position) {
+    __asm__ volatile("" : : "r"(&position) : "$6");
+    char *entries = (char *)bodyEntries;
+    eSimulatedBodyEntry *entry =
+        (eSimulatedBodyEntry *)(entries + (index * 0x30));
+    int ok = 0;
+    if (entry->body != 0) {
+        if (entry->cache != 0) {
+            ok = 1;
+        }
+    }
+    ok = ok & 0xFF;
+    if (ok != 0) {
+        eRigidBodyState *body = (eRigidBodyState *)entry->body;
+        body->position = *(const v4sf_t *)&position;
+        body->Update();
+    }
+}
+
+void eSimulatedController::SetCollisionMask(unsigned int mask) {
+    collisionMask = mask;
+    int i = 0;
+    int arrayMask = 0x3FFFFFFF;
+    __asm__ volatile("" : "+r"(arrayMask));
+    register char *entries __asm__("$4");
+    __asm__ volatile("lw %0, 0x38(%1)" : "=r"(entries) : "r"(this));
+    int offset = 0;
+    do {
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)(entries - 4) & arrayMask;
+        }
+        if (i < count) {
+            __asm__ volatile("" ::: "memory");
+            unsigned int currentMask = collisionMask;
+            eSimulatedBodyEntry *entry =
+                (eSimulatedBodyEntry *)(entries + offset);
+            ((eRigidBodyState *)entry->body)->collisionMask = currentMask;
+            ((eRigidBodyState *)
+                 ((eSimulatedBodyEntry *)((char *)bodyEntries + offset))->body)
+                ->UpdatePairs();
+            i++;
+            offset += 0x30;
+            entries = (char *)bodyEntries;
+        } else {
+            return;
         }
     } while (true);
 }

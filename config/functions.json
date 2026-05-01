@@ -50086,11 +50086,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerLGetVelocityiRC6FmVec3P6FmVec3K"
+    "mangled_symbol": "__0fQeBipedControllerLGetVelocityiRC6FmVec3P6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "1f5da794",
+        "notes": "Closest attempt is in src/eBipedController.cpp. It uses the matched ApplyImpulse-style body entry check, volatile entry loads to force the original reload of entry[0], and an inline VFPU zero-return tail because compiler-generated V4SF output otherwise inserts an extra VFPU move before mtc1. Current compare_func result is 14/104 bytes different. The scalar prefix matches through the bnezl delay-slot reload; remaining mismatch is in the zero/true tail layout caused by the inline asm return and SNC keeping a dead reload/fallthrough shape around the true C vector store.\n\nTried C true/false result assignment, goto false-path-first, volatile entry pointers, register-bound VFPU result, hardcoded delay-slot stores, hardcoded GPR zero moves, and an inline true tail. The best semantically clean variant is the current one; a 600s permuter run was attempted but tools/permuter.py aborted before search because it could not isolate this 104-byte target from the compiled multi-function object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:32:03Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065b54__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00065bbc",
@@ -50156,11 +50170,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerLGetPositioniP6FmVec3K"
+    "mangled_symbol": "__0fQeBipedControllerLGetPositioniP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "1f5da794",
+        "notes": "Closest attempt mirrors GetVelocity with the body vector offset changed to 0x30 and the output pointer in a2. Current compare_func result is 14/104 bytes different. The entry computation, null checks, flag register, and branch-likely reload shape were reproduced with index/bodyEntries temporaries plus volatile entry loads; remaining bytes differ in the same zero/true tail scheduling area as GetVelocity.\n\nTried the same variants as GetVelocity: whole V4SF result assignment, goto restructuring, volatile entry loads, register-bound VFPU result, hardcoded zero-path delay-slot store, hardcoded GPR moves, and inline true-tail asm. The target appears to need the exact compiler-generated sv.q delay-slot behavior without SNC's extra VFPU/register-preservation artifacts. Permuter could not run because it failed to locate the function in the compiled object before starting the search.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:32:03Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065d74__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00065ddc",
@@ -50314,7 +50342,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001414d4"
@@ -50332,7 +50360,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00065fe0"
     ],
@@ -53136,7 +53164,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -53278,13 +53306,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00035304"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerLSetPositioniRC6FmVec3"
+    "mangled_symbol": "__0fUeSimulatedControllerLSetPositioniRC6FmVec3",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerLSetPositioniRC6FmVec3",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ebd20e04",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:32:13Z"
   },
   {
     "address": "0x0006c7a8",
@@ -53593,7 +53629,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00358ff4",
@@ -53612,13 +53648,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000352a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerQSetCollisionMaskUi"
+    "mangled_symbol": "__0fUeSimulatedControllerQSetCollisionMaskUi",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerQSetCollisionMaskUi",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ebd20e04",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:32:13Z"
   },
   {
     "address": "0x0006d368",

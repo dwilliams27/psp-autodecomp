@@ -26,6 +26,8 @@ public:
     bool IsSleeping(void) const;
     bool IsInFluid(void) const;
     int GetCollisionMask(void) const;
+    void SetCollisionMask(unsigned int);
+    void SetPosition(int index, const mVec3 &pos);
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
