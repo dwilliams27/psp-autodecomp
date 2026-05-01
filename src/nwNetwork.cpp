@@ -22,9 +22,36 @@ public:
     cDynamicMemAllocator(const char *, unsigned int, unsigned int, void *);
 };
 
+class cTimeValue {
+public:
+    int mTime;
+};
+
 class nwStatsTracking {
 public:
     static VtObject *Get(void);
+};
+
+class nwHeadset {
+public:
+    static void Update(void);
+};
+
+enum nwTransportType {};
+
+struct nwNetworkConfig {
+    char pad0[0xC];
+    unsigned short port;
+    char padE[2];
+    int capacity;
+};
+
+class nwSocket {
+public:
+    void Destroy(void);
+    static int Create(nwTransportType, unsigned short, unsigned int, int, int);
+    static nwSocket *GetSocket(int);
+    static void UpdateAll(cTimeValue);
 };
 
 extern "C" void __record_needed_destruction(void *);
@@ -36,6 +63,8 @@ extern "C" void cDynamicMemAllocator_ctor(cDynamicMemAllocator *, const char *,
 extern int D_00034C5C asm("D_00034C5C");
 extern char D_00034C60[] asm("D_00034C60");
 extern char D_00000328[] asm("D_00000328");
+extern nwNetworkConfig *volatile D_0037D94C asm("D_0037D94C");
+extern volatile int D_0009F930 asm("D_0009F930");
 
 class nwNetwork {
 public:
@@ -43,6 +72,9 @@ public:
     static cMemPool *GetMemPool(void);
     static int Initialize(void);
     static VtObject *GetLobby(void);
+    static void Update(cTimeValue);
+    static int CreateGameSocket(int, unsigned short);
+    static int GetGameVersion(void);
     static int GetLastPlatformError(void);
     static void GetInterfaceName(int, char *, int);
     static void CheckSecurity(void);
@@ -53,6 +85,8 @@ public:
     static int IsInterfaceValid(int);
     static void SetLastError(nwNetError);
     static int PlatformInitialize(void);
+    static int PlatformUpdate(cTimeValue);
+    static nwTransportType PlatformGetGameTransport(void);
 };
 
 int nwNetwork::GetLastPlatformError(void) {
@@ -120,6 +154,48 @@ int nwNetwork::Initialize(void) {
     }
 
     return 1;
+}
+
+void nwNetwork::Update(cTimeValue dt) {
+    if (PlatformUpdate(dt) != 0) {
+        if (*(int *)0x37D950 != 0) {
+            VtObject *lobby = GetLobby();
+            if (lobby != 0) {
+                VtEntry *entry = (VtEntry *)((char *)lobby->vtable + 0x18);
+                typedef void (*Fn)(void *, cTimeValue);
+                ((Fn)entry->fn)((char *)lobby + entry->adjust, dt);
+            }
+
+            VtObject *stats = nwStatsTracking::Get();
+            if (stats != 0) {
+                VtEntry *entry = (VtEntry *)((char *)stats->vtable + 0x18);
+                typedef void (*Fn)(void *, cTimeValue);
+                ((Fn)entry->fn)((char *)stats + entry->adjust, dt);
+            }
+
+            nwHeadset::Update();
+            nwSocket::UpdateAll(dt);
+        }
+    }
+}
+
+int nwNetwork::CreateGameSocket(int maxConnections, unsigned short port) {
+    volatile int created;
+    unsigned short actualPort = port;
+    if (actualPort == 0xFFFF) {
+        actualPort = D_0037D94C->port;
+    }
+
+    if (nwSocket::GetSocket(D_0009F930) != 0) {
+        nwSocket::GetSocket(D_0009F930)->Destroy();
+    }
+
+    nwTransportType transport = PlatformGetGameTransport();
+    created =
+        nwSocket::Create(transport, actualPort, GetGameVersion(), maxConnections,
+                         D_0037D94C->capacity);
+    D_0009F930 = created;
+    return D_0009F930;
 }
 
 cMemPool *nwNetwork::GetMemPool(void) {

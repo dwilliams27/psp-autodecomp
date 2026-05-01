@@ -118861,7 +118861,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a54fc",
       "0x001a58c0",
@@ -118874,7 +118874,15 @@
       "0x0010904c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJnwNetworkGUpdate6KcTimeValueT"
+    "mangled_symbol": "__0fJnwNetworkGUpdate6KcTimeValueT",
+    "src_file": "src/nwNetwork.cpp",
+    "symbol_name": "__0fJnwNetworkGUpdate6KcTimeValueT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "dd59bc1b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T07:02:58Z"
   },
   {
     "address": "0x001a54fc",
@@ -118965,7 +118973,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a5658",
       "0x001a58c8",
@@ -118978,7 +118986,21 @@
       "0x0010904c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJnwNetworkQCreateGameSocketiUsT"
+    "mangled_symbol": "__0fJnwNetworkQCreateGameSocketiUsT",
+    "failure_notes": [
+      {
+        "session": "dd59bc1b",
+        "notes": "Closest attempt is in src/nwNetwork.cpp and compiles to the correct 184-byte function with only 9 bytes differing. The remaining diff is in the nwSocket::Create call setup after GetGameVersion(): current SNC emits `lw a0,D_0037D94C(s2); lw t0,0x10(a0); move a0,s4`, while the target emits `lw a1,D_0037D94C(s2); move a0,s4; lw t0,0x10(a1)`. All surrounding prologue, default-port path, GetSocket/Destroy calls, volatile result stack spill, D_0009F930 store, return load, and epilogue match after relocation masking.\n\nTried direct absolute-address source, extern-symbol globals to avoid addiu base materialization, struct-typed config access, volatile D_0009F930/result spill to recover the store/load tail, inline GetGameVersion vs local version, register-pinned transport/config variants, and a sched=1 override (worse, 41-byte diff). Read docs/research/snc-delay-slots.md before further scheduling variants. Ran `python3 tools/permuter.py src/nwNetwork.cpp 0x001a5594 --time 300 --save-best`; it generated 9864 candidates, compiled 3900, and found no improvement over the 9-byte baseline. This is retryable register-allocation/source-shape work, not a bnel/unmatchable case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T07:02:58Z",
+        "src_file": "src/nwNetwork.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/dd59bc1b/001a5594__agent_self_reported_failure__src_nwNetwork.cpp"
+      }
+    ]
   },
   {
     "address": "0x001a564c",
