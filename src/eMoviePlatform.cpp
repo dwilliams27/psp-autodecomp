@@ -1,4 +1,5 @@
 #include "thread.h"
+#include <displaysvc.h>
 #include <utility/utility_module.h>
 
 extern "C" void __0oNcFilePlatformctv(void *);
@@ -48,10 +49,12 @@ public:
     int GetWorkAreaFreeSize(int);
     int soundbuf_setBuf(void);
 
+    int avsync_create(void);
     void avsync_delete(void);
     int avsync_video_getPts(void);
     void avsync_video_setPts(unsigned int);
     static void OnSuspend(void *);
+    void control_delete(void);
     void Close(bool);
     void control_setCondition(unsigned int);
     int control_getCondition(void);
@@ -267,6 +270,36 @@ int eMoviePlatform::soundbuf_setBuf(void) {
     sceKernelSignalSema(m_soundbuf_sema, 1);
     m_soundbuf_writeIdx = (m_soundbuf_writeIdx + 1) % m_soundbuf_end;
     return 0;
+}
+
+void eMoviePlatform::control_delete(void) {
+    if (*(unsigned char *)((char *)this + 0x2AC) != 0) {
+        sceDisplaySetVblankCallback(0, 0, 0);
+        *(unsigned char *)((char *)this + 0x2AC) = 0;
+    }
+
+    int flag = *(int *)((char *)this + 0x2B0);
+    if (flag > 0) {
+        sceKernelDeleteEventFlag(flag);
+        *(int *)((char *)this + 0x2B0) = -1;
+    }
+
+    flag = *(int *)((char *)this + 0x2B4);
+    if (flag > 0) {
+        sceKernelDeleteEventFlag(flag);
+        *(int *)((char *)this + 0x2B4) = -1;
+    }
+}
+
+int eMoviePlatform::avsync_create(void) {
+    m_avsync_video_size = 4;
+    int rate = (int)((90000.0f / sceDisplayGetFramePerSec()) * 2.0f);
+    *(int *)((char *)this + 0x378) = 0;
+    *(int *)((char *)this + 0x368) = 0;
+    m_avsync_video_readIdx = 0;
+    m_avsync_video_count = 0;
+    *(int *)((char *)this + 0x37C) = rate;
+    return 1;
 }
 
 #pragma control sched=1
