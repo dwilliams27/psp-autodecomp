@@ -22,6 +22,8 @@ class mVec3;
 class eHeightmapShape {
 public:
     eHeightmapShape(cBase *);
+    ~eHeightmapShape(void);
+    static void operator delete(void *);
 
     const cType *GetType(void) const;
     void GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const;

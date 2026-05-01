@@ -6,11 +6,16 @@ typedef int v4sf_t __attribute__((mode(V4SF)));
 
 class cBase;
 class cFile;
-class cMemPool;
 class eShape;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 extern "C" {
     void eShape___ct_eShape_cBaseptr(void *self, cBase *parent);
+    void eShape___dtor_eShape_void(void *self, int flags);
 }
 
 extern char eHeightmapShapevirtualtable[];
@@ -39,6 +44,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 // eShape base class — declared locally to call Write/Read via member syntax
 class eShape {
 public:
+    ~eShape();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
 };
@@ -72,6 +78,12 @@ struct AllocEntry {
     int (*fn)(void *, int, int, int, int);
 };
 
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 // vtable entry for shape-specific Collide dispatch
 struct CollideVtableEntry {
     short thisOffset;
@@ -96,6 +108,19 @@ static cType *type_eHeightmapShape_root;    // 0x385DC (shared base)
 static cType *type_eHeightmapShape_parent;  // 0x40FE4
 static cType *type_eHeightmapShape;         // 0x46A08
 
+inline void eHeightmapShape::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
+}
+
 float eHeightmapShape::GetVolume(void) const {
     return 0.0f;
 }
@@ -111,15 +136,21 @@ const cType *eHeightmapShape::GetType(void) const {
     if (!type_eHeightmapShape) {
         if (!type_eHeightmapShape_parent) {
             if (!type_eHeightmapShape_root) {
+                const char *name = eHeightmapShape_type_name;
+                const char *desc = eHeightmapShape_type_desc;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
                 type_eHeightmapShape_root = cType::InitializeType(
-                    eHeightmapShape_type_name, eHeightmapShape_type_desc, 1, 0, 0, 0, 0, 0);
+                    name, desc, 1, 0, 0, 0, 0, 0);
             }
             type_eHeightmapShape_parent = cType::InitializeType(
                 0, 0, 0x227, type_eHeightmapShape_root, 0, 0, 0, 0);
         }
+        const cType *parentType = type_eHeightmapShape_parent;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))&eHeightmapShape::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
         type_eHeightmapShape = cType::InitializeType(
-            0, 0, 0x2E7, type_eHeightmapShape_parent,
-            (cBase *(*)(cMemPool *, cBase *))&eHeightmapShape::New, 0, 0, 0);
+            0, 0, 0x2E7, parentType, factory, 0, 0, 0);
     }
     return type_eHeightmapShape;
 }
@@ -135,6 +166,44 @@ eHeightmapShape::eHeightmapShape(cBase *parent) {
 }
 
 #pragma control sched=1
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oPeHeightmapShapedtv, 0x11c\n");
+
+// eHeightmapShape::~eHeightmapShape(void) — 0x000506c0
+eHeightmapShape::~eHeightmapShape() {
+    *(void **)((char *)this + 4) = eHeightmapShapevirtualtable;
+    void *field = (char *)this + 0x80;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x80);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x80) = 0;
+        }
+    }
+    eShape___dtor_eShape_void(this, 0);
+}
 
 // eHeightmapShape::Collide(const eBoxShape *, ...) — 0x000513b8
 int eHeightmapShape::Collide(const eBoxShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {

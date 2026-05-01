@@ -34156,7 +34156,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0003aa58",
@@ -34175,7 +34175,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00030e24"
@@ -42237,14 +42237,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002b970"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPeHeightmapShapedtv"
+    "mangled_symbol": "__0oPeHeightmapShapedtv",
+    "src_file": "src/eHeightmapShape.cpp",
+    "symbol_name": "__0oPeHeightmapShapedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b345c427",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:30:49Z"
   },
   {
     "address": "0x000507dc",
@@ -142920,7 +142928,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -142932,7 +142940,15 @@
         "session": "b5330389",
         "notes": "Scheduler-ordering divergence in InitializeType arg setup, not source-fixable with available pragmas. Wrote the standard tri-static-init pattern (matches eCameraEffectGeom/gcStringSet form):\n\n  if (!t3) { if (!t2) { if (!t1) { t1 = InitializeType(name, desc, 1, 0,...); } t2 = InitializeType(0,0,0x227,t1,0,...); } t3 = InitializeType(0,0,0x2E7,t2,&New,...); }\n\nWith default sched=2 the function compiles to 220B (not 216B) \u2014 sched=2 hoists 'lui t0' to before the inner bnez (matching eCameraEffectGeom/gcStringSet 220B style). Expected eHeightmapShape::GetType is uniquely 216B (no hoist) AND uses standard prologue (sw s0/s1/s2/ra in order at 0..12). Switching to '#pragma control sched=1' fixes (a) the 220\u2192216 size, (b) the standard prologue, and (c) the second InitializeType call (which has no string args) now matches byte-for-byte after relocation masking.\n\nRemaining 18-word diff is in calls 1 and 3, where sched=1 reorders args:\n  Expected (call 1):  lui a0; addiu a0; lui a1; addiu a1; li a2; move a3; move t0..t2; jal; move t3 (delay)\n  Compiled (call 1):  li a2; move a3; move t0..t3; lui a0; addiu a0; lui a1; jal; addiu a1 (delay)\n  Expected (call 3):  lw a3; lui t0; addiu t0; move a0; move a1; li a2; move t1..t2; jal; move t3 (delay)\n  Compiled (call 3):  lw a3; move a0; move a1; li a2; move t1..t3; lui t0; jal; addiu t0 (delay)\n\nIn both, the original schedules the heavy lui+addiu pair EARLY then puts a single-cycle 'move t3, zero' in the jal delay slot. Our SNC at sched=1 schedules simple moves early and splits the lui+addiu pair across the jal. Permuter ran 60s/1008 candidates with zero improvement (sched=2 baseline 50B differ; tried at sched=2). Tried no-pragma (sched=2 default \u2192 220B, prologue wrong), pragma sched=1 (216B, args reordered).\n\nRoot cause: scheduler heuristic divergence between SNC builds. Neither sched=1 nor sched=2 produces this exact form. The only way the 'heavy-load early + simple-in-delay' pattern can be reproduced with our current SNC is unknown; suspect this requires an undiscovered Xmopt/Xxopt level or a slightly different SNC version. Source restructurings tried (locals to force eval order, function pointer cast variants) cannot influence schedule order at this granularity. Recommendation: park this until either (a) compiler-internals work on scheduling pass yields a pragma we can use, or (b) we discover a different InitializeType signature trick. Source left in-place with sched=1 pragma since that yields the best partial result (216B, correct prologue, call 2 fully matched). Removed the pragma block before submitting? No \u2014 left it in place; it's the closer-to-match form so future agents can iterate from there."
       }
-    ]
+    ],
+    "src_file": "src/eHeightmapShape.cpp",
+    "symbol_name": "__0fPeHeightmapShapeHGetTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b345c427",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:30:49Z"
   },
   {
     "address": "0x001f4d94",
