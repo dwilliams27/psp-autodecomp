@@ -29811,7 +29811,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002f68c",
       "0x0002f724"
@@ -29834,7 +29834,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0002de40",
@@ -42237,16 +42237,14 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002b970"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPeHeightmapShapedtv",
-    "src_file": "src/eHeightmapShape.cpp",
-    "symbol_name": "__0oPeHeightmapShapedtv"
+    "mangled_symbol": "__0oPeHeightmapShapedtv"
   },
   {
     "address": "0x000507dc",
@@ -53054,7 +53052,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -53086,7 +53084,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56223,7 +56221,13 @@
     ],
     "mangled_symbol": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
     "src_file": "src/eCylinderShape.cpp",
-    "symbol_name": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "symbol_name": "__0fOeCylinderShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "df2c95fa",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:30:41Z"
   },
   {
     "address": "0x000747b8",
@@ -56593,7 +56597,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56601,6 +56605,18 @@
       {
         "session": "46282ec4",
         "notes": "GetInvMass(int, float *, mVec3 *) const \u2014 40B. Same blocker as GetPosition: sv.q must land in the jr ra delay slot, but the VFPU zero-quad construction (mtc1/mfc1/mtv) must be inline asm (no C equivalent), so SNC refuses to schedule the inline sv.q into the delay slot. The only scalar C part is the leading *invMass = 0.0f (swc1), which works. Tried: writing *invMass = 0.0f then the mVec3-ctor-style inline-asm block \u2014 produces 44B with sv.q placed before jr ra + nop in delay slot. Also considered placement-new and v4sf_t assignment \u2014 none avoid the delay-slot requirement. Pure-asm solution banned by CLAUDE.md."
+      },
+      {
+        "session": "a0376310",
+        "notes": "Closest source uses C for *inv_mass = 0.0f, fixed a0/a1/a2 register outputs for the mfc1 values, and a v4sf_t asm output so SNC owns the final vector store. This produces the exact mtc1/swc1/mfc1/mtv sequence and places the final sv.q in the jr delay slot, but declaring the v4sf_t as an asm output requires an extra vmov.q C120,C120 before jr. Without referencing the vector output, SNC treats the vector as uninitialized and emits an unwanted lv.q before the scalar setup instead. Tried TI zero assignment, V4SF aggregate zero initialization, uninitialized V4SF store, v4sf_t asm output with vmov.q, early-clobber output, and a VS-scalar-field struct copy. The VS struct path spills through the stack and scalar VFPU stores; the best remaining diff is the single extra vmov.q in the v4sf_t output shape (compare reports 7/40 differing bytes, emitted body is 44B). Permuter was attempted for 300s with --save-best, but tools/permuter.py invokes SNC without -Xvfpumatrix/-Xvfpuscalar and fails to compile this VFPU source, so no automated mutations ran.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:30:22Z",
+        "src_file": "src/eKeyframedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/a0376310/00075100__agent_self_reported_failure__src_eKeyframedController.cpp"
       }
     ],
     "mangled_symbol": "__0fUeKeyframedControllerKGetInvMassiPfP6FmVec3K"
@@ -56627,7 +56643,13 @@
     ],
     "mangled_symbol": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK",
     "src_file": "src/eKeyframedController.cpp",
-    "symbol_name": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK"
+    "symbol_name": "__0fUeKeyframedControllerPGetLocalToWorldiP6EmOCSK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a0376310",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:30:22Z"
   },
   {
     "address": "0x00075150",
@@ -142898,7 +142920,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -142910,9 +142932,7 @@
         "session": "b5330389",
         "notes": "Scheduler-ordering divergence in InitializeType arg setup, not source-fixable with available pragmas. Wrote the standard tri-static-init pattern (matches eCameraEffectGeom/gcStringSet form):\n\n  if (!t3) { if (!t2) { if (!t1) { t1 = InitializeType(name, desc, 1, 0,...); } t2 = InitializeType(0,0,0x227,t1,0,...); } t3 = InitializeType(0,0,0x2E7,t2,&New,...); }\n\nWith default sched=2 the function compiles to 220B (not 216B) \u2014 sched=2 hoists 'lui t0' to before the inner bnez (matching eCameraEffectGeom/gcStringSet 220B style). Expected eHeightmapShape::GetType is uniquely 216B (no hoist) AND uses standard prologue (sw s0/s1/s2/ra in order at 0..12). Switching to '#pragma control sched=1' fixes (a) the 220\u2192216 size, (b) the standard prologue, and (c) the second InitializeType call (which has no string args) now matches byte-for-byte after relocation masking.\n\nRemaining 18-word diff is in calls 1 and 3, where sched=1 reorders args:\n  Expected (call 1):  lui a0; addiu a0; lui a1; addiu a1; li a2; move a3; move t0..t2; jal; move t3 (delay)\n  Compiled (call 1):  li a2; move a3; move t0..t3; lui a0; addiu a0; lui a1; jal; addiu a1 (delay)\n  Expected (call 3):  lw a3; lui t0; addiu t0; move a0; move a1; li a2; move t1..t2; jal; move t3 (delay)\n  Compiled (call 3):  lw a3; move a0; move a1; li a2; move t1..t3; lui t0; jal; addiu t0 (delay)\n\nIn both, the original schedules the heavy lui+addiu pair EARLY then puts a single-cycle 'move t3, zero' in the jal delay slot. Our SNC at sched=1 schedules simple moves early and splits the lui+addiu pair across the jal. Permuter ran 60s/1008 candidates with zero improvement (sched=2 baseline 50B differ; tried at sched=2). Tried no-pragma (sched=2 default \u2192 220B, prologue wrong), pragma sched=1 (216B, args reordered).\n\nRoot cause: scheduler heuristic divergence between SNC builds. Neither sched=1 nor sched=2 produces this exact form. The only way the 'heavy-load early + simple-in-delay' pattern can be reproduced with our current SNC is unknown; suspect this requires an undiscovered Xmopt/Xxopt level or a slightly different SNC version. Source restructurings tried (locals to force eval order, function pointer cast variants) cannot influence schedule order at this granularity. Recommendation: park this until either (a) compiler-internals work on scheduling pass yields a pragma we can use, or (b) we discover a different InitializeType signature trick. Source left in-place with sched=1 pragma since that yields the best partial result (216B, correct prologue, call 2 fully matched). Removed the pragma block before submitting? No \u2014 left it in place; it's the closer-to-match form so future agents can iterate from there."
       }
-    ],
-    "src_file": "src/eHeightmapShape.cpp",
-    "symbol_name": "__0fPeHeightmapShapeHGetTypevK"
+    ]
   },
   {
     "address": "0x001f4d94",
@@ -148183,7 +148203,13 @@
       }
     ],
     "src_file": "src/eCylinderShape.cpp",
-    "symbol_name": "__0fOeCylinderShapeHGetTypevK"
+    "symbol_name": "__0fOeCylinderShapeHGetTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "df2c95fa",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:30:41Z"
   },
   {
     "address": "0x0020dd40",

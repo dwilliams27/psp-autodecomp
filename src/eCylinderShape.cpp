@@ -257,9 +257,10 @@ int eCylinderShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1,
     CollideVtableEntry *entry = (CollideVtableEntry *)(vtable + 0xF8);
     void *adjThis = (char *)shape + entry->thisOffset;
     int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
-    int i = 0;
     if (hit != 0) {
-        if (i < *(int *)((char *)info + 0x14)) {
+        int i = 0;
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
             char *p = (char *)info + 0x20;
             do {
                 __asm__ volatile(
@@ -270,7 +271,8 @@ int eCylinderShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1,
                 );
                 i++;
                 p += 0x40;
-            } while (i < *(int *)((char *)info + 0x14));
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
         }
         return 1;
     }
