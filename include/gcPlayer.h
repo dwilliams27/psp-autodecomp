@@ -7,6 +7,7 @@ class gcEntity;
 class cBase;
 class cMemPool;
 class cType;
+class nwConnectionHandle;
 
 template <class T>
 class cHandleT {
@@ -38,6 +39,7 @@ public:
     static int GetStartingController(void);
     static int BindLocalController(void);
     static void AssignLocalController(int, bool);
+    static gcPlayer *GetPlayerForConnection(nwConnectionHandle);
     static gcPlayer *GetPlayerForCamera(const gcCamera *);
     static cBase *New(cMemPool *, cBase *);
     void SetEntity(cHandleT<gcEntity>);

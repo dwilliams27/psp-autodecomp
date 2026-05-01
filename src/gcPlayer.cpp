@@ -26,6 +26,16 @@ extern void *D_00038890[];
 
 extern char cBaseclassdesc[];                            // @ 0x37E6A8
 
+class nwConnectionHandle {
+public:
+    int mHandle;
+};
+
+class nwSocket {
+public:
+    static void *GetConnection(nwConnectionHandle);
+};
+
 struct gcPlayer_AllocRec {
     short offset;
     short _pad;
@@ -225,6 +235,55 @@ gcPlayer *gcPlayer::GetPlayerForCamera(const gcCamera *cam) {
         p = (gcPlayer *)((char *)p + 68);
     } while (i < 8);
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::GetPlayerForConnection(nwConnectionHandle) static
+// -----------------------------------------------------------------------------
+gcPlayer *gcPlayer::GetPlayerForConnection(nwConnectionHandle conn) {
+    if (nwSocket::GetConnection(conn) != 0) {
+        gcPlayer *p = (gcPlayer *)gcPlayer_s_pPlayers;
+        int i = 0;
+        do {
+            if (((conn.mHandle == *(int *)((char *)p + 0x28)) & 0xFF) != 0) {
+                return p;
+            }
+            i++;
+            p = (gcPlayer *)((char *)p + 0x44);
+        } while (i < 8);
+    }
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::GetStartingController(void) static
+// -----------------------------------------------------------------------------
+int gcPlayer::GetStartingController(void) {
+    int i = 0;
+    unsigned char *pad = (unsigned char *)0x41118;
+    do {
+        if (*(pad + 0x2D5) != 0) {
+            return i;
+        }
+        if (*(pad + 0x305) != 0) {
+            return i;
+        }
+        i++;
+        pad += 0x844;
+    } while (i < 4);
+
+    unsigned char *other = (unsigned char *)0x454A8;
+    if (*(other + 0x5BD) != 0) {
+        return 0;
+    }
+    if (*(other + 0x8D5) != 0) {
+        return 0;
+    }
+    unsigned char *last = (unsigned char *)0x45338;
+    if (*(last + 0x1D) != 0) {
+        return 0;
+    }
+    return -1;
 }
 
 // -----------------------------------------------------------------------------

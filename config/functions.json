@@ -7922,7 +7922,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004fec"
     ],
@@ -7943,6 +7943,18 @@
         "model": "gpt-5.5",
         "variant": "base",
         "timestamp": "2026-04-29T04:36:20Z"
+      },
+      {
+        "session": "023bddfd",
+        "notes": "Kept the prior closest real C++ cGUID overload and tried several targeted restructurings: unsigned-scalar byte-swap ordering copied from Write(unsigned int), delaying the second GUID word load, local sched=1 around the method, empty asm register clobbers between the two word swaps, and swap/w0 register barriers. These either preserved the same 200-byte shared-mask shape or worsened the prologue by loading the GUID words before gByteSwap. A short address-targeted permuter check reported a 137-byte baseline diff for the current 212-byte comparison slice and found no quick improvement.\n\nThe closest compiled shape still reuses the 0xff000000 and 0x00ff0000 masks across both GUID words and emits a 200-byte function body before padding, while the target is 212 bytes and reloads the masks for the second word. The target also wants the first GUID load before saving ra, but SNC keeps saving ra before that load in the closest source. This is not a bnel case; it remains a source/register-allocation problem around mask commoning and scheduling.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:49:09Z",
+        "src_file": "src/cWriteBlock.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/023bddfd/000057f0__agent_self_reported_failure__src_cWriteBlock.cpp"
       }
     ]
   },
@@ -8153,7 +8165,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004fec"
     ],
@@ -8213,6 +8225,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T02:58:09Z"
+      },
+      {
+        "session": "023bddfd",
+        "notes": "Added the missing cWriteBlock::Write(int, const float *) overload and tried direct unsigned-int pointer loads, address-taken float temporaries, volatile stack temporaries, separate bit-pointer locals, high-mask temporaries, and zero-instruction memory constraints to force the target's dead stack spill. The float temporary path introduced lwc1/mfc1 and a larger frame, so the closest saved source uses integer loads plus a post-write memory constraint; it compiles to the correct 212-byte size.\n\nRan tools/permuter.py for 300s with --save-best. It improved the function from 47 differing bytes to 19 differing bytes, but did not match after 9,432 generated / 6,665 compiled candidates. The remaining mismatch is still in the swapped loop register allocation and scheduling cluster: the target uses s2=this, s1=count, s0=data, has sw a0,0(sp) immediately after the first srl, then loads mFile through a1 before the final spill/write call. The saved source instead uses s1=this, s0=count, s2=data and differs in the final or/load/spill ordering. This is retryable and does not meet unmatchable_bnel criteria.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:49:09Z",
+        "src_file": "src/cWriteBlock.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/023bddfd/00005b3c__agent_self_reported_failure__src_cWriteBlock.cpp"
       }
     ]
   },
@@ -34172,14 +34196,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0003aa58",
       "0x0011e75c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeInputJoystickLGetIdleTimeiT"
+    "mangled_symbol": "__0fOeInputJoystickLGetIdleTimeiT",
+    "failure_notes": [
+      {
+        "session": "d3a7d137",
+        "notes": "Closest attempt is real C++ using the idle-time field at D_00041118 + 0x830 with byte-stride 0x844. The positive index path and loop body can be made instruction-identical, including the beqzl update shape, but the compiled function remains 136B versus the 144B target. The missing target preheader is li a2,0 / li a0,0 / b loop / addu a1,a2,a1; SNC keeps folding the zero offset and emits only li a0,0 in the branch delay before the same loop body. Tried int pointer, stride struct, m2c-style variables, shared offset variables, register-bound zero offsets, empty asm register barriers, sched=1, sched=0, O5, -Xmopt=0, and -Xxopt=0. Offset-loop variants produce the missing zero offset but allocate a3/t registers and change the loop, worsening the diff. A short permuter attempt was made but tools/permuter.py could not isolate this function in the multi-function object because the current symbol size is not the expected 144B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:40:55Z",
+        "src_file": "src/eInputJoystick.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/d3a7d137/0003a838__agent_self_reported_failure__src_eInputJoystick.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003a8c8",
@@ -34191,13 +34229,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00030e24"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeInputJoystickNResetIdleTimeiT"
+    "mangled_symbol": "__0fOeInputJoystickNResetIdleTimeiT",
+    "failure_notes": [
+      {
+        "session": "d3a7d137",
+        "notes": "Closest attempt is real C++ and compiles to 100B, 8B short of the 108B target. The positive path has the right multiply-by-0x844 sequence and stack spill, but SNC either places sw zero,0(sp) too early or emits addu a0,a1,a0 instead of the target addu a0,a0,a1 depending on whether the destination pointer is precomputed. The all-controllers path similarly folds the zero offset and omits the target li a2,0 / addu a1,a2,a1 setup; forcing an explicit offset keeps the size at 108B but changes the loop to use a3 as the pointer and a2 as the offset induction variable, so many bytes differ. Tried if/else branch polarity, volatile stack zeros, int pointer versus stride struct access, byte-offset induction, register-bound zero offsets, empty asm barriers, sched=1, sched=0, O5, -Xmopt=0, and -Xxopt=0. Root cause appears to be zero-offset strength reduction/register allocation, not a bnel divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:40:55Z",
+        "src_file": "src/eInputJoystick.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/d3a7d137/0003a8c8__agent_self_reported_failure__src_eInputJoystick.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003a934",
@@ -38932,7 +38984,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0004e550"
     ],
@@ -53060,11 +53112,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerLGetVelocityiP6FmVec3TCK"
+    "mangled_symbol": "__0fUeSimulatedControllerLGetVelocityiP6FmVec3TCK",
+    "failure_notes": [
+      {
+        "session": "08ae7508",
+        "notes": "Implemented eSimulatedController::GetVelocity(int, mVec3*, mVec3*) as C++ with v4sf_t copies for the body velocity outputs and mtc1/mfc1/mtv zero-vector construction for the no-body path. Tried C branch inversion to make the zero path fall through, sched=1 vs sched=2, barriers around the bodyEntries load, register-variable attempts for a0/a1, and an inline scalar-prologue experiment. Closest C output has the expected bnezl shape but still computes entry+0x20 into a temporary and branches on a1 instead of original a0; the zero-vector path also wants direct mtv -> sv.q C120 stores, while the safe C/v4sf_t output path inserts vmov.q before each store. Not marking unmatchable_bnel because the diff is much larger than 8 bytes and is register allocation / VFPU construction shape, not a branch-likely compiler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:49:47Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/08ae7508/0006c544__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006c5d4",
@@ -53076,11 +53142,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerKGetInvMassiPfP6FmVec3K"
+    "mangled_symbol": "__0fUeSimulatedControllerKGetInvMassiPfP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "679d28cb",
+        "notes": "Closest attempt is real C++ for the entry lookup and valid-body test, plus small inline VFPU sequences for the zero-vector fallback. It compiles cleanly and preserves existing matches in this file, but compare_func still reports 25/120 differing bytes. The remaining core diff is the zero fallback: original has mtc1/swc1/mfc1/mtv followed by jr ra with sv.q in the delay slot, while inline asm keeps sv.q before jr and emits jr/nop. A native v4sf_t assignment variant did put sv.q in the delay slot, but inserted an extra VFPU move/load before mtc1 and worsened the diff to 45 bytes. A naked-function variant could express the delay slot but clobbered argument registers and left extra compiler return code, also worse. Tried sched=2 local pragma, m2c-style masked flag control flow, C scalar mVec3 stores, native v4sf_t store, and explicit return-slot asm. Permuter was attempted for 300s with --save-best, but tools/permuter.py could not isolate this function in the multi-function object and aborted before searching.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:39:38Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/679d28cb/0006c5d4__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006c64c",
@@ -53092,11 +53172,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerPGetLocalToWorldiP6EmOCSK"
+    "mangled_symbol": "__0fUeSimulatedControllerPGetLocalToWorldiP6EmOCSK",
+    "failure_notes": [
+      {
+        "session": "08ae7508",
+        "notes": "Implemented eSimulatedController::GetLocalToWorld(int, mOCS*) as C++ using the eKeyframedController identity-matrix VFPU pattern and native v4sf_t stores so the final sv.q can occupy the jr delay slot. Tried sched=1 placement, a local sched=2 island, direct bodyEntries + index*0x30 C, entry-load barriers, zero-path fallthrough layout, and a scalar-prologue inline-asm experiment. The closest clean C attempt still differs early: SNC computes entry+0x20 into a temp (addiu a0/a3, 0x20) and uses a1/a3 for the boolean flag, while original keeps entry in a1, flag in a0, emits bnezl a0 with lw a0,32(a1) in the delay slot, and keeps out in a2 for VFPU stores. The identity and body-copy VFPU order is conceptually correct, but register allocation/control-flow shape is not byte-exact. A larger inline assembly block could reproduce the scalar prologue/branch, but that would violate the repo rule against assembly-submitted matches.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:49:47Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/08ae7508/0006c64c__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006c6d4",
@@ -53108,11 +53202,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerLGetPositioniP6FmVec3K"
+    "mangled_symbol": "__0fUeSimulatedControllerLGetPositioniP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "679d28cb",
+        "notes": "Closest attempt uses the same entry-validity structure as GetInvMass and returns either the body position v4sf_t or a zero vector. compare_func reports 38/108 differing bytes. The two stubborn differences are register allocation/control-flow shape around the entry pointer and the zero-vector return: original keeps bodyEntries in a0, computes the entry in a1, uses bnezl with lw a0,0x20(a1) in the delay slot, and stores the zero vector with sv.q in the jr delay slot. SNC keeps choosing a3/a0 differently for this two-argument function and inline asm cannot supply the final sv.q delay slot. Tested register barriers, register-bound locals, sched=2, C scalar mVec3 stores, native v4sf_t assignment, and a naked-function explicit-tail variant; each either worsened the diff or introduced extra return code.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:39:38Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/679d28cb/0006c6d4__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006c740",
@@ -81669,7 +81777,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f73bc",
       "0x000f7c1c",
@@ -83184,7 +83292,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f6370"
@@ -95157,7 +95265,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a83e8"
     ],
@@ -95165,7 +95273,15 @@
       "0x0010938c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerWGetPlayerForConnection6SnwConnectionHandleT"
+    "mangled_symbol": "__0fIgcPlayerWGetPlayerForConnection6SnwConnectionHandleT",
+    "src_file": "src/gcPlayer.cpp",
+    "symbol_name": "__0fIgcPlayerWGetPlayerForConnection6SnwConnectionHandleT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d2dad175",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:52:36Z"
   },
   {
     "address": "0x0011f550",
@@ -95232,7 +95348,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0012019c",
@@ -95240,7 +95356,15 @@
       "0x002f12ec"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcPlayerVGetStartingControllervT"
+    "mangled_symbol": "__0fIgcPlayerVGetStartingControllervT",
+    "src_file": "src/gcPlayer.cpp",
+    "symbol_name": "__0fIgcPlayerVGetStartingControllervT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d2dad175",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:52:36Z"
   },
   {
     "address": "0x0011f66c",
@@ -119285,7 +119409,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0035309c"
@@ -119598,7 +119722,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001a691c"
@@ -141797,7 +141921,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
