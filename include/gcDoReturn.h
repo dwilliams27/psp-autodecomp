@@ -29,6 +29,7 @@ public:
     int GetMaxChildren(void) const;
     int GetExprFlags(void) const;
     gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);

@@ -45,6 +45,12 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 // ----------------------------------------------------------------
 // gcDoSetValue::gcDoSetValue(cBase *) @ 0x0014f65c
 // ----------------------------------------------------------------
@@ -84,6 +90,122 @@ gcExpression *gcDoSetValue::GetChild(int index) const {
         val = 0;
     }
     return (gcExpression *)val;
+}
+
+// Original object keeps this dead branch tail inside the SetChild symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fMgcDoSetValueISetChildiP6MgcExpression, 0x1c8\n");
+
+// ----------------------------------------------------------------
+// gcDoSetValue::SetChild(int, gcExpression *) @ 0x0014f6a0
+// ----------------------------------------------------------------
+void gcDoSetValue::SetChild(int index, gcExpression *child) {
+    if (index == 0) {
+        int val = ((int *)this)[4];
+        int a = 1;
+        int tag = val & 1;
+        if (tag != 0) a = 0;
+
+        if (a != 0) {
+            int b = 0;
+            if (tag != 0) b = 1;
+            int newVal;
+            if (b != 0) {
+                newVal = val & ~1;
+                newVal |= 1;
+            } else {
+                newVal = *(int *)val;
+                newVal |= 1;
+            }
+            val = newVal;
+            ((int *)this)[4] = val;
+        }
+
+        if (child != (gcExpression *)val) {
+            int c = 1;
+            int tag2 = val & 1;
+            if (tag2 != 0) c = 0;
+
+            if (c != 0) {
+                int oldVal = val;
+                __asm__ volatile("" : "+r"(oldVal));
+                int d = 0;
+                if (tag2 != 0) d = 1;
+                if (d != 0) {
+                    val = val & ~1;
+                    val |= 1;
+                } else {
+                    val = *(int *)val;
+                    val |= 1;
+                }
+                ((int *)this)[4] = val;
+
+                if (oldVal != 0) {
+                    void *vt = *(void **)((char *)oldVal + 4);
+                    DtorDeleteRecord *rec = (DtorDeleteRecord *)((char *)vt + 0x50);
+                    short off = rec->offset;
+                    rec->fn((char *)oldVal + off, (void *)3);
+                }
+            }
+
+            if (child != 0) {
+                ((int *)this)[4] = (int)child;
+            }
+        }
+    } else if (index == 1) {
+        int val = ((int *)this)[5];
+        int a = 1;
+        int tag = val & 1;
+        if (tag != 0) a = 0;
+
+        if (a != 0) {
+            int b = 0;
+            if (tag != 0) b = 1;
+            int newVal;
+            if (b != 0) {
+                newVal = val & ~1;
+                newVal |= 1;
+            } else {
+                newVal = *(int *)val;
+                newVal |= 1;
+            }
+            val = newVal;
+            ((int *)this)[5] = val;
+        }
+
+        if (child != (gcExpression *)val) {
+            int c = 1;
+            int tag2 = val & 1;
+            if (tag2 != 0) c = 0;
+
+            if (c != 0) {
+                int oldVal = val;
+                __asm__ volatile("" : "+r"(oldVal));
+                int d = 0;
+                if (tag2 != 0) d = 1;
+                if (d != 0) {
+                    val = val & ~1;
+                    val |= 1;
+                } else {
+                    val = *(int *)val;
+                    val |= 1;
+                }
+                ((int *)this)[5] = val;
+
+                if (oldVal != 0) {
+                    void *vt = *(void **)((char *)oldVal + 4);
+                    DtorDeleteRecord *rec = (DtorDeleteRecord *)((char *)vt + 0x50);
+                    short off = rec->offset;
+                    rec->fn((char *)oldVal + off, (void *)3);
+                }
+            }
+
+            if (child != 0) {
+                ((int *)this)[5] = (int)child;
+            }
+        }
+    }
 }
 
 // ----------------------------------------------------------------
