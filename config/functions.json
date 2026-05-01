@@ -56443,7 +56443,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -56771,7 +56771,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -95687,13 +95687,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00167730"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcPlayerFResetvT"
+    "mangled_symbol": "__0fIgcPlayerFResetvT",
+    "failure_notes": [
+      {
+        "session": "cd63fb36",
+        "notes": "Implemented gcPlayer::Reset in C++ with a typed 0x44-byte player record and matched the visible behavior: loop over 8 player slots, condition on global flag 0x37D858 bit 1, write local/ready/connection/reset fields on the inactive path, and always reset index/controller/strength/entity fields. Tried raw absolute loads, 0x380000 negative-index globals, named extern globals, volatile dereferences, bool vs unsigned-char-normalized int conditions, if/else polarity changes, short-circuit conditional assignment, local sched=0/sched=1 pragmas, empty asm memory barriers, register constraints, and fixed-register base pointers.\n\nClosest retained source compiles to the right store set/order and a similar loop, but still differs by 51/136 bytes. The main remaining issue is global load and register allocation/scheduling: SNC emits an address materialization for the 0x37D858 flag path and uses a2/t1/t2 differently, while the original has folded absolute loads for both 0x37D858 and 0x37D87C, computes the player pointer before boolean normalization, and uses beqzl with the local=1 store in the delay slot. Some variants produced the exact beqzl shape but worsened address materialization; others folded the loads but reused one LUI or lost branch-likely. Diff is far above the bnel/unmatchable threshold, so this remains retryable failed.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:40:09Z",
+        "src_file": "src/gcPlayer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/cd63fb36/0011eeb0__agent_self_reported_failure__src_gcPlayer.cpp"
+      }
+    ]
   },
   {
     "address": "0x0011ef38",
@@ -95882,7 +95896,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0011f6dc"
     ],
@@ -95890,7 +95904,15 @@
       "0x002f12ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerQAssignControlleriTBT"
+    "mangled_symbol": "__0fIgcPlayerQAssignControlleriTBT",
+    "src_file": "src/gcPlayer.cpp",
+    "symbol_name": "__0fIgcPlayerQAssignControlleriTBT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cd63fb36",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:40:09Z"
   },
   {
     "address": "0x0011f6dc",

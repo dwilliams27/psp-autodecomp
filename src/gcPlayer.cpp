@@ -28,6 +28,7 @@ extern "C" void __0oKcReadBlockdtv(void *, int);
 template <class T> T *dcast(const cBase *);
 
 extern char *gcViewport_s_viewports;
+extern unsigned int gcLoadingScreen__s_pLoadingScreen__0037D858;
 extern int gcPlayer_s_nDefaultController;
 extern unsigned short gcPlayer_s_nLastBoundController;  // 0x37D2FA
 extern char *gcPlayer_s_pPlayers;                        // 0x37D87C, stride 68
@@ -58,6 +59,22 @@ struct gcPlayer_HandleEntry {
     int handle;
     char pad_034[0x33];
     signed char player;
+};
+
+struct gcPlayer_ResetRecord {
+    char pad_00[0x08];
+    int entity;
+    char pad_0C[0x14];
+    int controller;
+    int connection;
+    int resetWord;
+    int pad_2C;
+    int index;
+    unsigned char local;
+    unsigned char padReady;
+    unsigned char pad_36;
+    unsigned char pad_37;
+    float strength;
 };
 
 static inline int gcPlayer_IsValidEntityHandle(int handle) {
@@ -240,6 +257,39 @@ gcPlayer::~gcPlayer() {
 }
 
 // -----------------------------------------------------------------------------
+// gcPlayer::Reset(void) static  @ 0x0011eeb0, 136B
+// -----------------------------------------------------------------------------
+void gcPlayer::Reset(void) {
+    volatile int scratch;
+    int i = 0;
+    int offset = 0;
+    do {
+        unsigned int flags =
+            *(volatile unsigned int *)&gcLoadingScreen__s_pLoadingScreen__0037D858;
+        gcPlayer_ResetRecord *player =
+            (gcPlayer_ResetRecord *)(*(char * volatile *)&gcPlayer_s_pPlayers + offset);
+        int netActive = (unsigned char)((flags & 2) != 0);
+        if (netActive != 0) {
+            player->local = 0;
+        } else {
+            player->local = 1;
+            scratch = 0;
+            int *resetWord = &player->resetWord;
+            *resetWord = 0;
+            player->padReady = 0;
+            player->connection = -1;
+        }
+        player->index = i;
+        player->pad_36 = 0;
+        player->controller = -1;
+        player->strength = 0.0f;
+        i += 1;
+        player->entity = 0;
+        offset += 0x44;
+    } while (i < 8);
+}
+
+// -----------------------------------------------------------------------------
 // gcPlayer::GetPlayerForCamera(const gcCamera *) static
 // -----------------------------------------------------------------------------
 gcPlayer *gcPlayer::GetPlayerForCamera(const gcCamera *cam) {
@@ -357,6 +407,17 @@ int gcPlayer::AssignNew(void) {
     if (id < 0) return -1;
     AssignLocalController(id, true);
     return id;
+}
+
+// -----------------------------------------------------------------------------
+// gcPlayer::AssignController(int, int) static  @ 0x0011f66c, 112B
+// -----------------------------------------------------------------------------
+void gcPlayer::AssignController(int playerId, int controllerId) {
+    if (playerId >= 0 && playerId < 8) {
+        gcPlayer *player = (gcPlayer *)(gcPlayer_s_pPlayers + playerId * 68);
+        player->AssignController(controllerId, true);
+        gcPlayer_s_nLocalControllerId[playerId] = controllerId;
+    }
 }
 
 // -----------------------------------------------------------------------------

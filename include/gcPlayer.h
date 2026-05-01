@@ -31,11 +31,13 @@ class gcPlayer {
 public:
     gcPlayer(cBase *);
     static void HandleClientWarp(void);
+    static void Reset(void);
     static void ResetController(int);
     static void ResetControllers(void);
     static void ResetOtherControllers(void);
     static int BindDefaultController(void);
     static int AssignNew(void);
+    static void AssignController(int, int);
     static int GetStartingController(void);
     static int BindLocalController(void);
     static void AssignLocalController(int, bool);
@@ -45,6 +47,7 @@ public:
     void SetEntity(cHandleT<gcEntity>);
     void *GetCamera(void) const;
     void GetName(char *) const;
+    void AssignController(int, bool);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
