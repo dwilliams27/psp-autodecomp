@@ -14,6 +14,8 @@ class eCollisionInfo;
 class eShape;
 class eCollisionContactInfo;
 class eContactCollector;
+class eDragAreaUtil;
+class mPlane;
 
 class eCylinderShape {
 public:
@@ -28,6 +30,7 @@ public:
     void Write(cFile &) const;
     void GetInertialTensor(float mass, mVec3 *out) const;
     float GetVolume(void) const;
+    void GetVolumeUnderPlane(eDragAreaUtil *, const mPlane &, const mOCS &, float *, mVec3 *) const;
     int CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
     int CastSphere(const mSphere &, const mCollideInfo &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
     int GetSweptContacts(int, const mSphere *, const mCollideInfo *, const eCollisionInfo &, eContactCollector *) const;

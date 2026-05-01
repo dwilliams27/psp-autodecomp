@@ -10,9 +10,11 @@ class cMemPool;
 class eCollisionContactInfo;
 class mRay;
 class mSphere;
+class mPlane;
 class mCollideInfo;
 class eCollisionInfo;
 class eContactCollector;
+class eDragAreaUtil;
 
 extern char eCylinderShapevirtualtable[];
 
@@ -102,6 +104,13 @@ struct EmbedContactsVtableEntry {
     short pad;
     int (*fn)(void *self, int idx, const mSphere *sphere,
               const eCollisionInfo &collisionInfo, eContactCollector *collector);
+};
+
+struct VolumeUnderPlaneVtableEntry {
+    short thisOffset;
+    short pad;
+    void (*fn)(void *self, eDragAreaUtil *util, const mPlane &plane, const mOCS &ocs,
+               float *volume, mVec3 *center);
 };
 
 // eCylinderShape::Write(cFile &) const — 0x000740e4
@@ -222,6 +231,18 @@ float eCylinderShape::GetVolume(void) const {
     __asm__ volatile("" : "+f"(height));
 
     return area * height;
+}
+#pragma control sched=2
+
+// eCylinderShape::GetVolumeUnderPlane(...) const — 0x00074858
+#pragma control sched=1
+void eCylinderShape::GetVolumeUnderPlane(eDragAreaUtil *util, const mPlane &plane,
+                                         const mOCS &ocs, float *volume,
+                                         mVec3 *center) const {
+    void *shape = (void *)_unk88;
+    VolumeUnderPlaneVtableEntry *entry =
+        (VolumeUnderPlaneVtableEntry *)(*(char **)((char *)shape + 4) + 0x130);
+    entry->fn((char *)shape + entry->thisOffset, util, plane, ocs, volume, center);
 }
 #pragma control sched=2
 
