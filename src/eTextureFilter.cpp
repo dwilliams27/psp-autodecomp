@@ -6,10 +6,15 @@
 //   eTextureFilter::~eTextureFilter(void)              — 0x0007FB90
 //   eTextureFilter::GetType(void) const                — 0x00216EAC
 
-class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cBase;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cReadBlock {
 public:
@@ -52,6 +57,12 @@ extern const char eTextureFilter_base_desc[];
 static cType *type_base;
 static cType *type_eTextureFilter;
 
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class eTextureFilter {
 public:
     cBase *m_parent;    // offset 0
@@ -60,9 +71,25 @@ public:
     cHandle m_handle2;  // offset 12 (4 bytes)
 
     eTextureFilter(cBase *);
+    ~eTextureFilter();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            char *allocTable = *(char **)((char *)block + 0x1C);
+            DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
+            short off = rec->offset;
+            void *base = (char *)block + off;
+            __asm__ volatile("" ::: "memory");
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        } else {
+            free(p);
+        }
+    }
 };
 
 // ── Constructor ──
@@ -128,32 +155,8 @@ const cType *eTextureFilter::GetType(void) const {
 
 // ── Destructor ──
 
-struct DeleteRecord {
-    short offset;
-    short _pad;
-    void (*fn)(void *, void *);
-};
-
-extern "C" {
-
-void eTextureFilter___dtor_eTextureFilter_void(eTextureFilter *self, int flags) {
-    if (self != 0) {
-        *(void **)((char *)self + 4) = eTextureFiltervirtualtable;
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                char *allocTable = *(char **)((char *)block + 0x1C);
-                DeleteRecord *rec = (DeleteRecord *)(allocTable + 0x30);
-                short off = rec->offset;
-                void *base = (char *)block + off;
-                void (*fn)(void *, void *) = rec->fn;
-                fn(base, self);
-            } else {
-                free(self);
-            }
-        }
-    }
+#pragma control sched=1
+eTextureFilter::~eTextureFilter(void) {
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
 }
-
-}
+#pragma control sched=2
