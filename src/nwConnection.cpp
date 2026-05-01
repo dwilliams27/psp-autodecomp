@@ -243,39 +243,44 @@ int nwConnection::Accept() {
 
 // GetQuality: map smoothed ping into [0, 1] connection quality.
 float nwConnection::GetQuality() const {
-    float diff = mSmoothedPing - 0.25f;
-    float zero = 0.0f;
-    float range = 0.6f - 0.25f;
     float a;
+    float low = 0.25f;
+    float zero = 0.0f;
+    float high = 0.6f;
+    float diff = mSmoothedPing - low;
+    float range = high - low;
     float one;
     if (diff < zero) {
-        one = 1.0f;
         a = zero;
+        one = 1.0f;
     } else {
         one = 1.0f;
         a = diff;
     }
     if (!(a / range <= one)) {
-        return one - one;
+        float ret = one;
+        ret = ret - one;
+        return ret;
     }
-    float b;
     if (diff < zero) {
-        b = zero;
+        __asm__ volatile("" ::: "memory");
     } else {
-        b = diff;
+        zero = diff;
     }
-    return one - b / range;
+    float quotient = zero / range;
+    float result = one - quotient;
+    __asm__ volatile("" ::: "memory");
+    return result;
 }
 
 // UpdateSendRate: low-pass filter the bytes-per-tick send rate.
 void nwConnection::UpdateSendRate(cTimeValue tv) {
     unsigned int ce8 = mFieldCE8;
-    float rate = mSendRate;
     float instant = (float)ce8 / (*(float *)0x36C800 * (float)tv.mTime);
     float alpha = 0.985f;
-    if (!(instant <= rate)) alpha = 0.965f;
+    if (!(instant <= mSendRate)) alpha = 0.965f;
     mFieldCE8 = 0;
-    mSendRate = rate * alpha + instant * (1.0f - alpha);
+    mSendRate = mSendRate * alpha + (1.0f - alpha) * instant;
 }
 
 // ResendConnect: if we've waited long enough, resend the connect packet.

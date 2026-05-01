@@ -19236,7 +19236,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00002380"
     ],
@@ -19996,7 +19996,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0036bb9c",
       "0x0036bbb4"
@@ -119409,7 +119409,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0035309c"
@@ -119424,6 +119424,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T01:25:28Z"
+      },
+      {
+        "session": "f182e059",
+        "notes": "Closest attempt is 136B with 24/136 bytes differing. It keeps the high-level target structure: separate 0.25f/0.6f threshold materialization, early bc1t path with sub.s one-one in the jr delay slot, and final sub.s before jr with a nop delay. The remaining diff is primarily FPU register allocation and branch-likely shape in the second clamp: current code uses f16 for zero, f14 for range, and f13 for the first clamped value, while expected uses f14 for zero, f13 for range, and f16 for the first clamped value. Current also emits bc1fl+mov in the second clamp where expected has bc1t+nop then b+mov.\n\nTried simple m2c form, separate low/high constants to prevent range folding, named zero reassignment, literal 0.0f clamps, positive and negative middle range checks, early-return temp to force one-one subtraction, empty-branch memory barrier, local mopt/fprreserve pragmas, explicit register variables, and declaration-order permutations around low/zero/a/high/diff/range. A 300s permuter run generated 9792 candidates, compiled 5283, and improved 58 differing bytes to 24 but did not match. Root cause appears to be SNC allocator/branch-likely heuristic selection around the clamped zero value, not a remaining arithmetic issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T04:56:48Z",
+        "src_file": "src/nwConnection.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/f182e059/001a635c__agent_self_reported_failure__src_nwConnection.cpp"
       }
     ]
   },
@@ -119722,7 +119734,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001a691c"
@@ -119738,7 +119750,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T01:25:28Z"
       }
-    ]
+    ],
+    "src_file": "src/nwConnection.cpp",
+    "symbol_name": "__0fMnwConnectionOUpdateSendRate6KcTimeValue",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f182e059",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T04:56:48Z"
   },
   {
     "address": "0x001a6b50",
