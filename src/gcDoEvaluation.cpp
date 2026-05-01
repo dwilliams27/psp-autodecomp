@@ -61,6 +61,17 @@ struct DtorSlot {
     void (*fn)(void *, int);
 };
 
+struct cTypeNode {
+    char pad[0x1C];
+    cTypeNode *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short pad;
+    const cType *(*getType)(void *);
+};
+
 class gcExpressionList {
 public:
     ~gcExpressionList(void);
@@ -162,6 +173,72 @@ void gcDoEvaluation::GetText(char *buf) const {
         s = (const char *)0x36EBA8;
     }
     cStrCat(buf, s);
+}
+
+// 0x0014b174, 472B
+int gcDoEvaluation::IsElseIf(void) const {
+    const cBase *base = *(const cBase **)this;
+    const cBase *prev = 0;
+    if (base != 0) {
+        if (!type_gcDoEvaluation) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType((const char *)0x36D894,
+                                                          (const char *)0x36D89C,
+                                                          1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(0, 0, 0x6A,
+                                                            type_base,
+                                                            0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(0, 0, 0x6B,
+                                                    type_expression,
+                                                    0, 0, 0, 0);
+            }
+            type_gcDoEvaluation = cType::InitializeType(0, 0, 0x76,
+                                                        type_action,
+                                                        gcDoEvaluation::New,
+                                                        0, 0, 0);
+        }
+
+        VTableSlot *slot = (VTableSlot *)((char *)((void **)base)[1] + 8);
+        const cType *myType = type_gcDoEvaluation;
+        short offset = slot->offset;
+        const cType *type = slot->getType((char *)base + offset);
+        int ok;
+
+        if (myType == 0) {
+            ok = 0;
+            goto done;
+        }
+        if (type != 0) {
+        loop:
+            if (type == myType) {
+                ok = 1;
+                goto done;
+            }
+            type = (const cType *)((const cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto loop;
+            }
+        }
+        ok = 0;
+    done:
+        if (ok != 0) {
+            prev = base;
+        }
+    }
+
+    const cBase *candidate = prev;
+    int result = 0;
+    if (candidate != 0 && *(const gcDoEvaluation **)((const char *)candidate + 0x18) == this) {
+        VTableSlot *slot = (VTableSlot *)((char *)((void **)this)[1] + 0xA8);
+        if (slot->getType((char *)this + slot->offset) == 0) {
+            result = 1;
+        }
+    }
+    return result & 0xFF;
 }
 
 // 0x0014b09c, 144B
