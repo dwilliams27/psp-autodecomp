@@ -53278,7 +53278,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00035304"
     ],
@@ -53612,7 +53612,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000352a0"
     ],
@@ -118193,7 +118193,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a539c",
       "0x001a54fc",
@@ -118205,7 +118205,15 @@
       "0x000cce60"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJnwNetworkKInitializevT"
+    "mangled_symbol": "__0fJnwNetworkKInitializevT",
+    "src_file": "src/nwNetwork.cpp",
+    "symbol_name": "__0fJnwNetworkKInitializevT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cc9a74ab",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:16:05Z"
   },
   {
     "address": "0x001a539c",
@@ -118217,7 +118225,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000030a8",
       "0x00004540",
@@ -118231,7 +118239,21 @@
       "0x001a848c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJnwNetworkKGetMemPoolvT"
+    "mangled_symbol": "__0fJnwNetworkKGetMemPoolvT",
+    "failure_notes": [
+      {
+        "session": "cc9a74ab",
+        "notes": "Closest attempt is 32 bytes off after relocation masking. The control flow, calls, stack size, and instruction count match; remaining differences are scheduler/register-allocation around the static guard store and size calculation. Expected spills the pool pointer before loading/storing the guard value, uses a2/a1 for configSize*2 + 0x13000, and keeps the cMemPool ctor name addiu in the jal delay slot. Current source emits the same operations but orders the guard store before the spill and uses a1/a2 differently in the size block. Tried raw absolute addresses, shared 0x30000 base addressing, extern relocation symbols for D_00034C5C/D_00034C60/D_00000328, placement-new construction, direct constructor symbol calls, sched=1 override, register hints, and memory barriers. Placement-new introduced null checks; sched=1 worsened the prologue. Permuter ran 300s against nwNetwork::GetMemPool with 11,424 candidates generated / 4,067 compiled and found zero improvement over 32 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:16:05Z",
+        "src_file": "src/nwNetwork.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/cc9a74ab/001a539c__agent_self_reported_failure__src_nwNetwork.cpp"
+      }
+    ]
   },
   {
     "address": "0x001a544c",
