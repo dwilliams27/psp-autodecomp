@@ -97,6 +97,13 @@ struct SweptContactsVtableEntry {
               const eCollisionInfo &collisionInfo, eContactCollector *collector);
 };
 
+struct EmbedContactsVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, int idx, const mSphere *sphere,
+              const eCollisionInfo &collisionInfo, eContactCollector *collector);
+};
+
 // eCylinderShape::Write(cFile &) const — 0x000740e4
 #pragma control sched=1
 void eCylinderShape::Write(cFile &file) const {
@@ -153,6 +160,19 @@ int eCylinderShape::GetSweptContacts(int idx, const mSphere *sphere,
         (SweptContactsVtableEntry *)(*(char **)((char *)shape + 4) + 0xA8);
     return entry->fn((char *)shape + entry->thisOffset, idx, sphere, collideInfo,
                      collisionInfo, collector);
+}
+#pragma control sched=2
+
+// eCylinderShape::GetEmbedContacts(...) const — 0x00074460
+#pragma control sched=1
+int eCylinderShape::GetEmbedContacts(int idx, const mSphere *sphere,
+                                     const eCollisionInfo &collisionInfo,
+                                     eContactCollector *collector) const {
+    void *shape = (void *)_unk88;
+    EmbedContactsVtableEntry *entry =
+        (EmbedContactsVtableEntry *)(*(char **)((char *)shape + 4) + 0xB0);
+    return entry->fn((char *)shape + entry->thisOffset, idx, sphere, collisionInfo,
+                     collector);
 }
 #pragma control sched=2
 
