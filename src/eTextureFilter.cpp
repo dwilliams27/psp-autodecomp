@@ -76,12 +76,14 @@ eTextureFilter::eTextureFilter(cBase *parent) {
 
 // ── Write ──
 
+#pragma control sched=1
 void eTextureFilter::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     m_handle1.Write(wb);
     m_handle2.Write(wb);
     wb.End();
 }
+#pragma control sched=2
 
 // ── Read ──
 
