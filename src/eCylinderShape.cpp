@@ -12,6 +12,7 @@ class mRay;
 class mSphere;
 class mCollideInfo;
 class eCollisionInfo;
+class eContactCollector;
 
 extern char eCylinderShapevirtualtable[];
 
@@ -89,6 +90,13 @@ struct CastRayVtableEntry {
               mVec3 *pos, mVec3 *normal, float *time);
 };
 
+struct SweptContactsVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, int idx, const mSphere *sphere, const mCollideInfo *collideInfo,
+              const eCollisionInfo &collisionInfo, eContactCollector *collector);
+};
+
 // eCylinderShape::Write(cFile &) const — 0x000740e4
 #pragma control sched=1
 void eCylinderShape::Write(cFile &file) const {
@@ -131,6 +139,20 @@ int eCylinderShape::CastSphere(const mSphere &sphere, const mCollideInfo &collid
     CastSphereVtableEntry *entry = (CastSphereVtableEntry *)(*(char **)((char *)shape + 4) + 0xA0);
     return entry->fn((char *)shape + entry->thisOffset, sphere, collideInfo, collisionInfo,
                      pos, normal, time);
+}
+#pragma control sched=2
+
+// eCylinderShape::GetSweptContacts(...) const — 0x00074430
+#pragma control sched=1
+int eCylinderShape::GetSweptContacts(int idx, const mSphere *sphere,
+                                     const mCollideInfo *collideInfo,
+                                     const eCollisionInfo &collisionInfo,
+                                     eContactCollector *collector) const {
+    void *shape = (void *)_unk88;
+    SweptContactsVtableEntry *entry =
+        (SweptContactsVtableEntry *)(*(char **)((char *)shape + 4) + 0xA8);
+    return entry->fn((char *)shape + entry->thisOffset, idx, sphere, collideInfo,
+                     collisionInfo, collector);
 }
 #pragma control sched=2
 

@@ -13,6 +13,7 @@ class mCollideInfo;
 class eCollisionInfo;
 class eShape;
 class eCollisionContactInfo;
+class eContactCollector;
 
 class eCylinderShape {
 public:
@@ -29,6 +30,7 @@ public:
     float GetVolume(void) const;
     int CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
     int CastSphere(const mSphere &, const mCollideInfo &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
+    int GetSweptContacts(int, const mSphere *, const mCollideInfo *, const eCollisionInfo &, eContactCollector *) const;
     int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int NeedsRollingFriction(float *) const;
     void AssignCopy(const cBase *);
