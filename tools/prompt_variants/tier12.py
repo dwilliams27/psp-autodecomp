@@ -202,7 +202,9 @@ def build_prompt(batch, functions, session_id):
         f"For FAILED functions, the 'notes' field is REQUIRED. Write 1-2 paragraphs: "
         f"what approaches you tried, what the byte diff looked like, where you got "
         f"stuck, root cause hypothesis. These notes are passed to the next agent "
-        f"that retries this function — make them useful.\n\n"
+        f"that retries this function — make them useful. Keep the 'file' field set "
+        f"to the source file containing your closest attempt, even when status is "
+        f"'failed'; the orchestrator snapshots that source for retries.\n\n"
         f"Write the file even if you matched zero functions — report every address "
         f"you were given. This file is how the orchestrator tracks progress; if "
         f"you don't write it, your work is lost.\n\n",

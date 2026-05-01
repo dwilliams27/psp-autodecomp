@@ -32,6 +32,7 @@ def test_compile_src_forces_rebuild():
 
         def fake_run(cmd, capture_output, text, cwd=None):
             calls.append((cmd, capture_output, text, cwd))
+            open(obj, "wb").close()
             return SimpleNamespace(returncode=0, stdout="", stderr="")
 
         with mock.patch.object(byte_match.subprocess, "run", fake_run):

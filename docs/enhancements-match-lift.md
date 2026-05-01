@@ -19,7 +19,7 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | ML9 | Matched function corpus as agent exemplars | Prompt | **DONE** | +5-15% first-attempt rate |
 | ML10 | Cross-class method template library | Prompt | **DONE** | ~50-100 |
 | ML11 | Static analysis pre-pass for prompt enrichment | Prompt | **Deprioritized** | <1% overall improvement |
-| ML12 | Diff-guided agent retries | Orchestrator | Idea | ~10-30 |
+| ML12 | Diff-guided agent retries | Orchestrator | Partial | ~10-30 |
 | ML13 | Binary patch pspcor.exe bnel heuristic | Compiler | Designed | ~2-7 |
 
 ---
@@ -316,7 +316,10 @@ Build a library of canonical method patterns from matched functions. For each me
 
 ## ML12. Diff-guided agent retries
 
-**Status: Idea.**
+**Status: Partial.** The orchestrator now snapshots failed/near-miss
+source files under `logs/failure_snapshots/` and surfaces `src=...`
+plus `snapshot=...` in retry prompts. The remaining work is automatic
+diff diagnosis.
 
 When a function fails with a small byte diff, parse the diff to identify the specific codegen issue and include that diagnosis in the retry prompt.
 

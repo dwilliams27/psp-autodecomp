@@ -109,6 +109,7 @@ def _is_known_hard(func: dict, notes: str) -> bool:
 def _score(func: dict) -> tuple[int, list[str], bool]:
     notes = _notes_for(func)
     lower = notes.lower()
+    meta = _last_note_meta(func)
     reasons: list[str] = []
     score = 0
 
@@ -118,6 +119,12 @@ def _score(func: dict) -> tuple[int, list[str], bool]:
         if len(notes) >= 800:
             score += 15
             reasons.append("rich notes")
+        if meta.get("snapshot"):
+            score += 20
+            reasons.append("has failure snapshot")
+        elif meta.get("src_file"):
+            score += 5
+            reasons.append("has failed src_file")
     else:
         score -= 25
         reasons.append("no failure_notes")
@@ -145,7 +152,6 @@ def _score(func: dict) -> tuple[int, list[str], bool]:
         score += min(25, 8 * len(codegen_hits))
         reasons.append("codegen-specific diagnosis")
 
-    meta = _last_note_meta(func)
     if meta.get("backend") == "codex" and str(meta.get("model", "")).startswith("gpt-5.4"):
         score += 10
         reasons.append("failed on 5.4; good 5.5 retry")
@@ -221,6 +227,8 @@ def build_targets(functions: list[dict], include_known_hard: bool,
             "category": _category(func.get("name", "")),
             "priority": max(1, 100 - score),
             "score": score,
+            "failure_src_file": _last_note_meta(func).get("src_file"),
+            "failure_snapshot": _last_note_meta(func).get("snapshot"),
             "reason": "; ".join(reasons),
         })
     return targets, stats

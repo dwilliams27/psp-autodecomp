@@ -153,7 +153,13 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     if prior_notes:
         parts.append(f"\nPRIOR ATTEMPTS ({len(prior_notes)} failed):\n")
         for note in prior_notes:
-            parts.append(f"  Session {note['session']}: {note['notes']}\n")
+            meta = []
+            if note.get("src_file"):
+                meta.append(f"src={note['src_file']}")
+            if note.get("snapshot"):
+                meta.append(f"snapshot={note['snapshot']}")
+            suffix = f" ({', '.join(meta)})" if meta else ""
+            parts.append(f"  Session {note['session']}{suffix}: {note['notes']}\n")
         guidance = prior_notes_guidance or (
             "Use these notes to avoid repeating the same approaches. "
             "Try something different.\n"

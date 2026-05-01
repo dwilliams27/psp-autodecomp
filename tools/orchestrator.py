@@ -16,12 +16,14 @@ Usage:
 import argparse
 import concurrent.futures
 import glob
+import hashlib
 import importlib
 import json
 import os
 import queue
 import random
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -148,7 +150,7 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
             target["matched_by_identity"] = identity
             target["matched_at"] = matched_at
         if d.failure_note:
-            target.setdefault("failure_notes", []).append({
+            note = {
                 "session": session_id,
                 "notes": d.failure_note,
                 "backend": backend_name,
@@ -157,7 +159,12 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
                 "identity": identity,
                 "variant": variant,
                 "timestamp": matched_at,
-            })
+            }
+            if d.failure_src_file:
+                note["src_file"] = d.failure_src_file
+            if d.failure_snapshot_path:
+                note["snapshot"] = d.failure_snapshot_path
+            target.setdefault("failure_notes", []).append(note)
             target["failure_notes"] = target["failure_notes"][-5:]
 
 
@@ -184,6 +191,192 @@ def verifier_failure_note(prefix, src_file=None, reason=None,
     return "; ".join(parts)
 
 
+def _snapshot_safe_name(value):
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("_") or "file"
+
+
+def _unique_snapshot_path(out_dir, base_name):
+    out_path = os.path.join(out_dir, base_name)
+    if not os.path.exists(out_path):
+        return out_path
+    root, ext = os.path.splitext(base_name)
+    i = 2
+    while True:
+        candidate = os.path.join(out_dir, f"{root}.{i}{ext}")
+        if not os.path.exists(candidate):
+            return candidate
+        i += 1
+
+
+def _file_sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def snapshot_failure_source(session_id, func, src_file, reason, log_path,
+                            variant, backend, worktree=None,
+                            extra_paths=None, failure_note=None):
+    """Copy the current failed/near-miss source into logs/.
+
+    Failure notes are useful, but exact-match retry work needs the actual
+    source state that produced the near miss. The orchestrator owns this
+    before cleanup reverts failed ledger files, so snapshot here instead of
+    expecting the agent to archive its own work.
+    """
+    if not src_file:
+        return None
+    rel = src_file.lstrip("./")
+    if not rel.startswith(("src/", "include/")):
+        return None
+    root = worktree or "."
+    source_path = os.path.join(root, rel)
+    if not os.path.isfile(source_path):
+        return None
+
+    run_dir = (
+        os.path.splitext(os.path.basename(log_path))[0]
+        if log_path else "unknown_run"
+    )
+    out_dir = os.path.join(FAILURE_SNAPSHOTS_DIR, run_dir, session_id)
+    os.makedirs(out_dir, exist_ok=True)
+    addr = (func.get("address") or "unknown").lower().replace("0x", "")
+    safe_reason = _snapshot_safe_name(reason or "failed")
+    out_name = f"{addr}__{safe_reason}__{_snapshot_safe_name(rel)}"
+    out_path = _unique_snapshot_path(out_dir, out_name)
+    shutil.copy2(source_path, out_path)
+
+    companion_files = []
+    for extra in sorted(set(extra_paths or ())):
+        extra_rel = extra.lstrip("./")
+        if extra_rel == rel or not extra_rel.startswith(("src/", "include/")):
+            continue
+        extra_source = os.path.join(root, extra_rel)
+        if not os.path.isfile(extra_source):
+            continue
+        extra_name = (
+            f"{addr}__{safe_reason}__dep__{_snapshot_safe_name(extra_rel)}"
+        )
+        extra_out = _unique_snapshot_path(out_dir, extra_name)
+        shutil.copy2(extra_source, extra_out)
+        companion_files.append({
+            "src_file": extra_rel,
+            "snapshot": extra_out,
+            "sha256": _file_sha256(extra_out),
+            "file_size": os.path.getsize(extra_out),
+        })
+
+    meta = {
+        "session_id": session_id,
+        "variant": variant,
+        "backend": backend.name,
+        "model": getattr(backend, "model", ""),
+        "effort": getattr(backend, "effort", ""),
+        "worktree": worktree,
+        "address": func.get("address"),
+        "name": func.get("name"),
+        "class_name": func.get("class_name") or "",
+        "size": func.get("size"),
+        "obj_file": func.get("obj_file") or "",
+        "src_file": rel,
+        "snapshot": out_path,
+        "sha256": _file_sha256(out_path),
+        "file_size": os.path.getsize(out_path),
+        "companion_files": companion_files,
+        "reason": reason,
+        "failure_note": failure_note,
+    }
+    meta_path = out_path + ".json"
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2)
+        f.write("\n")
+
+    if log_path:
+        log_event(log_path, {
+            "event": "failure_source_snapshot",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "model": getattr(backend, "model", ""),
+            "effort": getattr(backend, "effort", ""),
+            "address": func.get("address"),
+            "name": func.get("name"),
+            "src_file": rel,
+            "snapshot": out_path,
+            "metadata": meta_path,
+            "reason": reason,
+            "failure_note": failure_note,
+        })
+    return out_path
+
+
+def snapshot_failed_decisions(decisions, batch, session_id, log_path,
+                              variant, backend, worktree=None,
+                              extra_paths=None):
+    """Snapshot every failed decision's source once, if available."""
+    funcs_by_addr = {f["address"]: f for f in batch}
+    for d in decisions.values():
+        if d.status != "failed" or d.failure_snapshot_path:
+            continue
+        func = funcs_by_addr.get(d.address)
+        if not func:
+            continue
+        snap = snapshot_failure_source(
+            session_id, func, d.failure_src_file,
+            d.verify_reason or d.claimed_status or "failed",
+            log_path, variant, backend, worktree=worktree,
+            extra_paths=extra_paths, failure_note=d.failure_note,
+        )
+        if snap:
+            d.failure_snapshot_path = snap
+
+
+def _choose_dirty_snapshot_source(func, dirty_paths):
+    """Pick the most relevant dirty source file for an unparsed failure."""
+    paths = sorted(p.lstrip("./") for p in dirty_paths
+                   if p.startswith(("src/", "include/")))
+    if not paths:
+        return None
+    existing = func.get("src_file")
+    if existing and existing.lstrip("./") in paths:
+        return existing.lstrip("./")
+    cls = func.get("class_name") or ""
+    if cls:
+        safe = _safe_class_filename(cls)
+        preferred = [f"src/{safe}.cpp", f"include/{safe}.h"]
+        for p in preferred:
+            if p in paths:
+                return p
+        for p in paths:
+            if p.startswith(f"src/{safe}_") and p.endswith(".cpp"):
+                return p
+    for p in paths:
+        if p.startswith("src/") and p.endswith((".cpp", ".c")):
+            return p
+    return paths[0]
+
+
+def snapshot_dirty_sources_for_batch(batch, session_id, log_path, variant,
+                                     backend, dirty_paths, reason,
+                                     worktree=None, failure_note=None):
+    """Snapshot dirty source files when no parsed FunctionDecision exists."""
+    snapshots = []
+    for func in batch:
+        src = _choose_dirty_snapshot_source(func, dirty_paths)
+        if not src:
+            continue
+        snap = snapshot_failure_source(
+            session_id, func, src, reason, log_path, variant, backend,
+            worktree=worktree, extra_paths=dirty_paths,
+            failure_note=failure_note,
+        )
+        if snap:
+            snapshots.append(snap)
+    return snapshots
+
+
 @dataclass
 class FunctionDecision:
     """Worker's final verdict for one batch address — post-verify,
@@ -198,6 +391,8 @@ class FunctionDecision:
     claimed_status: Optional[str] = None
     verify_reason: Optional[str] = None
     rejected_extern_c: bool = False
+    failure_src_file: Optional[str] = None
+    failure_snapshot_path: Optional[str] = None
 
 
 @dataclass
@@ -303,6 +498,7 @@ TRANSITION_ZONE_START = 0x040000
 TRANSITION_ZONE_END = 0x06e000
 LOGS_DIR = "logs"
 SESSION_RESULTS_DIR = "logs/session_results"
+FAILURE_SNAPSHOTS_DIR = "logs/failure_snapshots"
 ATTEMPTS_LOG = "logs/attempts.jsonl"
 GIT = "git"
 
@@ -532,6 +728,9 @@ def emit_attempts_for_outcome(outcome, run_id, error_kind=None,
         rec["claimed_status"] = d.claimed_status if d else None
         rec["verified_status"] = d.status if d else None
         rec["verify_reason"] = d.verify_reason if d else None
+        rec["failure_src_file"] = d.failure_src_file if d else None
+        rec["failure_snapshot_path"] = d.failure_snapshot_path if d else None
+        rec["failure_note"] = d.failure_note if d else None
         rec["rejected_extern_c"] = bool(d and d.rejected_extern_c)
         rec["agent_refused"] = bool(outcome.refused)
         rec["prep_error"] = outcome.prep_error
@@ -857,6 +1056,22 @@ def revert_paths(paths, worktree=None):
                 raise RuntimeError(
                     f"revert_paths: os.remove({full}) failed: {e}"
                 ) from e
+
+
+def snapshot_and_revert_dirty_sources(ctx, reason, failure_note=None):
+    """Best-effort cleanup for sessions that end before normal parsing."""
+    ledger, out_of_scope = partition_dirty_paths(
+        ctx.exact_paths, ctx.sibling_prefixes,
+        peer_query=ctx.peer_query, worktree=ctx.worktree)
+    dirty = set(ledger) | set(out_of_scope)
+    if not dirty:
+        return 0
+    snapshots = snapshot_dirty_sources_for_batch(
+        ctx.batch, ctx.session_id, ctx.log_path, ctx.variant, ctx.backend,
+        dirty, reason, worktree=ctx.worktree, failure_note=failure_note,
+    )
+    revert_paths(dirty, worktree=ctx.worktree)
+    return len(snapshots)
 
 
 def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
@@ -1409,6 +1624,7 @@ def parse_session_results(session_id, batch, log_path, variant, backend_name):
                 failure_note=(notes or None),
                 claimed_status="failed",
                 verify_reason="agent_self_reported_failure",
+                failure_src_file=entry.get("file"),
             )
 
     unreported = []
@@ -1517,6 +1733,22 @@ def run_one_session(ctx):
             })
             # Fall through to normal result parsing below
         else:
+            try:
+                snap_count = snapshot_and_revert_dirty_sources(
+                    ctx, "session_error", failure_note=error_msg)
+                if snap_count:
+                    log(f"  SESSION ERROR: snapshotted {snap_count} dirty "
+                        f"source artifact(s) before cleanup")
+            except BaseException as cleanup_error:
+                log(f"  SESSION ERROR CLEANUP FAILED: "
+                    f"{type(cleanup_error).__name__}: {cleanup_error}")
+                log_event(log_path, {
+                    "event": "session_error_cleanup_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "error": str(cleanup_error),
+                })
             outcome.error_msg = error_msg
             return outcome
 
@@ -1525,6 +1757,22 @@ def run_one_session(ctx):
             parse_session_results(session_id, batch, log_path, variant, backend.name)
         )
     except (FileNotFoundError, ValueError) as e:
+        try:
+            snap_count = snapshot_and_revert_dirty_sources(
+                ctx, "result_parse_error", failure_note=str(e))
+            if snap_count:
+                log(f"  RESULT PARSE ERROR: snapshotted {snap_count} dirty "
+                    f"source artifact(s) before cleanup")
+        except BaseException as cleanup_error:
+            log(f"  RESULT PARSE CLEANUP FAILED: "
+                f"{type(cleanup_error).__name__}: {cleanup_error}")
+            log_event(log_path, {
+                "event": "result_parse_cleanup_failed",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "error": str(cleanup_error),
+            })
         outcome.system_error = str(e)
         return outcome
 
@@ -1590,6 +1838,7 @@ def run_one_session(ctx):
             })
             d.status = "failed"
             d.src_file = None
+            d.failure_src_file = src_file
             d.failure_note = verifier_failure_note(
                 "Verifier demoted claimed match: compile failed",
                 src_file=src_file,
@@ -1647,6 +1896,7 @@ def run_one_session(ctx):
         })
         d.status = "failed"
         d.src_file = None
+        d.failure_src_file = src_file
         d.failure_note = verifier_failure_note(
             "Verifier demoted claimed match: byte mismatch",
             src_file=src_file,
@@ -1684,6 +1934,7 @@ def run_one_session(ctx):
                     d.status = "failed"
                     d.src_file = None
                     d.symbol_name = None
+                    d.failure_src_file = next(iter(func_files), None)
                     d.failure_note = verifier_failure_note(
                         "Verifier demoted claimed match: assembly-only source rejected",
                         src_file=next(iter(func_files), None),
@@ -1713,6 +1964,7 @@ def run_one_session(ctx):
                 })
                 d = decisions[func["address"]]
                 d.status = "failed"
+                d.failure_src_file = addr_to_src.get(func["address"]) or d.src_file
                 d.src_file = None
                 d.symbol_name = None
                 d.failure_note = reason
@@ -1739,6 +1991,11 @@ def run_one_session(ctx):
         outcome.system_error = str(e)
         return outcome
 
+    snapshot_failed_decisions(
+        decisions, batch, session_id, log_path, variant, backend,
+        worktree=ctx.worktree, extra_paths=ledger,
+    )
+
     if out_of_scope:
         log(f"  OUT-OF-SCOPE EDITS: reverting {len(out_of_scope)} path(s)")
         for p in sorted(out_of_scope):
@@ -1750,12 +2007,12 @@ def run_one_session(ctx):
             "backend": backend.name,
             "paths": sorted(out_of_scope),
         })
-        revert_paths(out_of_scope, worktree=ctx.worktree)
         for func in list(matched_funcs):
             func_files = {e["file"] for e in results
                           if e.get("address") == func["address"] and e.get("file")}
             if func_files and not func_files.isdisjoint(out_of_scope):
                 d = decisions[func["address"]]
+                d.failure_src_file = next(iter(func_files), None)
                 d.status = "failed"
                 d.src_file = None
                 d.symbol_name = None
@@ -1763,8 +2020,17 @@ def run_one_session(ctx):
                     "match wrote to out-of-scope path; reverted by Phase 1 ledger"
                 )
                 d.verify_reason = "out_of_scope_path"
+                snap = snapshot_failure_source(
+                    session_id, func, d.failure_src_file,
+                    "out_of_scope_path", log_path, variant, backend,
+                    worktree=ctx.worktree, extra_paths=out_of_scope,
+                    failure_note=d.failure_note,
+                )
+                if snap:
+                    d.failure_snapshot_path = snap
                 matched_funcs.remove(func)
         matched_files -= out_of_scope
+        revert_paths(out_of_scope, worktree=ctx.worktree)
 
         # Post-revert re-verification: a match that passed
         # check_byte_match before the out-of-scope revert may now
@@ -1808,6 +2074,7 @@ def run_one_session(ctx):
                     "error": str(e)[:500],
                 })
                 d.status = "failed"
+                d.failure_src_file = d.src_file
                 d.src_file = None
                 d.symbol_name = None
                 d.failure_note = (
@@ -1831,6 +2098,7 @@ def run_one_session(ctx):
                     "diff_count": result.diff_count,
                 })
                 d.status = "failed"
+                d.failure_src_file = d.src_file
                 d.src_file = None
                 d.symbol_name = None
                 d.failure_note = (
@@ -1838,6 +2106,34 @@ def run_one_session(ctx):
                 )
                 d.verify_reason = "post_revert_byte_mismatch"
                 matched_funcs.remove(func)
+
+    snapshot_failed_decisions(
+        decisions, batch, session_id, log_path, variant, backend,
+        worktree=ctx.worktree, extra_paths=ledger,
+    )
+
+    if not matched_funcs and ledger:
+        cleanup_action = (
+            "preserving shootout" if ctx.queue_kind == "shootout"
+            else "reverting"
+        )
+        log(f"  NO VERIFIED MATCHES: snapshotting failures and "
+            f"{cleanup_action} {len(ledger)} ledger path(s)")
+        for p in sorted(ledger):
+            log(f"    {p}")
+        log_event(log_path, {
+            "event": "failed_session_ledger_reverted",
+            "session_id": session_id,
+            "variant": variant,
+            "backend": backend.name,
+            "paths": sorted(ledger),
+        })
+        if ctx.queue_kind == "shootout":
+            log("  SHOOTOUT CLEANUP: leaving failed ledger dirty to avoid "
+                "racing pending commits in the same worktree")
+        else:
+            revert_paths(ledger, worktree=ctx.worktree)
+            ledger = set()
 
     outcome.decisions = list(decisions.values())
     outcome.matched_funcs = matched_funcs
@@ -3126,18 +3422,18 @@ def main():
 
             final_matched = 0
             final_failed = 0
+            decision_by_addr = {d.address: d for d in outcome.decisions}
             for func in batch:
+                d = decision_by_addr.get(func["address"])
                 if is_shootout:
                     # Use the per-decision verdict directly; the main
                     # DB still says "untried" so addr_index lookup
                     # would mislabel this as untried for the log.
-                    d = next((x for x in outcome.decisions
-                              if x.address == func["address"]), None)
                     final_status = (d.status if d else "unknown")
                 else:
                     target = addr_index.get(func["address"])
                     final_status = target["match_status"] if target else "unknown"
-                log_event(log_path, {
+                event = {
                     "event": "function_result",
                     "session_id": session_id,
                     "variant": variant,
@@ -3150,7 +3446,12 @@ def main():
                     "name": func["name"],
                     "size": func["size"],
                     "status": final_status,
-                })
+                }
+                if d:
+                    event["verify_reason"] = d.verify_reason
+                    event["failure_src_file"] = d.failure_src_file
+                    event["failure_snapshot_path"] = d.failure_snapshot_path
+                log_event(log_path, event)
                 if final_status == "matched":
                     final_matched += 1
                 elif final_status == "failed":
@@ -3397,12 +3698,24 @@ def main():
                         f"to untried.")
             for ctx in interrupted_contexts:
                 try:
-                    ledger, _out = partition_dirty_paths(
+                    ledger, out_of_scope = partition_dirty_paths(
                         ctx.exact_paths, ctx.sibling_prefixes,
+                        peer_query=ctx.peer_query,
                         worktree=ctx.worktree)
-                    if ledger:
-                        revert_paths(ledger, worktree=ctx.worktree)
-                        log(f"  Reverted {len(ledger)} interrupted ledger "
+                    dirty = set(ledger) | set(out_of_scope)
+                    if dirty:
+                        snap_count = snapshot_dirty_sources_for_batch(
+                            ctx.batch, ctx.session_id, log_path, ctx.variant,
+                            ctx.backend, dirty, "interrupted_session",
+                            worktree=ctx.worktree,
+                            failure_note="run interrupted before result handling",
+                        )
+                        if snap_count:
+                            log(f"  Snapshotted {snap_count} interrupted "
+                                f"source artifact(s) for session "
+                                f"{ctx.session_id}.")
+                        revert_paths(dirty, worktree=ctx.worktree)
+                        log(f"  Reverted {len(dirty)} interrupted dirty "
                             f"path(s) for session {ctx.session_id}.")
                 except BaseException as e:
                     log(f"  Interrupted-session cleanup failed for "

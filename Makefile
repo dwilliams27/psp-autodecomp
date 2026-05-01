@@ -72,13 +72,11 @@ verify: $(TARGET_BIN)
 
 # Engine classes confirmed sched=1 (per prologue byte-matching)
 #
-# WARNING: These 6 are the only CONFIRMED sched=1 classes. The sched=1 zone
-# (eAll_psp.obj addresses 0x06e000-0x0bab28) contains ~40 more classes
-# (eShadowFillModelMtl, eDynamicLightModelMtl, eBipedController, eSimulatedController,
-# eBoxShape, eMeshShape, eHeightmapShape, etc.) whose non-trivial functions have NOT
-# been matched yet. Their trivial stubs produce identical bytes with either sched.
-# When matching non-trivial functions from these classes, if bytes don't match,
-# try adding a sched=1 override here. See docs/decisions/003-compiler-flags.md.
+# WARNING: eAll_psp.obj is mixed at class/method granularity. Prefer local
+# `#pragma control sched=N` while a class has known sched=1 and sched=2
+# methods. Add broad Makefile overrides only after multiple non-trivial
+# matches prove a class is consistently sched=1. See
+# docs/research/snc-transition-zone-sched.md.
 $(BUILD_DIR)/src/eTextureMap%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eBumpOffsetMap%.o: CFLAGS := $(ECFLAGS)
 $(BUILD_DIR)/src/eDynamicMeshMorphTarget%.o: CFLAGS := $(ECFLAGS)

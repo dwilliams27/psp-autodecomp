@@ -117,7 +117,7 @@ Living document tracking the 44 strategic functions from `config/finetune_target
 
 ## Key Findings
 
-1. **Transition zone is all sched=2.** Every matched function in 0x040000-0x06e000 confirmed sched=2, including late-zone functions (0x065bbc, 0x06afbc, 0x06c490) that were expected to be sched=1. The sched=1 boundary is sharper than estimated — it starts right at 0x06e000, not gradually in the transition zone.
+1. **Transition zone is mixed, not address-only.** The original probe set showed several specific `sched=2` matches in 0x040000-0x06e000, but later matched methods and failure notes refute the broader "all sched=2" conclusion. Use the newer class/method map in `docs/research/snc-transition-zone-sched.md`.
 
 2. **mAll_psp.obj confirmed sched=2.** mFrustum::GetOrtho matched with default flags.
 

@@ -110,7 +110,7 @@ Comprehensive audit of compiler flags completed. See `docs/decisions/003-compile
 | sched=1 for eCollisionConstraint, eInputKeyboard | Assigned based on address range in eAll_psp.obj. Zero non-trivial (>=60B) matches to verify byte-level difference. | **70%** — needs larger function matches |
 | Only 3 flags affect codegen: sched, mopt, xopt | 43 flag variations tested on stress-test code (loops, floats, switches, structs, aliasing). 26 flags produce identical bytes at all levels. | **90%** — tested on 2 synthetic + 5 real functions |
 | No `-Xunroll` pragma overrides | 641 matches without hitting one. But zero matches above 512B where unroll would matter most. | **80%** — needs large function coverage |
-| eAll_psp.obj sched boundary at ~0x040000-0x06e000 | 21 classifiable prologues confirm sched=2 early, sched=1 late. 726 functions in transition zone, only 40 matched (all trivial). | **60%** — transition zone uncharted |
+| eAll_psp.obj sched layout | Later transition-zone evidence shows class/method-level mixing, not one clean address boundary. See `docs/research/snc-transition-zone-sched.md`. | **70%** — map improving, still method-level in mixed classes |
 
 ### Coverage gaps (blocks before fine-tuning)
 
