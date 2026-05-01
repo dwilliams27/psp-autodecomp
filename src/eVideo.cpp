@@ -30,6 +30,12 @@ struct eVideoConfig {
 
 extern GpuCmdList D_000984D0;
 
+struct eViewport {
+    int x, y, w, h;
+};
+
+extern eViewport D_00098368;
+
 void eVideo::EndStencil(void) {
 }
 
@@ -94,6 +100,23 @@ void eVideo::Flip(void) {
     eVideoPlatform::Flip(false, false);
 }
 
+void eVideo::Flush(void) {
+    float depth;
+
+    eVideo::PreFlip();
+    eVideo::BeginFrame();
+    depth = 1.0f;
+    eVideo::Clear(true, false, 0, depth, 0);
+    eVideo::EndFrame();
+    eVideo::Flip();
+
+    eVideo::PreFlip();
+    eVideo::BeginFrame();
+    eVideo::Clear(true, false, 0, depth, 0);
+    eVideo::EndFrame();
+    eVideo::Flip();
+}
+
 void eVideo::EndFrame(void) {
     eVRAMMgr::EndRender();
     int *p = D_000984D0.ptr;
@@ -113,5 +136,27 @@ void eVideo::RegisterInit(eIVideoRegisterInit *p) {
         D_0037D130 = p;
         p->prev = p;
         p->next = p;
+    }
+}
+
+void eVideo::SetScissor(const eViewport *vp) {
+    eViewport defaultViewport = {0, 0, 0x1E0, 0x110};
+
+    if (vp == 0) {
+        vp = &defaultViewport;
+    }
+
+    bool same = (vp->x == D_00098368.x &&
+                 vp->y == D_00098368.y &&
+                 vp->w == D_00098368.w &&
+                 vp->h == D_00098368.h);
+
+    if (same == 0) {
+        D_00098368 = *vp;
+
+        int *p = D_000984D0.ptr;
+        D_000984D0.ptr = p + 2;
+        p[0] = 0xD4000000 | (vp->y << 10) | vp->x;
+        p[1] = 0xD5000000 | (((vp->y + vp->h) - 1) << 10) | ((vp->x + vp->w) - 1);
     }
 }

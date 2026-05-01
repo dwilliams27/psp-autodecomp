@@ -30089,7 +30089,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0002f7b0",
       "0x0002f848",
@@ -30111,7 +30111,15 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeVideoFFlushvT"
+    "mangled_symbol": "__0fGeVideoFFlushvT",
+    "src_file": "src/eVideo.cpp",
+    "symbol_name": "__0fGeVideoFFlushvT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fe8f6cbb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:39:49Z"
   },
   {
     "address": "0x0002f944",
@@ -30317,7 +30325,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0002fd58",
@@ -30326,7 +30334,15 @@
       "0x0015d96c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeVideoKSetScissorPC6JeViewportT"
+    "mangled_symbol": "__0fGeVideoKSetScissorPC6JeViewportT",
+    "src_file": "src/eVideo.cpp",
+    "symbol_name": "__0fGeVideoKSetScissorPC6JeViewportT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fe8f6cbb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:39:49Z"
   },
   {
     "address": "0x00030050",
@@ -42893,7 +42909,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -42916,7 +42932,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00023448",

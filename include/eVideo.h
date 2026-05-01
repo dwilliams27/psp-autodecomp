@@ -11,6 +11,8 @@ public:
     static void RegisterInit(class eIVideoRegisterInit *);
     static void SetVideoMode(eVideoMode);
     static void SetDefaultVideoMode(void);
+    static void Flush(void);
+    static void BeginFrame(void);
     static void Flip(void);
     static void EndFrame(void);
     static void InvalidateTextureCache(void);
@@ -29,6 +31,7 @@ public:
     static void GetAspectWidthHeight(int, int, int *, int *);
     static void GetViewport(struct eViewport *);
     static void GetScissor(struct eViewport *);
+    static void SetScissor(const struct eViewport *);
     static void SetFullscreenViewport(const struct eViewport &);
 };
 
