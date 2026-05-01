@@ -80,6 +80,39 @@ class eSimulatedController {
 public:
     char _pad[0x38];
     char *base;
+    void ApplyTorque(int, const struct mVec3 &);
+};
+
+typedef unsigned int SceULong128 __attribute__((mode(TI)));
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+struct mVec3 {
+    SceULong128 qw;
+};
+
+struct eSimpleMotorVec {
+    v4sf_t v;
+};
+
+struct eSimpleMotorConfigLocal {
+    char _pad0[0x20];
+    eSimpleMotorVec axis;
+    float forceScale;
+    float maxTorque;
+    int bodyIndex;
+    char _pad3C;
+    unsigned char positioned;
+};
+
+struct eSimpleMotorStateLocal {
+    char _pad0[0x20];
+    void *bodyData;
+};
+
+struct eSimpleMotorVTableEntry {
+    short adjust;
+    short _pad;
+    void (*fn)(void *, int, const mVec3 &, const mVec3 &);
 };
 
 extern char eSimpleMotorvirtualtable[];
@@ -93,6 +126,7 @@ public:
     ~eSimpleMotor();
     void AssignCopy(const cBase *);
     void Initialize(ePhysicsMotorConfig *, eSimulatedController *);
+    int Apply(float);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
@@ -167,6 +201,108 @@ void eSimpleMotor::Initialize(ePhysicsMotorConfig *cfg, eSimulatedController *ct
     int startOffset = cfg->startOffset;
     *(char **)((char *)this + 0x1C) = base + startOffset * 48;
     *(unsigned char *)((char *)this + 0x14) = cfg->enabled;
+}
+
+// ── eSimpleMotor::Apply(float) @ 0x0006b8f4 ──
+int eSimpleMotor::Apply(float dt) {
+    volatile mVec3 vecs[6];
+    unsigned char enabled = *(unsigned char *)((char *)this + 0x14);
+    int result = 1;
+
+    if (enabled != 0) {
+        eSimpleMotorConfigLocal *cfg =
+            *(eSimpleMotorConfigLocal **)((char *)this + 8);
+        unsigned char positioned = cfg->positioned;
+        float forceScale = cfg->forceScale;
+        __asm__ volatile("lv.q C120, 0x20(%0)" : : "r"(cfg) : "memory");
+        eSimpleMotorStateLocal *state =
+            *(eSimpleMotorStateLocal **)((char *)this + 0x1C);
+        eSimulatedController *ctrl =
+            *(eSimulatedController **)((char *)this + 0x18);
+
+        if (positioned == 0) {
+            float denom = (forceScale * 2.0f) * dt;
+            float maxTorque = cfg->maxTorque;
+            float scale = maxTorque / denom;
+
+            __asm__ volatile(
+                "mfc1 $7, %0\n"
+                "mtv $7, S100\n"
+                "vscl.t C130, C120, S100\n"
+                "sv.q C130, 0x10($sp)\n"
+                :
+                : "f"(maxTorque)
+                : "$7", "memory");
+            void *basis = (char *)state->bodyData + 0x50;
+            __asm__ volatile(
+                "lv.q C200, 0x0(%0)\n"
+                "vdot.t S100, C120, C200\n"
+                "mfv $7, S100\n"
+                "mtc1 $7, $f13\n"
+                "mfc1 $7, $f13\n"
+                "mtv $7, S100\n"
+                "lv.q C200, 0x0(%0)\n"
+                "vscl.t C120, C120, S100\n"
+                "vadd.t C120, C200, C120\n"
+                "sv.q C120, 0x30($sp)\n"
+                :
+                : "r"(basis)
+                : "$7", "memory");
+            __asm__ volatile(
+                "mfc1 $5, %0\n"
+                "mtv $5, S100\n"
+                "vscl.t C120, C120, S100\n"
+                "sv.q C120, 0x20($sp)\n"
+                "vsub.t C120, C130, C120\n"
+                "sv.q C120, 0x0($sp)\n"
+                :
+                : "f"(scale)
+                : "$5", "memory");
+            ctrl->ApplyTorque(cfg->bodyIndex, (const mVec3 &)vecs[0]);
+        } else {
+            __asm__ volatile("mul.s %0, %1, %0" : "+f"(dt) : "f"(forceScale));
+            float scale = dt;
+
+            __asm__ volatile(
+                "mfc1 $7, %0\n"
+                "mtv $7, S100\n"
+                "vscl.t C120, C120, S100\n"
+                "sv.q C120, 0x50($sp)\n"
+                :
+                : "f"(scale)
+                : "$7", "memory");
+            void *basis = (char *)state->bodyData + 0x50;
+            __asm__ volatile(
+                "lv.q C130, 0x0(%0)\n"
+                "vsub.t C120, C120, C130\n"
+                "sv.q C120, 0x50($sp)\n"
+                :
+                : "r"(basis)
+                : "memory");
+
+            eSimpleMotorVTableEntry *entry =
+                (eSimpleMotorVTableEntry *)(*(char **)((char *)ctrl + 4) + 0xC0);
+            void *self = (char *)ctrl + entry->adjust;
+            int bodyIndex = cfg->bodyIndex;
+            float zero = 0.0f;
+            __asm__ volatile(
+                "mfc1 $6, %0\n"
+                "mfc1 $7, %0\n"
+                "mfc1 $9, %0\n"
+                "mtv $6, S120\n"
+                "mtv $7, S121\n"
+                "mtv $9, S122\n"
+                "sv.q C120, 0x40($sp)\n"
+                :
+                : "f"(zero)
+                : "$6", "$7", "$9", "memory");
+            const mVec3 *zeroVec = (const mVec3 *)&vecs[4];
+            const mVec3 *deltaVec = (const mVec3 *)&vecs[5];
+            __asm__ volatile("" : "+r"(zeroVec), "+r"(deltaVec));
+            entry->fn(self, bodyIndex, *zeroVec, *deltaVec);
+        }
+    }
+    return result;
 }
 
 // ── eSimpleMotor::New(cMemPool *, cBase *) static @ 0x00209bd0 ──
