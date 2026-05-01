@@ -5,18 +5,26 @@ class eCamera;
 
 class eInputJoystick {
 public:
+    struct eInputState {
+        void Reset();
+    };
+
     enum eAnalog {};
     enum eAxis {};
     enum eAxisElement {};
     enum eButton {};
 
     static bool Initialize();
+    static void Reset();
+    static int GetIdleTime(int);
+    static void ResetIdleTime(int);
     static int GetFirstPresentController();
     static void RecheckPresent();
     static void Draw(const eCamera &cam);
     static void DrawPointer(int idx, const eCamera &cam);
     static bool PlatformInitialize();
     static void PlatformUpdateRumble(int);
+    static void PlatformUpdateIdle(int, bool);
     static void PlatformPreUpdate();
     static void PlatformCapture(int);
     static bool PlatformControllerPresent(int);

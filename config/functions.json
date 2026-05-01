@@ -34162,7 +34162,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0003aa00",
       "0x0003b09c"
@@ -34171,7 +34171,15 @@
       "0x00030d74"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeInputJoystickFResetvT"
+    "mangled_symbol": "__0fOeInputJoystickFResetvT",
+    "src_file": "src/eInputJoystick.cpp",
+    "symbol_name": "__0fOeInputJoystickFResetvT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6ad1d358",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:00:55Z"
   },
   {
     "address": "0x0003a7e0",
@@ -34650,7 +34658,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001d04",
       "0x0003a838",
@@ -34660,7 +34668,15 @@
       "0x0009fc88"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeInputJoystickSPlatformUpdateIdleibT"
+    "mangled_symbol": "__0fOeInputJoystickSPlatformUpdateIdleibT",
+    "src_file": "src/eInputJoystick.cpp",
+    "symbol_name": "__0fOeInputJoystickSPlatformUpdateIdleibT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6ad1d358",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:00:55Z"
   },
   {
     "address": "0x0003aad8",
@@ -39083,7 +39099,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001746f8",
@@ -39727,7 +39743,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001f84a0",
@@ -42869,7 +42885,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000517a4",
       "0x00051914",
@@ -42882,7 +42898,21 @@
       "0x00096c70"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeHeightmapShapeMGetTrianglesiP6FmVec3PPUsK"
+    "mangled_symbol": "__0fPeHeightmapShapeMGetTrianglesiP6FmVec3PPUsK",
+    "failure_notes": [
+      {
+        "session": "1ab340d6",
+        "notes": "Implemented eHeightmapShape::GetTriangles in C++ in the class source file, duplicating the _unk84 handle-table validation, calling GetTileVerts/GetTileIndex/GetTileTriCount, and using a memory barrier between index%width and index/width to force SNC to emit the target's two div instructions. The final source compiles to the correct 276B size and is down to 18 differing bytes. The remaining differences are localized to handle validation: first validation emits li t0,1 in the bne delay where target uses sltiu t0,t0,1; second validation allocates entry/tile as t0/a3 and emits bnel with a speculative width load, while target keeps entry/tile as a3/t0 and uses bne + nop before move t0,a3 and lw a3,108(t0).\n\nTried combined && validation, nested if validation, explicit goto for the mismatch path, void* vs char* tile/entry types, register-binding tile to t0, and different source shapes for the quotient/remainder calculation. The char* version was worse because SNC introduced addiu address temporaries. tools/permuter.py ran for 300.6s with --save-best, generated 7,824 candidates, compiled 3,661, and found zero improvement from the 18-byte baseline. This is not marked unmatchable_bnel because the diff is >8 bytes and includes register-allocation differences in addition to the bnel/bne shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:58:26Z",
+        "src_file": "src/eHeightmapShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1ab340d6/00051928__agent_self_reported_failure__src_eHeightmapShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00051a3c",
@@ -50138,11 +50168,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerKGetInvMassiPfP6FmVec3K"
+    "mangled_symbol": "__0fQeBipedControllerKGetInvMassiPfP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "02ef5779",
+        "notes": "Closest source matches the initial zero-vector store, entry validity test, branch-likely shape, and true mass path instruction order. The remaining mismatch is 30/148 bytes. The false path needs swc1/mfc1/mtv followed by jr with sv.q in the delay slot; a direct inline VFPU return produces those bytes, but SNC still emits an unreachable compiler jr+nop before the true mass block, shifting the branch target. Tried compiler-generated v4sf_t zero stores, eBipedVec4 whole-struct copy, direct inline sv.q, goto-based block layout, explicit if/else returns, volatile entry loads, and sched=1/sched=2. The permuter could not run this target because it could not locate the compiled symbol with its reduced flag set; manual attempts did not get below the 30-byte diff.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:56:00Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/02ef5779/00065c5c__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00065cf0",
@@ -50154,11 +50198,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerPGetLocalToWorldiP6EmOCSK"
+    "mangled_symbol": "__0fQeBipedControllerPGetLocalToWorldiP6EmOCSK",
+    "failure_notes": [
+      {
+        "session": "02ef5779",
+        "notes": "Closest source reconstructs the bodyEntries/bodyIndex validity check and both VFPU paths in C++ with v4sf_t stores. The identity path and body-matrix copy path use compiler-generated sv.q stores so return delay slots are filled correctly. Remaining mismatch is 18/132 bytes: SNC keeps the computed entry pointer in a3 and the boolean in a1, then emits bnez+nop to the copy path. Expected keeps the entry pointer in a1, boolean in a0, and emits bnezl with lw a0,0(a1) in the delay slot. Tried if/else inversion, explicit returns, memory barriers, volatile entry loads, sched=1/sched=2 pragmas, and register-bound entry/index locals. Permuter ran for 300 seconds, generated 6720 candidates, compiled 3410, improved its own baseline once but did not match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:56:00Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/02ef5779/00065cf0__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00065d74",
@@ -56789,13 +56847,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00049f44"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeKeyframedControllerRGetColliderHeightvK"
+    "mangled_symbol": "__0fUeKeyframedControllerRGetColliderHeightvK",
+    "failure_notes": [
+      {
+        "session": "1ab340d6",
+        "notes": "Implemented a real C++ body for eKeyframedController::GetColliderHeight using the cArray count/null-check pattern, the eDynamicModel::GetCollisionInfoFromName call, and the shape vtable GetProjectedMinMax dispatch with only the three VFPU instructions kept as inline asm for the stack up-vector. Tried variants using int* vs char* name arrays, explicit cfg+8 slot variables, early state==0 return to force bnezl, sched=2 override, register-bound shape/adjusted pointers, volatile reloads after the VFPU block, and an empty asm barrier on the adjusted pointer. The best source compiles to 220B vs the 232B target. It has the correct high-level control flow, branch-likely state null check, stack layout, name-pointer dereference, VFPU vector setup, and return -minValue, but SNC keeps the shape pointer live in a2/a0 and emits a shorter virtual dispatch tail instead of the target's a1/a2/t1 sequence with a post-VFPU reload of state->0xA4 and a final move a0,a1 before jalr.\n\nThe remaining issue is not a bnel classification: the function is size-mismatched by 12B, not a <=8B branch-likely-only diff. tools/permuter.py could not run because it could not locate a target-sized symbol (compiled function is 220B, target is 232B). A future retry should focus on reproducing the vtable dispatch register allocation: target wants bnezl delay lw a1,164(a0), lw a2,4(a1), addiu t1,a2,0x138, lh a2,0(t1), addu a1,a1,a2, VFPU asm, reload lw a2,164(a0), then move a0,a1 immediately before jalr.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:58:26Z",
+        "src_file": "src/eKeyframedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/1ab340d6/00074f90__agent_self_reported_failure__src_eKeyframedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00075078",
@@ -82026,7 +82098,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f1858"
     ],
@@ -83680,7 +83752,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f40a0",
