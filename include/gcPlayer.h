@@ -41,6 +41,7 @@ public:
     static int GetStartingController(void);
     static int BindLocalController(void);
     static void AssignLocalController(int, bool);
+    static void AssignLocalControllers(bool);
     static gcPlayer *GetPlayerForConnection(nwConnectionHandle);
     static gcPlayer *GetPlayerForCamera(const gcCamera *);
     static cBase *New(cMemPool *, cBase *);

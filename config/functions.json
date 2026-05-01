@@ -56735,11 +56735,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeCylinderShapeHGetAABBP6EmBoxRC6EmOCSK"
+    "mangled_symbol": "__0fOeCylinderShapeHGetAABBP6EmBoxRC6EmOCSK",
+    "failure_notes": [
+      {
+        "session": "600a1d23",
+        "notes": "Implemented the three-axis cylinder AABB using the matched eSphereShape::GetAABB and existing eCylinderShape::GetProjectedMinMax patterns: VFPU axis projection blocks, stack scratch stores at 0x00/0x10/0x20 etc., per-axis top/bottom cap projections, and scalar C min/max stores. Tried a plain no-frame version, explicit 0xA0 prologue/epilogue, volatile/direct member reloads, and fixed-register output variants. The closest attempt compiles and has the right overall control flow/prologue/epilogue shape, but compare_func still reports 93/636 bytes different.\n\nThe remaining mismatch is localized to scalar FPU lowering after each vsqrt/projection block: current SNC chooses lwc1 radius into $f12 then mtc1 the VFPU result into $f13 and uses reversed equivalent c.le.s/c.lt.s min/max tests; expected uses mtc1 into $f12, loads radius into $f13, extent in $f14, height in $f16, then c.lt.s topMin/botMin and c.le.s topMax/botMax. This does not look like a bnel/unmatchable case; it needs source/register-allocation tuning or moving more of the scalar sequence into controlled C/asm without turning the function into pure copied assembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T06:53:31Z",
+        "src_file": "src/eCylinderShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/600a1d23/00074490__agent_self_reported_failure__src_eCylinderShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007470c",
@@ -96108,7 +96122,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001202b8"
     ],
@@ -96116,7 +96130,15 @@
       "0x00167730"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerWAssignLocalControllersbT"
+    "mangled_symbol": "__0fIgcPlayerWAssignLocalControllersbT",
+    "src_file": "src/gcPlayer.cpp",
+    "symbol_name": "__0fIgcPlayerWAssignLocalControllersbT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "600a1d23",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T06:53:31Z"
   },
   {
     "address": "0x001202b8",
@@ -96219,7 +96241,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a83e8"
     ],
@@ -96394,7 +96416,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00108140"

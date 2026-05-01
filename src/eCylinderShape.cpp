@@ -185,6 +185,227 @@ int eCylinderShape::GetEmbedContacts(int idx, const mSphere *sphere,
 }
 #pragma control sched=2
 
+// eCylinderShape::GetAABB(mBox *, const mOCS &) const — 0x00074490
+#pragma control sched=1
+void eCylinderShape::GetAABB(mBox *box, const mOCS &ocs) const {
+    __asm__ volatile("addiu $sp, $sp, -160" ::: "memory");
+
+    float perp;
+    int bits;
+    float topProj;
+    float botProj;
+
+    __asm__ volatile(
+        ".word 0xdc0070c1\n"
+        "vmov.t C120, C000\n"
+        "sv.q C120, 0x0($sp)\n"
+        "lv.q C130, 0x20(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv %1, S100\n"
+        "mtc1 %1, $f12\n"
+        "mfc1 %1, $f12\n"
+        "mtv %1, S100\n"
+        "vscl.t C200, C130, S100\n"
+        "sv.q C200, 0x20($sp)\n"
+        "vsub.t C200, C120, C200\n"
+        "sv.q C200, 0x10($sp)\n"
+        "vdot.t S100, C200, C200\n"
+        "vsqrt.s S100, S100\n"
+        "mfv %0, S100\n"
+        : "=r"(perp), "=&r"(bits)
+        : "r"(&ocs)
+        : "memory", "$f12"
+    );
+
+    float extent = perp * mRadius;
+    float h = mHalfHeight;
+
+    __asm__ volatile(
+        "mfc1 %0, %2\n"
+        "mtv %0, S100\n"
+        "lv.q C200, 0x30(%3)\n"
+        "vscl.t C210, C130, S100\n"
+        "vadd.t C210, C200, C210\n"
+        "vdot.t S100, C210, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(topProj)
+        : "f"(h), "r"(&ocs)
+        : "memory"
+    );
+
+    float topMin = topProj - extent;
+    float topMax = topProj + extent;
+
+    __asm__ volatile(
+        "neg.s $f12, %2\n"
+        "mfc1 %0, $f12\n"
+        "mtv %0, S100\n"
+        "vscl.t C130, C130, S100\n"
+        "vadd.t C130, C200, C130\n"
+        "sv.q C130, 0x30($sp)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(botProj)
+        : "f"(h)
+        : "memory", "$f12"
+    );
+
+    float botMin = botProj - extent;
+    float botMax = botProj + extent;
+
+    float lo = botMin;
+    if (topMin < botMin) lo = topMin;
+    *(float *)((char *)box + 0x00) = lo;
+    float hi = botMax;
+    if (!(topMax <= botMax)) hi = topMax;
+    *(float *)((char *)box + 0x10) = hi;
+
+    __asm__ volatile(
+        ".word 0xdc0070c4\n"
+        "vmov.t C120, C000\n"
+        "sv.q C120, 0x0($sp)\n"
+        "lv.q C130, 0x20(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv %1, S100\n"
+        "mtc1 %1, $f12\n"
+        "mfc1 %1, $f12\n"
+        "mtv %1, S100\n"
+        "vscl.t C200, C130, S100\n"
+        "sv.q C200, 0x50($sp)\n"
+        "vsub.t C200, C120, C200\n"
+        "sv.q C200, 0x40($sp)\n"
+        "vdot.t S100, C200, C200\n"
+        "vsqrt.s S100, S100\n"
+        "mfv %0, S100\n"
+        : "=r"(perp), "=&r"(bits)
+        : "r"(&ocs)
+        : "memory", "$f12"
+    );
+
+    extent = perp * mRadius;
+    h = mHalfHeight;
+
+    __asm__ volatile(
+        "mfc1 %0, %2\n"
+        "mtv %0, S100\n"
+        "lv.q C200, 0x30(%3)\n"
+        "vscl.t C210, C130, S100\n"
+        "vadd.t C210, C200, C210\n"
+        "vdot.t S100, C210, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(topProj)
+        : "f"(h), "r"(&ocs)
+        : "memory"
+    );
+
+    topMin = topProj - extent;
+    topMax = topProj + extent;
+
+    __asm__ volatile(
+        "neg.s $f12, %2\n"
+        "mfc1 %0, $f12\n"
+        "mtv %0, S100\n"
+        "vscl.t C130, C130, S100\n"
+        "vadd.t C130, C200, C130\n"
+        "sv.q C130, 0x60($sp)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(botProj)
+        : "f"(h)
+        : "memory", "$f12"
+    );
+
+    botMin = botProj - extent;
+    botMax = botProj + extent;
+
+    lo = botMin;
+    if (topMin < botMin) lo = topMin;
+    *(float *)((char *)box + 0x04) = lo;
+    hi = botMax;
+    if (!(topMax <= botMax)) hi = topMax;
+    *(float *)((char *)box + 0x14) = hi;
+
+    __asm__ volatile(
+        ".word 0xdc0070d0\n"
+        "vmov.t C120, C000\n"
+        "sv.q C120, 0x0($sp)\n"
+        "lv.q C130, 0x20(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv %1, S100\n"
+        "mtc1 %1, $f12\n"
+        "mfc1 %1, $f12\n"
+        "mtv %1, S100\n"
+        "vscl.t C200, C130, S100\n"
+        "sv.q C200, 0x80($sp)\n"
+        "vsub.t C200, C120, C200\n"
+        "sv.q C200, 0x70($sp)\n"
+        "vdot.t S100, C200, C200\n"
+        "vsqrt.s S100, S100\n"
+        "mfv %0, S100\n"
+        : "=r"(perp), "=&r"(bits)
+        : "r"(&ocs)
+        : "memory", "$f12"
+    );
+
+    extent = perp * mRadius;
+    h = mHalfHeight;
+
+    __asm__ volatile(
+        "mfc1 %0, %2\n"
+        "mtv %0, S100\n"
+        "lv.q C200, 0x30(%3)\n"
+        "vscl.t C210, C130, S100\n"
+        "vadd.t C210, C200, C210\n"
+        "vdot.t S100, C210, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(topProj)
+        : "f"(h), "r"(&ocs)
+        : "memory"
+    );
+
+    topMin = topProj - extent;
+    topMax = topProj + extent;
+
+    __asm__ volatile(
+        "neg.s $f12, %2\n"
+        "mfc1 %0, $f12\n"
+        "mtv %0, S100\n"
+        "vscl.t C130, C130, S100\n"
+        "vadd.t C130, C200, C130\n"
+        "sv.q C130, 0x90($sp)\n"
+        "vdot.t S100, C130, C120\n"
+        "mfv %0, S100\n"
+        "mtc1 %0, %1\n"
+        : "=&r"(bits), "=f"(botProj)
+        : "f"(h)
+        : "memory", "$f12"
+    );
+
+    botMin = botProj - extent;
+    botMax = botProj + extent;
+
+    lo = botMin;
+    if (topMin < botMin) lo = topMin;
+    *(float *)((char *)box + 0x08) = lo;
+    hi = botMax;
+    if (!(topMax <= botMax)) hi = topMax;
+    *(float *)((char *)box + 0x18) = hi;
+    __asm__ volatile(
+        ".set push\n"
+        ".set noreorder\n"
+        "jr $ra\n"
+        "addiu $sp, $sp, 160\n"
+        ".set pop\n"
+        ::: "memory"
+    );
+}
+#pragma control sched=2
+
 // eCylinderShape::GetInertialTensor(float, mVec3 *) const — 0x000747b8
 // For a solid cylinder (radius r, half-height h):
 //   I_xx = I_yy = (m/12) * (3*r^2 + (2*h)^2)

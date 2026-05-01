@@ -7,6 +7,7 @@ class cMemPool;
 class cType;
 struct mVec3;
 struct mOCS;
+struct mBox;
 class mRay;
 class mSphere;
 class mCollideInfo;
@@ -35,6 +36,7 @@ public:
     int CastSphere(const mSphere &, const mCollideInfo &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const;
     int GetSweptContacts(int, const mSphere *, const mCollideInfo *, const eCollisionInfo &, eContactCollector *) const;
     int GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const;
+    void GetAABB(mBox *, const mOCS &) const;
     int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int NeedsRollingFriction(float *) const;
     void AssignCopy(const cBase *);

@@ -410,6 +410,28 @@ int gcPlayer::AssignNew(void) {
 }
 
 // -----------------------------------------------------------------------------
+// gcPlayer::AssignLocalControllers(bool) static  @ 0x00120234
+// -----------------------------------------------------------------------------
+void gcPlayer::AssignLocalControllers(bool local) {
+    int i = 0;
+    int *controller = gcPlayer_s_nLocalControllerId;
+    for (; i < 8; i++) {
+        if (*controller >= 0) {
+            break;
+        }
+        controller++;
+    }
+
+    if (i == 8) {
+        gcPlayer_s_nLocalControllerId[0] = gcPlayer_s_nDefaultController;
+    }
+
+    for (i = 0; i < 8; i++) {
+        AssignLocalController(i, local);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // gcPlayer::AssignController(int, int) static  @ 0x0011f66c, 112B
 // -----------------------------------------------------------------------------
 void gcPlayer::AssignController(int playerId, int controllerId) {
