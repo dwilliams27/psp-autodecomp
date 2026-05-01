@@ -50086,7 +50086,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -50156,7 +50156,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -199984,7 +199984,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -199992,6 +199992,18 @@
       {
         "session": "5376f7da",
         "notes": "12-byte size mismatch (expected 96B, my output 84B). Structure: returns smart-pointer-encoded child at unk10 (index==0) or unk14 (index!=0), with the low bit being a sentinel meaning 'not a real pointer' (return 0 instead). Expected codegen has two asymmetric paths: (A) index==0 branch compiles as `beqz flag, L; move v0, a0 [delay]; b L; li v0, 0 [delay]; L: jr ra` (11 instr tail), and (B) index!=0 branch compiles as `beqz flag, L; nop [delay]; b L; li a0, 0 [delay]; L: move v0, a0; jr ra` (11 instr tail) - both deliberately NOT tail-merged, with path A writing to v0 directly and path B modifying val (a0) in place with a separate move-to-v0 join.\n\nTried 8 source variants trying to get SNC to emit the un-merged path-B pattern: (1) `int val; if (flag) val=0; return val;` (2) `gcExpression *val` typed; (3) `if (flag) val=0; else asm barrier;`; (4) `if (flag) { val=0; goto end; } end: return val;`; (5) `volatile int val_src` intermediate (changed size to 96B but completely different bytes - added stack frame); (6) `int result = val; if (flag) result=0; return result;` (got 88B - tail merged the result reassignment); (7) do-while(0) with break; (8) pointer-to-gcExpression** access pattern. SNC tail-merges `if (flag) val=0; return val;` into `bnezl flag, end; li val, 0 [delay]` (2 instr) instead of the 5-instr expanded form the expected wants. This is a compiler codegen divergence similar to the bnel pattern - our SNC apparently picks branch-likely + tail-merge for this pattern whereas the original compile produced the expanded beqz+b+li form. Path A (index==0 branch) matches the expected 11-instr tail perfectly with the `result=val; if(flag) result=0;` pattern; only path B (index!=0 branch) diverges. Recommend next agent try: (a) different SNC optimization flag combinations (-Xmopt/-Xxopt variants), (b) permuter with longer run (isolating GetChild into its own cpp), or (c) accepting this as unmatchable due to SNC version divergence if permuter confirms zero progress after 30+ minutes. Header gcDoReturn.h was updated to add GetChild/Write/New/GetType/ctor method decls to gcDoSetValue class."
+      },
+      {
+        "session": "4e68974b",
+        "notes": "Closest retained source compiles GetChild to 88B vs expected 96B. I tested the prior 84B shape, m2c branch order, single-result return, explicit goto split, register hints, return-value barriers, explicit local join labels, and direct sentinel checks. The retained barrier/join-label shape improves path A to a plain beqz with move in the delay slot, but SNC still emits li+jr instead of the original b+li join; path B still collapses to bnezl+li rather than the original beqz+nop / b+li / move-to-v0 sequence. The entry branch also still loads the index!=0 value into v0 in this closest form, while a different tested single-result form could load it into a0 but made the rest shorter/worse.\n\nI read docs/research/snc-branch-likely.md. The permuter could not run because tools/permuter.py refuses to start when the compiled target symbol is 88B/84B instead of the expected 96B, reporting: 'Could not locate target function in compiled .o. Found 1912B .text but expected 96B function.' This remains retryable rather than unmatchable_bnel because the permuter did not complete and the remaining diff is broader than a proven isolated bnel/beq+nop divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T05:22:38Z",
+        "src_file": "src/gcDoSetValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/4e68974b/00300748__agent_self_reported_failure__src_gcDoSetValue.cpp"
       }
     ],
     "mangled_symbol": "__0fMgcDoSetValueIGetChildiK"
@@ -200042,14 +200054,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMgcDoSetValuedtv"
+    "mangled_symbol": "__0oMgcDoSetValuedtv",
+    "src_file": "src/gcDoSetValue.cpp",
+    "symbol_name": "__0oMgcDoSetValuedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4e68974b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-01T05:22:38Z"
   },
   {
     "address": "0x00300de4",

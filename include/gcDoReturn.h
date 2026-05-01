@@ -30,6 +30,8 @@ public:
     int GetExprFlags(void) const;
     gcExpression *GetChild(int) const;
     void SetChild(int, gcExpression *);
+    ~gcDoSetValue(void);
+    static void operator delete(void *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
