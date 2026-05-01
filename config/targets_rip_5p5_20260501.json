@@ -1,0 +1,1002 @@
+[
+  {
+    "address": "0x00005568",
+    "size": 104,
+    "name": "cWriteBlock::Write(short)",
+    "class_name": "cWriteBlock",
+    "category": "Write",
+    "priority": 45,
+    "score": 155,
+    "reason": "productive class/family; 14 class matches; Write pattern; small/medium"
+  },
+  {
+    "address": "0x00005778",
+    "size": 120,
+    "name": "cWriteBlock::Write(float)",
+    "class_name": "cWriteBlock",
+    "category": "Write",
+    "priority": 45,
+    "score": 155,
+    "reason": "productive class/family; 14 class matches; Write pattern; small/medium"
+  },
+  {
+    "address": "0x000507dc",
+    "size": 32,
+    "name": "eHeightmapShape::GetAABB(mBox *, const mOCS &) const",
+    "class_name": "eHeightmapShape",
+    "category": "Get",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 19 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001f4d9c",
+    "size": 36,
+    "name": "eHeightmapShape::GetInertialTensor(float, mVec3 *) const",
+    "class_name": "eHeightmapShape",
+    "category": "Get",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 19 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00075100",
+    "size": 40,
+    "name": "eKeyframedController::GetInvMass(int, float *, mVec3 *) const",
+    "class_name": "eKeyframedController",
+    "category": "Get",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00075128",
+    "size": 40,
+    "name": "eKeyframedController::GetLocalToWorld(int, mOCS *) const",
+    "class_name": "eKeyframedController",
+    "category": "Get",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001f4cbc",
+    "size": 216,
+    "name": "eHeightmapShape::GetType(void) const",
+    "class_name": "eHeightmapShape",
+    "category": "GetType",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 19 class matches; GetType pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0020dc68",
+    "size": 216,
+    "name": "eCylinderShape::GetType(void) const",
+    "class_name": "eCylinderShape",
+    "category": "GetType",
+    "priority": 47,
+    "score": 153,
+    "reason": "productive class/family; 12 class matches; GetType pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006c6d4",
+    "size": 108,
+    "name": "eSimulatedController::GetPosition(int, mVec3 *) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 51,
+    "score": 149,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006c5d4",
+    "size": 120,
+    "name": "eSimulatedController::GetInvMass(int, float *, mVec3 *) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 51,
+    "score": 149,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006c64c",
+    "size": 136,
+    "name": "eSimulatedController::GetLocalToWorld(int, mOCS *) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 51,
+    "score": 149,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006c544",
+    "size": 144,
+    "name": "eSimulatedController::GetVelocity(int, mVec3 *, mVec3 *) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 51,
+    "score": 149,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0002f6a0",
+    "size": 132,
+    "name": "eVideo::GetVirtualWidthHeight(int *, int *) static",
+    "class_name": "eVideo",
+    "category": "Get",
+    "priority": 52,
+    "score": 148,
+    "reason": "productive class/family; 16 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0002f724",
+    "size": 140,
+    "name": "eVideo::GetAspectWidthHeight(int, int, int *, int *) static",
+    "class_name": "eVideo",
+    "category": "Get",
+    "priority": 52,
+    "score": 148,
+    "reason": "productive class/family; 16 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0003a838",
+    "size": 144,
+    "name": "eInputJoystick::GetIdleTime(int) static",
+    "class_name": "eInputJoystick",
+    "category": "Get",
+    "priority": 52,
+    "score": 148,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000057f0",
+    "size": 212,
+    "name": "cWriteBlock::Write(const cGUID &)",
+    "class_name": "cWriteBlock",
+    "category": "Write",
+    "priority": 55,
+    "score": 145,
+    "reason": "productive class/family; 14 class matches; Write pattern; small/medium"
+  },
+  {
+    "address": "0x00005b3c",
+    "size": 212,
+    "name": "cWriteBlock::Write(int, const float *)",
+    "class_name": "cWriteBlock",
+    "category": "Write",
+    "priority": 55,
+    "score": 145,
+    "reason": "productive class/family; 14 class matches; Write pattern; small/medium"
+  },
+  {
+    "address": "0x001a635c",
+    "size": 136,
+    "name": "nwConnection::GetQuality(void) const",
+    "class_name": "nwConnection",
+    "category": "Get",
+    "priority": 56,
+    "score": 144,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x0011f4e8",
+    "size": 104,
+    "name": "gcPlayer::GetPlayerForConnection(nwConnectionHandle) static",
+    "class_name": "gcPlayer",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 15 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x000f62f8",
+    "size": 120,
+    "name": "gcMap::IsDynamicallyLoadedObjectSetToLoad(const cGUID &) const",
+    "class_name": "gcMap",
+    "category": "Is",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 20 class matches; Is pattern; small/medium"
+  },
+  {
+    "address": "0x000f1858",
+    "size": 124,
+    "name": "gcMap::IsMapLoading(bool) static",
+    "class_name": "gcMap",
+    "category": "Is",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 20 class matches; Is pattern; small/medium"
+  },
+  {
+    "address": "0x0011f5ec",
+    "size": 128,
+    "name": "gcPlayer::GetStartingController(void) static",
+    "class_name": "gcPlayer",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 15 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x000f2880",
+    "size": 132,
+    "name": "gcMap::GetLoadedRegions(cGUIDT<gcRegion> *) const",
+    "class_name": "gcMap",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 20 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x00047b60",
+    "size": 136,
+    "name": "eDynamicModel::GetSubObjectIndex(const cName &, int) const",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001effa8",
+    "size": 140,
+    "name": "eDynamicModel::GetSubObjectToWorld(int, mOCS *) const",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00049624",
+    "size": 144,
+    "name": "eDynamicModel::GetPartialAnimationState(int)",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000f19a8",
+    "size": 152,
+    "name": "gcMap::IsObjectLoading(void) static",
+    "class_name": "gcMap",
+    "category": "Is",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 20 class matches; Is pattern; small/medium"
+  },
+  {
+    "address": "0x00011c80",
+    "size": 168,
+    "name": "eMoviePlatform::GetWorkAreaFreeSize(int)",
+    "class_name": "eMoviePlatform",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 37 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001a539c",
+    "size": 176,
+    "name": "nwNetwork::GetMemPool(void) static",
+    "class_name": "nwNetwork",
+    "category": "Get",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 28 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x0008022c",
+    "size": 264,
+    "name": "eBumpOffsetMap::Read(cFile &, cMemPool *)",
+    "class_name": "eBumpOffsetMap",
+    "category": "Read",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 12 class matches; Read pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000506c0",
+    "size": 284,
+    "name": "eHeightmapShape::~eHeightmapShape(void)",
+    "class_name": "eHeightmapShape",
+    "category": "Destructor",
+    "priority": 57,
+    "score": 143,
+    "reason": "productive class/family; 19 class matches; Destructor pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000807dc",
+    "size": 212,
+    "name": "eDynamicLightHeightmapMtl::Read(cFile &, cMemPool *)",
+    "class_name": "eDynamicLightHeightmapMtl",
+    "category": "Read",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Read pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00080bf8",
+    "size": 212,
+    "name": "eDynamicLightModelMtl::Read(cFile &, cMemPool *)",
+    "class_name": "eDynamicLightModelMtl",
+    "category": "Read",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Read pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00083ccc",
+    "size": 288,
+    "name": "eProjectedHeightmapMtl::Read(cFile &, cMemPool *)",
+    "class_name": "eProjectedHeightmapMtl",
+    "category": "Read",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Read pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000809d4",
+    "size": 440,
+    "name": "eDynamicLightHeightmapMtl::~eDynamicLightHeightmapMtl(void)",
+    "class_name": "eDynamicLightHeightmapMtl",
+    "category": "Destructor",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Destructor pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00080df8",
+    "size": 440,
+    "name": "eDynamicLightModelMtl::~eDynamicLightModelMtl(void)",
+    "class_name": "eDynamicLightModelMtl",
+    "category": "Destructor",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Destructor pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00083efc",
+    "size": 440,
+    "name": "eProjectedHeightmapMtl::~eProjectedHeightmapMtl(void)",
+    "class_name": "eProjectedHeightmapMtl",
+    "category": "Destructor",
+    "priority": 58,
+    "score": 142,
+    "reason": "productive class/family; 11 class matches; Destructor pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00300748",
+    "size": 96,
+    "name": "gcDoSetValue::GetChild(int) const",
+    "class_name": "gcDoSetValue",
+    "category": "Get",
+    "priority": 61,
+    "score": 139,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x0006c740",
+    "size": 104,
+    "name": "eSimulatedController::SetPosition(int, const mVec3 &)",
+    "class_name": "eSimulatedController",
+    "category": "Set",
+    "priority": 61,
+    "score": 139,
+    "reason": "productive class/family; 9 class matches; Set pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006d2cc",
+    "size": 156,
+    "name": "eSimulatedController::SetCollisionMask(unsigned int)",
+    "class_name": "eSimulatedController",
+    "category": "Set",
+    "priority": 61,
+    "score": 139,
+    "reason": "productive class/family; 9 class matches; Set pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006c490",
+    "size": 180,
+    "name": "eSimulatedController::GetVelocity(int, const mVec3 &, mVec3 *) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 61,
+    "score": 139,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0006d200",
+    "size": 204,
+    "name": "eSimulatedController::GetMotorIndex(const cName &) const",
+    "class_name": "eSimulatedController",
+    "category": "Get",
+    "priority": 61,
+    "score": 139,
+    "reason": "productive class/family; 9 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065b54",
+    "size": 104,
+    "name": "eBipedController::GetVelocity(int, const mVec3 &, mVec3 *) const",
+    "class_name": "eBipedController",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065d74",
+    "size": 104,
+    "name": "eBipedController::GetPosition(int, mVec3 *) const",
+    "class_name": "eBipedController",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065f04",
+    "size": 108,
+    "name": "eBipedController::IsFalling(void) const",
+    "class_name": "eBipedController",
+    "category": "Is",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Is pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065f70",
+    "size": 112,
+    "name": "eBipedController::IsSliding(void) const",
+    "class_name": "eBipedController",
+    "category": "Is",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Is pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0011ed2c",
+    "size": 120,
+    "name": "gcPlayer::Read(cFile &, cMemPool *)",
+    "class_name": "gcPlayer",
+    "category": "Read",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 15 class matches; Read pattern; small/medium"
+  },
+  {
+    "address": "0x00049814",
+    "size": 128,
+    "name": "eDynamicModel::CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const",
+    "class_name": "eDynamicModel",
+    "category": "Cast",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Cast pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065cf0",
+    "size": 132,
+    "name": "eBipedController::GetLocalToWorld(int, mOCS *) const",
+    "class_name": "eBipedController",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065c5c",
+    "size": 148,
+    "name": "eBipedController::GetInvMass(int, float *, mVec3 *) const",
+    "class_name": "eBipedController",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00074f90",
+    "size": 232,
+    "name": "eKeyframedController::GetColliderHeight(void) const",
+    "class_name": "eKeyframedController",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00051928",
+    "size": 276,
+    "name": "eHeightmapShape::GetTriangles(int, mVec3 *, unsigned short **) const",
+    "class_name": "eHeightmapShape",
+    "category": "Get",
+    "priority": 62,
+    "score": 138,
+    "reason": "productive class/family; 19 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001a8370",
+    "size": 120,
+    "name": "nwSocket::GetSocket(nwSocketHandle) static",
+    "class_name": "nwSocket",
+    "category": "Get",
+    "priority": 65,
+    "score": 135,
+    "reason": "productive class/family; 8 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x00300cbc",
+    "size": 296,
+    "name": "gcDoSetValue::~gcDoSetValue(void)",
+    "class_name": "gcDoSetValue",
+    "category": "Destructor",
+    "priority": 66,
+    "score": 134,
+    "reason": "productive class/family; 9 class matches; Destructor pattern; small/medium"
+  },
+  {
+    "address": "0x0003a8c8",
+    "size": 108,
+    "name": "eInputJoystick::ResetIdleTime(int) static",
+    "class_name": "eInputJoystick",
+    "category": "Reset",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Reset pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0003a768",
+    "size": 120,
+    "name": "eInputJoystick::Reset(void) static",
+    "class_name": "eInputJoystick",
+    "category": "Reset",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Reset pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000f71f0",
+    "size": 176,
+    "name": "gcMap::GetRegionStateSize(int)",
+    "class_name": "gcMap",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 20 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x000f18d4",
+    "size": 200,
+    "name": "gcMap::IsMapLoaded(bool) static",
+    "class_name": "gcMap",
+    "category": "Is",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 20 class matches; Is pattern; small/medium"
+  },
+  {
+    "address": "0x0004a070",
+    "size": 224,
+    "name": "eDynamicModel::GetSurface(int) const",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00047d84",
+    "size": 248,
+    "name": "eDynamicModel::GetSurfaceSetIndex(void) const",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000f42a4",
+    "size": 252,
+    "name": "gcMap::IsStreamedCinematicChained(void) const",
+    "class_name": "gcMap",
+    "category": "Is",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 20 class matches; Is pattern; small/medium"
+  },
+  {
+    "address": "0x000f2dc8",
+    "size": 272,
+    "name": "gcMap::GetRegionSetName(unsigned int, char *) const",
+    "class_name": "gcMap",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 20 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x00047c64",
+    "size": 288,
+    "name": "eDynamicModel::GetMaterialSetIndex(void) const",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00049f44",
+    "size": 300,
+    "name": "eDynamicModel::GetCollisionInfoFromName(const cName &, eRigidBodyState **)",
+    "class_name": "eDynamicModel",
+    "category": "Get",
+    "priority": 67,
+    "score": 133,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00012fe0",
+    "size": 104,
+    "name": "eMoviePlatform::soundbuf_setBuf(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00013258",
+    "size": 104,
+    "name": "eMoviePlatform::avsync_create(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00011e14",
+    "size": 116,
+    "name": "eMoviePlatform::control_delete(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00013420",
+    "size": 124,
+    "name": "eMoviePlatform::read_create(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00012ecc",
+    "size": 132,
+    "name": "eMoviePlatform::soundbuf_delete(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00012940",
+    "size": 136,
+    "name": "eMoviePlatform::dispbuf_delete(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0011eeb0",
+    "size": 136,
+    "name": "gcPlayer::Reset(void) static",
+    "class_name": "gcPlayer",
+    "category": "Reset",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 15 class matches; Reset pattern; small/medium"
+  },
+  {
+    "address": "0x00011a48",
+    "size": 140,
+    "name": "eMoviePlatform::startCheck(void)",
+    "class_name": "eMoviePlatform",
+    "category": "Other",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 37 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0007470c",
+    "size": 172,
+    "name": "eCylinderShape::Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const",
+    "class_name": "eCylinderShape",
+    "category": "Collide",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 12 class matches; Collide pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00065aa0",
+    "size": 180,
+    "name": "eBipedController::GetColliderHeight(void) const",
+    "class_name": "eBipedController",
+    "category": "Get",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 17 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x002d8904",
+    "size": 240,
+    "name": "gcDoEvaluation::SetChild(int, gcExpression *)",
+    "class_name": "gcDoEvaluation",
+    "category": "Set",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 12 class matches; Set pattern; small/medium"
+  },
+  {
+    "address": "0x0002ff44",
+    "size": 268,
+    "name": "eVideo::SetScissor(const eViewport *) static",
+    "class_name": "eVideo",
+    "category": "Set",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 16 class matches; Set pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x000517a4",
+    "size": 368,
+    "name": "eHeightmapShape::GetTileVerts(mVec3 *, int, int) const",
+    "class_name": "eHeightmapShape",
+    "category": "Get",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 19 class matches; Get pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00074888",
+    "size": 464,
+    "name": "eCylinderShape::GetSupport(const mVec3 &, const mOCS &, mVec3 *) const",
+    "class_name": "eCylinderShape",
+    "category": "Get",
+    "priority": 72,
+    "score": 128,
+    "reason": "productive class/family; 12 class matches; Get pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x001a83e8",
+    "size": 164,
+    "name": "nwSocket::GetConnection(nwConnectionHandle) static",
+    "class_name": "nwSocket",
+    "category": "Get",
+    "priority": 75,
+    "score": 125,
+    "reason": "productive class/family; 8 class matches; Get pattern; small/medium"
+  },
+  {
+    "address": "0x0003aa58",
+    "size": 128,
+    "name": "eInputJoystick::PlatformUpdateIdle(int, bool) static",
+    "class_name": "eInputJoystick",
+    "category": "Other",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 17 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0002f8b0",
+    "size": 148,
+    "name": "eVideo::Flush(void) static",
+    "class_name": "eVideo",
+    "category": "Other",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 16 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0002f7b0",
+    "size": 152,
+    "name": "eVideo::BeginFrame(void) static",
+    "class_name": "eVideo",
+    "category": "Other",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 16 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0003059c",
+    "size": 152,
+    "name": "eVideo::InitializeRegistered(void) static",
+    "class_name": "eVideo",
+    "category": "Other",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 16 class matches; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0014aeec",
+    "size": 348,
+    "name": "gcDoEvaluation::Read(cFile &, cMemPool *)",
+    "class_name": "gcDoEvaluation",
+    "category": "Read",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 12 class matches; Read pattern"
+  },
+  {
+    "address": "0x00074148",
+    "size": 400,
+    "name": "eCylinderShape::Read(cFile &, cMemPool *)",
+    "class_name": "eCylinderShape",
+    "category": "Read",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 12 class matches; Read pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00074490",
+    "size": 636,
+    "name": "eCylinderShape::GetAABB(mBox *, const mOCS &) const",
+    "class_name": "eCylinderShape",
+    "category": "Get",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 12 class matches; Get pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00051500",
+    "size": 676,
+    "name": "eHeightmapShape::GetLocalSupport(const mVec3 *, const mVec3 *, const mVec3 &, unsigned int, const mVec3 &, eCollisionSupport *) const",
+    "class_name": "eHeightmapShape",
+    "category": "Get",
+    "priority": 77,
+    "score": 123,
+    "reason": "productive class/family; 19 class matches; Get pattern; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x00005c90",
+    "size": 112,
+    "name": "cWriteBlock::End(void)",
+    "class_name": "cWriteBlock",
+    "category": "Other",
+    "priority": 80,
+    "score": 120,
+    "reason": "productive class/family; 14 class matches; small/medium"
+  },
+  {
+    "address": "0x00005c10",
+    "size": 128,
+    "name": "cWriteBlock::WriteBase(const cBase *)",
+    "class_name": "cWriteBlock",
+    "category": "Other",
+    "priority": 80,
+    "score": 120,
+    "reason": "productive class/family; 14 class matches; small/medium"
+  },
+  {
+    "address": "0x001a8048",
+    "size": 364,
+    "name": "nwSocket::~nwSocket(void)",
+    "class_name": "nwSocket",
+    "category": "Destructor",
+    "priority": 80,
+    "score": 120,
+    "reason": "productive class/family; 8 class matches; Destructor pattern"
+  },
+  {
+    "address": "0x001a6ac0",
+    "size": 144,
+    "name": "nwConnection::UpdateSendRate(cTimeValue)",
+    "class_name": "nwConnection",
+    "category": "Other",
+    "priority": 81,
+    "score": 119,
+    "reason": "productive class/family; 9 class matches; small/medium"
+  },
+  {
+    "address": "0x000685bc",
+    "size": 60,
+    "name": "eSphereShape::GetInertialTensor(float, mVec3 *) const",
+    "class_name": "eSphereShape",
+    "category": "Get",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 12 class matches; Get pattern; small/medium; eAll sched-continuation candidate"
+  },
+  {
+    "address": "0x0011f66c",
+    "size": 112,
+    "name": "gcPlayer::AssignController(int, int) static",
+    "class_name": "gcPlayer",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 15 class matches; small/medium"
+  },
+  {
+    "address": "0x00120234",
+    "size": 132,
+    "name": "gcPlayer::AssignLocalControllers(bool) static",
+    "class_name": "gcPlayer",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 15 class matches; small/medium"
+  },
+  {
+    "address": "0x0012055c",
+    "size": 140,
+    "name": "gcPlayer::FindAvailablePlayer(void) static",
+    "class_name": "gcPlayer",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 15 class matches; small/medium"
+  },
+  {
+    "address": "0x00121084",
+    "size": 152,
+    "name": "gcPlayer::MemCardReplicate(gcReplicationVisitor &) static",
+    "class_name": "gcPlayer",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 15 class matches; small/medium"
+  },
+  {
+    "address": "0x001a52ec",
+    "size": 176,
+    "name": "nwNetwork::Initialize(void) static",
+    "class_name": "nwNetwork",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 28 class matches; small/medium"
+  },
+  {
+    "address": "0x001a544c",
+    "size": 176,
+    "name": "nwNetwork::Update(cTimeValue) static",
+    "class_name": "nwNetwork",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 28 class matches; small/medium"
+  },
+  {
+    "address": "0x001a5594",
+    "size": 184,
+    "name": "nwNetwork::CreateGameSocket(int, unsigned short) static",
+    "class_name": "nwNetwork",
+    "category": "Other",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 28 class matches; small/medium"
+  },
+  {
+    "address": "0x00120fc4",
+    "size": 192,
+    "name": "gcPlayer::ResetNetConnection(int) static",
+    "class_name": "gcPlayer",
+    "category": "Reset",
+    "priority": 82,
+    "score": 118,
+    "reason": "productive class/family; 15 class matches; Reset pattern; small/medium"
+  }
+]
