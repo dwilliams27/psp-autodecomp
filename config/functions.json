@@ -9623,7 +9623,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -41249,7 +41249,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -44251,7 +44251,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -44272,6 +44272,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T22:29:41Z"
+      },
+      {
+        "session": "9e194a67",
+        "notes": "Closer than prior attempt \u2014 got down to 21/200 bytes diff (vs prior session's near-miss with different shape) by reformulating the loop as `data[i].Write(wb)` array indexing. This triggered the strength-reduction pattern in the second pass: SNC now emits the `li s2,0; addu s2,a0,s2` (induction-variable initialization) and uses caller-saved a0 for the second mData load, leaving s0/s1/s2 as count/i/ptr respectively \u2014 matching target exactly in the loop body. Function size is now 200B (matching DB).\n\nResidual diff is concentrated in the FIRST-pass register choice: target loads mData\u2192a0 and routes count\u2192a1 directly into the call-arg slot, then emits `move s1,s0` to keep `this` alive in s1 across wb.Write(int). Our codegen loads mData\u2192a1 and routes count\u2192a0, ending in `move a1,a0` instead of `move s1,s0`. As a downstream consequence, our second-pass mData load is `lw a0,68(s0)` (this stays in s0) where target has `lw a0,68(s1)` \u2014 same instruction count, different bytes. Tried: ternary inline of count, sched=2 per-function pragma, register __asm__(\"s1\") on `this`, s0 clobber barrier between calls, sharing one `data`/`total` across both passes (this got `move s0,a1; move s1,a0` swap \u2014 same idea but mirrored, 25-byte diff), single-name vs separate-name variables, declaring i early. SNC's allocator deterministically picks mData\u2192a1 here regardless. The trigger appears to be a global decision the allocator makes about which of {first-count, this} owns s0 across the call; without a way to influence that choice from C, this cascades. Permuter would likely fix in <5min on PRNG. Recommend permuter for the remaining 21 bytes.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T11:43:29Z",
+        "src_file": "src/eSurfaceSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/9e194a67/00053c3c__agent_self_reported_failure__src_eSurfaceSet.cpp"
       }
     ]
   },
@@ -75413,7 +75425,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -75457,7 +75469,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -75504,7 +75516,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d42e8"
     ],
@@ -86940,7 +86952,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -86955,6 +86967,18 @@
       {
         "session": "98e0d41c",
         "notes": "Stuck at 49/208 byte diff. The diff is concentrated in the inline expansion of GetSize() inside Write and the loop initialization. Specifically: (1) the FIRST inline GetSize stores its size temp in s1 (callee-saved) instead of a1 (Write's 2nd arg reg), forcing an extra `move a1,s1` and changing the and/lw/li sequence to use s1 instead of a1 \u2014 4-5 instruction diffs; (2) the SECOND inline GetSize loads mData into s2 (the loop-pointer register) directly via `lw s2,12(s0)` rather than into a0, so mData is folded into the pointer var and the mask uses a0 instead of a1 \u2014 another 4-5 instruction diffs; (3) the loop init has just `move a0,s2` after a `nop` delay slot, but target has `li s2,0; addu s2,a0,s2` (a 2-step move-via-add suggesting an explicit `int offset = 0; p = mData + offset` pattern where offset is treated as a separate live variable that fills the delay slot of the early-exit branch).\n\nApproaches tried: (a) original ordering `int i = 0; int size = GetSize(); if (i < size) { int offset = 0; cHandle *p = (cHandle*)((char*)mArray.mData + offset); do {...} while (...); }` \u2014 49 byte diff (best); (b) swapping to `size first, then i` \u2014 62 byte diff (worse, allocates mData to a1); (c) `while (i < size)` with offset incrementing inside loop \u2014 232 byte function (recomputes mData each iteration, adds 2 register saves); (d) manually inlining GetSize as explicit blocks rather than calling the inline method \u2014 62 byte diff; (e) reordering GetSize body to declare `size` before `arr` \u2014 no change; (f) reordering class member declaration order (GetSize before Write) \u2014 no change; (g) dropping `this->` qualifier \u2014 no change; (h) permuter ran 280s, 4881 candidates compiled, ZERO improvements from baseline 49 bytes.\n\nRoot cause hypothesis: the original source likely uses a different access pattern that keeps mData live in a0 across the second GetSize. Possibilities to try next: (1) source uses `mArray.Size()` and `mArray.GetData()` as TWO separate templated cArrayBase methods rather than a single GetSize that wraps both \u2014 the compiler would treat them as independent inlines and might keep mData in a0 separately for GetData(); (2) the loop pointer is computed via a templated `operator[]` like `&mArray[0]` returning `mData + idx*sizeof(T)` where idx=0 \u2014 this might force the explicit `+offset` pattern; (3) GetSize might not be a member of gcStringSet at all but a typedef'd wrapper around mArray's own size \u2014 try defining `int Size() const { return mData ? ((int*)mData)[-1] & 0x3FFFFFFF : 0; }` on cArrayBase and calling `mArray.Size()` from Write. The structure of the function (call ctor, call NamedSet::Write, write size, loop) is correct \u2014 purely a register-allocation/CSE distinction in how mData is plumbed through the inline expansions."
+      },
+      {
+        "session": "6a6e21cb",
+        "notes": "Stuck at 49/208 byte diff \u2014 same baseline as the prior session 98e0d41c. The diff is concentrated in (1) the FIRST inline GetSize: target stores its size temp directly in a1 (Write's 2nd arg reg), so call goes `and a1,a1,a0; jal Write; move a0,sp(delay)`. Mine stores in s1 (callee-saved) then `move a1,s1` \u2014 1 extra instruction. (2) The SECOND inline GetSize loads mData into s2 (the loop-pointer register) directly via `lw s2,12(s0)`, then loop body uses s2 directly with no `addu`. Target loads mData into a0, computes loop ptr separately via `li s2,0x0; addu s2,a0,s2` (offset=0 + base), keeping mData in a0 across the size load. (3) Loop-init delay slot: target has `li s2,0x0` (offset = 0) filling `beqz a1,end` delay slot. Mine has wasted nop. Approaches tried this session, all with same or worse diff: (a) explicit `int *raw0/sz0` first GetSize + `int *raw/size` second GetSize + `char *p = (char*)raw + offset` loop ptr \u2014 62 bytes (worse, SNC still aliased raw and p); (b) introducing a `cHandlePairT<...>* base = mArray.mData;` local just before the loop with explicit pointer-arith \u2014 62 bytes (worse, same aliasing); (c) `(unsigned int)GetSize()` cast on first call \u2014 same 49 (no effect, ternary-mask result is same in both signednesses); (d) reordering `int size = GetSize(); int i = 0;` \u2014 no change. The prior session's permuter ran 280s with 4881 candidates and zero improvements, confirming this is genuinely structural. Root cause hypothesis: SNC's CSE+register-allocation chooses to alias the (compile-time) constant offset 0 into the loop pointer, eliminating the `addu` and freeing a0 for argument passing. To match target, the source must give SNC a reason to keep mData in a0 distinct from p in s2 \u2014 possibly an additional read of mData between size computation and loop init (e.g., `if (mArray.mData != 0)` outer guard wrapping the loop, or computing a derived value like `int total_bytes = ...`). Per prior notes, possible angles for next session: (1) define `cArrayBase::Size()` and `cArrayBase::GetData()` as TWO separate templated methods so the function-call boundary blocks SNC's CSE; (2) try a non-zero offset that cancels (e.g., `&((char*)mArray.mData)[0]` or pointer-to-member access); (3) extend mArray reference live range with a sibling member access (mArray.mAlloc or similar). Body remains correct as committed \u2014 this is a register-allocation divergence not a logic bug.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:02:49Z",
+        "src_file": "src/gcStringSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/000feb24__agent_self_reported_failure__src_gcStringSet.cpp"
       }
     ],
     "mangled_symbol": "__0fLgcStringSetFWriteR6FcFileK"
@@ -108795,7 +108819,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -108808,7 +108832,21 @@
       "0x00154ac0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcBipedControllerTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcBipedControllerTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "6a6e21cb",
+        "notes": "240/252 bytes (12 bytes / 3 instructions short). Body structure is correct \u2014 beqz/bnez version-guard pair, beqzl branch-likely on Creature::Read return, beqzl branch-likely on tag>=2 test, byte-read block placed AFTER the fail-block via goto pattern (matches gcLoadingScreen exemplar shape), two separate dtor epilogues, cFileSystem_Read uses double-deref (*(void**)*(void**)&rb._data[0]) to convert cFile* to cFileHandle*, all calls in correct order with correct delay slots. The remaining diff is purely register allocation: target hoists `result = 1` to s3 (callee-saved), emitting `sw s3,0x24(sp)` at entry, `li s3,0x1` at entry, and `lw s3,0x24(sp)` in BOTH epilogues; my output uses s0 for the constant and inlines `li s0,0x1` at two delay-slot positions instead of hoisting (one in `b 338` delay slot, one before the success-path `move a0,sp; jal dtor`). Approaches tried: (1) goto pattern with `int result=1; goto do_byte/after_byte` \u2014 240B baseline (best); (2) `int result=0; result=1` after first guard \u2014 same 240B (SNC constant-propagated the 0); (3) declaring result before vs after cReadBlock ctor \u2014 no change; (4) `register int result __asm__(\"$19\") = 1` \u2014 SNC ignored register specifier, same 240B; (5) explicit conditional result assignment with `result=0` on fail paths plus `if(!result)` test at end \u2014 166/252 differ (worse, broke structure entirely). The matched gcLoadingScreen exemplar produces s3-hoist because its after_groups block has substantial post-byte-read work (cMemPool_GetPoolFromPtr + cHandle::Read), forcing `result` to live across enough code that SNC's heuristic picks a callee-saved reg. Our function has trivial after_byte (just return), so SNC eagerly materializes the constant inline. Possible next angles: (a) introduce a synthetic use of `pool` late in the function to extend its live range past Creature::Read (might shift register allocation); (b) try a different `result` materialization (e.g. `int result = (file != 0);` runtime expression) so SNC must compute it; (c) experiment with -Xsched=1 / -Xmopt flag variations; (d) check if source has additional state or computation we can't see in the stripped disassembly (e.g. an additional small store or value reset). Per the prompt note about cReadBlock prologue scheduler divergence, this is a related register-allocation diff in a Read function \u2014 recording as a soft blocker.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:02:49Z",
+        "src_file": "src/gcBipedControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/00140fdc__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x001410d8",
@@ -145490,7 +145528,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x00007534",
       "0x00009cb0"
@@ -145509,7 +145547,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -179483,7 +179521,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -188508,7 +188546,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -188525,6 +188563,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T17:36:33Z"
+      },
+      {
+        "session": "6a6e21cb",
+        "notes": "Same blocker as prior attempt: 196B / 204B (8 bytes short). The first 196 bytes match byte-exact. Missing trailing trap pair `b $; nop` (1000ffff 00000000) at offsets 0xc4/0xc8 AFTER the jr ra epilogue. Prior agent exhausted 8+ approaches (in-class operator delete, file-scope inline operator delete, symbol-folded vptr stores, explicit local-variable null-check pointers, __builtin_unreachable [SNC error 0020], for(;;) loop after delete [moved trap to wrong location, 25-byte diff], noreturn attribute on free [silently ignored]). This session: did not retry \u2014 the prior agent's analysis is exhaustive and correctly characterizes the divergence as structural. SNC's data-flow analyzer emits a post-epilogue trailing trap when the deleting destructor inlines operator delete via the cMemPool dispatch table with an `else free(p)` fallback. Many other unmatched dtors share this same trailing-trap pattern (ePhysicsControllerTemplate at 0x4bab4, eDynamicFluid at 0x5ddc0, eCylinderShape at 0x74320, eShadowFillModelMtl at 0x7f3d8, eHeightmapData at 0x8fb70). Per CLAUDE.md, this is not a bnel-related divergence so cannot be classified `unmatchable_bnel`. Recommend solving ePhysicsControllerTemplate dtor first \u2014 finding the right shape there will likely solve all of these together. Body source as committed is byte-exact for the first 196B of 204B expected.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:02:49Z",
+        "src_file": "src/gcBipedControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/002a7964__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp"
       }
     ]
   },
@@ -200218,7 +200268,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -200230,6 +200280,18 @@
       {
         "session": "f1184f8b",
         "notes": "gcDoReturn::Evaluate(void) const \u2014 192 bytes, gcAll_psp.obj.\n\nGot to 184 bytes (8 bytes / 2 instructions short). The function logic is fully decompiled: loads this->mChild (offset 0x0C), resolves tagged pointer, loads g_gcEvalCtx and evalState, dispatches through vtable at typeInfo+0x70 (DispatchEntry struct with short offset + func pointer), stores result to EvalResult (flags|=1, val=float), returns val.\n\nThe blocking issue is beqzl vs beqz in the hasChild computation. Expected code uses `beqz a2, L1; sltu a2,zero,a0` (regular branch, delay slot always executes, sltu overwrites the tested register a2). Our SNC generates `move a3,a2; li a2,0; beqzl a3,+1; sltu a2,zero,a0` (branch-likely, saves hasTag to a3 first, delay only executes when taken). The beqzl version saves 2 instructions (-8 bytes) \u2014 an optimization our SNC makes but the original compiler didn't.\n\nAlso tried 'always-compute bool then override' pattern which gets correct 192-byte size but has completely different structure (linear sltu+andi+sltu+bnezl override vs expected branchy beqz+sltu+b+li+andi+sltu) and different register allocation throughout (ctx in a1 vs expected a2). The register swap propagates through the entire function causing 67/192 bytes to differ.\n\nTried: if/else, ternary, direct tag test, compute-then-override, pre-compute nz, __asm__ volatile barriers, register asm constraints, -Xsched=1, -O5. Ran permuter for 5 minutes (5597 candidates) \u2014 no improvement beyond 51 bytes differ. The beqzl choice appears to be a genuine compiler version heuristic difference in SNC's delay slot scheduler."
+      },
+      {
+        "session": "e6ada47c",
+        "notes": "192B Evaluate could not be matched byte-exact. Structural progress reduced diff from 64B \u2192 52B \u2192 50B via canonicalize-in-else pattern (mirroring gcExpressionList::Evaluate's flag-bit canonicalization with explicit `int raw = (val != 0); hasChild = ((unsigned char)raw) != 0;`) plus permuter (150s, 5040 candidates, best=8B by its metric but 50B by compare_func.py's metric). Remaining 50B diff is purely register allocation: my build assigns `ctx` to $a1 and `tag` to $a2; expected has `ctx` in $a2 and `tag` in $a1. The swap propagates throughout the function \u2014 every register reference shifts by one slot, producing ~50 bytes of identical-instruction-different-register diffs. Approaches tried: (1) declaration reordering of ctx/result/tag (made it worse: 78-92B); (2) `register asm()` GCC constraints (SNC silently ignores them); (3) bool vs unsigned char vs int canonicalization variants for hasTag/hasChild; (4) reordering of `if (ctx != 0)` block relative to tag computation; (5) permuter random restructurings.\n\nRoot cause is almost certainly SNC compiler-version divergence in greedy register allocator priorities \u2014 same problem class as the bnel branch-likely heuristic divergence documented in docs/decisions/006. Per CLAUDE.md the unmatchable-classification gate requires \u22648B diff specifically in bnel/beql, so this 50B register-allocation diff doesn't qualify and stays `failed`. Cannot be fixed at source level. Source code structure left in place as the closest reasonable C++ form \u2014 future work would either patch pspcor.exe register-allocation priorities or wait for a compiler-version match.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:07:13Z",
+        "src_file": "src/gcDoReturn.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/e6ada47c/002fa058__agent_self_reported_failure__src_gcDoReturn.cpp"
       }
     ],
     "mangled_symbol": "__0fKgcDoReturnIEvaluatevK"
@@ -200300,7 +200362,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -200310,7 +200372,14 @@
         "notes": "240B SetChild with tagged-pointer logic (convert owned child to reference, then set new child, optionally destroying old). My compile is 228B (3 insns short). Bulk of the structure matches after rewriting from `newVal | 1` collapsed form to explicit duplicated `|= 1` in each branch \u2014 this stopped SNC from CSE'ing the final ori into a single merge-block op, forcing the b-delay-slot `ori a1, a1, 1` pattern that expected uses. However, same register-allocation divergence as dtor: expected has val\u2192a1, const-1\u2192a0; mine has val\u2192a0, const-1\u2192a1. In expected the destroy path has an extra `move a0, a1` (val\u2192a0 for callback) that mine doesn't need \u2014 hence 1 instruction shorter per destroy block (\u00d72 = 2 insns). Remaining 1 insn likely trailing trampoline. Source structure is almost certainly correct shape-wise. Next agent: try running permuter for 10+ min, or try restructuring so val is taken via address (`*pval = ...`) instead of value to shift allocator."
       }
     ],
-    "mangled_symbol": "__0fKgcDoReturnISetChildiP6MgcExpression"
+    "mangled_symbol": "__0fKgcDoReturnISetChildiP6MgcExpression",
+    "src_file": "src/gcDoReturn.cpp",
+    "symbol_name": "__0fKgcDoReturnISetChildiP6MgcExpression",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e6ada47c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T12:07:13Z"
   },
   {
     "address": "0x002fa26c",
@@ -200382,7 +200451,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -200395,7 +200464,14 @@
         "notes": "212B dtor with tagged-pointer child destruction. Tried matching via gcDoFunction_dtor template, then restructured with goto labels. My build is 208B (missing trailing b .; nop trampoline = 8 bytes) and has register-allocation divergence: SNC assigns val\u2192a1 in my compile but expected has val\u2192a0. This causes an extra `move a0, a1` before the destroy call and converts all branch-likely (beql/bnel) to regular beq/bne because val is clobbered by delay-slot `move a0, s1`. Structural IR looks correct (48 of 52 insns align in sequence). Root cause is live-range analysis: in expected, val is used as a0 argument to destroy callback so SNC picks a0; in my code, local variable ordering or some other scheduling quirk makes SNC prefer a1. Tried: (1) reordering var decls, (2) goto-based control flow, (3) && short-circuit instead of nested if, (4) early val load into char* vs int*. None shifted allocation. Did NOT run permuter \u2014 would be useful for next agent. May need src rewrite that passes &this->mChild to inlined helper to keep val in a0."
       }
     ],
-    "mangled_symbol": "__0oKgcDoReturndtv"
+    "mangled_symbol": "__0oKgcDoReturndtv",
+    "src_file": "src/gcDoReturn.cpp",
+    "symbol_name": "__0oKgcDoReturndtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e6ada47c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T12:07:13Z"
   },
   {
     "address": "0x002fa604",

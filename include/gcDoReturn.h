@@ -21,6 +21,8 @@ public:
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
+    ~gcDoReturn(void);
+    static void operator delete(void *);
 };
 
 class gcDoSetValue {
