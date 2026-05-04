@@ -44382,7 +44382,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005690",
       "0x00005704"
@@ -44403,7 +44403,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T18:59:32Z"
       }
-    ]
+    ],
+    "src_file": "src/eLightGridNode.cpp",
+    "symbol_name": "__0fOeLightGridNodeFWriteR6LcWriteBlockK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "77e67eeb",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:48:28Z"
   },
   {
     "address": "0x00054a20",
@@ -44415,7 +44422,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4"
     ],
@@ -44423,7 +44430,14 @@
       "0x001d67c8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeLightGridNodeEReadR6KcReadBlock"
+    "mangled_symbol": "__0fOeLightGridNodeEReadR6KcReadBlock",
+    "src_file": "src/eLightGridNode.cpp",
+    "symbol_name": "__0fOeLightGridNodeEReadR6KcReadBlock",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "77e67eeb",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:48:28Z"
   },
   {
     "address": "0x00054b44",
@@ -90168,7 +90182,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0010af00",
       "0x0010d1d4"
@@ -90190,7 +90204,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0016fd4c"
     ],
@@ -105636,7 +105650,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -105658,6 +105672,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T18:57:54Z"
+      },
+      {
+        "session": "77e67eeb",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:48:28Z",
+        "src_file": "src/gcUIEditBox.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/77e67eeb/0013a3f8__post_revert_compile_failed__src_gcUIEditBox.cpp"
       }
     ]
   },
@@ -167474,7 +167500,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00222f24"

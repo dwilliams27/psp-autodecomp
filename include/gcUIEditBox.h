@@ -28,6 +28,7 @@ public:
     ~gcUITextControl();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void Write(cFile &) const;
 };
 
 class gcUIEditBox : public gcUITextControl {
@@ -56,6 +57,7 @@ public:
     void Backspace(void);
     void UpdateUI(cTimeValue, const gcEventStackData &);
     void Focus(bool, bool);
+    void Write(cFile &) const;
 
     void SetCursorPos(int);
     void DeleteString(int, int);
