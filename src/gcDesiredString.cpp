@@ -5,6 +5,9 @@
 //   gcDesiredString::Write(cFile &) const                           @ 0x0012A428
 //   gcDesiredString::New(cMemPool *, cBase *) static                @ 0x002706B8
 //   gcDesiredString::GetType(void) const                            @ 0x00270758
+//   gcDesiredString::Read(cFile &, cMemPool *)                      @ 0x0012A48C
+//   gcDesiredString::GetText(char *) const                          @ 0x0012A71C
+//   gcDesiredString::GetDesiredType(void) const                     @ 0x0012AAFC
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -21,19 +24,44 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class gcDesiredObject {
 public:
     void Write(cFile &) const;
+    int  Read(cFile &, cMemPool *);
 };
 
 class gcDesiredStringHelper {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+    void GetText(char *) const;
 };
 
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+};
+
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
+struct GetTextSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
 };
 
 class cType {
@@ -57,6 +85,12 @@ extern const char gcDesiredString_base_desc[];  // 0x36D89C
 extern cType *D_000385DC;
 extern cType *D_0009F3F4;
 extern cType *D_0009F474;
+extern cType *D_00099900;     // cached gcString cType (desired type)
+
+class gcString {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 struct PoolBlock {
     char pad[0x1C];
@@ -82,8 +116,11 @@ public:
     gcDesiredString &operator=(const gcDesiredString &);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int  Read(cFile &, cMemPool *);
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetDesiredType(void) const;
 };
 
 // ============================================================
@@ -207,4 +244,98 @@ const cType *gcDesiredString::GetType(void) const {
                                            &gcDesiredString::New, 0, 0, 0);
     }
     return D_0009F474;
+}
+
+// ============================================================
+// 0x0012A48C — Read(cFile &, cMemPool *), 212B
+// ============================================================
+int gcDesiredString::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 ||
+        ((gcDesiredObject *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((gcDesiredStringHelper *)((char *)this + 12))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 24))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ============================================================
+// 0x0012AAFC — GetDesiredType(void) const, 160B
+// ============================================================
+const cType *gcDesiredString::GetDesiredType(void) const {
+    if (D_00099900 == 0) {
+        if (D_000385DC == 0) {
+            D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                               (const char *)0x36D89C,
+                                               1, 0, 0, 0, 0, 0);
+        }
+        D_00099900 = cType::InitializeType(0, 0, 0x87, D_000385DC,
+                                           &gcString::New, 0, 0, 0);
+    }
+    return D_00099900;
+}
+
+// ============================================================
+// 0x0012A71C — GetText(char *) const, 272B
+// ============================================================
+void gcDesiredString::GetText(char *buf) const {
+    int v8 = *(int *)((const char *)this + 8);
+    int flag1 = 0;
+    if (v8 & 1) {
+        flag1 = 1;
+    }
+    int hasReal;
+    if (flag1 != 0) {
+        hasReal = 0;
+    } else {
+        int raw = (v8 != 0);
+        hasReal = ((unsigned char)raw) != 0;
+    }
+    if (hasReal != 0) {
+        __asm__ volatile("" ::: "memory");
+    } else {
+        ((const gcDesiredStringHelper *)((const char *)this + 12))->GetText(buf);
+    }
+
+    int v24 = *(int *)((const char *)this + 0x18);
+    int isLit2 = v24 & 1;
+    int flag2 = 0;
+    if (isLit2 != 0) {
+        flag2 = 1;
+    }
+    if (flag2 != 0) {
+        v24 = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    if (v24 == 0) {
+        return;
+    }
+
+    cStrAppend(buf, (const char *)0x36DCBC);
+
+    int v24b = *(int *)((const char *)this + 0x18);
+    int flag3 = 0;
+    if (v24b & 1) {
+        flag3 = 1;
+    }
+    if (flag3 != 0) {
+        v24b = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    char *obj = (char *)v24b;
+    if (obj != 0) {
+        char *vt = *(char **)(obj + 4);
+        GetTextSlot *slot = (GetTextSlot *)(vt + 0xD0);
+        slot->fn(obj + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
 }
