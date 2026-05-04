@@ -91,6 +91,45 @@ const cType *eCompoundShape::GetType(void) const {
     return D_00046BE4;
 }
 
+// Virtual-table entry for eShape::Collide(const eCompoundShape*, ...) at offset 0x108
+struct CollideVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const eCompoundShape *other, int a, int b,
+              const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
+};
+
+// ── eCompoundShape::Collide(const eShape *, ...) @ 0x000736ec ──
+// Generic dispatcher: virtual-calls shape's Collide(const eCompoundShape*, ...) at vtable
+// offset 0x108, passing args swapped (a/b swapped, ocs1/ocs2 swapped). Then negates each
+// contact normal (first quad of each 0x40-stride contact starting at info+0x20).
+int eCompoundShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    char *vtable = *(char **)((char *)shape + 4);
+    CollideVtableEntry *entry = (CollideVtableEntry *)(vtable + 0x108);
+    void *adjThis = (char *)shape + entry->thisOffset;
+    int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
+    if (hit != 0) {
+        int i = 0;
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
+        }
+        return 1;
+    }
+    return 0;
+}
+
 // ── eCompoundShape::Collide(const eSphereShape *, ...) @ 0x00073820 ──
 int eCompoundShape::Collide(const eSphereShape *shape, int a, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     if (eCollision::SphereCompound(*shape, *this, a, ocs2, ocs1, info) != 0) {

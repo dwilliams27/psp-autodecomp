@@ -52078,11 +52078,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "20de5b46",
+        "notes": "eMultiSphereShape::Collide(const eShape*, int, int, const mOCS&, const mOCS&, eCollisionContactInfo*) const (172B) \u2014 generic dispatcher: loads shape's vtable+0xE8 entry (thisOffset:short, fn:ptr), calls fn(adjThis, this, b, a, &ocs2, &ocs1, info) with this/other and ocs1/ocs2 swapped, then if hit!=0 negates each contact normal in info using vfpu vneg.t. Matches eCylinderShape::Collide(eShape*) (0x0007470c, offset 0xF8) pattern, also eSphereShape/eCapsuleShape variants. Implemented under #pragma control sched=1 with MS_CollideVtableEntry struct dispatch + vneg.t inline asm loop. Result: 110/172 bytes diff. Same root cause as Function 3 (Collide eBoxShape) \u2014 SNC's instruction scheduler reorders register moves and vtable load incorrectly compared to expected. Mine loads vtable EARLY (lw t3,4(a1) at offset 0x2a4) before register reshuffles; expected loads vtable LATER after all argument register rotations. Also `nop` in beqz delay slot vs expected `li a1,0x0`. Function structure/logic is correct \u2014 issue is purely scheduling. All edits reverted. Next agent: try after Function 3 root cause is found (they share the issue).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:13:48Z",
+        "src_file": "src/eMultiSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/20de5b46/00069534__agent_self_reported_failure__src_eMultiSphereShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000695e0",
@@ -52094,7 +52108,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002456c"
     ],
@@ -52104,6 +52118,18 @@
       {
         "session": "360bcb4f",
         "notes": "Collide(eBoxShape): 140B, 27 of 35 words (~108B) differ despite #pragma control sched=1. Function flow is correct: call eCollision::BoxMultiSphere(*shape, *this, ocs2, ocs1, info); if nonzero, loop over info->unk14 contacts and negate each C120 quad at info+0x20+i*0x40 via inline VFPU asm; return 1 or 0. First diff at offset 12/16: expected saves t2->s0 BEFORE rearranging a0/a1 call args; ours reorders them (move a2,a0 before move s0,t2). Second diff at offset 28/32: expected move a2,t1 before move a3,t0; ours is swapped. Third major diff at offset 44/48: expected fills the `beqz v0` branch-delay slot with `li a1, 0` (the i=0 init); ours leaves a nop and places li a1 after the lw a0,20(s0). This cascades to shift the rest of the function by one instruction, causing the bulk of the 27-word diff. Tried: (1) baseline sched=2 (30 words diff), (2) #pragma sched=1 (27 words), (3) hoisting `int i = 0;` before the outer if \u2014 this caused SNC to promote i to s1 (callee-saved) adding an extra sw/lw pair and making the function 148B (bigger than expected 140B), (4) converting `if (i<n) do {} while (i<n)` to `for (i=0; i<n; i++)` \u2014 no improvement. The scheduler-fill-the-delay-slot issue is the dominant cause of the cascade; SNC is not proving `a1` is dead on the branch-taken return 0 path with the current pragma. NEXT AGENT: same recommendation as GetVolume \u2014 likely need whole-file sched=1 Makefile override for eMultiSphereShape. If that doesn't work, try writing the return path as explicit `if (!BoxMultiSphere(...)) return 0;` early-return style (inverted condition), which may let the scheduler see `i=0` as unconditionally reachable on the not-taken path of the beqz and fill the delay slot. Do NOT wrap this function body in pure inline asm \u2014 that's banned per CLAUDE.md."
+      },
+      {
+        "session": "20de5b46",
+        "notes": "eMultiSphereShape::Collide(const eBoxShape*, int, int, const mOCS&, const mOCS&, eCollisionContactInfo*) const (140B) \u2014 calls eCollision::BoxMultiSphere(box, this, b, a, &ocs2, &ocs1, info) with args swapped, then if hit!=0 negates each contact normal via vfpu vneg.t loop. Mirrors eSphereShape::Collide(eBoxShape*) pattern exactly. Result: 83/140 bytes diff. CRITICAL FINDING FOR NEXT AGENT: prior agent's Makefile -Xsched=1 override hypothesis is WRONG. Tested: even with whole-file -Xsched=1, eMultiSphereShape produced same wrong output. Furthermore, in an isolated minimal test file I copied eSphereShape's IDENTICAL matching source for Collide(eBoxShape*) and it produced WRONG output (nop in delay slot, move s0,t2 ordering wrong) \u2014 yet the full eSphereShape.cpp build matches that exact source. This proves SNC's scheduler accumulates hidden file-scope state. Diff details: mine has `move a2,a0` at offset 0x354 instead of expected `move s0,t2` first; mine has `nop` in beqz delay slot where expected has `li a1,0x0`; argument moves swapped (`move a3,t0` then `move a2,t1` vs expected `move a2,t1` then `move a3,t0`). Tried: removing sched=1 (worse: 98/140), reordering before Collide(eShape*) (no change), consolidating pragmas (no change). Avenues for next agent: (1) what specific function in eSphereShape.cpp's accumulated context primes the scheduler \u2014 bisect by deleting halves of eSphereShape.cpp until the match breaks; (2) VFPU register state from prior GetSupport(eCollisionSupport*) overload?; (3) try permuter on this specifically \u2014 register allocation may shake out; (4) try alternate decomposition where the if(hit) branch is structured differently (early return of 0 first?). All edits reverted.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:13:48Z",
+        "src_file": "src/eMultiSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/20de5b46/000695e0__agent_self_reported_failure__src_eMultiSphereShape.cpp"
       }
     ],
     "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
@@ -52298,7 +52324,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -52306,6 +52332,18 @@
       {
         "session": "360bcb4f",
         "notes": "GetVolume: 72B function, 12 of 18 words (~48B) differ even with #pragma control sched=1 wrapping. The function formula (V = pi*r^2 * (2h) + (4/3)*pi*r^3) is correctly expressed as C source with all constants (3.1415927f, 2.0f, 4.1887903f) matching the expected hex. The issue is pure instruction scheduling: SNC at -Xsched=2 (file default) aggressively interleaves lwc1/lui/ori/mtc1 loads with the mul.s FPU operations, while the expected output has less-aggressive scheduling where r2*pi is computed, THEN halfLength is loaded, THEN doubled is computed, THEN the cyl multiply. Adding '#pragma control sched=1' reduced the diff from 13 to 12 mismatched words but did not close the gap, suggesting the pragma alone does not fully emulate whole-file -Xsched=1 compilation context (the transition-zone hint in the task warned of this). The single mul.s f0 operand order also differs (f15,f14 vs expected f14,f15) \u2014 tried swapping source expression order (doubled*r2pi vs r2pi*doubled) with no change; SNC always commutes it to the scheduler's preferred form. Tried: (1) baseline sched=2 (53B diff), (2) #pragma sched=1 (48B diff), (3) swapping cyl operand order. NEXT AGENT: per the task's SCHED HINT, this class likely needs a whole-file Makefile override: add '$(BUILD_DIR)/src/eMultiSphereShape%.o: CFLAGS := $(ECFLAGS)' under the existing sched=1 overrides in the Makefile. If that doesn't fix it, the exact expression tree may need restructuring (try a single return expression with explicit parens, or try float-typed intermediate casts). Do NOT modify the Makefile from within the agent \u2014 flag it for a human."
+      },
+      {
+        "session": "20de5b46",
+        "notes": "eMultiSphereShape::GetVolume(void) const (72B) \u2014 formula pi*r^2*(2h) + (4/3)*pi*r^3 where r=mRadius@0x80, h=mHalfLength@0x84. Implemented as: r2 = mRadius*mRadius; r2pi = r2*3.1415927f; doubled = mHalfLength*2.0f; cyl = r2pi*doubled; r3 = r2*mRadius; return cyl + r3*4.1887903f; \u2014 under #pragma control sched=1. Result: 44/72 bytes differ (essentially the entire function). Pure FPU instruction scheduling issue \u2014 SNC reorders the multiply chain. Tried multiple expression decompositions (separated `2*h` early, fused steps, alt constant order). Whole-file -Xsched=1 build was tested for Function 3 and confirmed Makefile override would NOT fix scheduling \u2014 the issue is deeper than a sched mode setting. See docs/research/snc-fpu-scheduling.md before next attempt. Next agent: try permuter from current decomposition; consider if 4.1887903f and 3.1415927f need different literal forms (PI vs 4*PI/3 expressed as combined constant). All edits reverted.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:13:48Z",
+        "src_file": "src/eMultiSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/20de5b46/00069998__agent_self_reported_failure__src_eMultiSphereShape.cpp"
       }
     ],
     "mangled_symbol": "__0fReMultiSphereShapeJGetVolumevK"
@@ -55911,11 +55949,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "4ddc95ab",
+        "notes": "eConvexHullShape::Collide(const eShape*, ...) const \u2014 generic dispatcher, 172B. 111/172 bytes diff. Implemented the canonical pattern from eCylinderShape::Collide(const eShape*) (matched at 0x0007470c) verbatim, only changing class name and vtable offset (0xF8 \u2192 0x100). The C source matches the cylinder source character-for-character apart from those two tokens, plus rebuilding the class declaration. Yet pspsnc emits different scheduling for mine vs cylinder.\n\nExpected (sched=1 form): performs all GPR shuffle moves first (move s0,t2; move t2,t0; move t0,a2; move a2,a0), THEN loads vtable into a0 (lw a0,4(a1); addiu t3,a0,256; lh a0,0(t3); addu a0,a1,a0; lw t3,4(t3)), then completes argument shuffle and jalr.\n\nMy build (incorrectly hoisted load): emits `lw t3,4(a1); move v0,t0; move s0,t2; move t2,a2; addiu a2,t3,256; move t0,a0; lh a0,0(a2); ...` \u2014 i.e. the vtable load is hoisted to instruction #4 and pspsnc spills t0 to v0 (extra reg use) instead of doing the cyclic shuffle in-place.\n\nThings I tried that didn't help:\n  1. `#pragma control sched=1` directly before the function (already in scope from prior pragma, but explicit toggle didn't change output).\n  2. Removing inheritance (`class eConvexHullShape` instead of `: public eShape`) and using `eShape_eShape(this, parent)` free-function ctor pattern like eSphereShape \u2014 schedule unchanged.\n  3. Removing `#include \"eShape.h\"` and `#include \"eCollision.h\"`, replacing with bare forward declarations \u2014 schedule unchanged.\n  4. Compiling with explicit `-Xsched=1` on the command line (bypassing pragmas) \u2014 schedule unchanged.\n  5. Isolated minimal test (.cpp with just the class+struct+function, no other context) \u2014 same hoisted-load output. Renamed eConvexHullShape\u2192eCylinderShape and 0x100\u21920xF8 in that minimal test \u2014 STILL hoisted-load output. So the issue is reproducible in isolation: pspsnc's register allocator deterministically produces the bad form for this code as-written.\n\nThe matched cylinder version compiles correctly only when the FULL eCylinderShape.cpp file is the input (with all its helper structs, free fn declarations, and 30+ pragma toggles). Some aspect of the surrounding file context unblocks the better schedule. I could not isolate which specific element does it.\n\nThe prior session note on cylinder (failure_notes session 3de021b8) documents the same divergence and concluded it was unmatchable without inline asm \u2014 but codex/gpt-5.5/high subsequently matched it (matched_at 2026-05-01). Looking at the current cylinder source, there's no obvious magic \u2014 same patterns as mine. The match is likely due to a compiler heuristic that depends on global file structure (number/order of symbols, helper struct declarations).\n\nKnown-failed siblings with the same dispatcher pattern: eBoxShape::Collide(const eShape*) [I, 0x0006dc20], eSphereShape::Collide(const eShape*) [F, 0x00068314], eMultiSphereShape::Collide(const eShape*) [F, 0x00069534], eCapsuleShape::Collide(const eShape*) [F, 0x0006aa7c], eMeshShape::Collide(const eShape*) [F, 0x0004fdf8]. ONLY cylinder matches. This is fundamentally the same problem.\n\nFor next agent: try literally replicating the entire helper-struct preamble and pragma alternation pattern from eCylinderShape.cpp into eConvexHullShape.cpp. Or try ordering the Collide methods at the END of the file (cylinder's is at line 476 of 573). Or experiment with adding/removing helper struct declarations (CastSphereVtableEntry, CastRayVtableEntry, etc.) to see if any of them affects the register allocator. Inline asm for the dispatch portion is banned (>50% asm).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:30:14Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/4ddc95ab/00071260__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007130c",
@@ -55927,13 +55979,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00024770"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "4ddc95ab",
+        "notes": "eConvexHullShape::Collide(const eBoxShape*, ...) const \u2014 calls eCollision::BoxConvexHull, 140B. 83/140 bytes diff. Implemented as `eCollision::BoxConvexHull(*shape, *this, ocs2, ocs1, info)` followed by the negate-normals loop on info+0x20 stride 0x40. Same loop and structure as the matched eHeightmapShape::Collide(const eBoxShape*) but with the negate-normals tail.\n\nExpected: `move s0,t2; move a2,a0; move a0,a1; move a1,a2; move a2,t1; move a3,t0; jal BoxConvexHull; move t0,s0`. Args order: a2=ocs2 (from t1) BEFORE a3=ocs1 (from t0).\n\nMy build: `move a2,a0; move s0,t2; move a0,a1; move a1,a2; move a3,t0; move a2,t1; jal; move t0,s0`. Two scheduling differences: (1) `move a2,a0` came BEFORE `move s0,t2` (mine reordered the prologue saves), (2) `move a3,t0` came BEFORE `move a2,t1` (mine reordered the ocs swap). Both are sched=2 reorderings even with `#pragma control sched=1` and `-Xsched=1` flag.\n\nSame root cause as 0x00071260: pspsnc register allocator/scheduler produces different code in isolation than it does within eCylinderShape.cpp's context. The negate-loop tail (instructions 0x40-0x70) probably matches identically \u2014 diff bytes are concentrated in the call prologue (0x00-0x40).\n\nFor next agent: the body shape is correct (single eCollision::BoxConvexHull call with swapped ocs args, then standard negate loop). Issue is purely scheduling. Try varying argument reference style \u2014 e.g. `const mOCS &a = ocs2; const mOCS &b = ocs1; ...BoxConvexHull(*shape, *this, a, b, info);` to see if extra named locals nudge the allocator. Or try moving this function to follow Collide(const eShape*) directly to see if function-pair context matters.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:30:14Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/4ddc95ab/0007130c__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00071398",
@@ -55945,13 +56011,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000263e0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "4ddc95ab",
+        "notes": "eConvexHullShape::Collide(const eSphereShape*, ...) const \u2014 calls eCollision::SphereConvexHull, 140B. 83/140 bytes diff. Identical pattern to 0x0007130c (the BoxShape version): `eCollision::SphereConvexHull(*shape, *this, ocs2, ocs1, info)` followed by the negate-normals loop. Diff is in the same range (call prologue scheduling) for the same root cause as the other two Collide methods.\n\nThis function is essentially a clone of 0x0007130c with `BoxConvexHull` replaced by `SphereConvexHull`. Whatever fix unblocks 0x0007130c will likely also unblock this one. They should be retried as a pair.\n\nSee notes on 0x00071260 for the broader pspsnc scheduling investigation. Same fundamental issue: the compiler emits sched=2-style instruction hoisting/reordering for these argument-shuffle prologues even under explicit sched=1, when the function lives in this particular file context.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:30:14Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/4ddc95ab/00071398__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00071424",
@@ -56569,11 +56649,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "0ecc0cfe",
+        "notes": "Generic dispatcher \u2014 virtual-call to shape's Collide(const eCompoundShape*, ...) at vtable offset 0x108, with a/b swapped, ocs1/ocs2 swapped, then negate contact normals on hit. Source structure is a verbatim port of the matched eCylinderShape::Collide(const eShape*) exemplar (only 0xF8 \u2192 0x108 and the second-arg type in CollideVtableEntry differ). Compiled output is structurally correct but mismatches at 111/172 bytes due to a register-allocation / scheduling divergence in the call setup chain.\n\nKey observation: this is a known-difficult sister-function pattern. ALL 172B Collide(const eShape*) variants in the family fail with the same mismatch shape:\n  [F] eMeshShape::Collide(eShape*) 0x4fdf8 (172B)\n  [F] eSphereShape::Collide(eShape*) 0x68314 (172B)\n  [F] eMultiSphereShape::Collide(eShape*) 0x69534 (172B)\n  [F] eCapsuleShape::Collide(eShape*) 0x6aa7c (172B)\n  [I] eBoxShape::Collide(eShape*) 0x6dc20 (172B) \u2014 verified mismatch 110/172 with same source pattern\n  [F] eConvexHullShape::Collide(eShape*) 0x71260 (172B)\n  [M] eCylinderShape::Collide(eShape*) 0x7470c (172B) \u2014 only one matched\n\nByte diff (target vs current): both produce same bottom half (negate loop + tail). Difference is in instructions 0x736f8..0x73734. Target uses an in-place 4-step register rotation `move s0,t2; move t2,t0; move t0,a2; move a2,a0` BEFORE loading vtable into a0. Current emits `lw t3,4(a1)` early, then `move v0,t0; move s0,t2; move t2,a2; addiu a2,t3,264; move t0,a0; lh a0,0(a2); lw t3,4(a2); ...` \u2014 uses v0 as an extra spill for t0 because vtable was loaded too early into t3, blocking the elegant rotation. ~17 differing instructions in the call-prep block.\n\nApproaches tried this session: (1) baseline source identical to eCylinderShape exemplar \u2014 111/172 differ. (2) added explicit per-arg saves before the vtable fetch (`int aSave=a; const eCompoundShape* self=this; ...`) hoping to nudge register coloring \u2014 same 111/172 mismatch. (3) attempted permuter \u2014 fails with 'Could not locate target function in compiled .o. Found 888B .text but expected 172B function.' likely a permuter bug with multi-symbol .o files. Approach (2) ruled out: explicit copies don't influence SNC's allocator differently than the auto-saves do. Removed leftover `#pragma control sched=2` afterwards, since the file is sched=1 globally via Makefile (didn't actually fix Sphere mismatch which was pre-existing).\n\nRoot cause hypothesis: SNC's register allocator picks a DIFFERENT coloring depending on whether the immediate offset (0xD8/0xF8/0x108/etc) leads it to prefer a specific addiu register. Only 0xF8 (eCylinderShape) happens to land in the 'good' register graph and avoid the v0 spill. This is genuinely a compiler heuristic divergence and may need permuter (after the permuter symbol-lookup bug is fixed) or an SNC compiler flag tweak (-Xmopt? -Xxopt?) to flip the coloring. The function is left in src/eCompoundShape.cpp as the closest attempt; it compiles and is logically correct, but bytes do not match.\n\nNext-agent suggestions: (a) fix the permuter so it can find this symbol in a multi-function .o (the bug is in get_symbol_bytes / target_symbol path); (b) try -Xxopt variants on this file alone; (c) try expressing the dispatch as a pointer-to-member-function call rather than a CollideVtableEntry struct cast \u2014 might give SNC different aliasing info; (d) try compiling all 7 sister Collide(eShape*) variants in one batch with the same nudge to see if any heuristic move fixes a pattern across all of them at once.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:40:54Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/0ecc0cfe/000736ec__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00073798",
@@ -56723,7 +56817,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00029438"
     ],
@@ -56743,7 +56837,14 @@
         "timestamp": "2026-04-26T01:10:10Z"
       }
     ],
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCompoundShape.cpp",
+    "symbol_name": "__0fOeCompoundShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0ecc0cfe",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T09:40:54Z"
   },
   {
     "address": "0x00073ae4",
@@ -56853,7 +56954,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000239d0",
@@ -56874,6 +56975,18 @@
       {
         "session": "a206de26",
         "notes": "Not attempted again this session. Prior session (64d4b943) already provided a deep analysis: 20-insn dense VFPU function (5x lv.q, 6x sv.q, vtfm3.t C130+E000+C120, vadd.t, jr with sv.q in delay slot). Per CLAUDE.md hard rule, file-scope __asm__ blocks that reproduce the entire body in assembly are BANNED, and per docs/research/snc-delay-slots.md the terminal sv.q in the jr delay slot can only be emitted by SNC when it comes from a compiler-generated V4SF/SceULong128 store \u2014 inline asm cannot fill delay slots. That forces a hybrid design: v4sf_t/SceULong128 assignments for (a) copying this->mHalfExtents from +0xA0 into box->halfExtents at +0x80, (b) copying *outOcs = ocs row-by-row, and (c) the final outOcs->position = loaded+transformed store; plus inline asm only for the vtfm3.t and vadd.t. The CRITICAL blockers: (1) SNC will not pin a v4sf_t local to C120 (first auto-temp vt=24) without an explicit register-level constraint; prior attempt landed on C130 instead, shifting all downstream VFPU register names and producing a 22-insn body (88B) with 67/88 bytes diverging \u2014 not a last-mile diff. (2) The struct copy order in the expected binary is POSITION FIRST (0x30), then rows 0/1/2 \u2014 SNC's default whole-struct copy emits rows in ascending address order, so `*outOcs = ocs` will not produce this ordering. The position-first ordering arises because the compiler schedules the pos store immediately after the pos load (so C120 can be reused by the subsequent row copies) and then reloads outOcs->position (not ocs.position) for the vadd. This specific scheduling requires either (a) source that writes position first explicitly, OR (b) a compiler interaction where the pos read-back after the row copies tells SNC to move the pos write up. A future agent should: (i) research whether SNC has a VFPU-register-specific asm constraint (maybe 'q'/'x'/'w' or a builtin like __builtin_altivec_vec_extract) \u2014 look at how eSweptSphereCollisionHandler.cpp handled it; (ii) try writing the source as `outOcs->position = ocs.position; outOcs->row0 = ocs.row0; outOcs->row1 = ocs.row1; outOcs->row2 = ocs.row2;` then a SceULong128 re-read of outOcs->position followed by a vadd via inline asm that targets C120; (iii) experiment with __builtin_ftovs / __builtin_vstof for the scalar/vector transitions; (iv) check whether -Xvfpumatrix=N > 1 changes the first-auto-temp register; (v) consider that the code may need the mHalfExtents copy and the pos-store to be adjacent V4SF assignments so SNC reuses C120 for both. Also note: eCompoundShape has cached fields at +0x90 (center, mVec4) and +0xA0 (halfExtents, mVec4) that are NOT in include/eCompoundShape.h yet \u2014 these need to be added to the struct before writing the source. The prior attempt's decision to back out rather than submit a banned asm-heavy stub was correct; this function is a legitimate candidate for permuter.py once the base skeleton produces a small diff (<20B)."
+      },
+      {
+        "session": "0ecc0cfe",
+        "notes": "Not attempted with new source this session due to time consumed on Function 1 \u2014 relying on the deep analyses from prior sessions 64d4b943 and a206de26.\n\nFunction layout (from disassembly): 100% VFPU dense \u2014 20 instructions, 80 bytes:\n  lv.q C120, 0xA0(a0)   ; load this->mHalfExtents (cached field at +0xA0)\n  sv.q C120, 0x80(a2)   ; box->halfExtents = mHalfExtents\n  lv.q C120, 0x90(a0)   ; load this->mCenter (cached field at +0x90)\n  lv.q C000, 0x0(a1)    ; ocs.row0\n  lv.q C010, 0x10(a1)   ; ocs.row1\n  lv.q C020, 0x20(a1)   ; ocs.row2\n  lv.q C030, 0x30(a1)   ; ocs.position (loaded but unused for tfm)\n  vtfm3.t C130, E000, C120  ; C130 = ocs.rot3x3 * mCenter\n  lv.q C120, 0x30(a1)\n  sv.q C120, 0x30(a3)   ; outOcs->position = ocs.position  \u2190 STORED FIRST\n  lv.q C120, 0x0(a1)\n  sv.q C120, 0x0(a3)    ; outOcs->row0\n  lv.q C120, 0x10(a1)\n  sv.q C120, 0x10(a3)\n  lv.q C120, 0x20(a1)\n  sv.q C120, 0x20(a3)\n  lv.q C120, 0x30(a3)   ; re-read outOcs->position (after row copies)\n  vadd.t C120, C120, C130  ; outOcs->position += transformed center\n  jr ra\n  sv.q C120, 0x30(a3)   ; delay slot \u2014 must come from V4SF store, not inline asm\n\nBLOCKERS:\n1. include/eCompoundShape.h needs cached fields added at +0x88, +0x8C, +0x90 (mCenter, mVec4), +0xA0 (mHalfExtents, mVec4). Total struct size becomes 0xB0 (matches New() alloc size 0xB0 already in src). Header currently stops at +0x84 mSelf. These fields are likely set by the AssignCopy / SetSubShapes path (recompute AABB from sub-shapes).\n\n2. SNC will not pin a v4sf_t local to C120 (first auto-temp = vt 24) without an explicit register-level constraint. Prior agents tried `=X`/`X` constraints \u2014 got C130 instead, shifting all downstream VFPU register names; produced 22-insn / 88B body vs expected 20-insn / 80B; 67/88 bytes diverging, NOT a last-mile diff. Need an SNC asm constraint that pins to C120 specifically \u2014 possibly a register-letter constraint (look at how src/eSweptSphereCollisionHandler.cpp handled this; also check src/eEmbedVolumeCollisionHandler.cpp which has vtfm3.t).\n\n3. Struct copy `*outOcs = ocs` emits row0/row1/row2/position in ascending address order (default whole-struct copy). Expected binary has POSITION FIRST then rows \u2014 must be written as four explicit field-wise assignments: `outOcs->position = ocs.position; outOcs->row0 = ocs.row0; outOcs->row1 = ocs.row1; outOcs->row2 = ocs.row2;` The position-first ordering gives SNC the chance to fold the trailing `outOcs->position = ... + transformed_center` into a re-read of outOcs->position followed by vadd, with the final sv.q in the jr delay slot.\n\n4. Per docs/research/snc-delay-slots.md, the terminal sv.q in jr ra delay slot can ONLY be emitted by SNC when it comes from a compiler-generated V4SF/SceULong128 store \u2014 inline asm cannot fill delay slots. So the LAST instruction must be a v4sf_t assignment, not an `__asm__('sv.q ...')`.\n\nBANNED APPROACH: a function body that is 100% inline asm reproducing the disassembly verbatim is rejected by the orchestrator (CLAUDE.md assembly ban: >50% inline asm by instruction count is banned, pure-asm wrappers are auto-rejected).\n\nNext-agent suggestions: (a) FIRST add mCenter/mHalfExtents to include/eCompoundShape.h (likely as `mVec4 _pad88; mVec4 mCenter; mVec4 mHalfExtents;` or similar \u2014 check eBoxShape's halfExtents type). (b) STUDY src/eEmbedVolumeCollisionHandler.cpp and any other matched function with `vtfm3.t Cxxx, Eyyy, Czzz` to see how SNC was coaxed into using C120/E000 specifically. (c) Write source as: explicit field-wise struct copy in {position, row0, row1, row2} order, then vtfm3.t via inline asm (taking C120-bound input and producing C130-bound output), then a v4sf_t assignment for outOcs->position = ... that the compiler can fuse into the lv.q/vadd.t/sv.q tail with delay-slot fill. (d) Try `-Xvfpumatrix=N > 1` to see if a higher first-auto-temp register changes C120 binding. (e) Once a base skeleton produces a small (<20B) diff, this is a great permuter candidate.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:40:54Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/0ecc0cfe/00074094__agent_self_reported_failure__src_eCompoundShape.cpp"
       }
     ],
     "mangled_symbol": "__0fOeCompoundShapeLGetBoxShapeRC6EmOCSP6JeBoxShapeP6EmOCSK"
@@ -105024,7 +105137,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105100,7 +105213,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -105151,7 +105264,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000ee57c",
