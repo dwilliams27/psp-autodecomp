@@ -20636,13 +20636,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeTextureGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fNeTextureGroupOGetManagedTypevK",
+    "src_file": "src/eTextureGroup.cpp",
+    "symbol_name": "__0fNeTextureGroupOGetManagedTypevK"
   },
   {
     "address": "0x00013958",
@@ -20654,13 +20656,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeTextureGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fNeTextureGroupQGetDataDirectoryvK",
+    "src_file": "src/eTextureGroup.cpp",
+    "symbol_name": "__0fNeTextureGroupQGetDataDirectoryvK"
   },
   {
     "address": "0x00013a80",
@@ -20672,13 +20676,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeTextureGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fNeTextureGroupQGetFileExtensionvK",
+    "src_file": "src/eTextureGroup.cpp",
+    "symbol_name": "__0fNeTextureGroupQGetFileExtensionvK"
   },
   {
     "address": "0x00013ba8",
@@ -20690,7 +20696,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -20703,7 +20709,9 @@
       "0x001db994"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeTextureGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fNeTextureGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eTextureGroup.cpp",
+    "symbol_name": "__0fNeTextureGroupbIsManagedTypeExternalStaticvT"
   },
   {
     "address": "0x00013ce0",

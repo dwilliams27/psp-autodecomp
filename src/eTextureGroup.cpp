@@ -60,6 +60,9 @@ public:
     eTextureGroup(cBase *);
     ~eTextureGroup();
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
@@ -126,9 +129,17 @@ extern char eTextureGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E18;
+extern cType *D_00040FE8;
 
 void eTextureGroup::AssignCopy(const cBase *base) {
     eTextureGroup *src = dcast<eTextureGroup>(base);
@@ -187,6 +198,101 @@ const cType *eTextureGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E18;
+}
+
+// ── eTextureGroup::GetManagedType(void) const @ 0x00013834 ──
+const cType *eTextureGroup::GetManagedType(void) const {
+    if (D_00040FE8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FE8 = cType::InitializeType(
+            0, 0, 0xA, D_000385E4, 0,
+            (const char *)0x36CDA8, (const char *)0x36CDB4, 5);
+    }
+    return D_00040FE8;
+}
+
+// ── eTextureGroup::GetDataDirectory(void) const @ 0x00013958 ──
+const char *eTextureGroup::GetDataDirectory(void) const {
+    if (D_00040FE8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FE8 = cType::InitializeType(
+            0, 0, 0xA, D_000385E4, 0,
+            (const char *)0x36CDA8, (const char *)0x36CDB4, 5);
+    }
+    return (const char *)((int *)D_00040FE8)[5];
+}
+
+// ── eTextureGroup::GetFileExtension(void) const @ 0x00013a80 ──
+const char *eTextureGroup::GetFileExtension(void) const {
+    if (D_00040FE8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FE8 = cType::InitializeType(
+            0, 0, 0xA, D_000385E4, 0,
+            (const char *)0x36CDA8, (const char *)0x36CDB4, 5);
+    }
+    return (const char *)((int *)D_00040FE8)[6];
+}
+
+// ── eTextureGroup::IsManagedTypeExternalStatic(void) static @ 0x00013ba8 ──
+bool eTextureGroup::IsManagedTypeExternalStatic() {
+    if (D_00040FE8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FE8 = cType::InitializeType(
+            0, 0, 0xA, D_000385E4, 0,
+            (const char *)0x36CDA8, (const char *)0x36CDB4, 5);
+    }
+    int flags = *(int *)D_00040FE8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eTextureGroup::~eTextureGroup(void) @ 0x001db9b0 ──
