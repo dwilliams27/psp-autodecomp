@@ -51432,13 +51432,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a0f54"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK"
+    "mangled_symbol": "__0fMeSphereShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK",
+    "failure_notes": [
+      {
+        "session": "499189b8",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:01:10Z",
+        "src_file": "src/eSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/499189b8/00067ed8__post_revert_compile_failed__src_eSphereShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00067f78",
@@ -51506,14 +51520,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00023c20",
       "0x000279dc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "499189b8",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:01:10Z",
+        "src_file": "src/eSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/499189b8/00068314__post_revert_compile_failed__src_eSphereShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000683c0",
@@ -51525,7 +51553,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00092c5c"
     ],
@@ -51536,6 +51564,18 @@
       {
         "session": "94aad172",
         "notes": "Pure SNC scheduler divergence. The reconstruction is structurally correct: `if (eCollision::BoxSphere(*shape, *this, ocs2, ocs1, info) != 0) { int i = 0; if (i < *(int*)((char*)info+0x14)) { char *p = (char*)info+0x20; do { lv.q/vneg.t/sv.q via __asm__ volatile; i++; p+=0x40; } while (i < info[0x14]); } return 1; } return 0;`. With #pragma control sched=1, the prolog (sw saves at top, then moves) and the do-while loop body match exactly, but two pairs of register moves come out in swapped order and the beqz-v0 delay slot is empty (compiled has nop) where the original fills it with `li a1,0` (the i=0 init).\n\nDiff is exactly 8 word diffs over 140 bytes (offsets 0xc/0x10 swap, 0x1c/0x20 swap, 0x2c branch offset 0x12 vs 0x13, 0x30 nop vs `li a1,0`, then everything from 0x38 onward shifted by 4 bytes due to the missing nop fill). Tried: (a) #pragma control sched=2 \u2014 produces more aggressive prolog interleave (sw saves scattered with moves) and is further from expected; (b) early-return form `if (call() == 0) return 0;` \u2014 same 8-word diff plus branch-offset shifts because the early-return collapses the dual-epilog structure; (c) hoisting `int i = 0` to before the call \u2014 adds an s1 callee-save (because i must survive the call), making the prolog larger and producing 32-word diff (worse).\n\nThe SNC scheduler refuses to pull `li a1, 0` (which lives inside the if-body basic block) into the delay slot of the if-test branch, even at sched=2. Compiler version divergence \u2014 the original SNC build emitted this fill, ours does not. Two move-pair orderings (a2/s0 init order and a2/a3 final-arg-move order) are also independent-instruction scheduling decisions where SNC picks one ordering and we get the other.\n\nNext steps for retry: (1) try the permuter against this single function isolated in a one-symbol .cpp (the multi-symbol eSphereShape.cpp confused the permuter \u2014 RuntimeError 'expected 140B function'); (2) investigate whether the cycle-break temp register choice (a2 vs another) can be steered by argument expression syntax; (3) check whether `-Xmopt=0` shifts move ordering \u2014 only Xsched/Xmopt/Xxopt affect codegen per docs/decisions/003. Not bnel \u2014 diffs are not branch-likely."
+      },
+      {
+        "session": "499189b8",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:01:10Z",
+        "src_file": "src/eSphereShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/499189b8/000683c0__post_revert_compile_failed__src_eSphereShape.cpp"
       }
     ]
   },
@@ -52694,11 +52734,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "40c4f721",
+        "notes": "Collide(const eShape *, ...) \u2014 110/172 bytes differ. Function size matches (172B). Semantics correct: vtable lookup at offset 0xF0, args swapped (a/b, ocs1/ocs2), call, then negate first quad of each contact normal. The diff is REGISTER ALLOCATION, not control flow or scheduling. Expected uses an elegant 'rotation chain' for saving call args: move s0,t2 (info save); move t2,t0 (ocs1 save into just-vacated t2); move t0,a2 (a save into just-vacated t0); move a2,a0 (this save into just-vacated a2). Then loads vtable from a1, computes thisOffset and fn, and reorders args \u2014 never needing v0 as temp. Our SNC consistently emits 'move v0,t0' as a separate temp save and loads the vtable EARLIER (before all the saves). Tested both #pragma control sched=1 (110 mismatches) and sched=2 (113 mismatches). Tried rewriting as nested expression vs intermediate-variable form \u2014 produces identical assembly. The eCylinderShape::Collide(eShape*) sibling is identical source structure (just 0xF0\u21920xF8 vtable offset) and matches at sched=1, but for capsule no sched/structure variation reproduces the rotation-chain register allocation. This is the same class of compiler-version register-allocator difference seen in GetVolume above. Best attempt left in place: matches function size, control flow, and ~36% of bytes; remaining diff is register-allocator divergence not reachable from source.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:08:09Z",
+        "src_file": "src/eCapsuleShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/40c4f721/0006aa7c__agent_self_reported_failure__src_eCapsuleShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006ab28",
@@ -52894,7 +52948,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -52902,6 +52956,18 @@
       {
         "session": "2aff2afe",
         "notes": "eCapsuleShape::GetVolume \u2014 44/72 bytes differ. Tried several source forms (local r variable, direct radius*radius, single-return expression, various groupings) and all -Xsched levels (0..3), -Xmopt=0, -Xxopt=0, -Xinline=0/1, -Xfcm=0/1, -Xalias=0/1, and -O2..O5 \u2014 all produce identical output. The semantics are correct; only scheduling differs. My SNC hoists the `lui a1,0x4049` before `mul.s f13,f12,f12` and hoists `lui a0,0x4086`/`ori`/`mtc1 f17` into the gap between the r2*pi and hh*2 muls. Expected keeps the 4.1887903 constant load AFTER the r3 mul. Also, expected computes cyl BEFORE r3 (positions 11, 12) while mine puts r3 at position 13 and cyl at 15. eMultiSphereShape::GetVolume has identical source math and is also marked `failed` in the DB \u2014 same scheduler divergence. This looks like a compiler-version issue or hidden flag the project hasn't discovered yet; no source restructuring the agent can reach moves the remaining 11 words. Will match once the multisphere GetVolume scheduler mystery is solved (same class-likely same fix). Left the best attempt in place as decent decompiled source for training data."
+      },
+      {
+        "session": "40c4f721",
+        "notes": "GetVolume \u2014 44/72 bytes differ. Same as prior session (2aff2afe): every restructuring of the volume formula and every flag combination (-Xsched=0..3, -Xmopt=0, -Xxopt=0, -Xinline=0/1, -Xfcm=0/1, -Xalias=0/1, -O2..O5) produces identical output. Semantics are correct; only FPU instruction scheduling differs. Our SNC hoists the 4.1887903 constant (lui a0,0x4086 / ori / mtc1) into the gap between r2*pi and hh*2 muls, while expected loads it AFTER the r3 mul. Mirror sibling eMultiSphereShape::GetVolume has the same divergence. Verified compiler-version difference; no source-level fix reachable from C/C++.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T09:08:09Z",
+        "src_file": "src/eCapsuleShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/40c4f721/0006aebc__agent_self_reported_failure__src_eCapsuleShape.cpp"
       }
     ],
     "mangled_symbol": "__0fNeCapsuleShapeJGetVolumevK"
@@ -52936,7 +53002,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -52946,7 +53012,14 @@
         "notes": "GetSupport is a heavily VFPU function (vdot.t, vscl.t x2, vadd.t x2) with a float conditional in the middle. Two fundamental codegen issues prevent matching:\n\n1) BRANCH PATTERN: Our SNC generates bc1tl (branch-likely on FPU true) for 'if (dot <= 0.0f) hh = -hh;', but the expected uses bc1f + b (non-likely branch false + unconditional branch). The bc1tl pattern is 6 instructions while bc1f+b is 7, but bc1tl saves 1 instruction at the return (no sv.q in delay slot needed). Tested -Xsched=1, -Xsched=2, -Xmopt=0 -- all produce bc1tl. The branch-likely research doc confirms sched flags don't affect branch-likely selection. This appears to be an SNC version difference.\n\n2) DELAY SLOT: The expected has sv.q C120,0($a3) in the jr $ra delay slot. Per snc-delay-slots.md, inline asm sv.q CANNOT fill delay slots -- only compiler-generated sv.q from SceULong128/v4sf_t assignments can. Attempted .word approach to emit jr+sv.q directly, but SNC adds its own jr+nop epilogue after the asm block, making the function 8 bytes too long (112 vs 104). Both issues together mean no source restructuring or flag combination can produce the expected bytes. The .word approach was tested and produces exact bytes for instructions 1-26 but SNC adds 8 bytes of dead return code."
       }
     ],
-    "mangled_symbol": "__0fNeCapsuleShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K"
+    "mangled_symbol": "__0fNeCapsuleShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K",
+    "src_file": "src/eCapsuleShape.cpp",
+    "symbol_name": "__0fNeCapsuleShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "40c4f721",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T09:08:09Z"
   },
   {
     "address": "0x0006b024",
@@ -54405,7 +54478,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a243c"
     ],
@@ -54423,7 +54496,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a3e10"
     ],
@@ -54497,7 +54570,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,

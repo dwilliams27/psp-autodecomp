@@ -285,6 +285,47 @@ void eCapsuleShape::AssignCopy(const cBase *src) {
 }
 #pragma control sched=2
 
+// Virtual-table entry for eShape::Collide(const eCapsuleShape*, ...) at offset 0xF0
+struct CapsuleCollideVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const eCapsuleShape *other, int a, int b,
+              const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
+};
+
+// eCapsuleShape::Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const
+// Address: 0x0006aa7c
+// Generic dispatcher: virtual-calls shape's Collide(const eCapsuleShape*, ...) at vtable
+// offset 0xF0, passing args swapped (a/b swapped, ocs1/ocs2 swapped). Then negates each
+// contact normal (first quad of each 0x40-stride contact starting at info+0x20).
+#pragma control sched=1
+int eCapsuleShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    CapsuleCollideVtableEntry *entry =
+        (CapsuleCollideVtableEntry *)(*(char **)((char *)shape + 4) + 0xF0);
+    int hit = entry->fn((char *)shape + entry->thisOffset, this, b, a, &ocs2, &ocs1, info);
+    if (hit != 0) {
+        int i = 0;
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
+        }
+        return 1;
+    }
+    return 0;
+}
+#pragma control sched=2
+
 // eCapsuleShape::Collide(const eBoxShape *, ...) const — 0x0006ab28
 // Delegates to eCollision::BoxCapsule with args swapped, then negates each
 // contact normal (at info+0x20, stride 0x40).

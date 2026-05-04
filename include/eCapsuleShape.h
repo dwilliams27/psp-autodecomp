@@ -7,6 +7,7 @@ class cMemPool;
 class cType;
 struct mVec3;
 struct mOCS;
+class eShape;
 class eBoxShape;
 class eSphereShape;
 class eMultiSphereShape;
@@ -32,6 +33,7 @@ public:
     int NeedsRollingFriction(float *) const;
     void GetSupport(const mVec3 &dir, const mOCS &ocs, mVec3 *out) const;
 
+    int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
