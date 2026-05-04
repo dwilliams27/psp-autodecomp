@@ -47,9 +47,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
+extern "C" void cFile_SetCurrentPos(void *, int);
+extern "C" void cFileSystem_Read(void *, void *, unsigned int);
+extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+
 class cHandle {
 public:
+    int mIndex;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class gcUIWidget {
@@ -60,6 +73,7 @@ public:
 class gcUIControl : public gcUIWidget {
 public:
     static cBase *New(cMemPool *, cBase *);
+    void *GetFocusedSpriteToDraw(void) const;
 };
 
 class gcUITextControl : public gcUIControl {
@@ -69,6 +83,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     int IsUpdateEmpty(bool, bool) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcUIButton : public gcUITextControl {
@@ -77,7 +92,9 @@ public:
     ~gcUIButton();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     int IsUpdateEmpty(bool, bool) const;
+    void *GetFocusedSpriteToDraw(void) const;
 
     static cBase *New(cMemPool *, cBase *);
 
@@ -147,15 +164,10 @@ void gcUIButton::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcUITextControl *)this)->Write(file);
     wb.Write(2);
-
-    int i = 0;
-    cHandle *handle = (cHandle *)((char *)this + 0x114);
-    do {
-        handle->Write(wb);
-        i += 1;
-        handle = (cHandle *)((char *)handle + 4);
-    } while (i < 2);
-
+    const cHandle *handles = (const cHandle *)((const char *)this + 0x114);
+    for (int i = 0; i < 2; i++) {
+        handles[i].Write(wb);
+    }
     wb.End();
 }
 
@@ -169,6 +181,51 @@ int gcUIButton::IsUpdateEmpty(bool a, bool b) const {
         }
     }
     return ((const gcUIWidget *)this)->IsUpdateEmpty(a, b);
+}
+
+// -- gcUIButton::GetFocusedSpriteToDraw(void) const @ 0x00139c2c --
+void *gcUIButton::GetFocusedSpriteToDraw(void) const {
+    cHandle *handles = (cHandle *)((char *)this + 0x114);
+    cHandle *h = &handles[1];
+    int field = h->mIndex;
+    void *result;
+    if (field == 0) {
+        result = 0;
+    } else {
+        char *table_base = (char *)0x38890;
+        char *entry_addr = table_base + ((field & 0xFFFF) << 2);
+        void *cand = *(void **)entry_addr;
+        result = 0;
+        if (cand != 0 && *(int *)((char *)cand + 0x30) == field) {
+            result = cand;
+        }
+    }
+    if (result == 0) {
+        result = ((const gcUIControl *)this)->GetFocusedSpriteToDraw();
+    }
+    return result;
+}
+
+// -- gcUIButton::Read(cFile &, cMemPool *) @ 0x001396d8 --
+int gcUIButton::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int count;
+    int result;
+    __asm__("li %0,1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (((gcUITextControl *)this)->Read(file, pool) == 0) goto fail;
+    cFileSystem_Read(*(void **)&rb._data[0], &count, 4);
+    {
+        cHandle *handles = (cHandle *)((char *)this + 0x114);
+        for (int i = 0; i < count; i++) {
+            handles[i].mIndex = 0;
+            handles[i].Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(&handles[i]));
+        }
+    }
+    return result;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
 }
 
 // -- gcUIButton::New(cMemPool *, cBase *) static @ 0x0028e558 --

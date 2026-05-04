@@ -105157,7 +105157,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -105179,7 +105179,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T18:07:23Z"
       }
-    ]
+    ],
+    "src_file": "src/gcUIButton.cpp",
+    "symbol_name": "__0fKgcUIButtonFWriteR6FcFileK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "cac8207d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:34:18Z"
   },
   {
     "address": "0x001396d8",
@@ -105191,7 +105198,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105203,7 +105210,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIButtonEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKgcUIButtonEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "cac8207d",
+        "notes": "Read: size matches at 292B but 135/292 bytes differ \u2014 pure register-allocation mismatch. Decomp logic correct: cReadBlock RAII (data[3] is the 'magic' field), check ==1 else fail-jump to SetCurrentPos restore, chain to gcUITextControl::Read, cFileSystem_Read 4 bytes count, loop count times calling cHandle::Read with pool from cMemPool_GetPoolFromPtr(&handles[i]). Two issues: (1) 'int result = 1' folds to constant; fixed with __asm__(\"li %0,1\" : \"=r\"(result)) trick (matches gcEntityAttackSet exemplar) \u2014 gives correct 4 saved regs (s0-s3) and 292B size. (2) result lands in s0 but target uses s1 for result and s0 for this \u2014 causes the 135-byte cascade of swapped s0/s1 throughout. Tried 'register int result __asm__(\"$17\")' \u2014 SNC ignores. Reordering local declarations and using-this-first patterns didn't shift allocation. Needs permuter or manual asm-level register pinning to converge.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:34:18Z",
+        "src_file": "src/gcUIButton.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/cac8207d/001396d8__agent_self_reported_failure__src_gcUIButton.cpp"
+      }
+    ]
   },
   {
     "address": "0x001397fc",
@@ -105331,13 +105352,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00122158"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIButtonWGetFocusedSpriteToDrawvK"
+    "mangled_symbol": "__0fKgcUIButtonWGetFocusedSpriteToDrawvK",
+    "failure_notes": [
+      {
+        "session": "cac8207d",
+        "notes": "GetFocusedSpriteToDraw: 108B vs target 112B (4-byte/1-instruction diff). Decomp logic is correct: load handle.mIndex at this+0x118, if 0 skip to fallback; else look up HandleTable[idx & 0xFFFF] at 0x38890, validate entry's id at +0x30 == idx, return entry; on null, virtual call to gcUIControl::GetFocusedSpriteToDraw. Tried (1) literal '((void**)0x38890)[idx]' \u2014 folded into single 'lw v0, -30576(reg)'; (2) '&handles[1]' to force separate addiu \u2014 table lookup still folded; (3) char-pointer split with 'char *table_base = (char*)0x38890; char *entry_addr = table_base + ((field & 0xFFFF) << 2); void *cand = *(void**)entry_addr;' \u2014 successfully produced separate lui+addiu+lw but register allocator picks v0 for cand instead of target's a1, missing the 'move v0,a1' at convergence. Source-level register hints (register __asm__) ignored by SNC. Likely needs permuter to find a shape that biases register allocator differently.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:34:18Z",
+        "src_file": "src/gcUIButton.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/cac8207d/00139c2c__agent_self_reported_failure__src_gcUIButton.cpp"
+      }
+    ]
   },
   {
     "address": "0x00139c9c",
@@ -107586,7 +107621,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -107691,7 +107726,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -187316,7 +187351,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x002292ec"
