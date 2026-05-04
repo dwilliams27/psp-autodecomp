@@ -38794,7 +38794,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -38810,6 +38810,18 @@
       {
         "session": "92be616d",
         "notes": "Read is 44/120 bytes differ. Structure and instruction layout match target except SNC's CSE reuses s0 (preloaded =1 as return value) for the `==1` comparison. Target emits a SEPARATE `li a1, 0x1` for the compare and uses `move a0, sp` as delay-slot filler; ours emits `beq a0, s0` with `li s0, 0x1` as delay-slot filler (redundant reassignment). This saves one instruction in ours (29 vs 30), breaking byte alignment downstream.\n\nApproaches tried: (1) `int result = 1; if (==1) goto success; ... return 0; success: return result;` \u2014 correct layout, s0 loaded late in delay slot; (2) `int result = 1; if (==1) return result; ... return 0;` \u2014 same; (3) early-assign-in-fail pattern `int result=1; if(!=1){...; result=0;} return result;` \u2014 SNC merged the two return paths to 24 instructions (96B, wrong size); (4) `int version=1; cReadBlock(file, version, true); if(==version) return version;` \u2014 achieved target LAYOUT (success block at end) and early `li s0, 1`, but SNC shared s0 across ctor arg, compare, and return, replacing `li a2, 0x1` with `move a2, s0` and `li a1, 0x1` with direct `beq a0, s0`; (5) volatile int result \u2014 forced stack spill, made it worse; (6) cast to unsigned int for the compare \u2014 no change; (7) ran permuter 180s \u2014 best improvement 67\u219244 bytes (reordered struct fields, which then broke ctor match; reverted field order).\n\nRoot cause: SNC is recognizing `1` as a common subexpression across the ctor arg, the return value (s0), and the compare constant. It emits s0 once and reuses. Target compiler did NOT do this CSE \u2014 it loaded `1` separately into a2 (ctor arg), s0 (return), and a1 (compare). No source-level expression I tried prevents SNC's CSE here.\n\nSCHED HINT said try sched=2 first \u2014 4/5 other functions in this class matched with sched=2 (ctor, Write, dtor, GetType), so the class is confirmed sched=2. This Read divergence is likely -Xmopt-related (move/CSE optimization), not sched. Recommend next agent try adding a per-file override `-Xmopt=0` for ePhysicsController.cpp.o in the Makefile (similar to the existing gcUIWidget_InsertIntoDialog.cpp.o override). Agents aren't permitted to modify the Makefile per repo norms."
+      },
+      {
+        "session": "4755084f",
+        "notes": "ePhysicsController::Read(cFile&, cMemPool*) \u2014 44/120 bytes differ at -Xsched=2 (default). Tried this session: (a) #pragma control sched=1 around the Read body (made it worse: 58/120, regressing the prologue ordering relative to target); (b) `int expected = 1; __asm__ volatile(\"\":\"+r\"(expected)); if (rb._data[3] == expected) return 1;` \u2014 the asm clobber successfully prevented CSE on the compare constant (compiler emitted `bne a0, s1` with s1 holding `expected`), but it forced an extra callee-save (s1 spill), grew the function to 32 instructions = 128 bytes (ovrshooting target's 30 instructions / 120 bytes); (c) merged-paths variant `if (rb._data[3] != 1) { ...; result=0; } return result;` \u2014 collapsed to 26 instructions = 104B (size-mismatch); (d) confirmed prior agent's goto-based source still produces the same 44/120 baseline. Combined with prior session 92be616d's 7 attempts + 180s permuter (best 67->44 only by reordering struct fields, which broke the ctor match), the source-level search space is exhausted.\n\nRoot cause (confirmed): SNC's -Xmopt optimization performs CSE on the constant `1` across (i) the cReadBlock ctor's `int version` arg loaded into a2, (ii) the bool `true` ctor arg loaded into a3, (iii) the preloaded return-value `s0=1`, and (iv) the comparison literal. Target compiler did NOT do this CSE \u2014 it loaded `1` separately into a2/a3/s0/a1, scheduling `move a0, sp` into the beq delay slot to satisfy both the success-path dtor call and the failure-path SetCurrentPos prep. Our SNC instead emits `beq a0, s0` (reusing the return-preload) and fills the delay slot with a redundant `li s0, 0x1` to restore s0 (even though s0 was never actually clobbered).\n\nResolution: A human needs to add a per-file Makefile override `$(BUILD_DIR)/src/ePhysicsController.cpp.o: CFLAGS := -c -O2 -G0 -Xsched=2 -Xvfpumatrix=1 -Xvfpuscalar=8 -Xmopt=0 -Iextern/include -Iinclude` (around Makefile line 90, immediately following the existing gcUIWidget_InsertIntoDialog override which uses the same -Xmopt=0 pattern for an analogous CSE divergence). Once -Xmopt=0 is in place, the existing src/ePhysicsController.cpp source (goto-based variant currently committed) should match \u2014 no source change needed. There is no `#pragma control mopt=N` in SNC (only sched=N pragmas exist per docs/research/snc-transition-zone-sched.md and a grep of the codebase), so this cannot be fixed in source. Agents are blocked from modifying Makefile per CLAUDE.md guardrails.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:31:30Z",
+        "src_file": "src/ePhysicsController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/4755084f/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
       }
     ],
     "mangled_symbol": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool"
@@ -46189,7 +46201,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000065f0",
       "0x000092f0"
@@ -46208,7 +46220,14 @@
         "variant": "base",
         "timestamp": "2026-04-28T11:31:37Z"
       }
-    ]
+    ],
+    "src_file": "src/ePathController.cpp",
+    "symbol_name": "__0fPePathControllerFWriteR6KcOutStreamK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4755084f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:31:30Z"
   },
   {
     "address": "0x0005b11c",
@@ -46220,7 +46239,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00006c84",
       "0x00009370"
@@ -46239,7 +46258,14 @@
         "variant": "base",
         "timestamp": "2026-04-28T11:31:37Z"
       }
-    ]
+    ],
+    "src_file": "src/ePathController.cpp",
+    "symbol_name": "__0fPePathControllerEReadR6JcInStream",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4755084f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:31:30Z"
   },
   {
     "address": "0x0005b194",
@@ -85783,7 +85809,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -85831,7 +85857,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000fde78",
       "0x001b95d4",
@@ -85993,7 +86019,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e091c"
     ],
