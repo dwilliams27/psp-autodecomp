@@ -86149,7 +86149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -86172,7 +86172,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006454",
       "0x000fba84"
@@ -86206,7 +86206,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006bc0",
       "0x000fbae0"
@@ -207288,7 +207288,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -207299,7 +207299,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoUIWidgetForEachEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTgcDoUIWidgetForEachEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoUIWidgetForEach.cpp",
+    "symbol_name": "__0fTgcDoUIWidgetForEachEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f5761489",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:33:35Z"
   },
   {
     "address": "0x00316678",
@@ -207311,7 +207318,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d5348",
@@ -207319,7 +207326,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoUIWidgetForEachIEvaluatevK"
+    "mangled_symbol": "__0fTgcDoUIWidgetForEachIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "f5761489",
+        "notes": "gcDoUIWidgetForEach::Evaluate - structural attempt produces 1192B vs expected 1196B (only 4 bytes / 1 instruction off). Body logic appears correct: lazy init of type_uiwidget (D_0009990C, id 0x84) and type_uiwidgetgroup (D_00099920, id 0x85, fn=gcUIWidgetGroup::New), GetWidget call, parent-walk type-check vs uiwidgetgroup type, then nested loop iteration over target's mField0xBC bucket grid (indexed by [outer * cap_inner + inner]) with linked-list walk via ->next[26]/0x68. Each iteration sets g_expressionEvalStack->exprData[15] (offset 0x3C) to the current widget and calls gcExpressionList::Evaluate(this+0x18). Flag check of *exprData & 3 to break early.\n\nROOT CAUSE OF MISMATCH: register allocation is wrong throughout \u2014 my version uses {s3=type singleton, s6=this, s2/s1=area bases} where expected uses {s7=this, s5=this+12 then widget then i, s4=target widget, s1=type singleton (reused 3 times for D_385E0 value, then 0x1C3C58 fn ptr, then D_9990C result), s3=0x40000 base, s2=0x40000 base, s6=0xa0000 base for D_99920}. The compiler in expected reuses s1 across the lazy-init chain (s1 \u2190 *D_385E0; if zero, s1 \u2190 0x1C3C58 via lui+addiu placed in delay slot; later s1 \u2190 InitType result) \u2014 this register reuse depends on liveness ordering that I haven't matched.\n\nNEXT-AGENT GUIDANCE: Look at gcUIWidgetList::GetType in src/gcUIWidgetList.cpp which has the exact same lazy chain pattern (D_0009F4DC -> D_00099920 -> D_0009990C -> D_000385E0 -> D_000385DC) and matches. Mimic its source structure precisely for the lazy init blocks. The 4-byte gap likely comes from one extra instruction in the type-walk loop or one missed delay-slot fill \u2014 possibly need to declare local type pointer `const cType *t = D_00099920;` BEFORE the GetType vtable dispatch call rather than after, to force s1 to be loaded earlier. The bnezl/beqzl/bnel branch-likely instructions in the linked-list walk (offsets 316a28, 316a58, 316a78, 316aa4, 316ab4) and outer/inner exit branches must match the compiler's branch-likely heuristics \u2014 try making the result variable a `float` declared OUTSIDE the loops with explicit save/restore semantics matching the f20-default + f0-result spill pattern. Also: my code uses `coord[2]` as scratch for i,j short pair before the index multiply \u2014 expected has `sh s5,12(sp); sh s3,14(sp); ... lh a2,0(sp+12); lh a3,2(sp+12)`, so this seems right but may need to be a struct field rather than array. Source currently in src/gcDoUIWidgetForEach.cpp; preserves all 9 other matches in that file.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:33:35Z",
+        "src_file": "src/gcDoUIWidgetForEach.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f5761489/00316678__agent_self_reported_failure__src_gcDoUIWidgetForEach.cpp"
+      }
+    ]
   },
   {
     "address": "0x00316b24",
@@ -225831,7 +225852,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -225841,7 +225862,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValStringIndexEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcValStringIndexEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValStringIndex.cpp",
+    "symbol_name": "__0fQgcValStringIndexEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f5761489",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:33:35Z"
   },
   {
     "address": "0x0035ebcc",

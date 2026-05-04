@@ -48,6 +48,8 @@ public:
     void SetBranch(int, gcExpression *);
     void GetText(char *) const;
     void Write(cFile &) const;
+    int  Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };

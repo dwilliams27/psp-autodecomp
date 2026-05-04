@@ -25,6 +25,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -55,6 +67,7 @@ public:
 class gcDesiredString : public gcDesiredObject {
 public:
     void *Get(bool) const;
+    void ReadHandle(cReadBlock &, unsigned int);
     void VisitReferences(unsigned int, cBase *,
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
@@ -65,6 +78,7 @@ public:
     cBase *mParent;
     void *mVtable;
     void Write(cFile &) const;
+    int  Read(cFile &, cMemPool *);
 };
 
 class gcValStringIndex : public gcValue {
@@ -72,6 +86,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     float Evaluate(void) const;
     void Write(cFile &) const;
+    int  Read(cFile &, cMemPool *);
     void GetText(char *) const;
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *,
@@ -140,6 +155,22 @@ cBase *gcValStringIndex::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0035eaf8 (212B) — Read
+int gcValStringIndex::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    unsigned int tag = (unsigned int)rb[3];
+    if (tag >= 3 || tag < 1 || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((gcDesiredString *)((char *)this + 8))->ReadHandle(*(cReadBlock *)rb, 2);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x0035ea8c (108B) — Write
