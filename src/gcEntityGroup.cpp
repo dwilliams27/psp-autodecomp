@@ -17,6 +17,28 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcEntity {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009A408;
+
 template <class T> T *dcast(const cBase *);
 
 class cWriteBlock {
@@ -72,17 +94,14 @@ public:
     int Read(cFile &, cMemPool *);
     bool IsManagedTypeExternal() const;
     static bool IsManagedTypeExternalStatic();
+    const cType *GetManagedType(void) const;
     ~gcEntityGroup();
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
         DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
-        short off = rec->offset;
-        __asm__ volatile("" ::: "memory");
-        char *base = block + off;
-        void (*fn)(void *, void *) = rec->fn;
-        fn(base, p);
+        rec->fn(block + rec->offset, p);
     }
 };
 
@@ -122,25 +141,49 @@ void gcEntityGroup::AssignCopy(const cBase *base) {
 // ============================================================
 cBase *gcEntityGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
-    char *allocTable = ((PoolBlock *)block)->allocTable;
-    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
-    short off = entry->offset;
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
     void *base = (char *)block + off;
-    int flag = 0;
-    gcEntityGroup *obj = (gcEntityGroup *)entry->fn(base, 0x10, 4, 0, 0);
+    gcEntityGroup *result = 0;
+    gcEntityGroup *obj = (gcEntityGroup *)e->fn(base, 0x10, 4, 0, 0);
     if (obj != 0) {
-        if (gcEntityGroup::IsManagedTypeExternalStatic() == 0) {
-            flag = 1;
-        }
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
         ((void **)obj)[1] = (void *)0x37E6A8;
-        ((void **)obj)[0] = parent;
+        ((cBase **)obj)[0] = parent;
         ((void **)obj)[1] = (void *)0x37EA80;
-        ((unsigned char *)obj)[8] = (unsigned char)flag;
+        ((unsigned char *)obj)[8] = flag;
         ((int *)obj)[3] = 0;
         ((void **)obj)[1] = (void *)0x3863F0;
-        flag = (int)obj;
+        result = obj;
     }
-    return (cBase *)flag;
+    return (cBase *)result;
+}
+
+// ============================================================
+// 0x000cf380 — GetManagedType(void) const
+// ============================================================
+const cType *gcEntityGroup::GetManagedType(void) const {
+    if (D_0009A408 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009A408 = cType::InitializeType(
+            0, 0, 0x8C, D_000385E4, &gcEntity::New,
+            (const char *)0x36D968, (const char *)0x36D974, 0);
+    }
+    return D_0009A408;
 }
 
 // ============================================================

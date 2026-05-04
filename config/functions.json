@@ -37487,7 +37487,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00090514",
@@ -37610,7 +37610,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -37705,7 +37705,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -71500,13 +71500,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEntityGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fNgcEntityGroupOGetManagedTypevK",
+    "src_file": "src/gcEntityGroup.cpp",
+    "symbol_name": "__0fNgcEntityGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b939979c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:57:55Z"
   },
   {
     "address": "0x000cf4a8",
@@ -159949,7 +159956,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000cf700"
     ],
@@ -159965,7 +159972,14 @@
         "variant": "base",
         "timestamp": "2026-04-26T22:29:32Z"
       }
-    ]
+    ],
+    "src_file": "src/gcEntityGroup.cpp",
+    "symbol_name": "__0fNgcEntityGroupDNewP6IcMemPoolP6FcBaseT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b939979c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:57:55Z"
   },
   {
     "address": "0x00236c48",
@@ -160025,7 +160039,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0000c390"
@@ -160042,7 +160056,14 @@
         "variant": "base",
         "timestamp": "2026-04-26T22:29:32Z"
       }
-    ]
+    ],
+    "src_file": "src/gcEntityGroup.cpp",
+    "symbol_name": "__0oNgcEntityGroupdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b939979c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:57:55Z"
   },
   {
     "address": "0x00236dbc",
