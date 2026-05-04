@@ -48,21 +48,7 @@ public:
 class cObject : public cFactory {
 public:
     cObject(cBase *);
-};
-
-class gcRegionBase : public cObject {
-public:
-    gcRegionBase(cBase *);
-    const cType *GetType(void) const;
-    void Write(cFile &) const;
-    void OnMemPoolReset(const cMemPool *, unsigned int);
-    void MemCardReplicate(gcReplicationVisitor &);
-};
-
-class gcRigidBodyController {
-public:
-    const cType *GetType(void) const;
-    static gcRigidBodyController *New(cMemPool *, cBase *);
+    ~cObject();
 };
 
 struct TypeDispatchEntry {
@@ -75,6 +61,36 @@ struct DeleteRecord {
     short offset;
     short _pad;
     void (*fn)(void *, void *);
+};
+
+extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+
+class gcRegionBase : public cObject {
+public:
+    gcRegionBase(cBase *);
+    ~gcRegionBase();
+
+    static void operator delete(void *p);
+
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
+    void OnMemPoolReset(const cMemPool *, unsigned int);
+    void MemCardReplicate(gcReplicationVisitor &);
+};
+
+inline void gcRegionBase::operator delete(void *p) {
+    void *pool = cMemPool_GetPoolFromPtr(p);
+    void *block = *(void **)((char *)pool + 0x24);
+    DeleteRecord *rec =
+        (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
+    short off = rec->offset;
+    rec->fn((char *)block + off, p);
+}
+
+class gcRigidBodyController {
+public:
+    const cType *GetType(void) const;
+    static gcRigidBodyController *New(cMemPool *, cBase *);
 };
 
 extern char gcRegionBaseclassdesc[];  // 0x387838
@@ -94,7 +110,6 @@ extern void *g_gcMap;             // 0x37D7FC
 extern "C" {
     void *__vec_new(void *, int, int, void (*)(void *));
     void cObject___dtor_cObject_void(void *, int);
-    void *cMemPool_GetPoolFromPtr(const void *);
     int cObject_WillBeDeleted(const void *, const cMemPool *, unsigned int);
     void gcStreamedCinematic_Delete(void *);
     void gcGameSettings_Get(void);
@@ -196,23 +211,14 @@ gcRegionBase::gcRegionBase(cBase *parent) : cObject(parent) {
 // ============================================================
 // 0x000ee4d8 — ~gcRegionBase
 // ============================================================
-extern "C" void gcRegionBase___dtor_gcRegionBase_void(gcRegionBase *self, int flags) {
-    if (self != 0) {
-        *(char **)((char *)self + 4) = gcRegionBaseclassdesc;
-        void *arr = (char *)self + 0x5C;
-        if (arr != 0) {
-            ((cBaseArray *)arr)->RemoveAll();
-        }
-        *(char **)((char *)self + 4) = cObjectclassdesc;
-        cObject___dtor_cObject_void(self, 0);
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            void *block = *(void **)((char *)pool + 0x24);
-            DeleteRecord *rec = (DeleteRecord *)(*(char **)((char *)block + 0x1C) + 0x30);
-            short off = rec->offset;
-            rec->fn((char *)block + off, self);
-        }
+gcRegionBase::~gcRegionBase() {
+    *(char **)((char *)this + 4) = gcRegionBaseclassdesc;
+    void *arr = (char *)this + 0x5C;
+    if (arr != 0) {
+        ((cBaseArray *)arr)->RemoveAll();
     }
+    *(char **)((char *)this + 4) = cObjectclassdesc;
+    // implicit base call: ~cObject(this, 0)
 }
 
 // ============================================================

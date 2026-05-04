@@ -2548,7 +2548,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -2586,7 +2586,14 @@
       "0x000b5dc4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oQcMemBlockSuspenddtv"
+    "mangled_symbol": "__0oQcMemBlockSuspenddtv",
+    "src_file": "src/cMemBlockSuspend.cpp",
+    "symbol_name": "__0oQcMemBlockSuspenddtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f8bb1648",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T08:09:00Z"
   },
   {
     "address": "0x000027c8",
@@ -35950,7 +35957,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -35980,7 +35987,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -42447,7 +42454,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -66600,7 +66607,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004b38",
       "0x0036bb5c",
@@ -66610,7 +66617,21 @@
       "0x0008c870"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5OeAudioPlatformNeStreamThreadKInitializei"
+    "mangled_symbol": "__0f5OeAudioPlatformNeStreamThreadKInitializei",
+    "failure_notes": [
+      {
+        "session": "f5d1bf53",
+        "notes": "Down to 3/140 bytes diff after permuter run (150s/2887 candidates). Remaining diff is pure regalloc: at 0x34 original has 'move a0,v0' (uses cStr ctor's return-this in v0), mine has 'move a0,sp' (SNC's optimizer folded &name==sp); at 0x50 original 'sw v0,0(s0)' vs mine 'sw a0,0(s0)' from same regalloc choice cascading. Tried: memory barriers between cStr ctor and sceKernelCreateThread, chained assignment *(int*)this=sceKernelCreateThread(...) (worsened to 14), extern-C cStr_ctor declaration with mangled name (worsened to 34). Confirmed sched=1 is correct (sched=2 worsens to 22). Diff exceeds \u22648 byte threshold for unmatchable classification but is fundamentally a SNC optimizer choice not controllable from C source.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T07:42:41Z",
+        "src_file": "src/eAudioPlatform_eStreamThread.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f5d1bf53/0008d144__agent_self_reported_failure__src_eAudioPlatform_eStreamThread.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008d1d0",
@@ -66689,7 +66710,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000e208",
       "0x0036bdbc"
@@ -66698,7 +66719,21 @@
       "0x000b9568"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5OeAudioPlatformNeStreamThreadOCloseAtracFilev"
+    "mangled_symbol": "__0f5OeAudioPlatformNeStreamThreadOCloseAtracFilev",
+    "failure_notes": [
+      {
+        "session": "f5d1bf53",
+        "notes": "22/156 bytes diff with sched=1. All diffs are 3 instruction swap-pairs within the unrolled 276-byte struct copy from local AtracInfo to this+0x128: at 0x50/0x54 (li a2,0x22 vs move a1,sp), 0x68/0x6c (sw a1,4(s0) vs addiu a3,a3,8), 0x70/0x74 (addiu a2,-1 vs addu a1,sp,a3). All within-basic-block scheduler reorderings. Tried sched=2 (worsens to 34) and multiple struct layout permutations preserving 0x128 offset for this->member assignment. SNC scheduler chose different ordering than original; not controllable from C source. Exceeds unmatchable threshold.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T07:42:41Z",
+        "src_file": "src/eAudioPlatform_eStreamThread.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f5d1bf53/0008d40c__agent_self_reported_failure__src_eAudioPlatform_eStreamThread.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008d4a8",
@@ -81501,7 +81536,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -81516,6 +81551,18 @@
       {
         "session": "90b2b3d7",
         "notes": "Destructor body matches 156/164 bytes perfectly (13 raw byte diffs all in relocation slots \u2014 lui/addiu/jal targets \u2014 which are masked during comparison). All control flow, register allocation, cBaseArray::RemoveAll dispatch, cObject dtor call, and MemPool delete record dispatch match exactly. The mismatch is entirely in the trailing 8 bytes: the original .text has `b .; nop` (0x1000FFFF, 0x00000000) at offsets 0x9C and 0xA0 \u2014 an unreachable infinite-loop stanza placed AFTER the epilogue (jr ra + addiu sp delay slot). Standard SNC C++ emits no bytes after jr ra, so normal source can't produce this.\n\nTried: (1) `return; for(;;);` \u2014 SNC dead-code-eliminates the unreachable loop. (2) `if (flags == 0xDEADBEEF) for(;;);` \u2014 SNC keeps the check but schedules it BEFORE the epilogue, adding ~20 bytes in the middle rather than 8 at the end. (3) Inline __asm__ volatile \u2014 placed inside function body before epilogue, not after.\n\nThe same pattern occurs in gcEntityAttackSet::~gcEntityAttackSet at 0x25cb14 (152B DB vs 144B compiled) and is also marked failed there. Root cause is likely a specific SNC pattern (exception cleanup frame, or a post-epilogue trap marker for virtual dispatch through function pointer) that isn't triggered by equivalent C++ source. Investigation needed: check if SNC emits this trailer when the last call in a function is a virtual dispatch via rec->fn pointer, or if some inline-asm / pragma pattern produces it. Core logic is 100% verified correct \u2014 only 8B trailer is the blocker."
+      },
+      {
+        "session": "f8bb1648",
+        "notes": "Converted from extern-C wrapper to canonical C++ destructor (~gcRegionBase + static inline operator delete), which fixed the symbol mangling (was emitting gcRegionBase___dtor_gcRegionBase_void, now correctly emits __0oMgcRegionBasedtv). Body now matches 156/164 bytes \u2014 all instructions of the body, base classdesc transitions, ~cObject(this,0) base call, flag check, and operator delete dispatch are byte-exact.\n\nThe 8-byte trailer `b .; nop` (0x1000FFFF, 0x00000000) at offsets 0x9C-0xA0 (after the jr ra delay slot) remains unsolved. This is a documented known SNC behavior \u2014 see docs/research_todos.md \u00a71 'TRAILING_B_TRAP' and docs/postmortems/2026-04-21-overnight.md \u00a72. ~580 EBOOT functions exhibit this trailer (321 destructors).\n\nTried this session: (a) inline __asm__ volatile('b 1b; nop') at end of dtor body \u2014 got placed mid-function (offset 0xC8) before the implicit base-call, breaking 82B of the match. (b) operator delete with __attribute__((noreturn)) \u2014 no effect on output. Prior session also tried for(;;){} (DCE-eliminated) and post-epilogue inline asm. Root cause: SNC emits this trailer for some C++ pattern not yet identified. Cannot be replicated from C++ source through normal means; likely requires either compiler reverse-engineering or a yet-undiscovered SNC-specific pragma/attribute. Per CLAUDE.md unmatchable rules, this isn't bnel/beql divergence so stays 'failed' rather than 'unmatchable'. Body is 100% verified correct \u2014 only the 8-byte trailer is the blocker.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:09:00Z",
+        "src_file": "src/gcRegionBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f8bb1648/000ee4d8__agent_self_reported_failure__src_gcRegionBase.cpp"
       }
     ],
     "mangled_symbol": "__0oMgcRegionBasedtv"
@@ -154475,7 +154522,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0000e0e8",
@@ -154484,7 +154531,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5OeAudioPlatformNeStreamThreaddtv"
+    "mangled_symbol": "__0o5OeAudioPlatformNeStreamThreaddtv",
+    "failure_notes": [
+      {
+        "session": "f5d1bf53",
+        "notes": "class method but no canonical eAudioPlatform::eStreamThread::~eStreamThread(...) definition found in src/eAudioPlatform_eStreamThread.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T07:42:41Z",
+        "src_file": "src/eAudioPlatform_eStreamThread.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f5d1bf53/0021d96c__rejected_extern_c_class_method__src_eAudioPlatform_eStreamThread.cpp"
+      }
+    ]
   },
   {
     "address": "0x0021da0c",
@@ -228634,7 +228695,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0036b228"
     ],
@@ -228649,6 +228710,18 @@
         "model": "gpt-5.5",
         "variant": "base",
         "timestamp": "2026-04-28T21:30:33Z"
+      },
+      {
+        "session": "f8bb1648",
+        "notes": "19/164 byte mismatch \u2014 register allocation issue. Target uses a0 for `other` (dcast result) and a1 for the byte-loop counter; my output uses a1 for `other` and a0 for the counter. The structural shape (control flow, instruction selection, scheduling, two unrolled byte loops with addu in delay slot) is otherwise identical.\n\nTried this session: (a) source variants without int* aliases (worse, 21B), (b) using char* base only (much worse, 110B), (c) for-loop instead of do-while (worse, 23B), (d) `register __asm__(\"a0\")` GCC-style register hint \u2014 SNC ignored it (still 19B), (e) extended permuter run for 540 seconds, 14544 candidates generated and 7096 compiled, ZERO improvement (still 19B).\n\nCombined with prior session's 5-minute permuter (10176 candidates, also 19B), this confirms ~12000+ source-level permutations cannot move SNC off this register allocation. The 19 differing bytes are the immediate-field/register-encoding diffs across the 5+ instructions where a0/a1 are swapped (move a0/a1,v0; lw a1/a0,8(a0/a1); \u2026; li a1/a0,0; addu a2,a1/a0,a0/a1; \u2026).\n\nRoot cause: SNC's register allocator chooses a1 instead of a0 to receive the dcast result. The decision is determined by some internal heuristic insensitive to source-level permutations. Likely needs either a permuter improvement (more aggressive scheduling perturbations) or a compiler-level patch. All other nwConfigBase methods in the file (ctor, dtor, Write, New, GetType) are MATCHED.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:09:00Z",
+        "src_file": "src/nwConfigBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/f8bb1648/0036b340__agent_self_reported_failure__src_nwConfigBase.cpp"
       }
     ]
   },

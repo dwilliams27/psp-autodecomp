@@ -1,5 +1,12 @@
-class cMemPool;
 class cMemAllocator;
+
+extern "C" void free(void *);
+extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" int sceKernelLockMutex(int, int, unsigned int *);
+extern "C" int sceKernelUnlockMutex(int, int);
+
+int cStrLength(const char *);
+void cStrCopy(char *, const char *, int);
 
 struct cMemPoolBlock {
     char pad[0x1C];
@@ -12,29 +19,11 @@ struct cMemBlockEntry {
     void (*fn)(void *, int);
 };
 
-class cMemBlockSuspend {
-public:
-    cMemPool *mPool;
-
-    cMemBlockSuspend(cMemPool *);
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
-
-cMemBlockSuspend::cMemBlockSuspend(cMemPool *pool) {
-    mPool = pool;
-
-    cMemPoolBlock *block = *(cMemPoolBlock **)((char *)pool + 0x24);
-    cMemBlockEntry *entry = (cMemBlockEntry *)(block->allocTable + 0x48);
-    short off = entry->offset;
-    void (*fn)(void *, int) = entry->fn;
-    fn((char *)block + off, 1);
-}
-
-extern "C" void *__vec_new(void *, int, int, void (*)(void *));
-extern "C" int sceKernelLockMutex(int, int, unsigned int *);
-extern "C" int sceKernelUnlockMutex(int, int);
-
-int cStrLength(const char *);
-void cStrCopy(char *, const char *, int);
 
 class cMemPool {
 public:
@@ -51,7 +40,49 @@ public:
 
     cMemPool(cMemAllocator *, const char *);
     static int *GetLock(void);
+    static cMemPool *GetPoolFromPtr(const void *);
 };
+
+class cMemBlockSuspend {
+public:
+    cMemPool *mPool;
+
+    cMemBlockSuspend(cMemPool *);
+    ~cMemBlockSuspend();
+
+    static void operator delete(void *p);
+};
+
+inline void cMemBlockSuspend::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
+
+cMemBlockSuspend::~cMemBlockSuspend() {
+    cMemPoolBlock *block = *(cMemPoolBlock **)((char *)mPool + 0x24);
+    cMemBlockEntry *entry = (cMemBlockEntry *)(block->allocTable + 0x48);
+    short off = entry->offset;
+    void (*fn)(void *, int) = entry->fn;
+    fn((char *)block + off, 0);
+}
+
+cMemBlockSuspend::cMemBlockSuspend(cMemPool *pool) {
+    mPool = pool;
+
+    cMemPoolBlock *block = *(cMemPoolBlock **)((char *)pool + 0x24);
+    cMemBlockEntry *entry = (cMemBlockEntry *)(block->allocTable + 0x48);
+    short off = entry->offset;
+    void (*fn)(void *, int) = entry->fn;
+    fn((char *)block + off, 1);
+}
 
 cMemPool::cMemPool(cMemAllocator *allocator, const char *name) {
     void *classDesc = (void *)0x37E698;
