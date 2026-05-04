@@ -4,11 +4,18 @@
 // Functions:
 //   0x002F29EC gcDoPlayerSetViewport::New(cMemPool *, cBase *) static  148B
 //   0x002F2B98 gcDoPlayerSetViewport::Write(cFile &) const             100B
+//   0x002F2BFC gcDoPlayerSetViewport::Read(cFile &, cMemPool *)        212B
+//   0x002F2E24 gcDoPlayerSetViewport::GetText(char *) const            288B
+//   0x002F3450 gcDoPlayerSetViewport::~gcDoPlayerSetViewport(void)     296B
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -25,10 +32,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class gcDesiredValue {
 public:
     unsigned int mField0;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class gcExpression {
@@ -44,6 +59,7 @@ public:
     unsigned int mNext;       // 0x08
 
     gcAction(cBase *);
+    int  Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -69,7 +85,27 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+struct GetTextSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
 extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char gcDoPlayerSetViewportvirtualtable[];
 
@@ -85,10 +121,22 @@ public:
 
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
     gcDoPlayerSetViewport &operator=(const gcDoPlayerSetViewport &);
+    int  Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+    ~gcDoPlayerSetViewport(void);
 };
+
+inline void gcDoPlayerSetViewport::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 // ── gcDoPlayerSetViewport::New(cMemPool *, cBase *)  @ 0x002F29EC, 148B ──
 cBase *gcDoPlayerSetViewport::New(cMemPool *pool, cBase *parent) {
@@ -190,4 +238,107 @@ void gcDoPlayerSetViewport::Write(cFile &file) const {
     mDesired1.Write(wb);
     mDesired2.Write(wb);
     wb.End();
+}
+
+// ── gcDoPlayerSetViewport::Read(cFile &, cMemPool *)  @ 0x002F2BFC, 212B ──
+int gcDoPlayerSetViewport::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 4, true);
+    if (rb[3] != 4 || gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    mDesired1.Read(*(cReadBlock *)rb);
+    mDesired2.Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ── gcDoPlayerSetViewport::GetText(char *) const  @ 0x002F2E24, 288B ──
+void gcDoPlayerSetViewport::GetText(char *buf) const {
+    char text[256];
+    int flag1 = 0;
+    int val = *(int *)((const char *)this + 0x0C);
+    text[0] = '\0';
+    if (val & 1) {
+        flag1 = 1;
+    }
+    if (flag1 != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check1 = val;
+    if (check1 != 0) {
+        char *typeInfo = *(char **)(check1 + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, text);
+    } else {
+        cStrCat(text, (const char *)0x36DB24);
+    }
+    cStrAppend(buf, (const char *)0x36EDDC, text);
+
+    int val2 = *(int *)((const char *)this + 0x10);
+    int flag2 = 0;
+    if (val2 & 1) {
+        flag2 = 1;
+    }
+    if (flag2 != 0) {
+        val2 = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check2 = val2;
+    if (check2 != 0) {
+        char *typeInfo = *(char **)(check2 + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val2 + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+    cStrCat(buf, (const char *)0x36DCEC);
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── gcDoPlayerSetViewport::~gcDoPlayerSetViewport(void)  @ 0x002F3450, 296B ──
+gcDoPlayerSetViewport::~gcDoPlayerSetViewport(void) {
+    *(void **)((char *)this + 4) = gcDoPlayerSetViewportvirtualtable;
+    char *second = (char *)this + 0x0C;
+
+    if ((void *)((char *)this + 0x10) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x10) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

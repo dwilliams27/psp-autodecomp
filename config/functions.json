@@ -75446,7 +75446,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -75490,7 +75490,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -75500,6 +75500,18 @@
       {
         "session": "0d72fc1d",
         "notes": "Scalar-deleting destructor with embedded sub-handle destructor call at offset 0x18 and pool-based delete. Source compiles to 208 bytes vs 212 expected; the matching logic for the sub-handle cleanup has correct structure (bnel+li pattern for doDestroy flag, explicit `this+0x18 != NULL` check that isn't optimized away) but diverges in two ways (126/212 bytes differ):\n\n1) Register allocation swap: expected loads `enc` into $4 (a0) and puts doDestroy in $5 (a1); our SNC allocates the opposite way \u2014 `enc` lands in $5 and doDestroy in $4. Because enc is eventually dereferenced (lw $6, 4($4)), expected uses $4 directly but our code inserts an extra `move $4, $5` before the lw. This cascades into the branch variants: expected uses `beqzl $5,7c` and `beqzl $4,7c` (branch-likely with lui $4,0x38 in delay slot used only when branch taken, preserving $4=enc for fall-through), while our code uses regular `beqz` (delay slot always executes, overwriting $4 with the lui that isn't needed for fall-through anyway because enc is in $5).\n\n2) Missing tail trap: expected function ends with `b .` (0x1000ffff) + nop after the epilogue. This pattern appears in 580 functions in the EBOOT (321 are destructors), including all 212-byte ~gcDesired* and ~gcValUserStatus destructors that share this template \u2014 NONE are currently matched in the repo. No existing matched .cpp file produces this tail pattern, so its origin is unknown. Adding explicit `while(1){}` at file-scope end generated the `b .; nop` but SNC also re-emitted the epilogue after it (236 bytes total). The trap may be a SNC artifact of scalar-deleting destructors that inline a member destructor with a virtual dispatch \u2014 possibly an unwinding cleanup marker.\n\nApproaches tried:\n- nested if(doDestroy){if(enc!=0){}} -> 212 bytes but 128/212 diff (swapped alloc)\n- `&& enc != 0` short-circuit -> 208 bytes, 126/208 diff (null-check optimized out when using `&self->field`)\n- cached `cSubHandle *sub = &self->mSub; if(sub!=0)` with embedded struct member -> adds s2 save/restore (+8 bytes)\n- `(char *)&self->mSub != 0` check preserves the null-check -> 208 bytes (current state)\n- `while(1)` at end produces trap but adds extra epilogue -> 236 bytes\n\nRoot cause of register swap is unclear. Possibilities: SNC heuristic based on liveness of lui-prepped value in $4 between 0x30 (beqz delay) and 0x7c (basevtable convergence). Our code has 5 luis of the basevtable, same as expected, so symbol count isn't the lever. Worth trying: permuter on finalized source to explore adjacent register allocations; or investigate whether the original gcMessageHandler member at +0x18 is a distinct `cSubHandleT<T>` template class whose compiler-synthesized destructor produces the exact pattern (rather than our inline handwritten block)."
+      },
+      {
+        "session": "0cad109f",
+        "notes": "Verifier demoted claimed match: byte mismatch; src=src/gcMessageHandler.cpp; reason=byte_mismatch",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:37:14Z",
+        "src_file": "src/gcMessageHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/0cad109f/000d75d4__byte_mismatch__src_gcMessageHandler.cpp"
       }
     ],
     "mangled_symbol": "__0oQgcMessageHandlerdtv"
@@ -75537,7 +75549,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000d42e8"
     ],
@@ -90530,7 +90542,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -90540,7 +90552,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcStateDefaultHandlerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fVgcStateDefaultHandlerEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5398e75f",
+        "notes": "Documented cReadBlock prologue scheduler divergence. Function body matches the target perfectly from offset 0x30 onwards (the cReadBlock ctor call, the rb._data[3]==2 check, the gcStateHandlerBase::Read call, the cFile_SetCurrentPos cleanup, the two cArray<cHandlePairT<gcStateMachine,cSubHandleT<gcState>>>::Read calls, the dtor calls, the epilogue). Only the prologue differs: the target schedules `sw s0,20 / sw s2,28 / move s0,a2 / move s2,a0 / sw s1,24 / sw s3,32 / move s1,a1 / li s3,1 / move a0,sp / li a2,2 / sw ra,36 / jal ctor / li a3,1` while my output schedules `sw s0,20 / sw s1,24 / sw s2,28 / move s0,a2 / move s1,a1 / move s2,a0 / sw s3,32 / sw ra,36 / li s3,1 / move a0,sp / li a2,2 / jal ctor / li a3,1`. 34/212 bytes differ \u2014 exactly the prologue area. Same pattern observed on gcEnumerationGroup::Read (20/188 bytes mismatch). This is the documented cReadBlock prologue blocker per CLAUDE.md / METHOD TEMPLATE GUIDANCE. Source uses the same `cReadBlock rb(file, 2, true); register-loaded result` trick as the matched eMaterialSet::Read.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:40:49Z",
+        "src_file": "src/gcStateDefaultHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5398e75f/0010ab94__agent_self_reported_failure__src_gcStateDefaultHandler.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010ac68",
@@ -100599,7 +100625,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -100669,7 +100695,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -100713,7 +100739,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -168082,14 +168108,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x002571cc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcStateDefaultHandlerPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fVgcStateDefaultHandlerPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "failure_notes": [
+      {
+        "session": "5398e75f",
+        "notes": "Did not attempt source. 1596 bytes, two near-identical loops over arrays at this+0x30 and this+0x34 (each loop ~770 bytes), with intricate sub-structure: each iteration does (a) handle-table lookup in D_00038890 (entry = D_00038890[handle&0xFFFF]; valid if entry && entry->handle == handle), (b) lazy-init of type-id chain D_000385DC/D_000385E0/D_000385E4 via three nested cType::InitializeType calls (chain ids 1, 2, 3 \u2014 note these are the BASE types not gcStateDefaultHandler's 0xDA, so this is filtering against some BASE type inheritance check), (c) dcast-style type compatibility walk (loop over type->parent chain), (d) if filter-bit-set OR no callback then dispatch via member's vtable+0x60 method, else callback(ctx, item, user). The base gcStateHandlerBase::VisitReferences chain call at the start uses a0=this+sp10? actually arg flags are spilled to sp16, sp10/sp14/sp18/sp1C, so 7 args go via stack. Heavy register usage \u2014 saves s0-s8 + s7. This will need a careful template body modeled after a smaller matched VisitReferences (e.g. gcEvent \u2014 only 128 bytes, much simpler). The two-loop body would benefit from being expressed as a static helper to dedupe the structure, or as a template, but SNC inlining behavior is uncertain. Recommend building it up incrementally: first match just the prologue + base call + first-loop skeleton, then expand.\n\nThe disasm pattern at 258a14-258a48 (and mirror 258cd8-258d0c) shows the type-walk loop encoded as nested `bnel ... ~> goto loop` with a strange `lw a1, 28(a1)` traversal \u2014 this is the dcast/IsKindOf inheritance check (`while (type && type != myType) type = type->parent;`). The lazy init is the standard cType::InitializeType pattern but unusual in being lazily cached inside the loop. Each cType::InitializeType call site uses a different stack-spilled arg block (sp1C/sp18/sp14).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:40:49Z",
+        "src_file": "src/gcStateDefaultHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5398e75f/00258810__agent_self_reported_failure__src_gcStateDefaultHandler.cpp"
+      }
+    ]
   },
   {
     "address": "0x00258e4c",
@@ -168101,14 +168141,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0010a808"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVgcStateDefaultHandlerdtv"
+    "mangled_symbol": "__0oVgcStateDefaultHandlerdtv",
+    "failure_notes": [
+      {
+        "session": "5398e75f",
+        "notes": "Wrote canonical SNC virtual deleting destructor following the gcTableColumnShort exemplar pattern: set vtable to 0x388360, hand-inline cArray cleanup for slot at +0x34 then slot at +0x30 (header-mask count, empty for-loop for trivial element dtors, GetPoolFromPtr + table[7]+0x30 dispatch to free), with implicit base ~gcStateHandlerBase() call and SNC-injected `if (deletingFlag & 1) operator delete(this)` tail (operator delete declared inline in the class). Result: 412B (mine) vs 420B (target). 58/420 bytes differ.\n\nTwo distinct issues:\n1) Register allocation: my output uses s1 for `this` and s0 for the deleting flag; target uses s0 for `this` and s1 for the flag. The gcTableColumnShort exemplar matches at 288B and uses s0=this/s1=flag, but our extra cleanup block (we have TWO array slots vs gcTableColumnShort's one) shifts SNC's allocator. Tried hoisting both `slot1`/`slot2` locals before any loop; tried collapsing them \u2014 neither flipped s0/s1.\n2) 8-byte trailing pad: target ends with `b $self / nop` (1000ffff 00000000) at offsets 0x1f8/0x1fc \u2014 these are the 8 bytes that make 412\u2192420. gcTableColumnShort uses `__asm__(\".word 0x1000ffff\\n\"); __asm__(\".word 0x00000000\\n\"); __asm__(\".size __0oS<sym>dtv, 0x120\\n\");` at file scope to inject the pad and resize the symbol. Tried this trick both before and after my dtor body (and before/after the Read function): the .word bytes were emitted into .text but never landed at the dtor section's tail, and the .size directive did not update the dtor symbol's recorded size (still 0x19c). Likely SNC's section ordering moves the dtor to a different position than gcTableColumnShort's because we have multiple methods in the file.\n\nNext-agent suggestion: try declaring cArrayBase<T> with an inline destructor that does the array-cleanup pattern, then make the dtor body trivial (just the vtable assignment) so the compiler auto-emits the member dtor calls in declaration order. That may give the s0/s1 register allocation that matches the target. For the trailing pad, may need the `__asm__(\".size ...\\n\")` directive emitted from within an `extern \"C\"` wrapper or as a `__attribute__((section(...)))` blob aimed at the dtor's section.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:40:49Z",
+        "src_file": "src/gcStateDefaultHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5398e75f/00258e4c__agent_self_reported_failure__src_gcStateDefaultHandler.cpp"
+      }
+    ]
   },
   {
     "address": "0x00258ff0",
@@ -183173,7 +183227,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -183183,7 +183237,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcStringTableValueEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSgcStringTableValueEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "35916850",
+        "notes": "gcStringTableValue::Read(cFile&, cMemPool*) \u2014 implemented the canonical cReadBlock template: construct cReadBlock(file, 3, true), force result=1 with `__asm__ volatile(\"ori %0, $0, 1\" : \"=r\"(result))`, gate on `(unsigned int)rb._data[3] < 4 && >= 2 && this->gcStringValue::Read(file, pool)` (the original encodes the version-range check as two unsigned compares), rewind via cFile_SetCurrentPos on failure, then call this->mDesired.ReadHandle(rb, 3) and return result. Body past offset 0x34 matches expected byte-for-byte. compare_func.py reports 21/212 mismatches confined to the cReadBlock prologue \u2014 the SNC schedules `sw s3/sw ra` and `li s3,1` differently around the cReadBlock setup/call than my build produces. This is the documented cReadBlock-prologue scheduler divergence (same family as the gcDynamicModelController::Read blocker noted in 002383ae.json). Tried: ori before vs after cReadBlock ctor (after wins, 21B vs 34B), explicit fixed register, self/pool temporaries to perturb allocation, sched=1/2 toggling, goto-success vs short-circuit boolean form. None close the prologue gap. Per METHOD TEMPLATE GUIDANCE: record as blocker rather than thrash. Body is correct; only prologue scheduling differs.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:59:04Z",
+        "src_file": "src/gcStringTableValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/35916850/00289b64__agent_self_reported_failure__src_gcStringTableValue.cpp"
+      }
+    ]
   },
   {
     "address": "0x00289c38",
@@ -183216,14 +183284,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0012a82c",
       "0x002243f4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcStringTableValueDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K"
+    "mangled_symbol": "__0fSgcStringTableValueDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K",
+    "failure_notes": [
+      {
+        "session": "35916850",
+        "notes": "gcStringTableValue::Get(cHandlePairT<gcStringTable, cSubHandleT<gcString>>*) const \u2014 fetches gcString via this->mDesired.Get(true); on null writes {0,0} to out and returns; otherwise dcasts *(cBase**)str to gcStringTable, copies sub-handle from str+0x20, builds local cHandleT (mIndex=0, then mIndex = *(int*)(table+0x30) if table != 0), and stores into out. compare_func.py: 100/156 mismatches. Size matches (156B exactly) only after introducing explicit `cHandleT<gcStringTable> hdl` and `cSubHandleT<gcString> sub` locals; without them the compiler folds to ~108B. Stack layout diverges: my build uses a 32-byte frame, expected uses 48-byte with sp+8\u2192sp+4 sub-handle roundtrip that the compiler refuses to reproduce from a simple temp local. Tried: out-arg writes inline (skips temp), single-int temp form, struct-returning helper inline, conditional ternary for hdl.mIndex, reordering hdl/sub assignments. Stack-spill pattern of expected suggests source either has a different temporary structure (perhaps a returned-by-value cHandlePairT temp constructed on stack and copied) or the cHandlePairT::operator= is non-trivial and writes through the spill slots. Recommend next agent investigate cHandlePairT assignment-operator codegen and try `cHandlePairT<...> tmp; tmp.mHandle = hdl; tmp.mSubHandle = sub; *out = tmp;` form.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:59:04Z",
+        "src_file": "src/gcStringTableValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/35916850/00289cb4__agent_self_reported_failure__src_gcStringTableValue.cpp"
+      }
+    ]
   },
   {
     "address": "0x00289d50",
@@ -183273,13 +183355,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSgcStringTableValuedtv"
+    "mangled_symbol": "__0oSgcStringTableValuedtv",
+    "failure_notes": [
+      {
+        "session": "35916850",
+        "notes": "gcStringTableValue::~gcStringTableValue() \u2014 full destructor with the documented multi-vtable chain at this+12 walking gcStringTableValuevirtualtable \u2192 gcDesiredStringvirtualtable \u2192 gcDesiredObjectvirtualtable \u2192 cBaseclassdesc, plus two tagged-pointer cleanups (at this+0x20 for gcDesiredValue, at this+0x10 for gcDesiredObject mField8) using the standard keep/val pattern with DtorDeleteRecord at vtable+0x50 dispatched with arg=3. Includes leading b. trap (`__asm__(\".word 0x1000ffff\\n\"); __asm__(\".word 0x00000000\\n\"); __asm__(\".size __0oSgcStringTableValuedtv, 0x14c\\n\");`). compare_func.py: 173/332 mismatches and the function body is 4 bytes longer than expected (the dtor compiles to 336B vs target 332B = one extra instruction). Prologue (first 0x14) matches. Inner cleanup loop uses a1 instead of a0 for the v20 load, with non-likely beqz vs the expected beqzl branch-likely. Reference template gcDesiredCustomAttack (0x00267218, matched) uses identical structure with single cleanup and the branch-likely form. Tried: rearranging valueSlot/objSlot order, using `if (val & 1) keep=0;` vs ternary, NULL-check elision for desiredSlot, explicit volatile barriers between vtable writes, and pulling cleanup into helper-style inline blocks. None of these reduce the size or shift to a0/beqzl. Suspect the source uses an early-return `if (!(this+8))` form (always-true so optimized away differently) or that the gcDesiredString sub-destructor is called via a real method rather than inlined twice \u2014 investigate whether ~gcDesiredString actually exists in the binary as a separate symbol the compiler folds away, or whether the dual-vtable-flip is from a chain of explicit ~gcDesiredValue() / ~gcDesiredObject() calls that the source text contains literally.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:59:04Z",
+        "src_file": "src/gcStringTableValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/35916850/00289e00__agent_self_reported_failure__src_gcStringTableValue.cpp"
+      }
+    ]
   },
   {
     "address": "0x00289f4c",
@@ -199342,7 +199438,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -199352,7 +199448,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoPlayerSetViewportEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fVgcDoPlayerSetViewportEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoPlayerSetViewport.cpp",
+    "symbol_name": "__0fVgcDoPlayerSetViewportEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5e979ea3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:18:06Z"
   },
   {
     "address": "0x002f2cd0",
@@ -199380,14 +199483,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoPlayerSetViewportHGetTextPcK"
+    "mangled_symbol": "__0fVgcDoPlayerSetViewportHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "5e979ea3",
+        "notes": "GetText(char*) const - 284B vs expected 288B (4-byte / 1-instruction divergence). Used the gcDoLobbyUserOp::GetText exemplar pattern (val/flag/check vars + memory-barrier else branch) which yielded 260B initially. Adding the memory barrier and intermediate `check` variable closed it from 260B to 284B. The remaining 4-byte gap is a register-allocation divergence in the FIRST GetText slot dispatch: the original explicitly emits `move a2,a1` to save val before clobbering a0/a1 for the typeInfo chain walk (a0/a0/a0/t0/sp + addu a2+a3), while our build keeps val in a0 untouched and uses a2 for the chain (a2/a2/a2/sp + addu a0+a3) \u2014 saving one instruction. The SECOND GetText slot dispatch (mDesired2 path) actually matches expected register-for-register; only mDesired1 differs because in expected val starts in a1 (then needs a2 save) while in mine val starts in a0 (no save needed). Variations tried: (1) declaring flag1 before val to force flag into a0 first - no change; (2) intermediate `char *valBytes = (char *)val` to force a separate live var - dead-code-eliminated by compiler; (3) using `check1` vs `val` interchangeably in slot->fn args - same codegen. Permuter cannot run because expected size mismatch raises 'Could not locate target function' (permuter expects exact-size symbol). All other 6 functions in this file (AssignCopy, GetType, New, Read, Write, dtor) MATCH cleanly. Closest source attempt is preserved in src/gcDoPlayerSetViewport.cpp at the GetText body - the only remaining work is permuter-style mutations that swap which arg-register holds val vs flag during initial load (lw a1,12(s0) vs lw a0,12(s1)). This may need a manual scheduler hint or be the same class of compiler-divergence as cReadBlock prologue / bnel heuristic noted in docs/decisions/006.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:18:06Z",
+        "src_file": "src/gcDoPlayerSetViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5e979ea3/002f2e24__agent_self_reported_failure__src_gcDoPlayerSetViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x002f2f44",
@@ -199417,14 +199534,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVgcDoPlayerSetViewportdtv"
+    "mangled_symbol": "__0oVgcDoPlayerSetViewportdtv",
+    "src_file": "src/gcDoPlayerSetViewport.cpp",
+    "symbol_name": "__0oVgcDoPlayerSetViewportdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5e979ea3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:18:06Z"
   },
   {
     "address": "0x002f3578",
@@ -207164,7 +207288,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -207187,7 +207311,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d5348",
@@ -225707,7 +225831,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
