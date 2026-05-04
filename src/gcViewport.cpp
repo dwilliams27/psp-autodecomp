@@ -3,6 +3,7 @@
 // instance's 1-based index into the supplied buffer.
 
 class cBase;
+class cFile;
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -12,7 +13,21 @@ class gcUI {
 public:
     ~gcUI();
     void Reset(void);
+    void CloseAllDialogs(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
+extern "C" void __record_needed_destruction(void *);
 
 struct ViewportPoolBlock {
     char pad[0x1C];
@@ -47,10 +62,14 @@ public:
     ~gcViewport();
     void GetName(char *) const;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     static void SetConfiguration(gcConfig);
     static void SetFullscreen(bool);
     static cBase *New(cMemPool *, cBase *);
     static int PausesGame(void);
+    static bool Initialize(void);
+    static void CloseAllDialogs(void);
+    static void ResetAll(void);
     const cType *GetType(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -72,6 +91,8 @@ extern "C" void gcViewport__gcViewport_cBaseptr(void *self, cBase *parent);
 
 extern cType *D_000385DC;
 extern cType *D_0009A2E8;
+extern int D_00034948;
+extern char *D_0037D840;
 
 struct AllocRec {
     short offset;
@@ -211,6 +232,46 @@ active_done:
         viewport = (ViewportPauseData *)((char *)viewport + 0x1390);
     } while (i < 5);
     return 0;
+}
+
+// ── gcViewport::Read(cFile &, cMemPool *) @ 0x000FDB04 ──
+int gcViewport::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ── gcViewport::Initialize(void) static @ 0x000FDBC8 ──
+bool gcViewport::Initialize(void) {
+    void *viewports = (void *)0x2E778;
+    if (D_00034948 == 0) {
+        D_00034948 = 1;
+        __vec_new(viewports, 5, 0x1390, (void (*)(void *))0xCCD78);
+        __record_needed_destruction((void *)0x37D8D4);
+    }
+    *(void **)0x37D840 = viewports;
+    gcViewport::ResetAll();
+    return true;
+}
+
+// ── gcViewport::CloseAllDialogs(void) static @ 0x000FE024 ──
+void gcViewport::CloseAllDialogs(void) {
+    int i = 0;
+    int offset = 0;
+    do {
+        char *cam = D_0037D840 + offset + 0x10;
+        ((gcUI *)(cam + 0x11E4))->CloseAllDialogs();
+        i += 1;
+        offset += 0x1390;
+    } while (i < 5);
+    ((gcUI *)0x99928)->CloseAllDialogs();
 }
 
 // ── gcViewport::GetType(void) const @ 0x00249248 ──
