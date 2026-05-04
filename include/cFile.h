@@ -62,6 +62,8 @@ public:
     int mHandle;
     char _pad2[0x14];
 
+    ~cFilePlatform();
+    bool Open(const char *filename);
     void Close(void);
     void ReadAsync(void *buf, unsigned int offset, unsigned int size);
 };

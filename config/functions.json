@@ -17550,7 +17550,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0000e208",
@@ -17574,6 +17574,18 @@
         "identity": "codex/gpt-5.4-mini/high",
         "variant": "base",
         "timestamp": "2026-04-29T18:11:36Z"
+      },
+      {
+        "session": "e34c825c",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:48:24Z",
+        "src_file": "src/cFilePlatform.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/e34c825c/0000e0e8__post_revert_compile_failed__src_cFilePlatform.cpp"
       }
     ]
   },
@@ -17587,7 +17599,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000ce08",
       "0x0000e208",
@@ -17600,7 +17612,21 @@
       "0x002021bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNcFilePlatformEOpenPCc"
+    "mangled_symbol": "__0fNcFilePlatformEOpenPCc",
+    "failure_notes": [
+      {
+        "session": "e34c825c",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:48:24Z",
+        "src_file": "src/cFilePlatform.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/e34c825c/0000e170__post_revert_compile_failed__src_cFilePlatform.cpp"
+      }
+    ]
   },
   {
     "address": "0x0000e208",
@@ -73948,7 +73974,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000d5600",
@@ -73978,7 +74004,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T18:11:36Z"
       }
-    ]
+    ],
+    "src_file": "src/gcExpressionList.cpp",
+    "symbol_name": "__0oQgcExpressionListdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e34c825c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:48:24Z"
   },
   {
     "address": "0x000d5348",
@@ -111304,7 +111337,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005c10",
@@ -202501,7 +202534,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -202576,7 +202609,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d52c0",

@@ -16,6 +16,7 @@ extern gcEvalCtx *g_gcEvalCtx;
 class gcExpressionList {
 public:
     gcExpressionList(cBase *);
+    ~gcExpressionList();
     gcExpressionList &operator=(const gcExpressionList &);
     void DeleteExpressions(void);
     float Evaluate(void) const;

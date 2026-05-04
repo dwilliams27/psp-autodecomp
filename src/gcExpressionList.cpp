@@ -8,6 +8,30 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+extern "C" void free(void *);
+
+struct gcExprDeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+inline void operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    if (pool != 0) {
+        char *block = ((char **)pool)[9];
+        gcExprDeleteRecord *rec = (gcExprDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        rec->fn(block + off, p);
+    } else {
+        free(p);
+    }
+}
+
+gcExpressionList::~gcExpressionList() {
+    DeleteExpressions();
+}
+
 class cWriteBlock {
 public:
     cFile *_file;
