@@ -11,8 +11,8 @@ class nwAddress;
 class gcCinematic;
 class gcStreamedCinematic;
 
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
 
 struct nwMsgBuffer {
     char _pad[0x4B0];
@@ -42,9 +42,15 @@ public:
 };
 
 struct cInStreamBits {
-    unsigned char *mBuf;
-    int mCapacity;
-    int mBitPos;
+    unsigned char *mBuf;     // 0x0
+    int mCapacity;            // 0x4
+    int mBitPos;              // 0x8
+};
+
+class nwConnection {
+public:
+    int _pad[10];
+    int mField28;
 };
 
 class nwMsgType {
@@ -68,7 +74,7 @@ public:
 
 class nwSocket {
 public:
-    static void *GetConnection(nwConnectionHandle);
+    static nwConnection *GetConnection(nwConnectionHandle);
 };
 
 class gcMsgPlayCinematic {
@@ -118,10 +124,10 @@ nwMsg *gcMsgPlayCinematic::New(nwMsgBuffer &buf) {
     nwMsg *result = 0;
     if (obj != 0) {
         volatile int zb[8];
+        int z2 = zb[2];
         zb[0] = 0;
         zb[2] = 0;
         zb[1] = 0;
-        int z2 = zb[2];
         zb[3] = 0;
         unsigned int vt_hi;
         __asm__ ("lui %0, 0x39" : "=r"(vt_hi));
@@ -129,21 +135,21 @@ nwMsg *gcMsgPlayCinematic::New(nwMsgBuffer &buf) {
         void *vt = (void *)(vt_hi - 28720);
         zb[4] = z2;
         obj->vtable = vt;
-        register int one asm("$9") = 1;
+        int t = 1;
         zb[5] = 0;
-        obj->mNum = one;
+        obj->mNum = t;
         int z0 = zb[0];
         zb[7] = 0;
         int *p1 = (int *)((char *)obj + 8);
-        register int z1 asm("$9") = zb[1];
+        t = zb[1];
         p1[0] = z0;
         float zf = 0.0f;
-        p1[1] = z1;
-        register char b1 asm("$7") = 0;
+        p1[1] = t;
+        int b1 = 0;
         obj->mFlag = 0;
-        register char b2 asm("$8") = 0;
-        *((char *)obj + 0x14) = b1;
-        *((char *)obj + 0x15) = b2;
+        int b2 = 0;
+        *((char *)obj + 0x14) = (char)b1;
+        *((char *)obj + 0x15) = (char)b2;
         int z6 = zb[6];
         int *p2 = (int *)((unsigned char *)obj + 0x18);
         p2[0] = z6;
@@ -183,4 +189,86 @@ nwMsgType *gcMsgLoadMap::GetType() const {
             0xC, 0, "gcMsgLoadMap", &gcMsgLoadMap::New);
     }
     return sLoadMapType;
+}
+
+// -----------------------------------------------------------------------------
+// 0x00123e20 — gcMsgPlayCinematic::Read
+//   Reads the play-cinematic message off the wire and dispatches:
+//     * decodes a 1-bit fullscreen flag (this->field4) using cInStream::Read
+//     * if cleared: only fires gcEntity::OnFullscreenCinematicStarting and
+//       returns
+//     * otherwise: fires Started, reads the GUID at +0x08, two cHandles
+//       at +0x18 and +0x10, two inline ReadBit() calls into bytes
+//       this->field14/field15, then a float into +0x1C
+//     * if field14 set and the connection is alive: clear high half of the
+//       connection's +0x28 field
+//     * if the global map is loaded:
+//          - field15 set  → QueueStreamedCinematic on the global map
+//          - field15 zero → resolve the cHandle@+0x18 against the global
+//                           cinematic table at 0x38890 and call PlayCinematic
+// -----------------------------------------------------------------------------
+
+void gcMsgPlayCinematic::Read(cInStream &is, nwSocketHandle, const nwAddress &,
+                              nwConnectionHandle ch) {
+    ((cInStreamRef *)&is)->Read(*(unsigned int *)((char *)this + 4), 1, true);
+    if (*(int *)((char *)this + 4) != 0) {
+    gcEntity::OnFullscreenCinematicStarted();
+    ((cGUID *)((char *)this + 8))->Read(is);
+    ((cHandle *)((char *)this + 0x18))->Read(is);
+    ((cHandle *)((char *)this + 0x10))->Read(is);
+
+    cInStreamBits *bs = (cInStreamBits *)&is;
+    {
+        __asm__ volatile("" ::: "memory");
+        unsigned char *data = bs->mBuf;
+        int pos = bs->mBitPos;
+        int *bpPtr = &bs->mBitPos;
+        unsigned char *byte = data + (pos >> 3);
+        pos = *bpPtr;
+        int bit = pos & 7;
+        int mask = 1 << bit;
+        pos = pos + 1;
+        *bpPtr = pos;
+        *((char *)this + 0x14) = (*byte & mask) != 0;
+    }
+    {
+        int pos = bs->mBitPos;
+        unsigned char *data = bs->mBuf;
+        int *bpPtr = &bs->mBitPos;
+        unsigned char *byte = data + (pos >> 3);
+        pos = *bpPtr;
+        int bit = pos & 7;
+        pos = pos + 1;
+        int mask = 1 << bit;
+        __asm__ volatile("" ::: "memory");
+        *bpPtr = pos;
+        *((char *)this + 0x15) = (*byte & mask) != 0;
+    }
+    ((cInStreamRef *)&is)->Read(*(float *)((char *)this + 0x1C), true);
+
+    if (*((unsigned char *)this + 0x14) && nwSocket::GetConnection(ch) != 0) {
+        nwConnection *c = nwSocket::GetConnection(ch);
+        c->mField28 = c->mField28 & 0xFFFF0000;
+    }
+    if (gcMap::IsMapLoaded(false)) {
+        if (*((unsigned char *)this + 0x15)) {
+            (*(gcMap **)0x37D7FC)->QueueStreamedCinematic(
+                *(cGUIDT<gcStreamedCinematic> *)((char *)this + 8));
+        } else {
+            int id = *(int *)((char *)this + 0x18);
+            gcCinematic *cin = 0;
+            if (id != 0) {
+                int idx = id & 0xFFFF;
+                gcCinematic *cand = ((gcCinematic **)0x38890)[idx];
+                if (cand && *(int *)((char *)cand + 0x30) == id) {
+                    cin = cand;
+                }
+            }
+            gcMap::PlayCinematic(cin, *(cHandle *)((char *)this + 0x10),
+                                 *(float *)((char *)this + 0x1C), false);
+        }
+    }
+    } else {
+        gcEntity::OnFullscreenCinematicStarting();
+    }
 }

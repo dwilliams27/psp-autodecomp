@@ -42461,11 +42461,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeMeshShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fKeMeshShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "24deb1cf",
+        "notes": "eMeshShape::Collide(const eShape *, ...) \u2014 111/172 bytes differ. Source is structurally identical to the matched eCylinderShape::Collide(const eShape *) at 0x7470c (same #pragma sched=1, same 'char *vtable', 'CollideVtableEntry *entry', 'void *adjThis', 'int hit = entry->fn(...)' pattern; only class name and vtable offset differ \u2014 0x110 vs 0xF8). Despite the same pragma directive and same -Xsched flag (tested both =1 and =2), the SNC compiler picks a DIFFERENT register-allocation/schedule for this function in eMeshShape.cpp than for eCylinderShape.cpp. Specifically: expected does a clean parameter-register rotation chain (move s0,t2; move t2,t0; move t0,a2; move a2,a0; lw a0,4(a1); ...) where t-regs cascade through the value flow. My build instead loads vtable into t3 first (lw t3,4(a1)), then uses v0 as a scratch (move v0,t0) \u2014 this differs in register choice for ~12 instructions in the prologue. Loop body and epilogue match; the post-call beqz delay slot is also empty (nop) instead of holding li a1,0x0 like expected has.\n\nTried: (1) sched=1 pragma globally, (2) per-function sched=1/sched=2 pairs around each function (matches eCylinderShape pattern exactly), (3) -Xsched=1 forced via flag override, (4) -Xmopt=0, (5) moving struct CollideVtableEntry out of pragma scope, (6) moving namespace eCollision decls to between functions, (7) declaring 'int i = 0' before the call (made it worse \u2014 compiler then used s1 callee-save). None changed the schedule. The function source appears character-equivalent to the matched eCylinderShape exemplar yet produces a different schedule in this compilation unit. Suspect: surrounding context (operator new placement-new declaration in the file, fewer prior struct definitions, different static-data graph) is influencing SNC's register allocation heuristics. Permuter could not be run (location detection failed). Recommend an agent that (a) tries adding the v4sf_t typedef + dcast template + more vtable struct decls to mimic eCylinderShape.cpp's prelude, or (b) uses permuter with --target name resolution fixed.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:52:28Z",
+        "src_file": "src/eMeshShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/24deb1cf/0004fdf8__agent_self_reported_failure__src_eMeshShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004fea4",
@@ -42477,13 +42491,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00093a90"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeMeshShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fKeMeshShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "24deb1cf",
+        "notes": "eMeshShape::Collide(const eBoxShape *, ...) \u2014 79/136 bytes differ. Calls eCollision::BoxMesh(*shape, *this, a, ocs2, ocs1, info) then negates contact normals (same pattern as eHeightmapShape exemplar). Source is correct; relocation correctly resolves to __0F5KeCollisionHBoxMeshRC6JeBoxShapeRC6KeMeshShapeiRC6EmOCSTEP6VeCollisionContactInfo. The call sequence and loop body match expected; the diff is two scheduling choices: (1) expected emits 'move s0,t2' BEFORE 'move a3,a0' at the prologue; mine emits them in the opposite order (no logical dependency between them \u2014 both schedules are valid). (2) expected fills the post-call beqz delay slot with 'li a1,0x0'; mine emits nop and puts li a1,0x0 after lw a0,20(s0). These are pure scheduler choices.\n\nSame underlying issue as the eShape variant: the SNC scheduler in this compilation unit prefers a different ordering than expected. Same restructuring attempts as 0x4fdf8 had no effect. The reordering of two independent move instructions plus the delay-slot fill accounts for the 79 mismatched bytes. Approaches not yet exhausted: try permuter once name resolution is fixed; try restructuring source as 'if (eCollision::BoxMesh(...) != 0) { ... }' instead of 'int hit = ...; if (hit != 0)'; try declaring info as a local pointer copy before the call to coax earlier save.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:52:28Z",
+        "src_file": "src/eMeshShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/24deb1cf/0004fea4__agent_self_reported_failure__src_eMeshShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004ff2c",
@@ -42495,13 +42523,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00093fec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeMeshShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fKeMeshShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "24deb1cf",
+        "notes": "eMeshShape::Collide(const eSphereShape *, ...) \u2014 79/136 bytes differ. Identical structure to BoxShape variant (calls eCollision::SphereMesh). Same identical scheduling diff as Collide(eBoxShape*): 'move s0,t2' vs 'move a3,a0' order swapped at prologue, plus 'nop' instead of 'li a1,0x0' in delay slot of post-call beqz. Loop body and epilogue match. Relocation correctly resolves to __0F5KeCollisionJSphereMeshRC6MeSphereShapeRC6KeMeshShapeiRC6EmOCSTEP6VeCollisionContactInfo. Same restructuring attempts as the BoxShape variant; same lack of effect. See notes on 0x0004fea4 for full context.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:52:28Z",
+        "src_file": "src/eMeshShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/24deb1cf/0004ff2c__agent_self_reported_failure__src_eMeshShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004ffb4",
@@ -51390,7 +51432,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a0f54"
     ],
@@ -51464,7 +51506,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00023c20",
@@ -51483,7 +51525,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00092c5c"
     ],
@@ -51996,7 +52038,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -52012,7 +52054,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002456c"
     ],
@@ -52216,7 +52258,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -97664,7 +97706,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000024f8",
       "0x00006af8",
@@ -165669,7 +165711,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00003134",
       "0x00004690",
@@ -165678,7 +165720,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPcDynamicMemPooldtv"
+    "mangled_symbol": "__0oPcDynamicMemPooldtv",
+    "src_file": "src/cDynamicMemPool.cpp",
+    "symbol_name": "__0oPcDynamicMemPooldtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "027ec4ae",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T08:56:01Z"
   },
   {
     "address": "0x00247204",
@@ -170434,7 +170483,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -170447,6 +170496,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T12:13:06Z"
+      },
+      {
+        "session": "027ec4ae",
+        "notes": "gcMsgPlayCinematic::New (156B static) \u2014 IN PROGRESS, current best 8/156 bytes diff (down from prior agent's 27/156). Permuter ran 240s/4206 candidates from this 8-byte baseline with zero improvement (best=8 across the entire run). The 8 differing bytes are pure register allocation: SNC chose t1($9) for the constant 1 AND reuses it for the zb[1] reload; chose a3($7)/t0($8) for the byte-zero sb sources. My output gets a1($5) for the 1, separate a3($7) for zb[1] reload (no reuse), and a1($5)/a2($6) for the byte zeros. The 4 logical register choices each appear in 2 instructions = 8 total bytes diff. Exact diff offsets: 0x44/0x4c (the '1' const), 0x5c/0x68 (the zb[1] reload), 0x6c/0x78 (b1=0 sb), 0x74/0x7c (b2=0 sb). Tried: removing all `register int x asm(\"$N\")` hints (SNC ignores them, no change). Tried reusing the same variable name `int t = 1; t = zb[1]` (SSA breaks this \u2014 no merge). Tried int-typed b1/b2 with cast on store. Permuter from 8-byte baseline produced no improvement. Root cause: SNC's allocator picks $5 (a1) over $9 (t1) for the first scratch live interval because a1 was just freed (it held the cursor compute briefly). To force t1, we'd need to keep a1 alive across the '1' const's live range \u2014 likely requires a different decomposition of the function. Next agent: try expressing the cGUID and cHandle members as actual sub-objects with their own ctors that emit the addiu/sw pattern naturally. The structure `obj->mGuid = cGUID()` where cGUID has a default ctor `: a(0), b(0)` may produce different IR ordering. NOT bnel-related (decision 006 does not apply). Function structure is correct \u2014 only register allocation differs.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T08:56:01Z",
+        "src_file": "src/gcMsgPlayCinematic.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/027ec4ae/00264540__agent_self_reported_failure__src_gcMsgPlayCinematic.cpp"
       }
     ]
   },
