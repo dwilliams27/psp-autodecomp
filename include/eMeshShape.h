@@ -3,6 +3,7 @@
 
 class eCollisionContactInfo;
 class eHeightmapShape;
+class eShape;
 class cBase;
 class cMemPool;
 class cType;
@@ -12,6 +13,7 @@ class eMeshShape {
 public:
     eMeshShape(cBase *);
 
+    int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eHeightmapShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     const cType *GetType(void) const;

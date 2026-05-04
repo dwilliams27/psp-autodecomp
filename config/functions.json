@@ -35957,7 +35957,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
@@ -35975,7 +35975,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T19:23:36Z"
       }
-    ]
+    ],
+    "src_file": "src/eFluidVolume.cpp",
+    "symbol_name": "__0oMeFluidVolumedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "896b5c80",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T08:39:01Z"
   },
   {
     "address": "0x0003c6b8",
@@ -35987,7 +35994,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -42470,7 +42477,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00093a90"
     ],
@@ -42488,7 +42495,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00093fec"
     ],

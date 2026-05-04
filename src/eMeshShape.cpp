@@ -58,6 +58,36 @@ eMeshShape *eMeshShape::New(cMemPool *pool, cBase *parent) {
     return result;
 }
 
+// eMeshShape::Collide(const eShape *, ...) @ 0x0004fdf8
+struct CollideDispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
+};
+
+int eMeshShape::Collide(const eShape *other, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    char *type = ((char **)other)[1];
+    CollideDispatchEntry *rec = (CollideDispatchEntry *)(type + 0x110);
+    if (rec->fn((char *)other + rec->offset, this, b, a, ocs2, ocs1, info)) {
+        int i = 0;
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
+}
+
 const cType *eMeshShape::GetType(void) const {
     if (D_00046A04 == 0) {
         if (D_00040FE4 == 0) {
