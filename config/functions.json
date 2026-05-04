@@ -2463,7 +2463,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -47670,7 +47670,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
@@ -54516,13 +54516,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a243c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCastRayRC6EmRayRC6OeCollisionInfoP6FmVec3TDPfK"
+    "mangled_symbol": "__0fJeBoxShapeHCastRayRC6EmRayRC6OeCollisionInfoP6FmVec3TDPfK",
+    "failure_notes": [
+      {
+        "session": "8ca8f48b",
+        "notes": "eBoxShape::CastRay \u2014 constructs temp mBox from mHalfExtents (using vneg.t inline asm to negate for min) then calls mRay::Intersect. Currently 94/164 bytes diff \u2014 not yet diff-analyzed in detail. Inline asm chosen because SNC silently crashed (pspcfe.exe sub-process killed by wibo, no capturable stderr) on unary negation of v4sf_t. Worked around per pattern in eMultiSphereShape.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T10:09:11Z",
+        "src_file": "src/eBoxShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/8ca8f48b/0006d564__agent_self_reported_failure__src_eBoxShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006d608",
@@ -54534,13 +54548,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a3e10"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK"
+    "mangled_symbol": "__0fJeBoxShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK",
+    "failure_notes": [
+      {
+        "session": "8ca8f48b",
+        "notes": "eBoxShape::CastSphere \u2014 analogous to CastRay but calls mSphere::Collide. Currently 89/164 bytes diff \u2014 not yet diff-analyzed in detail.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T10:09:11Z",
+        "src_file": "src/eBoxShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/8ca8f48b/0006d608__agent_self_reported_failure__src_eBoxShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006d6ac",
@@ -54608,11 +54636,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "8ca8f48b",
+        "notes": "eBoxShape::Collide(const eShape *, ...) \u2014 generic vtable dispatcher at offset 0xD8 (matches eCylinderShape pattern at 0xF8). Source written using identical pattern to already-matched eCylinderShape::Collide(eShape*). Currently 110/172 bytes diff \u2014 the SNC scheduler hoists `lw t3,4(a1)` to offset 8 (where original places `sw ra,4(sp)`), causing cascade of register allocation differences. Cylinder's compile of the SAME source pattern produces correct output, suggesting something in surrounding eBoxShape.cpp (struct decls, includes, surrounding function bodies) affects scheduling. Not yet root-caused.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T10:09:11Z",
+        "src_file": "src/eBoxShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/8ca8f48b/0006dc20__agent_self_reported_failure__src_eBoxShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006dccc",
@@ -89981,7 +90023,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002f8b0",
@@ -89993,7 +90035,14 @@
       "0x00168534"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oPgcUIStackDialogdtv"
+    "mangled_symbol": "__0oPgcUIStackDialogdtv",
+    "src_file": "src/gcUIStackDialog.cpp",
+    "symbol_name": "__0oPgcUIStackDialogdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0905bb7c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T10:26:47Z"
   },
   {
     "address": "0x001096c8",
@@ -91888,7 +91937,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005778",
@@ -91959,7 +92008,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9c64"
     ],
@@ -92097,7 +92146,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00110218"
@@ -100992,7 +101041,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -105137,7 +105186,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105213,7 +105262,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -105231,6 +105280,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T19:26:27Z"
+      },
+      {
+        "session": "493c50db",
+        "notes": "Blocked by the project-wide 'trailing b .; nop trap' issue documented in docs/postmortems/2026-04-21-overnight.md (research_todos #3). The destructor body compiles to 41 instructions / 164 bytes that match the original byte-for-byte through the epilogue (verified by disassembling build/src/gcStaticInstance.cpp.o vs expected/build/func/001373e4.o \u2014 every word at offsets 0x00-0xA0 is identical including prologue, mField48 dispatch, cObject::~cObject jal, andi/beqz pool-delete tail, jr ra and addiu sp,sp,16 in the delay slot). The 8 missing bytes are at offsets 0xA4-0xAB: '1000ffff 00000000' (b . ; nop) which appear AFTER the function's jr ra. The next function gcStaticInstance::Reset starts at 0x137490 = 0x1373E4 + 0xAC, 16-byte aligned; the destructor itself is 4-byte aligned at 0x1373E4. This strongly suggests the SN linker is inserting 8 bytes of function-alignment padding (using b . / nop as fill pattern) and the .sym file recorded the symbol size INCLUSIVE of that pad (172). Our compile-only build emits a 164-byte symbol with no trailing pad because the SNC compiler doesn't add it \u2014 only the linker does, post-compilation. The same root cause is reported in docs/postmortems/2026-04-21-overnight.md as 'Research spike: trailing b .; nop trap. 5 failures this run, 580 affected EBOOT functions ... could unlock 100+ matches.'\n\nPrior agent (session 0f202ca7) tried explicit cObject::~cObject() (wrong shape, larger mismatch), out-of-line operator delete (shrank to 132B), and end-of-body variants (still 164B). I reproduced the canonical 164B output and verified byte-equivalence of the 41 emitted instructions. No source-level construct produces unreachable trap padding AFTER the epilogue: SNC emits source-level dead code BEFORE jr ra, not after. Recommend keeping this blocked until the project-wide research spike on the b .; nop trap pattern lands; do not retry this destructor in isolation.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T10:10:55Z",
+        "src_file": "src/gcStaticInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/493c50db/001373e4__agent_self_reported_failure__src_gcStaticInstance.cpp"
       }
     ]
   },
@@ -105264,7 +105325,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [],
     "callers": [
       "0x000ee57c",
@@ -131948,7 +132009,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0000e3d0",
@@ -131957,7 +132018,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oLcFileHandledtv"
+    "mangled_symbol": "__0oLcFileHandledtv",
+    "src_file": "src/cFileHandle.cpp",
+    "symbol_name": "__0oLcFileHandledtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0905bb7c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T10:26:47Z"
   },
   {
     "address": "0x001c8420",
@@ -135448,7 +135516,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00002e34",
       "0x00004690",
@@ -135457,7 +135525,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMeDisplayListdtv"
+    "mangled_symbol": "__0oMeDisplayListdtv",
+    "src_file": "src/eDisplayList.cpp",
+    "symbol_name": "__0oMeDisplayListdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0905bb7c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T10:26:47Z"
   },
   {
     "address": "0x001db794",
