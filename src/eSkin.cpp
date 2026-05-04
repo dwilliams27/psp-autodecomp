@@ -9,9 +9,15 @@ class cType;
 class eMaterialSet;
 class eSurfaceSet;
 
+class cFile;
+class cReadBlock;
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cObject {
 public:
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
 };
 
 class cType {
@@ -42,6 +48,13 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
+template <class T>
+class cArray {
+public:
+    void *mData;
+    void Read(cReadBlock &);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -56,8 +69,16 @@ struct AllocEntry {
 class eSkin {
 public:
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
 };
 
 extern "C" void cObject_cObject(void *self, cBase *parent);
@@ -77,6 +98,20 @@ void eSkin::AssignCopy(const cBase *base) {
         *(cArrayBase<cHandleT<eMaterialSet> > *)((char *)src + 0x44));
     ((cArrayBase<cHandleT<eSurfaceSet> > *)((char *)this + 0x48))->operator=(
         *(cArrayBase<cHandleT<eSurfaceSet> > *)((char *)src + 0x48));
+}
+
+// -- eSkin::Read(cFile &, cMemPool *) @ 0x0004be04, 212B --
+int eSkin::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((cObject *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((cArray<cHandleT<eMaterialSet> > *)((char *)this + 0x44))->Read(rb);
+    ((cArray<cHandleT<eSurfaceSet> > *)((char *)this + 0x48))->Read(rb);
+    return result;
 }
 
 // -- eSkin::New @ 0x001f1724 --

@@ -9623,7 +9623,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -10246,7 +10246,21 @@
       "0x0036ac14"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oKcReadBlockdtv"
+    "mangled_symbol": "__0oKcReadBlockdtv",
+    "failure_notes": [
+      {
+        "session": "650bf8ca",
+        "notes": "8/212 byte diff after extensive iteration. Function size matches (212B); sltu+andi 0xff bool-cast pattern matches; call structure matches; deleting-tail dispatch via inline operator delete + free fallback matches. Discovered that explicit '((expr != 0) & 0xFF)' cast pattern triggers SNC's canonical bool emission (sltu+andi) \u2014 was missing from prior simpler bool patterns. Used 'cFile *fr = *(cFile * volatile *)&mFile' volatile-load trick to force mFile reload between cached f (s2) and call sites; this matched the GetCurrentPos arg-setup ordering. Final 8 bytes are 2 instructions swapped in cFileSystem::Read setup at +0x5c/+0x60: expected has 'lw a0,0(s0); move a1,sp; lw a0,0(a0); jal' but mine emits 'lw a0,0(s0); lw a0,0(a0); move a1,sp; jal'. Permuter ran 180s/6800 candidates and improved 13->8 bytes (saved current source) but cannot break further. Tried: register int *pd asm(\"$5\") hint to force a1 allocation, explicit '&dummy' materialization barrier, separate cFileHandle *h cache. Root cause: SNC -Xsched=2 scheduler choice for the Read arg-setup window \u2014 my source produces equivalent semantics but the scheduler interleaves the deref-mHandle and load-stack-addr differently. Not a bnel/beql divergence (no branch-likely involved). Recording as failed pending permuter exhaustion or sched=N variant. Best-effort source preserved in src/cReadBlock.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:23:46Z",
+        "src_file": "src/cReadBlock.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/650bf8ca/00005dbc__agent_self_reported_failure__src_cReadBlock.cpp"
+      }
+    ]
   },
   {
     "address": "0x00005e90",
@@ -41249,7 +41263,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -41260,7 +41274,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeSkinEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fFeSkinEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSkin.cpp",
+    "symbol_name": "__0fFeSkinEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "650bf8ca",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T12:23:46Z"
   },
   {
     "address": "0x0004bed8",
@@ -90509,7 +90530,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -168061,7 +168082,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x002571cc"
@@ -168080,7 +168101,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0010a808"
@@ -179521,7 +179542,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -179540,6 +179561,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T23:58:51Z"
+      },
+      {
+        "session": "650bf8ca",
+        "notes": "20/208 byte diff after current (matched) source. ALL bytes match except prologue scheduling at offsets 0x18-0x34: expected interleaves the s3=1 materialization (li s3,0x1) and the s1=a1 move BEFORE the cReadBlock jal call, while my version places them AFTER (s3=1 materialized via post-jal restore from s2 reg). This is the documented cReadBlock prologue scheduler divergence flagged in the session template guidance ('many Read(cFile&,cMemPool*) methods are blocked by the known cReadBlock prologue scheduler divergence; if body matches and only 20-byte prologue differs, record blocker'). Body of success/failure paths and bnezl branch all match expected. Prior session 8b4e02cc spent 540s+ permuter at 4500+ candidates with no improvement; 6 manual restructurings tested incl. asm barriers, register hints (register int result asm($19)), if/else vs goto, and removing memory barrier in success block. The original SNC compiler made different scheduling choices for this 208B function vs the matching 124B gcStringLValue::Read at 0x128d58 \u2014 likely the larger success block (cFileSystem::Read call) shifted register-pressure heuristics, but no source restructuring tested triggers the same shift in our build. Recording as known scheduler-divergence blocker per session template.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T12:23:46Z",
+        "src_file": "src/gcLobbyConfigStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/650bf8ca/002805dc__agent_self_reported_failure__src_gcLobbyConfigStrings.cpp"
       }
     ]
   },
