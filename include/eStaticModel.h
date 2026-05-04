@@ -33,6 +33,8 @@ public:
     void OnRemovedFromWorld(void);
     void CastRay(const eCollisionInfo &, const mRay &, mCollideHit *) const;
     void GetSweptContacts(const eCollisionInfo &, int, const mSphere *, const mCollideInfo *, eContactCollector *) const;
+    void PlatformFree(void);
+    int GetSurface(int) const;
 
     int mNodeCullIdCount;
     cArrayBase<eStaticModelNodeCullIdLOD> mNodeCullIdLODs;

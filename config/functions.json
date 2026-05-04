@@ -31141,7 +31141,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0008d5b4"
@@ -31150,7 +31150,21 @@
       "0x000314ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeRenderTargetMPlatformFreev"
+    "mangled_symbol": "__0fNeRenderTargetMPlatformFreev",
+    "failure_notes": [
+      {
+        "session": "064d82fc",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:12:35Z",
+        "src_file": "src/eRenderTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/064d82fc/000313e0__post_revert_compile_failed__src_eRenderTarget.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003149c",
@@ -31184,7 +31198,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002bed0",
@@ -31203,6 +31217,18 @@
         "identity": "codex/gpt-5.4-mini/high",
         "variant": "base",
         "timestamp": "2026-04-29T18:03:49Z"
+      },
+      {
+        "session": "064d82fc",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:12:35Z",
+        "src_file": "src/eRenderTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/064d82fc/000314ec__post_revert_compile_failed__src_eRenderTarget.cpp"
       }
     ]
   },
@@ -31248,7 +31274,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002fd58",
       "0x0008dbac"
@@ -31264,7 +31290,21 @@
       "0x000fdf0c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeRenderTargetIUnselectv"
+    "mangled_symbol": "__0fNeRenderTargetIUnselectv",
+    "failure_notes": [
+      {
+        "session": "064d82fc",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:12:35Z",
+        "src_file": "src/eRenderTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/064d82fc/00031724__post_revert_compile_failed__src_eRenderTarget.cpp"
+      }
+    ]
   },
   {
     "address": "0x000317a4",
@@ -37487,7 +37527,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00090514",
@@ -37497,7 +37537,14 @@
       "0x00041f54"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeStaticModelMPlatformFreev"
+    "mangled_symbol": "__0fMeStaticModelMPlatformFreev",
+    "src_file": "src/eStaticModel.cpp",
+    "symbol_name": "__0fMeStaticModelMPlatformFreev",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "71e70ccb",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:19:56Z"
   },
   {
     "address": "0x00041f14",
@@ -37610,11 +37657,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fMeStaticModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK"
+    "mangled_symbol": "__0fMeStaticModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK",
+    "failure_notes": [
+      {
+        "session": "71e70ccb",
+        "notes": "eStaticModel::CastSphere at 128B. CRITICAL BLOCKER: any inline-asm implementation of CastSphere in src/eStaticModel.cpp causes file-wide scheduler regression that breaks previously-matched eStaticModel::GetSweptContacts (37/68 bytes diff) and eStaticModel::PlatformFree (32/132 bytes diff). Isolation tests with stub CastSphere (no asm) confirm the regression is caused by the inline asm specifically, not by the symbol's mere presence. Tried: source-order changes (CastSphere first, last, between others), `#pragma control sched=1` around CastSphere only, `#pragma control sched=1` around victims only, `#pragma control sched=1` file-wide, removing `volatile` from asm, dropping clobbers, splitting prologue/body/epilogue across multiple asm blocks. None preserved both CastSphere bytes and the matched siblings simultaneously. Ultimately removed CastSphere from src/eStaticModel.cpp and include/eStaticModel.h to preserve the other matches. Body is VFPU sphere-cast prep (lv.q sphere center, swc1 radius, lv.q ray dir/origin, vscl.t scaled-dir, vadd.t end-point, sv.q to stack frame at offsets 0x00/0x10/0x20/0x30) followed by vtable dispatch through ((char**)shape)[1] + 0xA0. Recommendations: (1) write CastSphere using v4sf_t native VFPU types per docs/decisions/007 to avoid inline asm entirely, allowing the SNC scheduler to interleave normally; (2) or, if inline asm is truly required, isolate this method into its own .cpp compilation unit with `-Xsched=1` (violates project's class-per-file convention but unblocks the match). The eDynamicModel.cpp reference shows asm-CastSphere coexisting with matching siblings, but that file is built with ECFLAGS (-Xsched=1) globally \u2014 eStaticModel.cpp uses default CFLAGS (-Xsched=2) and must remain so for the other 9 matched functions.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:19:56Z",
+        "src_file": "src/eStaticModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/71e70ccb/0004269c__agent_self_reported_failure__src_eStaticModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004271c",
@@ -37705,11 +37766,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fMeStaticModelKGetSurfaceiK"
+    "mangled_symbol": "__0fMeStaticModelKGetSurfaceiK",
+    "failure_notes": [
+      {
+        "session": "71e70ccb",
+        "notes": "eStaticModel::GetSurface(int) const at 196B expected. Wrote correct semantic logic: read mField60 (cArrayBase ptr), null-check (return 0), read typeId at +0x4C, look up entry in global table at 0x38890 indexed by typeId&0xFFFF, validate entry's typeId field, get inner array at +0x44, bounds-check idx against (((int*)arr)[-1] & 0x3FFFFFFF) length prefix, return arr[idx]. Source is logically correct but byte pattern doesn't match. Compiled output is 168B (28B short). Expected uses three separate stack-stored zero return paths (sp[0], sp[4], sp[8]) with `beqzl + sw zero, X(sp)` in branch-likely delay slots \u2014 a SNC scheduler decision I cannot force from C source. Tried: `volatile int z0,z1,z2 = 0;` (got correct size 196B but 153/196 bytes differ \u2014 writes upfront, not in delay slots), non-volatile auto vars with `z = 0; return z;` (compiler kept zeros in registers, used `li v0, 0` in jr delay slot), restructuring with goto cleanup, single shared zero local. Branch-likely with sw-zero-in-delay-slot is the same scheduler heuristic divergence documented in docs/decisions/006-bnel-compiler-divergence.md but at much larger byte count. May be a candidate for permuter or unmatchable classification, but exceeds the \u22648 byte threshold required.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:19:56Z",
+        "src_file": "src/eStaticModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/71e70ccb/00043260__agent_self_reported_failure__src_eStaticModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x00043324",
@@ -39031,7 +39106,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008f1b8",
@@ -39606,7 +39681,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00140a3c",
@@ -39745,7 +39820,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00035788",
       "0x00037890"
@@ -105082,7 +105157,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -105116,7 +105191,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105256,7 +105331,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00122158"
     ],

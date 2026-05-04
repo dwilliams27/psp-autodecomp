@@ -52,7 +52,14 @@ public:
 
 extern "C" {
     void eStaticModel__eStaticModel_cBaseptr(void *self, cBase *parent);
+    void eStaticMeshVisData___dtor_eStaticMeshVisData_void(void *, int);
 }
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 extern char eStaticModelvirtualtable[];
 extern cType *D_000385DC;
@@ -255,4 +262,67 @@ void eStaticModel::AssignCopy(const cBase *base) {
     mNodeCullIdCount = value90;
     *dstArray = *srcArray;
     mField98 = other->mField98;
+}
+
+// ── eStaticModel::PlatformFree(void) @ 0x00041e90 ──
+void eStaticModel::PlatformFree(void) {
+    eStaticMeshVisData *vd = *(eStaticMeshVisData **)((char *)this + 0x90);
+    if (vd != 0) {
+        eStaticMeshVisData___dtor_eStaticMeshVisData_void(vd, 2);
+        cMemPool *pool = cMemPool::GetPoolFromPtr(vd);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, vd);
+        } else {
+            free(vd);
+        }
+        *(void **)((char *)this + 0x90) = 0;
+    }
+}
+
+// ── eStaticModel::GetSurface(int) const @ 0x00043260 ──
+struct eStaticModelTypeEntry {
+    char pad[0x30];
+    int typeId;
+    char pad2[0x10];
+    int *array;  // +0x44
+};
+
+int eStaticModel::GetSurface(int idx) const {
+    int z0, z1, z2;
+    void *p1 = *(void **)((char *)this + 0x60);
+    if (p1 == 0) {
+        z0 = 0;
+        return z0;
+    }
+    int typeId = *(int *)((char *)p1 + 0x4C);
+    eStaticModelTypeEntry *entry;
+    if (typeId != 0) {
+        eStaticModelTypeEntry *e = ((eStaticModelTypeEntry **)0x38890)[typeId & 0xFFFF];
+        entry = 0;
+        if (e != 0 && e->typeId == typeId) {
+            entry = e;
+        }
+    } else {
+        entry = 0;
+    }
+    if (entry == 0) {
+        z1 = 0;
+        return z1;
+    }
+    int *arr = entry->array;
+    int size;
+    if (arr == 0) {
+        size = 0;
+    } else {
+        size = ((int *)arr)[-1] & 0x3FFFFFFF;
+    }
+    if (idx >= size) {
+        z2 = 0;
+        return z2;
+    }
+    return arr[idx];
 }
