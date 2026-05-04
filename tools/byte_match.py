@@ -401,14 +401,26 @@ def find_db_func_for_sym(sym_name: str, functions: list[dict]) -> Optional[dict]
     """Resolve a compiled symbol to the ONE DB function whose mangled form
     encodes it. Inverse of `sym_encodes_func`.
 
-    Scans the DB linearly — caller can skip the scan by pre-indexing if
-    it matters. Returns None if no DB entry's (class, method) encodes
-    this sym_name (e.g., free functions not yet in the DB, or mangled
-    forms the encoder doesn't recognize).
+    Two-pass scan: first checks for an exact `mangled_symbol` match
+    (authoritative, from .sym file), then falls back to heuristic
+    class/method substring matching. This prevents short method names
+    (e.g., "Get") from heuristically matching longer names (e.g.,
+    "GetDesiredType") when the short method's DB entry appears first.
     """
+    # Pass 1: exact mangled_symbol match (authoritative).
     for f in functions:
         if f.get("size", 0) <= 0:
             continue
+        mangled = f.get("mangled_symbol")
+        if mangled and sym_name == mangled:
+            return f
+
+    # Pass 2: heuristic fallback for entries without mangled_symbol.
+    for f in functions:
+        if f.get("size", 0) <= 0:
+            continue
+        if f.get("mangled_symbol"):
+            continue  # already checked in pass 1
         if sym_encodes_func(sym_name, f):
             return f
     return None
