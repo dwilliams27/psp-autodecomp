@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 class gcEnumeration;
 
 class cWriteBlock {
@@ -19,11 +20,26 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cBaseArray {
 public:
     void *mData;
     void *mOwner;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     cBaseArray &operator=(const cBaseArray &);
 };
 
@@ -48,6 +64,7 @@ public:
 
     gcPartialEntityControllerTemplate(cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcPartialBodyControllerTemplate : public gcPartialEntityControllerTemplate {
@@ -62,8 +79,32 @@ public:
     int FindAnimationSet(cHandleT<gcEnumeration>) const;
     void Write(cFile &) const;
     int FindAttackSet(cHandleT<gcEnumeration>) const;
+    const cType *GetInstanceType(void) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class gcPartialEntityController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcPartialBodyController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F5E0;
+extern cType *D_0009F5F4;
 
 // Animation set / attack set entry: cHandleT<gcEnumeration> at +8.
 class gcPartialBodyControllerSet {
@@ -115,11 +156,11 @@ gcPartialBodyControllerTemplate::gcPartialBodyControllerTemplate(cBase *owner)
 // =====================================================================
 void gcPartialBodyControllerTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 3);
-    gcPartialEntityControllerTemplate::Write(file);
-    mArr1.Write(wb);
     wb.Write(mField1C);
-    mArr2.Write(wb);
+    gcPartialEntityControllerTemplate::Write(file);
     wb.End();
+    mArr2.Write(wb);
+    mArr1.Write(wb);
 }
 
 // =====================================================================
@@ -136,6 +177,45 @@ void gcPartialBodyControllerTemplate::AssignCopy(const cBase *base) {
     mArr1.operator=(other->mArr1);
     mField1C = other->mField1C;
     mArr2.operator=(other->mArr2);
+}
+
+// =====================================================================
+// 0x0013fc58 — Read(cFile &, cMemPool *)
+// =====================================================================
+int gcPartialBodyControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 3, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] == 3 && this->gcPartialEntityControllerTemplate::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mArr1.Read(rb);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x1C, 2);
+    mArr2.Read(rb);
+    return result;
+}
+
+// =====================================================================
+// 0x0013fe78 — GetInstanceType(void) const
+// =====================================================================
+const cType *gcPartialBodyControllerTemplate::GetInstanceType(void) const {
+    if (D_0009F5F4 == 0) {
+        if (D_0009F5E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F5E0 = cType::InitializeType(0, 0, 0x105, D_000385DC,
+                                               &gcPartialEntityController::New,
+                                               0, 0, 0);
+        }
+        D_0009F5F4 = cType::InitializeType(0, 0, 0x107, D_0009F5E0,
+                                           &gcPartialBodyController::New,
+                                           0, 0, 0);
+    }
+    return D_0009F5F4;
 }
 
 // =====================================================================
@@ -170,8 +250,8 @@ int gcPartialBodyControllerTemplate::FindAnimationSet(cHandleT<gcEnumeration> h)
 // =====================================================================
 int gcPartialBodyControllerTemplate::FindAttackSet(cHandleT<gcEnumeration> h) const {
     int i = 0;
-    void *data = mArr2.mData;
     int offset = 0;
+    void *data = mArr2.mData;
     while (1) {
         int size = 0;
         if (data != 0) {

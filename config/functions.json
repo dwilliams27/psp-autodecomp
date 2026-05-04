@@ -14400,7 +14400,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000012d0",
       "0x0000616c",
@@ -74781,7 +74781,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -107682,7 +107682,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -107787,13 +107787,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ffgcPartialBodyControllerTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0ffgcPartialBodyControllerTemplatePGetInstanceTypevK",
+    "src_file": "src/gcPartialBodyControllerTemplate.cpp",
+    "symbol_name": "__0ffgcPartialBodyControllerTemplatePGetInstanceTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b3807681",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:04:20Z"
   },
   {
     "address": "0x0013ff5c",
@@ -131483,7 +131490,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0000dd18",
@@ -187412,7 +187419,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006e7c",
       "0x002292ec"
@@ -187428,6 +187435,18 @@
         "model": "gpt-5.5",
         "variant": "base",
         "timestamp": "2026-04-29T04:00:22Z"
+      },
+      {
+        "session": "b3807681",
+        "notes": "Best result is 6/132 bytes different, identical to the prior failed attempt's permuter-improved best. The remaining diff is a fixed register-allocation divergence in the middle 4-byte copy (offset 0x0C) and the third copy's source-address register: expected uses a1 for copy-2's dst-address and a2 for copy-3's source-address; SNC instead picks a2 for copy-2's dst and a1 for copy-3's source. All other bytes match.\n\nApproaches tried this session: (1) direct *(int*)((char*)this+8) field copies \u2014 collapses to lw/sw with offset, producing 108B (wrong size); (2) explicit pointer temporaries (int *src/dst per copy) \u2014 produces the addiu/lw/addiu/sw shape but compiler postpones the move s1,v0 because it can use v0 directly, giving 39 bytes diff; (3) *(cHandle*) pointer cast for all three \u2014 interleaves further, 34 bytes diff; (4) sched=1 \u2014 42 bytes diff; (5) cHandle/handle/cHandle struct triple \u2014 9 bytes diff; (6) variant orderings of dstIndex/srcIndex declarations.\n\nThe 6-byte form (current src on disk) is the same as the prior attempt: declare dstIndex before mHandle1=, srcIndex between assigns, mHandle2 last. Permuter has been run twice for 5min in the prior session with zero improvement. The diff is in addiu/lw/sw operand bits (not bnel/beql), so this does not qualify as the documented bnel divergence \u2014 stays 'failed'.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:04:20Z",
+        "src_file": "src/gcPartialBodyControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/b3807681/002a54fc__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp"
       }
     ]
   },
