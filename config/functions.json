@@ -23742,13 +23742,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeRoomEnvironmentGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fVeRoomEnvironmentGroupOGetManagedTypevK",
+    "src_file": "src/eRoomEnvironmentGroup.cpp",
+    "symbol_name": "__0fVeRoomEnvironmentGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9eca8040",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:09:50Z"
   },
   {
     "address": "0x0001b7b4",
@@ -23760,13 +23767,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeRoomEnvironmentGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fVeRoomEnvironmentGroupQGetDataDirectoryvK",
+    "src_file": "src/eRoomEnvironmentGroup.cpp",
+    "symbol_name": "__0fVeRoomEnvironmentGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9eca8040",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:09:50Z"
   },
   {
     "address": "0x0001b8e0",
@@ -73508,7 +73522,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -73526,7 +73540,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -101121,7 +101135,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -101137,6 +101151,18 @@
       {
         "session": "490cb4fc",
         "notes": "Write failed to match: my output is 184 bytes vs expected 176 bytes (2 extra instructions). Structure of function is clear: construct cWriteBlock on stack, call cObject::Write, call cHandle::Write at +0x44, call cBaseArray::Write at +0x48, then wb.Write(GetNumRows()) and wb.Write(GetNumRows(), array ptr), then wb.End(). GetNumRows is inlined in both wb.Write calls in the original.\n\nByte diff pattern (73/184 bytes differ): SNC's register allocator picks a1 as scratch for loading the array pointer in the first inlined GetNumRows, landing size in a0 \u2014 but then needs a redundant 'move a1, a0' before the wb.Write(int) call because wb is expected in a0 and count in a1. The original allocation keeps the pointer load in a0-adjacent registers and avoids the extra move. The second inlined GetNumRows compounds this: the compiler reuses s0 (which holds `this`) as scratch for the header-word load, clobbering it, which forces reloading `this` into a1 via an extra 'move a1, s0' and reorders the delay-slot fill differently than the original.\n\nTried: (1) GetNumRows inline in class body; (2) out-of-line GetNumRows called explicitly; (3) explicit if/else rather than ternary-like form for the null check; (4) ternary form; (5) typing member at +0x50 as cArrayBase<int> with a GetSize() member function; (6) adding __asm__ volatile(\"\" ::: \"memory\") barriers to force ordering; (7) splitting Write into its own TU (src/gcTableTemplate_Write.cpp); (8) caching GetNumRows() result in a local before the calls. Every variation produced the same bad register allocation \u2014 the diverging instructions cluster around the two inlined header-word loads.\n\nPermuter could not run: compiled size (184B) differs from expected (176B), which exceeds permuter tolerance \u2014 it reports 'Could not locate target function' / size mismatch and exits without exploring variants.\n\nSuspected root cause: SNC register allocator heuristic divergence when scheduling two back-to-back inline expansions of the same accessor into adjacent call argument slots. Not controllable from source within the approaches tried; may require experimenting with -Xmopt/-Xxopt variants (agents may not modify Makefile), or could be a genuine compiler-version/heuristic divergence. NOT a bnel issue (diff is >10 bytes and involves move/scheduling instructions, not branch-likely)."
+      },
+      {
+        "session": "5ec22464",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T11:09:14Z",
+        "src_file": "src/gcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5ec22464/0012b8dc__post_revert_compile_failed__src_gcTableTemplate.cpp"
       }
     ],
     "mangled_symbol": "__0fPgcTableTemplateFWriteR6FcFileK"
@@ -101151,7 +101177,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -101164,7 +101190,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcTableTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcTableTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5ec22464",
+        "notes": "Read(cFile&, cMemPool*) at 34/276 byte diff. Implemented canonical cReadBlock(file,1,true) prologue, rb._data[3]==1 check, cObject::Read base call, SetCurrentPos rewind on failure, then chained reads: cHandle at this+0x44 (with GetPoolFromPtr), cBaseArray at this+0x48, cArray<int> at this+0x50, then virtual ResetVtblEntry dispatch at vtable+0x38 with (this+offset, pool, false). Need side-by-side disassembly analysis to identify the specific mismatch \u2014 likely cHandle Read pool acquisition pattern or virtual dispatch trailer.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T11:09:14Z",
+        "src_file": "src/gcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5ec22464/0012b98c__agent_self_reported_failure__src_gcTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012baa0",
@@ -101198,7 +101238,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -101206,7 +101246,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPgcTableTemplatedtv"
+    "mangled_symbol": "__0oPgcTableTemplatedtv",
+    "failure_notes": [
+      {
+        "session": "5ec22464",
+        "notes": "~gcTableTemplate at 11/304 byte diff \u2014 pure s2/s3 register allocation swap. Expected uses s2 for slot48 ((char*)this+0x48 / cBaseArray*) and s3 for data (mData int* at this+0x50). My output swaps these. Key wins: (1) inline class-local `operator delete` with null check produces correct pool dispatch (pool=GetPoolFromPtr; block=pool[9]; entry=block->allocTable+0x30; fn(block+entry.offset, p)) \u2014 without inlining, compiler emits __0OdlPv global delete instead. (2) `__asm__(\".word 0x1000ffff\\n.word 0\")` + `.size __0oPgcTableTemplatedtv, 0x130` adds the trailing `b $; nop`. Tried: declaring slot48 first vs data first, retyping slot48 as cBaseArray* arr48, both produced identical s2/s3 swap. Next try: -Xsched=1, or move arr48 ref into the inner if-data block, or aliasing trick to tie slot48 lifetime to before data load.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T11:09:14Z",
+        "src_file": "src/gcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/5ec22464/0012bae8__agent_self_reported_failure__src_gcTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012bc18",
@@ -138356,7 +138410,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0001ba0c"
     ],
@@ -138372,7 +138426,14 @@
         "variant": "base",
         "timestamp": "2026-04-26T23:04:01Z"
       }
-    ]
+    ],
+    "src_file": "src/eRoomEnvironmentGroup.cpp",
+    "symbol_name": "__0fVeRoomEnvironmentGroupDNewP6IcMemPoolP6FcBaseT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9eca8040",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:09:50Z"
   },
   {
     "address": "0x001deda8",
@@ -162088,7 +162149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d366c"
     ],
@@ -200136,7 +200197,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -200218,7 +200279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -200300,7 +200361,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
