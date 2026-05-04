@@ -36,7 +36,29 @@ bool eDynamicVertChunk::IsHandleValid(const eDynamicChunkHandle& h) {
     return h.mId == (unsigned short)(gDynamicVertChunkCurrentId & 0xFFFF);
 }
 
-// Function 1 (std::bad_alloc::what, 24B) and Function 2 (std::bad_alloc::~bad_alloc,
-// 220B) are NOT matched in this TU. Both rely on Sony stdlib's EH-frame emit
-// (load/store of the *0x37E54C exception chain around the function body) that
-// cannot be reproduced from plain C++. See session notes for details.
+// ---- Function 1: std::bad_alloc::what(void) const (nwAll_psp.obj @ 0x0036b9c0, 24B) ----
+// The lw/sw pair around the trivial return is the same pattern that matches
+// std::exception::what() in src/std_exception.cpp — read-back-write of the
+// __exception_ptr via a volatile store. Bytes are linker-resolved relocations
+// (different return string than std::exception, but compare_func masks them).
+extern int __exception_ptr;
+extern const char _bad_alloc_str[];
+
+namespace std {
+    class bad_alloc {
+    public:
+        const char *what() const;
+    };
+}
+
+const char *std::bad_alloc::what() const {
+    int value = __exception_ptr;
+    *(volatile int *)&__exception_ptr = value;
+    return _bad_alloc_str;
+}
+
+// Function 2 (std::bad_alloc::~bad_alloc, 220B) is NOT matched in this TU.
+// The destructor uses a two-level EH frame layout (push at sp+4 with tag 2,
+// inner catch frame at sp+0x74 with tag 1 + typeinfo 0x37E4C8 + counter save
+// at *0x37E548) that is SNC's private emit for nwAll_psp.obj's EH-aware build.
+// This structure cannot be reproduced from portable C++; see session notes.

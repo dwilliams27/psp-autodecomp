@@ -42072,7 +42072,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4"
     ],
@@ -43286,7 +43286,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008fe10"
     ],
@@ -104246,7 +104246,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000ccc",
       "0x000062e0",
@@ -168674,7 +168674,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0011d8c0"
     ],
@@ -168689,6 +168689,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-26T19:14:46Z"
+      },
+      {
+        "session": "0ce79b6b",
+        "notes": "class method but no canonical cBase * gcDesiredObjectT<gcDesiredEntity, gcDesiredEntityHelper, gcEntity>::GetObject(...) definition found in src/gcProfileSubscriber.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:02:59Z",
+        "src_file": "src/gcProfileSubscriber.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_225424/0ce79b6b/0025fa84__rejected_extern_c_class_method__src_gcProfileSubscriber.cpp"
       }
     ]
   },
@@ -168720,7 +168732,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011d020"
     ],
@@ -170602,7 +170614,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x002664c0"
     ],
@@ -170617,6 +170629,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-26T19:27:07Z"
+      },
+      {
+        "session": "e5f5c048",
+        "notes": "class method but no canonical cBase * gcDesiredObjectT<gcDesiredCustomAttack, gcDesiredCustomAttackHelper, gcEntityCustomAttack>::GetObject(...) definition found in src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:00:33Z",
+        "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/00266808__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
       }
     ]
   },
@@ -172057,7 +172081,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0026c09c"
     ],
@@ -172072,6 +172096,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-26T07:24:22Z"
+      },
+      {
+        "session": "e5f5c048",
+        "notes": "class method but no canonical cBase * gcDesiredObjectT<gcDesiredPoint, gcDesiredPointHelper, ePoint>::GetObject(...) definition found in src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:00:33Z",
+        "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/0026c3e4__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
       }
     ]
   },
@@ -175212,7 +175248,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00275f84"
     ],
@@ -175227,6 +175263,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T03:04:53Z"
+      },
+      {
+        "session": "e5f5c048",
+        "notes": "class method but no canonical cBase * gcDesiredObjectT<gcDesiredTimer, gcDesiredTimerHelper, gcTimer>::GetObject(...) definition found in src/cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:00:33Z",
+        "src_file": "src/cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/002762cc__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
       }
     ]
   },
@@ -180316,7 +180364,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -180454,7 +180502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -228328,7 +228376,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -228338,7 +228386,14 @@
         "notes": "std::bad_alloc::what() const, 24B / 6 instructions. The original prologue/epilogue is a load-then-store of *(u32*)0x37E54C (the SNC exception-chain TLS) \u2014 i.e. `lw a1,-6836(a0); ... sw a1,-6836(a0)` wrapped around the trivial `return <constptr>` body. That read/write pair is SNC's Sony-stdlib EH-frame emit (push/pop of the exception chain) that only appears when the function is compiled as part of the Sony C++ runtime with the private __try/__finally/EH-scope machinery nwAll_psp.obj was built with. A plain C++ body like `return \"bad_alloc\";` compiles to only 12B (lui/addiu/jr+delay) and does not reproduce the EH chain load/store \u2014 when compiled it actually byte-collides with eConfigBase::GetImageFileFormatName(), so that cross-match was removed from the source to avoid false-positive marking. I tried adding try{return ...;}catch(...){return 0;} in thought but SNC would balloon the function well past 24B and still wouldn't match the specific lui/lw/lui/sw/jr/addiu ordering. Root cause: this function is a Sony-stdlib EH-linked build that we don't have the matching runtime flags/intrinsics for. Needs either (a) a reproduction of SNC's private EH-push/pop emit (no known public pragma) or (b) inline asm for the exact frame operations, which the CLAUDE.md norms disallow for pure-asm workarounds. Recommend leaving indirect until the nwAll_psp.obj EH model is reverse-engineered more thoroughly."
       }
     ],
-    "mangled_symbol": "__0f5DstdJbad_allocEwhatvK"
+    "mangled_symbol": "__0f5DstdJbad_allocEwhatvK",
+    "src_file": "src/std_bad_alloc.cpp",
+    "symbol_name": "__0f5DstdJbad_allocEwhatvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0ce79b6b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:02:59Z"
   },
   {
     "address": "0x0036b9d8",
@@ -228350,7 +228405,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x001b9fec",
       "0x001ba078"
@@ -228361,6 +228416,18 @@
       {
         "session": "42bc66df",
         "notes": "std::bad_alloc::~bad_alloc(void), 220B / 55 instructions. This is the deleting-destructor thunk (arg1 flags & 1 -> operator delete). The body has (1) the single-entry EH chain push at sp+4 with tag byte 2 and link at *0x37E54C, (2) a nested catch-table-style push at sp+0x74 with tag byte 1, link-to-previous, typeinfo pointer 0x37E4C8, fp-snapshot at sp+128, and a 16-bit counter save/restore at *0x37E548 set to 0xFFFF across the body, (3) vtable install `*this = 0x1AD50`, (4) call std::exception::~exception(this,0) with the this-pointer also stashed at sp+0, (5) bnel `(flags&1)` -> call operator delete(this), (6) full teardown restoring both counters and the EH chain. None of this structure is expressible in portable C++: it is Sony's private two-level EH frame layout that SNC emits specifically when building nwAll_psp.obj. Plain C++ of the form `std::bad_alloc::~bad_alloc(){}` compiles to ~20B with no EH machinery at all. The delete thunk portion (flags&1 -> operator delete) is conventional, but the bracketing EH frames dominate and control register allocation (s1,s2,s3 choices, sp adjustments) so no small source change can approach this. Not attempted with the permuter \u2014 the diff would be >>20B, well outside the permuter's useful range. Same root cause as ~what: this is nwAll_psp.obj EH-build-only emit. Recommend leaving indirect."
+      },
+      {
+        "session": "0ce79b6b",
+        "notes": "std::bad_alloc::~bad_alloc, 220B / 55 instructions in nwAll_psp.obj. Confirmed the prior session's analysis: this is the SNC two-level EH-frame deleting destructor. Structure: (a) outer EH-chain push at sp+4 with tag byte 2 and link via *0x37E54C; (b) inner catch-region frame at sp+0x74 with tag byte 1, link to outer, typeinfo pointer 0x37E4C8 (likely std::bad_alloc/exception typeinfo), fp-snapshot at sp+128, and 16-bit counter at *0x37E548 saved/restored across the body and forced to 0xFFFF; (c) vtable install *this=0x1AD50, call std::exception::~exception(this,0); (d) bnel (flags&1) -> operator delete(this); (e) full teardown.\n\nNot attempted in compilation because no portable C++ construct produces SNC's emit for this layout. Plain `std::bad_alloc::~bad_alloc(){}` produces ~20B with zero EH machinery. A try/catch wrapping the base-class destructor call would emit a catch-frame at tag=1 but SNC's specific counter-at-0x37E548 manipulation and the exact register choice (s0=flags, s1=this, s2=&counter, s3=&exception_ptr) is driven by the compiler's private EH/Sony-stdlib build flags, not C++ semantics. The std::exception::exception() in src/std_exception.cpp uses inline asm tricks for vtable bytes, but extending that to 55 instructions with a catch-frame and counter management would be >50% inline asm, which the assembly-ban rule prohibits.\n\nSibling function: std::bad_exception::~bad_exception @ 0x001ba1a8 (gMain_psp.obj) is also 220B and almost certainly the same pattern; if a solution is found for one, it likely matches the other. Recommend leaving indirect until either (1) tools/byte_match.py is extended to recognize SNC's EH-emit pragma so a minimal `nothrow` C++ source can be tested, or (2) we identify the SNC compiler flag/pragma that turns on this two-level EH emit (likely an internal Sony-stdlib build option, not exposed in pspsnc 1.2.7503.0 docs).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:02:59Z",
+        "src_file": "src/std_bad_alloc.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_225424/0ce79b6b/0036b9d8__agent_self_reported_failure__src_std_bad_alloc.cpp"
       }
     ],
     "mangled_symbol": "__0o5DstdJbad_allocdtv"
