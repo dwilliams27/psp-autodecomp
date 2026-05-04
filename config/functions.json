@@ -23742,7 +23742,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -23760,7 +23760,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -36926,14 +36926,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQeRoomGeomLinkMgrdtv"
+    "mangled_symbol": "__0oQeRoomGeomLinkMgrdtv",
+    "src_file": "src/eRoomGeomLinkMgr.cpp",
+    "symbol_name": "__0oQeRoomGeomLinkMgrdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4a94dc1b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:06:51Z"
   },
   {
     "address": "0x000402cc",
@@ -46941,14 +46948,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeRoomVolumeLinkMgrdtv"
+    "mangled_symbol": "__0oSeRoomVolumeLinkMgrdtv",
+    "src_file": "src/eRoomVolumeLinkMgr.cpp",
+    "symbol_name": "__0oSeRoomVolumeLinkMgrdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4a94dc1b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:06:51Z"
   },
   {
     "address": "0x0005c648",
@@ -67912,7 +67926,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -67923,7 +67937,14 @@
       "0x0021ddd4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oaeDynamicMeshVisSkinTriListdtv"
+    "mangled_symbol": "__0oaeDynamicMeshVisSkinTriListdtv",
+    "src_file": "src/eDynamicMeshVisSkinTriList.cpp",
+    "symbol_name": "__0oaeDynamicMeshVisSkinTriListdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4a94dc1b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:06:51Z"
   },
   {
     "address": "0x0008ee48",
@@ -138335,7 +138356,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0001ba0c"
     ],
