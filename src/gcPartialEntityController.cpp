@@ -46,12 +46,9 @@ extern "C" {
     void gcStateInfo__gcStateInfo_void(void *);
 }
 
-class cReadBlock {
-public:
-    int _data[5];
-    cReadBlock(cFile &, unsigned int, bool);
-    ~cReadBlock(void);
-};
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
 
 extern "C" {
     void cFile_SetCurrentPos(void *, unsigned int);
@@ -146,11 +143,14 @@ void gcPartialEntityController::Reset(cMemPool *, bool) {
 // 0x0013e6f0 — Read
 int gcPartialEntityController::Read(cFile &file, cMemPool *) {
     int result = 1;
-    cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

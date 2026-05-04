@@ -31141,7 +31141,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008d5b4"
@@ -31184,7 +31184,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002bed0",
@@ -31248,7 +31248,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002fd58",
       "0x0008dbac"
@@ -107212,7 +107212,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -107229,7 +107229,14 @@
         "notes": "Read(cFile &, cMemPool *). Stuck at 67 bytes differ (44 bytes if we change cReadBlock's 2nd param to `int` instead of `unsigned int`, but that breaks the correct external mangling `cReadBlock__cReadBlock_cFileref_unsignedint_bool`). The structure is correct: construct cReadBlock(file, 1, true), check rb._data[3]==1, if not call cFile::SetCurrentPos(rb._data[0], rb._data[1]) and return 0. The core mismatch is SNC scheduling. Expected emits `li s0, 1` at position 2 (hoisted to the top), then later `li a1, 1; beq a0, a1`. My SNC emits `sw s0, 20(sp); move a0, sp; li a2, 1` at positions 2-4, then later fuses the comparison constant by reusing s0 directly: `beq a0, s0`. Because SNC sees that `result = 1` and the version constant `1` in the compare are the same literal, it reuses s0 and avoids the separate `li a1, 1`. This saves one instruction and cascades the whole branch layout. Tried: volatile int result, bool return type, reversed condition, separated `unsigned int ver = rb._data[3]` local, goto-structured body, explicit `int expectedVersion = 1` (all fused). Permuter improvement run (180s, 2691 candidates) bottomed out at 44 bytes differ and suggested `cReadBlock(cFile&, int, bool)` \u2014 but the mangled ctor signature must be `unsigned int` per symbol_addrs.txt (cReadBlock__cReadBlock_cFileref_unsignedint_bool__00005D00), so that mutation is semantically wrong even if it improved the body scheduling. Root cause: to force SNC to NOT reuse s0 for the comparison, need a source construct that visually distinguishes `result` from the version-compare constant \u2014 possibly the original source stores rb._data[3] to a local of a different signedness or uses a symbolic constant/enum. Next agent: try comparing `(unsigned)rb._data[3]` to `1u`, or make `result` a pointer that's tagged, or try `-Xsched=1`."
       }
     ],
-    "mangled_symbol": "__0fZgcPartialEntityControllerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcPartialEntityControllerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcPartialEntityController.cpp",
+    "symbol_name": "__0fZgcPartialEntityControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "917d7305",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:03:45Z"
   },
   {
     "address": "0x0013e768",
@@ -107321,7 +107328,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d478c",
       "0x0010b0e0",
@@ -107334,7 +107341,21 @@
       "0x002b8d80"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcPartialEntityControllerIActivateb"
+    "mangled_symbol": "__0fZgcPartialEntityControllerIActivateb",
+    "failure_notes": [
+      {
+        "session": "917d7305",
+        "notes": "gcPartialEntityController::Activate(bool), 932B. Reconstructed full structure: 3 Send blocks (id=4,10,11), classdesc dispatch [0x88]/[0x90], gcEnumeration_Get + IsLocallyControlled gating, D_0037D850/D_00038890 globals, gcEventParams (28B) + gcEventStackData (104B). Best diff manually: 345/932 bytes; permuter ran 130s/1169 candidates and got down to 282/932 (started at 345, 18 improvements) but could not match. Fundamental blocker is register allocation divergence: expected uses caller-saved a2 for the initial mFlags read (dies after early-return check) and re-reads mFlags into s5 only inside the active branch; SNC under our source structure picks callee-saved s5 for the first read and reuses it across the branch, hoisting the s5 save 4 instructions early and cascading offsets through ~37% of the function. Tried: (1) inline reads of *(unsigned short*)((char*)this+48) at each use site (no caching local), (2) split into early local 'curFlags' bound only to the early-return check, (3) explicit (bool) casts on both sides of the comparison. All produced identical s5-first codegen. Source-level coercion of SNC's register allocator at this site is not feasible without a structural rewrite that the permuter would already have found. File reverted to pre-Activate clean state to preserve all other matched functions; Activate intentionally not added.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:03:45Z",
+        "src_file": "src/gcPartialEntityController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/917d7305/0013e868__agent_self_reported_failure__src_gcPartialEntityController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013ec0c",
@@ -109419,7 +109440,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -109433,7 +109454,14 @@
       "0x00157a54"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcSubGeomControllerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTgcSubGeomControllerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcSubGeomController.cpp",
+    "symbol_name": "__0fTgcSubGeomControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "917d7305",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:03:45Z"
   },
   {
     "address": "0x00147cec",

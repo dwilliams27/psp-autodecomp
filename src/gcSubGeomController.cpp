@@ -4,6 +4,10 @@ class cMemPool;
 
 extern "C" void free(void *);
 extern "C" void *__vec_new(void *, int, int, void (*)(void *));
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
 
 struct cTypeMethod {
     short offset;
@@ -56,6 +60,7 @@ public:
     gcSubGeomController(cBase *);
     ~gcSubGeomController(void);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -108,6 +113,20 @@ const cType *gcSubGeomController::GetType(void) const {
         D_0009F64C = cType::InitializeType(0, 0, 0x1D5, D_000385DC, 0, 0, 0, 0);
     }
     return D_0009F64C;
+}
+
+// 0x00147c74 — Read
+int gcSubGeomController::Read(cFile &file, cMemPool *) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcValEntityTimeSince::Write(cFile &file) const {
