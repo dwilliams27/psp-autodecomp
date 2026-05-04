@@ -109884,13 +109884,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcLookAtControllerTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0fagcLookAtControllerTemplatePGetInstanceTypevK",
+    "src_file": "src/gcLookAtControllerTemplate.cpp",
+    "symbol_name": "__0fagcLookAtControllerTemplatePGetInstanceTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "7429592b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T14:26:58Z"
   },
   {
     "address": "0x00146f9c",
@@ -169904,13 +169911,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "45179339",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredEntity, gcDesiredEntityHelper, gcEntity>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T14:20:40Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/45179339/0025faa0__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x0025fbc8",
@@ -169940,7 +169961,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0025f76c"
@@ -170010,7 +170031,21 @@
       "0x003598b0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_PVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB_v"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_PVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB_v",
+    "failure_notes": [
+      {
+        "session": "45179339",
+        "notes": "VisitReferences 732B: TWO blockers. (1) Mangling divergence: pspsnc 1.2.7503.0 emits 'Ui' literal where original SN emitted 'TB' (outer back-ref) inside the function-pointer parameter. DB mangled_symbol is '...PFP6FcBaseTBPv_vPvTB_v' but compiler emits '...PFP6FcBaseUiPv_vPvTB_v'. compare_func.py rejects with 'NO DB ENTRY'. SN assembler does not accept GAS '.set name, value' for symbol aliasing nor 'X = Y' assignment. Possible fixes: patch pspcor.exe to emit outer-scope back-refs in PF args, or add SN-asm-compatible alias mechanism. (2) Even bypassing the name issue, current source produces 716B (4 insns short of 732B) with ~490 byte diff \u2014 register allocation differs (expected uses s6=this, s7=cb, s8=user, saves a1=flags to sp+4 early). The expected disasm at /tmp/exp.bin shows: prologue saves s6/s7/s8/s0-s5/ra in specific order; flags lives on stack at sp+4 throughout; cb-call early; then `lw s4, 8(s6)` and complex flag/keep dance using bnezl branch-likely; type cache init for D_385DC/E0/E4 (NOT for 0x9A408 \u2014 the per-class cache is NOT touched here, only the cBase/cNamed/parent chain); type-cast loop uses s0 as target=D_385E4 with `s3 = s3->[+0x1c]` (not [+7] mult-of-4); useCb test reads `lhu a1, 40(s5)` (not 0x28); validated path saves t1 to sp+8 and calls cb(self, val_or_0, user); fallthrough computes ((val&1)?0:val) and calls vtable visit at +0x60. Tail: `addiu a0, s6, 12` and jal 0x25f76c. Source structure exists in src/ file but needs significant rewrite to match register allocation + branch-likely patterns. Recommend opus-4.6/permuter run.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T14:20:40Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/45179339/0025fc28__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x0025ff04",
@@ -170022,14 +170057,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_dtv",
+    "failure_notes": [
+      {
+        "session": "45179339",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredEntity, gcDesiredEntityHelper, gcEntity>::~gcDesiredObjectT(...) definition found in src/gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T14:20:40Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/45179339/0025ff04__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredEntitygcDesiredEntityHelpergcEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x0025fff4",
@@ -171560,14 +171609,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_dtv",
+    "failure_notes": [
+      {
+        "session": "7429592b",
+        "notes": "Body bytes match (232B); size mismatch 232B vs 240B. The original symbol is 0xF0 (240) bytes because SNC pads it with 8 trailing bytes (`b $- ; nop` = 0x1000FFFF 0x00000000) followed by `.size __0oQ..._dtv, 0xf0`, matching the pattern documented in src/gcDesiredObject.cpp and src/gcDesiredPath.cpp for non-template `__0oN<class>dtv` deleting destructors. The trick depends on the symbol living in a contiguous `.text` section so that subsequent file-scope `__asm__(\".word ...; .size ...\")` directives append into the same section. SNC, however, emits ALL template-instantiation methods (including these `__0oQgcDesiredObjectT...dtv` thunks) into per-symbol `.gnu.linkonce.t.<mangled>` sections so duplicates from multiple TUs can be coalesced by the linker. Once the function body closes, the assembler returns to `.text`, so a following `__asm__(\".word ...\")` lands in `.text` (not the linkonce section), and `.size <mangled_in_linkonce>, 0xf0` fails to extend a symbol in a different section. Approaches tried: (1) `__attribute__((section(\".text\")))` on the template method \u2014 ignored by SNC for templates, still emitted to linkonce; (2) `.section .gnu.linkonce.t.<sym>` then `.word ...` then `.previous` \u2014 SNC rejected `.previous` as `Unknown opcode` and `.pushsection` with comdat flags as `Too many operands`; (3) `template <>` explicit specialization \u2014 produced wrong mangling (`_dt__Sv` instead of `_dtv`); (4) `extern \"C\"` wrapper with literal mangled name \u2014 successfully extended the symbol to 240B and produced a byte-exact match, but violates the orchestrator's `reject_extern_c_class_methods` quality gate (orchestrator.py:2489), which requires the file to contain a canonical `gcDesiredObjectT::~gcDesiredObjectT(...)` definition. Root cause: SNC's section-selection policy for template instantiations is incompatible with the post-body `.size`-extension idiom that works for non-template deleting destructors. A real fix would require either (a) a SNC pragma/attribute that forces the instantiation into `.text`, or (b) a way to reopen a `.gnu.linkonce.t.<sym>` section from outside the function and append the trailing pad. Neither is currently known. Marking failed; canonical C++ template form is left in source so structural fidelity is preserved.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T14:26:58Z",
+        "src_file": "src/gcLookAtControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/7429592b/0026566c__agent_self_reported_failure__src_gcLookAtControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026575c",
@@ -171912,14 +171975,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_dtv",
+    "failure_notes": [
+      {
+        "session": "7429592b",
+        "notes": "Same root cause as 0x0026566c (sister template instantiation). Body bytes match at 232B; canonical source produces a 232B vs 240B size diff because the trailing `b $- ; nop` pad + `.size __0oQ..._dtv, 0xf0` cannot be appended to a `.gnu.linkonce.t.<mangled>` section from outside the function body. An `extern \"C\"` wrapper with the literal mangled name produces a byte-exact match but is rejected by the canonical-method quality gate. Same approaches tried as 0x0026566c (section attribute, manual `.section`/`.previous`, explicit specialization, extern-C). Same conclusion: the SNC template-instantiation linkonce-section policy is the blocker. Left as canonical template-method form; needs either an SNC pragma/attribute discovery or an assembler trick to reopen linkonce sections to advance further.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T14:26:58Z",
+        "src_file": "src/gcLookAtControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/7429592b/00266d30__agent_self_reported_failure__src_gcLookAtControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00266e20",

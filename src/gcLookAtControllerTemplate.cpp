@@ -4,6 +4,12 @@
 //   gcLookAtControllerTemplate::Write(cFile &) const                 @ 0x00146CD8 ( 88B)
 //   gcLookAtControllerTemplate::AssignCopy(const cBase *)            @ 0x002C68B4 ( 96B)
 //   gcLookAtControllerTemplate::~gcLookAtControllerTemplate(void)    @ 0x00146E3C (124B)
+//   gcLookAtControllerTemplate::GetInstanceType(void) const          @ 0x00146EB8 (228B)
+//
+// Also instantiates two gcDesiredObjectT<T1,T2,T3>::~gcDesiredObjectT
+// destructors that the orchestrator routed into this file:
+//   gcDesiredObjectT<gcDesiredCustomAnimation, ...>::~gcDesiredObjectT @ 0x0026566C
+//   gcDesiredObjectT<gcDesiredCustomAttack,    ...>::~gcDesiredObjectT @ 0x00266D30
 //
 // Inheritance: cBase -> gcPartialEntityControllerTemplate -> gcLookAtControllerTemplate.
 // Layout: gcPartialEntityControllerTemplate base (mOwner@0, mClassDesc@4,
@@ -53,6 +59,18 @@ extern char gcLookAtControllerTemplatevirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_0009F5DC;
 extern cType *D_0009F644;
+extern cType *D_0009F5E0;
+extern cType *D_0009F648;
+
+class gcPartialEntityController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcLookAtController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 class cHandle {
 public:
@@ -83,6 +101,7 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
 
     // Inlined into the deleting-destructor tail. No null-pool guard
     // matches the 0x00146e7c-0x00146ea0 pool-dispatch sequence.
@@ -168,3 +187,116 @@ const cType *gcLookAtControllerTemplate::GetType(void) const {
     }
     return D_0009F644;
 }
+
+// ── gcLookAtControllerTemplate::GetInstanceType(void) const @ 0x00146EB8 ──
+// Mirrors gcPartialBodyControllerTemplate::GetInstanceType pattern.
+// Three-level type registration: cBase root → gcPartialEntityController (0x105)
+// → gcLookAtController (0x10E).
+const cType *gcLookAtControllerTemplate::GetInstanceType(void) const {
+    if (D_0009F648 == 0) {
+        if (D_0009F5E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_0009F5E0 = cType::InitializeType(0, 0, 0x105, D_000385DC,
+                                               &gcPartialEntityController::New,
+                                               0, 0, 0);
+        }
+        D_0009F648 = cType::InitializeType(0, 0, 0x10E, D_0009F5E0,
+                                           &gcLookAtController::New,
+                                           0, 0, 0);
+    }
+    return D_0009F648;
+}
+
+// =====================================================================
+// gcDesiredObjectT<T1,T2,T3>::~gcDesiredObjectT — template instantiations
+// =====================================================================
+// NOT MATCHED. See logs/session_results/7429592b.json notes.
+//
+// The original SNC binary contains these as 240-byte deleting-destructor
+// thunks (`__0oQ...dtv`) emitted in `.gnu.linkonce.t.<symbol>` sections
+// with 8 trailing bytes (`b $- ; nop`) padding the symbol to 0xF0. The
+// canonical C++ template-method form below compiles to the right body
+// (~232B) but SNC's section selection for template instantiations means
+// the trailing-pad/`.size` extension trick that works for the non-template
+// case (see src/gcDesiredObject.cpp, src/gcDesiredPath.cpp) cannot extend
+// a linkonce section. The byte content of the body itself matches; only
+// the 8-byte tail is missing. Left as canonical so the source teaches the
+// correct C++ abstraction, even at the cost of a non-match.
+//
+// Mangled names (from extern/extracted_symbols/Game-dvd-pal.sym):
+//   __0oQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_dtv
+//   __0oQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_dtv
+
+class gcDesiredCustomAnimation;
+class gcDesiredCustomAnimationHelper;
+class gcEntityCustomAnimation;
+class gcDesiredCustomAttack;
+class gcDesiredCustomAttackHelper;
+class gcEntityCustomAttack;
+
+extern "C" void free(void *);
+
+extern char gcDesiredObjectvirtualtable[];
+extern char cBaseclassdesc[];
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+template <class T1, class T2, class T3>
+class gcDesiredObjectT {
+public:
+    void *_owner;
+    void *_vtable;
+    int _slot;
+    ~gcDesiredObjectT();
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DtorDeleteRecord *rec =
+                (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, p);
+        } else {
+            free(p);
+        }
+    }
+};
+
+template <class T1, class T2, class T3>
+gcDesiredObjectT<T1, T2, T3>::~gcDesiredObjectT() {
+    *(char **)((char *)this + 4) = gcDesiredObjectvirtualtable;
+    char *slot = (char *)this + 0x08;
+    if (slot != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
+
+template class gcDesiredObjectT<gcDesiredCustomAnimation,
+                                gcDesiredCustomAnimationHelper,
+                                gcEntityCustomAnimation>;
+template class gcDesiredObjectT<gcDesiredCustomAttack,
+                                gcDesiredCustomAttackHelper,
+                                gcEntityCustomAttack>;
