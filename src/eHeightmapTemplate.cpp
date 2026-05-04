@@ -20,11 +20,44 @@ public:
 inline void *operator new(unsigned int, void *p) { return p; }
 
 extern "C" void eHeightmapTemplateData___dtor_eHeightmapTemplateData_void(void *, int);
+extern "C" void eHeightmapTemplate__eHeightmapTemplate_cBaseptr(void *, void *);
 
 class cStr {
 public:
     char _data[256];
     void Set(const char *, ...);
+};
+
+class cFile;
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(float);
+    void WriteBase(const cBase *);
+    void End(void);
+};
+
+class cName {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class eStaticGeomTemplate {
+public:
+    void Write(cFile &) const;
+};
+
+class eHeightmapTile {
+public:
+    void Write(cWriteBlock &) const;
 };
 
 template <class T>
@@ -49,6 +82,7 @@ public:
     eHeightmapTemplate(cBase *);
     void AssignCopy(const cBase *);
     void PlatformFree(void);
+    void Write(cFile &) const;
     float GetRadius(void) const;
     void GetExternalDependency(int, cFilename *) const;
     const cType *GetInstanceType(void) const;
@@ -87,6 +121,51 @@ void eHeightmapTemplate::PlatformFree(void) {
     }
 }
 
+// ── Write @ 0x00051b54 ──
+#pragma control sched=1
+void eHeightmapTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 6);
+    ((const eStaticGeomTemplate *)this)->Write(file);
+    ((const cName *)((const char *)this + 0x44))->Write(wb);
+    wb.Write(*(int *)((const char *)this + 0x5C));
+    wb.Write(*(int *)((const char *)this + 0x60));
+    wb.Write(*(int *)((const char *)this + 0x68));
+    wb.Write(*(int *)((const char *)this + 0x6C));
+    wb.Write(*(float *)((const char *)this + 0x70));
+    ((const cHandle *)((const char *)this + 0x88))->Write(wb);
+
+    int *handles = *(int **)((const char *)this + 0x7C);
+    int count0 = 0;
+    if (handles != 0) {
+        count0 = handles[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(count0);
+
+    int count = 0;
+    handles = *(int **)((const char *)this + 0x7C);
+    if (handles != 0) {
+        count = handles[-1] & 0x3FFFFFFF;
+    }
+
+    char *baseHandles = (char *)handles;
+    int i = 0;
+    if (i < count) {
+        int offset = 0;
+        char *tile = baseHandles + offset;
+        do {
+            ((const eHeightmapTile *)tile)->Write(wb);
+            i++;
+            tile += 0x14;
+        } while (i < count);
+    }
+
+    wb.Write(*(float *)((const char *)this + 0x74));
+    wb.Write(*(float *)((const char *)this + 0x78));
+    wb.WriteBase(*(const cBase **)((const char *)this + 0x84));
+    wb.End();
+}
+#pragma control sched=2
+
 // ── Constructor @ 0x000520f0 ──
 eHeightmapTemplate::eHeightmapTemplate(cBase *base) : cObject(base) {
     *(void **)((char *)this + 4) = eHeightmapTemplatevirtualtable;
@@ -96,9 +175,13 @@ eHeightmapTemplate::eHeightmapTemplate(cBase *base) : cObject(base) {
     *(int *)((char *)this + 0x5C) = 0;
     *(int *)((char *)this + 0x60) = 0;
     *(int *)((char *)this + 0x64) = 0;
+    __asm__ volatile("" ::: "memory");
     *(int *)((char *)this + 0x68) = 0x41;
+    __asm__ volatile("" ::: "memory");
     *(int *)((char *)this + 0x6C) = 0x10;
+    __asm__ volatile("" ::: "memory");
     *(float *)((char *)this + 0x70) = 4.0f;
+    __asm__ volatile("" ::: "memory");
     *(int *)((char *)this + 0x7C) = 0;
     *(int *)((char *)this + 0x80) = 0;
     *(int *)((char *)this + 0x84) = 0;
@@ -106,20 +189,24 @@ eHeightmapTemplate::eHeightmapTemplate(cBase *base) : cObject(base) {
 }
 
 // ── New @ 0x001f56cc ──
+#pragma control sched=1
 cBase *eHeightmapTemplate::New(cMemPool *pool, cBase *parent) {
+    __asm__ volatile("" : : "r"(parent));
+    eHeightmapTemplate *result = 0;
     void *block = ((void **)pool)[9];
-    char *allocTable = ((PoolBlock *)block)->allocTable;
+    char *allocTable = *(char **)((char *)block + 0x1C);
     AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
     short off = entry->offset;
     void *base = (char *)block + off;
-    eHeightmapTemplate *result = 0;
+    __asm__ volatile("" ::: "memory");
     eHeightmapTemplate *obj = (eHeightmapTemplate *)entry->fn(base, 0x8C, 4, 0, 0);
     if (obj != 0) {
-        new (obj) eHeightmapTemplate(parent);
+        eHeightmapTemplate__eHeightmapTemplate_cBaseptr(obj, parent);
         result = obj;
     }
     return (cBase *)result;
 }
+#pragma control sched=2
 
 #pragma control sched=1
 const cType *eHeightmapTemplate::GetType(void) const {

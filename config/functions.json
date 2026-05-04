@@ -43220,7 +43220,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -43246,7 +43246,14 @@
         "variant": "base",
         "timestamp": "2026-04-30T03:11:01Z"
       }
-    ]
+    ],
+    "src_file": "src/eHeightmapTemplate.cpp",
+    "symbol_name": "__0fSeHeightmapTemplateFWriteR6FcFileK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fdd0e943",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:48:03Z"
   },
   {
     "address": "0x00051ca0",
@@ -43352,7 +43359,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00009d28"
     ],
@@ -43366,7 +43373,14 @@
         "notes": "Constructor is in the transition zone (0x040000-0x06e000) per SCHED HINT. Diff is 18/120 bytes with default -Xsched=2 \u2014 all differences are instruction reordering. Specifically, sched=2 generated `li a0,0x41` earlier and used a1 instead of a0 for the `li 0x10; sw 108(s0)` pair (since a0 is used for the 4.0f float load). The original sched=1 serializes these: `li a0,0x41; sw a0,104; li a0,0x10; sw a0,108; lui a0,0x4080; mtc1; swc1 f12,112; sw zero,124; ...`. Source matches the original field initialization order: vtable@4, short@0x58, short@0x5A, byte@0x44, int@0x5C-0x64, int@0x68=0x41, int@0x6C=0x10, float@0x70=4.0f, int@0x7C-0x88=0. cObject(base) base constructor call is correct. Fields and constants all match. This is pure sched=1 need. Needs Makefile override: `$(BUILD_DIR)/src/eHeightmapTemplate%.o: CFLAGS := $(ECFLAGS)`. Will match byte-exact with sched=1."
       }
     ],
-    "mangled_symbol": "__0oSeHeightmapTemplatectP6FcBase"
+    "mangled_symbol": "__0oSeHeightmapTemplatectP6FcBase",
+    "src_file": "src/eHeightmapTemplate.cpp",
+    "symbol_name": "__0oSeHeightmapTemplatectP6FcBase",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fdd0e943",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:48:03Z"
   },
   {
     "address": "0x00052168",
@@ -71486,7 +71500,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -144171,7 +144185,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000520f0"
     ],
@@ -144183,7 +144197,14 @@
         "notes": "New is in .gnu.linkonce.t.* at 0x1F56CC. Diff is 45/124 bytes but the vast majority are instruction reorder \u2014 source logic is correct and the function emits all the right loads/stores/calls, just in different positions. Sched=2 aggressively interleaves the saved-register spills (s1, s2, ra at sp+4/8/12) with the pool-lookup body (lw pool->unk24, lw block->unk1C, addiu 0x28, lh offset, lw fn, addu base, li args, jalr). The original sched=1 emits `sw s0; sw s1; sw s2; sw ra` as a contiguous prologue block before any body work. Source pattern matches gcRegion::New (matched): pool[9] \u2192 block; block+0x1C \u2192 allocTable; (allocTable+0x28) as AllocEntry *; entry->fn(block+entry->offset, 0x8C, 4, 0, 0); placement-new the constructor on success. Structure and arguments are all correct. Needs the same sched=1 Makefile override as the rest of this class. No source changes needed."
       }
     ],
-    "mangled_symbol": "__0fSeHeightmapTemplateDNewP6IcMemPoolP6FcBaseT"
+    "mangled_symbol": "__0fSeHeightmapTemplateDNewP6IcMemPoolP6FcBaseT",
+    "src_file": "src/eHeightmapTemplate.cpp",
+    "symbol_name": "__0fSeHeightmapTemplateDNewP6IcMemPoolP6FcBaseT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fdd0e943",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:48:03Z"
   },
   {
     "address": "0x001f5748",
@@ -159928,7 +159949,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000cf700"
     ],
@@ -160004,7 +160025,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0000c390"
