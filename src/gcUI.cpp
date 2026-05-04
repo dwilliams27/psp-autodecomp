@@ -59,6 +59,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cOutStream &) const;
+    int Read(cFile &, cMemPool *);
     void DeleteSpawned(void);
     void RemoveFromDestroyList(gcUIDialog *);
 };
@@ -94,6 +95,11 @@ struct gcUI_DestroySlotScan {
 };
 
 extern "C" void gcUI_gcFader_ctor(gcUI::gcFader *) asm("__0o5EgcUIHgcFaderctv");
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *rb, cFile &file,
+                                             unsigned int id, bool validate);
+extern "C" void __0oKcReadBlockdtv(void *rb, int flags);
+extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
 
 // ── Constructor ──  @ 0x000e041c, 160B
 gcUI::gcUI(cBase *parent, unsigned int flags) {
@@ -184,6 +190,20 @@ block_13:
         __asm__ volatile("" ::: "memory");
         *var_a1 = var_a2_4 | (zero << var_a0);
     }
+}
+
+// ── Read(cFile &, cMemPool *) ──  @ 0x000e03a4, 120B
+int gcUI::Read(cFile &file, cMemPool *) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── DeleteSpawned ──  @ 0x000e0a08, 100B

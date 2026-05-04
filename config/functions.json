@@ -53014,7 +53014,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -53024,7 +53024,14 @@
       "0x0006b784"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeSimulatedMotorEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPeSimulatedMotorEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSimulatedMotor.cpp",
+    "symbol_name": "__0fPeSimulatedMotorEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8ecc5ada",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:38:29Z"
   },
   {
     "address": "0x0006b694",
@@ -53056,7 +53063,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -53077,7 +53084,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T17:22:21Z"
       }
-    ]
+    ],
+    "src_file": "src/eSimulatedMotor.cpp",
+    "symbol_name": "__0oPeSimulatedMotordtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8ecc5ada",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:38:29Z"
   },
   {
     "address": "0x0006b738",
@@ -76599,7 +76613,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -76607,7 +76621,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fEgcUIEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fEgcUIEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcUI.cpp",
+    "symbol_name": "__0fEgcUIEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8ecc5ada",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:38:29Z"
   },
   {
     "address": "0x000e041c",
@@ -107149,7 +107170,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -107258,7 +107279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d478c",
       "0x0010b0e0",
@@ -109356,7 +109377,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
