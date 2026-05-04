@@ -66600,7 +66600,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004b38",
       "0x0036bb5c",
@@ -66689,7 +66689,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000e208",
       "0x0036bdbc"
@@ -90182,7 +90182,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0010af00",
       "0x0010d1d4"
@@ -90204,7 +90204,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0016fd4c"
     ],
@@ -97610,7 +97610,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000024f8",
       "0x00006af8",
@@ -111312,7 +111312,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -111322,7 +111322,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValCaseRangeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcValCaseRangeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b34724c4",
+        "notes": "Documented cReadBlock prologue scheduler divergence (research_todos.md section 2, ML2 in match-lift). Body 300B with correct structure: cReadBlock rb(file, 1, true); int version (asm volatile ori 0,1); if (tag != 1 || gcValue::Read == 0) { fail }; loop i=0..1 { read mArr[i] via rb.ReadBase }; return version. 39/300 bytes differ \u2014 entirely scheduling, not semantic. (1) Expected hoists `li s2, 1` BEFORE the cReadBlock jal (offset 0x20); mine emits `li s2, 1` AFTER the call returns (between lw a0,12(sp) and the bne) \u2014 SNC scheduler picks different slot for `__asm__ volatile(\"ori %0,$0,1\")` despite no data dependency. (2) Post-beqz scheduling differs: mine emits `li s5,0; li s4,0; b loop; addiu s3,sp,20 (delay)` vs expected `li s5,0; addiu s3,sp,20; b loop; li s4,0 (delay)` \u2014 same instructions, different slot. Tried: (a) `tag != version, return version` \u2014 296B size mismatch; (b) `tag != 1, return version` (current state, best 39 bytes); (c) asm before cReadBlock; (d) memory clobber on asm. Per Phase-1 findings (docs/sessions/2026-05-03.md): cReadBlock prologue divergence confirmed unfixable at source level \u2014 48 confirmed identical 8-instruction prologue reorderings, all source workarounds exhausted (9,600+ permuter candidates, inline asm, pragma, register binding). Fix requires binary patching pspcor.exe CG_sched/CG_LRA. Joins 191 failed + 452 untried Read methods blocked by this issue.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:55:37Z",
+        "src_file": "src/gcValCaseRange.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/b34724c4/001500ec__agent_self_reported_failure__src_gcValCaseRange.cpp"
+      }
+    ]
   },
   {
     "address": "0x00150218",
@@ -131485,7 +131499,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00002e34",
       "0x00004690",
@@ -131494,7 +131508,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOcStaticMemPooldtv"
+    "mangled_symbol": "__0oOcStaticMemPooldtv",
+    "src_file": "src/cStaticMemPool.cpp",
+    "symbol_name": "__0oOcStaticMemPooldtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0b5357cd",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T07:25:39Z"
   },
   {
     "address": "0x001c770c",
@@ -154454,7 +154475,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0000e0e8",
@@ -165580,7 +165601,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00003134",
       "0x00004690",
@@ -167500,7 +167521,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006e7c",
       "0x00222f24"
@@ -167516,6 +167537,18 @@
         "model": "gpt-5.5",
         "variant": "base",
         "timestamp": "2026-04-29T04:21:06Z"
+      },
+      {
+        "session": "753c670f",
+        "notes": "gcState::AssignCopy(const cBase *) \u2014 stuck at the same 2-byte mismatch as the prior agent. Diff is exclusively in the third (offset 0x28) scalar copy: expected emits `lw a2, 0(a2); sw a2, 0(a1)` (reusing the source-pointer register a2 for the loaded value), my source emits `lw a0, 0(a2); sw a0, 0(a1)` (compiler picks a0 for the load value). All other 154 bytes match including the 6-int unrolled copy at offsets 8-0x1F, the 0x20/0x24 individual copies (which exhibit the alternating a0/a1/a2 reg-allocation pattern), the addiu+lw materialization style, and the cBaseArray::operator= call setup with delay-slot fill.\n\nApproaches tried this session: (1) baseline explicit-pointer style (matches prior 2-byte diff, 156B); (2) simple `*p=*q` form (132B - compiler used base+offset addressing directly via `lw a0, 32(v0)` rather than addiu materialization, so wrong size but interestingly DID pick a2 for the 0x28 value); (3) struct copy of 12 bytes (140B - similar issue); (4) explicit pointers without the prior memory barrier; (5) const-qualified source pointers (still 2 bytes); (6) walking pointer with post-increment (worse, 17 bytes). Loop variant didn't unroll (152B with t0 instead of a0/a2). Prior agent ran 9432-iteration permuter from the same baseline with zero improvement.\n\nRoot cause appears to be SNC's register allocation heuristic for the third int copy. The simple form picks a0/a1/a2 sequentially across the 3 copies (matching the expected register choice for 0x28) but optimizes away the addiu materialization. The explicit-pointer form forces addiu materialization (matching the expected size and overall instruction sequence) but allocates a0 for the third value instead of a2. Bridging these two requires nudging the scheduler \u2014 possibly via cross-file context (call graph, inlining decisions) that affects SNC's register-pressure lookahead. Not a bnel/beql divergence so doesn't qualify for unmatchable classification.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T07:18:29Z",
+        "src_file": "src/gcState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/753c670f/00258ff0__agent_self_reported_failure__src_gcState.cpp"
       }
     ]
   },
@@ -170333,7 +170366,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -202475,13 +202508,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValCaseRangePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fOgcValCaseRangePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "failure_notes": [
+      {
+        "session": "b34724c4",
+        "notes": "Blocked by tooling/mangling divergence on VisitReferences signature, BEFORE any byte-match comparison can happen. Compiled output produces `__0fOgcValCaseRangePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB` but the DB has authoritative mangled_symbol from .sym file = `...PFP6FcBaseTBPv_vPvTB` (using SNC backreference substitution `TB` for repeated `unsigned int` type). compare_func.py find_db_func_for_sym: pass 1 requires exact mangled_symbol match (fails); pass 2 skips entries with mangled_symbol set (skipped). Result: 'NO DB ENTRY: no database function has this mangled name' \u2014 same failure mode affects ALL VisitReferences in the codebase right now (verified gcValUIChecked.cpp::VisitReferences also reports NO DB ENTRY despite being marked matched in DB; it has symbol_name=`...UiPv_v...` from prior match but pass 2 won't use it because mangled_symbol is set). \n\nSeparately, the 660B body itself is novel: it walks the cBaseArray children at this+8, lazy-initializes a 3-level cType chain for cNamed (factory at 0x1C3C58 = cNamed::New, type ids 1/2/3, shared globals D_385DC/D_385E0/D_385E4), then for each child (a) calls child->classdesc method at offset 8 to get its cType, (b) walks parent chain at +0x1C looking for D_385E4 match, (c) if matched AND (flags&0xfe00 & child->mask@0x28), calls cb(ctx, child, user) \u2014 else dispatches recursively via child->classdesc method 0x60. Wrote a structural attempt (~80 lines) covering this control flow but it cannot be byte-compared due to the mangling lookup failure. Reverted the attempt to keep the file clean. \n\nNo matched VisitReferences >156B exists in the codebase (longest matched: gcDoUIWidgetForEach at 156B). All 137 VisitReferences in 500-800B range are untried. Next agent should: (1) FIRST report this lookup-failure bug to surface the mangled_symbol/symbol_name mismatch \u2014 without that fix, NO VisitReferences with cb pattern can be matched; (2) once unblocked, study the cNamed type-chain lazy init pattern; (3) check if any other class in the codebase has the same VisitReferences shape (cBaseArray walk + cNamed dispatch) for an exemplar.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:55:37Z",
+        "src_file": "src/gcValCaseRange.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/b34724c4/00305644__agent_self_reported_failure__src_gcValCaseRange.cpp"
+      }
+    ]
   },
   {
     "address": "0x003058d8",
@@ -202493,7 +202540,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc"
@@ -202504,6 +202551,18 @@
       {
         "session": "9042bef6",
         "notes": "Destructor cannot be matched due to the well-documented TRAILING_B_TRAP pattern (see docs/research_todos.md section 1 and docs/postmortems/2026-04-21-overnight.md). Our compiled output is 144 bytes (38 instructions) and matches the expected function body exactly (identical prologue, vtable stores, beqzl branch-likely check on arr, cBaseArray::RemoveAll call, cBaseclassdesc store, flags&1 check, GetPoolFromPtr + deleter dispatch, and jr ra/addiu epilogue). The expected function is 152 bytes because SNC appends 8 bytes of dead code after the epilogue: `b .; nop` (0x1000ffff, 0x00000000). NO matched function in the codebase currently reproduces this pattern, and all documented attempts (for(;;){}, __builtin_unreachable, inline .word 0x1000ffff, __attribute__((noreturn))) have been ruled out. Agents tried gcValBinaryOp::~gcValBinaryOp with identical source structure and it fails the same way (marked 'failed' in functions.json at 0x00320edc). Root cause appears to be an SNC codegen quirk triggered by the `beqzl` branch-likely + `if (flags&1) { deletercall }` pattern in dtors. This is a documented research gap affecting 580 EBOOT functions (321 dtors, 95 AssignCopys, 86 operator=, etc.). Once the trap pattern is understood, this should match trivially \u2014 the rest of the function is byte-exact. Did NOT run permuter (already know from prior research this is a missing-trap-emission, not a body diff). Did NOT mark unmatchable_bnel because this isn't a bnel divergence \u2014 it's a trailing dead-code emission issue."
+      },
+      {
+        "session": "b34724c4",
+        "notes": "Documented TRAILING_B_TRAP blocker (research_todos.md section 1, ~580 EBOOT functions affected). Body matches exactly at 144B/36 instructions: prologue, vtable store at offset 4, beqzl null-check on (this+8) followed by cBaseArray::RemoveAll, classdesc store, (flags&1) check, cMemPool::GetPoolFromPtr + indirect deleter dispatch, jr ra/addiu epilogue all match. Expected is 152B because SNC appends 8 bytes of dead code after the epilogue (.word 0x1000ffff; .word 0x00000000 = b .; nop). Likely 16-byte alignment padding (0x305968 mod 16 = 8, +8 brings next func to 0x305970 mod 16 = 0). This session converted the prior extern-C wrapper (which produced wrong mangled name and was rejected by quality gate) to canonical C++ syntax (gcValCaseRange::~gcValCaseRange) and added a class-local inline operator delete in src/gcValCaseRange.cpp (matching gcValCameraVariable.cpp pattern via the inline keyword on out-of-class definition). Now SNC -O2 inlines the pool-delete tail correctly. Source structure is correct; only the trailing dead-code emission is missing. Prior attempts in research_todos.md exhausted: for(;;){}, __builtin_unreachable, inline .word, __attribute__((noreturn)). Did NOT run permuter (known body match, not body diff). Did NOT classify unmatchable_bnel (not a bnel issue).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:55:37Z",
+        "src_file": "src/gcValCaseRange.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/b34724c4/003058d8__agent_self_reported_failure__src_gcValCaseRange.cpp"
       }
     ],
     "mangled_symbol": "__0oOgcValCaseRangedtv"

@@ -2,13 +2,49 @@
 // Decompiled functions:
 //   0x002644f4 gcMsgPlayCinematic::GetType(void) const         (76B)
 //   0x00264540 gcMsgPlayCinematic::New(nwMsgBuffer &) static   (156B)
+//   0x00123e20 gcMsgPlayCinematic::Read(...)                   (460B)
 //   0x00264658 gcMsgLoadMap::GetType(void) const               (76B)
 
 class nwMsg;
+class cInStream;
+class nwAddress;
+class gcCinematic;
+class gcStreamedCinematic;
+
+typedef int nwSocketHandle;
+typedef int nwConnectionHandle;
 
 struct nwMsgBuffer {
     char _pad[0x4B0];
     int mOffset;
+};
+
+struct cGUID {
+    int a;
+    int b;
+    void Read(cInStream &);
+};
+
+template <class T>
+class cGUIDT : public cGUID {
+};
+
+class cHandle {
+public:
+    int mId;
+    void Read(cInStream &);
+};
+
+class cInStreamRef {
+public:
+    void Read(unsigned int &, int, bool);
+    void Read(float &, bool);
+};
+
+struct cInStreamBits {
+    unsigned char *mBuf;
+    int mCapacity;
+    int mBitPos;
 };
 
 class nwMsgType {
@@ -17,10 +53,29 @@ public:
                                      nwMsg *(*)(nwMsgBuffer &));
 };
 
+class gcEntity {
+public:
+    static void OnFullscreenCinematicStarting();
+    static void OnFullscreenCinematicStarted();
+};
+
+class gcMap {
+public:
+    static bool IsMapLoaded(bool);
+    void QueueStreamedCinematic(const cGUIDT<gcStreamedCinematic> &);
+    static void PlayCinematic(gcCinematic *, cHandle, float, bool);
+};
+
+class nwSocket {
+public:
+    static void *GetConnection(nwConnectionHandle);
+};
+
 class gcMsgPlayCinematic {
 public:
     static nwMsg *New(nwMsgBuffer &);
     nwMsgType *GetType() const;
+    void Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle);
 };
 
 class gcMsgLoadMap {
@@ -66,30 +121,32 @@ nwMsg *gcMsgPlayCinematic::New(nwMsgBuffer &buf) {
         zb[0] = 0;
         zb[2] = 0;
         zb[1] = 0;
-        int reuse = zb[2];
+        int z2 = zb[2];
         zb[3] = 0;
-        zb[6] = reuse;
-        void *vt = (void *)0x388FD0;
-        zb[4] = reuse;
+        unsigned int vt_hi;
+        __asm__ ("lui %0, 0x39" : "=r"(vt_hi));
+        zb[6] = z2;
+        void *vt = (void *)(vt_hi - 28720);
+        zb[4] = z2;
         obj->vtable = vt;
-        int one = 1;
+        register int one asm("$9") = 1;
         zb[5] = 0;
         obj->mNum = one;
-        int *p1 = (int *)((char *)obj + 8);
+        int z0 = zb[0];
         zb[7] = 0;
-        int *p2 = (int *)((char *)obj + 0x18);
-        int v1 = zb[1];
-        int v0 = zb[0];
+        int *p1 = (int *)((char *)obj + 8);
+        register int z1 asm("$9") = zb[1];
+        p1[0] = z0;
         float zf = 0.0f;
-        p1[1] = v1;
-        p1[0] = v0;
+        p1[1] = z1;
+        register char b1 asm("$7") = 0;
         obj->mFlag = 0;
-        char b1 = 0;
-        char b2 = 0;
+        register char b2 asm("$8") = 0;
         *((char *)obj + 0x14) = b1;
-        int v6 = zb[6];
         *((char *)obj + 0x15) = b2;
-        p2[0] = v6;
+        int z6 = zb[6];
+        int *p2 = (int *)((unsigned char *)obj + 0x18);
+        p2[0] = z6;
         obj->mF = zf;
         result = (nwMsg *)obj;
     }
