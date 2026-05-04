@@ -86149,7 +86149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
@@ -86160,7 +86160,21 @@
       "0x002622a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5IgcCameraLgcHPRMotionGUpdatefTB"
+    "mangled_symbol": "__0f5IgcCameraLgcHPRMotionGUpdatefTB",
+    "failure_notes": [
+      {
+        "session": "17cb0e3a",
+        "notes": "656B function with complex angle-update logic (360-degree wrapping, fabsf clamping, 3-axis loop). My attempt produces 652B (4 bytes short on size; actual byte mismatch is much higher). Translated m2c output to a single-loop structure iterating 3 times with: diff computation, 360-wrap normalize, target-velocity clamp, max-acceleration clamp, position integration with 360-wrap, and final pitch clamp.\n\nKey divergences from target:\n  * Target prologue uses sp -64 (mine -48) \u2014 target stores more FP regs (uses f26=180.0, f28=360.0, f30=0.0 as constants).\n  * Target loads f26=180.0 (lui 0x4334) for the fabsf<=180 compare, while mine creates 180.0 inline at compare site.\n  * Target preloads zero into f30 (mtc1 zero, f30) for sign comparisons.\n  * Target outer-loop structure uses i (counter) at s1, base ptr at s2, vel ptr at s3 (mine: s3, s1, s2).\n  * Target has fabsf called 4 times per loop iteration including for vel/clamped sign-compare path; mine combined some.\n\nNext retry: (1) declare named float constants 180.0f, 360.0f, 0.0f as function-scope locals so they get hoisted to f26/f28/f30; (2) study m2c more carefully \u2014 it has fabsf(var_s2->unk20) which is fabsf of base[8], not just `clamped`; (3) ensure each fabsf is its own call \u2014 don't combine. Source kept in src/gcCamera_gcHPRMotion.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:52:09Z",
+        "src_file": "src/gcCamera_gcHPRMotion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/17cb0e3a/000fc1d4__agent_self_reported_failure__src_gcCamera_gcHPRMotion.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fc464",
@@ -86172,7 +86186,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006454",
       "0x000fba84"
@@ -86193,6 +86207,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:19:57Z"
+      },
+      {
+        "session": "17cb0e3a",
+        "notes": "27-byte mismatch in 228B function after permuter ran. Function structure (3 sequential float-write loops + gcMotionLimits::Write) is correct. Best version uses three block-local `bool sign = true` blocks and three function-scope pointers `p1`, `p2`, `p3` declared (after permuter shuffle) as p2 first, then p3, p1. This produces: this=s0, stream=s1 (correct), but pointers in s2/s3/s4 instead of target's s4/s5/s6. Sign and counter end up scattered across loops since they're block-local.\n\nThe function-scope-everything alternative (decl order p3,p2,p1,i,sign) produces: pointers in s4/s5/s6 (correct) but sign=s3, counter=s2 (target wants sign=s2, counter=s3) AND this/stream get swapped to s1/s0. So there's a fundamental tradeoff between the two divergent allocator decisions.\n\nRoot cause: SNC's register allocator has TWO independent decisions diverging from target. (1) When sign+counter are FUNCTION-scope, counter has more uses than sign so it gets the LOWER s-num \u2014 but target has them inverted. (2) Whether this/stream end up in s0/s1 vs s1/s0 depends on whether locals are block- or function-scoped.\n\nNeed: this=s0, stream=s1, sign=s2, counter=s3, p1=s4, p2=s5, p3=s6. Tried block-local sign+counter, function-scope sign+counter, hybrids, do-while vs for, decl order permutations, `bool sign = true` initialized at decl, and 90s of permuter (29\u219227). Permuter improvement was structural (declaration reorder), not the s-num swap that's needed.\n\nNext retry idea: structural change \u2014 maybe an inlined helper `inline void writeAxis(cOutStream &s, const float *p)` taking the pointer as parameter. The inlined parameter `p` might allocate differently; sign as param could land in s2.\n\nBut also: the prior agent (5 attempts) and this attempt (3 attempts) both converged on the same wall. This may need a -Xmopt or -Xxopt flag tweak rather than source rewrite, OR may be a candidate for unmatchable classification once it can be shown that the diff is purely register-renaming (no semantic divergence).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:52:09Z",
+        "src_file": "src/gcCamera_gcHPRMotion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/17cb0e3a/000fc464__agent_self_reported_failure__src_gcCamera_gcHPRMotion.cpp"
       }
     ]
   },
@@ -86206,7 +86232,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006bc0",
       "0x000fbae0"
@@ -86216,7 +86242,21 @@
       "0x000fd900"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5IgcCameraLgcHPRMotionEReadR6JcInStream"
+    "mangled_symbol": "__0f5IgcCameraLgcHPRMotionEReadR6JcInStream",
+    "failure_notes": [
+      {
+        "session": "17cb0e3a",
+        "notes": "20-byte size mismatch: my version is 228B, target is 248B. Same 3-loop+limits structure as Write, but the target Read disassembly has additional `li a0, 0; addu sN, sN, a0` (no-op pointer adjust) BEFORE each of the 3 inner loops, AND all 3 sign/counter `li` reloads. My block-local sign approach got the sign reloads (3x6=18B) but not the no-op `addu` pattern.\n\nThe target's first pointer init is `li s4, 0x0; ...; addu s4, a0, s4` (compute s4 = a0 + 0), and between blocks the compiler emits `li a0, 0; addu sN, sN, a0` (sN += 0). This pattern strongly suggests the source uses a non-foldable variable offset \u2014 e.g. an outer unrolled loop with index j where `p = base + j * 16` keeps `j*16 = 0` as a runtime expression for j=0. Tried `int offset = 0; p1 = ...+offset; p2 += offset; p3 += offset` but SNC folded the +0 away (the variable was treated as a known constant).\n\nNext retry should try outer unrolled-loop structure with explicit indexed array, where the outer index variable is genuinely runtime-unknown to the inner code (e.g., via macro-style pseudo-indexing, or storing the offset in a stack int). Or try writing `p2 += foo()` where foo returns 0 but is opaque, to force the addu.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:52:09Z",
+        "src_file": "src/gcCamera_gcHPRMotion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/17cb0e3a/000fc548__agent_self_reported_failure__src_gcCamera_gcHPRMotion.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fc640",
@@ -104970,7 +105010,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0000616c",
       "0x000092f0"
@@ -104987,7 +105027,14 @@
         "variant": "base",
         "timestamp": "2026-04-27T14:08:05Z"
       }
-    ]
+    ],
+    "src_file": "src/gcMsgAttachEntity.cpp",
+    "symbol_name": "__0fRgcMsgAttachEntityFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "cd1f528a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T14:05:41Z"
   },
   {
     "address": "0x001357d8",
@@ -104999,7 +105046,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000069ec",
       "0x00009370",
@@ -169857,7 +169904,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -169893,7 +169940,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0025f76c"
@@ -169975,7 +170022,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -171513,7 +171560,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -171865,7 +171912,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"

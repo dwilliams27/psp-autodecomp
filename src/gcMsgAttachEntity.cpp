@@ -1,13 +1,20 @@
 // gcMsgAttachEntity — gcAll_psp.obj
 //   0x001356f4 Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const   (228B)
+//   0x001357d8 Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle)            (516B)
 //   0x00285680 GetType(void) const                                                                (76B)
 //   0x002856cc New(nwMsgBuffer &) static                                                          (116B)
 
 class nwMsg;
 class cOutStream;
+class cInStream;
 class nwAddress;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+class gcEntity;
+
+#ifndef NW_HANDLE_TYPES_DEFINED
+#define NW_HANDLE_TYPES_DEFINED
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
+#endif
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -28,6 +35,7 @@ public:
     cHandle();
     cHandle(const cHandle &);
     void Write(cOutStream &) const;
+    void Read(cInStream &);
 };
 
 inline cHandle::cHandle() { mIndex = 0; }
@@ -52,6 +60,42 @@ public:
     void Write(int v, int bits, bool sign);   // OOL
 };
 
+class cInStreamRef {
+public:
+    void Read(int &v, int bits, bool sign);   // OOL
+};
+
+// cInStream layout: 0x00 mBuf, 0x04 mCapacity, 0x08 mBitOffset.
+class cInStreamBit {
+public:
+    char *mBuf;          // 0x00
+    int   mCapacity;     // 0x04
+    int   mBitOffset;    // 0x08
+};
+
+class gcMap {
+public:
+    static bool IsMapLoaded(bool);
+};
+
+class gcStreamedCinematic {
+public:
+    static bool IsFullscreenInProgress();
+};
+
+class gcEntity {
+public:
+    void AttachToParent(gcEntity *parent, int slot, unsigned char flag);
+};
+
+struct cSomeGlobal {
+    char _pad[0x140];
+    int  mFlags;     // offset 0x140
+};
+
+extern cSomeGlobal *D_0037D7FC;
+extern void *D_00038890[];
+
 // Stream layout: 0x00 mBuf, 0x04 mCapacity, 0x08 mBitOffset, 0x12 mOverflow.
 // Write(bool) is an inline single-bit writer.
 class cOutStreamBit {
@@ -64,13 +108,13 @@ public:
 
     void WriteBit(unsigned char v) {
         int pos     = mBitOffset;
-        char *buf   = mBuf;
         int bit     = pos & 7;
+        char *buf   = mBuf;
         int byteIdx = pos >> 3;
         int newPos  = pos + 1;
-        unsigned char *p = (unsigned char *)(buf + byteIdx);
         unsigned char ovf = mOverflow;
         unsigned char vb  = v;
+        unsigned char *p = (unsigned char *)(buf + byteIdx);
         mBitOffset = newPos;
         if (ovf == 0) {
             if (mCapacity < ((mBitOffset + 7) >> 3)) {
@@ -80,9 +124,9 @@ public:
         unsigned char ck = (mOverflow == 0);
         if ((unsigned char)(ck & 0xFF)) {
             unsigned char cur = *p;
-            int mask = 1 << bit;
+            int notMask = ~(1 << bit);
             int bv   = (vb != 0) ? 1 : 0;
-            *p = (unsigned char)((cur & ~mask) | (bv << bit));
+            *p = (unsigned char)((cur & notMask) | (bv << bit));
         }
     }
 };
@@ -112,6 +156,7 @@ public:
     static nwMsg *New(nwMsgBuffer &);
     nwMsgType *GetType() const;
     void Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const;
+    void Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle);
 };
 
 inline gcMsgAttachEntity::gcMsgAttachEntity(const cObjectKeyRef &r)
@@ -162,7 +207,89 @@ nwMsgType *gcMsgAttachEntity::GetType() const {
 void gcMsgAttachEntity::Write(cOutStream &s, nwSocketHandle, const nwAddress &, nwConnectionHandle) const {
     mHandle1.Write(s);
     mHandle2.Write(s);
+    bool sign = true;
     int n = ((int)mShort << 16) >> 16;
-    ((cOutStreamRef *)&s)->Write(n, 9, true);
+    ((cOutStreamRef *)&s)->Write(n, 9, sign);
     ((cOutStreamBit *)&s)->WriteBit(mFlag);
+}
+
+// -----------------------------------------------------------------------------
+// 0x001357d8 — gcMsgAttachEntity::Read
+// -----------------------------------------------------------------------------
+
+void gcMsgAttachEntity::Read(cInStream &s, nwSocketHandle, const nwAddress &, nwConnectionHandle) {
+    if (!gcMap::IsMapLoaded(false)) goto abort;
+    {
+        int x = D_0037D7FC->mFlags & 1;
+        int v = 1;
+        if (x != 0) v = 0;
+        if (v != 0) goto abort;
+    }
+    if (gcStreamedCinematic::IsFullscreenInProgress()) goto abort;
+    goto skip_abort;
+abort:
+    ((cInStreamBit *)&s)->mBitOffset = ((cInStreamBit *)&s)->mCapacity * 8;
+    return;
+skip_abort:
+
+    mHandle1.Read(s);
+    mHandle2.Read(s);
+    {
+        int rv;
+        ((cInStreamRef *)&s)->Read(rv, 9, true);
+        mShort = (short)rv;
+    }
+
+    {
+        // Inline ReadBit for mFlag
+        cInStreamBit *bs = (cInStreamBit *)&s;
+        int pos0 = bs->mBitOffset;
+        char *buf = bs->mBuf;
+        int byteIdx = pos0 >> 3;
+        unsigned char *p = (unsigned char *)(buf + byteIdx);
+        int *posPtr = &bs->mBitOffset;
+        int curPos = *posPtr;
+        unsigned char cur = *p;
+        int bit = curPos & 7;
+        int newPos = curPos + 1;
+        int one = 1;
+        *posPtr = newPos;
+        int mask = one << bit;
+        unsigned char bv = (unsigned char)((cur & mask) != 0);
+
+        int h1 = mHandle1.mIndex;
+        mFlag = bv;
+
+        // Inline AttachLookupCheck(h1) — h1==0 branch joined with NULL check
+        gcEntity *e1c = 0;
+        if (h1 != 0) {
+            void *e = D_00038890[h1 & 0xFFFF];
+            if (e != 0 && *(int *)((char *)e + 0x30) == h1) e1c = (gcEntity *)e;
+        }
+        if (e1c == 0) return;
+
+        // Inline AttachLookupCheck(h2)
+        int h2 = mHandle2.mIndex;
+        gcEntity *e2a = 0;
+        if (h2 != 0) {
+            void *e = D_00038890[h2 & 0xFFFF];
+            if (e != 0 && *(int *)((char *)e + 0x30) == h2) e2a = (gcEntity *)e;
+        }
+        if (e2a == 0) return;
+
+        // Inline AttachLookupRaw(h1) — barrier prevents CSE with first h1 load
+        __asm__ volatile("" ::: "memory");
+        gcEntity *e1r = 0;
+        if (h1 != 0) e1r = (gcEntity *)D_00038890[h1 & 0xFFFF];
+
+        // Inline AttachLookupCheck(h2) again — barrier prevents CSE with first h2 lookup
+        __asm__ volatile("" ::: "memory");
+        gcEntity *e2b = 0;
+        if (h2 != 0) {
+            void *e = D_00038890[h2 & 0xFFFF];
+            if (e != 0 && *(int *)((char *)e + 0x30) == h2) e2b = (gcEntity *)e;
+        }
+
+        e1r->AttachToParent(e2b, mShort, mFlag);
+    }
 }
