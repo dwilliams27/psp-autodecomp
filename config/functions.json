@@ -111286,7 +111286,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -111368,7 +111368,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005c10",
@@ -111390,7 +111390,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T18:07:42Z"
       }
-    ]
+    ],
+    "src_file": "src/gcDoSwitch.cpp",
+    "symbol_name": "__0fKgcDoSwitchFWriteR6FcFileK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6353e824",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:35:35Z"
   },
   {
     "address": "0x001503d0",
@@ -202442,7 +202449,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -202460,7 +202467,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc"
@@ -202605,11 +202612,18 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fKgcDoSwitchISetChildiP6MgcExpression"
+    "mangled_symbol": "__0fKgcDoSwitchISetChildiP6MgcExpression",
+    "src_file": "src/gcDoSwitch.cpp",
+    "symbol_name": "__0fKgcDoSwitchISetChildiP6MgcExpression",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6353e824",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:35:35Z"
   },
   {
     "address": "0x00305f0c",
@@ -202680,7 +202694,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000d52c0",
@@ -202700,7 +202714,14 @@
         "variant": "base",
         "timestamp": "2026-04-29T18:07:42Z"
       }
-    ]
+    ],
+    "src_file": "src/gcDoSwitch.cpp",
+    "symbol_name": "__0oKgcDoSwitchdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6353e824",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:35:35Z"
   },
   {
     "address": "0x00306334",
