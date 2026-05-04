@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 
 class cMemPool {
 public:
@@ -7,7 +8,28 @@ public:
 
 extern "C" void free(void *);
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 struct cListSubscriberDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct cListSubscriberDispatchClear {
+    short offset;
+    short pad;
+    void (*fn)(void *);
+};
+
+struct cListSubscriberDispatchAdd {
     short offset;
     short pad;
     void (*fn)(void *, void *);
@@ -59,6 +81,9 @@ public:
     void OnAdded(void *);
     void OnRemoved(void *);
     void Select(int);
+    int  Read(cFile &, cMemPool *);
+    static void NotifyClear(cListSubscriber *&);
+    static void NotifyAdd(cListSubscriber *&, void *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -138,4 +163,51 @@ cListSubscriber::~cListSubscriber() {
 
 void cListSubscriber::SetNumVisible(int numVisible) {
     mNumVisible = numVisible;
+}
+
+int cListSubscriber::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    return result;
+}
+
+void cListSubscriber::NotifyClear(cListSubscriber *&head) {
+    cListSubscriber *cur = head;
+    if (cur != 0) {
+        do {
+            void *typeInfo = cur->mTypeInfo;
+            cListSubscriber *next = (cListSubscriber *)cur->mPrev;
+            cListSubscriberDispatchClear *rec =
+                (cListSubscriberDispatchClear *)((char *)typeInfo + 0xA8);
+            short off = rec->offset;
+            void (*fn)(void *) = rec->fn;
+            fn((char *)cur + off);
+            if (next == head) break;
+            if (next == cur) break;
+            cur = next;
+        } while (cur != 0);
+    }
+}
+
+void cListSubscriber::NotifyAdd(cListSubscriber *&head, void *item) {
+    cListSubscriber *cur = head;
+    if (cur != 0) {
+        do {
+            void *typeInfo = cur->mTypeInfo;
+            cListSubscriber *next = (cListSubscriber *)cur->mPrev;
+            cListSubscriberDispatchAdd *rec =
+                (cListSubscriberDispatchAdd *)((char *)typeInfo + 0x98);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn((char *)cur + off, item);
+            if (next == head) break;
+            if (next == cur) break;
+            cur = next;
+        } while (cur != 0);
+    }
 }

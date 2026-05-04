@@ -13350,7 +13350,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -13363,7 +13363,21 @@
       "0x00288548"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPcListSubscriberEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPcListSubscriberEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "0b6f7fc1",
+        "notes": "Hits the documented cReadBlock prologue scheduler divergence noted in the task warning. Body and epilogue match exactly; only the prologue's instruction ordering differs. Expected interleaves: sw s0 / li s0 / move a0 / li a2 / sw ra / jal cReadBlock / li a3 (ra save deferred until after arg setup). My output: sw s0 / sw ra / li s0 / move a0 / li a2 / jal / li a3 (ra save eagerly placed early).\n\nTried (1) `cReadBlock rb(...); __asm__ volatile(\"ori s0,$0,1\")` after construction \u2192 18/120 byte diff (s0 set after the call). (2) Moved the `__asm__ volatile(\"ori %0, $0, 1\" : \"=r\"(result))` BEFORE the cReadBlock construction \u2192 improved to 14/120 byte diff (s0 now set before the call, but `sw ra` is still scheduled too early). The compiler under -Xsched=2 inserts the ra save into the gap between sw s0 and the constant-load + arg moves, while original SNC defers the ra save until just before the jal. No source-level reordering I tried was able to push `sw ra` later \u2014 the compiler always emits it adjacent to `sw s0` once the prologue is determined. This matches the cReadBlock prologue scheduler divergence pattern: 4 prologue instructions reordered, body byte-identical.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T04:28:48Z",
+        "src_file": "src/cListSubscriber.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/0b6f7fc1/0000770c__agent_self_reported_failure__src_cListSubscriber.cpp"
+      }
+    ]
   },
   {
     "address": "0x00007784",
@@ -13555,13 +13569,20 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001045cc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPcListSubscriberJNotifyAddRP6PcListSubscriberPvT"
+    "mangled_symbol": "__0fPcListSubscriberJNotifyAddRP6PcListSubscriberPvT",
+    "src_file": "src/cListSubscriber.cpp",
+    "symbol_name": "__0fPcListSubscriberJNotifyAddRP6PcListSubscriberPvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0b6f7fc1",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:28:48Z"
   },
   {
     "address": "0x000079fc",
@@ -13591,13 +13612,20 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001045cc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPcListSubscriberLNotifyClearRP6PcListSubscriberT"
+    "mangled_symbol": "__0fPcListSubscriberLNotifyClearRP6PcListSubscriberT",
+    "src_file": "src/cListSubscriber.cpp",
+    "symbol_name": "__0fPcListSubscriberLNotifyClearRP6PcListSubscriberT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0b6f7fc1",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T04:28:48Z"
   },
   {
     "address": "0x00007aec",
@@ -38766,7 +38794,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -46161,7 +46189,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000065f0",
       "0x000092f0"
@@ -46192,7 +46220,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006c84",
       "0x00009370"
@@ -52960,7 +52988,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -53002,7 +53030,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -76545,7 +76573,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
