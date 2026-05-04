@@ -14400,7 +14400,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000012d0",
       "0x0000616c",
@@ -14419,6 +14419,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-28T12:32:51Z"
+      },
+      {
+        "session": "ecc06b50",
+        "notes": "Same 8-byte scheduler divergence the prior agent (8788b6b2) hit. Expected at 0x8d18-0x8d2c is `andi s3,v0,0xffff; andi a1,s3,0xffff; li a3,0x1; move a0,s0; jal; li a2,0x10`. Current is `andi s3; li a3,0x1; andi a1,s3,0xffff; move a0,s0; jal; li a2,0x10` \u2014 the second andi and the `li a3,0x1` are swapped. Both orderings are functionally identical (4 independent setup instructions before a call); SNC's list-scheduler picks one based on internal heuristics not influenced by source.\n\nNew approaches tried this session beyond prior agent's 7 (cast/promotion/double-mask/block bool/literal-true/separate-pointer): (A) `__asm__ volatile(\"\" : \"+r\"(arg))` to anchor the truncated arg value \u2014 moved second andi to right place but pushed `li a2,0x10` out of the delay slot and `li a3,1` INTO the delay slot, raising diff to 10 bytes. (B) Pure memory barrier `__asm__ volatile(\"\" ::: \"memory\")` between cStrLength and out.Write \u2014 same effect as (A), 10-byte diff. (C) `#pragma control sched=1` over the function \u2014 exploded to 24-byte diff (loop body unscheduled too).\n\nThe scheduler-induced swap is a 2-instruction position swap that any anchor either makes worse or doesn't move. The matched sibling gcMsgAssignPlayerId::Write produces yet another schedule (`andi, li a3, andi a1`) from the same source pattern, confirming context-dependence outside source control. Permuter (5min, 5544 candidates) produced zero improvement. Cannot mark unmatchable_bnel \u2014 diff is `andi/li` swap, not bnel/beql. Source on disk reverted to canonical 8-byte-diff version.\n\nFor next agent: the only remaining option I can think of is a pspcor.exe scheduler heuristic patch (out of scope for src/ agents) or finding some surrounding-context manipulation (e.g., changing prior call signatures or struct layouts) that nudges SNC's heuristic state. Worth checking whether the gcMsgAssignPlayerId match used a slightly different `Write` signature/order that influenced the scheduler \u2014 if it did, replicating that here is a long-shot avenue.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:15:33Z",
+        "src_file": "src/cName.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/ecc06b50/00008cf4__agent_self_reported_failure__src_cName.cpp"
       }
     ]
   },
@@ -44370,7 +44382,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005690",
       "0x00005704"
@@ -44403,7 +44415,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4"
     ],
@@ -74781,7 +74793,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -74798,6 +74810,18 @@
         "model": "gpt-5.5",
         "variant": "base",
         "timestamp": "2026-04-28T20:02:03Z"
+      },
+      {
+        "session": "ecc06b50",
+        "notes": "Compiled body produces correct 144 bytes of code matching the disassembly through `jr ra; addiu sp,sp,16` epilogue (vtable store, beqzl null check, RemoveAll, cObject::~cObject chain, andi s0&1, deleter tail). The function database expects 152 bytes; the trailing 8 bytes are `b . ; nop` (0x1000ffff 0x00000000) at offset 0x90 in the expected .bin \u2014 i.e., AFTER the `jr ra` delay slot.\n\nVerified by xxd of expected/bin/000d6d54.bin (ends `... 1000 bd27 ffff 0010 0000 0000`) vs gcLoadingScreen::~gcLoadingScreen at 0x000f0f2c which is also DB-sized 152B but actually contains 152B of meaningful body code (extra DeleteGroups call + sw zero to 0x37D7E8 + second vtable store) \u2014 gcLoadingScreen ends with `... 1000 bd27` (no trailing infinite loop). So gcStringTable's `b .; nop` is genuinely post-epilogue dead code, not part of the destructor body.\n\nNo C/C++ construct emits post-`jr ra` instructions: the chain destructor and deleting tail are compiler-generated and end with `jr ra`. Putting inline asm at the end of operator delete or destructor body lands BEFORE the chain/tail epilogue, not after. Same conclusion as the __getreent case noted in cXML_cNode_cNodecXML.cpp \u2014 unmatchable from source under SNC -O2.\n\nThis is a project-rule conflict: extern \"C\" wrappers / file-scope assembly are disallowed for class methods, but those would be the only mechanisms to inject post-epilogue padding. Unless splat is regenerating the .bin with 8 extra bytes of section padding/alignment that happens to be the next function's prologue, the DB size is genuinely unreproducible. Body content matches exactly.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:15:33Z",
+        "src_file": "src/gcStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/ecc06b50/000d6d54__agent_self_reported_failure__src_gcStringTable.cpp"
       }
     ]
   },
@@ -105612,7 +105636,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -131490,7 +131514,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0000dd18",
@@ -131498,7 +131522,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5EcXMLKcAttributedtv"
+    "mangled_symbol": "__0o5EcXMLKcAttributedtv",
+    "failure_notes": [
+      {
+        "session": "ecc06b50",
+        "notes": "match wrote to out-of-scope path; reverted by Phase 1 ledger",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T06:15:33Z",
+        "src_file": "src/cXML.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/ecc06b50/001c8150__out_of_scope_path__src_cXML.cpp"
+      }
+    ]
   },
   {
     "address": "0x001c81e8",
@@ -143340,7 +143378,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -143352,7 +143390,14 @@
         "notes": "Best 152B size-matched but 28/152 bytes differ. #pragma control sched=1 correctly produces the GROUPED prologue (sw s0/sw s1/sw ra/lui s1/lw) matching expected, but the middle InitializeType call-site argument setup is reordered. Expected: lui a0, addiu a0, lui a1, addiu a1, li a2, move a3..t2, jal, move t3 (delay). Ours: li a2, move a3..t3, lui a0, addiu a0, lui a1, jal, addiu a1 (delay). sched=0 was worse (168B/91 diffs). Default sched=2 gives an INTERLEAVED prologue that doesn't match. Divergence is a compiler scheduling decision that none of sched=0/1/2 reproduces exactly; may need xopt/mopt pragmas or a source restructuring of the argument expressions that this agent didn't discover."
       }
     ],
-    "mangled_symbol": "__0fYePhysicsControllerConfigHGetTypevK"
+    "mangled_symbol": "__0fYePhysicsControllerConfigHGetTypevK",
+    "src_file": "src/ePhysicsControllerConfig.cpp",
+    "symbol_name": "__0fYePhysicsControllerConfigHGetTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "41d88f0d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:22:12Z"
   },
   {
     "address": "0x001f1098",
@@ -148480,7 +148525,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -148492,7 +148537,14 @@
         "notes": "eSimulatedConstraint::GetType \u2014 two-level lazy cType::InitializeType pattern. Source modeled on matched gcDoUIFade_GetType pattern: outer static `type_eSimulatedConstraint` (located at abs addr 0x46bc4), inner static `type_eSimulatedConstraint_base` (0x385dc); if outer null, init inner if null (base InitializeType with name=0x36cd74/desc=0x36cd7c), then init outer with inner as parent and ID 0x25E. Return outer. All 38 instructions are present in my output and content-wise correct (lui/lw pairs for the two statics, 2 jal to InitializeType, correct arg setup).\n\nDiff from expected (after reloc masking): ~6 structural insn-position differences in prologue + arg marshalling. Expected emits prologue saves in source order sw s0/sw s1/sw ra followed by lui s1/lw a0 (outer check). My compile interleaves: sw s1 then lui s1/lw a0, then sw s0/sw ra (scheduler hoists the first dependency load into the save window). Expected also emits `move t3,zero` in the jal delay slot; mine places it earlier and puts `addiu a1,a1,lo` in the delay slot.\n\ncompare_func.py reports 1/152 against eShape::GetType (152B, untried, different target \u2014 they're both GetType templates in .gnu.linkonce.t.* region) \u2014 which suggests my code matches the generic template pattern but the specific eSimulatedConstraint::GetType at 0x209894 was compiled with different scheduling. Tried the goto/flat-if forms for the body but the scheduler differences persist. Unlike the transition-zone Read issue, this function is at 0x209894 (far outside the sched=1 zone), so sched=2 is almost certainly correct. Root cause likely: a specific -Xmopt or -Xxopt variant we haven't characterised yet, OR the expected was compiled with a slightly different macro/inline pattern (e.g. the 4 trailing `0`s to InitializeType might come from a different variadic/default-arg expansion). No flag-masking approach tried; permuter not run due to time."
       }
     ],
-    "mangled_symbol": "__0fUeSimulatedConstraintHGetTypevK"
+    "mangled_symbol": "__0fUeSimulatedConstraintHGetTypevK",
+    "src_file": "src/eSimulatedConstraint.cpp",
+    "symbol_name": "__0fUeSimulatedConstraintHGetTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "41d88f0d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:22:12Z"
   },
   {
     "address": "0x0020992c",
@@ -207393,7 +207445,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0022afe8"
     ],
@@ -207409,7 +207461,14 @@
         "variant": "base",
         "timestamp": "2026-04-28T05:18:51Z"
       }
-    ]
+    ],
+    "src_file": "src/gcDynamicModelConfig.cpp",
+    "symbol_name": "__0fUgcDynamicModelConfigKAssignCopyPC6FcBase",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "41d88f0d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T06:22:12Z"
   },
   {
     "address": "0x00319d3c",

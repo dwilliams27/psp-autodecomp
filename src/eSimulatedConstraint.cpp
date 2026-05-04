@@ -34,11 +34,8 @@ public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *, cBase *(*)(cMemPool *, cBase *), const char *, const char *, unsigned int);
 };
 
-extern const char eSimulatedConstraint_base_name[];
-extern const char eSimulatedConstraint_base_desc[];
-
-static cType *type_eSimulatedConstraint_base;
-static cType *type_eSimulatedConstraint;
+extern cType *D_000385DC;
+extern cType *D_00046BC4;
 
 class eSimulatedConstraint {
 public:
@@ -71,15 +68,20 @@ success:
     return result;
 }
 
+#pragma control sched=1
 const cType *eSimulatedConstraint::GetType(void) const {
-    if (!type_eSimulatedConstraint) {
-        if (!type_eSimulatedConstraint_base) {
-            type_eSimulatedConstraint_base = cType::InitializeType(eSimulatedConstraint_base_name, eSimulatedConstraint_base_desc, 1, 0, 0, 0, 0, 0);
+    if (D_00046BC4 == 0) {
+        if (D_000385DC == 0) {
+            const char *name = (const char *)0x36CD74;
+            const char *desc = (const char *)0x36CD7C;
+            __asm__ volatile("" : "+r"(name), "+r"(desc));
+            D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
         }
-        type_eSimulatedConstraint = cType::InitializeType(0, 0, 0x25E, type_eSimulatedConstraint_base, 0, 0, 0, 0);
+        D_00046BC4 = cType::InitializeType(0, 0, 0x25E, D_000385DC, 0, 0, 0, 0);
     }
-    return type_eSimulatedConstraint;
+    return D_00046BC4;
 }
+#pragma control sched=2
 
 extern "C" {
 

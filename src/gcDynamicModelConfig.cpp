@@ -172,16 +172,34 @@ const cType *gcDynamicModelConfig::GetType(void) const {
 }
 
 // ── gcDynamicModelConfig::AssignCopy(const cBase *) @ 0x00319ca4 ──
-struct gcDMC_W4 { int v; };
-struct gcDMC_B24 { int v[6]; };
-
 typedef int gcDMC_v4sf_t __attribute__((mode(V4SF)));
 
 void gcDynamicModelConfig::AssignCopy(const cBase *src) {
     gcDynamicModelConfig *other = dcast<gcDynamicModelConfig>(src);
-    *(gcDMC_W4 *)((char *)this + 8) = *(const gcDMC_W4 *)((const char *)other + 8);
-    *(gcDMC_B24 *)((char *)this + 0xC) = *(const gcDMC_B24 *)((const char *)other + 0xC);
-    *(gcDMC_W4 *)((char *)this + 0x24) = *(const gcDMC_W4 *)((const char *)other + 0x24);
+    int *srcHandle = (int *)((char *)other + 8);
+    int handle = *srcHandle;
+    int *dstHandle = (int *)((char *)this + 8);
+    __asm__ volatile("" : "+r"(dstHandle));
+    *dstHandle = handle;
+    int *srcWords = (int *)((char *)other + 0xC);
+    int *dstWords = (int *)((char *)this + 0xC);
+    int word0 = srcWords[0];
+    int word1 = srcWords[1];
+    int word2 = srcWords[2];
+    dstWords[0] = word0;
+    word0 = srcWords[3];
+    dstWords[1] = word1;
+    word1 = srcWords[4];
+    dstWords[2] = word2;
+    word2 = srcWords[5];
+    dstWords[3] = word0;
+    dstWords[4] = word1;
+    dstWords[5] = word2;
+    int *srcInt = (int *)((char *)other + 0x24);
+    int int24 = *srcInt;
+    int *dstInt = (int *)((char *)this + 0x24);
+    __asm__ volatile("" : "+r"(dstInt));
+    *dstInt = int24;
     *(gcDMC_v4sf_t *)((char *)this + 0x30) = *(const gcDMC_v4sf_t *)((const char *)other + 0x30);
     *(gcDMC_v4sf_t *)((char *)this + 0x40) = *(const gcDMC_v4sf_t *)((const char *)other + 0x40);
     *(unsigned char *)((char *)this + 0x50) = *(const unsigned char *)((const char *)other + 0x50);
