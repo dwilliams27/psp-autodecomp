@@ -26,9 +26,15 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcEntityTemplate {
 public:
     int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class gcDesiredObject {
@@ -48,7 +54,10 @@ public:
 };
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_0009F3F4;
+extern cType *D_0009F448;
 extern cType *D_0009F44C;
 
 struct DispatchEntry {
@@ -67,6 +76,7 @@ public:
     gcDesiredEntityTemplate &operator=(const gcDesiredEntityTemplate &);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetDesiredType(void) const;
 };
 
 cObject *gcDesiredEntityTemplate::GetObject(bool b) const {
@@ -113,6 +123,29 @@ const cType *gcDesiredEntityTemplate::GetType(void) const {
                                            0, 0, 0);
     }
     return D_0009F44C;
+}
+
+// ── gcDesiredEntityTemplate::GetDesiredType(void) const @ 0x001281c0 ──
+const cType *gcDesiredEntityTemplate::GetDesiredType(void) const {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    return D_0009F448;
 }
 
 void gcDesiredEntityTemplate::AssignCopy(const cBase *base) {
