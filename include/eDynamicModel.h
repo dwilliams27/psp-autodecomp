@@ -28,6 +28,9 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void PlatformReset(cMemPool *, bool);
     void PlatformRead(cFile &, cMemPool *);
+    void PlatformFree(void);
+    void AddToBroadphase(void);
+    void ResetPartialAnimationController(int);
     void OnRemovedFromWorld(void);
     bool NeedsSkinning(const eDynamicMesh *, int, int *) const;
     void *GetCurrentPhysicsController(void) const;

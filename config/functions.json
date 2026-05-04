@@ -17550,7 +17550,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0000e208",
@@ -17587,7 +17587,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000ce08",
       "0x0000e208",
@@ -39106,7 +39106,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0008f1b8",
@@ -39116,7 +39116,14 @@
       "0x00047490"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelMPlatformFreev"
+    "mangled_symbol": "__0fNeDynamicModelMPlatformFreev",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelMPlatformFreev",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "57cf99b6",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:43:19Z"
   },
   {
     "address": "0x00047400",
@@ -39681,14 +39688,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00140a3c",
       "0x0017d534"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelfResetPartialAnimationControlleri"
+    "mangled_symbol": "__0fNeDynamicModelfResetPartialAnimationControlleri",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelfResetPartialAnimationControlleri",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "57cf99b6",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T05:43:19Z"
   },
   {
     "address": "0x00049798",
@@ -39820,7 +39834,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00035788",
       "0x00037890"
@@ -39829,7 +39843,21 @@
       "0x00047aa4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelPAddToBroadphasev"
+    "mangled_symbol": "__0fNeDynamicModelPAddToBroadphasev",
+    "failure_notes": [
+      {
+        "session": "57cf99b6",
+        "notes": "AddToBroadphase: failed to match at 75/144 bytes diff (permuter brought asm-differ score from 110 to 104 over 120s of 3312 candidates, no match). The expected disassembly keeps `arr` in $a0 throughout the inner loop, computing `addu a1, a0, s1` (3-operand) for the AddRigidBody arg. Mine consistently gets `move a1, a0` at the loop back-edge target plus `addu a1, a1, s2` (in-place) \u2014 register allocator chooses to keep arr in $a1 instead of $a0. Tried: while/for/goto loop forms; declaration order swaps for i and byteOff; `register char *arr __asm__(\"a0\")` binding (compiler ignored it); both sched=1 and sched=2; restructured if-test forms. The mask register (s1 vs s2 in original) shifts depending on when the lui is hoisted: with sched=2 mine hoists the lui to position 2 (right after move s0), original hoists to position 1. \n\nRoot cause appears to be an SNC register-allocation heuristic that prefers in-place addu over 3-op when the source value is dead after the add \u2014 the compiler hoists arr to a1 ahead of the eventual call-arg slot to enable the in-place add. Original SNC didn't make this choice. None of the standard source-level workarounds influenced it. Likely the same kind of allocator/scheduler quirk documented in cReadBlock-prologue research; would need compiler patching or asm-differ permuter with deeper transforms (loop-form rotation, hoisting). Closest source kept in src/eDynamicModel.cpp at lines around the second `#pragma control sched=2` block.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T05:43:19Z",
+        "src_file": "src/eDynamicModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/57cf99b6/00049918__agent_self_reported_failure__src_eDynamicModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x000499a8",
@@ -73920,7 +73948,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d5600",

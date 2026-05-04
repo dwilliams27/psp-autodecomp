@@ -63,12 +63,29 @@ public:
 
 extern "C" {
     void eDynamicModel__eDynamicModel_cBaseptr(void *self, cBase *parent);
+    void eDynamicMeshObjectVisData___dtor_eDynamicMeshObjectVisData_void(void *, int);
 }
 
 struct AllocRec {
     short offset;
     short _pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+class eRigidBodyState;
+class eBroadphase {
+public:
+    void AddRigidBody(eRigidBodyState *);
+};
+class ePhysics {
+public:
+    static ePhysics *Get(void);
 };
 
 struct DispatchEntry {
@@ -595,4 +612,87 @@ const cType *eDynamicModel::GetType(void) const {
                                            &eDynamicModel::New, 0, 0, 0);
     }
     return D_000469DC;
+}
+
+#pragma control sched=2
+
+void eDynamicModel::PlatformFree(void) {
+    eDynamicMeshObjectVisData *vd = *(eDynamicMeshObjectVisData **)((char *)this + 0xF0);
+    if (vd != 0) {
+        eDynamicMeshObjectVisData___dtor_eDynamicMeshObjectVisData_void(vd, 2);
+        cMemPool *pool = cMemPool::GetPoolFromPtr(vd);
+        if (pool != 0) {
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, vd);
+        } else {
+            free(vd);
+        }
+        *(void **)((char *)this + 0xF0) = 0;
+    }
+}
+
+#pragma control sched=2
+
+void eDynamicModel::AddToBroadphase(void) {
+    eBroadphase *bp = (eBroadphase *)((char *)ePhysics::Get() + 0x20);
+    int i = 0;
+    int byteOff = 0;
+    while (true) {
+        char *arr = *(char **)((char *)this + 0x110);
+        int len = 0;
+        if (arr != 0) {
+            len = *(int *)(arr - 4) & 0x3FFFFFFF;
+        }
+        if (i >= len) break;
+        bp->AddRigidBody((eRigidBodyState *)(arr + byteOff));
+        i++;
+        byteOff += 192;
+    }
+}
+
+#pragma control sched=2
+
+struct eDynamicModel_AnimEntry {
+    int   f0;
+    float f4;
+    float f8;
+    union {
+        unsigned int rawC;
+        struct {
+            unsigned int lo31 : 31;
+            unsigned int hi1  : 1;
+        };
+    };
+};
+
+struct eDynamicModel_PartialController {
+    eDynamicModel_AnimEntry entries[4];
+    char flag;
+    char _pad[3];
+};
+
+void eDynamicModel::ResetPartialAnimationController(int idx) {
+    if (idx < 0) return;
+    eDynamicModel_PartialController *arr =
+        *(eDynamicModel_PartialController **)((char *)this + 0x128);
+    int len = 0;
+    if (arr != 0) {
+        len = *(int *)((char *)arr - 4) & 0x3FFFFFFF;
+    }
+    if (idx >= len) return;
+    eDynamicModel_PartialController *slot = arr + idx;
+    slot->flag = 0;
+    int i = 0;
+    do {
+        eDynamicModel_AnimEntry *e = &slot->entries[i];
+        e->f0 = 0;
+        e->f4 = 0.0f;
+        e->f8 = 1.0f;
+        e->lo31 = 0;
+        e->hi1 = 0;
+        i++;
+    } while (i < 4);
 }
