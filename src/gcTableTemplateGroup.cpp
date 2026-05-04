@@ -2,6 +2,8 @@
 // Decompiled functions:
 //   0x000d31e4 gcTableTemplateGroup::Write(cFile &) const
 //   0x000d3230 gcTableTemplateGroup::Read(cFile &, cMemPool *)
+//   0x000d32ec gcTableTemplateGroup::GetManagedType(void) const
+//   0x000d3414 gcTableTemplateGroup::GetDataDirectory(void) const
 //   0x002385cc gcTableTemplateGroup::AssignCopy(const cBase *)
 //   0x00238604 gcTableTemplateGroup::New(cMemPool *, cBase *) static
 //   0x002386c0 gcTableTemplateGroup::GetType(void) const
@@ -21,6 +23,10 @@ public:
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *, cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -79,6 +85,8 @@ public:
     bool IsManagedTypeExternal() const;
     static bool IsManagedTypeExternalStatic();
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     ~gcTableTemplateGroup();
 
     static void operator delete(void *p) {
@@ -93,8 +101,11 @@ public:
 };
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998E4;
+extern cType *D_0009F494;
 
 // ============================================================
 // 0x000d31e4 — Write(cFile &) const
@@ -132,25 +143,25 @@ void gcTableTemplateGroup::AssignCopy(const cBase *base) {
 // ============================================================
 cBase *gcTableTemplateGroup::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
-    char *allocTable = ((PoolBlock *)block)->allocTable;
-    AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
-    short off = entry->offset;
+    AllocEntry *e = (AllocEntry *)((char *)((void **)block)[7] + 0x28);
+    short off = e->offset;
     void *base = (char *)block + off;
-    int flag = 0;
-    gcTableTemplateGroup *obj = (gcTableTemplateGroup *)entry->fn(base, 0x10, 4, 0, 0);
+    gcTableTemplateGroup *result = 0;
+    gcTableTemplateGroup *obj =
+        (gcTableTemplateGroup *)e->fn(base, 0x10, 4, 0, 0);
     if (obj != 0) {
-        if (gcTableTemplateGroup::IsManagedTypeExternalStatic() == 0) {
-            flag = 1;
-        }
+        unsigned char flag = 0;
+        if (IsManagedTypeExternalStatic() == 0) flag = 1;
+        flag = (unsigned char)(flag & 0xff);
         ((void **)obj)[1] = (void *)0x37E6A8;
-        ((void **)obj)[0] = parent;
+        ((cBase **)obj)[0] = parent;
         ((void **)obj)[1] = (void *)0x37EA80;
-        ((unsigned char *)obj)[8] = (unsigned char)flag;
+        ((unsigned char *)obj)[8] = flag;
         ((int *)obj)[3] = 0;
         ((void **)obj)[1] = (void *)0x386A20;
-        flag = (int)obj;
+        result = obj;
     }
-    return (cBase *)flag;
+    return (cBase *)result;
 }
 
 // ============================================================
@@ -179,4 +190,54 @@ const cType *gcTableTemplateGroup::GetType() const {
 // ============================================================
 gcTableTemplateGroup::~gcTableTemplateGroup() {
     *(void **)((char *)this + 4) = (void *)0x386A20;
+}
+
+// ============================================================
+// 0x000d32ec — GetManagedType(void) const
+// ============================================================
+const cType *gcTableTemplateGroup::GetManagedType(void) const {
+    if (D_0009F494 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F494 = cType::InitializeType(
+            0, 0, 0x216, D_000385E4, &gcTableTemplateGroup::New,
+            (const char *)0x36D9CC, (const char *)0x36D9DC, 5);
+    }
+    return D_0009F494;
+}
+
+// ============================================================
+// 0x000d3414 — GetDataDirectory(void) const
+// ============================================================
+const char *gcTableTemplateGroup::GetDataDirectory(void) const {
+    if (D_0009F494 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F494 = cType::InitializeType(
+            0, 0, 0x216, D_000385E4, &gcTableTemplateGroup::New,
+            (const char *)0x36D9CC, (const char *)0x36D9DC, 5);
+    }
+    return (const char *)((int *)D_0009F494)[5];
 }

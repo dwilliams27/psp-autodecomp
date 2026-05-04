@@ -44251,7 +44251,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -73522,13 +73522,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcTableTemplateGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fUgcTableTemplateGroupOGetManagedTypevK",
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "370cd555",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:13:27Z"
   },
   {
     "address": "0x000d3414",
@@ -73540,13 +73547,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcTableTemplateGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fUgcTableTemplateGroupQGetDataDirectoryvK",
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "370cd555",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:13:27Z"
   },
   {
     "address": "0x000d3540",
@@ -145476,7 +145490,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00009cb0"
@@ -145495,7 +145509,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -162149,7 +162163,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000d366c"
     ],
@@ -162165,7 +162179,14 @@
         "variant": "base",
         "timestamp": "2026-04-26T23:39:24Z"
       }
-    ]
+    ],
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupDNewP6IcMemPoolP6FcBaseT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "370cd555",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T11:13:27Z"
   },
   {
     "address": "0x002386c0",
