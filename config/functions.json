@@ -100636,7 +100636,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredStringEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcDesiredStringEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDesiredString.cpp",
+    "symbol_name": "__0fPgcDesiredStringEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1bdcb6a2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:34:34Z"
   },
   {
     "address": "0x0012a560",
@@ -100703,7 +100710,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredStringHGetTextPcK"
+    "mangled_symbol": "__0fPgcDesiredStringHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "1bdcb6a2",
+        "notes": "Structurally correct, 264/272B (8 bytes / 2 instructions short). Pure scheduler-divergence in helper-call merge area (offsets 0x4c-0x68 in expected): expected duplicates 'lw v24 + andi a0,a1,0x1' into BOTH the helper-skip path (with andi placed in delay slot of unconditional 'b 68') AND the helper-call path (after jal helper+move a1,s1), then merges with 'move a2,a0'. Mine emits the andi at the merge point only (lw in delay slot of b, andi at merge into a2). Also register allocation differs: expected uses a1 for v8/v24 (a0 for hasReal/flag bool); mine uses a0 for v8/v24 (a1 for bool). Tried 7 source variants: (1) bool isReal = (v8 != 0), (2) double-cast int raw = (v8 != 0); hasReal = ((unsigned char)raw) != 0 [from gcDoReturn.cpp pattern], (3) if (hasReal != 0) {} else helper(); merged-load, (4) if (hasReal == 0) helper(); merged-load (256B - too short), (5) explicit duplication of v24 load+andi inside both branches (272B but 175/272 bytes differ - dead 'addiu a0,s0,12' orphan emitted at 0x318 due to compiler not trusting delay-slot scheduling), (6) char *obj intermediate for third tagged check (264B - same as v3), (7) reverted to v3 baseline. The compiler is NOT performing tail-duplication scheduling on my source; expected -Xsched=2 output appears to have been produced from source where v24 was somehow pre-scheduled into the conditional branches. Permuter unable to run (could not isolate target function in compiled .o; saw 1520B .text vs 272B target).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-04T13:34:34Z",
+        "src_file": "src/gcDesiredString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260503_231848/1bdcb6a2/0012a71c__agent_self_reported_failure__src_gcDesiredString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012a82c",
@@ -100745,7 +100766,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredStringOGetDesiredTypevK"
+    "mangled_symbol": "__0fPgcDesiredStringOGetDesiredTypevK",
+    "src_file": "src/gcDesiredString.cpp",
+    "symbol_name": "__0fPgcDesiredStringOGetDesiredTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1bdcb6a2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-04T13:34:34Z"
   },
   {
     "address": "0x0012ab9c",
@@ -104942,7 +104970,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000616c",
       "0x000092f0"
@@ -104971,7 +104999,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000069ec",
       "0x00009370",
@@ -109809,7 +109837,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
