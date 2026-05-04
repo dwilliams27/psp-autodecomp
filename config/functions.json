@@ -96412,7 +96412,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000ec9c8"
     ],
@@ -96420,7 +96420,21 @@
       "0x00107e14"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerSResetNetConnectioniT"
+    "mangled_symbol": "__0fIgcPlayerSResetNetConnectioniT",
+    "failure_notes": [
+      {
+        "session": "4173a563",
+        "notes": "Closest C implementation initializes gcReplicationVisitor exactly and matches the dispatch loop shape including the beqzl null check, delay-slot increment, lw a2,4(a1), and virtual dispatch call sequence. The remaining baseline is 5 bytes different: SNC allocates the loop byte offset in s1 and the gcPlayer_s_pPlayers symbol-base temp in s0, while the original uses s0 for the offset and s1 for the symbol-base temp. This changes only the register fields in li/lui/lw/addu/addiu instructions around the loop; behavior and instruction order otherwise match.\n\nTried copied MemCardReplicate helper pattern, explicit goto/playerCheck pattern from gcMsgUpdatePlayerState, void* vs char* temporaries, variable declaration reordering, pointer-offset representation, absolute pointer access, sched=1 (rejected due save-order changes), and register-binding experiments (ignored by SNC unless inline asm would be required). Ran tools/permuter.py for 312s on 0x00120fc4 with --save-best: 7,872 candidates generated, 4,844 compiled, best stayed at 5 bytes different with zero improvements.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-01T07:15:40Z",
+        "src_file": "src/gcPlayer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260430_231646/4173a563/00120fc4__agent_self_reported_failure__src_gcPlayer.cpp"
+      }
+    ]
   },
   {
     "address": "0x00121084",
