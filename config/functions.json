@@ -24366,13 +24366,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeRoomEnvironmentGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fVeRoomEnvironmentGroupQGetFileExtensionvK",
+    "src_file": "src/eRoomEnvironmentGroup.cpp",
+    "symbol_name": "__0fVeRoomEnvironmentGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f8c5c028",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:05:19Z"
   },
   {
     "address": "0x0001ba0c",
@@ -24384,7 +24391,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -24395,7 +24402,14 @@
       "0x001dee84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeRoomEnvironmentGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fVeRoomEnvironmentGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eRoomEnvironmentGroup.cpp",
+    "symbol_name": "__0fVeRoomEnvironmentGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f8c5c028",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:05:19Z"
   },
   {
     "address": "0x0001bb48",
@@ -24466,7 +24480,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -24484,7 +24498,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
