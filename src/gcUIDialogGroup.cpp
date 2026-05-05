@@ -62,6 +62,16 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcUIDialog {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcUIDialogGroup : public cGroup {
 public:
     unsigned char mFlag;
@@ -72,6 +82,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     ~gcUIDialogGroup();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
@@ -115,8 +127,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998B4;
+extern cType *D_00099AB0;
 
 // ── gcUIDialogGroup::AssignCopy(const cBase *) ──
 void gcUIDialogGroup::AssignCopy(const cBase *base) {
@@ -166,6 +181,52 @@ const cType *gcUIDialogGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998B4;
+}
+
+// ── gcUIDialogGroup::GetManagedType(void) const @ 0x000cedbc ──
+const cType *gcUIDialogGroup::GetManagedType(void) const {
+    if (D_00099AB0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AB0 = cType::InitializeType(
+            0, 0, 0x81, D_000385E4, &gcUIDialog::New,
+            (const char *)0x36D8CC, (const char *)0x36D8D4, 5);
+    }
+    return D_00099AB0;
+}
+
+// ── gcUIDialogGroup::GetDataDirectory(void) const @ 0x000ceee4 ──
+const char *gcUIDialogGroup::GetDataDirectory(void) const {
+    if (D_00099AB0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AB0 = cType::InitializeType(
+            0, 0, 0x81, D_000385E4, &gcUIDialog::New,
+            (const char *)0x36D8CC, (const char *)0x36D8D4, 5);
+    }
+    return (const char *)((int *)D_00099AB0)[5];
 }
 
 // ── gcUIDialogGroup::Write(cFile &) const @ 0x000CECB4 ──
