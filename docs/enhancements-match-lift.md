@@ -21,6 +21,7 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | ML11 | Static analysis pre-pass for prompt enrichment | Prompt | **Deprioritized** | <1% overall improvement |
 | ML12 | Diff-guided agent retries | Orchestrator | Partial | ~10-30 |
 | ML13 | Binary patch pspcor.exe bnel heuristic | Compiler | Designed | ~2-7 |
+| ML14 | Context-dependent register allocation fix | Compiler | Confirmed | ~40+ (Collide) + unknown broader |
 
 ---
 

@@ -1,0 +1,2442 @@
+[
+  {
+    "address": "0x00013de8",
+    "name": "eMaterialGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x00013f0c",
+    "name": "eMaterialGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00014034",
+    "name": "eMaterialGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001415c",
+    "name": "eMaterialGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x0001439c",
+    "name": "ePathGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000144c4",
+    "name": "ePathGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000145f0",
+    "name": "ePathGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001471c",
+    "name": "ePathGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x00014960",
+    "name": "eMeshGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x00014a84",
+    "name": "eMeshGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00014bac",
+    "name": "eMeshGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00014cd4",
+    "name": "eMeshGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x00014f14",
+    "name": "eGeomTemplateGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x00015038",
+    "name": "eGeomTemplateGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00015160",
+    "name": "eGeomTemplateGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00015288",
+    "name": "eGeomTemplateGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x000154c8",
+    "name": "eMaterialSetGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x000155ec",
+    "name": "eMaterialSetGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00015714",
+    "name": "eMaterialSetGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001583c",
+    "name": "eMaterialSetGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x00015a7c",
+    "name": "eSoundDataGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x00015ba0",
+    "name": "eSoundDataGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00015cc8",
+    "name": "eSoundDataGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00015df0",
+    "name": "eSoundDataGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x00016030",
+    "name": "eAnimationGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00016158",
+    "name": "eAnimationGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00016284",
+    "name": "eAnimationGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000163b0",
+    "name": "eAnimationGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000165f4",
+    "name": "eSurfaceGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x00016718",
+    "name": "eSurfaceGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00016840",
+    "name": "eSurfaceGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00016968",
+    "name": "eSurfaceGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x00016ba8",
+    "name": "eSurfaceSetGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00016cd0",
+    "name": "eSurfaceSetGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00016dfc",
+    "name": "eSurfaceSetGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00016f28",
+    "name": "eSurfaceSetGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001716c",
+    "name": "eSpriteGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00017294",
+    "name": "eSpriteGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000173c0",
+    "name": "eSpriteGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000174ec",
+    "name": "eSpriteGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x00017730",
+    "name": "eFontGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00017858",
+    "name": "eFontGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00017984",
+    "name": "eFontGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00017ab0",
+    "name": "eFontGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x00017cf4",
+    "name": "ePointGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00017e1c",
+    "name": "ePointGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00017f48",
+    "name": "ePointGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00018074",
+    "name": "ePointGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000182b8",
+    "name": "eSkinGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000183e0",
+    "name": "eSkinGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001850c",
+    "name": "eSkinGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00018638",
+    "name": "eSkinGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001887c",
+    "name": "eStaticLightGroup::GetManagedType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x000189a0",
+    "name": "eStaticLightGroup::GetDataDirectory(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00018ac8",
+    "name": "eStaticLightGroup::GetFileExtension(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00018bf0",
+    "name": "eStaticLightGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 312
+  },
+  {
+    "address": "0x00018e30",
+    "name": "eNavMeshGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00018f58",
+    "name": "eNavMeshGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00019084",
+    "name": "eNavMeshGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000191b0",
+    "name": "eNavMeshGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000193f4",
+    "name": "eLensFlareGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001951c",
+    "name": "eLensFlareGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00019648",
+    "name": "eLensFlareGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00019774",
+    "name": "eLensFlareGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000199b8",
+    "name": "eCameraEffectGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00019ae0",
+    "name": "eCameraEffectGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00019c0c",
+    "name": "eCameraEffectGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x00019d38",
+    "name": "eCameraEffectGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x00019f7c",
+    "name": "eSkyGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001a0a4",
+    "name": "eSkyGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001a1d0",
+    "name": "eSkyGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001a2fc",
+    "name": "eSkyGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001a540",
+    "name": "eRoomGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001a668",
+    "name": "eRoomGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001a794",
+    "name": "eRoomGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001a8c0",
+    "name": "eRoomGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001ab04",
+    "name": "ePortalGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001ac2c",
+    "name": "ePortalGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001ad58",
+    "name": "ePortalGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001ae84",
+    "name": "ePortalGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001b0c8",
+    "name": "eRoomSetGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001b1f0",
+    "name": "eRoomSetGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001b31c",
+    "name": "eRoomSetGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001b448",
+    "name": "eRoomSetGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001b8e0",
+    "name": "eRoomEnvironmentGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001ba0c",
+    "name": "eRoomEnvironmentGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x0001bc50",
+    "name": "eSurfacePropertyTableGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0001bd78",
+    "name": "eSurfacePropertyTableGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001bea4",
+    "name": "eSurfacePropertyTableGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x0001bfd0",
+    "name": "eSurfacePropertyTableGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cd0e8",
+    "name": "gcStaticInstanceGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000cd210",
+    "name": "gcStaticInstanceGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cd33c",
+    "name": "gcStaticInstanceGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cd468",
+    "name": "gcStaticInstanceGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cd6ac",
+    "name": "gcFunctionGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000cd7d4",
+    "name": "gcFunctionGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cd900",
+    "name": "gcFunctionGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cda2c",
+    "name": "gcFunctionGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cdc70",
+    "name": "gcVariableGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000cdd98",
+    "name": "gcVariableGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cdec4",
+    "name": "gcVariableGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cdff0",
+    "name": "gcVariableGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000ce234",
+    "name": "gcConstantGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000ce35c",
+    "name": "gcConstantGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000ce488",
+    "name": "gcConstantGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000ce5b4",
+    "name": "gcConstantGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000ce7f8",
+    "name": "gcStringTableGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000ce920",
+    "name": "gcStringTableGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cea4c",
+    "name": "gcStringTableGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000ceb78",
+    "name": "gcStringTableGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cedbc",
+    "name": "gcUIDialogGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000ceee4",
+    "name": "gcUIDialogGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cf010",
+    "name": "gcUIDialogGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cf13c",
+    "name": "gcUIDialogGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cf4a8",
+    "name": "gcEntityGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cf5d4",
+    "name": "gcEntityGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cf700",
+    "name": "gcEntityGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cf944",
+    "name": "gcEntityTemplateGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000cfa6c",
+    "name": "gcEntityTemplateGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cfb98",
+    "name": "gcEntityTemplateGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000cfcc4",
+    "name": "gcEntityTemplateGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000cff08",
+    "name": "gcTriggerGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d0030",
+    "name": "gcTriggerGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d015c",
+    "name": "gcTriggerGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d0288",
+    "name": "gcTriggerGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d04cc",
+    "name": "gcEnumerationGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d05f4",
+    "name": "gcEnumerationGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d0720",
+    "name": "gcEnumerationGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d084c",
+    "name": "gcEnumerationGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d0a90",
+    "name": "gcStateMachineGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d0bb8",
+    "name": "gcStateMachineGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d0ce4",
+    "name": "gcStateMachineGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d0e10",
+    "name": "gcStateMachineGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d1054",
+    "name": "gcTimerGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d117c",
+    "name": "gcTimerGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d12a8",
+    "name": "gcTimerGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d13d4",
+    "name": "gcTimerGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d1618",
+    "name": "gcExternalVariableGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d1740",
+    "name": "gcExternalVariableGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d186c",
+    "name": "gcExternalVariableGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d1998",
+    "name": "gcExternalVariableGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d1bdc",
+    "name": "gcCinematicGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d1d04",
+    "name": "gcCinematicGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d1e30",
+    "name": "gcCinematicGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d1f5c",
+    "name": "gcCinematicGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d21a0",
+    "name": "gcEntityCustomAnimationGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d22c8",
+    "name": "gcEntityCustomAnimationGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d23f4",
+    "name": "gcEntityCustomAnimationGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d2520",
+    "name": "gcEntityCustomAnimationGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d2764",
+    "name": "gcEntityCustomAttackGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d288c",
+    "name": "gcEntityCustomAttackGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d29b8",
+    "name": "gcEntityCustomAttackGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d2ae4",
+    "name": "gcEntityCustomAttackGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d2d28",
+    "name": "gcRoomInstanceGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d2e50",
+    "name": "gcRoomInstanceGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d2f7c",
+    "name": "gcRoomInstanceGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d30a8",
+    "name": "gcRoomInstanceGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d3540",
+    "name": "gcTableTemplateGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d366c",
+    "name": "gcTableTemplateGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x000d38b0",
+    "name": "gcExternalCinematicGroup::GetManagedType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x000d39d8",
+    "name": "gcExternalCinematicGroup::GetDataDirectory(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d3b04",
+    "name": "gcExternalCinematicGroup::GetFileExtension(void) const",
+    "size": 300
+  },
+  {
+    "address": "0x000d3c30",
+    "name": "gcExternalCinematicGroup::IsManagedTypeExternalStatic(void) static",
+    "size": 316
+  },
+  {
+    "address": "0x00128b44",
+    "name": "gcDesiredEnumeration::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0012eee0",
+    "name": "gcDesiredUIWidget::GetDesiredType(void) const",
+    "size": 220
+  },
+  {
+    "address": "0x00265160",
+    "name": "gcDesiredObjectT<gcDesiredCustomAnimation, gcDesiredCustomAnimationHelper, gcEntityCustomAnimation>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00266824",
+    "name": "gcDesiredObjectT<gcDesiredCustomAttack, gcDesiredCustomAttackHelper, gcEntityCustomAttack>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0026b2bc",
+    "name": "gcDesiredObjectT<gcDesiredPath, gcDesiredPathHelper, ePath>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0026c400",
+    "name": "gcDesiredObjectT<gcDesiredPoint, gcDesiredPointHelper, ePoint>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0026d4ec",
+    "name": "gcDesiredObjectT<gcDesiredSoundData, gcDesiredSoundDataHelper, eSoundData>::GetDesiredType(void) const",
+    "size": 292
+  },
+  {
+    "address": "0x0026e62c",
+    "name": "gcDesiredObjectT<gcDesiredSprite, gcDesiredSpriteHelper, eSprite>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0026f770",
+    "name": "gcDesiredObjectT<gcDesiredStringTable, gcDesiredStringTableHelper, gcStringTable>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0027484c",
+    "name": "gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x002762e8",
+    "name": "gcDesiredObjectT<gcDesiredTimer, gcDesiredTimerHelper, gcTimer>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x002783b0",
+    "name": "gcDesiredObjectT<gcDesiredTrigger, gcDesiredTriggerHelper, gcTrigger>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00279368",
+    "name": "gcDesiredObjectT<gcDesiredUIDialog, gcDesiredUIDialogHelper, gcUIDialog>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0027b13c",
+    "name": "gcDesiredObjectT<gcDesiredSkin, gcDesiredSkinHelper, eSkin>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0029351c",
+    "name": "gcDesiredObjectT<gcDesiredPortal, gcDesiredPortalHelper, ePortal>::GetDesiredType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x0010e958",
+    "name": "gcDesiredEnumerationEntryHelper::GetText(char *, bool) const",
+    "size": 372
+  },
+  {
+    "address": "0x0011d020",
+    "name": "gcDesiredEntityHelper::GetText(char *) const",
+    "size": 316
+  },
+  {
+    "address": "0x0011d7ec",
+    "name": "gcDesiredEntity::GetText(char *) const",
+    "size": 212
+  },
+  {
+    "address": "0x00121a90",
+    "name": "gcDesiredCamera::GetText(char *) const",
+    "size": 128
+  },
+  {
+    "address": "0x00127c0c",
+    "name": "gcDesiredEntityTemplate::GetText(char *) const",
+    "size": 396
+  },
+  {
+    "address": "0x001286f4",
+    "name": "gcDesiredEnumeration::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0012944c",
+    "name": "gcDesiredEventParams::GetText(char *, bool) const",
+    "size": 476
+  },
+  {
+    "address": "0x0012a014",
+    "name": "gcDesiredStringHelper::GetText(char *) const",
+    "size": 428
+  },
+  {
+    "address": "0x0012e67c",
+    "name": "gcDesiredUIWidgetHelper::GetText(char *) const",
+    "size": 456
+  },
+  {
+    "address": "0x001302e8",
+    "name": "gcValUserStatus::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x0013de00",
+    "name": "gcDoConsoleOp::GetText(char *) const",
+    "size": 868
+  },
+  {
+    "address": "0x00158e84",
+    "name": "gcValConsoleInfo::GetText(char *) const",
+    "size": 408
+  },
+  {
+    "address": "0x0015af44",
+    "name": "gcValLobbyStatus::GetText(char *) const",
+    "size": 216
+  },
+  {
+    "address": "0x001784b0",
+    "name": "gcValControllerState::GetText(char *) const",
+    "size": 708
+  },
+  {
+    "address": "0x0017cf5c",
+    "name": "gcDoUIShowDialog::GetText(char *) const",
+    "size": 1496
+  },
+  {
+    "address": "0x0017e110",
+    "name": "gcDoEntityFindAttachedBase::GetText(char *, char *, bool) const",
+    "size": 648
+  },
+  {
+    "address": "0x001c44b8",
+    "name": "gcDoReadFile::GetText(char *) const",
+    "size": 404
+  },
+  {
+    "address": "0x001c539c",
+    "name": "gcDoRecord::GetText(char *) const",
+    "size": 404
+  },
+  {
+    "address": "0x00265288",
+    "name": "gcDesiredObjectT<gcDesiredCustomAnimation, gcDesiredCustomAnimationHelper, gcEntityCustomAnimation>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026694c",
+    "name": "gcDesiredObjectT<gcDesiredCustomAttack, gcDesiredCustomAttackHelper, gcEntityCustomAttack>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026b3e4",
+    "name": "gcDesiredObjectT<gcDesiredPath, gcDesiredPathHelper, ePath>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026c528",
+    "name": "gcDesiredObjectT<gcDesiredPoint, gcDesiredPointHelper, ePoint>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026d610",
+    "name": "gcDesiredObjectT<gcDesiredSoundData, gcDesiredSoundDataHelper, eSoundData>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026e754",
+    "name": "gcDesiredObjectT<gcDesiredSprite, gcDesiredSpriteHelper, eSprite>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0026f898",
+    "name": "gcDesiredObjectT<gcDesiredStringTable, gcDesiredStringTableHelper, gcStringTable>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x00274974",
+    "name": "gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x00276410",
+    "name": "gcDesiredObjectT<gcDesiredTimer, gcDesiredTimerHelper, gcTimer>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x002784d8",
+    "name": "gcDesiredObjectT<gcDesiredTrigger, gcDesiredTriggerHelper, gcTrigger>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x00279490",
+    "name": "gcDesiredObjectT<gcDesiredUIDialog, gcDesiredUIDialogHelper, gcUIDialog>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x0027b264",
+    "name": "gcDesiredObjectT<gcDesiredSkin, gcDesiredSkinHelper, eSkin>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x00293644",
+    "name": "gcDesiredObjectT<gcDesiredPortal, gcDesiredPortalHelper, ePortal>::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x002959c8",
+    "name": "gcDoCameraFollowEntity::GetText(char *) const",
+    "size": 124
+  },
+  {
+    "address": "0x00296a08",
+    "name": "gcDoCameraLookFromEntityNode::GetText(char *) const",
+    "size": 340
+  },
+  {
+    "address": "0x00297d64",
+    "name": "gcDoCameraLookFromPoint::GetText(char *) const",
+    "size": 220
+  },
+  {
+    "address": "0x0029980c",
+    "name": "gcDoCameraOp::GetText(char *) const",
+    "size": 2608
+  },
+  {
+    "address": "0x0029bdc4",
+    "name": "gcDoChangeState::GetText(char *) const",
+    "size": 416
+  },
+  {
+    "address": "0x0029e10c",
+    "name": "gcDoDecalSpawn::GetText(char *) const",
+    "size": 188
+  },
+  {
+    "address": "0x0029f79c",
+    "name": "gcDoEntityActivate::GetText(char *) const",
+    "size": 652
+  },
+  {
+    "address": "0x002a13e0",
+    "name": "gcDoEntityActivatePartialController::GetText(char *) const",
+    "size": 292
+  },
+  {
+    "address": "0x002a2ad4",
+    "name": "gcDoEntityApplyRigidBodyImpulse::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x002a43a0",
+    "name": "gcDoEntityAttach::GetText(char *) const",
+    "size": 740
+  },
+  {
+    "address": "0x002a6a3c",
+    "name": "gcDoEntityAttack::GetText(char *) const",
+    "size": 572
+  },
+  {
+    "address": "0x002a8784",
+    "name": "gcDoEntityBipedSetShape::GetText(char *) const",
+    "size": 356
+  },
+  {
+    "address": "0x002ac0f0",
+    "name": "gcDoEntityCastRay::GetText(char *) const",
+    "size": 2196
+  },
+  {
+    "address": "0x002b1a20",
+    "name": "gcDoEntityAssignPath::GetText(char *) const",
+    "size": 248
+  },
+  {
+    "address": "0x002b34f4",
+    "name": "gcDoEntityForEach::GetText(char *) const",
+    "size": 528
+  },
+  {
+    "address": "0x002b5be4",
+    "name": "gcDoEntityMoveToPoint::GetText(char *) const",
+    "size": 844
+  },
+  {
+    "address": "0x002b94d0",
+    "name": "gcDoEntityPartialBodyAttack::GetText(char *) const",
+    "size": 572
+  },
+  {
+    "address": "0x002bb198",
+    "name": "gcDoEntityPlayAnimation::GetText(char *) const",
+    "size": 572
+  },
+  {
+    "address": "0x002bccbc",
+    "name": "gcDoEntityPlayPartialBodyAnimation::GetText(char *) const",
+    "size": 572
+  },
+  {
+    "address": "0x002beb54",
+    "name": "gcDoEntityPlaySound::GetText(char *) const",
+    "size": 1700
+  },
+  {
+    "address": "0x002c1478",
+    "name": "gcDoEntitySendMessage::GetText(char *) const",
+    "size": 648
+  },
+  {
+    "address": "0x002c2fdc",
+    "name": "gcDoEntitySendPartialControllerMessage::GetText(char *) const",
+    "size": 644
+  },
+  {
+    "address": "0x002c4950",
+    "name": "gcDoEntitySetAttractor::GetText(char *) const",
+    "size": 508
+  },
+  {
+    "address": "0x002c5dfc",
+    "name": "gcDoEntitySetCollisionMask::GetText(char *) const",
+    "size": 376
+  },
+  {
+    "address": "0x002c961c",
+    "name": "gcDoEntitySetLookAtTarget::GetText(char *) const",
+    "size": 584
+  },
+  {
+    "address": "0x002cae40",
+    "name": "gcDoEntitySetPrimaryController::GetText(char *) const",
+    "size": 316
+  },
+  {
+    "address": "0x002cbf60",
+    "name": "gcDoEntitySetScale::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x002cd3a8",
+    "name": "gcDoEntitySetSkin::GetText(char *) const",
+    "size": 932
+  },
+  {
+    "address": "0x002d0fec",
+    "name": "gcDoEntitySpawn::GetText(char *) const",
+    "size": 1896
+  },
+  {
+    "address": "0x002d6e44",
+    "name": "gcDoEntitySubGeomOp::GetText(char *) const",
+    "size": 708
+  },
+  {
+    "address": "0x002d9834",
+    "name": "gcDoFunction::GetText(char *) const",
+    "size": 348
+  },
+  {
+    "address": "0x002db2dc",
+    "name": "gcDoInputOp::GetText(char *) const",
+    "size": 1100
+  },
+  {
+    "address": "0x002dd2ac",
+    "name": "gcDoLoadMap::GetText(char *) const",
+    "size": 2112
+  },
+  {
+    "address": "0x002deeb4",
+    "name": "gcDoLoadRegionSet::GetText(char *) const",
+    "size": 384
+  },
+  {
+    "address": "0x002e02d4",
+    "name": "gcDoLobbyConfigureGame::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x002e0fbc",
+    "name": "gcDoLobbyFriendOp::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x002e1b6c",
+    "name": "gcDoLobbyMailOp::GetText(char *) const",
+    "size": 228
+  },
+  {
+    "address": "0x002e2e7c",
+    "name": "gcDoLobbyOp::GetText(char *) const",
+    "size": 384
+  },
+  {
+    "address": "0x002e497c",
+    "name": "gcDoLobbyScoreboardOp::GetText(char *) const",
+    "size": 1256
+  },
+  {
+    "address": "0x002e6fb0",
+    "name": "gcDoLog::GetText(char *) const",
+    "size": 320
+  },
+  {
+    "address": "0x002e7cd8",
+    "name": "gcDoMouseOp::GetText(char *) const",
+    "size": 148
+  },
+  {
+    "address": "0x002e8b48",
+    "name": "gcDoNetworkOp::GetText(char *) const",
+    "size": 432
+  },
+  {
+    "address": "0x002e9c3c",
+    "name": "gcDoObjectForEachRelationship::GetText(char *) const",
+    "size": 484
+  },
+  {
+    "address": "0x002eaeb4",
+    "name": "gcDoObjectLoad::GetText(char *) const",
+    "size": 784
+  },
+  {
+    "address": "0x002ec978",
+    "name": "gcDoPhysicsOp::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x002ee094",
+    "name": "gcDoPlay2dSound::GetText(char *) const",
+    "size": 644
+  },
+  {
+    "address": "0x002ef938",
+    "name": "gcDoPlayCinematic::GetText(char *) const",
+    "size": 1320
+  },
+  {
+    "address": "0x002f155c",
+    "name": "gcDoPlayerAssignController::GetText(char *) const",
+    "size": 408
+  },
+  {
+    "address": "0x002f47c8",
+    "name": "gcDoPlayMovie::GetText(char *) const",
+    "size": 1500
+  },
+  {
+    "address": "0x002f8990",
+    "name": "gcDoQueryNavMesh::GetText(char *) const",
+    "size": 1340
+  },
+  {
+    "address": "0x002fb188",
+    "name": "gcDoSaveGameOp::GetText(char *) const",
+    "size": 792
+  },
+  {
+    "address": "0x002fc87c",
+    "name": "gcDoSetEventEnumParam::GetText(char *) const",
+    "size": 244
+  },
+  {
+    "address": "0x002fd378",
+    "name": "gcDoSetEventObject::GetText(char *) const",
+    "size": 280
+  },
+  {
+    "address": "0x002fdf1c",
+    "name": "gcDoSetEventObjectArray::GetText(char *) const",
+    "size": 164
+  },
+  {
+    "address": "0x002feda8",
+    "name": "gcDoSetObjectRelationship::GetText(char *) const",
+    "size": 372
+  },
+  {
+    "address": "0x002ffc68",
+    "name": "gcDoSetStringValue::GetText(char *) const",
+    "size": 364
+  },
+  {
+    "address": "0x00304220",
+    "name": "gcDoStatsTrackingOp::GetText(char *) const",
+    "size": 236
+  },
+  {
+    "address": "0x00306b90",
+    "name": "gcDoTableQuery::GetText(char *) const",
+    "size": 568
+  },
+  {
+    "address": "0x003080d0",
+    "name": "gcDoTimerActivate::GetText(char *) const",
+    "size": 152
+  },
+  {
+    "address": "0x00308b38",
+    "name": "gcDoTriggerActivate::GetText(char *) const",
+    "size": 128
+  },
+  {
+    "address": "0x0030987c",
+    "name": "gcDoUIEditBoxOp::GetText(char *) const",
+    "size": 452
+  },
+  {
+    "address": "0x0030a634",
+    "name": "gcDoUIEffect::GetText(char *) const",
+    "size": 136
+  },
+  {
+    "address": "0x0030b288",
+    "name": "gcDoUIFade::GetText(char *) const",
+    "size": 568
+  },
+  {
+    "address": "0x0030e86c",
+    "name": "gcDoUISendMessage::GetText(char *) const",
+    "size": 428
+  },
+  {
+    "address": "0x0030f788",
+    "name": "gcDoUISetFont::GetText(char *) const",
+    "size": 228
+  },
+  {
+    "address": "0x00310ac0",
+    "name": "gcDoUISetSprite::GetText(char *) const",
+    "size": 140
+  },
+  {
+    "address": "0x00311c84",
+    "name": "gcDoUISetState::GetText(char *) const",
+    "size": 188
+  },
+  {
+    "address": "0x00313eb0",
+    "name": "gcDoUISetText::GetText(char *) const",
+    "size": 816
+  },
+  {
+    "address": "0x00315c34",
+    "name": "gcDoUISetTextSprite::GetText(char *) const",
+    "size": 248
+  },
+  {
+    "address": "0x00317380",
+    "name": "gcDoUserOp::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x00318128",
+    "name": "gcDoViewportSetConfig::GetText(char *) const",
+    "size": 412
+  },
+  {
+    "address": "0x003199e8",
+    "name": "gcDoPortalActivate::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x003241c4",
+    "name": "gcValCinematicInfo::GetText(char *) const",
+    "size": 504
+  },
+  {
+    "address": "0x003256e8",
+    "name": "gcValConstant::GetText(char *) const",
+    "size": 172
+  },
+  {
+    "address": "0x003268c4",
+    "name": "gcValEntityConstant::GetText(char *) const",
+    "size": 288
+  },
+  {
+    "address": "0x00329f34",
+    "name": "gcValEntityDirection::GetText(char *) const",
+    "size": 980
+  },
+  {
+    "address": "0x0032d1c4",
+    "name": "gcValEntityDistance::GetText(char *) const",
+    "size": 1132
+  },
+  {
+    "address": "0x0032f100",
+    "name": "gcValEntityHasAnimation::GetText(char *) const",
+    "size": 288
+  },
+  {
+    "address": "0x00330eac",
+    "name": "gcValEntityHasTimeSince::GetText(char *) const",
+    "size": 288
+  },
+  {
+    "address": "0x003337ac",
+    "name": "gcValEntityIsAttacking::GetText(char *) const",
+    "size": 128
+  },
+  {
+    "address": "0x003344f0",
+    "name": "gcValEntityIsInFluid::GetText(char *) const",
+    "size": 108
+  },
+  {
+    "address": "0x00335910",
+    "name": "gcValEntityIsValid::GetText(char *) const",
+    "size": 168
+  },
+  {
+    "address": "0x00336f78",
+    "name": "gcValLookAtControllerVariable::GetText(char *) const",
+    "size": 296
+  },
+  {
+    "address": "0x003384d8",
+    "name": "gcValEntityPartialControllerVariable::GetText(char *) const",
+    "size": 296
+  },
+  {
+    "address": "0x00339704",
+    "name": "gcValEntityPathDirection::GetText(char *) const",
+    "size": 120
+  },
+  {
+    "address": "0x0033a87c",
+    "name": "gcValEntityPathDistance::GetText(char *) const",
+    "size": 120
+  },
+  {
+    "address": "0x0033e020",
+    "name": "gcValEntitySoundFrequency::GetText(char *) const",
+    "size": 276
+  },
+  {
+    "address": "0x0033f480",
+    "name": "gcValEntityTimeSince::GetText(char *) const",
+    "size": 288
+  },
+  {
+    "address": "0x003407ec",
+    "name": "gcValEntityVariable::GetText(char *) const",
+    "size": 288
+  },
+  {
+    "address": "0x00342470",
+    "name": "gcValEnumerationEntry::GetText(char *) const",
+    "size": 216
+  },
+  {
+    "address": "0x00342dd8",
+    "name": "gcValEventVar::GetText(char *) const",
+    "size": 192
+  },
+  {
+    "address": "0x003432d4",
+    "name": "gcValExternalVariable::GetText(char *) const",
+    "size": 172
+  },
+  {
+    "address": "0x003455bc",
+    "name": "gcValGameSetting::GetText(char *) const",
+    "size": 516
+  },
+  {
+    "address": "0x00346654",
+    "name": "gcValHasPartialController::GetText(char *) const",
+    "size": 312
+  },
+  {
+    "address": "0x003477a4",
+    "name": "gcValKeyboardState::GetText(char *) const",
+    "size": 180
+  },
+  {
+    "address": "0x00348654",
+    "name": "gcValLobbyFriendInfo::GetText(char *) const",
+    "size": 252
+  },
+  {
+    "address": "0x00349234",
+    "name": "gcValLobbyGameInfo::GetText(char *) const",
+    "size": 252
+  },
+  {
+    "address": "0x0034a588",
+    "name": "gcValLobbyMailInfo::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x0034bc6c",
+    "name": "gcValLobbyScoreboardInfo::GetText(char *) const",
+    "size": 1052
+  },
+  {
+    "address": "0x0034d9cc",
+    "name": "gcValLobbyScoreboardRowInfo::GetText(char *) const",
+    "size": 560
+  },
+  {
+    "address": "0x0034f5c4",
+    "name": "gcValLobbyUserInfo::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x00350a24",
+    "name": "gcValMouseState::GetText(char *) const",
+    "size": 196
+  },
+  {
+    "address": "0x00352278",
+    "name": "gcValNavMeshDirection::GetText(char *) const",
+    "size": 600
+  },
+  {
+    "address": "0x00353630",
+    "name": "gcValNetworkState::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x00353eb0",
+    "name": "gcValObjectCompare::GetText(char *) const",
+    "size": 520
+  },
+  {
+    "address": "0x00354e90",
+    "name": "gcValObjectHasCategory::GetText(char *) const",
+    "size": 408
+  },
+  {
+    "address": "0x00355da8",
+    "name": "gcValObjectHasRelation::GetText(char *) const",
+    "size": 432
+  },
+  {
+    "address": "0x00356a30",
+    "name": "gcValObjectIsValid::GetText(char *) const",
+    "size": 268
+  },
+  {
+    "address": "0x003577e8",
+    "name": "gcValPointValue::GetText(char *) const",
+    "size": 176
+  },
+  {
+    "address": "0x003583b0",
+    "name": "gcValRandomNumber::GetText(char *) const",
+    "size": 364
+  },
+  {
+    "address": "0x003597f0",
+    "name": "gcValRigidBodyControllerVariable::GetText(char *) const",
+    "size": 192
+  },
+  {
+    "address": "0x0035ac10",
+    "name": "gcValSaveGame::GetText(char *) const",
+    "size": 684
+  },
+  {
+    "address": "0x0035d21c",
+    "name": "gcValStatsTracking::GetText(char *) const",
+    "size": 220
+  },
+  {
+    "address": "0x0035e0cc",
+    "name": "gcValStringCompare::GetText(char *) const",
+    "size": 384
+  },
+  {
+    "address": "0x0035f92c",
+    "name": "gcValTableEntry::GetText(char *) const",
+    "size": 328
+  },
+  {
+    "address": "0x003609b4",
+    "name": "gcValTableInfo::GetText(char *) const",
+    "size": 244
+  },
+  {
+    "address": "0x00363080",
+    "name": "gcValUIListInfo::GetText(char *) const",
+    "size": 264
+  },
+  {
+    "address": "0x00366f7c",
+    "name": "gcValUITexCoord::GetText(char *) const",
+    "size": 244
+  },
+  {
+    "address": "0x00367dc8",
+    "name": "gcValUITextParam::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x0036ae00",
+    "name": "gcValVariable::GetText(char *) const",
+    "size": 172
+  },
+  {
+    "address": "0x000d5348",
+    "name": "gcExpressionList::Evaluate(void) const",
+    "size": 232
+  },
+  {
+    "address": "0x0011e4e8",
+    "name": "gcValControllerState::Evaluate(void) const",
+    "size": 556
+  },
+  {
+    "address": "0x0011e714",
+    "name": "gcValControllerState::Evaluate(gcValControllerState::gcState, eInputJoystick::eButton, int) static",
+    "size": 72
+  },
+  {
+    "address": "0x0012fc08",
+    "name": "gcValUserStatus::Evaluate(void) const",
+    "size": 1080
+  },
+  {
+    "address": "0x00130040",
+    "name": "gcValUserStatus::Evaluate(gcValUserStatus::gcStatus, unsigned short) static",
+    "size": 680
+  },
+  {
+    "address": "0x0014ff20",
+    "name": "gcDoSwitchCase::Evaluate(void) const",
+    "size": 240
+  },
+  {
+    "address": "0x00150580",
+    "name": "gcDoSwitch::Evaluate(void) const",
+    "size": 508
+  },
+  {
+    "address": "0x0015cb38",
+    "name": "gcValUnaryOp::Evaluate(void) const",
+    "size": 1128
+  },
+  {
+    "address": "0x0017c7f8",
+    "name": "gcDoUIShowDialog::Evaluate(void) const",
+    "size": 1892
+  },
+  {
+    "address": "0x00180064",
+    "name": "gcValBinaryOp::Evaluate(void) const",
+    "size": 1596
+  },
+  {
+    "address": "0x001806a0",
+    "name": "gcValTrinaryOp::Evaluate(void) const",
+    "size": 2564
+  },
+  {
+    "address": "0x001c434c",
+    "name": "gcDoReadFile::Evaluate(void) const",
+    "size": 364
+  },
+  {
+    "address": "0x001c51cc",
+    "name": "gcDoRecord::Evaluate(void) const",
+    "size": 464
+  },
+  {
+    "address": "0x00295754",
+    "name": "gcDoCameraFollowEntity::Evaluate(void) const",
+    "size": 628
+  },
+  {
+    "address": "0x00296730",
+    "name": "gcDoCameraLookFromEntityNode::Evaluate(void) const",
+    "size": 728
+  },
+  {
+    "address": "0x00297acc",
+    "name": "gcDoCameraLookFromPoint::Evaluate(void) const",
+    "size": 664
+  },
+  {
+    "address": "0x00298c84",
+    "name": "gcDoCameraOp::Evaluate(void) const",
+    "size": 2952
+  },
+  {
+    "address": "0x0029ba6c",
+    "name": "gcDoChangeState::Evaluate(void) const",
+    "size": 856
+  },
+  {
+    "address": "0x0029dff0",
+    "name": "gcDoDecalSpawn::Evaluate(void) const",
+    "size": 284
+  },
+  {
+    "address": "0x0029f298",
+    "name": "gcDoEntityActivate::Evaluate(void) const",
+    "size": 1284
+  },
+  {
+    "address": "0x002a11a8",
+    "name": "gcDoEntityActivatePartialController::Evaluate(void) const",
+    "size": 568
+  },
+  {
+    "address": "0x002a22f8",
+    "name": "gcDoEntityApplyRigidBodyImpulse::Evaluate(void) const",
+    "size": 2012
+  },
+  {
+    "address": "0x002a4108",
+    "name": "gcDoEntityAttach::Evaluate(void) const",
+    "size": 664
+  },
+  {
+    "address": "0x002a6584",
+    "name": "gcDoEntityAttack::Evaluate(void) const",
+    "size": 1208
+  },
+  {
+    "address": "0x002a8448",
+    "name": "gcDoEntityBipedSetShape::Evaluate(void) const",
+    "size": 828
+  },
+  {
+    "address": "0x002a9e30",
+    "name": "gcDoEntityCastRay::Evaluate(void) const",
+    "size": 8896
+  },
+  {
+    "address": "0x002b0c7c",
+    "name": "gcDoEntityFindAttached::Evaluate(void) const",
+    "size": 212
+  },
+  {
+    "address": "0x002b14d8",
+    "name": "gcDoEntityAssignPath::Evaluate(void) const",
+    "size": 1352
+  },
+  {
+    "address": "0x002b3134",
+    "name": "gcDoEntityForEach::Evaluate(void) const",
+    "size": 960
+  },
+  {
+    "address": "0x002b4e00",
+    "name": "gcDoEntityMoveToPoint::Evaluate(void) const",
+    "size": 3556
+  },
+  {
+    "address": "0x002b8d80",
+    "name": "gcDoEntityPartialBodyAttack::Evaluate(void) const",
+    "size": 1872
+  },
+  {
+    "address": "0x002bab4c",
+    "name": "gcDoEntityPlayAnimation::Evaluate(void) const",
+    "size": 1612
+  },
+  {
+    "address": "0x002bc664",
+    "name": "gcDoEntityPlayPartialBodyAnimation::Evaluate(void) const",
+    "size": 1624
+  },
+  {
+    "address": "0x002be1b8",
+    "name": "gcDoEntityPlaySound::Evaluate(void) const",
+    "size": 2460
+  },
+  {
+    "address": "0x002c0ed4",
+    "name": "gcDoEntitySendMessage::Evaluate(void) const",
+    "size": 1444
+  },
+  {
+    "address": "0x002c29b4",
+    "name": "gcDoEntitySendPartialControllerMessage::Evaluate(void) const",
+    "size": 1576
+  },
+  {
+    "address": "0x002c479c",
+    "name": "gcDoEntitySetAttractor::Evaluate(void) const",
+    "size": 436
+  },
+  {
+    "address": "0x002c5c20",
+    "name": "gcDoEntitySetCollisionMask::Evaluate(void) const",
+    "size": 476
+  },
+  {
+    "address": "0x002c79a8",
+    "name": "gcDoEntitySetGeomCurveTarget::Evaluate(void) const",
+    "size": 616
+  },
+  {
+    "address": "0x002c9104",
+    "name": "gcDoEntitySetLookAtTarget::Evaluate(void) const",
+    "size": 1304
+  },
+  {
+    "address": "0x002cad28",
+    "name": "gcDoEntitySetPrimaryController::Evaluate(void) const",
+    "size": 280
+  },
+  {
+    "address": "0x002cbdc8",
+    "name": "gcDoEntitySetScale::Evaluate(void) const",
+    "size": 408
+  },
+  {
+    "address": "0x002ccf40",
+    "name": "gcDoEntitySetSkin::Evaluate(void) const",
+    "size": 1128
+  },
+  {
+    "address": "0x002d0b08",
+    "name": "gcDoEntitySpawn::Evaluate(void) const",
+    "size": 1252
+  },
+  {
+    "address": "0x002d6724",
+    "name": "gcDoEntitySubGeomOp::Evaluate(void) const",
+    "size": 1824
+  },
+  {
+    "address": "0x002d94c8",
+    "name": "gcDoFunction::Evaluate(void) const",
+    "size": 876
+  },
+  {
+    "address": "0x002dad38",
+    "name": "gcDoInputOp::Evaluate(void) const",
+    "size": 1444
+  },
+  {
+    "address": "0x002dcce8",
+    "name": "gcDoLoadMap::Evaluate(void) const",
+    "size": 1476
+  },
+  {
+    "address": "0x002dec64",
+    "name": "gcDoLoadRegionSet::Evaluate(void) const",
+    "size": 592
+  },
+  {
+    "address": "0x002dff80",
+    "name": "gcDoLobbyConfigureGame::Evaluate(void) const",
+    "size": 852
+  },
+  {
+    "address": "0x002e0d04",
+    "name": "gcDoLobbyFriendOp::Evaluate(void) const",
+    "size": 696
+  },
+  {
+    "address": "0x002e19d8",
+    "name": "gcDoLobbyMailOp::Evaluate(void) const",
+    "size": 404
+  },
+  {
+    "address": "0x002e2540",
+    "name": "gcDoLobbyOp::Evaluate(void) const",
+    "size": 2364
+  },
+  {
+    "address": "0x002e3f4c",
+    "name": "gcDoLobbyScoreboardOp::Evaluate(void) const",
+    "size": 2608
+  },
+  {
+    "address": "0x002e6518",
+    "name": "gcDoLobbyUserOp::Evaluate(void) const",
+    "size": 396
+  },
+  {
+    "address": "0x002e7bd8",
+    "name": "gcDoMouseOp::Evaluate(void) const",
+    "size": 256
+  },
+  {
+    "address": "0x002e88b4",
+    "name": "gcDoNetworkOp::Evaluate(void) const",
+    "size": 660
+  },
+  {
+    "address": "0x002e992c",
+    "name": "gcDoObjectForEachRelationship::Evaluate(void) const",
+    "size": 784
+  },
+  {
+    "address": "0x002eaa00",
+    "name": "gcDoObjectLoad::Evaluate(void) const",
+    "size": 1204
+  },
+  {
+    "address": "0x002ec720",
+    "name": "gcDoPhysicsOp::Evaluate(void) const",
+    "size": 600
+  },
+  {
+    "address": "0x002ed334",
+    "name": "gcDoPlay2dSound::Evaluate(void) const",
+    "size": 3424
+  },
+  {
+    "address": "0x002ef1bc",
+    "name": "gcDoPlayCinematic::Evaluate(void) const",
+    "size": 1916
+  },
+  {
+    "address": "0x002f12ec",
+    "name": "gcDoPlayerAssignController::Evaluate(void) const",
+    "size": 624
+  },
+  {
+    "address": "0x002f1e70",
+    "name": "gcDoPlayerSetEntity::Evaluate(void) const",
+    "size": 332
+  },
+  {
+    "address": "0x002f2cd0",
+    "name": "gcDoPlayerSetViewport::Evaluate(void) const",
+    "size": 340
+  },
+  {
+    "address": "0x002f4100",
+    "name": "gcDoPlayMovie::Evaluate(void) const",
+    "size": 1736
+  },
+  {
+    "address": "0x002f81a4",
+    "name": "gcDoQueryNavMesh::Evaluate(void) const",
+    "size": 2028
+  },
+  {
+    "address": "0x002fab08",
+    "name": "gcDoSaveGameOp::Evaluate(void) const",
+    "size": 1664
+  },
+  {
+    "address": "0x002fc684",
+    "name": "gcDoSetEventEnumParam::Evaluate(void) const",
+    "size": 504
+  },
+  {
+    "address": "0x002fd2ac",
+    "name": "gcDoSetEventObject::Evaluate(void) const",
+    "size": 204
+  },
+  {
+    "address": "0x002fddf4",
+    "name": "gcDoSetEventObjectArray::Evaluate(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x002feb18",
+    "name": "gcDoSetObjectRelationship::Evaluate(void) const",
+    "size": 656
+  },
+  {
+    "address": "0x002ffb08",
+    "name": "gcDoSetStringValue::Evaluate(void) const",
+    "size": 352
+  },
+  {
+    "address": "0x00301954",
+    "name": "gcDoStateFunction::Evaluate(void) const",
+    "size": 916
+  },
+  {
+    "address": "0x00302ca4",
+    "name": "gcDoStateParentHandler::Evaluate(void) const",
+    "size": 1052
+  },
+  {
+    "address": "0x00303d7c",
+    "name": "gcDoStatsTrackingOp::Evaluate(void) const",
+    "size": 1188
+  },
+  {
+    "address": "0x00308058",
+    "name": "gcDoTimerActivate::Evaluate(void) const",
+    "size": 120
+  },
+  {
+    "address": "0x00308ac0",
+    "name": "gcDoTriggerActivate::Evaluate(void) const",
+    "size": 120
+  },
+  {
+    "address": "0x0030943c",
+    "name": "gcDoUIEditBoxOp::Evaluate(void) const",
+    "size": 1088
+  },
+  {
+    "address": "0x0030a448",
+    "name": "gcDoUIEffect::Evaluate(void) const",
+    "size": 492
+  },
+  {
+    "address": "0x0030ae84",
+    "name": "gcDoUIFade::Evaluate(void) const",
+    "size": 1028
+  },
+  {
+    "address": "0x0030c898",
+    "name": "gcDoUISetFocus::Evaluate(void) const",
+    "size": 412
+  },
+  {
+    "address": "0x0030d17c",
+    "name": "gcDoUIListOp::Evaluate(void) const",
+    "size": 1344
+  },
+  {
+    "address": "0x0030e154",
+    "name": "gcDoUISendMessage::Evaluate(void) const",
+    "size": 1816
+  },
+  {
+    "address": "0x0030f584",
+    "name": "gcDoUISetFont::Evaluate(void) const",
+    "size": 516
+  },
+  {
+    "address": "0x0030ffc8",
+    "name": "gcDoUISetOrigin::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x003108d0",
+    "name": "gcDoUISetSprite::Evaluate(void) const",
+    "size": 496
+  },
+  {
+    "address": "0x00311468",
+    "name": "gcDoUISetState::Evaluate(void) const",
+    "size": 2076
+  },
+  {
+    "address": "0x003139f4",
+    "name": "gcDoUISetText::Evaluate(void) const",
+    "size": 1212
+  },
+  {
+    "address": "0x0031513c",
+    "name": "gcDoUISetTextColor::Evaluate(void) const",
+    "size": 468
+  },
+  {
+    "address": "0x0031597c",
+    "name": "gcDoUISetTextSprite::Evaluate(void) const",
+    "size": 696
+  },
+  {
+    "address": "0x00317258",
+    "name": "gcDoUserOp::Evaluate(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00317dd8",
+    "name": "gcDoViewportSetConfig::Evaluate(void) const",
+    "size": 848
+  },
+  {
+    "address": "0x0032139c",
+    "name": "gcValBipedControllerVariable::Evaluate(void) const",
+    "size": 1136
+  },
+  {
+    "address": "0x003227a8",
+    "name": "gcValCameraVariable::Evaluate(void) const",
+    "size": 936
+  },
+  {
+    "address": "0x00323e40",
+    "name": "gcValCinematicInfo::Evaluate(void) const",
+    "size": 900
+  },
+  {
+    "address": "0x00325668",
+    "name": "gcValConstant::Evaluate(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x00325e0c",
+    "name": "gcValDriveStatus::Evaluate(void) const",
+    "size": 416
+  },
+  {
+    "address": "0x00326708",
+    "name": "gcValEntityConstant::Evaluate(void) const",
+    "size": 444
+  },
+  {
+    "address": "0x00327514",
+    "name": "gcValEntityControllerVariable::Evaluate(void) const",
+    "size": 1452
+  },
+  {
+    "address": "0x00328ee0",
+    "name": "gcValEntityDirection::Evaluate(void) const",
+    "size": 4180
+  },
+  {
+    "address": "0x0032c730",
+    "name": "gcValEntityDistance::Evaluate(void) const",
+    "size": 2708
+  },
+  {
+    "address": "0x0032ed7c",
+    "name": "gcValEntityHasAnimation::Evaluate(void) const",
+    "size": 900
+  },
+  {
+    "address": "0x00330ce0",
+    "name": "gcValEntityHasTimeSince::Evaluate(void) const",
+    "size": 460
+  },
+  {
+    "address": "0x00332768",
+    "name": "gcValEntityIsActive::Evaluate(void) const",
+    "size": 104
+  },
+  {
+    "address": "0x00333424",
+    "name": "gcValEntityIsAttacking::Evaluate(void) const",
+    "size": 904
+  },
+  {
+    "address": "0x00334350",
+    "name": "gcValEntityIsInFluid::Evaluate(void) const",
+    "size": 416
+  },
+  {
+    "address": "0x0033582c",
+    "name": "gcValEntityIsValid::Evaluate(void) const",
+    "size": 228
+  },
+  {
+    "address": "0x00336898",
+    "name": "gcValLookAtControllerVariable::Evaluate(void) const",
+    "size": 876
+  },
+  {
+    "address": "0x00337f20",
+    "name": "gcValEntityPartialControllerVariable::Evaluate(void) const",
+    "size": 768
+  },
+  {
+    "address": "0x0033914c",
+    "name": "gcValEntityPathDirection::Evaluate(void) const",
+    "size": 1464
+  },
+  {
+    "address": "0x0033a34c",
+    "name": "gcValEntityPathDistance::Evaluate(void) const",
+    "size": 1328
+  },
+  {
+    "address": "0x0033c0e0",
+    "name": "gcValEntityScreenValue::Evaluate(void) const",
+    "size": 1760
+  },
+  {
+    "address": "0x0033dbf4",
+    "name": "gcValEntitySoundFrequency::Evaluate(void) const",
+    "size": 500
+  },
+  {
+    "address": "0x0033f020",
+    "name": "gcValEntityTimeSince::Evaluate(void) const",
+    "size": 556
+  },
+  {
+    "address": "0x003403ec",
+    "name": "gcValEntityVariable::Evaluate(void) const",
+    "size": 504
+  },
+  {
+    "address": "0x003413f8",
+    "name": "gcValEntityVelocity::Evaluate(void) const",
+    "size": 808
+  },
+  {
+    "address": "0x00342270",
+    "name": "gcValEnumerationEntry::Evaluate(void) const",
+    "size": 512
+  },
+  {
+    "address": "0x003431e0",
+    "name": "gcValExternalVariable::Evaluate(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x00343b20",
+    "name": "gcValFlyingControllerVariable::Evaluate(void) const",
+    "size": 720
+  },
+  {
+    "address": "0x00344c08",
+    "name": "gcValGameSetting::Evaluate(void) const",
+    "size": 1244
+  },
+  {
+    "address": "0x00346464",
+    "name": "gcValHasPartialController::Evaluate(void) const",
+    "size": 496
+  },
+  {
+    "address": "0x00347684",
+    "name": "gcValKeyboardState::Evaluate(void) const",
+    "size": 288
+  },
+  {
+    "address": "0x00348190",
+    "name": "gcValLobbyFriendInfo::Evaluate(void) const",
+    "size": 1220
+  },
+  {
+    "address": "0x00348f38",
+    "name": "gcValLobbyGameInfo::Evaluate(void) const",
+    "size": 764
+  },
+  {
+    "address": "0x003499ac",
+    "name": "gcValLobbyInfo::Evaluate(void) const",
+    "size": 1036
+  },
+  {
+    "address": "0x0034a280",
+    "name": "gcValLobbyMailInfo::Evaluate(void) const",
+    "size": 776
+  },
+  {
+    "address": "0x0034b598",
+    "name": "gcValLobbyScoreboardInfo::Evaluate(void) const",
+    "size": 1748
+  },
+  {
+    "address": "0x0034d6a8",
+    "name": "gcValLobbyScoreboardRowInfo::Evaluate(void) const",
+    "size": 804
+  },
+  {
+    "address": "0x0034ebe8",
+    "name": "gcValLobbyStatus::Evaluate(void) const",
+    "size": 360
+  },
+  {
+    "address": "0x0034f214",
+    "name": "gcValLobbyUserInfo::Evaluate(void) const",
+    "size": 944
+  },
+  {
+    "address": "0x0034fd30",
+    "name": "gcValMapLoading::Evaluate(void) const",
+    "size": 488
+  },
+  {
+    "address": "0x003502f4",
+    "name": "gcValMemCardStatus::Evaluate(void) const",
+    "size": 336
+  },
+  {
+    "address": "0x0035081c",
+    "name": "gcValMouseState::Evaluate(void) const",
+    "size": 520
+  },
+  {
+    "address": "0x003513d8",
+    "name": "gcValNavMeshDirection::Evaluate(void) const",
+    "size": 3744
+  },
+  {
+    "address": "0x0035309c",
+    "name": "gcValNetworkState::Evaluate(void) const",
+    "size": 1428
+  },
+  {
+    "address": "0x00353d88",
+    "name": "gcValObjectCompare::Evaluate(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x00354c70",
+    "name": "gcValObjectHasCategory::Evaluate(void) const",
+    "size": 544
+  },
+  {
+    "address": "0x00355b84",
+    "name": "gcValObjectHasRelation::Evaluate(void) const",
+    "size": 548
+  },
+  {
+    "address": "0x0035698c",
+    "name": "gcValObjectIsValid::Evaluate(void) const",
+    "size": 164
+  },
+  {
+    "address": "0x003574f8",
+    "name": "gcValPointValue::Evaluate(void) const",
+    "size": 752
+  },
+  {
+    "address": "0x00358080",
+    "name": "gcValRandomNumber::Evaluate(void) const",
+    "size": 816
+  },
+  {
+    "address": "0x00358ff4",
+    "name": "gcValRigidBodyControllerVariable::Evaluate(void) const",
+    "size": 1464
+  },
+  {
+    "address": "0x0035a31c",
+    "name": "gcValSaveGame::Evaluate(void) const",
+    "size": 2292
+  },
+  {
+    "address": "0x0035c16c",
+    "name": "gcValStatsTracking::Evaluate(void) const",
+    "size": 3808
+  },
+  {
+    "address": "0x0035df5c",
+    "name": "gcValStringCompare::Evaluate(void) const",
+    "size": 368
+  },
+  {
+    "address": "0x0035f580",
+    "name": "gcValTableEntry::Evaluate(void) const",
+    "size": 480
+  },
+  {
+    "address": "0x00360838",
+    "name": "gcValTableInfo::Evaluate(void) const",
+    "size": 380
+  },
+  {
+    "address": "0x00361888",
+    "name": "gcValUIChecked::Evaluate(void) const",
+    "size": 552
+  },
+  {
+    "address": "0x0036225c",
+    "name": "gcValUIEnabled::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x00362bf8",
+    "name": "gcValUIListInfo::Evaluate(void) const",
+    "size": 1160
+  },
+  {
+    "address": "0x00363888",
+    "name": "gcValUIOpacity::Evaluate(void) const",
+    "size": 344
+  },
+  {
+    "address": "0x003640a4",
+    "name": "gcValUIPosition::Evaluate(void) const",
+    "size": 1992
+  },
+  {
+    "address": "0x0036565c",
+    "name": "gcValUISize::Evaluate(void) const",
+    "size": 1472
+  },
+  {
+    "address": "0x00366980",
+    "name": "gcValUITexCoord::Evaluate(void) const",
+    "size": 784
+  },
+  {
+    "address": "0x00367914",
+    "name": "gcValUITextParam::Evaluate(void) const",
+    "size": 612
+  },
+  {
+    "address": "0x003685c4",
+    "name": "gcValUIVar::Evaluate(void) const",
+    "size": 3480
+  },
+  {
+    "address": "0x00369e50",
+    "name": "gcValUIVisible::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x0036acf0",
+    "name": "gcValVariable::Evaluate(void) const",
+    "size": 128
+  }
+]
