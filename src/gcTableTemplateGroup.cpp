@@ -4,6 +4,8 @@
 //   0x000d3230 gcTableTemplateGroup::Read(cFile &, cMemPool *)
 //   0x000d32ec gcTableTemplateGroup::GetManagedType(void) const
 //   0x000d3414 gcTableTemplateGroup::GetDataDirectory(void) const
+//   0x000d3540 gcTableTemplateGroup::GetFileExtension(void) const
+//   0x000d366c gcTableTemplateGroup::IsManagedTypeExternalStatic(void) static
 //   0x002385cc gcTableTemplateGroup::AssignCopy(const cBase *)
 //   0x00238604 gcTableTemplateGroup::New(cMemPool *, cBase *) static
 //   0x002386c0 gcTableTemplateGroup::GetType(void) const
@@ -87,6 +89,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcTableTemplateGroup();
 
     static void operator delete(void *p) {
@@ -240,4 +243,57 @@ const char *gcTableTemplateGroup::GetDataDirectory(void) const {
             (const char *)0x36D9CC, (const char *)0x36D9DC, 5);
     }
     return (const char *)((int *)D_0009F494)[5];
+}
+
+// ============================================================
+// 0x000d3540 — GetFileExtension(void) const
+// ============================================================
+const char *gcTableTemplateGroup::GetFileExtension(void) const {
+    if (D_0009F494 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F494 = cType::InitializeType(
+            0, 0, 0x216, D_000385E4, &gcTableTemplateGroup::New,
+            (const char *)0x36D9CC, (const char *)0x36D9DC, 5);
+    }
+    return (const char *)((int *)D_0009F494)[6];
+}
+
+// ============================================================
+// 0x000d366c — IsManagedTypeExternalStatic(void) static
+// ============================================================
+bool gcTableTemplateGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F494 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F494 = cType::InitializeType(
+            0, 0, 0x216, D_000385E4, &gcTableTemplateGroup::New,
+            (const char *)0x36D9CC, (const char *)0x36D9DC, 5);
+    }
+    int flags = *(int *)D_0009F494;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }

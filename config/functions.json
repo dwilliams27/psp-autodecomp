@@ -74753,13 +74753,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcTableTemplateGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fUgcTableTemplateGroupQGetFileExtensionvK",
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "384aad62",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:32:03Z"
   },
   {
     "address": "0x000d366c",
@@ -74771,7 +74778,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -74782,7 +74789,14 @@
       "0x0023879c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcTableTemplateGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fUgcTableTemplateGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "384aad62",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:32:03Z"
   },
   {
     "address": "0x000d37a8",
@@ -101083,7 +101097,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x001251c8"
@@ -101123,7 +101137,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
