@@ -61,6 +61,11 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class eMaterialGroup : public cGroup {
 public:
     eMaterialGroup(cBase *);
@@ -70,6 +75,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -90,6 +97,11 @@ extern const char eMaterialGroup_cBase_desc[];   // "Base"
 static cType *type_cBase;
 static cType *type_cGroup;
 static cType *type_eMaterialGroup;
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FEC;
 
 // ── eMaterialGroup::Write(cFile &) const @ 0x00013CE0 ──
 void eMaterialGroup::Write(cFile &file) const {
@@ -153,6 +165,52 @@ const cType *eMaterialGroup::GetType() const {
             0, 0, 8);
     }
     return type_eMaterialGroup;
+}
+
+// ── eMaterialGroup::GetManagedType(void) const @ 0x00013de8 ──
+const cType *eMaterialGroup::GetManagedType() const {
+    if (D_00040FEC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FEC = cType::InitializeType(
+            0, 0, 0x10, D_000385E4, 0,
+            (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
+    }
+    return D_00040FEC;
+}
+
+// ── eMaterialGroup::GetDataDirectory(void) const @ 0x00013f0c ──
+const char *eMaterialGroup::GetDataDirectory() const {
+    if (D_00040FEC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FEC = cType::InitializeType(
+            0, 0, 0x10, D_000385E4, 0,
+            (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
+    }
+    return (const char *)((int *)D_00040FEC)[5];
 }
 
 // ── eMaterialGroup::~eMaterialGroup(void) @ 0x001DBC18 ──

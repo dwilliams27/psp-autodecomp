@@ -20881,13 +20881,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMaterialGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fOeMaterialGroupOGetManagedTypevK",
+    "src_file": "src/eMaterialGroup.cpp",
+    "symbol_name": "__0fOeMaterialGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fb7144c5",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:37:42Z"
   },
   {
     "address": "0x00013f0c",
@@ -20899,13 +20906,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMaterialGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fOeMaterialGroupQGetDataDirectoryvK",
+    "src_file": "src/eMaterialGroup.cpp",
+    "symbol_name": "__0fOeMaterialGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fb7144c5",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:37:42Z"
   },
   {
     "address": "0x00014034",
@@ -20917,7 +20931,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -20935,7 +20949,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -21019,7 +21033,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -21037,7 +21051,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
