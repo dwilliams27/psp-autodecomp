@@ -216,6 +216,34 @@ const char *gcRoomInstanceGroup::GetFileExtension(void) const {
 }
 
 // ============================================================
+// 0x000d30a8 — IsManagedTypeExternalStatic(void) static
+// ============================================================
+bool gcRoomInstanceGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F59C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F59C = cType::InitializeType(
+            0, 0, 0x220, D_000385E4, &gcRoomInstance::New,
+            (const char *)0x36DA70, (const char *)0x36DA80, 2);
+    }
+    int flags = *(int *)D_0009F59C;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
+// ============================================================
 // 0x000d2c20 — Write(cFile &) const
 // ============================================================
 void gcRoomInstanceGroup::Write(cFile &file) const {

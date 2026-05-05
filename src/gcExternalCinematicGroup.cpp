@@ -77,6 +77,16 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcExternalCinematic {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcExternalCinematicGroup : public cGroup {
 public:
     unsigned char f8;       // 0x8 (immediately after cGroup base)
@@ -89,6 +99,7 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -104,8 +115,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998E8;
+extern cType *D_00099ACC;
 
 // ── gcExternalCinematicGroup::AssignCopy(const cBase *) @ 0x00238834 ──
 void gcExternalCinematicGroup::AssignCopy(const cBase *base) {
@@ -155,6 +169,29 @@ const cType *gcExternalCinematicGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998E8;
+}
+
+// ── gcExternalCinematicGroup::GetManagedType(void) const @ 0x000d38b0 ──
+const cType *gcExternalCinematicGroup::GetManagedType() const {
+    if (D_00099ACC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099ACC = cType::InitializeType(
+            0, 0, 0x209, D_000385E4, &gcExternalCinematic::New,
+            (const char *)0x36D8F0, (const char *)0x36D900, 1);
+    }
+    return D_00099ACC;
 }
 
 // ── gcExternalCinematicGroup::Write(cFile &) const @ 0x000d37a8 ──
