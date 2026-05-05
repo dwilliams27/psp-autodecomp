@@ -59,6 +59,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
     static cBase *New(cMemPool *, cBase *);
@@ -239,6 +240,55 @@ const char *eSkinGroup::GetDataDirectory(void) const {
             (const char *)0x36CE5C, (const char *)0x36CE64, 5);
     }
     return (const char *)((int *)D_000469F8)[5];
+}
+
+// ── eSkinGroup::GetFileExtension(void) const @ 0x0001850C ──
+const char *eSkinGroup::GetFileExtension(void) const {
+    if (D_000469F8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469F8 = cType::InitializeType(
+            0, 0, 0x45, D_000385E4, &eSkin::New,
+            (const char *)0x36CE5C, (const char *)0x36CE64, 5);
+    }
+    return (const char *)((int *)D_000469F8)[6];
+}
+
+// ── eSkinGroup::IsManagedTypeExternalStatic(void) static @ 0x00018638 ──
+bool eSkinGroup::IsManagedTypeExternalStatic() {
+    if (D_000469F8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469F8 = cType::InitializeType(
+            0, 0, 0x45, D_000385E4, &eSkin::New,
+            (const char *)0x36CE5C, (const char *)0x36CE64, 5);
+    }
+    int flags = *(int *)D_000469F8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eSkinGroup::~eSkinGroup(void) @ 0x001DD8F8 ──
