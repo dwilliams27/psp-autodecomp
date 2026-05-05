@@ -70,6 +70,7 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
     ~gcEntityTemplateGroup();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -88,8 +89,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998BC;
+extern cType *D_0009F448;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcEntityTemplate {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── gcEntityTemplateGroup::New(cMemPool *, cBase *) static @ 0x00236DF4 ──
 cBase *gcEntityTemplateGroup::New(cMemPool *pool, cBase *parent) {
@@ -132,6 +146,29 @@ const cType *gcEntityTemplateGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998BC;
+}
+
+// ── gcEntityTemplateGroup::GetManagedType(void) const @ 0x000cf944 ──
+const cType *gcEntityTemplateGroup::GetManagedType() const {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    return D_0009F448;
 }
 
 // ── gcEntityTemplateGroup::Write(cFile &) const @ 0x000CF83C ──
