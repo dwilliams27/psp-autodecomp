@@ -39,11 +39,32 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcDesiredObjectHelper {
+public:
+    enum gcPrimary {};
+    static const char *GetPrimaryText(gcPrimary);
+};
+
+extern "C" void cStrCat(char *, const char *);
+
+class gcEnumeration {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern char gcDesiredEnumerationvirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_0009F3F4;
 extern cType *D_0009F450;
+extern cType *D_000998F0;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -64,8 +85,10 @@ public:
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetDesiredType(void) const;
 };
 
 cObject *gcDesiredEnumeration::GetObject(bool b) const {
@@ -103,6 +126,80 @@ const cType *gcDesiredEnumeration::GetType(void) const {
                                            &gcDesiredEnumeration::New, 0, 0, 0);
     }
     return D_0009F450;
+}
+
+// ── gcDesiredEnumeration::GetText(char *) const @ 0x001286f4 ──
+void gcDesiredEnumeration::GetText(char *buf) const {
+    int v8 = *(int *)((const char *)this + 8);
+    int flag1 = 0;
+    if (v8 & 1) {
+        flag1 = 1;
+    }
+    int hasReal;
+    if (flag1 != 0) {
+        hasReal = 0;
+    } else {
+        int raw = (v8 != 0);
+        hasReal = ((unsigned char)raw) != 0;
+    }
+    if (hasReal == 0) {
+        int t = *(int *)((const char *)this + 12);
+        const char *text;
+        if (t == 7) {
+            int hid = *(int *)((const char *)this + 16);
+            void *entry;
+            if (hid == 0) {
+                entry = 0;
+            } else {
+                void **table = (void **)0x38890;
+                void *cand = table[(unsigned short)hid];
+                entry = 0;
+                if (cand != 0 && *(int *)((char *)cand + 0x30) == hid) {
+                    entry = cand;
+                }
+            }
+            if (entry != 0) {
+                short v = *(short *)((char *)entry + 0x1C);
+                int isZero = (v == 0);
+                isZero &= 0xFF;
+                if (isZero == 0) {
+                    text = (const char *)((char *)entry + 8);
+                } else {
+                    text = (const char *)0x36DAB8;
+                }
+            } else if (hid != 0) {
+                text = (const char *)0x36DAC4;
+            } else {
+                text = (const char *)0x36DACC;
+            }
+        } else {
+            text = gcDesiredObjectHelper::GetPrimaryText((gcDesiredObjectHelper::gcPrimary)t);
+        }
+        cStrCat(buf, text);
+    }
+}
+
+// ── gcDesiredEnumeration::GetDesiredType(void) const @ 0x00128b44 ──
+const cType *gcDesiredEnumeration::GetDesiredType(void) const {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(
+            0, 0, 0xAB, D_000385E4, &gcEnumeration::New,
+            (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
+    }
+    return D_000998F0;
 }
 
 void gcDesiredEnumeration::Write(cFile &file) const {

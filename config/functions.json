@@ -101132,14 +101132,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredEnumerationHGetTextPcK"
+    "mangled_symbol": "__0fUgcDesiredEnumerationHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "d3fc6025",
+        "notes": "Compiles to 260B vs expected 264B (4-byte / 1-instruction structural mismatch). Logic matches perfectly; control-flow shape differs.\n\nROOT CAUSE: register allocation choice for `entry` and `text`. The original SNC compiled with `entry` in $a1 throughout the entry-lookup block and `text` ALSO in $a1 (since `text = entry + 8` in the delay slot of beqz mutates the entry register in place). This makes the post-merge call sequence: `move a1, v0; jal cStrCat; move a0, s0` (1 move). Original ALSO has TWO intermediate branch-only hops (`b 1287b0; nop` at end of entry block, `b 1287d0; nop` at end of entry-NULL block) before reaching the cStrCat call.\n\nMy compile chose $a0 for `entry`/`text` (because hid loads into $a1 via `lw a1, 16(a0)`, leaving $a0 as the destination for the entry pointer in the table-lookup `move a0, a2`). This propagates so that all entry-text choices end up in $a0. Post-merge requires `move a0, v0; move a1, a0; jal cStrCat; move a0, s0` (2 moves). My compile ALSO eliminates both intermediate hops by branching directly to the cStrCat call (saves 4 inst), but this requires an explicit `b 184` in the entry-NULL block (adds 1 inst) and adds the extra a0->a1 move (adds 1 inst). Net: -4 + 1 + 1 + 1 (extra `b` in entry block due to bnezl rather than beqz pattern) = -1 inst = -4 bytes.\n\nTRIED:\n1. Original ` (v < 1)` \u2192 mine generated `slti` (signed). Changed to `(v == 0)` to get `sltiu`. \u2713 Worked but didn't fix size.\n2. Wrapped body in `if (hasReal == 0) { ... }` to mirror gcDesiredString::GetText pattern. Didn't change size.\n3. Tried `goto`-based control flow (goto callit; goto fallback; goto done). Compiler still merged.\n4. Used member access (`this->mType`, `this->mHandle.mId`) instead of pointer arithmetic. Didn't change reg choice.\n5. Introduced intermediate `inner` variable for text. Didn't change.\n6. Tried permuter \u2014 fails because permuter expects file with single function.\n\nThe core issue is that I cannot persuade the SNC compiler to load hid into $a0 (overwriting `this`) instead of $a1. In the original disasm, `lw a0, 16(a0)` overwrites `this` with hid, which keeps $a1 free for `entry`. In my compile, `lw a1, 16(a0)` puts hid in $a1, forcing entry into $a0. This is a register-allocation heuristic difference that's not directly controllable from C source.\n\nThis is NOT a bnel/beql compiler divergence \u2014 it's a structural difference in branch layout / register allocation. Does NOT qualify under docs/decisions/006-bnel-compiler-divergence.md unmatchable rules.\n\nNEXT STEPS for retry: Try (a) inline asm hint to pin hid into $a0; (b) reordering field reads \u2014 read mHandle.mId BEFORE mType; (c) declaring hid with `register` keyword (though SNC may ignore); (d) trying with `__attribute__((noinline))` or other attribute on a wrapping helper; (e) unifying entry and text variable so compiler treats them as the same register slot.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T18:51:45Z",
+        "src_file": "src/gcDesiredEnumeration.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/d3fc6025/001286f4__agent_self_reported_failure__src_gcDesiredEnumeration.cpp"
+      }
+    ]
   },
   {
     "address": "0x001287fc",
@@ -101172,13 +101186,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredEnumerationOGetDesiredTypevK"
+    "mangled_symbol": "__0fUgcDesiredEnumerationOGetDesiredTypevK",
+    "src_file": "src/gcDesiredEnumeration.cpp",
+    "symbol_name": "__0fUgcDesiredEnumerationOGetDesiredTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d3fc6025",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:51:45Z"
   },
   {
     "address": "0x00128c6c",
@@ -173123,7 +173144,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -173141,7 +173162,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x001251c8"
