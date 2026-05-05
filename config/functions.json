@@ -72801,13 +72801,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIDialogGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fPgcUIDialogGroupQGetFileExtensionvK",
+    "src_file": "src/gcUIDialogGroup.cpp",
+    "symbol_name": "__0fPgcUIDialogGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "39b1014a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:17:21Z"
   },
   {
     "address": "0x000cf13c",
@@ -72819,7 +72826,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -72832,7 +72839,14 @@
       "0x00236abc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIDialogGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fPgcUIDialogGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcUIDialogGroup.cpp",
+    "symbol_name": "__0fPgcUIDialogGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "39b1014a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:17:21Z"
   },
   {
     "address": "0x000cf278",
@@ -73193,7 +73207,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -73211,7 +73225,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

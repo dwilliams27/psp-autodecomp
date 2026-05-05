@@ -84,6 +84,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcUIDialogGroup();
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
@@ -227,6 +228,55 @@ const char *gcUIDialogGroup::GetDataDirectory(void) const {
             (const char *)0x36D8CC, (const char *)0x36D8D4, 5);
     }
     return (const char *)((int *)D_00099AB0)[5];
+}
+
+// ── gcUIDialogGroup::GetFileExtension(void) const @ 0x000cf010 ──
+const char *gcUIDialogGroup::GetFileExtension(void) const {
+    if (D_00099AB0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AB0 = cType::InitializeType(
+            0, 0, 0x81, D_000385E4, &gcUIDialog::New,
+            (const char *)0x36D8CC, (const char *)0x36D8D4, 5);
+    }
+    return (const char *)((int *)D_00099AB0)[6];
+}
+
+// ── gcUIDialogGroup::IsManagedTypeExternalStatic(void) static @ 0x000cf13c ──
+bool gcUIDialogGroup::IsManagedTypeExternalStatic() {
+    if (D_00099AB0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AB0 = cType::InitializeType(
+            0, 0, 0x81, D_000385E4, &gcUIDialog::New,
+            (const char *)0x36D8CC, (const char *)0x36D8D4, 5);
+    }
+    int flags = *(int *)D_00099AB0;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── gcUIDialogGroup::Write(cFile &) const @ 0x000CECB4 ──
