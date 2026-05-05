@@ -57,6 +57,16 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eNavMesh {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class eNavMeshGroup : public cGroup {
 public:
     ~eNavMeshGroup();
@@ -67,6 +77,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -82,8 +94,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E54;
+extern cType *D_00046A30;
 
 void eNavMeshGroup::AssignCopy(const cBase *base) {
     eNavMeshGroup *src = dcast<eNavMeshGroup>(base);
@@ -150,6 +165,50 @@ const cType *eNavMeshGroup::GetType() const {
             0, 0, 8);
     }
     return D_00040E54;
+}
+
+const cType *eNavMeshGroup::GetManagedType() const {
+    if (D_00046A30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A30 = cType::InitializeType(
+            0, 0, 0xC4, D_000385E4, &eNavMesh::New,
+            (const char *)0x36CE94, (const char *)0x36CEA0, 4);
+    }
+    return D_00046A30;
+}
+
+const char *eNavMeshGroup::GetDataDirectory() const {
+    if (D_00046A30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A30 = cType::InitializeType(
+            0, 0, 0xC4, D_000385E4, &eNavMesh::New,
+            (const char *)0x36CE94, (const char *)0x36CEA0, 4);
+    }
+    return (const char *)((int *)D_00046A30)[5];
 }
 
 eNavMeshGroup::~eNavMeshGroup() {
