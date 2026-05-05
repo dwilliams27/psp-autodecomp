@@ -1,6 +1,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 struct DeleteRecord {
     short offset;
@@ -22,6 +23,23 @@ public:
 class cFile {
 public:
     void SetCurrentPos(unsigned int);
+};
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *, cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class ePortal {
+public:
+    static cBase *New(cMemPool *, cBase *);
 };
 
 class cWriteBlock {
@@ -48,6 +66,8 @@ public:
     ePortalGroup(cBase *);
     ~ePortalGroup();
     void Write(cFile &) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -63,6 +83,11 @@ public:
 extern char ePortalGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_000469A0;
 
 // ── ePortalGroup::Write(cFile &) const @ 0x0001A9FC ──
 void ePortalGroup::Write(cFile &file) const {
@@ -97,4 +122,50 @@ cBase *ePortalGroup::New(cMemPool *pool, cBase *parent) {
 // ── ePortalGroup::~ePortalGroup(void) @ 0x001DE9D0 ──
 ePortalGroup::~ePortalGroup() {
     ((void **)this)[1] = ePortalGroupvirtualtable;
+}
+
+// ── ePortalGroup::GetManagedType(void) const @ 0x0001AB04 ──
+const cType *ePortalGroup::GetManagedType(void) const {
+    if (D_000469A0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A0 = cType::InitializeType(
+            0, 0, 0x21E, D_000385E4, &ePortal::New,
+            (const char *)0x36CE20, (const char *)0x36CE28, 3);
+    }
+    return D_000469A0;
+}
+
+// ── ePortalGroup::GetDataDirectory(void) const @ 0x0001AC2C ──
+const char *ePortalGroup::GetDataDirectory(void) const {
+    if (D_000469A0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A0 = cType::InitializeType(
+            0, 0, 0x21E, D_000385E4, &ePortal::New,
+            (const char *)0x36CE20, (const char *)0x36CE28, 3);
+    }
+    return (const char *)((int *)D_000469A0)[5];
 }
