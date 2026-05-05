@@ -68,6 +68,7 @@ public:
     void Write(cFile &) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -168,4 +169,53 @@ const char *ePortalGroup::GetDataDirectory(void) const {
             (const char *)0x36CE20, (const char *)0x36CE28, 3);
     }
     return (const char *)((int *)D_000469A0)[5];
+}
+
+// ── ePortalGroup::GetFileExtension(void) const @ 0x0001AD58 ──
+const char *ePortalGroup::GetFileExtension(void) const {
+    if (D_000469A0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A0 = cType::InitializeType(
+            0, 0, 0x21E, D_000385E4, &ePortal::New,
+            (const char *)0x36CE20, (const char *)0x36CE28, 3);
+    }
+    return (const char *)((int *)D_000469A0)[6];
+}
+
+// ── ePortalGroup::IsManagedTypeExternalStatic(void) static @ 0x0001AE84 ──
+bool ePortalGroup::IsManagedTypeExternalStatic() {
+    if (D_000469A0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A0 = cType::InitializeType(
+            0, 0, 0x21E, D_000385E4, &ePortal::New,
+            (const char *)0x36CE20, (const char *)0x36CE28, 3);
+    }
+    int flags = *(int *)D_000469A0;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
