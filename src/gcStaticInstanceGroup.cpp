@@ -43,6 +43,16 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcStaticInstance {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcStaticInstanceGroup : public cGroup {
 public:
     void AssignCopy(const cBase *);
@@ -51,6 +61,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     ~gcStaticInstanceGroup();
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -93,8 +105,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998A0;
+extern cType *D_0009F560;
 
 class eDynamicMeshExtrudedShadowFace {
 public:
@@ -209,6 +224,52 @@ int gcStaticInstanceGroup::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+// ── gcStaticInstanceGroup::GetManagedType(void) const @ 0x000cd0e8 ──
+const cType *gcStaticInstanceGroup::GetManagedType(void) const {
+    if (D_0009F560 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F560 = cType::InitializeType(
+            0, 0, 0x67, D_000385E4, &gcStaticInstance::New,
+            (const char *)0x36DA34, (const char *)0x36DA48, 0);
+    }
+    return D_0009F560;
+}
+
+// ── gcStaticInstanceGroup::GetDataDirectory(void) const @ 0x000cd210 ──
+const char *gcStaticInstanceGroup::GetDataDirectory(void) const {
+    if (D_0009F560 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F560 = cType::InitializeType(
+            0, 0, 0x67, D_000385E4, &gcStaticInstance::New,
+            (const char *)0x36DA34, (const char *)0x36DA48, 0);
+    }
+    return (const char *)((int *)D_0009F560)[5];
 }
 
 // ── gcStaticInstanceGroup::~gcStaticInstanceGroup(void) @ 0x00235ed0 ──
