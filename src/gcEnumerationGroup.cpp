@@ -67,6 +67,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
     const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcEnumerationGroup();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -165,6 +167,52 @@ const cType *gcEnumerationGroup::GetManagedType() const {
             (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
     }
     return D_000998F0;
+}
+
+// ── gcEnumerationGroup::GetDataDirectory(void) const @ 0x000d05f4 ──
+const char *gcEnumerationGroup::GetDataDirectory() const {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(
+            0, 0, 0xAB, D_000385E4, &gcEnumeration::New,
+            (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
+    }
+    return (const char *)((int *)D_000998F0)[5];
+}
+
+// ── gcEnumerationGroup::GetFileExtension(void) const @ 0x000d0720 ──
+const char *gcEnumerationGroup::GetFileExtension() const {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(
+            0, 0, 0xAB, D_000385E4, &gcEnumeration::New,
+            (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
+    }
+    return (const char *)((int *)D_000998F0)[6];
 }
 
 // ── gcEnumerationGroup::Write(cFile &) const @ 0x000D03C4 ──
