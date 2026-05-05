@@ -124616,7 +124616,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001a9e70"
@@ -125415,7 +125415,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b5dc0"
     ],
@@ -125425,7 +125425,14 @@
       "0x001ba414"
     ],
     "is_leaf": false,
-    "mangled_symbol": "malloc"
+    "mangled_symbol": "malloc",
+    "src_file": "src/free_functions.c",
+    "symbol_name": "malloc",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1f117330",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T21:32:01Z"
   },
   {
     "address": "0x001ac690",
@@ -125437,7 +125444,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b63f4"
     ],
@@ -125544,7 +125551,14 @@
       "0x0031b730"
     ],
     "is_leaf": false,
-    "mangled_symbol": "free"
+    "mangled_symbol": "free",
+    "src_file": "src/free_functions.c",
+    "symbol_name": "free",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1f117330",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T21:32:01Z"
   },
   {
     "address": "0x001ac6b4",
@@ -128196,7 +128210,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9d90"
     ],

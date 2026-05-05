@@ -462,3 +462,13 @@ extern int sceKernelLibcTime(int *t);
 int time(int *t) {
     return sceKernelLibcTime(t);
 }
+
+extern void *_malloc_r(void *r, unsigned int size);
+void *malloc(unsigned int size) {
+    return _malloc_r(*(void **)0x37DC6C, size);
+}
+
+extern void _free_r(void *r, void *ptr);
+void free(void *ptr) {
+    _free_r(*(void **)0x37DC6C, ptr);
+}
