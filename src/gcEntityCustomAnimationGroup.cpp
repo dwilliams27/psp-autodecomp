@@ -64,6 +64,8 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     ~gcEntityCustomAnimationGroup();
@@ -80,8 +82,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998D8;
+extern cType *D_00099AC0;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcEntityCustomAnimation {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 class eInputJoystick {
 public:
@@ -187,6 +202,52 @@ const cType *gcEntityCustomAnimationGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998D8;
+}
+
+// ── gcEntityCustomAnimationGroup::GetManagedType(void) const @ 0x000d21a0 ──
+const cType *gcEntityCustomAnimationGroup::GetManagedType(void) const {
+    if (D_00099AC0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AC0 = cType::InitializeType(
+            0, 0, 0x196, D_000385E4, &gcEntityCustomAnimation::New,
+            (const char *)0x36D8D8, (const char *)0x36D8EC, 5);
+    }
+    return D_00099AC0;
+}
+
+// ── gcEntityCustomAnimationGroup::GetDataDirectory(void) const @ 0x000d22c8 ──
+const char *gcEntityCustomAnimationGroup::GetDataDirectory(void) const {
+    if (D_00099AC0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AC0 = cType::InitializeType(
+            0, 0, 0x196, D_000385E4, &gcEntityCustomAnimation::New,
+            (const char *)0x36D8D8, (const char *)0x36D8EC, 5);
+    }
+    return (const char *)((int *)D_00099AC0)[5];
 }
 
 // gcEntityCustomAnimationGroup::Write(cFile &) const @ 0x000d2098
