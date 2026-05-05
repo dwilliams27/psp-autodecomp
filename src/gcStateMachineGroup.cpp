@@ -61,6 +61,16 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcStateMachine {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcStateMachineGroup : public cGroup {
 public:
     gcStateMachineGroup(cBase *);
@@ -70,6 +80,8 @@ public:
     int Read(cFile &, cMemPool *);
     bool IsManagedTypeExternal() const;
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -87,8 +99,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998C8;
+extern cType *D_0009A3E8;
 
 void gcStateMachineGroup::AssignCopy(const cBase *base) {
     gcStateMachineGroup *src = dcast<gcStateMachineGroup>(base);
@@ -156,4 +171,48 @@ const cType *gcStateMachineGroup::GetType(void) const {
                                            &gcStateMachineGroup::New, 0, 0, 8);
     }
     return D_000998C8;
+}
+
+const cType *gcStateMachineGroup::GetManagedType(void) const {
+    if (D_0009A3E8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009A3E8 = cType::InitializeType(
+            0, 0, 0xB6, D_000385E4, &gcStateMachine::New,
+            (const char *)0x36D954, (const char *)0x36D964, 5);
+    }
+    return D_0009A3E8;
+}
+
+const char *gcStateMachineGroup::GetDataDirectory(void) const {
+    if (D_0009A3E8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009A3E8 = cType::InitializeType(
+            0, 0, 0xB6, D_000385E4, &gcStateMachine::New,
+            (const char *)0x36D954, (const char *)0x36D964, 5);
+    }
+    return (const char *)((int *)D_0009A3E8)[5];
 }
