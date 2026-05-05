@@ -70,6 +70,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
     const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -165,6 +167,52 @@ const cType *gcCinematicGroup::GetType() const {
 // ── gcCinematicGroup::~gcCinematicGroup(void) @ 0x00237E18 ──
 gcCinematicGroup::~gcCinematicGroup() {
     *(void **)((char *)this + 4) = gcCinematicGroupvirtualtable;
+}
+
+// ── gcCinematicGroup::GetDataDirectory(void) const @ 0x000d1d04 ──
+const char *gcCinematicGroup::GetDataDirectory() const {
+    if (D_00099AC8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AC8 = cType::InitializeType(
+            0, 0, 0x163, D_000385E4, &gcCinematic::New,
+            (const char *)0x36D8F0, (const char *)0x36D8FC, 0);
+    }
+    return (const char *)((int *)D_00099AC8)[5];
+}
+
+// ── gcCinematicGroup::GetFileExtension(void) const @ 0x000d1e30 ──
+const char *gcCinematicGroup::GetFileExtension() const {
+    if (D_00099AC8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AC8 = cType::InitializeType(
+            0, 0, 0x163, D_000385E4, &gcCinematic::New,
+            (const char *)0x36D8F0, (const char *)0x36D8FC, 0);
+    }
+    return (const char *)((int *)D_00099AC8)[6];
 }
 
 // ── gcCinematicGroup::GetManagedType(void) const @ 0x000d1bdc ──
