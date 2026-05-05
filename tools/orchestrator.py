@@ -2530,6 +2530,22 @@ def reject_extern_c_class_methods(matched_funcs, addr_to_src, root_dir=None):
         canonical = canonical_method_pattern(cls, method) + r"\s*\("
         if re.search(canonical, stripped):
             continue
+
+        # Template class check: if class_name has angle brackets (e.g.
+        # gcDesiredObjectT<A, B, C>), agents may write the method as a
+        # template definition with generic params (gcDesiredObjectT<T1,T2,T3>
+        # ::method) plus an explicit instantiation (template class cls;).
+        # Accept this as canonical — it's real C++ class syntax, not extern-C.
+        if "<" in cls:
+            base_cls = cls.split("<", 1)[0]
+            # Match: BaseClass<anything>::method(
+            template_def = (re.escape(base_cls)
+                            + r"<[^>]*>"
+                            + r"\s*::\s*"
+                            + re.escape(method) + r"\s*\(")
+            if re.search(template_def, stripped):
+                continue
+
         rejected.append((func,
                          f"class method but no canonical {cls}::{method}(...) "
                          f"definition found in {src_path}; reconstruction "

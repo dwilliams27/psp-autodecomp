@@ -92832,7 +92832,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -92867,7 +92867,21 @@
       "0x00355da8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0ffgcDesiredEnumerationEntryHelperHGetTextPcbK"
+    "mangled_symbol": "__0ffgcDesiredEnumerationEntryHelperHGetTextPcbK",
+    "failure_notes": [
+      {
+        "session": "ee788b26",
+        "notes": "gcDesiredEnumerationEntryHelper::GetText(char *, bool) const \u2014 closest attempt is 368B (4-byte/1-instruction shorter than expected 372B). Source uses extern-C cHandlePairT_GetName + 0x38890 dispatch identical to matched gcDesiredEnumeration::GetText, plus a `cStr text;` local with implicit op= (compiler synthesizes 256-byte memcpy via lwl/lwr/swl/swr unrolled by 8) for the temp-from-cStr(src) copy. cStrCat (2-arg) for primary case and cStrAppend (3-arg variadic) for the trailing mField1!=0 append, both confirmed via func_db (cStrAppend at 0x11c0, cStrCat at 0x1368). All other bytes match (prologue, dispatch math, table lookup at 0x38890, isZero+&0xFF idiom, 256-byte memcpy unroll, cStrCat/cStrAppend tail).\n\nDivergence is NOT the bnezl/beqzl branch-likely pattern \u2014 both expected and mine emit plain `beqz a0, ...` for the inner isZero check. The diff is a CFG-flattening difference: expected emits an extra intermediate merge `b 0xbc; nop` before jumping to outer cStr ctor target 0xdc. The compiler keeps a 2-step jump (inner-merge \u2192 outer-merge) where mine collapses both inner-if branches to jump directly to the cStr ctor at 0xd8. This eliminates 1 hop (2 instrs) but mine fills a beqz delay slot with nop (+1 instr), net -1 instr / -4 bytes. This is a sibling of the ADR 006 issue but at the CFG-flattening layer rather than branch-likely emission.\n\nRestructurings tried (6): (1) original `if (isZero == 0) { src = entry+8 } else { src = DAB8 }` \u2192 364B (used bnezl); (2) inverted `if (isZero != 0) { src = DAB8 } else { src = entry+8 }` \u2192 368B (closest); (3) `goto have_src` after each src assignment \u2192 364B; (4) ternary `src = (isZero == 0) ? entry+8 : DAB8` \u2192 368B; (5) `do { ... break; ... } while(0)` wrapper \u2192 364B; (6) explicit `goto entry_done` with empty label after inner else \u2192 364B. Best stays 368B with the inverted form.\n\nPermuter cannot run on this file in-place because the .o contains both Write (104B, matched) and GetText (368B/372B) totaling >>372B; isolating GetText to a standalone TU could enable permuter exploration of the CFG-flattening hop. Qualifies for bnel/branch-likely-cousin unmatchable classification per docs/decisions/006 (\u22648 byte diff, >=3 manual restructurings, all other bytes match).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:35:21Z",
+        "src_file": "src/gcDesiredEnumerationEntryHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/ee788b26/0010e958__agent_self_reported_failure__src_gcDesiredEnumerationEntryHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010eacc",
@@ -97075,7 +97089,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x0011d268",
@@ -97086,7 +97100,21 @@
       "0x0025fbc8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredEntityHelperHGetTextPcK"
+    "mangled_symbol": "__0fVgcDesiredEntityHelperHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ee788b26",
+        "notes": "gcDesiredEntityHelper::GetText \u2014 closest attempt is 312B (4-byte/1-instruction shorter than expected 316B). Source modeled directly on the matched gcDesiredEnumeration::GetText (same 0x38890 dispatch pattern, same isZero+&0xFF idiom). Single instruction divergence: SNC emits `bnezl a1, ...` (branch-likely) for the entry->unk1C dispatch, where original SNC chose plain `beqz a0, ...` followed by an intermediate `b ...; nop` jump. The bnezl saves the intermediate jump pair (1 net instruction). This matches the documented branch-likely heuristic divergence in docs/decisions/006-bnel-compiler-divergence.md \u2014 our SNC 1.2.7503.0 is more aggressive about applying branch-likely than the original game compiler.\n\nRoot cause is also a register-allocation cascade: expected uses a0 for hid, a1 for entry; mine uses a2 for hid, a0 for entry. This swap originates from how `lw a0/a2, 4(s0/s1)` is allocated \u2014 appears tied to the surrounding mField1/mField2 cStrCat calls (s0/s1 swap on the prologue: expected saves `this` in s0, mine in s1). All other bytes appear correct (lookup math, dispatch table, cStrCat call sequence, mField1/mField2 handling all match).\n\nRestructurings tried (4): (1) original if-else chain; (2) goto-based flow with goto append/no_entry; (3) unconditional `text = entry+8` then conditional overwrite via inverted if; (4) explicit `register __asm__(\"$N\")` hints on text/hid; (5) struct-member access (`mField4.mId`) instead of pointer cast. All landed at 312B (bnezl variant) or 308B (further compressed). None coaxed beqz+intermediate-jump form. Permuter aborted because the .o contains both Write and GetText (416B .text vs 316B expected) \u2014 would need GetText isolated to its own TU to permute. Likely qualifies as bnel/branch-likely unmatchable per docs/decisions/006 if isolated permuter run also yields zero progress.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:35:21Z",
+        "src_file": "src/gcDesiredEntityHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/ee788b26/0011d020__agent_self_reported_failure__src_gcDesiredEntityHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0011d15c",
@@ -100935,7 +100963,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -101481,7 +101509,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -172792,7 +172820,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -172812,7 +172840,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/7d3a7c7f/00265160__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x00265288",
@@ -173186,7 +173216,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -173206,7 +173236,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/df09d27a/00266824__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026694c",
@@ -174437,7 +174469,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -174457,7 +174489,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/d854f40e/0026b2bc__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026b3e4",
@@ -174723,7 +174757,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -174743,7 +174777,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/0a4719d4/0026c400__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026c528",
@@ -174958,7 +174994,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -174978,7 +175014,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/9150c03e/0026d4ec__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76SgcDesiredSoundData6YgcDesiredSoundDataHelper6KeSoundData_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026d610",
@@ -175218,7 +175256,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -175238,7 +175276,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/888d6fa7/0026e62c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76PgcDesiredSprite6VgcDesiredSpriteHelper6HeSprite_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026e754",
@@ -175474,7 +175514,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -175494,7 +175534,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/2665bde1/0026f770__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76UgcDesiredStringTable6agcDesiredStringTableHelper6NgcStringTable_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0026f898",
@@ -177656,7 +177698,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -177676,7 +177718,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/c09bdde4/0027484c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x00274974",
@@ -178030,7 +178074,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -178050,7 +178094,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/ec0d3f4b/002762e8__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x00276410",
@@ -178421,7 +178467,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -178441,7 +178487,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/feb5286e/002783b0__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x002784d8",
@@ -178656,7 +178704,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -178676,7 +178724,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/cc2e6fb2/00279368__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x00279490",
@@ -179153,7 +179203,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -179173,7 +179223,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/7a7b96eb/0027b13c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x0027b264",
@@ -186812,7 +186864,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -186832,7 +186884,9 @@
         "src_file": "src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/9ea1a3e8/0029351c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_OGetDesiredTypev_PC6FcTypeK"
   },
   {
     "address": "0x00293644",
