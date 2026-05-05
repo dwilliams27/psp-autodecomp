@@ -82,6 +82,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -193,6 +194,53 @@ const cType *gcStateMachineGroup::GetManagedType(void) const {
             (const char *)0x36D954, (const char *)0x36D964, 5);
     }
     return D_0009A3E8;
+}
+
+const char *gcStateMachineGroup::GetFileExtension(void) const {
+    if (D_0009A3E8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009A3E8 = cType::InitializeType(
+            0, 0, 0xB6, D_000385E4, &gcStateMachine::New,
+            (const char *)0x36D954, (const char *)0x36D964, 5);
+    }
+    return (const char *)((int *)D_0009A3E8)[6];
+}
+
+bool gcStateMachineGroup::IsManagedTypeExternalStatic() {
+    if (D_0009A3E8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009A3E8 = cType::InitializeType(
+            0, 0, 0xB6, D_000385E4, &gcStateMachine::New,
+            (const char *)0x36D954, (const char *)0x36D964, 5);
+    }
+    int flags = *(int *)D_0009A3E8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 const char *gcStateMachineGroup::GetDataDirectory(void) const {
