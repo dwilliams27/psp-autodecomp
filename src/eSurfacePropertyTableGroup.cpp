@@ -55,6 +55,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static bool IsManagedTypeExternalStatic();
@@ -215,6 +216,55 @@ const cType *eSurfacePropertyTableGroup::GetManagedType(void) const {
             (const char *)0x36CE78, (const char *)0x36CE90, 5);
     }
     return D_00046A20;
+}
+
+// ── eSurfacePropertyTableGroup::GetFileExtension(void) const @ 0x0001BEA4 ──
+const char *eSurfacePropertyTableGroup::GetFileExtension(void) const {
+    if (D_00046A20 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A20 = cType::InitializeType(
+            0, 0, 0x2B8, D_000385E4, &eSurfacePropertyTable::New,
+            (const char *)0x36CE78, (const char *)0x36CE90, 5);
+    }
+    return (const char *)((int *)D_00046A20)[6];
+}
+
+// ── eSurfacePropertyTableGroup::IsManagedTypeExternalStatic(void) static @ 0x0001BFD0 ──
+bool eSurfacePropertyTableGroup::IsManagedTypeExternalStatic() {
+    if (D_00046A20 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A20 = cType::InitializeType(
+            0, 0, 0x2B8, D_000385E4, &eSurfacePropertyTable::New,
+            (const char *)0x36CE78, (const char *)0x36CE90, 5);
+    }
+    int flags = *(int *)D_00046A20;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eSurfacePropertyTableGroup::GetDataDirectory(void) const @ 0x0001BD78 ──

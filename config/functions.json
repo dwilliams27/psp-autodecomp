@@ -24558,13 +24558,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0faeSurfacePropertyTableGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0faeSurfacePropertyTableGroupQGetFileExtensionvK",
+    "src_file": "src/eSurfacePropertyTableGroup.cpp",
+    "symbol_name": "__0faeSurfacePropertyTableGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "7c4372ed",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:07:16Z"
   },
   {
     "address": "0x0001bfd0",
@@ -24576,7 +24583,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -24587,7 +24594,14 @@
       "0x001df0ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0faeSurfacePropertyTableGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0faeSurfacePropertyTableGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eSurfacePropertyTableGroup.cpp",
+    "symbol_name": "__0faeSurfacePropertyTableGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "7c4372ed",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:07:16Z"
   },
   {
     "address": "0x0001c10c",
@@ -72055,7 +72069,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -72073,7 +72087,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
