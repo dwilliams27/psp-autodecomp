@@ -67,6 +67,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
     const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcRoomInstanceGroup();
 
     static void operator delete(void *p) {
@@ -161,6 +163,56 @@ const cType *gcRoomInstanceGroup::GetManagedType() const {
             (const char *)0x36DA70, (const char *)0x36DA80, 2);
     }
     return D_0009F59C;
+}
+
+// ============================================================
+// 0x000d2e50 — GetDataDirectory(void) const
+// ============================================================
+const char *gcRoomInstanceGroup::GetDataDirectory(void) const {
+    if (D_0009F59C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F59C = cType::InitializeType(
+            0, 0, 0x220, D_000385E4, &gcRoomInstance::New,
+            (const char *)0x36DA70, (const char *)0x36DA80, 2);
+    }
+    return (const char *)((int *)D_0009F59C)[5];
+}
+
+// ============================================================
+// 0x000d2f7c — GetFileExtension(void) const
+// ============================================================
+const char *gcRoomInstanceGroup::GetFileExtension(void) const {
+    if (D_0009F59C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F59C = cType::InitializeType(
+            0, 0, 0x220, D_000385E4, &gcRoomInstance::New,
+            (const char *)0x36DA70, (const char *)0x36DA80, 2);
+    }
+    return (const char *)((int *)D_0009F59C)[6];
 }
 
 // ============================================================

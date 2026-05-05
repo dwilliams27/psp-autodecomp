@@ -74573,13 +74573,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcRoomInstanceGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fTgcRoomInstanceGroupQGetDataDirectoryvK",
+    "src_file": "src/gcRoomInstanceGroup.cpp",
+    "symbol_name": "__0fTgcRoomInstanceGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "80b66763",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:31:47Z"
   },
   {
     "address": "0x000d2f7c",
@@ -74591,13 +74598,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcRoomInstanceGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fTgcRoomInstanceGroupQGetFileExtensionvK",
+    "src_file": "src/gcRoomInstanceGroup.cpp",
+    "symbol_name": "__0fTgcRoomInstanceGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "80b66763",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:31:47Z"
   },
   {
     "address": "0x000d30a8",
@@ -74609,7 +74623,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -74837,7 +74851,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
