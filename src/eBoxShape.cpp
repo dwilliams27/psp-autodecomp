@@ -66,6 +66,7 @@ struct eBoxShape_block_18 {
     int _[6];
 };
 
+#pragma control sched=1
 int eBoxShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::BoxBox(*this, *shape, ocs1, ocs2, info);
 }
@@ -100,6 +101,7 @@ int eBoxShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1, co
 int eBoxShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::BoxHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }
+#pragma control sched=2
 
 // eBoxShape::eBoxShape(cBase *) — 0x0006d4b4
 eBoxShape::eBoxShape(cBase *parent) : eShape(parent) {

@@ -3,6 +3,7 @@
 
 struct mVec3;
 struct mOCS;
+class eShape;
 class eBoxShape;
 class eCapsuleShape;
 class eCompoundShape;
@@ -27,6 +28,7 @@ public:
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *outMin, float *outMax) const;
+    int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eCapsuleShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eConvexHullShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

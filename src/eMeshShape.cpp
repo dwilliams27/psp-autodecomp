@@ -59,18 +59,23 @@ eMeshShape *eMeshShape::New(cMemPool *pool, cBase *parent) {
 }
 
 // eMeshShape::Collide(const eShape *, ...) @ 0x0004fdf8
-struct CollideDispatchEntry {
-    short offset;
+struct CollideVtableEntry {
+    short thisOffset;
     short pad;
-    int (*fn)(void *, const eMeshShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    int (*fn)(void *self, const eMeshShape *other, int a, int b,
+              const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
 };
 
-int eMeshShape::Collide(const eShape *other, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
-    char *type = ((char **)other)[1];
-    CollideDispatchEntry *rec = (CollideDispatchEntry *)(type + 0x110);
-    if (rec->fn((char *)other + rec->offset, this, b, a, ocs2, ocs1, info)) {
+#pragma control sched=1
+int eMeshShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    char *vtable = *(char **)((char *)shape + 4);
+    CollideVtableEntry *entry = (CollideVtableEntry *)(vtable + 0x110);
+    void *adjThis = (char *)shape + entry->thisOffset;
+    int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
+    if (hit != 0) {
         int i = 0;
-        if (i < *(int *)((char *)info + 0x14)) {
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
             char *p = (char *)info + 0x20;
             do {
                 __asm__ volatile(
@@ -81,12 +86,14 @@ int eMeshShape::Collide(const eShape *other, int a, int b, const mOCS &ocs1, con
                 );
                 i++;
                 p += 0x40;
-            } while (i < *(int *)((char *)info + 0x14));
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
         }
         return 1;
     }
     return 0;
 }
+#pragma control sched=2
 
 const cType *eMeshShape::GetType(void) const {
     if (D_00046A04 == 0) {

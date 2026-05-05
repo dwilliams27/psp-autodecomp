@@ -212,6 +212,42 @@ const cType *eMultiSphereShape::GetType(void) const {
 }
 #pragma control sched=2
 
+// eMultiSphereShape::Collide(const eShape *, ...) — 0x00069534
+// Generic dispatcher: vtable offset 0xE8 for Collide(const eMultiSphereShape*, ...)
+struct CollideVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const eMultiSphereShape *other, int a, int b,
+              const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
+};
+
+int eMultiSphereShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    char *vtable = *(char **)((char *)shape + 4);
+    CollideVtableEntry *entry = (CollideVtableEntry *)(vtable + 0xE8);
+    void *adjThis = (char *)shape + entry->thisOffset;
+    int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
+    if (hit != 0) {
+        int i = 0;
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
+        }
+        return 1;
+    }
+    return 0;
+}
+
 // eMultiSphereShape::Collide(const eBoxShape *, ...) — 0x000695e0
 #pragma control sched=1
 int eMultiSphereShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
@@ -234,7 +270,7 @@ int eMultiSphereShape::Collide(const eBoxShape *shape, int, int, const mOCS &ocs
     }
     return 0;
 }
-#pragma control sched=2
+#pragma control sched=1
 
 int eMultiSphereShape::Collide(const eCapsuleShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::MultiSphereCapsule(*this, *shape, ocs1, ocs2, info);
@@ -255,6 +291,7 @@ int eMultiSphereShape::Collide(const eMeshShape *shape, int, int b, const mOCS &
 int eMultiSphereShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::MultiSphereHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }
+#pragma control sched=2
 
 int eCapsuleShape::CanSweep(void) const {
     return 1;

@@ -88,6 +88,14 @@ void *cMemPool_GetPoolFromPtr(const void *);
 
 struct eSphereShape_block_18 { int _[6]; };
 
+// Virtual-table entry for eShape::Collide(const eSphereShape*, ...) at offset 0xE0
+struct CollideVtableEntry {
+    short thisOffset;
+    short pad;
+    int (*fn)(void *self, const eSphereShape *other, int a, int b,
+              const mOCS *ocs1, const mOCS *ocs2, eCollisionContactInfo *info);
+};
+
 int eSphereShape::CanSweep(void) const {
     return 1;
 }
@@ -327,6 +335,37 @@ const cType *eSphereShape::GetType(void) const {
             0, 0, 0x228, parentType, factory, 0, 0, 0);
     }
     return D_00046BB8;
+}
+
+// eSphereShape::Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const
+// Address: 0x00068314
+// Generic dispatcher: virtual-calls shape's Collide(const eSphereShape*, ...) at vtable
+// offset 0xE0, passing args swapped. Then negates each contact normal.
+int eSphereShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    char *vtable = *(char **)((char *)shape + 4);
+    CollideVtableEntry *entry = (CollideVtableEntry *)(vtable + 0xE0);
+    void *adjThis = (char *)shape + entry->thisOffset;
+    int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
+    if (hit != 0) {
+        int i = 0;
+        int count = *(int *)((char *)info + 0x14);
+        if (i < count) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+                count = *(int *)((char *)info + 0x14);
+            } while (i < count);
+        }
+        return 1;
+    }
+    return 0;
 }
 
 // eSphereShape::Collide(const eBoxShape *, ...) const — 0x000683c0

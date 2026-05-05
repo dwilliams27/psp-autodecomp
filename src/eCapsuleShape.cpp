@@ -82,6 +82,7 @@ eCapsuleShape::eCapsuleShape(cBase *parent) {
 }
 
 // eCapsuleShape::Collide(const eConvexHullShape *, ...) — 0x0006ad58
+#pragma control sched=1
 int eCapsuleShape::Collide(const eConvexHullShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::CapsuleConvexHull(*this, *shape, ocs1, ocs2, info);
 }
@@ -100,6 +101,7 @@ int eCapsuleShape::Collide(const eMeshShape *shape, int, int b, const mOCS &ocs1
 int eCapsuleShape::Collide(const eHeightmapShape *shape, int, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::CapsuleHeightmap(*this, *shape, b, ocs1, ocs2, info);
 }
+#pragma control sched=2
 
 // eCapsuleShape::GetSupport(const mVec3 &, const mOCS &, mVec3 *) const
 // Address: 0x0006afbc, Size: 104 bytes
@@ -300,9 +302,10 @@ struct CapsuleCollideVtableEntry {
 // contact normal (first quad of each 0x40-stride contact starting at info+0x20).
 #pragma control sched=1
 int eCapsuleShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
-    CapsuleCollideVtableEntry *entry =
-        (CapsuleCollideVtableEntry *)(*(char **)((char *)shape + 4) + 0xF0);
-    int hit = entry->fn((char *)shape + entry->thisOffset, this, b, a, &ocs2, &ocs1, info);
+    char *vtable = *(char **)((char *)shape + 4);
+    CapsuleCollideVtableEntry *entry = (CapsuleCollideVtableEntry *)(vtable + 0xF0);
+    void *adjThis = (char *)shape + entry->thisOffset;
+    int hit = entry->fn(adjThis, this, b, a, &ocs2, &ocs1, info);
     if (hit != 0) {
         int i = 0;
         int count = *(int *)((char *)info + 0x14);

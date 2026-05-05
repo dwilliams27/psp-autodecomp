@@ -8,6 +8,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class eShape;
 class eBoxShape;
 class eCollisionSupport;
 class eMultiSphereShape;
@@ -37,6 +38,7 @@ public:
     void GetSupport(const mVec3 &dir, const mOCS &ocs, eCollisionSupport *out) const;
     void GetProjectedMinMax(const mVec3 &dir, const mOCS &ocs, float *outMin, float *outMax) const;
     void GetInertialTensor(float mass, mVec3 *out) const;
+    int Collide(const eShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eBoxShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;

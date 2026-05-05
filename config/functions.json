@@ -51607,7 +51607,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00023c20",
@@ -51628,7 +51628,9 @@
         "src_file": "src/eSphereShape.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/499189b8/00068314__post_revert_compile_failed__src_eSphereShape.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6GeShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000683c0",
@@ -51640,7 +51642,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00092c5c"
     ],
@@ -51664,7 +51666,9 @@
         "src_file": "src/eSphereShape.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/499189b8/000683c0__post_revert_compile_failed__src_eSphereShape.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006844c",
@@ -51676,7 +51680,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00025a48"
     ],
@@ -51690,7 +51694,9 @@
         "session": "94aad172",
         "notes": "Identical situation to Collide(eBoxShape*) at 0x000683c0 \u2014 same loop body, same calling pattern, same 8-word scheduling diff at the same relative offsets (0xc/0x10 move swap, 0x1c/0x20 move swap, 0x2c branch offset 0x12 vs 0x13, 0x30 nop vs `li a1,0`, rest shifted). Source is `if (eCollision::SphereSphere(*shape, *this, ocs2, ocs1, info) != 0) { /* same negate-normals loop */ }`. Routed to SphereSphere instead of BoxSphere; arg pair ocs1/ocs2 swapped consistent with the box overload. Same retry plan as 0x000683c0 \u2014 these two functions are structurally identical and will likely match together when the underlying scheduler quirk is solved."
       }
-    ]
+    ],
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000684d8",
@@ -51702,13 +51708,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00025d0c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000684fc",
@@ -51720,7 +51728,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00025f10"
     ],
@@ -51728,7 +51736,9 @@
       "0x000275f4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00068520",
@@ -51740,7 +51750,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000263e0"
     ],
@@ -51748,7 +51758,9 @@
       "0x000277e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00068544",
@@ -51760,13 +51772,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00026970"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006856c",
@@ -51778,7 +51792,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00093fec"
     ],
@@ -51786,7 +51800,9 @@
       "0x00027cfc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00068594",
@@ -51798,7 +51814,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00026bc0"
     ],
@@ -51806,7 +51822,9 @@
       "0x00027f18"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fMeSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eSphereShape.cpp",
+    "symbol_name": "__0fMeSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000685bc",
@@ -52287,13 +52305,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000275f4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eMultiSphereShape.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000697a8",
@@ -52323,13 +52343,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000277e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eMultiSphereShape.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00069858",
@@ -52341,13 +52363,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000279dc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eMultiSphereShape.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00069880",
@@ -52359,13 +52383,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00027cfc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eMultiSphereShape.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000698a8",
@@ -52377,13 +52403,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00027f18"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eMultiSphereShape.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x000698d0",
@@ -52985,13 +53013,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00094c38"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCapsuleShape.cpp",
+    "symbol_name": "__0fNeCapsuleShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006ad7c",
@@ -53003,13 +53033,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00028140"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCapsuleShape.cpp",
+    "symbol_name": "__0fNeCapsuleShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006ada4",
@@ -53021,13 +53053,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0009557c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCapsuleShape.cpp",
+    "symbol_name": "__0fNeCapsuleShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006adcc",
@@ -53039,13 +53073,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00095a1c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fNeCapsuleShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCapsuleShape.cpp",
+    "symbol_name": "__0fNeCapsuleShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006adf4",
@@ -54753,13 +54789,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00023e48"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dcf0",
@@ -54771,13 +54809,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00092c5c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6MeSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dd14",
@@ -54789,13 +54829,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0002456c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dd38",
@@ -54807,13 +54849,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00093208"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dd5c",
@@ -54825,13 +54869,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00024770"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dd80",
@@ -54843,13 +54889,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00024eb4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6OeCompoundShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006dda8",
@@ -54861,13 +54909,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00093a90"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006ddd0",
@@ -54879,13 +54929,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00025104"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fJeBoxShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eBoxShape.cpp",
+    "symbol_name": "__0fJeBoxShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0006ddf8",
@@ -56985,7 +57037,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00029724"
     ],
@@ -56997,7 +57049,9 @@
         "notes": "Same tool-limitation issue as 0x00073ac8. The 28B wrapper body is byte-identical to the expected disassembly (verified via mipsel-linux-gnu-objdump on build/src/eCompoundShape.cpp.o) and calls eCollision::CompoundMesh via a relocated jal. compare_func.py cannot verify because find_db_func_for_sym() returns the 172B Collide(const eShape *) entry for all overloads of eCompoundShape::Collide. Source is left in src/eCompoundShape.cpp; re-verify after sym_encodes_func is taught to disambiguate overloads by parameter-type class letters. New declaration for eCollision::CompoundMesh was added to include/eCollision.h (was missing)."
       }
     ],
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCompoundShape.cpp",
+    "symbol_name": "__0fOeCompoundShapeHCollidePC6KeMeshShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00073b00",
@@ -57009,7 +57063,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000298a4"
     ],
@@ -57021,7 +57075,9 @@
         "notes": "Same tool-limitation issue as 0x00073ac8 / 0x00073ae4. 28B wrapper calls eCollision::CompoundHeightmap (already declared in include/eCollision.h). Byte-exact per manual objdump verification but tool reports SIZE MISMATCH because find_db_func_for_sym selects the wrong Collide overload from the DB."
       }
     ],
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "src_file": "src/eCompoundShape.cpp",
+    "symbol_name": "__0fOeCompoundShapeHCollidePC6PeHeightmapShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x00073b1c",
