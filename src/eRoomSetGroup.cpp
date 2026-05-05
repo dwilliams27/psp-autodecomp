@@ -50,6 +50,8 @@ class eRoomSetGroup : public cGroup {
 public:
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static cBase *New(cMemPool *, cBase *);
     ~eRoomSetGroup();
     static bool IsManagedTypeExternalStatic();
@@ -68,8 +70,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E6C;
+extern cType *D_000468D8;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eRoomSet {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── eRoomSetGroup::Write(cFile &) const @ 0x0001AFC0 ──
 void eRoomSetGroup::Write(cFile &file) const {
@@ -118,6 +133,52 @@ const cType *eRoomSetGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E6C;
+}
+
+// ── eRoomSetGroup::GetManagedType(void) const @ 0x0001B0C8 ──
+const cType *eRoomSetGroup::GetManagedType(void) const {
+    if (D_000468D8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468D8 = cType::InitializeType(
+            0, 0, 0x222, D_000385E4, &eRoomSet::New,
+            (const char *)0x36CE10, (const char *)0x36CE1C, 3);
+    }
+    return D_000468D8;
+}
+
+// ── eRoomSetGroup::GetDataDirectory(void) const @ 0x0001B1F0 ──
+const char *eRoomSetGroup::GetDataDirectory(void) const {
+    if (D_000468D8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468D8 = cType::InitializeType(
+            0, 0, 0x222, D_000385E4, &eRoomSet::New,
+            (const char *)0x36CE10, (const char *)0x36CE1C, 3);
+    }
+    return (const char *)((int *)D_000468D8)[5];
 }
 
 // ── eRoomSetGroup::~eRoomSetGroup(void) @ 0x001DEC38 ──
