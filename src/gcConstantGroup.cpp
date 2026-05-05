@@ -76,6 +76,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -221,6 +222,55 @@ const char *gcConstantGroup::GetDataDirectory(void) const {
             (const char *)0x36D994, (const char *)0x36D9A0, 5);
     }
     return (const char *)((int *)D_0009F42C)[5];
+}
+
+// ── gcConstantGroup::GetFileExtension(void) const @ 0x000ce488 ──
+const char *gcConstantGroup::GetFileExtension(void) const {
+    if (D_0009F42C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F42C = cType::InitializeType(
+            0, 0, 0x7B, D_000385E4, &gcConstant::New,
+            (const char *)0x36D994, (const char *)0x36D9A0, 5);
+    }
+    return (const char *)((int *)D_0009F42C)[6];
+}
+
+// ── gcConstantGroup::IsManagedTypeExternalStatic(void) static @ 0x000ce5b4 ──
+bool gcConstantGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F42C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F42C = cType::InitializeType(
+            0, 0, 0x7B, D_000385E4, &gcConstant::New,
+            (const char *)0x36D994, (const char *)0x36D9A0, 5);
+    }
+    int flags = *(int *)D_0009F42C;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── gcConstantGroup::~gcConstantGroup(void) @ 0x00236608 ──
