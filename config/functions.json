@@ -72261,13 +72261,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcVariableGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fPgcVariableGroupOGetManagedTypevK",
+    "src_file": "src/gcVariableGroup.cpp",
+    "symbol_name": "__0fPgcVariableGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "081b1237",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:10:07Z"
   },
   {
     "address": "0x000cdd98",
@@ -72279,13 +72286,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcVariableGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fPgcVariableGroupQGetDataDirectoryvK",
+    "src_file": "src/gcVariableGroup.cpp",
+    "symbol_name": "__0fPgcVariableGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "081b1237",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:10:07Z"
   },
   {
     "address": "0x000cdec4",
@@ -72297,7 +72311,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -72315,7 +72329,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
