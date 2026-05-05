@@ -22742,13 +22742,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLePointGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fLePointGroupQGetFileExtensionvK",
+    "src_file": "src/ePointGroup.cpp",
+    "symbol_name": "__0fLePointGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b2294ec4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:51:23Z"
   },
   {
     "address": "0x00018074",
@@ -22760,7 +22767,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -22772,7 +22779,14 @@
       "0x001dd674"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLePointGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fLePointGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/ePointGroup.cpp",
+    "symbol_name": "__0fLePointGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b2294ec4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:51:23Z"
   },
   {
     "address": "0x000181b0",
@@ -22843,7 +22857,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -22861,7 +22875,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
