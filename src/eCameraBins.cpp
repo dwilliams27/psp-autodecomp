@@ -1,7 +1,14 @@
 class eWorld;
+class eDrawInfo;
 
 extern "C" void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
 extern "C" void *memset(void *, int, unsigned int);
+
+class eCameraBinsCompareDrawInfos {
+};
+
+template <typename T, typename Compare>
+void cQuickSort(T *array, unsigned int count, Compare cmp);
 
 class eCameraBins {
 public:
@@ -21,6 +28,7 @@ public:
     unsigned char mFlag18400;
 
     eCameraBins(unsigned short, const eWorld *);
+    void Sort(void);
 };
 
 // eCameraBins::eCameraBins(unsigned short, const eWorld *) @ 0x000307ec
@@ -35,4 +43,12 @@ eCameraBins::eCameraBins(unsigned short binCount, const eWorld *world) {
     mField18370 = 0;
     mFlag18400 = 0;
     memset(mClear18374, 0, 0x8C);
+}
+
+// eCameraBins::Sort(void) @ 0x00030cec
+void eCameraBins::Sort(void) {
+    cQuickSort<eDrawInfo, eCameraBinsCompareDrawInfos>(
+        reinterpret_cast<eDrawInfo *>(_pad0C),
+        mField08,
+        eCameraBinsCompareDrawInfos());
 }
