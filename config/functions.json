@@ -2857,14 +2857,28 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRcFastMemAllocatorFResetv"
+    "mangled_symbol": "__0fRcFastMemAllocatorFResetv",
+    "failure_notes": [
+      {
+        "session": "bc38cb24",
+        "notes": "cFastMemAllocator::Reset(void): structurally close (64/132 bytes differ). The expected pattern is a RAII scoped-lock class (cMemAllocatorLock) with `int *mMutex; bool mActive;` members and a constructor `(bool active, int &mutex)` that conditionally locks, plus a destructor that conditionally unlocks. This is confirmed by the unconditional `sw a2,0(sp); sb a1,4(sp)` (lock object stack stores), the double `andi a1,a1,0xff` (bool arg masking + bool member assignment masking on inline), and the `lbu a1,4(sp)` reload between the body and unlock for the destructor's mActive check. \n\nMy implementation produces semantically equivalent code but differs in prologue scheduling. Expected delays `move s0,a0` to the branch's delay slot (line 0x2ef8) so a0 stays as `this` for the bool computation (`lw a1,12(a0)`) and &mutex calculation (`addiu a2,a0,24`). Mine sets `s0=a0` early (right after stack adjust), causing all subsequent `this` accesses to go via s0 and forcing `&mutex` into a0 instead of a2. This cascades: mine uses `lw a0,0(a0)` (indirect via &mutex on stack) for the lock call, expected uses `lw a0,24(s0)` (direct). Same logical effect but different bytes.\n\nAlso, the destructor inline differs: expected loads mActive into a1 and uses the branch delay slot for the body's final `sw a0,12(s0)` (mFlags update). Mine loads mActive into a0, can't fill delay slot, emits NOP.\n\nTried: (1) reference vs pointer for mutex arg \u2014 same result; (2) `#pragma control sched=1` \u2014 no effect; (3) various local variable orderings \u2014 same registers chosen.\n\nRoot cause: SNC's scheduler decides early when to move `this` from a0 to s0. With Reset's body containing 4 separate this-accesses after the lock construction, SNC consolidates `s0=a0` early. The original source may have had a slightly different inlining context (different surrounding code, different number of locals, or possibly the constructor was defined externally not inline) that caused SNC to keep this in a0 longer. Permuter couldn't run on this file (multi-function .o).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:28:52Z",
+        "src_file": "src/cFastMemAllocator.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/bc38cb24/00002ec8__agent_self_reported_failure__src_cFastMemAllocator.cpp"
+      }
+    ]
   },
   {
     "address": "0x00002f4c",
@@ -2876,14 +2890,28 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRcFastMemAllocatorGMallocUiiPCcTC"
+    "mangled_symbol": "__0fRcFastMemAllocatorGMallocUiiPCcTC",
+    "failure_notes": [
+      {
+        "session": "bc38cb24",
+        "notes": "cFastMemAllocator::Malloc(unsigned int, int, const char *, int): 127/348 bytes differ. Same scoped-lock pattern as Reset (cMemAllocatorLock), with size==0 early-return. Body computes alignment (max(alignment,4) but only if alignment>=5), aligns mAllocCurrent and size up to the alignment, checks if (mAllocCurrent_aligned + size_aligned) > (base + capacity) for failure, otherwise updates mAllocCurrent and returns the aligned offset.\n\nMain divergences:\n1. Same prologue/scheduling diffs as Reset (s0/a0 ordering, register choice for &mutex).\n2. Mine emits BEQL (branch likely) at the limit-check (`if (limit < new_pos) return 0`) \u2014 pattern 5 from snc-branch-likely.md (conditional assignment with side effect, since success path has `sw a0,32(s1)` mAllocCurrent update). Expected emits regular BEQ and places the mAllocCurrent store in the destructor's BEQ delay slot in the success path. Tried inverting condition: same result.\n3. Register choices for divu/mult/mflo chain differ slightly (a1 vs a2, a2 vs a3 etc.) but pattern is consistent.\n\nSource structure: signature `int Malloc(unsigned int size, int alignment, const char *, int)`. Returns `aligned_pos` (offset, not pointer) on success, 0 on failure. Calls back-references TC (= int) for the 4th arg per SNC name mangling.\n\nThe scoped lock class definition (cMemAllocatorLock with int *mMutex; bool mActive;) is correct \u2014 confirmed by stack layout matching expected (sp+0 for mMutex, sp+4 for mActive, addiu sp,-32 for Malloc).\n\nNext agent: try writing the lock as a non-class (just two stack vars with addresses taken), or experiment with explicitly forcing the BEQ instead of BEQL (maybe via inline asm barrier between the limit check and the assignment). Or possibly rewrite without scoped lock and use barriers.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:28:52Z",
+        "src_file": "src/cFastMemAllocator.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/bc38cb24/00002f4c__agent_self_reported_failure__src_cFastMemAllocator.cpp"
+      }
+    ]
   },
   {
     "address": "0x000030a8",
@@ -4983,7 +5011,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0000076c",
       "0x000009c0",
@@ -4994,7 +5022,21 @@
       "0x000cce60"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLcFileSystemKInitializePCcT"
+    "mangled_symbol": "__0fLcFileSystemKInitializePCcT",
+    "failure_notes": [
+      {
+        "session": "af57f2fa",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:26:35Z",
+        "src_file": "src/cFileSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/af57f2fa/00004de8__post_revert_compile_failed__src_cFileSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x00004e6c",
@@ -5032,7 +5074,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0000e484",
       "0x0000e818",
@@ -5044,7 +5086,21 @@
       "0x0000e960"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLcFileSystemEOpenPCcT"
+    "mangled_symbol": "__0fLcFileSystemEOpenPCcT",
+    "failure_notes": [
+      {
+        "session": "af57f2fa",
+        "notes": "Near-miss: 308/312 bytes (4 bytes / 1 instruction short). Structural shape correct; remaining diff is a single dead `addiu a0, s2, 3232` at expected offset 0x74. Root cause: register allocator strategy divergence. Expected keeps s2 = 0x40000 LUI base and recomputes pack pointer on demand via `addiu a0, s2, 3232` in the success block (then `lw a0, 12(a0)` to load mSectorSize). Mine consolidates s2 = pack = 0x40CA0 once at function entry via early `addiu s2, s2, 3232`, then uses `lw a0, 12(s2)` directly \u2014 saving one instruction. Source iterations tried: (1) baseline straightforward translation 276B; (2) removed cFilePackDir* local 280B; (3) value-form OR via `int failed=0; if(a) failed=1; else if(b) failed=1;` 300B; (4) added `__asm__ volatile(\"\" ::: \"memory\")` barrier in if-found success block 304B; (5) added second barrier in else-branch of FindFile if/else 308B. Both memory barriers were essential to prevent SNC from hoisting subsequent loads/computations \u2014 they are load-bearing, not stylistic. Permuter could not run because base size doesn't match (compare_func.py rejects). Diff is NOT in bnel/beql so does not meet unmatchable criteria per docs/decisions/006. Suggest next agent try: (a) restructure to force expected register pressure pattern that prevents s2 consolidation \u2014 e.g. introduce a use of 0x40000-relative address that competes for s2; (b) try alternate barrier placement; (c) try explicit cast/temp pointer arrangements that change live-range of pack pointer across the FindFile call. Header changes already in place: cFileSystem::Open in cFileSystem.h, cBufferedFile::Open(name, flags) in cFile.h, cFileSystemPlatform::Initialize in cFileSystemPlatform.h.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:26:35Z",
+        "src_file": "src/cFileSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/af57f2fa/00004e74__agent_self_reported_failure__src_cFileSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x00004fac",
@@ -27968,13 +28024,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0002a6f0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeCollisionRUpdateSimplexLineP6FmVec3PiTBT"
+    "mangled_symbol": "__0fKeCollisionRUpdateSimplexLineP6FmVec3PiTBT",
+    "src_file": "src/eCollision.cpp",
+    "symbol_name": "__0fKeCollisionRUpdateSimplexLineP6FmVec3PiTBT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "3b538cb2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T23:06:07Z"
   },
   {
     "address": "0x00029e4c",
@@ -28045,7 +28108,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00029dc8",
       "0x0002a254",
@@ -28055,7 +28118,14 @@
       "0x00022878"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeCollisionNUpdateSimplexP6FmVec3PiTBT"
+    "mangled_symbol": "__0fKeCollisionNUpdateSimplexP6FmVec3PiTBT",
+    "src_file": "src/eCollision.cpp",
+    "symbol_name": "__0fKeCollisionNUpdateSimplexP6FmVec3PiTBT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "3b538cb2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T23:06:07Z"
   },
   {
     "address": "0x0002a784",
@@ -76954,7 +77024,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d8708"
     ],
@@ -76962,7 +77032,21 @@
       "0x000ddbf4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIWidgetFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fKgcUIWidgetFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "03a5259e",
+        "notes": "gcUIWidget::Reset(cMemPool *, bool) - 8 byte diff (172B vs 180B), missing 2 instructions in loop body: `lw t1, 0(sp)` (round-trip reload pair.first) and `move t0, t1`. Mine uses pair struct with `int *pairSecondPtr = &pair.second` and `__asm__ volatile(\"\" ::: \"memory\")` barrier, which forces round-trip on pair.second but NOT pair.first. Expected has BOTH fields round-trip through memory. Tried: explicit pairFirstPtr (matched 180B but added `move t0, sp` extra and 62 bytes differed), constructor-style `*handle = pair` (eliminated pair entirely), volatile pair2. Root cause: SNC at -O2 optimizes through memory barrier for direct member access (handle->first = pair.first) when pair.first reg is still alive after the store. Need a structure that forces pair.first to be re-read from memory without adding extra pointer-setup instructions. The post-loop `pair2.first = pair.first; pair2.second = pair.first` works (with __asm__ \"m\"(pair2) barrier) \u2014 that part lines up. The trailing setup using live regs t1 and t0 from the last loop iteration also matches. The remaining issue is just the loop body's pair.first round-trip pattern.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:54:17Z",
+        "src_file": "src/gcUIWidget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/03a5259e/000d8654__agent_self_reported_failure__src_gcUIWidget.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d8708",
@@ -77518,13 +77602,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d8708"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIWidgetGEnableb"
+    "mangled_symbol": "__0fKgcUIWidgetGEnableb",
+    "failure_notes": [
+      {
+        "session": "03a5259e",
+        "notes": "gcUIWidget::Enable(bool) - 8 byte diff (124B vs 132B), 2 missing instructions: redundant `andi a1, a0, 0xff` (re-mask of enable byte) and `lw a0, 36(s0)` (mFlags reload). Expected register allocation puts enable byte in a0, mFlags in a2 with mFlags-mask in-place destroying original (`andi a2, a2, 1`); inside if-block compiler must reload mFlags via `lw a0, 36(s0)` in delay slot of `beqz a1`. Mine puts mFlags in a0 and mask in fresh a3, preserving original \u2014 no reload needed. Tried: bool-typed wasEnabled, pointer access via fp=&mFlags (matched size 132B but 51 bytes still differed due to addiu a1,s0,36 prelude), unsigned int f=mFlags reload variant \u2014 all CSE'd by SNC. Root cause: SNC's register allocator chooses different layout based on heuristics; my source structure produces a 'cleaner' allocation that doesn't require reload. Likely needs permuter to find a structure that triggers expected allocation, or this is compiler-divergent.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T22:54:17Z",
+        "src_file": "src/gcUIWidget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/03a5259e/000db2f0__agent_self_reported_failure__src_gcUIWidget.cpp"
+      }
+    ]
   },
   {
     "address": "0x000db374",
@@ -107817,7 +107915,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001314",
       "0x000d8708"
@@ -107948,7 +108046,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0013ab1c"
@@ -115057,7 +115155,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00111f08",
       "0x00112d5c",
@@ -115077,7 +115175,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011211c",
       "0x001174b4"

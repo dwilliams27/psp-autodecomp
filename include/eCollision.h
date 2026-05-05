@@ -66,6 +66,10 @@ public:
     static int SphereMesh(const eSphereShape &, const eMeshShape &, int, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int SphereMultiSphere(const eSphereShape &, const eMultiSphereShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
     static int SphereSphere(const eSphereShape &, const eSphereShape &, const mOCS &, const mOCS &, eCollisionContactInfo *);
+    static int UpdateSimplex(mVec3 *, int *, mVec3 *);
+    static void UpdateSimplexLine(mVec3 *, int *, mVec3 *);
+    static void UpdateSimplexTri(mVec3 *, int *, mVec3 *);
+    static int UpdateSimplexTetra(mVec3 *, int *, mVec3 *);
 };
 
 class eMaterial {
