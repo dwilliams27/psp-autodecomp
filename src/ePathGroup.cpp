@@ -49,12 +49,24 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class ePath {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class ePathGroup : public cGroup {
 public:
     ePathGroup(cBase *);
     ~ePathGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
@@ -100,8 +112,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E20;
+extern cType *D_00046A48;
 
 void ePathGroup::AssignCopy(const cBase *base) {
     ePathGroup *src = dcast<ePathGroup>(base);
@@ -174,6 +189,52 @@ const cType *ePathGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E20;
+}
+
+// ── ePathGroup::GetManagedType(void) const @ 0x0001439C ──
+const cType *ePathGroup::GetManagedType(void) const {
+    if (D_00046A48 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A48 = cType::InitializeType(
+            0, 0, 0x18, D_000385E4, &ePath::New,
+            (const char *)0x36CEA4, (const char *)0x36CEAC, 0);
+    }
+    return D_00046A48;
+}
+
+// ── ePathGroup::GetDataDirectory(void) const @ 0x000144C4 ──
+const char *ePathGroup::GetDataDirectory(void) const {
+    if (D_00046A48 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A48 = cType::InitializeType(
+            0, 0, 0x18, D_000385E4, &ePath::New,
+            (const char *)0x36CEA4, (const char *)0x36CEAC, 0);
+    }
+    return (const char *)((int *)D_00046A48)[5];
 }
 
 // ── ePathGroup::~ePathGroup(void) @ 0x001DBE80 ──
