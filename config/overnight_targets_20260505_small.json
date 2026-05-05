@@ -1,0 +1,2187 @@
+[
+  {
+    "address": "0x0004ac68",
+    "name": "NextPhysique1",
+    "size": 0
+  },
+  {
+    "address": "0x0004ac94",
+    "name": "NextOneWeight",
+    "size": 0
+  },
+  {
+    "address": "0x0004ad10",
+    "name": "NextDestUnroll1",
+    "size": 0
+  },
+  {
+    "address": "0x0004ad2c",
+    "name": "SkipThisUnroll1",
+    "size": 0
+  },
+  {
+    "address": "0x0004ad40",
+    "name": "Physique2",
+    "size": 0
+  },
+  {
+    "address": "0x0004ad50",
+    "name": "NextPhysique2",
+    "size": 0
+  },
+  {
+    "address": "0x0004ae28",
+    "name": "NextDestUnroll2",
+    "size": 0
+  },
+  {
+    "address": "0x0004ae44",
+    "name": "SkipThisUnroll2",
+    "size": 0
+  },
+  {
+    "address": "0x0004ae50",
+    "name": "Physique3",
+    "size": 0
+  },
+  {
+    "address": "0x0004ae60",
+    "name": "NextPhysique3",
+    "size": 0
+  },
+  {
+    "address": "0x0004af54",
+    "name": "NextDestUnroll3",
+    "size": 0
+  },
+  {
+    "address": "0x0004af70",
+    "name": "SkipThisUnroll3",
+    "size": 0
+  },
+  {
+    "address": "0x0004af7c",
+    "name": "Physique4",
+    "size": 0
+  },
+  {
+    "address": "0x0004af8c",
+    "name": "NextPhysique4",
+    "size": 0
+  },
+  {
+    "address": "0x0004b0a8",
+    "name": "NextDestUnroll4",
+    "size": 0
+  },
+  {
+    "address": "0x0004b0c4",
+    "name": "SkipThisUnroll4",
+    "size": 0
+  },
+  {
+    "address": "0x0004b0d0",
+    "name": "PhysiqueDone",
+    "size": 0
+  },
+  {
+    "address": "0x001c0930",
+    "name": "_sn_syscall",
+    "size": 0
+  },
+  {
+    "address": "0x001c093c",
+    "name": "_sn_syscallbreak",
+    "size": 0
+  },
+  {
+    "address": "0x0036bab4",
+    "name": "sceCtrlSetSamplingMode",
+    "size": 0
+  },
+  {
+    "address": "0x0036babc",
+    "name": "sceCtrlPeekBufferPositive",
+    "size": 0
+  },
+  {
+    "address": "0x0036bac4",
+    "name": "sceCtrlSetSamplingCycle",
+    "size": 0
+  },
+  {
+    "address": "0x0036bacc",
+    "name": "sceCtrlSetIdleCancelThreshold",
+    "size": 0
+  },
+  {
+    "address": "0x0036bad4",
+    "name": "sceKernelPowerTick",
+    "size": 0
+  },
+  {
+    "address": "0x0036badc",
+    "name": "sceKernelLibcGettimeofday",
+    "size": 0
+  },
+  {
+    "address": "0x0036bae4",
+    "name": "sceKernelLibcClock",
+    "size": 0
+  },
+  {
+    "address": "0x0036baec",
+    "name": "sceKernelLibcTime",
+    "size": 0
+  },
+  {
+    "address": "0x0036baf4",
+    "name": "sceKernelDcacheWritebackInvalidateRange",
+    "size": 0
+  },
+  {
+    "address": "0x0036bafc",
+    "name": "sceKernelCreateFpl",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb04",
+    "name": "sceKernelUSec2SysClockWide",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb0c",
+    "name": "sceKernelDelayThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb14",
+    "name": "sceKernelWakeupThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb1c",
+    "name": "sceKernelCreateSema",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb24",
+    "name": "sceKernelAllocateFpl",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb2c",
+    "name": "sceKernelSetEventFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb34",
+    "name": "sceKernelSysClock2USecWide",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb3c",
+    "name": "sceKernelCreateCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb44",
+    "name": "sceKernelDeleteFpl",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb4c",
+    "name": "sceKernelDeleteCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb54",
+    "name": "sceKernelDeleteEventFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb5c",
+    "name": "sceKernelStartThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb64",
+    "name": "sceKernelFreeFpl",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb6c",
+    "name": "sceKernelDeleteMutex",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb74",
+    "name": "sceKernelWaitThreadEnd",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb7c",
+    "name": "sceKernelDeleteSema",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb84",
+    "name": "sceKernelCheckCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb8c",
+    "name": "sceKernelGetSystemTimeLow",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb94",
+    "name": "sceKernelTerminateDeleteThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bb9c",
+    "name": "sceKernelSignalSema",
+    "size": 0
+  },
+  {
+    "address": "0x0036bba4",
+    "name": "sceKernelWaitEventFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbac",
+    "name": "sceKernelCreateThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbb4",
+    "name": "sceKernelWaitSema",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbbc",
+    "name": "sceKernelCreateEventFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbc4",
+    "name": "sceKernelDelayThreadCB",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbcc",
+    "name": "sceKernelUnlockMutex",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbd4",
+    "name": "sceKernelChangeThreadPriority",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbdc",
+    "name": "sceKernelExitDeleteThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbe4",
+    "name": "sceKernelClearEventFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbec",
+    "name": "sceKernelGetSystemTimeWide",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbf4",
+    "name": "sceKernelRotateThreadReadyQueue",
+    "size": 0
+  },
+  {
+    "address": "0x0036bbfc",
+    "name": "sceKernelGetThreadCurrentPriority",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc04",
+    "name": "sceKernelSleepThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc0c",
+    "name": "sceKernelDeleteThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc14",
+    "name": "sceKernelReferEventFlagStatus",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc1c",
+    "name": "sceKernelExitThread",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc24",
+    "name": "sceKernelLockMutex",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc2c",
+    "name": "sceKernelCreateMutex",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc34",
+    "name": "sceKernelPrintf",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc3c",
+    "name": "sceKernelSetCompilerVersion",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc44",
+    "name": "sceKernelAllocPartitionMemory",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc4c",
+    "name": "sceKernelSetCompiledSdkVersion",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc54",
+    "name": "sceKernelGetBlockHeadAddr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc5c",
+    "name": "sceKernelFreePartitionMemory",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc64",
+    "name": "sceKernelStdin",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc6c",
+    "name": "sceKernelStdout",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc74",
+    "name": "sceKernelStderr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc7c",
+    "name": "sceKernelUnloadModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc84",
+    "name": "sceKernelStopModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc8c",
+    "name": "sceKernelGetModuleIdByAddress",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc94",
+    "name": "sceKernelGetModuleId",
+    "size": 0
+  },
+  {
+    "address": "0x0036bc9c",
+    "name": "sceKernelStartModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bca4",
+    "name": "sceKernelStopUnloadSelfModuleWithStatus",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcac",
+    "name": "sceKernelLoadModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcb4",
+    "name": "sceKernelExitGame",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcbc",
+    "name": "sceKernelRegisterExitCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcc4",
+    "name": "sceKernelCpuSuspendIntr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bccc",
+    "name": "sceKernelMemset",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcd4",
+    "name": "sceKernelMemcpy",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcdc",
+    "name": "sceKernelGetThreadId",
+    "size": 0
+  },
+  {
+    "address": "0x0036bce4",
+    "name": "sceKernelCpuResumeIntr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcec",
+    "name": "sceIoWrite",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcf4",
+    "name": "sceIoDevctl",
+    "size": 0
+  },
+  {
+    "address": "0x0036bcfc",
+    "name": "sceIoRead",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd04",
+    "name": "sceIoRename",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd0c",
+    "name": "sceIoClose",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd14",
+    "name": "sceIoReadAsync",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd1c",
+    "name": "sceIoGetstat",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd24",
+    "name": "sceIoChangeAsyncPriority",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd2c",
+    "name": "sceIoWaitAsync",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd34",
+    "name": "sceIoOpen",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd3c",
+    "name": "sceIoLseek",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd44",
+    "name": "sceIoPollAsync",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd4c",
+    "name": "sceKernelRegisterSubIntrHandler",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd54",
+    "name": "sceKernelReleaseSubIntrHandler",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd5c",
+    "name": "sceKernelEnableSubIntr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd64",
+    "name": "sceImposeSetLanguageMode",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd6c",
+    "name": "sceUtilityLoadModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd74",
+    "name": "sceUtilitySavedataInitStart",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd7c",
+    "name": "sceUtilitySavedataGetStatus",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd84",
+    "name": "sceUtilitySavedataShutdownStart",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd8c",
+    "name": "sceUtilityGetSystemParamInt",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd94",
+    "name": "sceUtilitySavedataUpdate",
+    "size": 0
+  },
+  {
+    "address": "0x0036bd9c",
+    "name": "sceUtilityUnloadModule",
+    "size": 0
+  },
+  {
+    "address": "0x0036bda4",
+    "name": "scePowerRegisterCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdac",
+    "name": "scePowerUnregisterCallback",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdb4",
+    "name": "sceAtracGetStreamDataInfo",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdbc",
+    "name": "sceAtracReleaseAtracID",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdc4",
+    "name": "sceAtracDecodeData",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdcc",
+    "name": "sceAtracSetDataAndGetID",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdd4",
+    "name": "sceAtracAddStreamData",
+    "size": 0
+  },
+  {
+    "address": "0x0036bddc",
+    "name": "sceAtracSetLoopNum",
+    "size": 0
+  },
+  {
+    "address": "0x0036bde4",
+    "name": "sceAtracGetRemainFrame",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdec",
+    "name": "sceAtracGetInternalErrorInfo",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdf4",
+    "name": "__sceSasSetADSR",
+    "size": 0
+  },
+  {
+    "address": "0x0036bdfc",
+    "name": "__sceSasGetAllEnvelopeHeights",
+    "size": 0
+  },
+  {
+    "address": "0x0036be04",
+    "name": "__sceSasRevParam",
+    "size": 0
+  },
+  {
+    "address": "0x0036be0c",
+    "name": "__sceSasGetPauseFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036be14",
+    "name": "__sceSasRevType",
+    "size": 0
+  },
+  {
+    "address": "0x0036be1c",
+    "name": "__sceSasInit",
+    "size": 0
+  },
+  {
+    "address": "0x0036be24",
+    "name": "__sceSasSetVolume",
+    "size": 0
+  },
+  {
+    "address": "0x0036be2c",
+    "name": "__sceSasCoreWithMix",
+    "size": 0
+  },
+  {
+    "address": "0x0036be34",
+    "name": "__sceSasSetSL",
+    "size": 0
+  },
+  {
+    "address": "0x0036be3c",
+    "name": "__sceSasGetEndFlag",
+    "size": 0
+  },
+  {
+    "address": "0x0036be44",
+    "name": "__sceSasGetEnvelopeHeight",
+    "size": 0
+  },
+  {
+    "address": "0x0036be4c",
+    "name": "__sceSasSetKeyOn",
+    "size": 0
+  },
+  {
+    "address": "0x0036be54",
+    "name": "__sceSasSetPause",
+    "size": 0
+  },
+  {
+    "address": "0x0036be5c",
+    "name": "__sceSasSetVoice",
+    "size": 0
+  },
+  {
+    "address": "0x0036be64",
+    "name": "__sceSasSetADSRmode",
+    "size": 0
+  },
+  {
+    "address": "0x0036be6c",
+    "name": "__sceSasSetKeyOff",
+    "size": 0
+  },
+  {
+    "address": "0x0036be74",
+    "name": "__sceSasCore",
+    "size": 0
+  },
+  {
+    "address": "0x0036be7c",
+    "name": "__sceSasSetPitch",
+    "size": 0
+  },
+  {
+    "address": "0x0036be84",
+    "name": "__sceSasSetNoise",
+    "size": 0
+  },
+  {
+    "address": "0x0036be8c",
+    "name": "__sceSasGetGrain",
+    "size": 0
+  },
+  {
+    "address": "0x0036be94",
+    "name": "__sceSasSetSimpleADSR",
+    "size": 0
+  },
+  {
+    "address": "0x0036be9c",
+    "name": "__sceSasSetGrain",
+    "size": 0
+  },
+  {
+    "address": "0x0036bea4",
+    "name": "__sceSasRevEVOL",
+    "size": 0
+  },
+  {
+    "address": "0x0036beac",
+    "name": "__sceSasGetOutputmode",
+    "size": 0
+  },
+  {
+    "address": "0x0036beb4",
+    "name": "__sceSasSetVoicePCM",
+    "size": 0
+  },
+  {
+    "address": "0x0036bebc",
+    "name": "__sceSasSetOutputmode",
+    "size": 0
+  },
+  {
+    "address": "0x0036bec4",
+    "name": "__sceSasRevVON",
+    "size": 0
+  },
+  {
+    "address": "0x0036becc",
+    "name": "sceMpegRingbufferDestruct",
+    "size": 0
+  },
+  {
+    "address": "0x0036bed4",
+    "name": "sceMpegInitAu",
+    "size": 0
+  },
+  {
+    "address": "0x0036bedc",
+    "name": "sceMpegAvcQueryYCbCrSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bee4",
+    "name": "sceMpegQueryStreamOffset",
+    "size": 0
+  },
+  {
+    "address": "0x0036beec",
+    "name": "sceMpegAvcCsc",
+    "size": 0
+  },
+  {
+    "address": "0x0036bef4",
+    "name": "sceMpegRingbufferConstruct",
+    "size": 0
+  },
+  {
+    "address": "0x0036befc",
+    "name": "sceMpegRegistStream",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf04",
+    "name": "sceMpegAvcDecodeFlush",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf0c",
+    "name": "sceMpegUnRegistStream",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf14",
+    "name": "sceMpegDelete",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf1c",
+    "name": "sceMpegQueryStreamSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf24",
+    "name": "sceMpegAvcInitYCbCr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf2c",
+    "name": "sceMpegInit",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf34",
+    "name": "sceMpegAtracDecode",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf3c",
+    "name": "sceMpegFinish",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf44",
+    "name": "sceMpegAvcDecodeMode",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf4c",
+    "name": "sceMpegMallocAvcEsBuf",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf54",
+    "name": "sceMpegRingbufferPut",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf5c",
+    "name": "sceMpegRingbufferAvailableSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf64",
+    "name": "sceMpegQueryMemSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf6c",
+    "name": "sceMpegFreeAvcEsBuf",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf74",
+    "name": "sceMpegRingbufferQueryMemSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf7c",
+    "name": "sceMpegCreate",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf84",
+    "name": "sceMpegGetAtracAu",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf8c",
+    "name": "sceMpegAvcDecodeYCbCr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf94",
+    "name": "sceMpegAvcDecodeStopYCbCr",
+    "size": 0
+  },
+  {
+    "address": "0x0036bf9c",
+    "name": "sceMpegQueryAtracEsSize",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfa4",
+    "name": "sceMpegGetAvcAu",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfac",
+    "name": "sceUmdGetErrorStat",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfb4",
+    "name": "sceUmdCheckMedium",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfbc",
+    "name": "sceUmdGetDriveStat",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfc4",
+    "name": "sceUmdReplaceProhibit",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfcc",
+    "name": "sceUmdWaitDriveStat",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfd4",
+    "name": "sceUmdRegisterUMDCallBack",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfdc",
+    "name": "sceUmdUnRegisterUMDCallBack",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfe4",
+    "name": "sceUmdActivate",
+    "size": 0
+  },
+  {
+    "address": "0x0036bfec",
+    "name": "sceAudioOutputBlocking",
+    "size": 0
+  },
+  {
+    "address": "0x0036bff4",
+    "name": "sceAudioOutputPannedBlocking",
+    "size": 0
+  },
+  {
+    "address": "0x0036bffc",
+    "name": "sceAudioChReserve",
+    "size": 0
+  },
+  {
+    "address": "0x0036c004",
+    "name": "sceAudioChRelease",
+    "size": 0
+  },
+  {
+    "address": "0x0036c00c",
+    "name": "sceAudioChangeChannelConfig",
+    "size": 0
+  },
+  {
+    "address": "0x0036c014",
+    "name": "sceAudioGetChannelRestLength",
+    "size": 0
+  },
+  {
+    "address": "0x0036c01c",
+    "name": "sceAudioChangeChannelVolume",
+    "size": 0
+  },
+  {
+    "address": "0x0036c024",
+    "name": "sceAudioSetChannelDataLen",
+    "size": 0
+  },
+  {
+    "address": "0x0036c02c",
+    "name": "sceAudioOutputPanned",
+    "size": 0
+  },
+  {
+    "address": "0x0036c034",
+    "name": "sceDisplaySetMode",
+    "size": 0
+  },
+  {
+    "address": "0x0036c03c",
+    "name": "sceDisplaySetFrameBuf",
+    "size": 0
+  },
+  {
+    "address": "0x0036c044",
+    "name": "sceDisplayWaitVblankStart",
+    "size": 0
+  },
+  {
+    "address": "0x0036c04c",
+    "name": "sceDisplayGetFramePerSec",
+    "size": 0
+  },
+  {
+    "address": "0x0036c054",
+    "name": "sceGeListEnQueue",
+    "size": 0
+  },
+  {
+    "address": "0x0036c05c",
+    "name": "sceGeDrawSync",
+    "size": 0
+  },
+  {
+    "address": "0x0036c064",
+    "name": "sceGeEdramGetAddr",
+    "size": 0
+  },
+  {
+    "address": "0x0036c06c",
+    "name": "sceRtcGetTime64_t",
+    "size": 0
+  },
+  {
+    "address": "0x003988d8",
+    "name": "_edata",
+    "size": 0
+  },
+  {
+    "address": "0x003a08d0",
+    "name": "_gp",
+    "size": 0
+  },
+  {
+    "address": "0x0042e32c",
+    "name": "_end",
+    "size": 0
+  },
+  {
+    "address": "0x001b95b8",
+    "name": "__already_marked_for_destruction",
+    "size": 28
+  },
+  {
+    "address": "0x001b9f40",
+    "name": "_array_pointer_not_from_vec_new",
+    "size": 28
+  },
+  {
+    "address": "0x001dfc7c",
+    "name": "eAudioFader::eAudioFader(void)",
+    "size": 32
+  },
+  {
+    "address": "0x00262494",
+    "name": "gcCameraModes::OnEntitySnappedFollow(gcCamera &, gcCamera::gcState &) static",
+    "size": 32
+  },
+  {
+    "address": "0x001ac66c",
+    "name": "malloc",
+    "size": 36
+  },
+  {
+    "address": "0x001ac690",
+    "name": "free",
+    "size": 36
+  },
+  {
+    "address": "0x00030cec",
+    "name": "eCameraBins::Sort(void)",
+    "size": 40
+  },
+  {
+    "address": "0x001aa284",
+    "name": "__getreent",
+    "size": 40
+  },
+  {
+    "address": "0x001b9f18",
+    "name": "__vec_delete",
+    "size": 40
+  },
+  {
+    "address": "0x0008e714",
+    "name": "eVideoPlatform::SetShadowInfo(float, float, const mPlane &) static",
+    "size": 44
+  },
+  {
+    "address": "0x001b6a20",
+    "name": "strtol",
+    "size": 44
+  },
+  {
+    "address": "0x00133bd0",
+    "name": "gcMsgConnected::Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const",
+    "size": 52
+  },
+  {
+    "address": "0x001bb2e8",
+    "name": "std::type_info::~type_info(void)",
+    "size": 52
+  },
+  {
+    "address": "0x001bb4f0",
+    "name": "std::unexpected(void)",
+    "size": 52
+  },
+  {
+    "address": "0x00001b48",
+    "name": "cGetProductId(void)",
+    "size": 56
+  },
+  {
+    "address": "0x00001d9c",
+    "name": "cCopyMemory16(void *, const void *, int)",
+    "size": 60
+  },
+  {
+    "address": "0x001aa22c",
+    "name": "__free_heap",
+    "size": 60
+  },
+  {
+    "address": "0x001b6ae8",
+    "name": "ultodp",
+    "size": 60
+  },
+  {
+    "address": "0x001ba414",
+    "name": "eh_get_memory(unsigned int)",
+    "size": 60
+  },
+  {
+    "address": "0x001c2c70",
+    "name": "sceWaveAudioSetFormat",
+    "size": 60
+  },
+  {
+    "address": "0x001c2cac",
+    "name": "sceWaveAudioGetRestSample",
+    "size": 60
+  },
+  {
+    "address": "0x00001994",
+    "name": "cStrChr(const char *, int)",
+    "size": 64
+  },
+  {
+    "address": "0x00069e2c",
+    "name": "eEmbedSphereCollisionHandler::ProcessCollision(const eCollisionInfo &)",
+    "size": 64
+  },
+  {
+    "address": "0x0000123c",
+    "name": "cStrFormat(char *, const char *, ...)",
+    "size": 68
+  },
+  {
+    "address": "0x000012d0",
+    "name": "cStrLength(const char *)",
+    "size": 68
+  },
+  {
+    "address": "0x00001588",
+    "name": "cStrCopy(char *, const char *, int)",
+    "size": 68
+  },
+  {
+    "address": "0x00001618",
+    "name": "cStrCopy(wchar_t *, const wchar_t *, int)",
+    "size": 68
+  },
+  {
+    "address": "0x0003b4ec",
+    "name": "eInputMouse::BeginDrag(const mVec2 &, eColor, cHandleT<eMaterial>) static",
+    "size": 68
+  },
+  {
+    "address": "0x0003b9f4",
+    "name": "eInputKeyboard::eInputState::Reset(void)",
+    "size": 68
+  },
+  {
+    "address": "0x000646d0",
+    "name": "eSweptSphereCollisionHandler::ProcessCollision(const eCollisionInfo &)",
+    "size": 68
+  },
+  {
+    "address": "0x00069eac",
+    "name": "eEmbedMultiSphereCollisionHandler::ProcessCollision(const eCollisionInfo &)",
+    "size": 68
+  },
+  {
+    "address": "0x0019fc58",
+    "name": "mBasis::GetAxisAngle(mVec3 *, float *) const",
+    "size": 68
+  },
+  {
+    "address": "0x001a5668",
+    "name": "nwNetwork::SetLastError(nwNetwork::nwNetError) static",
+    "size": 68
+  },
+  {
+    "address": "0x001aa984",
+    "name": "fprintf",
+    "size": 68
+  },
+  {
+    "address": "0x001aa9c8",
+    "name": "fscanf",
+    "size": 68
+  },
+  {
+    "address": "0x001ad7e4",
+    "name": "strcpy",
+    "size": 68
+  },
+  {
+    "address": "0x001b92e4",
+    "name": "memchr",
+    "size": 68
+  },
+  {
+    "address": "0x001b9970",
+    "name": "add_vec_new_or_delete_eh_stack_entry(an_eh_stack_entry *, an_array_alloc_eh_info *, int)",
+    "size": 68
+  },
+  {
+    "address": "0x001b9c64",
+    "name": "__vec_new",
+    "size": 68
+  },
+  {
+    "address": "0x001b9f5c",
+    "name": "operator delete[](void *)",
+    "size": 68
+  },
+  {
+    "address": "0x001c0654",
+    "name": "isnan",
+    "size": 68
+  },
+  {
+    "address": "0x001c209c",
+    "name": "__negdf2",
+    "size": 68
+  },
+  {
+    "address": "0x00001d54",
+    "name": "cEnableExceptions(bool)",
+    "size": 72
+  },
+  {
+    "address": "0x0001fad4",
+    "name": "eWorld::AddBinGeom(eGeom *, eWorld::eWorldGeomBin)",
+    "size": 72
+  },
+  {
+    "address": "0x00064754",
+    "name": "eSweptMultiSphereCollisionHandler::ProcessCollision(const eCollisionInfo &)",
+    "size": 72
+  },
+  {
+    "address": "0x0011e714",
+    "name": "gcValControllerState::Evaluate(gcValControllerState::gcState, eInputJoystick::eButton, int) static",
+    "size": 72
+  },
+  {
+    "address": "0x001b9c1c",
+    "name": "__placement_array_new",
+    "size": 72
+  },
+  {
+    "address": "0x000015cc",
+    "name": "cStrCopy(char *, const wchar_t *, int)",
+    "size": 76
+  },
+  {
+    "address": "0x0000165c",
+    "name": "cStrCopy(wchar_t *, const char *, int)",
+    "size": 76
+  },
+  {
+    "address": "0x00006d9c",
+    "name": "cInStream::ReadRaw(int, void *)",
+    "size": 76
+  },
+  {
+    "address": "0x00010f18",
+    "name": "MakeTextureScaleOffset(mMatrix4 *)",
+    "size": 76
+  },
+  {
+    "address": "0x0008cedc",
+    "name": "eAudioPlatform::SetStreamVolume(int, float) static",
+    "size": 76
+  },
+  {
+    "address": "0x0011d3a0",
+    "name": "gcDesiredEntityHelper::GetRelationshipText(gcDesiredEntityHelper::gcRelationship) static",
+    "size": 76
+  },
+  {
+    "address": "0x00121f9c",
+    "name": "gcUIControl::GetSpriteText(gcUIControl::gcUISprite) static",
+    "size": 76
+  },
+  {
+    "address": "0x001aa2ac",
+    "name": "cleanup_glue",
+    "size": 76
+  },
+  {
+    "address": "0x001b9fa0",
+    "name": "operator new[](unsigned int)",
+    "size": 76
+  },
+  {
+    "address": "0x001b9fec",
+    "name": "operator delete(void *)",
+    "size": 76
+  },
+  {
+    "address": "0x001c1484",
+    "name": "__extendsfdf2",
+    "size": 76
+  },
+  {
+    "address": "0x001e832c",
+    "name": "eInputJoystick::eInputState::eInputState(void)",
+    "size": 76
+  },
+  {
+    "address": "0x0020ea58",
+    "name": "eDynamicAABBTreeNode<eRigidBodyState>::Balance(eDynamicAABBTreeAllocator<eDynamicAABBTreeNode> *)",
+    "size": 76
+  },
+  {
+    "address": "0x0020eaa4",
+    "name": "eDynamicAABBTreeNode<eRigidBodyState>::GetExtents(mBox *)",
+    "size": 76
+  },
+  {
+    "address": "0x002727dc",
+    "name": "gcTableColumnStringTable::IsValid(void) const",
+    "size": 76
+  },
+  {
+    "address": "0x00001280",
+    "name": "cStrFormat(wchar_t *, const wchar_t *, ...)",
+    "size": 80
+  },
+  {
+    "address": "0x00001428",
+    "name": "cStrCopy(char *, const char *)",
+    "size": 80
+  },
+  {
+    "address": "0x000014d8",
+    "name": "cStrCopy(wchar_t *, const wchar_t *)",
+    "size": 80
+  },
+  {
+    "address": "0x0002cad0",
+    "name": "eGeom::CleanNeedsUpdateList(void) static",
+    "size": 80
+  },
+  {
+    "address": "0x001ac3b8",
+    "name": "vsprintf",
+    "size": 80
+  },
+  {
+    "address": "0x001ba484",
+    "name": "init_eh_memory_management(void)",
+    "size": 80
+  },
+  {
+    "address": "0x001c3874",
+    "name": "sceSasSetPitch",
+    "size": 80
+  },
+  {
+    "address": "0x0020f4cc",
+    "name": "eDynamicAABBTreeNode<eRigidBodyState>::GrowExtents(const mBox &)",
+    "size": 80
+  },
+  {
+    "address": "0x00001314",
+    "name": "cStrLength(const wchar_t *)",
+    "size": 84
+  },
+  {
+    "address": "0x00006118",
+    "name": "cOutStream::GetCRC(void) const",
+    "size": 84
+  },
+  {
+    "address": "0x0006eb44",
+    "name": "eSolverRow::GetAngularVelocity(eRigidBodyState *, eRigidBodyState *, const mVec3 &, const mVec3 &, mVec3 *) static",
+    "size": 84
+  },
+  {
+    "address": "0x0008e27c",
+    "name": "eVRAMMgr::UnlinkAlloc(eVRAMMgr::eAllocTag *) static",
+    "size": 84
+  },
+  {
+    "address": "0x001a2d44",
+    "name": "mLine::FindClosestPointOnLine(const mVec3 &, const mVec3 &, const mVec3 &, mVec3 *) static",
+    "size": 84
+  },
+  {
+    "address": "0x001a984c",
+    "name": "main",
+    "size": 84
+  },
+  {
+    "address": "0x001b7d10",
+    "name": "_close_r",
+    "size": 84
+  },
+  {
+    "address": "0x001b7ed0",
+    "name": "_sbrk_r",
+    "size": 84
+  },
+  {
+    "address": "0x001b95d4",
+    "name": "__record_needed_destruction",
+    "size": 84
+  },
+  {
+    "address": "0x002b0c28",
+    "name": "gcDoEntityFindAttached::Iterate(gcEvent::gcLoop &, gcEntity *, gcEntity *) const",
+    "size": 84
+  },
+  {
+    "address": "0x000019d4",
+    "name": "cStrToUpper(char *)",
+    "size": 88
+  },
+  {
+    "address": "0x0006eb98",
+    "name": "eSolverRow::GetEmbedVelocity(eRigidBodyState *, eRigidBodyState *, const mVec3 &, const mVec3 &, mVec3 *) static",
+    "size": 88
+  },
+  {
+    "address": "0x000f8a80",
+    "name": "gcCamera::OnMemPoolReset(const cMemPool *, unsigned int)",
+    "size": 88
+  },
+  {
+    "address": "0x001aa5f0",
+    "name": "std",
+    "size": 88
+  },
+  {
+    "address": "0x001ab41c",
+    "name": "__sread",
+    "size": 88
+  },
+  {
+    "address": "0x001b7d64",
+    "name": "_fstat_r",
+    "size": 88
+  },
+  {
+    "address": "0x001c3640",
+    "name": "sceSasCore",
+    "size": 88
+  },
+  {
+    "address": "0x00038ce8",
+    "name": "eSprite::SetTexCoord1(mVec2)",
+    "size": 92
+  },
+  {
+    "address": "0x001ab508",
+    "name": "__sseek",
+    "size": 92
+  },
+  {
+    "address": "0x001ad754",
+    "name": "strcat",
+    "size": 92
+  },
+  {
+    "address": "0x001b7dbc",
+    "name": "_lseek_r",
+    "size": 92
+  },
+  {
+    "address": "0x001b7e18",
+    "name": "_open_r",
+    "size": 92
+  },
+  {
+    "address": "0x001b7e74",
+    "name": "_read_r",
+    "size": 92
+  },
+  {
+    "address": "0x001b7f24",
+    "name": "_write_r",
+    "size": 92
+  },
+  {
+    "address": "0x001b99b4",
+    "name": "free_array(void *, unsigned int, void (*)(void *, int), void (*)(void *), int, unsigned int)",
+    "size": 92
+  },
+  {
+    "address": "0x001c1e90",
+    "name": "__cmpdf2",
+    "size": 92
+  },
+  {
+    "address": "0x001c38c4",
+    "name": "sceSasSetVoice",
+    "size": 92
+  },
+  {
+    "address": "0x0020f200",
+    "name": "eDynamicAABBTreeNode<eRigidBodyState>::InsertObject(eDynamicAABBTreeNode *)",
+    "size": 92
+  },
+  {
+    "address": "0x00001368",
+    "name": "cStrCat(char *, const char *)",
+    "size": 96
+  },
+  {
+    "address": "0x000013c8",
+    "name": "cStrCat(wchar_t *, const wchar_t *)",
+    "size": 96
+  },
+  {
+    "address": "0x00001478",
+    "name": "cStrCopy(char *, const wchar_t *)",
+    "size": 96
+  },
+  {
+    "address": "0x00001528",
+    "name": "cStrCopy(wchar_t *, const char *)",
+    "size": 96
+  },
+  {
+    "address": "0x001a7988",
+    "name": "nwConnection::nwOutBlockInfo::Ack(unsigned int, unsigned int) const",
+    "size": 96
+  },
+  {
+    "address": "0x001ab0b4",
+    "name": "printf",
+    "size": 96
+  },
+  {
+    "address": "0x001aeae4",
+    "name": "strupr",
+    "size": 96
+  },
+  {
+    "address": "0x001b9328",
+    "name": "wcscpy",
+    "size": 96
+  },
+  {
+    "address": "0x001ba078",
+    "name": "std::exception::~exception(void)",
+    "size": 96
+  },
+  {
+    "address": "0x001ba4d4",
+    "name": "alloc_in_mem_block(unsigned int, a_mem_allocation **)",
+    "size": 96
+  },
+  {
+    "address": "0x0020f1a0",
+    "name": "eDynamicAABBTreeNode<eDynamicAABBTreeNode> * eDynamicAABBTreeNode<eRigidBodyState>::GetOrAllocChild(int, eDynamicAABBTreeAllocator<eDynamicAABBTreeNode> *)",
+    "size": 96
+  },
+  {
+    "address": "0x00010d34",
+    "name": "eSphereCastContactCallback(eContactCollector *, void *, eContact *, int)",
+    "size": 100
+  },
+  {
+    "address": "0x001aeb44",
+    "name": "strround",
+    "size": 100
+  },
+  {
+    "address": "0x001ba690",
+    "name": "eh_free_on_stack(void *)",
+    "size": 100
+  },
+  {
+    "address": "0x001c2918",
+    "name": "setjmp",
+    "size": 100
+  },
+  {
+    "address": "0x001c3810",
+    "name": "sceSasSetVolume",
+    "size": 100
+  },
+  {
+    "address": "0x0035bb20",
+    "name": "gcValStateTimer::Set(float)",
+    "size": 100
+  },
+  {
+    "address": "0x0001fb1c",
+    "name": "eWorld::RemoveBinGeom(eGeom *, eWorld::eWorldGeomBin)",
+    "size": 104
+  },
+  {
+    "address": "0x000f2c8c",
+    "name": "gcMap::LoadRegionSet(const cGUIDT<gcRegion> *)",
+    "size": 104
+  },
+  {
+    "address": "0x00103270",
+    "name": "gcGameSettings::Unsubscribe(gcGameSettings::gcSubscription, cListSubscriber *)",
+    "size": 104
+  },
+  {
+    "address": "0x00108d04",
+    "name": "gcNetGame::HasFullAuthority(void) static",
+    "size": 104
+  },
+  {
+    "address": "0x001ac408",
+    "name": "vsnprintf",
+    "size": 104
+  },
+  {
+    "address": "0x001ad938",
+    "name": "strstr",
+    "size": 104
+  },
+  {
+    "address": "0x001c08a8",
+    "name": "write",
+    "size": 104
+  },
+  {
+    "address": "0x001c1818",
+    "name": "__adddf3",
+    "size": 104
+  },
+  {
+    "address": "0x001c2a00",
+    "name": "sceDisplaySetVblankCallback",
+    "size": 104
+  },
+  {
+    "address": "0x001c2c08",
+    "name": "sceWaveAudioWriteBlocking",
+    "size": 104
+  },
+  {
+    "address": "0x002088c0",
+    "name": "eSweptMultiSphereCollisionHandler::MoveVolume(const mVec3 &)",
+    "size": 104
+  },
+  {
+    "address": "0x00332768",
+    "name": "gcValEntityIsActive::Evaluate(void) const",
+    "size": 104
+  },
+  {
+    "address": "0x00004a38",
+    "name": "cMemPool::GetLock(void) static",
+    "size": 108
+  },
+  {
+    "address": "0x00005e90",
+    "name": "cReadBlock::ReadBase(cMemPool *, cBase *, cBase *&)",
+    "size": 108
+  },
+  {
+    "address": "0x000099d8",
+    "name": "cManager::GetLock(void) static",
+    "size": 108
+  },
+  {
+    "address": "0x000e0b80",
+    "name": "gcUI::GetActiveSpawnedDialogCount(const gcUIDialog *) static",
+    "size": 108
+  },
+  {
+    "address": "0x0011dfec",
+    "name": "gcDesiredEntity::GetRelationships(cHandleT<gcEnumeration>, int, cObject **) const",
+    "size": 108
+  },
+  {
+    "address": "0x001284d8",
+    "name": "gcDesiredEntityTemplate::GetRelationships(cHandleT<gcEnumeration>, int, cObject **) const",
+    "size": 108
+  },
+  {
+    "address": "0x0012b190",
+    "name": "gcTableColumnStringTable::SetSize(int)",
+    "size": 108
+  },
+  {
+    "address": "0x0013a5d8",
+    "name": "gcUIEditBox::gcUIEditBox(cBase *)",
+    "size": 108
+  },
+  {
+    "address": "0x0013ab9c",
+    "name": "gcUIEditBox::IsUpdateEmpty(bool, bool) const",
+    "size": 108
+  },
+  {
+    "address": "0x001aeba8",
+    "name": "strrev",
+    "size": 108
+  },
+  {
+    "address": "0x001b2558",
+    "name": "wstrrev",
+    "size": 108
+  },
+  {
+    "address": "0x001b96c4",
+    "name": "display_abort_message(an_error_code)",
+    "size": 108
+  },
+  {
+    "address": "0x001c297c",
+    "name": "longjmp",
+    "size": 108
+  },
+  {
+    "address": "0x001c3920",
+    "name": "sceSasSetADSR",
+    "size": 108
+  },
+  {
+    "address": "0x001c398c",
+    "name": "sceSasSetADSRmode",
+    "size": 108
+  },
+  {
+    "address": "0x003344f0",
+    "name": "gcValEntityIsInFluid::GetText(char *) const",
+    "size": 108
+  },
+  {
+    "address": "0x0034725c",
+    "name": "gcValHeadset::Set(float)",
+    "size": 108
+  },
+  {
+    "address": "0x00008310",
+    "name": "cLanguage::Unsubscribe(cLanguage::gcSubscription, cListSubscriber *) static",
+    "size": 112
+  },
+  {
+    "address": "0x0000d470",
+    "name": "cXML::SetText(const char *, const char *, bool)",
+    "size": 112
+  },
+  {
+    "address": "0x0000e63c",
+    "name": "cBufferedFile::WaitForFill(void)",
+    "size": 112
+  },
+  {
+    "address": "0x0001eb58",
+    "name": "eAudio::StopGroup(eAudio::eGroup, cTimeValue) static",
+    "size": 112
+  },
+  {
+    "address": "0x0003857c",
+    "name": "eSprite::GetTextureSize(mVec2 *) const",
+    "size": 112
+  },
+  {
+    "address": "0x000dddd0",
+    "name": "gcUIWidgetGroup::InitialUpdate(void)",
+    "size": 112
+  },
+  {
+    "address": "0x000dde40",
+    "name": "gcUIWidgetGroup::InitialUpdateUI(void)",
+    "size": 112
+  },
+  {
+    "address": "0x000f3ecc",
+    "name": "gcMap::MemCardReplicate(gcReplicationVisitor &)",
+    "size": 112
+  },
+  {
+    "address": "0x000fe134",
+    "name": "gcViewport::OnMapEnded(void) static",
+    "size": 112
+  },
+  {
+    "address": "0x00126f1c",
+    "name": "gcEntityTemplate::FindConstantsIndex(cHandleT<gcEnumeration>) const",
+    "size": 112
+  },
+  {
+    "address": "0x00126f8c",
+    "name": "gcEntityTemplate::FindVariablesIndex(cHandleT<gcEnumeration>) const",
+    "size": 112
+  },
+  {
+    "address": "0x0013a388",
+    "name": "gcUICheckBox::GetFocusedSpriteToDraw(void) const",
+    "size": 112
+  },
+  {
+    "address": "0x0013a6c0",
+    "name": "gcUIEditBox::AppendString(const wchar_t *)",
+    "size": 112
+  },
+  {
+    "address": "0x00148090",
+    "name": "gcSubGeomController::SetFade(float, cTimeValue)",
+    "size": 112
+  },
+  {
+    "address": "0x001a8618",
+    "name": "nwSocket::DestroyConnection(nwConnectionHandle)",
+    "size": 112
+  },
+  {
+    "address": "0x001a8d04",
+    "name": "nwSocket::WriteId(cOutStream &)",
+    "size": 112
+  },
+  {
+    "address": "0x001ac470",
+    "name": "vsnwprintf",
+    "size": 112
+  },
+  {
+    "address": "0x001bad68",
+    "name": "__throw_setup",
+    "size": 112
+  },
+  {
+    "address": "0x001c2b98",
+    "name": "sceWaveAudioSetSample",
+    "size": 112
+  },
+  {
+    "address": "0x00005efc",
+    "name": "cReadBlock::SkipBase(void)",
+    "size": 116
+  },
+  {
+    "address": "0x0000c430",
+    "name": "cGroup::FindObject(const cGUID &) const",
+    "size": 116
+  },
+  {
+    "address": "0x0001ed20",
+    "name": "eAudio::PauseGroup(eAudio::eGroup, cTimeValue) static",
+    "size": 116
+  },
+  {
+    "address": "0x0001ee14",
+    "name": "eAudio::ResumeGroup(eAudio::eGroup, cTimeValue) static",
+    "size": 116
+  },
+  {
+    "address": "0x0001ee88",
+    "name": "eAudio::ResumeAllSounds(void) static",
+    "size": 116
+  },
+  {
+    "address": "0x0008ce68",
+    "name": "eAudioPlatform::StopStream(int) static",
+    "size": 116
+  },
+  {
+    "address": "0x000fbcbc",
+    "name": "gcCamera::gcScalarMotion::Set(float, cTimeValue)",
+    "size": 116
+  },
+  {
+    "address": "0x001089bc",
+    "name": "gcNetGame::SendToServer(nwConnection::nwSendMethod, const nwMsg &, unsigned int) static",
+    "size": 116
+  },
+  {
+    "address": "0x00108bd8",
+    "name": "gcNetGame::IsClientConnecting(void) static",
+    "size": 116
+  },
+  {
+    "address": "0x001096c8",
+    "name": "gcUIStackDialog::Draw(void)",
+    "size": 116
+  },
+  {
+    "address": "0x00126ffc",
+    "name": "gcEntityTemplate::FindTimeSinceSetIndex(cHandleT<gcEnumeration>) const",
+    "size": 116
+  },
+  {
+    "address": "0x00127070",
+    "name": "gcEntityTemplate::FindRelationshipSetIndex(cHandleT<gcEnumeration>) const",
+    "size": 116
+  },
+  {
+    "address": "0x001a2c38",
+    "name": "mBSpline::Interpolate(const int, const float, const mVec3 *, int, int, mVec3 *) static",
+    "size": 116
+  },
+  {
+    "address": "0x001a7f78",
+    "name": "nwSocket::FlushAll(void)",
+    "size": 116
+  },
+  {
+    "address": "0x001b24e4",
+    "name": "wstrround",
+    "size": 116
+  },
+  {
+    "address": "0x001c1880",
+    "name": "__subdf3",
+    "size": 116
+  },
+  {
+    "address": "0x00290094",
+    "name": "gcUIControlString::GetName(char *) const",
+    "size": 116
+  },
+  {
+    "address": "0x002b42c4",
+    "name": "gcDoEntityForEachAttached::Iterate(gcEvent::gcLoop &, gcEntity *, gcEntity *) const",
+    "size": 116
+  },
+  {
+    "address": "0x00343260",
+    "name": "gcValExternalVariable::Set(float)",
+    "size": 116
+  },
+  {
+    "address": "0x00007430",
+    "name": "cBaseArray::Allocate(int)",
+    "size": 120
+  },
+  {
+    "address": "0x00009cb0",
+    "name": "cObject::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)",
+    "size": 120
+  },
+  {
+    "address": "0x00021250",
+    "name": "eSound::eSound(cBase *)",
+    "size": 120
+  },
+  {
+    "address": "0x00044ac4",
+    "name": "eStaticMesh::Free(void)",
+    "size": 120
+  },
+  {
+    "address": "0x000fe300",
+    "name": "gcViewport::GetListeners(mOCS *) static",
+    "size": 120
+  },
+  {
+    "address": "0x00114828",
+    "name": "gcEntity::OnMemPoolResetAll(const cMemPool *, unsigned int) static",
+    "size": 120
+  },
+  {
+    "address": "0x0011877c",
+    "name": "gcEntity::IsSoundChannelReplicated(int) const",
+    "size": 120
+  },
+  {
+    "address": "0x001c2114",
+    "name": "__truncdfsf2",
+    "size": 120
+  },
+  {
+    "address": "0x0020a4e8",
+    "name": "cRedBlackTreeNode<eCollisionPair>::cRedBlackTreeNode(void)",
+    "size": 120
+  },
+  {
+    "address": "0x0020ef38",
+    "name": "eDynamicAABBTreeNode<eDynamicAABBTreeNode> * eDynamicAABBTreeNode<eRigidBodyState>::LocateBestNode(const mBox &, eDynamicAABBTreeAllocator<eDynamicAABBTreeNode> *)",
+    "size": 120
+  },
+  {
+    "address": "0x00308058",
+    "name": "gcDoTimerActivate::Evaluate(void) const",
+    "size": 120
+  },
+  {
+    "address": "0x00308ac0",
+    "name": "gcDoTriggerActivate::Evaluate(void) const",
+    "size": 120
+  },
+  {
+    "address": "0x00339704",
+    "name": "gcValEntityPathDirection::GetText(char *) const",
+    "size": 120
+  },
+  {
+    "address": "0x0033a87c",
+    "name": "gcValEntityPathDistance::GetText(char *) const",
+    "size": 120
+  },
+  {
+    "address": "0x000011c0",
+    "name": "cStrAppend(char *, const char *, ...)",
+    "size": 124
+  },
+  {
+    "address": "0x000049b0",
+    "name": "cMemPool::GetValue(const cGUID &, void **)",
+    "size": 124
+  },
+  {
+    "address": "0x0000e570",
+    "name": "cBufferedFile::Reset(unsigned int)",
+    "size": 124
+  },
+  {
+    "address": "0x00030da8",
+    "name": "eInput::Update(cTimeValue, bool, bool) static",
+    "size": 124
+  },
+  {
+    "address": "0x0006cbb8",
+    "name": "eSimulatedController::ApplyTorque(int, const mVec3 &)",
+    "size": 124
+  },
+  {
+    "address": "0x000e08a0",
+    "name": "gcUI::CloseDialog(gcUIDialog *, const gcDoUIShowDialog *, float *)",
+    "size": 124
+  },
+  {
+    "address": "0x000f4f68",
+    "name": "gcMap::HandleNextRegionLoad(void)",
+    "size": 124
+  },
+  {
+    "address": "0x000fe484",
+    "name": "gcViewport::MemoryCardReplicateDynamic(gcReplicationVisitor &) static",
+    "size": 124
+  },
+  {
+    "address": "0x001341bc",
+    "name": "gcMsgEntitySendMessage::WriteEventData(cOutStream &, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, const gcEventParams &, const gcEventStackData &) static",
+    "size": 124
+  },
+  {
+    "address": "0x00134238",
+    "name": "gcMsgEntitySendMessage::ReadEventData(cInStream &, cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, gcEventParams &, gcEventStackData &) static",
+    "size": 124
+  },
+  {
+    "address": "0x001a8d74",
+    "name": "nwSocket::ReadId(cInStream &)",
+    "size": 124
+  },
+  {
+    "address": "0x001aa6d0",
+    "name": "__sinit",
+    "size": 124
+  },
+  {
+    "address": "0x001ab304",
+    "name": "sprintf",
+    "size": 124
+  },
+  {
+    "address": "0x001c60d4",
+    "name": "cFastMemAllocator::GetUsedSize(void) const",
+    "size": 124
+  },
+  {
+    "address": "0x0020a970",
+    "name": "eDynamicAABBTreeNode<eDynamicAABBTreeAllocator> * eDynamicAABBTreeAllocator<eRigidBodyState>::AllocNode(eDynamicAABBTreeNode<eDynamicAABBTreeAllocator> *)",
+    "size": 124
+  },
+  {
+    "address": "0x0027ebd0",
+    "name": "gcGenericSubscriber::GetIndex(void *) const",
+    "size": 124
+  },
+  {
+    "address": "0x002959c8",
+    "name": "gcDoCameraFollowEntity::GetText(char *) const",
+    "size": 124
+  },
+  {
+    "address": "0x000079fc",
+    "name": "cListSubscriber::NotifyRemove(cListSubscriber *&, void *) static",
+    "size": 128
+  },
+  {
+    "address": "0x0000a50c",
+    "name": "cObject::IsEditable(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x0000f240",
+    "name": "cFileSystemPlatform::Open(cFilePlatform *) static",
+    "size": 128
+  },
+  {
+    "address": "0x000118c0",
+    "name": "eDynamicVertChunk::End(eDynamicChunkHandle *)",
+    "size": 128
+  },
+  {
+    "address": "0x0001ed94",
+    "name": "eAudio::PauseAllSounds(void) static",
+    "size": 128
+  },
+  {
+    "address": "0x0006c410",
+    "name": "eSimulatedController::ClearExternalForces(void)",
+    "size": 128
+  },
+  {
+    "address": "0x0006cfec",
+    "name": "eSimulatedController::SnapConstraints(void)",
+    "size": 128
+  },
+  {
+    "address": "0x000dc14c",
+    "name": "gcUIWidget::Show(bool)",
+    "size": 128
+  },
+  {
+    "address": "0x00110738",
+    "name": "gcEntityControllerCommonState::SetAttractor(gcEntity *, const cName &)",
+    "size": 128
+  },
+  {
+    "address": "0x0012366c",
+    "name": "gcUITextControl::SetTextColor(gcUITextControl::gcUITextColor, eColor)",
+    "size": 128
+  },
+  {
+    "address": "0x001b8700",
+    "name": "_hi0bits",
+    "size": 128
+  },
+  {
+    "address": "0x001badd8",
+    "name": "__free_thrown_object",
+    "size": 128
+  },
+  {
+    "address": "0x0027dd34",
+    "name": "gcGameStrings::Get(wchar_t *, int) const",
+    "size": 128
+  },
+  {
+    "address": "0x00308b38",
+    "name": "gcDoTriggerActivate::GetText(char *) const",
+    "size": 128
+  },
+  {
+    "address": "0x00325668",
+    "name": "gcValConstant::Evaluate(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x003337ac",
+    "name": "gcValEntityIsAttacking::GetText(char *) const",
+    "size": 128
+  },
+  {
+    "address": "0x003431e0",
+    "name": "gcValExternalVariable::Evaluate(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x0036acf0",
+    "name": "gcValVariable::Evaluate(void) const",
+    "size": 128
+  }
+]

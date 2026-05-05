@@ -1888,7 +1888,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [],
     "callers": [
       "0x00010f64"
@@ -68492,7 +68492,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0007d7b8",
@@ -68503,6 +68503,18 @@
       {
         "session": "526d3a23",
         "notes": "SetShadowInfo: 44-byte leaf. Best diff achieved is 6 bytes, and it is stable \u2014 permuter ran 1308 candidates at 21.6/sec with zero improvement, and manually recompiling with -Xsched=1 produces the SAME output as -Xsched=2 (so this is NOT a sched override issue despite the hint). Function structure: writes scalar args to 0x37D35C/0x37D360, copies plane quad to 0x98388 via lv.q/sv.q, then writes plane.w to 0x98394. Expected codegen uses `lui a0, 0xa` \u2192 `sv.q C120, -0x7C78(a0)` (lui-relative) \u2192 `addiu a0, a0, -31864` \u2192 `swc1 f12, 12(a0)` (base+offset). My codegen emits addiu BEFORE sv.q (`addiu a0, a0, -31864` \u2192 `sv.q C120, 0(a0)` \u2192 `swc1 f12, 12(a0)`) which is 6 bytes different in instruction encoding but semantically identical. Source tried: `mPlane *dst = (mPlane*)0x98388; *(v4sf_t*)dst = *(const v4sf_t*)&plane; dst->w = w;` (6B diff), absolute addresses with `((float*)0x98388)[3] = w` (35B, separate lui), `*(float*)0x98394 = w` (6B), char*base+offset variants. Root cause appears to be SNC's address lowering heuristic: when writing `*(v4sf_t*)absolute_addr_1` followed by `*addr_2->field_at_12`, SNC picks addiu-first pattern; expected wants lui-relative-first. May require a specific source idiom I haven't found \u2014 perhaps a macro/typedef used elsewhere in the original codebase, or `#pragma` that influences address lowering. Current src file has best 6-byte-diff version; next agent can continue from there."
+      },
+      {
+        "session": "567ba94e",
+        "notes": "SetShadowInfo: 44-byte leaf. Confirmed prior agent's stable 6-byte diff. Best source: `float wv = plane.w; mPlane *dst=(mPlane*)0x98388; *(v4sf_t*)dst=*(const v4sf_t*)&plane; dst->w=wv;` -> exactly 6 bytes diff at offsets 0x1c/0x20. Expected emits `lui a0,0xa; sv.q C120,-0x7C78(a0); addiu a0,a0,-31864; jr ra; swc1 f12,12(a0)(delay)`. My codegen emits `lui a0,0xa; addiu a0,a0,-31864; sv.q C120,0(a0); jr ra; swc1 f12,12(a0)(delay)` -- addiu and sv.q are swapped. Also tried (1) `char *base=(char*)0xA0000; *(v4sf_t*)(base-0x7C78)=...; *(float*)(base-0x7C78+12)=wv;` -> compiler CSE'd to lui+sv.q+swc1 (3 insns, 40B total, smaller than expected); (2) absolute addresses `*(v4sf_t*)0x98388=...; *(float*)0x98394=wv;` -> 6B diff but with extra lui rather than addiu; (3) `v4sf_t v=*(const v4sf_t*)&plane; ... *(v4sf_t*)dst=v; dst->w=wv;` -> 12B diff (lv.q/lwc1 reordered). Root cause: SNC scheduler treats `dst = 0x98388` as an atomic lui+addiu materialization, then dereferences offset 0/12. Expected pattern requires SNC to split the materialization, using lui-relative for sv.q and emitting addiu only when needed for the swc1 offset 12 \u2014 an optimization SNC at -O2 -Xsched=2 does not produce from any source we've found. Permuter (1308 candidates from prior agent + my variants) found zero improvement. May require -Xmopt or -Xxopt flag tweak (cannot modify Makefile per agent guardrails). Recommend human review the Makefile to test -Xxopt=5 or -Xmopt=0 for src/eVideoPlatform.cpp. NOT a bnel/beql divergence so not classifiable as unmatchable per ADR-006. Current src/eVideoPlatform.cpp has the best 6-byte-diff version.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T21:49:57Z",
+        "src_file": "src/eVideoPlatform.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_162336/567ba94e/0008e714__agent_self_reported_failure__src_eVideoPlatform.cpp"
       }
     ],
     "mangled_symbol": "__0fOeVideoPlatformNSetShadowInfofTBRC6GmPlaneT"
@@ -105824,7 +105836,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000616c"
     ],
@@ -105834,6 +105846,18 @@
       {
         "session": "25b90377",
         "notes": "gcMsgConnected::Write - Expected 52B (13 insns), best I can produce is 48B (12 insns). Missing 1 instruction: an extra `move a1, a2` that routes the sign-extended mState value through intermediate reg a2 before landing in a1.\n\nExpected pattern:\n  lb a0, 4(a0)         ; overwrite this with mState (sign-ext from lb)\n  sll a0, a0, 0x18     ; redundant re-sign-extend (stays in a0)\n  sra a2, a0, 0x18     ; result INTO a2 (intermediate)\n  move a0, a1          ; a0 = &s\n  li a3, 1\n  move a1, a2          ; a1 = mState from a2\n  sw ra, 0(sp)\n  jal cOutStream::Write(int,int,bool)\n  li a2, 8             ; delay slot\n\nOur SNC (any variation) always fuses the sll/sra directly into the destination register:\n  lb a2, 4(a0)         ; lb directly into a2 (not a0)\n  move a0, a1          ; a0 = &s early\n  sll a1, a2, 0x18     ; sll a2 -> a1 directly\n  sra a1, a1, 0x18     ; sra a1 self\n  li a2, 8\n  sw ra\n  jal\n  li a3, 1 (delay)\n\nTried: `(int)mState`, `(signed char)v`, `(mState<<24)>>24`, `int v=mState; (signed char)v`, `signed char v=mState; int iv=v; (signed char)iv`, bitfield `int mState:8`, asm volatile memory barrier, Write signature change to `(signed char,int,bool)`. None produced the extra move.\n\nRoot cause: SNC at -O2/sched=2 optimizer collapses the 2-step sign-extension (materialize to intermediate, then pass) into a direct chain whenever the source allows. The expected codegen requires the optimizer to preserve an intermediate - likely needs some source structure I haven't found. Possible angles for next agent: try a PPoint-style helper function, try passing mState through a union, try function-wide register pressure via dummy computations that force the scheduler to allocate an extra live range."
+      },
+      {
+        "session": "567ba94e",
+        "notes": "gcMsgConnected::Write - confirmed prior agent's analysis. Expected 52B (13 insns), best produced is 48B (12 insns), missing the `move a1, a2` instruction. Tried (1) `signed char v=mState; int iv=v; (signed char)iv` (existing - 12 insns); (2) `int v=(signed char)mState` (collapses sll/sra entirely - 11 insns, worse); (3) `int x=mState; int v=(x<<24)>>24` (still 12 insns); (4) `int x=mState; ((cOutStreamRef*)&s)->Write((signed char)x, 8, true)` (12 insns); (5) `int x=mState; int y=(signed char)x; ...->Write(y, 8, true)` (12 insns). Also confirmed via DB mangled_symbol that the function signature should use `struct nwSocketHandle { int mValue; };` and `struct nwConnectionHandle { int mValue; };` (NOT typedef int) - tried that briefly, mangled name then matches DB and exact byte size mismatch is reported (48B vs 52B), but switching breaks gcMsgConnected::Read mangling/codegen because Read source uses `volatile nwSocketHandle vol_sock = sock`. Reverted typedef to preserve Read state. Root cause unchanged from prior session: SNC at -O2/sched=2 always allocates the sign-extended value directly into the call's $a1 arg slot, eliminating the intermediate $a2 register that the expected output uses. The compiler's register allocator/coalescer is too smart for any source idiom found. Same flag-test recommendation as above (try -Xmopt=0 or -Xxopt). Current src/gcMsgConnected.cpp Write is the best 12-insn (48B) version. NOTE: should also fix the type definitions to struct (matching exemplar src/gcMsgEntityDestroy.cpp) and update gcMsgConnected::Read at the same time, since the typedef-int causes the compare_func DB lookup to silently say 'NO DB ENTRY' rather than reporting actual byte diffs.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T21:49:57Z",
+        "src_file": "src/gcMsgConnected.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_162336/567ba94e/00133bd0__agent_self_reported_failure__src_gcMsgConnected.cpp"
       }
     ],
     "mangled_symbol": "__0fOgcMsgConnectedFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
@@ -124576,7 +124600,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0036bc5c"
     ],
