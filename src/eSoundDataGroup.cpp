@@ -48,6 +48,11 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class eSoundDataGroup : public cGroup {
 public:
     eSoundDataGroup(cBase *);
@@ -57,6 +62,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -111,8 +118,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E30;
+extern cType *D_00040F6C;
 
 void eSoundDataGroup::AssignCopy(const cBase *base) {
     eSoundDataGroup *src = dcast<eSoundDataGroup>(base);
@@ -189,4 +199,50 @@ const cType *eSoundDataGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E30;
+}
+
+// ── eSoundDataGroup::GetManagedType(void) const @ 0x00015a7c ──
+const cType *eSoundDataGroup::GetManagedType(void) const {
+    if (D_00040F6C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040F6C = cType::InitializeType(
+            0, 0, 0x26, D_000385E4, 0,
+            (const char *)0x36CD84, (const char *)0x36CD90, 1);
+    }
+    return D_00040F6C;
+}
+
+// ── eSoundDataGroup::GetDataDirectory(void) const @ 0x00015ba0 ──
+const char *eSoundDataGroup::GetDataDirectory(void) const {
+    if (D_00040F6C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040F6C = cType::InitializeType(
+            0, 0, 0x26, D_000385E4, 0,
+            (const char *)0x36CD84, (const char *)0x36CD90, 1);
+    }
+    return (const char *)((int *)D_00040F6C)[5];
 }
