@@ -71,6 +71,8 @@ public:
     gcConstantGroup(cBase *);
     ~gcConstantGroup();
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -91,8 +93,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998AC;
+extern cType *D_0009F42C;
+
+class gcConstant {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── gcConstantGroup::AssignCopy(const cBase *) @ 0x0023641C ──
 void gcConstantGroup::AssignCopy(const cBase *base) {
@@ -160,6 +175,52 @@ const cType *gcConstantGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_000998AC;
+}
+
+// ── gcConstantGroup::GetManagedType(void) const @ 0x000CE234 ──
+const cType *gcConstantGroup::GetManagedType(void) const {
+    if (D_0009F42C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F42C = cType::InitializeType(
+            0, 0, 0x7B, D_000385E4, &gcConstant::New,
+            (const char *)0x36D994, (const char *)0x36D9A0, 5);
+    }
+    return D_0009F42C;
+}
+
+// ── gcConstantGroup::GetDataDirectory(void) const @ 0x000CE35C ──
+const char *gcConstantGroup::GetDataDirectory(void) const {
+    if (D_0009F42C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F42C = cType::InitializeType(
+            0, 0, 0x7B, D_000385E4, &gcConstant::New,
+            (const char *)0x36D994, (const char *)0x36D9A0, 5);
+    }
+    return (const char *)((int *)D_0009F42C)[5];
 }
 
 // ── gcConstantGroup::~gcConstantGroup(void) @ 0x00236608 ──
