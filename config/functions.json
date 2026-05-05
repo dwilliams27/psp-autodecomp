@@ -124623,7 +124623,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x001a9e70"
@@ -124633,6 +124633,18 @@
       {
         "session": "c5158e65",
         "notes": "__getreent, 40B. Expected disassembly contains 4 instructions of DEAD CODE after an unconditional `b` that skips them:\n  b 0x1aa29c  (delay: lui a0,0x38)\n  lw v0, 4(zero)        ; DEAD\n  bnez v0, 0x1aa2a4     ; DEAD\n  nop                   ; DEAD\n  lui a0, 0x38          ; DEAD (duplicate of delay-slot lui)\n  jr ra  (delay: lw v0, -9108(a0))   ; returns *(0x37DC6C)\n  jr ra  (delay: nop)                  ; unreachable second exit\n\nThe semantically equivalent function body is 3 instructions (lui, jr, lw) \u2014 a trivial `return *(_reent**)0x37DC6C;`. The extra 28 bytes are structurally a skipped null-check-and-alt-return path.\n\nApproaches attempted:\n  1) Plain `return *(_reent**)0x37DC6C;` \u2014 compiled to 12B (3 instr), size-collided with __errno.c's output.\n  2) `goto skip; { ...dead check... } skip: return ...;` \u2014 SNC -O2 emits warning 0186 (\"dynamic initialization in unreachable code\") and DCE-eliminates the dead block entirely. Same 12B output.\n  3) `__asm__ volatile goto (\"b %l0\" ... : skip);` \u2014 SNC rejects asm-goto syntax (error 0018).\n  4) Volatile reads in the dead block with goto \u2014 same DCE outcome.\n\nRoot cause: no natural C/C++ construct reliably coerces SNC -O2 to emit an unconditional `b` plus 4 instructions of unreachable code. Candidate constructs all fail:\n  - goto + dead block \u2192 DCE eliminates dead block\n  - while(0)/if(0) \u2192 folded away entirely\n  - volatile-guarded branch \u2192 emits beqz not b, keeps dead path live\n  - extern weak symbol address test \u2192 produces jal/bnez not unconditional b\n  - asm goto \u2014 unsupported by SNC\n\nThe expected pattern most likely comes from the SNC C runtime's original source \u2014 possibly a weak/strong alias pair, or code emitted behind a non-inlined compile-time guard that is peculiar to the stdlib build. A human may need to check whether this function is actually defined in the SN Systems CRT startup object (and thus not decompilable from normal C) or whether there is an SNC #pragma / builtin (e.g. something like `__sn_unreachable_keepbody`) that preserves unreachable blocks.\n\nNo stub is emitted in this TU to avoid falsely matching __errno (12B) and polluting the DB. Retry strategy: investigate whether this symbol is in CRT startup (report as library-provided, not user code) or find an SNC-specific pragma/attribute that prevents DCE on labeled blocks."
+      },
+      {
+        "session": "1a5ba8a4",
+        "notes": "Re-verified prior session's analysis. Expected disassembly contains 4 instructions of dead code skipped by an unconditional `b` (lui+lw+bnez+nop+lui), then a fall-through `jr ra; lw v0, -9108(a0)` and an unreachable `jr ra; nop`. The semantically-live function body is just `return *(_reent**)0x37DC6C;` (3 instructions, 12B). Prior agent already tried: (1) plain return \u2192 12B size collision with __errno; (2) goto past dead block \u2192 SNC -O2 DCE eliminates the dead block; (3) asm goto \u2192 SNC rejects the syntax (error 0018); (4) volatile reads in dead block + goto \u2192 still DCE'd. No natural C/C++ construct in SNC -O2 produces an unconditional `b` with 4 instructions of preserved unreachable code: while(0)/if(0) fold away, volatile-guarded branches emit beqz not b, weak-symbol address tests emit jal/bnez. The expected pattern almost certainly originates from the SN Systems C runtime's own source \u2014 likely a strong/weak alias, or a CRT-internal macro, or a hand-written asm stub linked from the SNC stdlib (libsn.a) rather than user code. Recommend classifying this as library-provided (decompile target should be moved off the user-source list) or finding an SNC-specific pragma/builtin that suppresses DCE on labeled blocks. No stub emitted in src/free_functions.c to avoid colliding with __errno's 12B layout. No new approach was attempted this session because the prior write-up enumerated and ruled out every plausible C-level construct; further progress requires either CRT source access or an SNC compiler internals discovery.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T21:34:58Z",
+        "src_file": "src/free_functions.c",
+        "snapshot": "logs/failure_snapshots/match_20260505_162336/1a5ba8a4/001aa284__agent_self_reported_failure__src_free_functions.c"
       }
     ],
     "mangled_symbol": "__getreent"
@@ -126678,7 +126690,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b6850"
     ],
@@ -128217,7 +128229,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b9d90"
     ],
@@ -128230,7 +128242,14 @@
       "0x001ba6f4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__vec_delete"
+    "mangled_symbol": "__vec_delete",
+    "src_file": "src/free_functions.c",
+    "symbol_name": "__vec_delete",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1a5ba8a4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T21:34:58Z"
   },
   {
     "address": "0x001b9f40",
@@ -128963,7 +128982,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9fec"
     ],

@@ -472,3 +472,12 @@ extern void _free_r(void *r, void *ptr);
 void free(void *ptr) {
     _free_r(*(void **)0x37DC6C, ptr);
 }
+
+extern void array_delete_general(void *p, int a, unsigned int b,
+                                  void (*dtor_idx)(void *, int), int c,
+                                  void (*dtor)(void *), int d, unsigned int e);
+void __vec_delete(void *p, int a, unsigned int b,
+                  void (*dtor_idx)(void *, int), int c) {
+    array_delete_general(p, a, b, dtor_idx, c,
+                         (void (*)(void *))0, 0, *(unsigned int *)0x37E4B8);
+}
