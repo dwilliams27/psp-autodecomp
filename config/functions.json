@@ -22871,13 +22871,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeSkinGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fKeSkinGroupOGetManagedTypevK",
+    "src_file": "src/eSkinGroup.cpp",
+    "symbol_name": "__0fKeSkinGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a42aab8e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:53:11Z"
   },
   {
     "address": "0x000183e0",
@@ -22889,13 +22896,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeSkinGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fKeSkinGroupQGetDataDirectoryvK",
+    "src_file": "src/eSkinGroup.cpp",
+    "symbol_name": "__0fKeSkinGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a42aab8e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:53:11Z"
   },
   {
     "address": "0x0001850c",
@@ -22907,7 +22921,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -22925,7 +22939,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
