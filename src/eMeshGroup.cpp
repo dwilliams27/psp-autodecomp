@@ -59,6 +59,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static cBase *New(cMemPool *, cBase *);
     static bool IsManagedTypeExternalStatic();
     static void operator delete(void *p) {
@@ -217,6 +218,55 @@ const char *eMeshGroup::GetDataDirectory(void) const {
             (const char *)0x36CE40, (const char *)0x36CE48, 1);
     }
     return (const char *)((int *)D_000469B8)[5];
+}
+
+// ── eMeshGroup::GetFileExtension(void) const @ 0x00014bac ──
+const char *eMeshGroup::GetFileExtension(void) const {
+    if (D_000469B8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469B8 = cType::InitializeType(
+            0, 0, 0xE, D_000385E4, 0,
+            (const char *)0x36CE40, (const char *)0x36CE48, 1);
+    }
+    return (const char *)((int *)D_000469B8)[6];
+}
+
+// ── eMeshGroup::IsManagedTypeExternalStatic(void) static @ 0x00014cd4 ──
+bool eMeshGroup::IsManagedTypeExternalStatic() {
+    if (D_000469B8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469B8 = cType::InitializeType(
+            0, 0, 0xE, D_000385E4, 0,
+            (const char *)0x36CE40, (const char *)0x36CE48, 1);
+    }
+    int flags = *(int *)D_000469B8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 bool eSkinGroup::IsManagedTypeExternal() const {

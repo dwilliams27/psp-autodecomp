@@ -21262,13 +21262,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeMeshGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fKeMeshGroupQGetFileExtensionvK",
+    "src_file": "src/eMeshGroup.cpp",
+    "symbol_name": "__0fKeMeshGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0445e71c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:41:01Z"
   },
   {
     "address": "0x00014cd4",
@@ -21280,7 +21287,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -21293,7 +21300,14 @@
       "0x001dc0cc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeMeshGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fKeMeshGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eMeshGroup.cpp",
+    "symbol_name": "__0fKeMeshGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0445e71c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:41:01Z"
   },
   {
     "address": "0x00014e0c",
@@ -21516,7 +21530,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -21534,7 +21548,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
