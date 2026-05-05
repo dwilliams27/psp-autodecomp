@@ -58,6 +58,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -179,6 +180,55 @@ const char *eSkyGroup::GetDataDirectory(void) const {
             (const char *)0x36CED4, (const char *)0x36CEDC, 0);
     }
     return (const char *)((int *)D_00046B18)[5];
+}
+
+// ── eSkyGroup::GetFileExtension(void) const @ 0x0001a1d0 ──
+const char *eSkyGroup::GetFileExtension(void) const {
+    if (D_00046B18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B18 = cType::InitializeType(
+            0, 0, 0x1D9, D_000385E4, &eSkyGroup::New,
+            (const char *)0x36CED4, (const char *)0x36CEDC, 0);
+    }
+    return (const char *)((int *)D_00046B18)[6];
+}
+
+// ── eSkyGroup::IsManagedTypeExternalStatic(void) static @ 0x0001a2fc ──
+bool eSkyGroup::IsManagedTypeExternalStatic() {
+    if (D_00046B18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B18 = cType::InitializeType(
+            0, 0, 0x1D9, D_000385E4, &eSkyGroup::New,
+            (const char *)0x36CED4, (const char *)0x36CEDC, 0);
+    }
+    int flags = *(int *)D_00046B18;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eSkyGroup::~eSkyGroup(void) @ 0x001de500 ──
