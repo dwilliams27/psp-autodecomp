@@ -45,6 +45,16 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcFunction {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcFunctionGroup : public cGroup {
 public:
     void Write(cFile &) const;
@@ -52,6 +62,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     ~gcFunctionGroup();
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -89,8 +101,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998A4;
+extern cType *D_0009F4C8;
 
 // ── gcFunctionGroup::New(cMemPool *, cBase *) static @ 0x00235f84 ──
 cBase *gcFunctionGroup::New(cMemPool *pool, cBase *parent) {
@@ -133,6 +148,52 @@ const cType *gcFunctionGroup::GetType() const {
             0, 0, 8);
     }
     return D_000998A4;
+}
+
+// ── gcFunctionGroup::GetManagedType(void) const @ 0x000cd6ac ──
+const cType *gcFunctionGroup::GetManagedType(void) const {
+    if (D_0009F4C8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C8 = cType::InitializeType(
+            0, 0, 0x74, D_000385E4, &gcFunction::New,
+            (const char *)0x36DA14, (const char *)0x36DA20, 5);
+    }
+    return D_0009F4C8;
+}
+
+// ── gcFunctionGroup::GetDataDirectory(void) const @ 0x000cd7d4 ──
+const char *gcFunctionGroup::GetDataDirectory(void) const {
+    if (D_0009F4C8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C8 = cType::InitializeType(
+            0, 0, 0x74, D_000385E4, &gcFunction::New,
+            (const char *)0x36DA14, (const char *)0x36DA20, 5);
+    }
+    return (const char *)((int *)D_0009F4C8)[5];
 }
 
 // ── gcProfileString::New(cMemPool *, cBase *) static @ 0x002867a4 ──
