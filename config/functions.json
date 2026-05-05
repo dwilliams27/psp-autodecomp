@@ -74947,7 +74947,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -74959,7 +74959,14 @@
       "0x00238a04"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcExternalCinematicGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fYgcExternalCinematicGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcExternalCinematicGroup.cpp",
+    "symbol_name": "__0fYgcExternalCinematicGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6ab2edb8",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:37:31Z"
   },
   {
     "address": "0x000d3d6c",
@@ -103788,13 +103795,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDesiredUIWidgetOGetDesiredTypevK"
+    "mangled_symbol": "__0fRgcDesiredUIWidgetOGetDesiredTypevK",
+    "src_file": "src/gcDesiredUIWidget.cpp",
+    "symbol_name": "__0fRgcDesiredUIWidgetOGetDesiredTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6ab2edb8",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:37:31Z"
   },
   {
     "address": "0x0012efbc",
@@ -172743,7 +172757,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -172761,7 +172775,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x001251c8"

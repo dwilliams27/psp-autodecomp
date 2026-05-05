@@ -66,6 +66,11 @@ struct gcDesiredUIWidgetHelper {
 
 extern "C" void gcDesiredUIWidgetHelper_ctor(void *self, gcDesiredUIWidgetHelper::gcPrimary p);
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcDesiredUIWidget {
 public:
     ~gcDesiredUIWidget();
@@ -76,6 +81,7 @@ public:
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetDesiredType(void) const;
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -98,6 +104,8 @@ public:
 };
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009990C;
 extern cType *D_0009F3F4;
 extern cType *D_0009F4B0;
 
@@ -187,6 +195,24 @@ cBase *gcDesiredUIWidget::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// 0x0012eee0 — GetDesiredType(void) const
+const cType *gcDesiredUIWidget::GetDesiredType(void) const {
+    if (D_0009990C == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_0009990C = cType::InitializeType(0, 0, 0x84, D_000385E0,
+                                           0, 0, 0, 0);
+    }
+    return D_0009990C;
 }
 
 // 0x0027a46c — GetType(void) const

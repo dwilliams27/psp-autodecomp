@@ -154,6 +154,32 @@ cBase *gcExternalCinematicGroup::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+// ── gcExternalCinematicGroup::IsManagedTypeExternalStatic(void) static @ 0x000d3c30 ──
+bool gcExternalCinematicGroup::IsManagedTypeExternalStatic() {
+    if (D_00099ACC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099ACC = cType::InitializeType(
+            0, 0, 0x209, D_000385E4, &gcExternalCinematic::New,
+            (const char *)0x36D8F0, (const char *)0x36D900, 1);
+    }
+    int flags = *(int *)D_00099ACC;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
 // ── gcExternalCinematicGroup::GetType(void) const @ 0x00238928 ──
 const cType *gcExternalCinematicGroup::GetType() const {
     if (D_000998E8 == 0) {
