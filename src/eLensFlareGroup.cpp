@@ -61,6 +61,8 @@ public:
     ~eLensFlareGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -78,8 +80,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E58;
+extern cType *D_000468CC;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eLensFlare {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── eLensFlareGroup::Write(cFile &) const @ 0x000192EC ──
 void eLensFlareGroup::Write(cFile &file) const {
@@ -128,6 +143,52 @@ const cType *eLensFlareGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E58;
+}
+
+// ── eLensFlareGroup::GetManagedType(void) const @ 0x000193F4 ──
+const cType *eLensFlareGroup::GetManagedType(void) const {
+    if (D_000468CC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468CC = cType::InitializeType(
+            0, 0, 0x19B, D_000385E4, &eLensFlare::New,
+            (const char *)0x36CDF4, (const char *)0x36CE00, 1);
+    }
+    return D_000468CC;
+}
+
+// ── eLensFlareGroup::GetDataDirectory(void) const @ 0x0001951C ──
+const char *eLensFlareGroup::GetDataDirectory(void) const {
+    if (D_000468CC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468CC = cType::InitializeType(
+            0, 0, 0x19B, D_000385E4, &eLensFlare::New,
+            (const char *)0x36CDF4, (const char *)0x36CE00, 1);
+    }
+    return (const char *)((int *)D_000468CC)[5];
 }
 
 // ── eLensFlareGroup::~eLensFlareGroup(void) @ 0x001DE030 ──

@@ -23335,13 +23335,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeLensFlareGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fPeLensFlareGroupOGetManagedTypevK",
+    "src_file": "src/eLensFlareGroup.cpp",
+    "symbol_name": "__0fPeLensFlareGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "03dbb825",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:56:57Z"
   },
   {
     "address": "0x0001951c",
@@ -23353,13 +23360,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeLensFlareGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fPeLensFlareGroupQGetDataDirectoryvK",
+    "src_file": "src/eLensFlareGroup.cpp",
+    "symbol_name": "__0fPeLensFlareGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "03dbb825",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:56:57Z"
   },
   {
     "address": "0x00019648",
@@ -23371,7 +23385,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -23389,7 +23403,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
