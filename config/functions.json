@@ -22540,13 +22540,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeFontGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fKeFontGroupOGetManagedTypevK",
+    "src_file": "src/eFontGroup.cpp",
+    "symbol_name": "__0fKeFontGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6d0a556a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:50:45Z"
   },
   {
     "address": "0x00017858",
@@ -22558,13 +22565,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeFontGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fKeFontGroupQGetDataDirectoryvK",
+    "src_file": "src/eFontGroup.cpp",
+    "symbol_name": "__0fKeFontGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6d0a556a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:50:45Z"
   },
   {
     "address": "0x00017984",
@@ -22576,7 +22590,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -22594,7 +22608,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

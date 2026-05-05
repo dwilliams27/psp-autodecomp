@@ -51,12 +51,24 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eFont {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class eFontGroup : public cGroup {
 public:
     eFontGroup(cBase *);
     ~eFontGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -74,8 +86,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E44;
+extern cType *D_00041114;
 
 // ── eFontGroup::Write(cFile &) const @ 0x00017628 ──
 void eFontGroup::Write(cFile &file) const {
@@ -124,6 +139,52 @@ const cType *eFontGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E44;
+}
+
+// ── eFontGroup::GetManagedType(void) const @ 0x00017730 ──
+const cType *eFontGroup::GetManagedType(void) const {
+    if (D_00041114 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041114 = cType::InitializeType(
+            0, 0, 0x40, D_000385E4, &eFont::New,
+            (const char *)0x36CDE8, (const char *)0x36CDF0, 5);
+    }
+    return D_00041114;
+}
+
+// ── eFontGroup::GetDataDirectory(void) const @ 0x00017858 ──
+const char *eFontGroup::GetDataDirectory(void) const {
+    if (D_00041114 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041114 = cType::InitializeType(
+            0, 0, 0x40, D_000385E4, &eFont::New,
+            (const char *)0x36CDE8, (const char *)0x36CDF0, 5);
+    }
+    return (const char *)((int *)D_00041114)[5];
 }
 
 // ── eFontGroup::~eFontGroup(void) @ 0x001DD428 ──
