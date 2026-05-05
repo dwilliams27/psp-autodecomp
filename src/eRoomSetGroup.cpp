@@ -52,6 +52,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static cBase *New(cMemPool *, cBase *);
     ~eRoomSetGroup();
     static bool IsManagedTypeExternalStatic();
@@ -179,6 +180,55 @@ const char *eRoomSetGroup::GetDataDirectory(void) const {
             (const char *)0x36CE10, (const char *)0x36CE1C, 3);
     }
     return (const char *)((int *)D_000468D8)[5];
+}
+
+// ── eRoomSetGroup::GetFileExtension(void) const @ 0x0001B31C ──
+const char *eRoomSetGroup::GetFileExtension(void) const {
+    if (D_000468D8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468D8 = cType::InitializeType(
+            0, 0, 0x222, D_000385E4, &eRoomSet::New,
+            (const char *)0x36CE10, (const char *)0x36CE1C, 3);
+    }
+    return (const char *)((int *)D_000468D8)[6];
+}
+
+// ── eRoomSetGroup::IsManagedTypeExternalStatic(void) static @ 0x0001B448 ──
+bool eRoomSetGroup::IsManagedTypeExternalStatic() {
+    if (D_000468D8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468D8 = cType::InitializeType(
+            0, 0, 0x222, D_000385E4, &eRoomSet::New,
+            (const char *)0x36CE10, (const char *)0x36CE1C, 3);
+    }
+    int flags = *(int *)D_000468D8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eRoomSetGroup::~eRoomSetGroup(void) @ 0x001DEC38 ──
