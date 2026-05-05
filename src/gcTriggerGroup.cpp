@@ -76,6 +76,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -100,8 +102,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998C0;
+extern cType *D_0009F4A4;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcTrigger {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 void gcTriggerGroup::AssignCopy(const cBase *base) {
     gcTriggerGroup *src = dcast<gcTriggerGroup>(base);
@@ -155,6 +170,52 @@ const cType *gcTriggerGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998C0;
+}
+
+// ── gcTriggerGroup::GetManagedType(void) const @ 0x000cff08 ──
+const cType *gcTriggerGroup::GetManagedType() const {
+    if (D_0009F4A4 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4A4 = cType::InitializeType(
+            0, 0, 0x9B, D_000385E4, &gcTrigger::New,
+            (const char *)0x36D9EC, (const char *)0x36D9F8, 0);
+    }
+    return D_0009F4A4;
+}
+
+// ── gcTriggerGroup::GetDataDirectory(void) const @ 0x000d0030 ──
+const char *gcTriggerGroup::GetDataDirectory() const {
+    if (D_0009F4A4 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4A4 = cType::InitializeType(
+            0, 0, 0x9B, D_000385E4, &gcTrigger::New,
+            (const char *)0x36D9EC, (const char *)0x36D9F8, 0);
+    }
+    return (const char *)((int *)D_0009F4A4)[5];
 }
 
 // ── gcTriggerGroup::Write(cFile &) const @ 0x000CFE00 ──
