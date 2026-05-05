@@ -56,6 +56,8 @@ public:
 
     void Write(cFile &) const;
     const cType *GetType() const;
+    const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
     bool IsManagedTypeExternal() const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -77,8 +79,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998D0;
+extern cType *D_0009F4C0;
+
+class gcExternalVariable {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ============================================================
 // 0x000d1510 — Write(cFile &) const
@@ -134,6 +149,56 @@ const cType *gcExternalVariableGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998D0;
+}
+
+// ============================================================
+// 0x000d1618 — GetManagedType(void) const
+// ============================================================
+const cType *gcExternalVariableGroup::GetManagedType() const {
+    if (D_0009F4C0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C0 = cType::InitializeType(
+            0, 0, 0x165, D_000385E4, &gcExternalVariable::New,
+            (const char *)0x36D9FC, (const char *)0x36DA10, 1);
+    }
+    return D_0009F4C0;
+}
+
+// ============================================================
+// 0x000d1740 — GetDataDirectory(void) const
+// ============================================================
+const char *gcExternalVariableGroup::GetDataDirectory() const {
+    if (D_0009F4C0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C0 = cType::InitializeType(
+            0, 0, 0x165, D_000385E4, &gcExternalVariable::New,
+            (const char *)0x36D9FC, (const char *)0x36DA10, 1);
+    }
+    return (const char *)((int *)D_0009F4C0)[5];
 }
 
 // ============================================================
