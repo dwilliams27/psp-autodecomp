@@ -78,6 +78,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -216,6 +217,55 @@ const char *gcTriggerGroup::GetDataDirectory() const {
             (const char *)0x36D9EC, (const char *)0x36D9F8, 0);
     }
     return (const char *)((int *)D_0009F4A4)[5];
+}
+
+// ── gcTriggerGroup::GetFileExtension(void) const @ 0x000d015c ──
+const char *gcTriggerGroup::GetFileExtension() const {
+    if (D_0009F4A4 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4A4 = cType::InitializeType(
+            0, 0, 0x9B, D_000385E4, &gcTrigger::New,
+            (const char *)0x36D9EC, (const char *)0x36D9F8, 0);
+    }
+    return (const char *)((int *)D_0009F4A4)[6];
+}
+
+// ── gcTriggerGroup::IsManagedTypeExternalStatic(void) static @ 0x000d0288 ──
+bool gcTriggerGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F4A4 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4A4 = cType::InitializeType(
+            0, 0, 0x9B, D_000385E4, &gcTrigger::New,
+            (const char *)0x36D9EC, (const char *)0x36D9F8, 0);
+    }
+    int flags = *(int *)D_0009F4A4;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── gcTriggerGroup::Write(cFile &) const @ 0x000CFE00 ──
