@@ -57,6 +57,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -178,6 +179,55 @@ const char *eGeomTemplateGroup::GetDataDirectory(void) const {
             (const char *)0x36CE2C, (const char *)0x36CE3C, 5);
     }
     return (const char *)((int *)D_000469A8)[5];
+}
+
+// ── eGeomTemplateGroup::GetFileExtension(void) const @ 0x00015160 ──
+const char *eGeomTemplateGroup::GetFileExtension(void) const {
+    if (D_000469A8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A8 = cType::InitializeType(
+            0, 0, 0x20, D_000385E4, 0,
+            (const char *)0x36CE2C, (const char *)0x36CE3C, 5);
+    }
+    return (const char *)((int *)D_000469A8)[6];
+}
+
+// ── eGeomTemplateGroup::IsManagedTypeExternalStatic(void) static @ 0x00015288 ──
+bool eGeomTemplateGroup::IsManagedTypeExternalStatic() {
+    if (D_000469A8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A8 = cType::InitializeType(
+            0, 0, 0x20, D_000385E4, 0,
+            (const char *)0x36CE2C, (const char *)0x36CE3C, 5);
+    }
+    int flags = *(int *)D_000469A8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eGeomTemplateGroup::~eGeomTemplateGroup(void) @ 0x001DC350 ──
