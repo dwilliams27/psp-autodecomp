@@ -72311,13 +72311,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcVariableGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fPgcVariableGroupQGetFileExtensionvK",
+    "src_file": "src/gcVariableGroup.cpp",
+    "symbol_name": "__0fPgcVariableGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f7e8b075",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:11:31Z"
   },
   {
     "address": "0x000cdff0",
@@ -72329,7 +72336,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -72340,7 +72347,14 @@
       "0x00236384"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcVariableGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fPgcVariableGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcVariableGroup.cpp",
+    "symbol_name": "__0fPgcVariableGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f7e8b075",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:11:31Z"
   },
   {
     "address": "0x000ce12c",
@@ -72545,7 +72559,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -72563,7 +72577,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
