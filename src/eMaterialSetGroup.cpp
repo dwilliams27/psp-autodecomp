@@ -64,6 +64,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -225,6 +226,55 @@ const char *eMaterialSetGroup::GetDataDirectory(void) const {
             (const char *)0x36CDB8, (const char *)0x36CDC8, 5);
     }
     return (const char *)((int *)D_00040FF0)[5];
+}
+
+// ── eMaterialSetGroup::GetFileExtension(void) const @ 0x00015714 ──
+const char *eMaterialSetGroup::GetFileExtension(void) const {
+    if (D_00040FF0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FF0 = cType::InitializeType(
+            0, 0, 0x23, D_000385E4, 0,
+            (const char *)0x36CDB8, (const char *)0x36CDC8, 5);
+    }
+    return (const char *)((int *)D_00040FF0)[6];
+}
+
+// ── eMaterialSetGroup::IsManagedTypeExternalStatic(void) static @ 0x0001583c ──
+bool eMaterialSetGroup::IsManagedTypeExternalStatic() {
+    if (D_00040FF0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FF0 = cType::InitializeType(
+            0, 0, 0x23, D_000385E4, 0,
+            (const char *)0x36CDB8, (const char *)0x36CDC8, 5);
+    }
+    int flags = *(int *)D_00040FF0;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ----------------------------------------------------------------------
