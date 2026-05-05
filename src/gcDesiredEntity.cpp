@@ -32,7 +32,15 @@ public:
 
     gcDesiredEntityHelper(gcPrimary, gcRelationship, gcRelationship);
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
 };
+
+class gcDesiredEnumerationEntry {
+public:
+    int GetTextEx(char *, bool, bool) const;
+};
+
+void cStrAppend(char *, const char *, ...);
 
 class gcDesiredObject {
 public:
@@ -75,6 +83,7 @@ public:
     gcEntity *Get(bool) const;
     int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -97,6 +106,48 @@ extern char gcDesiredEntityvirtualtable[];
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+
+// ── gcDesiredEntity::GetText @ 0x0011d7ec ──
+void gcDesiredEntity::GetText(char *buf) const {
+    int val = *(const int *)((const char *)this + 8);
+    int isOwned = 0;
+    int valBit0 = val & 1;
+    if (valBit0) {
+        isOwned = 1;
+    }
+    if (isOwned != 0) {
+        isOwned = 0;
+    } else {
+        isOwned = (val != 0);
+        isOwned &= 0xFF;
+        isOwned = isOwned != 0;
+    }
+    if (isOwned == 0) {
+        ((const gcDesiredEntityHelper *)((const char *)this + 12))->GetText(buf);
+        val = *(const int *)((const char *)this + 8);
+        valBit0 = val & 1;
+    }
+    int flag = 0;
+    if (valBit0 != 0) {
+        flag = 1;
+    }
+    int doIt;
+    if (flag != 0) {
+        doIt = 1;
+    } else {
+        doIt = (val == 0);
+        doIt &= 0xFF;
+        doIt = doIt != 0;
+    }
+    if (doIt != 0) {
+        char tmp[256];
+        tmp[0] = 0;
+        if (((const gcDesiredEnumerationEntry *)((const char *)this + 0x14))
+                ->GetTextEx(tmp, false, false) != 0) {
+            cStrAppend(buf, (const char *)0x36DE40, tmp);
+        }
+    }
+}
 
 // ── gcDesiredEntity::HasCategory @ 0x0011df9c ──
 int gcDesiredEntity::HasCategory(

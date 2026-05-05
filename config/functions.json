@@ -92832,7 +92832,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -97075,7 +97075,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x0011d268",
@@ -97350,7 +97350,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x0010ebc4",
@@ -97358,7 +97358,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredEntityHGetTextPcK"
+    "mangled_symbol": "__0fPgcDesiredEntityHGetTextPcK",
+    "src_file": "src/gcDesiredEntity.cpp",
+    "symbol_name": "__0fPgcDesiredEntityHGetTextPcK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8dc4b7e0",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T20:14:19Z"
   },
   {
     "address": "0x0011d8c0",
@@ -98828,7 +98835,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001368"
     ],
@@ -98845,7 +98852,14 @@
       "0x00329f34"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredCameraHGetTextPcK"
+    "mangled_symbol": "__0fPgcDesiredCameraHGetTextPcK",
+    "src_file": "src/gcDesiredCamera.cpp",
+    "symbol_name": "__0fPgcDesiredCameraHGetTextPcK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8dc4b7e0",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T20:14:19Z"
   },
   {
     "address": "0x00121b10",
@@ -100921,7 +100935,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -101467,7 +101481,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -172778,13 +172792,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "7d3a7c7f",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredCustomAnimation, gcDesiredCustomAnimationHelper, gcEntityCustomAnimation>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T18:53:31Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/7d3a7c7f/00265160__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x00265288",
@@ -172796,14 +172824,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76YgcDesiredCustomAnimation6egcDesiredCustomAnimationHelper6XgcEntityCustomAnimation_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "7d3a7c7f",
+        "notes": "GetText reaches the correct 264-byte size but 69/264 bytes differ from a register-allocation cascade rooted in the prologue scheduling. Original schedules `lw a2,8(a0)` at offset 4 BEFORE `sw s0,0(sp)`, so val lives in a2 and flag in a1 throughout. My emit schedules `sw s0` first, then `move s0,a1`, then `lw a1,8(a0)` \u2014 so val lives in a1 and flag in a2. Every downstream register choice cascades from this initial scheduling decision (e.g. original later does `lw a0,16(a0)` overwriting `this` while mine does `lw a1,16(a0)` then masks with `andi a0,a1,0xffff`). Source restructurings tested: (1) the verbose bool-collapse pattern from gcDesiredString::GetText (`int raw = (v8 != 0); hasReal = ((unsigned char)raw) != 0;`) \u2014 got the 9-instruction bnezl\u2192beqz\u2192sltu\u2192b\u2192li\u2192andi\u2192sltu\u2192bnez sequence at offsets 0x1c-0x3c that the original uses (was 8-byte short before), and got `sltiu` (not `slti`) by casting `(unsigned int)(int)v < 1u`; (2) swapping `if (isOne != 0) /*0x36DAB8*/ else /*entry+8*/` so the inner branch emits beqz instead of bnezl; (3) #pragma control sched=1 (made it worse: 76 bytes diff) and sched=3 (rejected, range 0..2); (4) declaring explicit struct fields mNext/mType/mHandleId in the class and using member access \u2014 same emit; (5) changing `unsigned int v8` to `int v8` \u2014 no change. The remaining diff is purely the register-allocation cascade caused by the prologue scheduling: I cannot find a source pattern that makes SNC emit `lw` before `sw s0` here. Sister function gcDesiredEnumeration::GetText @ 0x001286f4 in the same gcAll_psp.obj has the identical issue and is also still in_progress (status verified via func_db). Suggested next steps: (a) run permuter for \u22655min \u2014 the bool-collapse fix was already non-trivial so permuter has runway; (b) try forcing buf into a stack-spilled local before any `this` access; (c) explore if `__asm__ volatile(\"\" ::: \"memory\")` between specific statements influences scheduling; (d) compare against the actually-matched gcDesiredEntity-family GetText (e.g. gcDesiredEntityTemplate::GetText if it exists) to see what source shape gets the early-lw scheduling. Closest source kept in the file in the canonical form modeled after gcDesiredEnumeration::GetText so future agents can iterate from a clean baseline.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T18:53:31Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/7d3a7c7f/00265288__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x00265390",
@@ -173144,13 +173186,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "df09d27a",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredCustomAttack, gcDesiredCustomAttackHelper, gcEntityCustomAttack>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:01:59Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/df09d27a/00266824__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026694c",
@@ -173162,14 +173218,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "df09d27a",
+        "notes": "Same 69/264 byte mismatch as the sister function gcDesiredObjectT<gcDesiredCustomAnimation,...>::GetText @ 0x00265288 (also failed in functions.json with detailed prior-session notes from session 7d3a7c7f). Diff is purely register-allocation cascade rooted in prologue scheduling: original schedules 'lw a2,8(a0)' (v8) at offset 4 BEFORE 'sw s0,0(sp)', so v8 lives in a2 and the bool-gate flag in a1 throughout. My emit (and the prior agent's, and the matched-canonical Animation source's) schedules 'sw s0' first, then 'move s0,a1', then 'lw a1,8(a0)' \u2014 so v8 lives in a1 and flag in a2. This propagates to every downstream register decision: original does 'lw a0,16(a0)' (clobbers this since dead) for hid, mine does 'lw a1,16(a0)' (clobbers t) and then masks via 'andi a0,a1,0xffff'; original keeps text in a1 throughout, mine keeps it in a0 then 'move a1,a0' before cStrCat. Because of the asymmetric register choices the bool gate's path-2 'andi a2,a1,0xff' reads a1 (which is var_a1=0) so var_a2 is always 0 in the original \u2014 the early-return is effectively dead code. The bnez at 0x3c is never taken in either version, so the bool-gate body itself is functionally a no-op that's somehow surviving optimization (probably from a virtual-call inlining or template gate that constant-folded).\n\nAttempts in this session: (1) canonical bool-collapse pattern matching the gcDesiredCustomAnimation source \u2014 same 69-byte diff; (2) #pragma control sched=0 \u2014 got worse, 189-byte diff; (3) introducing 'char *out = buf' before the v8 read \u2014 no change, still 69 bytes; (4) restoring buf reference at end via cStrCat \u2014 same 69 bytes; (5) tested but discarded: __asm__ volatile spilling buf to forced stack location (would inject asm bytes). Permuter (tools/permuter.py) failed with 'Failed to extract .text section from .o' \u2014 appears to be a tool bug with objcopy on this particular .o format; needs investigation in tools/ but per guardrails I cannot patch it.\n\nPrior session 7d3a7c7f (on the Animation sister function) tested even more variants: explicit struct fields with mNext/mType/mHandleId, sched=1 (worse), unsigned vs signed v8, swapping inner branches to flip beqzl/bnezl. None changed the prologue scheduling decision. The remaining diff is the register cascade, which only an alternate prologue source pattern can fix. Suggested for next agent: (a) investigate/fix the permuter objcopy issue (tool bug \u2014 flag to user, don't patch); (b) try pragma sched=2 explicitly with __asm__ volatile memory barriers between specific statements to see if any combination forces 'lw' before 'sw s0'; (c) compare the .ent/.end debug info for the original 264B vs 96B GetText to see if there's a calling-convention or attribute hint; (d) consider that the original source might actually call a helper that gets inlined producing this exact emit \u2014 try writing GetText as 'Helper::DoIt(this+0, buf)' with Helper::DoIt template-defined to expand to the visible body. Closest source kept in the canonical form.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:01:59Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/df09d27a/0026694c__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
+      }
+    ]
   },
   {
     "address": "0x00266a54",
@@ -174367,13 +174437,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "d854f40e",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredPath, gcDesiredPathHelper, ePath>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:04:38Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/d854f40e/0026b2bc__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026b3e4",
@@ -174385,14 +174469,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "d854f40e",
+        "notes": "GetText \u2014 appears to be the ADR-012 context-dependent register allocation issue. Best attempt (current source) reaches 69/264 byte mismatch. The body of the function is a verbatim transliteration of the disassembly's logic, but the SNC register allocator chooses a1\u2194a2 swapped from the original throughout: in expected, v8 lives in a2 (load at offset 4, before s0 save) and flag in a1; in mine, v8 ends up in a1 (load at offset 0xC after move s0=a1) and flag in a2. This single divergence cascades through every subsequent block (entity-table lookup at +0x54, isOne check at +0x9c, name/literal selection at +0xb0/+0xc0 \u2014 opposite branch-taken vs fall-through arms, since the cached entry pointer ends up in a0 vs a1). The exemplar in src/gcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp (same template, different instantiation) has the IDENTICAL diff (also 69 bytes, [I] in func_db) \u2014 confirming this is not a local-source issue but a TU-context issue.\n\nApproaches tried: (1) original m2c-derived if/else with `int v8` and explicit flag \u2014 69 bytes diff (reg swap); (2) `unsigned int` everywhere \u2014 same 69 bytes; (3) `int hasReal = 0; if (flag == 0) { ... }` flat form \u2014 improved to 65 bytes (got v8/flag into right registers!) but compiler picked a different control-flow shape (move/bnez instead of beqz/b/li delay pattern); (4) ternary/lifted raw \u2014 260B size mismatch (compiler dropped a delay-slot pair). The 65-diff variant is intriguing because it shows the regalloc CAN match if the C is structured differently, but then the control-flow scheduling diverges instead.\n\nPermuter unavailable: tools/permuter.py crashes with `RuntimeError: Failed to extract .text section from ...cpp.o. Check that objcopy supports the .o format.` \u2014 file a tool-bug report rather than patch tools/.\n\nRoot cause is almost certainly ADR-012 (context-dependent regalloc): the original gcAll_psp.obj compiled ~3K functions in one TU, and our per-class file with only 2 functions presents a different allocator state. The pattern (cascading a1\u2194a2 swap with structurally-identical instructions) is the textbook symptom. Per ADR-012's decision, this class of mismatch is accepted as unmatchable at the source level and would need a pspcor.exe regalloc patch to resolve. Closest source left in place; orchestrator may want to retry after merging more gcDesiredObjectT-family files into a single TU.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:04:38Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/d854f40e/0026b3e4__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026b4ec",
@@ -174625,13 +174723,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "0a4719d4",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredPoint, gcDesiredPointHelper, ePoint>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:10:00Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/0a4719d4/0026c400__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026c528",
@@ -174643,14 +174755,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "0a4719d4",
+        "notes": "Persistent 69/264 byte diff with sched=2 (default). Diff is almost entirely a CONSISTENT REGISTER SWAP \u2014 target uses a2 for v8/result and a1 for flag/hid; my compile uses a1 for v8/result and a2 for flag/hid. The instruction sequence is otherwise structurally identical. Root cause: in target, lw v8 is scheduled BEFORE 'move s0,a1' in prologue (so v8 must go in a2 since a1 is still buf). In mine, the compiler schedules 'sw s0; move s0,a1; lw a1,8(a0)' \u2014 moving buf out of a1 first. This propagates a different reg-alloc throughout the rest of the function. Tried sched=0 (worse: 189 diff), sched=1 (worse: 76 diff). Tried restructuring entry+8 path (text=entry+8 default + override) \u2014 got SIZE MISMATCH 256B (8B too short), confirming structure-sensitive. Reverted to baseline. Permuter is broken (RuntimeError extracting .text section, tool bug not to be fixed by agent). NOTE: The same GetText pattern is also failed across all sibling gcDesiredObjectT<...> template instantiations (Path, SoundData, CustomAnimation, CustomAttack) \u2014 this looks like a recurring SNC scheduling/reg-alloc issue across the whole template family. Likely needs either a compiler-level investigation of why SNC schedules the load early in target, or a creative source-level trick to reorder prologue scheduling. Possibly try inline asm barrier near start, or force v8 read to occur via a different syntactic construction.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:10:00Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/0a4719d4/0026c528__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026c630",
@@ -174832,13 +174958,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76SgcDesiredSoundData6YgcDesiredSoundDataHelper6KeSoundData_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76SgcDesiredSoundData6YgcDesiredSoundDataHelper6KeSoundData_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "9150c03e",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredSoundData, gcDesiredSoundDataHelper, eSoundData>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:17:25Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/9150c03e/0026d4ec__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026d610",
@@ -174850,14 +174990,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76SgcDesiredSoundData6YgcDesiredSoundDataHelper6KeSoundData_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76SgcDesiredSoundData6YgcDesiredSoundDataHelper6KeSoundData_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "9150c03e",
+        "notes": "Size matches at 264B but exactly 69 bytes differ \u2014 entirely from register allocation choices that I cannot force. Logic, structure, branch targets, and instruction count are all correct.\n\nROOT CAUSE: In orig, the compiler loads `lw a0,16(a0)` (hid into a0, OVERWRITING `this`). This places `entry` in a1, then `text` (entry+8 or string literals) in a1, allowing the t!=7 path to use `move a1,v0` directly to set up the cStrCat call. In my version, the compiler loads `lw a1,16(a0)` (hid into a1, overwriting `t` which is dead in the t==7 path). This places entry in a0, text in a0, requiring an extra `move a0,v0; move a1,a0` pair at the t!=7 convergence point \u2014 wait, instruction count is still 66 either way, just shifted.\n\nThe SCHEDULING difference also affects the prologue: orig hoists `lw a2,8(a0)` to the 2nd instruction (immediately after addiu sp). Mine has it 4th, after `sw s0,0(sp); move s0,a1`. This cascades into v8 being in a1 (mine) vs a2 (orig), and flag in a2 (mine) vs a1 (orig).\n\nWHAT I TRIED: (1) original formulation matching exemplar pattern; (2) `(unsigned char)` cast for hasReal/isOne (size dropped to 252B \u2014 too few inst); (3) `if (t != 7)` inversion + thisB local (171 byte diff \u2014 much worse, structure broke); (4) switch(t) instead of if/else (identical 69 byte diff \u2014 same code).\n\nWHY STUCK: Per CLAUDE.md, this is the same 69-byte diff that gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp's GetText (committed by previous session as untracked .cpp) also exhibits \u2014 it's a known register-allocation divergence in the gcDesiredObjectT template family. Permuter cannot run on this file (objcopy fails to extract .text). Likely needs either: (a) a struct-based field access pattern that hints register choice, (b) a #pragma to influence sched, or (c) a specific source idiom that nudges SNC to overwrite `this` with hid instead of reusing the dead `t` register. The exemplar pattern is otherwise correct and all 4 GetText paths produce semantically identical output.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:17:25Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/9150c03e/0026d610__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026d718",
@@ -175064,13 +175218,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredSprite6VgcDesiredSpriteHelper6HeSprite_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredSprite6VgcDesiredSpriteHelper6HeSprite_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "888d6fa7",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredSprite, gcDesiredSpriteHelper, eSprite>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:20:04Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/888d6fa7/0026e62c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026e754",
@@ -175082,14 +175250,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredSprite6VgcDesiredSpriteHelper6HeSprite_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredSprite6VgcDesiredSpriteHelper6HeSprite_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "888d6fa7",
+        "notes": "GetText: 65/264 bytes differ. Best version uses an all-ternary form: `unsigned int flag = (v8 & 1) ? 1u : 0u; unsigned int hasReal = flag ? 0u : ((unsigned char)(v8 != 0) != 0);`. With this form, the prologue matches exactly (lw a2,8(a0) before sw s0; v8 lives in a2 and flag in a1, matching expected register allocation). However the middle section diverges: ternary form generates `move a3,a1; bnez a3,...; li a1,0; sltu a1,zero,a2; andi a1,a1,0xff; sltu a1,zero,a1; bnez a1,end` whereas expected is `beqz a1,else; sltu a1,zero,a2 (delay); b end_test; li a2,0 (delay); andi a2,a1,0xff; sltu a2,zero,a2; bnez a2,end` -- output register is a2 not a1, and the structure is true if/else rather than fused ternary.\n\nApproaches tried: (1) original if/else form for both flag and hasReal -> wrong prologue (v8 ends up in a1 not a2), 69 bytes differ. (2) ternary for flag, if/else for hasReal -> wrong prologue, 69 bytes. (3) all-ternary -> right prologue, wrong middle, 65 bytes. (4) inverted if-else (flag==0 first) -> 81 bytes, much worse. The conflict appears to be that the prologue scheduling (loading v8 before move s0,a1) requires the all-ternary form, but the middle section's a2-targeted output requires the genuine if/else form -- the two are mutually exclusive with my source variants. Note the existing src/gcDesiredObjectTgcDesiredSoundDatagcDesiredSoundDataHelpereSoundData.cpp (used as exemplar) is also unmatched on the same GetText (69/264 bytes differ) -- it was untracked and never actually verified. This whole gcDesiredObjectT::GetText family across Sprite/Path/Point/SoundData all share the same expected 264B layout; the failing pattern is shared. Root cause likely involves a member-helper inlining (e.g. through cHandle methods) or a struct member access pattern not yet identified that simultaneously schedules the early v8 load AND produces the a2-output if/else for hasReal. Recommend: try defining a struct layout and accessing v8 via h->member, or look at what the gcDesiredObjectHelper class definition might contain that would influence scheduling.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:20:04Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/888d6fa7/0026e754__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026e85c",
@@ -175292,13 +175474,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76UgcDesiredStringTable6agcDesiredStringTableHelper6NgcStringTable_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76UgcDesiredStringTable6agcDesiredStringTableHelper6NgcStringTable_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "2665bde1",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredStringTable, gcDesiredStringTableHelper, gcStringTable>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:24:55Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/2665bde1/0026f770__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026f898",
@@ -175310,14 +175506,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76UgcDesiredStringTable6agcDesiredStringTableHelper6NgcStringTable_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76UgcDesiredStringTable6agcDesiredStringTableHelper6NgcStringTable_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "2665bde1",
+        "notes": "Best attempt produces 65/264 byte mismatch \u2014 same logical structure as expected, but compiler register allocation diverges. Tried: (1) ternary form `flag ? 0u : ((uchar)(v8!=0) != 0)`; (2) explicit if/else with same inner expression; (3) hoisted `unsigned char b = (v8!=0)` outside if (collapsed to 256B \u2014 too aggressive merging); (4) inverted if (t!=7 first) (256B). All attempts produced functionally correct code but mismatched byte sequences.\n\nROOT CAUSE: The diff cascades from two register-allocation differences. (a) In the early-exit boolean check, expected uses `beqz a1, X; sltu a1, zero, a2` (delay-slot scheduled (v8!=0) compute, reusing a1 across flag-test and bool-result), while my output uses `move a3, a1; bnez a3, X; li a1, 0` (separate flag register a3, separate bool register a1). (b) In the t==7 branch, expected reuses register a0 (which held `this`) for `hid = this[16]`, my output assigns hid to a1 \u2014 leaving a0 for `entry/text` allocation, which then cascades through the (char*)entry+8 / 0x36DAB8 / 0x36DAC4 / 0x36DACC string assignments and the final cStrCat call setup (mine produces redundant `move a0, v0; move a1, a0` instead of expected `move a1, v0`).\n\nNEITHER is a logic error. The expected SNC output requires a specific source pattern that triggers register reuse for `this` after the bool check, and triggers cross-block scheduling of the (v8!=0) sltu into the beqz delay slot. CONFIRMED HARD: the existing eSprite exemplar at src/gcDesiredObjectTgcDesiredSpritegcDesiredSpriteHelpereSprite.cpp also fails to match its own expected (81/264 byte diff for the parallel function at 0x0026e754). No gcDesiredObjectT<...>::GetText(char*) is matched anywhere in the codebase per func_db query. Likely needs permuter (>5min) or research into SNC's register-allocation heuristic for this scheduling pattern. Worth comparing against any matched cAll_psp.obj GetText functions with similar early-exit-bool-check + t==7-table-lookup structure.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:24:55Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/2665bde1/0026f898__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredStringTablegcDesiredStringTableHelpergcStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026f9a0",
@@ -177446,13 +177656,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "c09bdde4",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:38:27Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/c09bdde4/0027484c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00274974",
@@ -177464,14 +177688,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "c09bdde4",
+        "notes": "GetText reaches correct SIZE (264B, 66 instructions) and correct overall structure but mismatches on 69/264 bytes due to register allocation cascade. The Enum-style source (`int v8 = ..; int flag1 = 0; if (v8 & 1) flag1 = 1; if (flag1) hasReal=0; else { int raw = (v8!=0); hasReal = ((unsigned char)raw)!=0; }` with nested else-if expanded to nested if/else) generates the correct early-exit pattern (bnezl/li(1) + beqz + delay-slot sltu + b/li(0) + andi/sltu + bnez) but the register allocation differs throughout. SPECIFIC DIFFS: (1) v8 loaded into a1 instead of a2 \u2014 root cause is that SNC's prologue scheduler places `lw` AFTER `sw s0; move s0, a1` rather than BEFORE. Original prologue is `addiu sp; lw a2,8(a0); sw s0; move s0,a1; li a1,0` while ours is `addiu sp; sw s0; move s0,a1; lw a1,8(a0); li a2,0`. (2) hid loaded into a1 instead of a0 \u2014 original clobbers `this` (a0) for hid since this is dead after offset 54, mine picks a1 since a1 is dead after the t==7 bne. These two register-allocation differences cascade through the entire function (reg-flips of a0/a1 and a1/a2 affect ~17 instructions). The control flow, branch targets (relative), and instruction count are otherwise identical. NOTABLE: gcDesiredEnumeration::GetText (0x001286f4) is a sibling function that generates IDENTICAL machine code to ours and ALSO mismatches. Other gcDesired*::GetText functions in the database are all unmatched too. This is a known-difficult pattern. Permuter cannot run on this file because the template instantiation produces .gnu.linkonce.t section instead of .text and tools/permuter.py fails to extract. Approaches tried: ternary `flag ? 1 : 0`, bool isReal, unsigned char c-cast, explicit int with `&= 0xFF`, nested if/else vs else-if, inverted branch direction (isOne!=0 vs ==0). The inverted nested if/else is the closest. Likely needs either a structural source change to bias scheduling (not yet found), or a permuter-driven reg-alloc fuzz, or unmatchable due to compiler reg-allocator divergence.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:38:27Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/c09bdde4/00274974__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00274a7c",
@@ -177792,13 +178030,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "ec0d3f4b",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredTimer, gcDesiredTimerHelper, gcTimer>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:41:04Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/ec0d3f4b/002762e8__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
+      }
+    ]
   },
   {
     "address": "0x00276410",
@@ -177810,14 +178062,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "ec0d3f4b",
+        "notes": "Closest attempt: 65/264 bytes differ. Same size matched but compiler produces different register allocation. The expected entry block uses BEQZ a1 directly with a hoisted (v8!=0) computation in the delay slot, scheduling the bool result into a2: 'beqz a1, target; sltu a1,zero,a2 (delay); b end; li a2,0 (delay); andi a2,a1,0xff; sltu a2,zero,a2; bnez a2, return'. My current source produces: 'move a3,a1; bnez a3, target; li a1,0 (delay); sltu a1,zero,a2; andi a1,a1,0xff; sltu a1,zero,a1; bnez a1, return' \u2014 i.e., the compiler keeps the bool in a1 (where flag was) instead of materializing it to a2. This cascades into different register choices for the type-id load and table lookup downstream (a0/a1 swap), causing 65 bytes of total divergence even though all instructions semantically match.\n\nThe sister file src/gcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp has the exact same problem with the same source pattern. Variants tried: (1) ternary `flag = (v8&1)?1:0` form (264B same diff), (2) imperative `int flag=0; if(v8&1) flag=1;` then if/else (260B), (3) bool typing (256B optimized too far), (4) inverted if/else order (same 264B/65 diff), (5) early-return short-circuit nested if (252B), (6) explicit isNonzero temp variable (260B), (7) #pragma control sched=1 (90B diff worse).\n\nThe gcDesiredObject::Write function (matched at 0x0011b578) uses an identical bnezl+beqz pattern source and matches perfectly \u2014 but Write has no third boolean check after the if/else, while GetText needs to test hasReal again. That extra test changes register pressure and makes the SNC compiler choose a different layout. Likely needs a permuter run, but the permuter currently fails on this file with 'Failed to extract .text section from /tmp/...cpp.o' \u2014 possibly a tool issue with template/instantiation files. Worth investigating: a synthetic helper function or local that forces hasReal into a2 specifically. Source compiles cleanly with -O2 -Xsched=2 and matches semantically; only register choice differs.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:41:04Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/ec0d3f4b/00276410__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
+      }
+    ]
   },
   {
     "address": "0x00276518",
@@ -178155,13 +178421,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "feb5286e",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredTrigger, gcDesiredTriggerHelper, gcTrigger>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:52:46Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/feb5286e/002783b0__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp"
+      }
+    ]
   },
   {
     "address": "0x002784d8",
@@ -178173,14 +178453,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "feb5286e",
+        "notes": "Got to 65/264 byte mismatch with the closest source variant (same structure as the gcDesiredObjectT::GetText body that all sister template instantiations failed on \u2014 see all [F] entries in the func DB for `gcDesiredObjectT<...>::GetText`). The diff is structural register-allocation cascade originating from the v8&1 flag check. Source emits `move $7,$5; bnez $7, skip; li $5, 0 (delay)` (Pattern B: hasReal=0; if (cond) compute), while expected emits `beqz $5, then; sltu $5, 0, $6 (delay); b merge; li $6, 0 (delay); andi $6, $5, 0xff; sltu $6, 0, $6` (Pattern A: explicit if/else with `b` and result landing in $6 reusing v8's register). Variants tried: (1) `if (flag==0) hasReal = ((unsigned char)(v8!=0)) != 0; else hasReal = 0;` \u2192 65/264; (2) `if (flag!=0) hasReal=0; else hasReal=((unsigned char)(v8!=0))!=0;` \u2192 same 65/264 (compiler ignores arm order); (3) `bool hasReal; if (flag==0) hasReal = (v8!=0); else hasReal = false;` \u2192 SIZE 256 (compiler folds to beqzl + sltu in delay slot); (4) `if (flag==0) hasReal = (unsigned char)(v8!=0); else hasReal = 0; if (hasReal!=0) return;` \u2192 SIZE 260 (final sltu optimized away since result already 0/1); (5) `unsigned int hasReal=0; if (flag==0) hasReal = (v8!=0)&0xff; if ((hasReal&0xff)!=0) return;` \u2192 67/264 (got double andi, no merge sltu). Permuter unusable: fails with `Failed to extract .text section` on template instantiations in `.gnu.linkonce.t.*` sections (tool limitation, not patchable per agent rules). Root cause appears to be that SNC -O2 -Xsched=2 chooses the bnez-skip pattern over the beqz-then-b pattern for `if (flag==0) {compute} else {hasReal=0}` regardless of arm ordering, and reuses the flag register ($5) for hasReal instead of v8's register ($6). All sister gcDesiredObjectT::GetText (264B) variants \u2014 Entity, CustomAnimation, CustomAttack, Path, Timer, etc. \u2014 are also [F] in the database, suggesting a systemic SNC scheduling quirk for this exact 264B pattern that has resisted all prior attempts. GetDesiredType in the same file matched cleanly on first attempt.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:52:46Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/feb5286e/002784d8__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp"
+      }
+    ]
   },
   {
     "address": "0x002785e0",
@@ -178362,13 +178656,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "cc2e6fb2",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredUIDialog, gcDesiredUIDialogHelper, gcUIDialog>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:51:33Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/cc2e6fb2/00279368__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp"
+      }
+    ]
   },
   {
     "address": "0x00279490",
@@ -178380,14 +178688,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "cc2e6fb2",
+        "notes": "Closest attempt produces 264B (correct size) with 65/264 byte diffs (compiler-reported, includes some relocation noise; raw byte diff vs. eboot is 55). The cascade originates entirely from the early-exit prologue (offsets 0x024-0x03c). Body/tail diffs after that are all register-allocation cascade from this single divergence.\n\nExpected prologue uses:\n  beqz a1, 0x2794c4\n  sltu a1, 0, a2          (delay, ALWAYS executes)\n  b 0x2794cc\n  li a2, 0                 (delay)\n  andi a2, a1, 0xff       (redundant byte mask of a 0/1 sltu result!)\n  sltu a2, 0, a2\n  bnez a2, end\n\nThis has a redundant `andi 0xff; sltu` *after* a sltu that already produces 0/1 \u2014 clear bool/uchar storage roundtrip smell. SNC at -O2 is otherwise too aggressive and folds it.\n\nApproaches tried:\n  1. `unsigned int hasReal = ((unsigned char)(v8 != 0)) != 0;` (mirrors trigger source) \u2192 compiler folded the cast, 65 diffs.\n  2. `unsigned char flag; if (flag) return;` \u2192 compiler emitted single beqzl, 248B (16B too short).\n  3. `unsigned char flag; unsigned char hasReal = (uchar)(v8 != 0);` \u2192 compiler used beqzl+sltu fusion, 256B.\n  4. Explicit else-branch with `v8 = 0; hasReal = 0;` to keep the `li a2, 0` in the b's delay slot \u2192 got correct 264B size but v8 ended up in a1 instead of a2 on entry, cascading register diffs throughout.\n  5. `flag = (v8 != 0); hasReal = ((unsigned char)flag) != 0;` (re-cast through flag) \u2192 264B, 47 diffs but registers cascade.\n\nNote: the existing gcDesiredObjectT<...gcTrigger> file (in repo before this session) has the same problem \u2014 it also fails to match its 264B counterpart at 0x002784D8 with the trigger-style source, currently `[I]` in the DB. So this is a *family* problem, not a single-function issue.\n\nLikely root cause: the original ViciousEngine source has the bool result stored to a uchar/bool member temporary that we haven't reverse-engineered, or relies on a function helper that gets inlined. SNC's branch-likely heuristic also seems to disagree with the original here. Permuter would be the next step \u2014 there might be a structurally-different formulation that produces the matching bool roundtrip. Could also try `#pragma control sched=N` variants given this is gcAll_psp.obj (transition zone).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T19:51:33Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/cc2e6fb2/00279490__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog.cpp"
+      }
+    ]
   },
   {
     "address": "0x00279598",
@@ -178831,13 +179153,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "7a7b96eb",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredSkin, gcDesiredSkinHelper, eSkin>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:04:12Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/7a7b96eb/0027b13c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027b264",
@@ -178849,14 +179185,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "7a7b96eb",
+        "notes": "260B vs target 264B \u2014 exactly 4 bytes (1 instruction) short. Tried multiple variants: (1) the gcTrigger pattern using `unsigned int hasReal=0; if (flag==0) hasReal=((v8!=0)&0xff); if (hasReal&0xff) return;`; (2) the gcDesiredEnumeration pattern with explicit if/else for hasReal and `if (hasReal==0) {body}`; (3) inverting the t==7 check to t!=7; (4) initializing entry=0 first then conditionally assigning; (5) extracting `const int *fields = (const int *)this; fields[3], fields[4]` instead of pointer math.\n\nROOT CAUSE: register allocation cascade. Target reads hid via `lw a0, 16(a0)` (overwriting `this`), keeping t in a1 until the GetPrimaryText branch. This puts `entry` in a1 (via `move a1, a2`), so `text = entry+8` lands in a1 directly, matching cStrCat arg2 register. Mine reads hid via `lw a1, 16(a0)` (overwriting t, preserving this), putting `entry` in a0 and `text` in a0, requiring an extra `move a1, a0` before `jal cStrCat`. The 4-byte difference: target inserts a `b ...; nop` merge before the GetPrimaryText jal so all branches converge with text already in a1, but mine has all branches go to a single point AFTER the jal, requiring the move and saving the b/nop pair (net: -1 op = -4 bytes).\n\nALSO: target uses `beqz` with the addiu/lui pair in delay slots for the isZero check at offset 0xa8, while mine emits `bnezl` with likely-delay-slot. Compiler chose differently because of register allocator's spill choices.\n\nPermuter unavailable (tools/permuter.py fails with `RuntimeError: Failed to extract .text section from /tmp/...cpp.o. Check that objcopy supports the .o format.` \u2014 this is a tool environment bug, not the source). Note that the sibling templates `gcDesiredObjectT<gcDesiredTrigger,...>::GetText` (0x002784d8) and `gcDesiredEnumeration::GetText` (0x001286f4) are also marked [F] with this same 4-byte register-allocation problem \u2014 likely the entire family needs the same trick discovered. Suggested approach for retry: try `__attribute__((noreorder))` blocks, or try injecting a use of `t` in the t==7 branch (e.g., a `volatile int unused = t;`) to force compiler to keep t alive in a1 differently, or try a function-pointer-style cStrCat indirection.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:04:12Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/7a7b96eb/0027b264__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027b36c",
@@ -186462,13 +186812,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_OGetDesiredTypev_PC6FcTypeK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_OGetDesiredTypev_PC6FcTypeK",
+    "failure_notes": [
+      {
+        "session": "9ea1a3e8",
+        "notes": "class method but no canonical gcDesiredObjectT<gcDesiredPortal, gcDesiredPortalHelper, ePortal>::GetDesiredType(...) definition found in src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:04:15Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/9ea1a3e8/0029351c__rejected_extern_c_class_method__src_gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp"
+      }
+    ]
   },
   {
     "address": "0x00293644",
@@ -186480,14 +186844,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x001251c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_HGetTextPc_vK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_HGetTextPc_vK",
+    "failure_notes": [
+      {
+        "session": "9ea1a3e8",
+        "notes": "Tried 6 variants of the early-skip flag/bool conversion logic at the top of GetText: (1) skin-style chained `((v8!=0)&0xff)!=0` -> 260B (compiler folded final `!=0`); (2) explicit `unsigned int hasReal; if(flag) 0; else ((v8!=0)&0xff)!=0` -> 260B; (3) `unsigned char` then cast -> 256B (compiler eliminated truncation since both write values are 0/1); (4) split into explicit chain `(v8!=0) & 0xff; hasReal!=0` -> 264B size match but 65/264 bytes differ; (5) precompute `isNonzero` outside the if/else -> 260B (compiler hoisted differently into beqzl); (6) `bool` type with true/false -> 256B. Final committed source is variant 4 (264B size, 65 bytes diff).\n\nRoot cause: the expected codegen uses a 'beqz + b with delay-slot work hoisted' if-else pattern producing `beqz a1; sltu a1,0,a2 [delay]; b done; li a2,0 [delay]; ELSE: andi a2,a1,0xff; sltu a2,0,a2; bnez a2`. The result accumulator is in a2 and the (v8!=0) compute is hoisted into the delay slot of the `beqz`. My SNC consistently picks `bnez a3, merge; li a1,0 [delay]` then computes the else inline using a1 as accumulator. Despite source forms that should preserve the explicit `andi 0xff` and `!=0` chain, SNC at -O2/-Xsched=2 either folds the operations OR picks a different register-allocation pattern. The cascade of register differences (a1 vs a2 swapped throughout the lookup table section, a0 vs a1 for unk10/entry pointer) accounts for the bulk of the 65 byte diff -- the structural code is identical.\n\nThis matches the 'context-dependent register allocator' pattern documented in 2026-05-05 session notes for Collide functions: SNC's RA is seeded by preceding compilation context. The matched skin file's GetText (which we used as exemplar) is ALSO unmatched (verified, 260B not 264B) -- the comment in that file claiming match is incorrect. No 264B GetText is currently matched anywhere in the codebase. Likely needs either: (a) permuter run >5min searching register allocation perms; (b) reproducing the original eAll_psp.obj compilation order to seed the RA correctly; (c) accepting as compiler-level divergence.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T20:04:15Z",
+        "src_file": "src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_123104/9ea1a3e8/00293644__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029374c",

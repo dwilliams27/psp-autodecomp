@@ -28,9 +28,18 @@ public:
     gcDesiredCamera(cBase *);
 
     void Write(cFile &) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };
+
+struct GetTextRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrCat(char *, const char *);
 
 struct AllocRec {
     short offset;
@@ -46,6 +55,22 @@ struct WriteRec {
 
 extern cType *D_000385DC;
 extern cType *D_0009F408;
+
+// 0x00121a90 - gcDesiredCamera::GetText(char *) const
+void gcDesiredCamera::GetText(char *buf) const {
+    int val = *(const int *)((const char *)this + 8);
+    if (val == 0) {
+        char *typeInfo = *(char **)((const char *)this + 16);
+        GetTextRec *rec = (GetTextRec *)(typeInfo + 0x78);
+        short off = rec->offset;
+        void *base = (char *)this + 12;
+        rec->fn((char *)base + off, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DAF0);
+    }
+    cStrCat(buf, (const char *)0x36DADC);
+    cStrCat(buf, (const char *)0x36DE70);
+}
 
 // 0x00121490 - gcDesiredCamera::Write(cFile &) const
 void gcDesiredCamera::Write(cFile &file) const {
