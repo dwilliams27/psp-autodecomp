@@ -52,6 +52,8 @@ public:
     ~eCameraEffectGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -68,9 +70,22 @@ extern char eCameraEffectGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class eCameraEffect {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E5C;
+extern cType *D_00041008;
 
 // ── eCameraEffectGroup::Write(cFile &) const @ 0x000198B0 ──
 void eCameraEffectGroup::Write(cFile &file) const {
@@ -119,6 +134,52 @@ const cType *eCameraEffectGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E5C;
+}
+
+// ── eCameraEffectGroup::GetManagedType(void) const @ 0x000199B8 ──
+const cType *eCameraEffectGroup::GetManagedType(void) const {
+    if (D_00041008 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041008 = cType::InitializeType(
+            0, 0, 0x61, D_000385E4, &eCameraEffect::New,
+            (const char *)0x36CD94, (const char *)0x36CDA4, 5);
+    }
+    return D_00041008;
+}
+
+// ── eCameraEffectGroup::GetDataDirectory(void) const @ 0x00019AE0 ──
+const char *eCameraEffectGroup::GetDataDirectory(void) const {
+    if (D_00041008 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041008 = cType::InitializeType(
+            0, 0, 0x61, D_000385E4, &eCameraEffect::New,
+            (const char *)0x36CD94, (const char *)0x36CDA4, 5);
+    }
+    return (const char *)((int *)D_00041008)[5];
 }
 
 // ── eCameraEffectGroup::~eCameraEffectGroup(void) @ 0x001DE298 ──
