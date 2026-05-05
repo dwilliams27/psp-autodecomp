@@ -5,6 +5,13 @@ public:
 
 #include "eAudioFader.h"
 
+eAudioFader::eAudioFader() {
+    mActive = 0;
+    mCurrent = 1.0f;
+    mTarget = 1.0f;
+    mDuration = 0;
+}
+
 int eAudioFader::Update(cTimeValue dt) {
     if (!mActive) return 0;
 
