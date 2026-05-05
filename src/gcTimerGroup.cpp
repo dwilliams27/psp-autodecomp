@@ -115,6 +115,32 @@ bool gcTimerGroup::IsManagedTypeExternal() const {
     return IsManagedTypeExternalStatic();
 }
 
+// ── gcTimerGroup::IsManagedTypeExternalStatic(void) static @ 0x000d13d4 ──
+bool gcTimerGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F49C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F49C = cType::InitializeType(
+            0, 0, 0xDD, D_000385E4, &gcTimer::New,
+            (const char *)0x36D9E0, (const char *)0x36D9E8, 4);
+    }
+    int flags = *(int *)D_0009F49C;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
 void gcTimerGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
