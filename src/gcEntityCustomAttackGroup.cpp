@@ -59,6 +59,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     ~gcEntityCustomAttackGroup();
@@ -230,6 +231,53 @@ const char *gcEntityCustomAttackGroup::GetDataDirectory(void) const {
             (const char *)0x36D9A4, (const char *)0x36D9B4, 5);
     }
     return (const char *)((int *)D_0009F434)[5];
+}
+
+const char *gcEntityCustomAttackGroup::GetFileExtension(void) const {
+    if (D_0009F434 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F434 = cType::InitializeType(
+            0, 0, 0x1CD, D_000385E4, &gcEntityCustomAttack::New,
+            (const char *)0x36D9A4, (const char *)0x36D9B4, 5);
+    }
+    return (const char *)((int *)D_0009F434)[6];
+}
+
+bool gcEntityCustomAttackGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F434 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F434 = cType::InitializeType(
+            0, 0, 0x1CD, D_000385E4, &gcEntityCustomAttack::New,
+            (const char *)0x36D9A4, (const char *)0x36D9B4, 5);
+    }
+    int flags = *(int *)D_0009F434;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // gcEntityCustomAttackGroup::Write(cFile &) const @ 0x000d265c
