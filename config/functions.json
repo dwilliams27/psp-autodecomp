@@ -21364,13 +21364,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeGeomTemplateGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fSeGeomTemplateGroupOGetManagedTypevK",
+    "src_file": "src/eGeomTemplateGroup.cpp",
+    "symbol_name": "__0fSeGeomTemplateGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "44a5b25a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:40:59Z"
   },
   {
     "address": "0x00015038",
@@ -21382,13 +21389,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeGeomTemplateGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fSeGeomTemplateGroupQGetDataDirectoryvK",
+    "src_file": "src/eGeomTemplateGroup.cpp",
+    "symbol_name": "__0fSeGeomTemplateGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "44a5b25a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:40:59Z"
   },
   {
     "address": "0x00015160",
@@ -21400,7 +21414,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -21418,7 +21432,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

@@ -55,6 +55,8 @@ public:
     ~eGeomTemplateGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -71,9 +73,17 @@ extern char eGeomTemplateGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E28;
+extern cType *D_000469A8;
 
 // ── eGeomTemplateGroup::Write(cFile &) const @ 0x00014E0C ──
 void eGeomTemplateGroup::Write(cFile &file) const {
@@ -122,6 +132,52 @@ const cType *eGeomTemplateGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E28;
+}
+
+// ── eGeomTemplateGroup::GetManagedType(void) const @ 0x00014F14 ──
+const cType *eGeomTemplateGroup::GetManagedType(void) const {
+    if (D_000469A8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A8 = cType::InitializeType(
+            0, 0, 0x20, D_000385E4, 0,
+            (const char *)0x36CE2C, (const char *)0x36CE3C, 5);
+    }
+    return D_000469A8;
+}
+
+// ── eGeomTemplateGroup::GetDataDirectory(void) const @ 0x00015038 ──
+const char *eGeomTemplateGroup::GetDataDirectory(void) const {
+    if (D_000469A8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469A8 = cType::InitializeType(
+            0, 0, 0x20, D_000385E4, 0,
+            (const char *)0x36CE2C, (const char *)0x36CE3C, 5);
+    }
+    return (const char *)((int *)D_000469A8)[5];
 }
 
 // ── eGeomTemplateGroup::~eGeomTemplateGroup(void) @ 0x001DC350 ──
