@@ -66,6 +66,7 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
     ~gcEnumerationGroup();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -84,8 +85,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998C4;
+extern cType *D_000998F0;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcEnumeration {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── gcEnumerationGroup::New(cMemPool *, cBase *) static @ 0x002372C4 ──
 cBase *gcEnumerationGroup::New(cMemPool *pool, cBase *parent) {
@@ -128,6 +142,29 @@ const cType *gcEnumerationGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998C4;
+}
+
+// ── gcEnumerationGroup::GetManagedType(void) const @ 0x000d04cc ──
+const cType *gcEnumerationGroup::GetManagedType() const {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(
+            0, 0, 0xAB, D_000385E4, &gcEnumeration::New,
+            (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
+    }
+    return D_000998F0;
 }
 
 // ── gcEnumerationGroup::Write(cFile &) const @ 0x000D03C4 ──

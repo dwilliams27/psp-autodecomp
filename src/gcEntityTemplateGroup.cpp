@@ -219,6 +219,32 @@ const char *gcEntityTemplateGroup::GetFileExtension() const {
     return (const char *)((int *)D_0009F448)[6];
 }
 
+// ── gcEntityTemplateGroup::IsManagedTypeExternalStatic(void) static @ 0x000cfcc4 ──
+bool gcEntityTemplateGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    int flags = *(int *)D_0009F448;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
 // ── gcEntityTemplateGroup::Write(cFile &) const @ 0x000CF83C ──
 void gcEntityTemplateGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
