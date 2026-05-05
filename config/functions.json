@@ -73758,13 +73758,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcTimerGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fMgcTimerGroupQGetDataDirectoryvK",
+    "src_file": "src/gcTimerGroup.cpp",
+    "symbol_name": "__0fMgcTimerGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "92e9cc73",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:25:10Z"
   },
   {
     "address": "0x000d12a8",
@@ -73776,13 +73783,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcTimerGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fMgcTimerGroupQGetFileExtensionvK",
+    "src_file": "src/gcTimerGroup.cpp",
+    "symbol_name": "__0fMgcTimerGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "92e9cc73",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:25:10Z"
   },
   {
     "address": "0x000d13d4",
@@ -73794,7 +73808,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -74022,7 +74036,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

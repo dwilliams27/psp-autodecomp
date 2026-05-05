@@ -70,6 +70,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
     const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -195,4 +197,50 @@ const cType *gcTimerGroup::GetManagedType() const {
 
 gcTimerGroup::~gcTimerGroup() {
     *(void **)((char *)this + 4) = gcTimerGroupvirtualtable;
+}
+
+// ── gcTimerGroup::GetDataDirectory(void) const @ 0x000d117c ──
+const char *gcTimerGroup::GetDataDirectory() const {
+    if (D_0009F49C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F49C = cType::InitializeType(
+            0, 0, 0xDD, D_000385E4, &gcTimer::New,
+            (const char *)0x36D9E0, (const char *)0x36D9E8, 4);
+    }
+    return (const char *)((int *)D_0009F49C)[5];
+}
+
+// ── gcTimerGroup::GetFileExtension(void) const @ 0x000d12a8 ──
+const char *gcTimerGroup::GetFileExtension() const {
+    if (D_0009F49C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F49C = cType::InitializeType(
+            0, 0, 0xDD, D_000385E4, &gcTimer::New,
+            (const char *)0x36D9E0, (const char *)0x36D9E8, 4);
+    }
+    return (const char *)((int *)D_0009F49C)[6];
 }
