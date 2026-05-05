@@ -53,11 +53,18 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class eSurfaceGroup : public cGroup {
 public:
     eSurfaceGroup(cBase *);
     ~eSurfaceGroup();
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -76,8 +83,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E38;
+extern cType *D_00046A18;
 
 // ── eSurfaceGroup::Write(cFile &) const @ 0x000164EC ──
 void eSurfaceGroup::Write(cFile &file) const {
@@ -112,6 +122,52 @@ cBase *eSurfaceGroup::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eSurfaceGroup::GetManagedType(void) const @ 0x000165F4 ──
+const cType *eSurfaceGroup::GetManagedType(void) const {
+    if (D_00046A18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A18 = cType::InitializeType(
+            0, 0, 0x39, D_000385E4, 0,
+            (const char *)0x36D000, (const char *)0x36D00C, 5);
+    }
+    return D_00046A18;
+}
+
+// ── eSurfaceGroup::GetDataDirectory(void) const @ 0x00016718 ──
+const char *eSurfaceGroup::GetDataDirectory(void) const {
+    if (D_00046A18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A18 = cType::InitializeType(
+            0, 0, 0x39, D_000385E4, 0,
+            (const char *)0x36D000, (const char *)0x36D00C, 5);
+    }
+    return (const char *)((int *)D_00046A18)[5];
 }
 
 // ── eSurfaceGroup::GetType(void) const @ 0x001DCBF8 ──
