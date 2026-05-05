@@ -21760,13 +21760,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeSoundDataGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fPeSoundDataGroupQGetFileExtensionvK",
+    "src_file": "src/eSoundDataGroup.cpp",
+    "symbol_name": "__0fPeSoundDataGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "77d8de25",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:44:25Z"
   },
   {
     "address": "0x00015df0",
@@ -21778,7 +21785,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -21791,7 +21798,14 @@
       "0x001dc804"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeSoundDataGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fPeSoundDataGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eSoundDataGroup.cpp",
+    "symbol_name": "__0fPeSoundDataGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "77d8de25",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:44:25Z"
   },
   {
     "address": "0x00015f28",
@@ -22000,7 +22014,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -22018,7 +22032,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

@@ -64,6 +64,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -245,4 +246,53 @@ const char *eSoundDataGroup::GetDataDirectory(void) const {
             (const char *)0x36CD84, (const char *)0x36CD90, 1);
     }
     return (const char *)((int *)D_00040F6C)[5];
+}
+
+// ── eSoundDataGroup::GetFileExtension(void) const @ 0x00015cc8 ──
+const char *eSoundDataGroup::GetFileExtension(void) const {
+    if (D_00040F6C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040F6C = cType::InitializeType(
+            0, 0, 0x26, D_000385E4, 0,
+            (const char *)0x36CD84, (const char *)0x36CD90, 1);
+    }
+    return (const char *)((int *)D_00040F6C)[6];
+}
+
+// ── eSoundDataGroup::IsManagedTypeExternalStatic(void) static @ 0x00015df0 ──
+bool eSoundDataGroup::IsManagedTypeExternalStatic() {
+    if (D_00040F6C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040F6C = cType::InitializeType(
+            0, 0, 0x26, D_000385E4, 0,
+            (const char *)0x36CD84, (const char *)0x36CD90, 1);
+    }
+    int flags = *(int *)D_00040F6C;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
