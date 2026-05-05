@@ -67,6 +67,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -173,6 +174,55 @@ const char *eStaticLightGroup::GetDataDirectory(void) const {
             (const char *)0x36CEE0, (const char *)0x36CEEC, 0);
     }
     return (const char *)((int *)D_00046B30)[5];
+}
+
+// ── eStaticLightGroup::GetFileExtension(void) const @ 0x00018ac8 ──
+const char *eStaticLightGroup::GetFileExtension(void) const {
+    if (D_00046B30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B30 = cType::InitializeType(
+            0, 0, 0x4A, D_000385E4, 0,
+            (const char *)0x36CEE0, (const char *)0x36CEEC, 0);
+    }
+    return (const char *)((int *)D_00046B30)[6];
+}
+
+// ── eStaticLightGroup::IsManagedTypeExternalStatic(void) static @ 0x00018bf0 ──
+bool eStaticLightGroup::IsManagedTypeExternalStatic() {
+    if (D_00046B30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B30 = cType::InitializeType(
+            0, 0, 0x4A, D_000385E4, 0,
+            (const char *)0x36CEE0, (const char *)0x36CEEC, 0);
+    }
+    int flags = *(int *)D_00046B30;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eStaticLightGroup::GetType(void) const @ 0x001DDA68 ──

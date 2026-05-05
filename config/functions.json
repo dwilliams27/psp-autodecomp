@@ -23087,13 +23087,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReStaticLightGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fReStaticLightGroupQGetFileExtensionvK",
+    "src_file": "src/eStaticLightGroup.cpp",
+    "symbol_name": "__0fReStaticLightGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f246c216",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:54:58Z"
   },
   {
     "address": "0x00018bf0",
@@ -23105,7 +23112,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -23116,7 +23123,14 @@
       "0x001ddb44"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fReStaticLightGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fReStaticLightGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eStaticLightGroup.cpp",
+    "symbol_name": "__0fReStaticLightGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f246c216",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:54:58Z"
   },
   {
     "address": "0x00018d28",
@@ -23321,7 +23335,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -23339,7 +23353,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
