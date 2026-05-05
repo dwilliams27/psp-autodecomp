@@ -72912,13 +72912,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEntityGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fNgcEntityGroupQGetDataDirectoryvK",
+    "src_file": "src/gcEntityGroup.cpp",
+    "symbol_name": "__0fNgcEntityGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6769ddaf",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:15:36Z"
   },
   {
     "address": "0x000cf5d4",
@@ -72930,13 +72937,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEntityGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fNgcEntityGroupQGetFileExtensionvK",
+    "src_file": "src/gcEntityGroup.cpp",
+    "symbol_name": "__0fNgcEntityGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6769ddaf",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:15:36Z"
   },
   {
     "address": "0x000cf700",
@@ -72948,7 +72962,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -73029,7 +73043,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
