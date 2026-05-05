@@ -74132,7 +74132,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -74143,7 +74143,14 @@
       "0x00237dfc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcCinematicGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fQgcCinematicGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcCinematicGroup.cpp",
+    "symbol_name": "__0fQgcCinematicGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "634fbc4d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:30:47Z"
   },
   {
     "address": "0x000d2098",
@@ -74541,13 +74548,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcRoomInstanceGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fTgcRoomInstanceGroupOGetManagedTypevK",
+    "src_file": "src/gcRoomInstanceGroup.cpp",
+    "symbol_name": "__0fTgcRoomInstanceGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "634fbc4d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:30:47Z"
   },
   {
     "address": "0x000d2e50",
@@ -74559,7 +74573,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -74577,7 +74591,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

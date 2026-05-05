@@ -215,6 +215,32 @@ const char *gcCinematicGroup::GetFileExtension() const {
     return (const char *)((int *)D_00099AC8)[6];
 }
 
+// ── gcCinematicGroup::IsManagedTypeExternalStatic(void) static @ 0x000d1f5c ──
+bool gcCinematicGroup::IsManagedTypeExternalStatic() {
+    if (D_00099AC8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099AC8 = cType::InitializeType(
+            0, 0, 0x163, D_000385E4, &gcCinematic::New,
+            (const char *)0x36D8F0, (const char *)0x36D8FC, 0);
+    }
+    int flags = *(int *)D_00099AC8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
 // ── gcCinematicGroup::GetManagedType(void) const @ 0x000d1bdc ──
 const cType *gcCinematicGroup::GetManagedType() const {
     if (D_00099AC8 == 0) {

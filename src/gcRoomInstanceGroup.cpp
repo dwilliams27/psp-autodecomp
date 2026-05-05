@@ -49,6 +49,16 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcRoomInstance {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcRoomInstanceGroup : public cGroup {
 public:
     void Write(cFile &) const;
@@ -56,6 +66,7 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
     ~gcRoomInstanceGroup();
 
     static void operator delete(void *p) {
@@ -74,8 +85,11 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998E0;
+extern cType *D_0009F59C;
 
 // ============================================================
 // 0x0023839c — New(cMemPool *, cBase *) static
@@ -122,6 +136,31 @@ const cType *gcRoomInstanceGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998E0;
+}
+
+// ============================================================
+// 0x000d2d28 — GetManagedType(void) const
+// ============================================================
+const cType *gcRoomInstanceGroup::GetManagedType() const {
+    if (D_0009F59C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F59C = cType::InitializeType(
+            0, 0, 0x220, D_000385E4, &gcRoomInstance::New,
+            (const char *)0x36DA70, (const char *)0x36DA80, 2);
+    }
+    return D_0009F59C;
 }
 
 // ============================================================
