@@ -1611,7 +1611,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00001b40"
     ],
@@ -1625,7 +1625,14 @@
       "0x00056574"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FNcGetProductIdv"
+    "mangled_symbol": "__0FNcGetProductIdv",
+    "src_file": "src/std.cpp",
+    "symbol_name": "__0FNcGetProductIdv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a48eba8c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T21:41:57Z"
   },
   {
     "address": "0x00001b80",
@@ -1881,7 +1888,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00010f64"
@@ -124569,7 +124576,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0036bc5c"
     ],
@@ -129135,7 +129142,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bb4bc"
     ],
@@ -129143,7 +129150,21 @@
       "0x001bb338"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0F5DstdKunexpectedv"
+    "mangled_symbol": "__0F5DstdKunexpectedv",
+    "failure_notes": [
+      {
+        "session": "a48eba8c",
+        "notes": "class method but no canonical std::unexpected(...) definition found in src/std.cpp; reconstruction looks extern-C / safe-name (anti-pattern)",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T21:41:57Z",
+        "src_file": "src/std.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_162336/a48eba8c/001bb4f0__rejected_extern_c_class_method__src_std.cpp"
+      }
+    ]
   },
   {
     "address": "0x001bb524",

@@ -18,7 +18,11 @@ extern "C" void __abort_execution(int);
 
 namespace std {
     typedef void (*TerminateHandler)(void);
+    typedef void (*UnexpectedHandler)(void);
     extern TerminateHandler s_terminate_handler;
+    extern UnexpectedHandler s_unexpected_handler;
+
+    void terminate(void);
 
     void terminate(void) {
         if (s_terminate_handler != 0) {
@@ -26,6 +30,28 @@ namespace std {
         }
         __abort_execution(3);
     }
+
+    // ---- std::unexpected(void) @ 0x001bb4f0, 52B (gMain_psp.obj) ----
+    // Calls a global unexpected-handler function pointer if set, then
+    // unconditionally calls std::terminate(). Handler lives at 0x0037E554.
+    void unexpected(void) {
+        if (s_unexpected_handler != 0) {
+            s_unexpected_handler();
+        }
+        terminate();
+    }
+}
+
+// ---- cGetProductId(void) @ 0x00001b48, 56B (cAll_psp.obj) ----
+// Loads the per-territory config base from 0x37C074, indexes by territory
+// (10-byte stride per product-id slot), then offsets +580 to land in the
+// product-id field. Mirrors cGetParentalLevel codegen.
+
+int cGetConfigTerritory(void);
+
+int cGetProductId(void) {
+    int t = cGetConfigTerritory();
+    return *(int *)0x37C074 + t * 10 + 580;
 }
 
 // ---- Function 2: eVolume::SetLocalToWorld(const mOCS &) @ 0x0005d7e8, 56B ----
