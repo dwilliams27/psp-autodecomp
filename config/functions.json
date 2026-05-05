@@ -1611,7 +1611,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001b40"
     ],
@@ -126690,7 +126690,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001b6850"
     ],
@@ -126698,7 +126698,21 @@
       "0x001ac5a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "strtol"
+    "mangled_symbol": "strtol",
+    "failure_notes": [
+      {
+        "session": "8a7d161f",
+        "notes": "match wrote to out-of-scope path; reverted by Phase 1 ledger",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T21:38:08Z",
+        "src_file": "src/free_functions.c",
+        "snapshot": "logs/failure_snapshots/match_20260505_162336/8a7d161f/001b6a20__out_of_scope_path__src_free_functions.c"
+      }
+    ]
   },
   {
     "address": "0x001b6a4c",
@@ -128982,13 +128996,20 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b9fec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5DstdJtype_infodtv"
+    "mangled_symbol": "__0o5DstdJtype_infodtv",
+    "src_file": "src/std_type_info.cpp",
+    "symbol_name": "__0o5DstdJtype_infodtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8a7d161f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T21:38:08Z"
   },
   {
     "address": "0x001bb31c",
@@ -129114,7 +129135,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bb4bc"
     ],
