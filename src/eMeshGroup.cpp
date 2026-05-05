@@ -57,6 +57,8 @@ public:
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static cBase *New(cMemPool *, cBase *);
     static bool IsManagedTypeExternalStatic();
     static void operator delete(void *p) {
@@ -97,9 +99,17 @@ extern char eMeshGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E24;
+extern cType *D_000469B8;
 
 void eMeshGroup::AssignCopy(const cBase *base) {
     eMeshGroup *src = dcast<eMeshGroup>(base);
@@ -161,6 +171,52 @@ const cType *eMeshGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E24;
+}
+
+// ── eMeshGroup::GetManagedType(void) const @ 0x00014960 ──
+const cType *eMeshGroup::GetManagedType(void) const {
+    if (D_000469B8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469B8 = cType::InitializeType(
+            0, 0, 0xE, D_000385E4, 0,
+            (const char *)0x36CE40, (const char *)0x36CE48, 1);
+    }
+    return D_000469B8;
+}
+
+// ── eMeshGroup::GetDataDirectory(void) const @ 0x00014a84 ──
+const char *eMeshGroup::GetDataDirectory(void) const {
+    if (D_000469B8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000469B8 = cType::InitializeType(
+            0, 0, 0xE, D_000385E4, 0,
+            (const char *)0x36CE40, (const char *)0x36CE48, 1);
+    }
+    return (const char *)((int *)D_000469B8)[5];
 }
 
 bool eSkinGroup::IsManagedTypeExternal() const {
