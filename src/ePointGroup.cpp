@@ -53,12 +53,24 @@ public:
     void Write(cFile &) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class ePoint {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class ePointGroup : public cGroup {
 public:
     ePointGroup(cBase *);
     ~ePointGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     void AssignCopy(const cBase *);
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -103,10 +115,13 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E48;
 extern cType *D_00040E68;
 extern cType *D_00040E70;
+extern cType *D_00046A4C;
 
 // ── ePointGroup::Write(cFile &) const @ 0x00017BEC ──
 void ePointGroup::Write(cFile &file) const {
@@ -155,6 +170,52 @@ const cType *ePointGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E48;
+}
+
+// ── ePointGroup::GetManagedType(void) const @ 0x00017CF4 ──
+const cType *ePointGroup::GetManagedType(void) const {
+    if (D_00046A4C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A4C = cType::InitializeType(
+            0, 0, 0x43, D_000385E4, &ePoint::New,
+            (const char *)0x36CEB0, (const char *)0x36CEB8, 0);
+    }
+    return D_00046A4C;
+}
+
+// ── ePointGroup::GetDataDirectory(void) const @ 0x00017E1C ──
+const char *ePointGroup::GetDataDirectory(void) const {
+    if (D_00046A4C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A4C = cType::InitializeType(
+            0, 0, 0x43, D_000385E4, &ePoint::New,
+            (const char *)0x36CEB0, (const char *)0x36CEB8, 0);
+    }
+    return (const char *)((int *)D_00046A4C)[5];
 }
 
 // ── ePointGroup::~ePointGroup(void) @ 0x001DD690 ──
