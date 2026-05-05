@@ -56,6 +56,8 @@ public:
     ~eSkyGroup();
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -68,13 +70,21 @@ public:
     }
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern char eSkyGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_00040E60;
+extern cType *D_00046B18;
 
 // ── eSkyGroup::Write(cFile &) const @ 0x00019e74 ──
 void eSkyGroup::Write(cFile &file) const {
@@ -123,6 +133,52 @@ const cType *eSkyGroup::GetType(void) const {
                                            0, 0, 8);
     }
     return D_00040E60;
+}
+
+// ── eSkyGroup::GetManagedType(void) const @ 0x00019f7c ──
+const cType *eSkyGroup::GetManagedType(void) const {
+    if (D_00046B18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B18 = cType::InitializeType(
+            0, 0, 0x1D9, D_000385E4, &eSkyGroup::New,
+            (const char *)0x36CED4, (const char *)0x36CEDC, 0);
+    }
+    return D_00046B18;
+}
+
+// ── eSkyGroup::GetDataDirectory(void) const @ 0x0001a0a4 ──
+const char *eSkyGroup::GetDataDirectory(void) const {
+    if (D_00046B18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046B18 = cType::InitializeType(
+            0, 0, 0x1D9, D_000385E4, &eSkyGroup::New,
+            (const char *)0x36CED4, (const char *)0x36CEDC, 0);
+    }
+    return (const char *)((int *)D_00046B18)[5];
 }
 
 // ── eSkyGroup::~eSkyGroup(void) @ 0x001de500 ──

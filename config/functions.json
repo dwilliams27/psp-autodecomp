@@ -23679,13 +23679,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeSkyGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fJeSkyGroupOGetManagedTypevK",
+    "src_file": "src/eSkyGroup.cpp",
+    "symbol_name": "__0fJeSkyGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b833316c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:00:19Z"
   },
   {
     "address": "0x0001a0a4",
@@ -23697,13 +23704,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeSkyGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fJeSkyGroupQGetDataDirectoryvK",
+    "src_file": "src/eSkyGroup.cpp",
+    "symbol_name": "__0fJeSkyGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b833316c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:00:19Z"
   },
   {
     "address": "0x0001a1d0",
@@ -23715,7 +23729,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -23733,7 +23747,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
