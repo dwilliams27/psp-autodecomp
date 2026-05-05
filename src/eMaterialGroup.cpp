@@ -77,6 +77,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -211,6 +212,55 @@ const char *eMaterialGroup::GetDataDirectory() const {
             (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
     }
     return (const char *)((int *)D_00040FEC)[5];
+}
+
+// ── eMaterialGroup::GetFileExtension(void) const @ 0x00014034 ──
+const char *eMaterialGroup::GetFileExtension() const {
+    if (D_00040FEC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FEC = cType::InitializeType(
+            0, 0, 0x10, D_000385E4, 0,
+            (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
+    }
+    return (const char *)((int *)D_00040FEC)[6];
+}
+
+// ── eMaterialGroup::IsManagedTypeExternalStatic(void) static @ 0x0001415C ──
+bool eMaterialGroup::IsManagedTypeExternalStatic() {
+    if (D_00040FEC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00040FEC = cType::InitializeType(
+            0, 0, 0x10, D_000385E4, 0,
+            (const char *)0x36CDCC, (const char *)0x36CDD8, 5);
+    }
+    int flags = *(int *)D_00040FEC;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eMaterialGroup::~eMaterialGroup(void) @ 0x001DBC18 ──
