@@ -23385,13 +23385,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeLensFlareGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fPeLensFlareGroupQGetFileExtensionvK",
+    "src_file": "src/eLensFlareGroup.cpp",
+    "symbol_name": "__0fPeLensFlareGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6e4359da",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:57:46Z"
   },
   {
     "address": "0x00019774",
@@ -23403,7 +23410,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -23415,7 +23422,14 @@
       "0x001de014"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeLensFlareGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fPeLensFlareGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/eLensFlareGroup.cpp",
+    "symbol_name": "__0fPeLensFlareGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6e4359da",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:57:46Z"
   },
   {
     "address": "0x000198b0",
@@ -23486,7 +23500,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -23504,7 +23518,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

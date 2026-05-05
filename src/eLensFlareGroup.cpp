@@ -63,6 +63,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -189,6 +190,55 @@ const char *eLensFlareGroup::GetDataDirectory(void) const {
             (const char *)0x36CDF4, (const char *)0x36CE00, 1);
     }
     return (const char *)((int *)D_000468CC)[5];
+}
+
+// ── eLensFlareGroup::GetFileExtension(void) const @ 0x00019648 ──
+const char *eLensFlareGroup::GetFileExtension(void) const {
+    if (D_000468CC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468CC = cType::InitializeType(
+            0, 0, 0x19B, D_000385E4, &eLensFlare::New,
+            (const char *)0x36CDF4, (const char *)0x36CE00, 1);
+    }
+    return (const char *)((int *)D_000468CC)[6];
+}
+
+// ── eLensFlareGroup::IsManagedTypeExternalStatic(void) static @ 0x00019774 ──
+bool eLensFlareGroup::IsManagedTypeExternalStatic() {
+    if (D_000468CC == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000468CC = cType::InitializeType(
+            0, 0, 0x19B, D_000385E4, &eLensFlare::New,
+            (const char *)0x36CDF4, (const char *)0x36CE00, 1);
+    }
+    int flags = *(int *)D_000468CC;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eLensFlareGroup::~eLensFlareGroup(void) @ 0x001DE030 ──
