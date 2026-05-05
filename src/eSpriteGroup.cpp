@@ -54,6 +54,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -188,4 +189,53 @@ const char *eSpriteGroup::GetDataDirectory(void) const {
             (const char *)0x36CDDC, (const char *)0x36CDE4, 5);
     }
     return (const char *)((int *)D_00041110)[5];
+}
+
+// ── eSpriteGroup::GetFileExtension(void) const @ 0x000173C0 ──
+const char *eSpriteGroup::GetFileExtension(void) const {
+    if (D_00041110 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041110 = cType::InitializeType(
+            0, 0, 0x3D, D_000385E4, &eSprite::New,
+            (const char *)0x36CDDC, (const char *)0x36CDE4, 5);
+    }
+    return (const char *)((int *)D_00041110)[6];
+}
+
+// ── eSpriteGroup::IsManagedTypeExternalStatic(void) static @ 0x000174EC ──
+bool eSpriteGroup::IsManagedTypeExternalStatic() {
+    if (D_00041110 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00041110 = cType::InitializeType(
+            0, 0, 0x3D, D_000385E4, &eSprite::New,
+            (const char *)0x36CDDC, (const char *)0x36CDE4, 5);
+    }
+    int flags = *(int *)D_00041110;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
