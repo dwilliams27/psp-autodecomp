@@ -69,6 +69,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -84,8 +86,16 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998B0;
+extern cType *D_00099904;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 // ── gcStringTableGroup::New(cMemPool *, cBase *) static @ 0x002366BC ──
 cBase *gcStringTableGroup::New(cMemPool *pool, cBase *parent) {
@@ -128,6 +138,52 @@ const cType *gcStringTableGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998B0;
+}
+
+// ── gcStringTableGroup::GetManagedType(void) const @ 0x000CE7F8 ──
+const cType *gcStringTableGroup::GetManagedType(void) const {
+    if (D_00099904 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099904 = cType::InitializeType(
+            0, 0, 0x11C, D_000385E4, &gcStringTableGroup::New,
+            (const char *)0x36D8B8, (const char *)0x36D8C8, 5);
+    }
+    return D_00099904;
+}
+
+// ── gcStringTableGroup::GetDataDirectory(void) const @ 0x000CE920 ──
+const char *gcStringTableGroup::GetDataDirectory(void) const {
+    if (D_00099904 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00099904 = cType::InitializeType(
+            0, 0, 0x11C, D_000385E4, &gcStringTableGroup::New,
+            (const char *)0x36D8B8, (const char *)0x36D8C8, 5);
+    }
+    return (const char *)((int *)D_00099904)[5];
 }
 
 // ── gcStringTableGroup::Write(cFile &) const @ 0x000CE6F0 ──
