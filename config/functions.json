@@ -21097,13 +21097,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKePathGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fKePathGroupQGetFileExtensionvK",
+    "src_file": "src/ePathGroup.cpp",
+    "symbol_name": "__0fKePathGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c66f081e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:39:14Z"
   },
   {
     "address": "0x0001471c",
@@ -21115,7 +21122,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -21127,7 +21134,14 @@
       "0x001dbe64"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKePathGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fKePathGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/ePathGroup.cpp",
+    "symbol_name": "__0fKePathGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c66f081e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T17:39:14Z"
   },
   {
     "address": "0x00014858",
@@ -21336,7 +21350,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -21354,7 +21368,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
