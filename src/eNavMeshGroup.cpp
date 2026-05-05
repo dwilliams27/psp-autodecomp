@@ -79,6 +79,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -187,6 +188,53 @@ const cType *eNavMeshGroup::GetManagedType() const {
             (const char *)0x36CE94, (const char *)0x36CEA0, 4);
     }
     return D_00046A30;
+}
+
+const char *eNavMeshGroup::GetFileExtension() const {
+    if (D_00046A30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A30 = cType::InitializeType(
+            0, 0, 0xC4, D_000385E4, &eNavMesh::New,
+            (const char *)0x36CE94, (const char *)0x36CEA0, 4);
+    }
+    return (const char *)((int *)D_00046A30)[6];
+}
+
+bool eNavMeshGroup::IsManagedTypeExternalStatic() {
+    if (D_00046A30 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A30 = cType::InitializeType(
+            0, 0, 0xC4, D_000385E4, &eNavMesh::New,
+            (const char *)0x36CE94, (const char *)0x36CEA0, 4);
+    }
+    int flags = *(int *)D_00046A30;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 const char *eNavMeshGroup::GetDataDirectory() const {
