@@ -71,6 +71,8 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
     const cType *GetManagedType() const;
+    const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcEntityTemplateGroup();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -169,6 +171,52 @@ const cType *gcEntityTemplateGroup::GetManagedType() const {
             (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
     }
     return D_0009F448;
+}
+
+// ── gcEntityTemplateGroup::GetDataDirectory(void) const @ 0x000cfa6c ──
+const char *gcEntityTemplateGroup::GetDataDirectory() const {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    return (const char *)((int *)D_0009F448)[5];
+}
+
+// ── gcEntityTemplateGroup::GetFileExtension(void) const @ 0x000cfb98 ──
+const char *gcEntityTemplateGroup::GetFileExtension() const {
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    return (const char *)((int *)D_0009F448)[6];
 }
 
 // ── gcEntityTemplateGroup::Write(cFile &) const @ 0x000CF83C ──

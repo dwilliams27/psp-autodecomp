@@ -73103,13 +73103,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcEntityTemplateGroupQGetDataDirectoryvK"
+    "mangled_symbol": "__0fVgcEntityTemplateGroupQGetDataDirectoryvK",
+    "src_file": "src/gcEntityTemplateGroup.cpp",
+    "symbol_name": "__0fVgcEntityTemplateGroupQGetDataDirectoryvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0fef1cab",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:19:13Z"
   },
   {
     "address": "0x000cfb98",
@@ -73121,13 +73128,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcEntityTemplateGroupQGetFileExtensionvK"
+    "mangled_symbol": "__0fVgcEntityTemplateGroupQGetFileExtensionvK",
+    "src_file": "src/gcEntityTemplateGroup.cpp",
+    "symbol_name": "__0fVgcEntityTemplateGroupQGetFileExtensionvK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0fef1cab",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:19:13Z"
   },
   {
     "address": "0x000cfcc4",
@@ -73139,7 +73153,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -73369,7 +73383,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
