@@ -57,6 +57,8 @@ public:
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetManagedType(void) const;
+    const char *GetDataDirectory(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     ~gcEntityCustomAttackGroup();
@@ -74,6 +76,17 @@ public:
     const cType *GetType(void) const;
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class cObject;
+class gcEntityCustomAttack {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcObjectRelationship {
 };
 
@@ -88,10 +101,13 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998B8;
 extern cType *D_000998DC;
 extern cType *D_0009F3F0;
+extern cType *D_0009F434;
 extern cType *D_0009F774;
 
 cBase *gcEntityCustomAttackGroup::New(cMemPool *pool, cBase *parent) {
@@ -170,6 +186,50 @@ const cType *gcEntityRelationship::GetType(void) const {
             0, 0, 0);
     }
     return D_0009F774;
+}
+
+const cType *gcEntityCustomAttackGroup::GetManagedType(void) const {
+    if (D_0009F434 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F434 = cType::InitializeType(
+            0, 0, 0x1CD, D_000385E4, &gcEntityCustomAttack::New,
+            (const char *)0x36D9A4, (const char *)0x36D9B4, 5);
+    }
+    return D_0009F434;
+}
+
+const char *gcEntityCustomAttackGroup::GetDataDirectory(void) const {
+    if (D_0009F434 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F434 = cType::InitializeType(
+            0, 0, 0x1CD, D_000385E4, &gcEntityCustomAttack::New,
+            (const char *)0x36D9A4, (const char *)0x36D9B4, 5);
+    }
+    return (const char *)((int *)D_0009F434)[5];
 }
 
 // gcEntityCustomAttackGroup::Write(cFile &) const @ 0x000d265c
