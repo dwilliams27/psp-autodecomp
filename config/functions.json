@@ -73479,7 +73479,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -73493,7 +73493,14 @@
       "0x0023745c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcEnumerationGroupbIsManagedTypeExternalStaticvT"
+    "mangled_symbol": "__0fSgcEnumerationGroupbIsManagedTypeExternalStaticvT",
+    "src_file": "src/gcEnumerationGroup.cpp",
+    "symbol_name": "__0fSgcEnumerationGroupbIsManagedTypeExternalStaticvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "2afccced",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:24:12Z"
   },
   {
     "address": "0x000d0988",
@@ -73726,13 +73733,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcTimerGroupOGetManagedTypevK"
+    "mangled_symbol": "__0fMgcTimerGroupOGetManagedTypevK",
+    "src_file": "src/gcTimerGroup.cpp",
+    "symbol_name": "__0fMgcTimerGroupOGetManagedTypevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "2afccced",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-05T18:24:12Z"
   },
   {
     "address": "0x000d117c",
@@ -73744,7 +73758,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -73762,7 +73776,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

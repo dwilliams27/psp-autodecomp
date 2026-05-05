@@ -146,6 +146,32 @@ const cType *gcEnumerationGroup::GetType() const {
     return D_000998C4;
 }
 
+// ── gcEnumerationGroup::IsManagedTypeExternalStatic(void) static @ 0x000d084c ──
+bool gcEnumerationGroup::IsManagedTypeExternalStatic() {
+    if (D_000998F0 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_000998F0 = cType::InitializeType(
+            0, 0, 0xAB, D_000385E4, &gcEnumeration::New,
+            (const char *)0x36D8A4, (const char *)0x36D8B4, 5);
+    }
+    int flags = *(int *)D_000998F0;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
 // ── gcEnumerationGroup::GetManagedType(void) const @ 0x000d04cc ──
 const cType *gcEnumerationGroup::GetManagedType() const {
     if (D_000998F0 == 0) {

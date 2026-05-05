@@ -69,6 +69,7 @@ public:
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType() const;
+    const cType *GetManagedType() const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -86,8 +87,21 @@ extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_00040C94;
 extern cType *D_000998CC;
+extern cType *D_0009F49C;
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcTimer {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 void gcTimerGroup::AssignCopy(const cBase *base) {
     gcTimerGroup *src = dcast<gcTimerGroup>(base);
@@ -154,6 +168,29 @@ const cType *gcTimerGroup::GetType() const {
                                            0, 0, 8);
     }
     return D_000998CC;
+}
+
+// ── gcTimerGroup::GetManagedType(void) const @ 0x000d1054 ──
+const cType *gcTimerGroup::GetManagedType() const {
+    if (D_0009F49C == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F49C = cType::InitializeType(
+            0, 0, 0xDD, D_000385E4, &gcTimer::New,
+            (const char *)0x36D9E0, (const char *)0x36D9E8, 4);
+    }
+    return D_0009F49C;
 }
 
 gcTimerGroup::~gcTimerGroup() {
