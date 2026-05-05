@@ -65,6 +65,7 @@ public:
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
+    const char *GetFileExtension(void) const;
     void Write(cFile &) const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -168,6 +169,55 @@ const char *eSurfaceGroup::GetDataDirectory(void) const {
             (const char *)0x36D000, (const char *)0x36D00C, 5);
     }
     return (const char *)((int *)D_00046A18)[5];
+}
+
+// ── eSurfaceGroup::GetFileExtension(void) const @ 0x00016840 ──
+const char *eSurfaceGroup::GetFileExtension(void) const {
+    if (D_00046A18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A18 = cType::InitializeType(
+            0, 0, 0x39, D_000385E4, 0,
+            (const char *)0x36D000, (const char *)0x36D00C, 5);
+    }
+    return (const char *)((int *)D_00046A18)[6];
+}
+
+// ── eSurfaceGroup::IsManagedTypeExternalStatic(void) static @ 0x00016968 ──
+bool eSurfaceGroup::IsManagedTypeExternalStatic() {
+    if (D_00046A18 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36CD74, (const char *)0x36CD7C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_00046A18 = cType::InitializeType(
+            0, 0, 0x39, D_000385E4, 0,
+            (const char *)0x36D000, (const char *)0x36D00C, 5);
+    }
+    int flags = *(int *)D_00046A18;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── eSurfaceGroup::GetType(void) const @ 0x001DCBF8 ──
