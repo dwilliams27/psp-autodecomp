@@ -63,6 +63,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcStaticInstanceGroup();
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -271,6 +272,59 @@ const char *gcStaticInstanceGroup::GetDataDirectory(void) const {
     }
     return (const char *)((int *)D_0009F560)[5];
 }
+
+// ── gcStaticInstanceGroup::GetFileExtension(void) const @ 0x000cd33c ──
+const char *gcStaticInstanceGroup::GetFileExtension(void) const {
+    if (D_0009F560 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F560 = cType::InitializeType(
+            0, 0, 0x67, D_000385E4, &gcStaticInstance::New,
+            (const char *)0x36DA34, (const char *)0x36DA48, 0);
+    }
+    return (const char *)((int *)D_0009F560)[6];
+}
+
+// ── gcStaticInstanceGroup::IsManagedTypeExternalStatic(void) static @ 0x000cd468 ──
+bool gcStaticInstanceGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F560 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F560 = cType::InitializeType(
+            0, 0, 0x67, D_000385E4, &gcStaticInstance::New,
+            (const char *)0x36DA34, (const char *)0x36DA48, 0);
+    }
+    int flags = *(int *)D_0009F560;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
+}
+
+// ── gcStaticInstanceGroup::GetFileExtension declaration in class header ──
+// Note: GetFileExtension is added to the class via this exemplar; it is
+// already declared in the original game's header.
 
 // ── gcStaticInstanceGroup::~gcStaticInstanceGroup(void) @ 0x00235ed0 ──
 // Canonical C++ destructor; SNC ABI auto-generates the (this != 0) guard,
