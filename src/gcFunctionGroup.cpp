@@ -64,6 +64,7 @@ public:
     const cType *GetType() const;
     const cType *GetManagedType() const;
     const char *GetDataDirectory() const;
+    const char *GetFileExtension() const;
     ~gcFunctionGroup();
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -194,6 +195,55 @@ const char *gcFunctionGroup::GetDataDirectory(void) const {
             (const char *)0x36DA14, (const char *)0x36DA20, 5);
     }
     return (const char *)((int *)D_0009F4C8)[5];
+}
+
+// ── gcFunctionGroup::GetFileExtension(void) const @ 0x000cd900 ──
+const char *gcFunctionGroup::GetFileExtension(void) const {
+    if (D_0009F4C8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C8 = cType::InitializeType(
+            0, 0, 0x74, D_000385E4, &gcFunction::New,
+            (const char *)0x36DA14, (const char *)0x36DA20, 5);
+    }
+    return (const char *)((int *)D_0009F4C8)[6];
+}
+
+// ── gcFunctionGroup::IsManagedTypeExternalStatic(void) static @ 0x000cda2c ──
+bool gcFunctionGroup::IsManagedTypeExternalStatic() {
+    if (D_0009F4C8 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F4C8 = cType::InitializeType(
+            0, 0, 0x74, D_000385E4, &gcFunction::New,
+            (const char *)0x36DA14, (const char *)0x36DA20, 5);
+    }
+    int flags = *(int *)D_0009F4C8;
+    bool result = false;
+    if (flags & 1) result = true;
+    return result;
 }
 
 // ── gcProfileString::New(cMemPool *, cBase *) static @ 0x002867a4 ──
