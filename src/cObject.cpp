@@ -2,8 +2,20 @@
 
 // ─── helper classes (defined locally — not part of the cObject header) ───
 
+class cFile {
+public:
+    char _pad[0x108];
+    unsigned int GetCurrentPos(void) const;
+    void SetCurrentPos(unsigned int);
+};
+
 class cType {
 public:
+    int _pad0;
+    unsigned int mTypeId;     // +0x04, written by WriteHeader
+    char _pad8[0x0C];         // +0x08
+    int mField14;             // +0x14, read by GetLocalizedFilename
+
     static cType *InitializeType(const char *, const char *, unsigned int,
                                  const cType *, cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
@@ -15,23 +27,47 @@ public:
     void Write(cFile &) const;
 };
 
+struct cGUID_local {
+    int a;
+    int b;
+    static cGUID_local Generate(void);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
+    void Write(int);
+    void Write(unsigned int);
     void Write(unsigned short);
+    void Write(const cGUID_local &);
     void End(void);
 };
 
 class cName_local {
 public:
     void Set(const char *, ...);
+    void Write(cWriteBlock &) const;   // address 0x8c18
 };
 
-struct cGUID_local {
-    int a;
-    int b;
-    static cGUID_local Generate(void);
+class cStr {
+public:
+    char _data[256];
+    void Set(const char *, ...);
+};
+
+class cLanguage {
+public:
+    enum cLanguages { kLang0 = 0 };
+    static const char *GetLanguageShortName(cLanguages);
+};
+
+extern int gSomePlatformDefault;          // 0x37C06C
+
+struct cObjectDispatchRecord {
+    short offset;
+    short pad;
+    void *fn;
 };
 
 char *cStrFormat(char *, const char *, ...);
@@ -122,6 +158,66 @@ void cObject::Write(cFile &file) const {
     ((const cNamed *)this)->Write(file);
     wb.Write((unsigned short)(*(const unsigned short *)((const char *)this + 0x28) & 0x60));
     wb.End();
+}
+
+// ============================================================
+// cObject::WriteHeader(cFile &)
+// @ 0x0000a750, 216B
+// ============================================================
+int cObject::WriteHeader(cFile &file) {
+    cWriteBlock wb(file, 2);
+    int pos = (int)file.GetCurrentPos();
+    wb.Write(pos);
+    wb.Write((unsigned int)0x56565656);
+    wb.Write(*(const cGUID_local *)((const char *)this + 0x20));
+    ((const cName_local *)((const char *)this + 8))->Write(wb);
+
+    cObjectDispatchRecord *r1 =
+        (cObjectDispatchRecord *)(*(char **)((char *)this + 4) + 8);
+    cType *t = ((cType *(*)(void *))r1->fn)((char *)this + r1->offset);
+    wb.Write((unsigned int)t->mTypeId);
+
+    cObjectDispatchRecord *r2 =
+        (cObjectDispatchRecord *)(*(char **)((char *)this + 4) + 0x98);
+    unsigned int v = ((unsigned int (*)(void *))r2->fn)((char *)this + r2->offset);
+    wb.Write(v);
+
+    wb.Write(*(unsigned int *)((char *)this + 0x2C));
+    wb.End();
+    return pos;
+}
+
+// ============================================================
+// cObject::GetLocalizedFilename(const cType *, const cGUID &, cStr *) static
+// @ 0x0000a238, 168B
+// ============================================================
+//
+// FAILED: 64/168 byte diff (down from 73 via permuter).
+// Structure is correct. The expected layout allocates:
+//   s1=guid, s2=t14, s3=fmt(0x36CA78), s0=out, s4=prefix(0x38780), s5=langShort
+// SNC keeps wanting to allocate guid → s0 (lowest free saved reg) regardless
+// of source ordering, asm barriers, or register asm("$N") constraints. The
+// permuter exhausted 4080 candidates without breaking past this allocation.
+// Likely needs the same kind of compiler-level fix as ML2 (cReadBlock prologue).
+void cObject::GetLocalizedFilename(const cType *type, const cGUID &guid, cStr *out) {
+    const char *fmt = (const char *)0x36CA78;
+    const cGUID *gptr = &guid;
+    __asm__ volatile("" : "+r"(gptr));
+    char buf[256];
+    cStr *o = out;
+    buf[0] = 0;
+    const char *prefix = (const char *)0x38780;
+    __asm__ volatile("" : "+r"(fmt));
+    int t14 = ((const ::cType *)type)->mField14;
+    __asm__ volatile("" : "+r"(o), "+r"(prefix));
+
+    const char *langShort = cLanguage::GetLanguageShortName(
+        (cLanguage::cLanguages)gSomePlatformDefault);
+
+    cStrFormat(buf, (const char *)0x36C89C,
+               ((const int *)gptr)[0], ((const int *)gptr)[1]);
+
+    o->Set(fmt, prefix, t14, langShort, buf);
 }
 
 // ============================================================

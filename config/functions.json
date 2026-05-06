@@ -15888,7 +15888,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000123c",
       "0x00004bac",
@@ -15899,7 +15899,21 @@
       "0x00169548"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcObjectUGetLocalizedFilenamePC6FcTypeRC6FcGUIDP6EcStrT"
+    "mangled_symbol": "__0fHcObjectUGetLocalizedFilenamePC6FcTypeRC6FcGUIDP6EcStrT",
+    "failure_notes": [
+      {
+        "session": "e1470084",
+        "notes": "cObject::GetLocalizedFilename(const cType*, const cGUID&, cStr*) static \u2014 64/168 bytes differ (down from 73 via permuter, 4080 candidates). Function logic is fully correct: read type->field_14 into local, call cLanguage::GetLanguageShortName(*(int*)0x37C06C=gSomePlatformDefault), call cStrFormat(buf, fmt1=0x36C89C, guid.a, guid.b), call out->Set(fmt2=0x36CA78, prefix=0x38780, t14, langShort, buf). All 6 saved registers (s0-s5) are required for the live-across-call values.\n\nThe specific divergence is REGISTER ALLOCATION ORDER. Expected layout: s1=guid, s2=t14, s3=fmt, s0=out, s4=prefix, s5=langShort \u2014 note that s0 is allocated 4th, AFTER s3. SNC's allocator on every variation we tried picks s0 for guid (lowest available saved reg first). I tried: (1) reordering source bindings, (2) inserting __asm__ volatile barriers in different patterns, (3) explicit register asm(\"$N\") constraints binding variables to specific saved regs (only $19/$20 honored, $16/$17 ignored), (4) the permuter for 120s/4080 candidates. None can produce the expected 'skip s0 then come back to it' allocation pattern.\n\nThe symptom looks similar in shape to ML2 (cReadBlock prologue scheduler divergence): structurally correct C code that the SNC register allocator just doesn't fold into the same shape as the original. Likely needs the same pspcor.exe binary patch class of fix. WriteHeader (the other function this session) matched first try.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T06:39:56Z",
+        "src_file": "src/cObject.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/e1470084/0000a238__agent_self_reported_failure__src_cObject.cpp"
+      }
+    ]
   },
   {
     "address": "0x0000a2e0",
@@ -16008,7 +16022,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053ac",
       "0x00005458",
@@ -16022,7 +16036,14 @@
       "0x0000fb14"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcObjectLWriteHeaderR6FcFile"
+    "mangled_symbol": "__0fHcObjectLWriteHeaderR6FcFile",
+    "src_file": "src/cObject.cpp",
+    "symbol_name": "__0fHcObjectLWriteHeaderR6FcFile",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e1470084",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T06:39:56Z"
   },
   {
     "address": "0x0000a828",
@@ -55018,7 +55039,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0006bbb8"
     ],
@@ -55300,7 +55321,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00358ff4"

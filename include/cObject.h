@@ -7,6 +7,7 @@ class cFilename;
 class cGUID;
 class cMemPool;
 class cName;
+class cStr;
 class cType;
 
 class cObject {
@@ -22,9 +23,11 @@ public:
     cObject &operator=(const cObject &);
     void Copy(cMemPool *, cBase *) const;
     void Write(cFile &) const;
+    int WriteHeader(cFile &);
     int Load(void);
     int IsEditable(void) const;
     static int GetNameFromGUID(const cGUID &, const cType *, bool, bool, cName *);
+    static void GetLocalizedFilename(const cType *, const cGUID &, cStr *);
 };
 
 class cFactory {
