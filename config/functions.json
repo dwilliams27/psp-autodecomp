@@ -89935,7 +89935,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000fe024"
     ],
@@ -89944,7 +89944,14 @@
       "0x002fab08"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsPSaveGameRestorei"
+    "mangled_symbol": "__0fOgcGameSettingsPSaveGameRestorei",
+    "src_file": "src/gcGameSettings.cpp",
+    "symbol_name": "__0fOgcGameSettingsPSaveGameRestorei",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "266244bd",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T08:53:50Z"
   },
   {
     "address": "0x00103844",
@@ -90096,7 +90103,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00106810"
     ],
@@ -90116,7 +90123,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000015cc",
       "0x00056574"
@@ -90378,7 +90385,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d707c"
     ],
@@ -90387,7 +90394,21 @@
       "0x001054b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsLGetAppTitlev"
+    "mangled_symbol": "__0fOgcGameSettingsLGetAppTitlev",
+    "failure_notes": [
+      {
+        "session": "266244bd",
+        "notes": "Stuck at exactly 4-byte / 1-instruction mismatch (180B mine vs 184B expected). The bytes that DO emit are byte-identical to expected for the prologue, the table lookup (using extern void *D_00038890[]), the call setup, the GetSubObject jal, and all three return paths in order textZero/resultZero/textOk. The single missing instruction is structurally either the 'move a2, a1' at the merge of the lookup (expected uses a2 to test resolved while a1 holds 'result' through the call setup), OR equivalently the 'move v0, a0' in the bnez delay slot when checking text (expected loads text into a0 then moves to v0 in delay; mine loads text directly into v0 saving the move). Both are SNC register-allocator preferences. Tried: (1) reordering local declarations every direction, (2) extern array vs literal address (extern fixes addu operand order), (3) inline asm barrier on resolved (introduces extra spurious moves), (4) inline helper function (adds forward branch), (5) class member access via gcString::mText vs raw pointer cast (no diff), (6) declaring cSubHandleT POD vs class with inline ctor/dtor (POD optimizes out the addiu pattern, making it 8 bytes worse), (7) explicit __asm__ move %0, %1 hack (lands before bnez not in delay slot), (8) goto-style early returns vs nested if/else (only the early-return-then-text form gets the right epilogue order). The text-load register choice (a0 vs v0) is the proximate cause of the missing instruction. Permuter is broken on this file (RuntimeError: Could not locate target function in compiled .o, finds 1332B vs 184B expected). Best baseline source uses 'gcString *result = ((gcStringTable *)resolved)->GetSubObject(...)' as a method call on a gcStringTable pointer; cSubHandleT<gcString> declared with inline empty ctor/dtor; result type gcString* with mText member at offset 0x18; tail uses early-return on result==0 then text load and check.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T08:53:50Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/266244bd/0010514c__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00105204",

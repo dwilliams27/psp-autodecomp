@@ -10,7 +10,29 @@ class cBase;
 class cMemPool;
 class cType;
 class gcProfile;
+class gcString;
 class gcStringValue;
+
+template <class T>
+class cSubHandleT {
+public:
+    int mIndex;
+    cSubHandleT() {}
+    cSubHandleT(const cSubHandleT &o) : mIndex(o.mIndex) {}
+    ~cSubHandleT() {}
+};
+
+class gcString {
+public:
+    char pad_00[0x18];
+    const char *mText;
+};
+
+class gcStringTable {
+public:
+    gcString *GetSubObject(cSubHandleT<gcString>, int) const;
+};
+extern void *D_00038890[];
 
 class cType {
 public:
@@ -77,6 +99,13 @@ public:
     void SaveGameClear(int, int);
     void SaveGameCapture(void);
     void SaveGameRestore(void);
+    void SaveGameRestore(int);
+    const char *GetAppTitle(void);
+};
+
+class gcViewport {
+public:
+    static void CloseAllDialogs(void);
 };
 
 static cType *type_base;
@@ -202,6 +231,60 @@ void gcGameSettings::OnProfileLoaded(gcProfile *profile) {
 }
 
 extern gcMap *g_gcMap;  // at 0x37D7FC
+
+const char *gcGameSettings::GetAppTitle(void) {
+    int handle = mField70;
+    void *resolved;
+    if (handle == 0) {
+        resolved = 0;
+    } else {
+        void *cand = D_00038890[handle & 0xFFFF];
+        resolved = 0;
+        if (cand != 0 && *(int *)((char *)cand + 0x30) == handle) {
+            resolved = cand;
+        }
+    }
+
+    gcString *result = 0;
+    if (resolved != 0) {
+        result = ((gcStringTable *)resolved)->GetSubObject(
+            *(cSubHandleT<gcString> *)((char *)this + 0x74), 0);
+    }
+
+    if (result == 0) return (const char *)0x36DC18;
+    const char *text = result->mText;
+    if (text == 0) return (const char *)0x36DAF4;
+    return text;
+}
+
+void gcGameSettings::SaveGameRestore(int idx) {
+    if (idx < 0) return;
+
+    int count = 0;
+    if (mField68 != 0) {
+        count = *(int *)((char *)mField68 - 4) & 0x3FFFFFFF;
+    }
+    if (idx >= count) return;
+
+    if (((unsigned char *)mField64)[idx] == 0) return;
+
+    void *profile = 0;
+    int active = mActiveProfileIndex;
+    if (active >= 0) {
+        int prof_count = 0;
+        if (mLoadedProfiles != 0) {
+            prof_count = ((int *)mLoadedProfiles)[-1];
+        }
+        if (active < prof_count) {
+            profile = mLoadedProfiles[active];
+        }
+    }
+    if (profile == 0) return;
+
+    gcViewport::CloseAllDialogs();
+    mField6C = idx;
+    mFlags |= 2;
+}
 
 void gcGameSettings::SaveGameClear(int a, int b) {
     gcMap *map = g_gcMap;
