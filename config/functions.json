@@ -85344,13 +85344,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f2390"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fFgcMapJHasRegionRC6GcGUIDT76IgcRegion_K"
+    "mangled_symbol": "__0fFgcMapJHasRegionRC6GcGUIDT76IgcRegion_K",
+    "failure_notes": [
+      {
+        "session": "c1042d50",
+        "notes": "Reconstructed the function as a split-TU canonical C++ method because HasRegion is not declared in include/gcMap.h and adding methods to canonical headers can perturb matched siblings. The closest source mirrors the m2c nested cArray scan: map group array at this+0x398, group region-set array at +0x20, then two cGUIDT<gcRegion> slots at set+8. It compiles to the correct 252-byte symbol and returns the expected semantics, but compare_func reports 142/252 bytes different. I tried typed and raw pointer forms, explicit goto/flag propagation, sched=1 around the function, and a split TU; all produced the same broad inner-loop/register structure rather than the expected load/delay-slot pattern. A permuter attempt could not run usefully because it failed to locate the target in the compiled .o, reporting a 256B .text container even though compare_func sees the 252B symbol.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:23:53Z",
+        "src_file": "src/gcMap_HasRegion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/c1042d50/000f2770__agent_self_reported_failure__src_gcMap_HasRegion.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f286c",
@@ -85416,7 +85430,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000f286c"
     ],
@@ -85425,7 +85439,21 @@
       "0x00124348"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapRGetLoadingRegionsP6GcGUIDT76IgcRegion_K"
+    "mangled_symbol": "__0fFgcMapRGetLoadingRegionsP6GcGUIDT76IgcRegion_K",
+    "failure_notes": [
+      {
+        "session": "a40a353b",
+        "notes": "Reconstructed gcMap::GetLoadingRegions in C++ with the two observed loops: first copies nonzero pending loading GUIDs from this+0x3A4 into output slots indexed by this+0x3B8 while count at this+0x3B4 is positive, then fills empty output entries from GetLoadedRegion(i)+0x20. Tried pointer-plus-offset, separate current/source pointers, struct assignment versus field stores, explicit output offset, and fixed caller-register cursor declarations. Existing matched siblings in gcMap.cpp stayed matched.\n\nThe closest build is a 288-byte symbol versus the 300-byte target. The second loop is close, including the beqz delay-slot region pointer adjustment, but the first loop is 12 bytes short: original emits a one-time loadingBase/currentOffset setup (li a2,0; addu current,base,offset) and uses t2/t1/a2 as the source/index/current cursor set, while current source folds that setup and chooses a shorter cursor arrangement. The permuter could not run because the current body is a size mismatch and tools/permuter.py could not locate a 300-byte target function in the compiled object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:09:25Z",
+        "src_file": "src/gcMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/a40a353b/000f2904__agent_self_reported_failure__src_gcMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f2a30",
@@ -85465,7 +85493,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000f2a30",
       "0x001b9c64"
@@ -85479,7 +85507,21 @@
       "0x001691a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapOGetRegionIndexRC6GcGUIDT76IgcRegion_K"
+    "mangled_symbol": "__0fFgcMapOGetRegionIndexRC6GcGUIDT76IgcRegion_K",
+    "failure_notes": [
+      {
+        "session": "a40a353b",
+        "notes": "Reconstructed gcMap::GetRegionIndex as canonical C++ using an explicit 0x190-element stack cGUIDT<gcRegion> array, __vec_new(list, 0x190, 8, 0x245578), FillRegionList, and the same bool/masked GUID comparison idioms used by nearby matched gcMap code. Tried nested if/else, plain OR, inverted count checks, early returns, byte-offset scan, pointer scan, scan aliasing, and fixed caller/callee register locals for the loop setup. The best source compiles to the correct 292-byte size, but still differs by 116 bytes; a 5-minute permuter run improved only 118 -> 116 bytes and saved the current best source.\n\nThe remaining mismatch is concentrated in register allocation and loop-entry shape: original keeps this/guid/count in s1/s0/s1 and enters the search loop through a one-time a2 pointer setup with guidA in a3, while SNC for the current TU prefers s0/s1 or a1/a0 in the loop even when the high-level control flow is equivalent. This looks like source-level register-allocation drift rather than a semantic reconstruction problem.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:09:25Z",
+        "src_file": "src/gcMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/a40a353b/000f2ad4__agent_self_reported_failure__src_gcMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f2bf8",
@@ -204331,7 +204373,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -204347,7 +204389,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00004bac"
@@ -216060,7 +216102,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -216076,7 +216118,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],
@@ -221984,11 +222026,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fVgcValExternalVariableIEvaluatevK"
+    "mangled_symbol": "__0fVgcValExternalVariableIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "770e3501",
+        "notes": "category=REG_ALLOC. Reconstructed gcValExternalVariable::Evaluate(void) const with the same validated handle lookup as Set(float), early zero return, redundant index==0 branch around the zero-return block, second D_00038890 reload, and lwc1 from +0x44. The early-return source form is required for the expected 128-byte layout; the if-body-return form compiles to a 120-byte function with the load block before the zero return. Current closest source has the correct 128-byte size and compare_func reports only 8/128 bytes different.\n\nThe byte differences mirror Set(float): the first handle-table lookup has a1/a2 swapped between the loaded candidate and validated object result, with no control-flow or offset differences. The same source perturbations were tried for both functions, and the 300s permuter pass on sibling Set(float) found no improvement from the shared lookup shape. This appears to be local SNC register-allocation drift from the reduced TU context rather than a semantic mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:28:36Z",
+        "src_file": "src/gcValExternalVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/770e3501/003431e0__agent_self_reported_failure__src_gcValExternalVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x00343260",
@@ -222000,11 +222056,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fVgcValExternalVariableDSetf"
+    "mangled_symbol": "__0fVgcValExternalVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "770e3501",
+        "notes": "category=REG_ALLOC. Reconstructed gcValExternalVariable::Set(float) as canonical C++ in src/gcValExternalVariable.cpp using the same two-stage cHandle table validation visible in the disassembly: load mHandle.mIndex, validate D_00038890[index & 0xffff] against object+0x30, then reload the table entry and store the float at +0x44. Control flow, size, immediates, memory offsets, branches, delay slots, and the final swc1 all line up; compare_func reports only 8/116 bytes different.\n\nThe remaining difference is the first lookup's candidate/result register allocation: original uses a1 for the validated result and a2 for the loaded candidate (for example li a1,0; lw a2,0(a1); beqz a2; move a1,a2), while SNC in this TU consistently emits the same instructions with a1/a2 swapped for those values. Tried void* casts, raw char-table access, typed gcExternalVariableValue fields, early-return layout, obj/cand declaration reorderings, and local register hints. Ran one 300s permuter pass on 0x00343260 with --save-best: 4,294 candidates compiled, best stayed at 8 bytes with zero improvements.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:28:36Z",
+        "src_file": "src/gcValExternalVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/770e3501/00343260__agent_self_reported_failure__src_gcValExternalVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x003432d4",
@@ -223247,11 +223317,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcValKeyboardStateIEvaluatevK"
+    "mangled_symbol": "__0fSgcValKeyboardStateIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "c1042d50",
+        "notes": "Reconstructed the full 9-case jump-table Evaluate method using the keyboard state at D_000454A8, 24-byte button records, and D_0036C800 scaling. The current source matches the expected size and control flow, including the 16-byte stack frame and scratch store in case 6. To reach the closest form I used small inline FPU asm only around the case-6 int-to-float scheduling; pure C was otherwise either frame-less or scheduled the scratch store on the wrong side of the conversion. The remaining diff is 3 bytes: the scale load/multiply uses $f12 where the original uses $f13 in the final two FPU instructions. A 300s permuter run generated 10,896 candidates, compiled 3,590, and found no improvement, so this appears to be local FPU register-allocation drift rather than a semantic/control-flow issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:23:53Z",
+        "src_file": "src/gcValKeyboardState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/c1042d50/00347684__agent_self_reported_failure__src_gcValKeyboardState.cpp"
+      }
+    ]
   },
   {
     "address": "0x003477a4",
@@ -227395,11 +227479,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcValObjectIsValidIEvaluatevK"
+    "mangled_symbol": "__0fSgcValObjectIsValidIEvaluatevK",
+    "src_file": "src/gcValObjectIsValid.cpp",
+    "symbol_name": "__0fSgcValObjectIsValidIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "781ae540",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T22:34:55Z"
   },
   {
     "address": "0x00356a30",
@@ -227411,13 +227503,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValObjectIsValidHGetTextPcK"
+    "mangled_symbol": "__0fSgcValObjectIsValidHGetTextPcK",
+    "src_file": "src/gcValObjectIsValid.cpp",
+    "symbol_name": "__0fSgcValObjectIsValidHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "781ae540",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T22:34:55Z"
   },
   {
     "address": "0x00356b3c",
@@ -232585,11 +232685,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNgcValVariableIEvaluatevK"
+    "mangled_symbol": "__0fNgcValVariableIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "4f239b43",
+        "notes": "category=REG_ALLOC. Closest attempt is a direct C++ reconstruction of the validated handle-table lookup: load mHandle.mIndex, validate D_00038890[idx & 0xffff] against field 0x30, then reload the table entry and return float field 0x44. The final code has the correct 128-byte size, control-flow layout, offsets, duplicate reload, zero-return placement, and all matched sibling functions in the same TU remain matched.\n\nThe remaining diff is 8 bytes in the first lookup only: our SNC build assigns the loaded candidate to a1 and the resolved result to a2, while the original uses candidate in a2 and resolved result in a1 (li/beqz/lw/move register fields only). Tried branch inversion, explicit gotos, pointer arithmetic vs array indexing, unsigned-short temporaries, declaration reordering, volatile table, local register bindings, sched=1, and a 300s permuter pass over Evaluate (11,544 generated / 3,748 compiled candidates) with zero improvement. Root cause appears to be local register-selection drift for caller-saved a1/a2 in this handle lookup pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:18:32Z",
+        "src_file": "src/gcValVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/4f239b43/0036acf0__agent_self_reported_failure__src_gcValVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0036ad70",
@@ -232601,11 +232715,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNgcValVariableDSetf"
+    "mangled_symbol": "__0fNgcValVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "4f239b43",
+        "notes": "category=REG_ALLOC. Closest attempt adds the expected global guard on D_00037D858 bit 1, then uses the same validated handle-table lookup as Evaluate and reloads D_00038890[idx & 0xffff] before storing the incoming float to field 0x44. The final code has the correct 144-byte size and matches the expected guard sequence, branch layout, offsets, duplicate reload, and store shape.\n\nThe remaining diff is the same 8-byte a1/a2 register-selection drift in the first handle lookup: our build keeps candidate in a1 and resolved in a2, while the target keeps candidate in a2 and resolved in a1. The manual restructurings listed for Evaluate were applied to Set as well; sched=1 worsened the diff to 20 bytes and volatile/nested-null variants changed the branch tree. Because Set shares the exact lookup pattern and Evaluate's 300s permuter found no improvement, this looks like the same source-insensitive register allocation tie-break.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:18:32Z",
+        "src_file": "src/gcValVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/4f239b43/0036ad70__agent_self_reported_failure__src_gcValVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0036ae00",

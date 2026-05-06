@@ -54,6 +54,17 @@ struct ReleaseEntry {
     void (*fn)(void *, int);
 };
 
+struct cTypeMethod {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+struct NamedObject {
+    char pad[0x0C];
+    const char *name;
+};
+
 struct DtorDeleteRecord {
     short offset;
     short pad;
@@ -74,7 +85,9 @@ public:
 
     ~gcValObjectIsValid();
     void AssignCopy(const cBase *);
+    float Evaluate(void) const;
     const cType *GetType(void) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
 
@@ -90,6 +103,8 @@ public:
 
 extern char cBaseclassdesc[];
 extern char gcValObjectIsValidvirtualtable[];
+
+extern "C" void cStrAppend(char *, const char *, ...);
 
 static cType *type_base;
 static cType *type_expression;
@@ -246,4 +261,107 @@ gcValObjectIsValid::~gcValObjectIsValid() {
         }
     }
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+float gcValObjectIsValid::Evaluate(void) const {
+    int obj = mObject;
+    int flag = 0;
+    int tag = obj & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+    int valid;
+    if (flag == 0) goto eval_not_tagged;
+    valid = 0;
+    goto eval_valid_done;
+eval_not_tagged:
+    valid = obj != 0;
+    valid &= 0xFF;
+    valid = valid != 0;
+eval_valid_done:
+    if (valid != 0) {
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+        int base;
+        char *type;
+        if (flag2 == 0) goto eval_untagged_base;
+        base = 0;
+        type = *(char **)(base + 4);
+        goto eval_type_done;
+eval_untagged_base:
+        base = obj;
+        type = *(char **)(base + 4);
+eval_type_done:
+        cTypeMethod *entry = (cTypeMethod *)(type + 0x70);
+        short off = entry->offset;
+        int (*fn)(void *, int) = (int (*)(void *, int))entry->fn;
+        if (fn((char *)base + off, 0) != 0) {
+            return 1.0f;
+        }
+    }
+    return 0.0f;
+}
+
+void gcValObjectIsValid::GetText(char *buf) const {
+    int obj = mObject;
+    int flag = 0;
+    int tag = obj & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+    int valid;
+    if (flag == 0) goto text_not_tagged;
+    valid = 0;
+    goto text_valid_done;
+text_not_tagged:
+    valid = obj != 0;
+    valid &= 0xFF;
+    valid = valid != 0;
+text_valid_done:
+    if (valid != 0) {
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+        int base;
+        char *type;
+        if (flag2 == 0) goto text_untagged_base;
+        base = 0;
+        type = *(char **)(base + 4);
+        goto text_type_done;
+text_untagged_base:
+        base = obj;
+        type = *(char **)(base + 4);
+text_type_done:
+        cTypeMethod *text = (cTypeMethod *)(type + 0x78);
+        short textOff = text->offset;
+        register void *textBase __asm__("$5") = (char *)base + textOff;
+        __asm__ volatile("" : "+r"(textBase));
+        void (*textFn)(void *, char *) = (void (*)(void *, char *))text->fn;
+        textFn(textBase, buf);
+
+        obj = mObject;
+        int flag3 = 0;
+        const char *fmt = (const char *)0x36F6CC;
+        int tag2 = obj & 1;
+        if (tag2 != 0) {
+            flag3 = 1;
+        }
+        int base2 = obj;
+        char *type2;
+        if (flag3 != 0) {
+            base2 = 0;
+            type2 = *(char **)(base2 + 4);
+        } else {
+            type2 = *(char **)(base2 + 4);
+        }
+        cTypeMethod *name = (cTypeMethod *)(type2 + 0x80);
+        short nameOff = name->offset;
+        NamedObject *(*nameFn)(void *) = (NamedObject *(*)(void *))name->fn;
+        cStrAppend(buf, fmt, nameFn((char *)base2 + nameOff)->name);
+    } else {
+        cStrAppend(buf, (const char *)0x36F6E0);
+    }
 }
