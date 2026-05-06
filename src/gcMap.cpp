@@ -61,10 +61,13 @@ public:
     void AddToWorld(eWorld *);
 };
 
+class gcReplicationVisitor;
+
 class gcRegionBase {
 public:
     int AddToWorld(void);
     void Write(cFile &) const;
+    void MemCardReplicate(gcReplicationVisitor &);
 };
 
 class gcViewport {
@@ -378,6 +381,31 @@ void gcMap::UnloadAllRegions(void) {
     for (int i = 0; i < 2; i++) {
         DeleteRegion(i);
     }
+}
+
+void gcMap::LoadRegionSet(const cGUIDT<gcRegion> *guids) {
+    UnloadAllRegions();
+    for (int i = 0; i < 2; i++) {
+        LoadRegion(guids[i], i, true);
+    }
+}
+
+class gcEntity {
+public:
+    static void DestroyAllDynamic(void);
+    static void MemoryCardReplicateDynamic(gcReplicationVisitor &);
+};
+
+void gcMap::MemCardReplicate(gcReplicationVisitor &v) {
+    MemCardReplicateStreamedCinematicLoad(v);
+    int flag = (*(int *)&v & 2) != 0;
+    flag &= 0xFF;
+    if (flag != 0) {
+        gcEntity::DestroyAllDynamic();
+    }
+    gcEntity::MemoryCardReplicateDynamic(v);
+    MemCardReplicateStreamedCinematic(v);
+    ((gcRegionBase *)this)->MemCardReplicate(v);
 }
 
 void gcMap::CancelCurrentCinematic(void) {

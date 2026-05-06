@@ -15476,7 +15476,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0000b850",
@@ -15958,7 +15958,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -84968,7 +84968,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000f20a8",
       "0x000f26c4"
@@ -84978,7 +84978,14 @@
       "0x000f2bf8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapNLoadRegionSetPC6GcGUIDT76IgcRegion_"
+    "mangled_symbol": "__0fFgcMapNLoadRegionSetPC6GcGUIDT76IgcRegion_",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapNLoadRegionSetPC6GcGUIDT76IgcRegion_",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f605646f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:20:58Z"
   },
   {
     "address": "0x000f2cf4",
@@ -85323,7 +85330,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ef394",
       "0x000f655c",
@@ -85333,7 +85340,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapQMemCardReplicateR6UgcReplicationVisitor"
+    "mangled_symbol": "__0fFgcMapQMemCardReplicateR6UgcReplicationVisitor",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapQMemCardReplicateR6UgcReplicationVisitor",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f605646f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:20:58Z"
   },
   {
     "address": "0x000f3f3c",
@@ -88138,7 +88152,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0a08",
       "0x000fe024"
@@ -88199,7 +88213,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f364c"

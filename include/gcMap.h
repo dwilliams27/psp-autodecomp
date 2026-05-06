@@ -9,6 +9,7 @@ class cMemPool;
 class cFile;
 class cType;
 class cGUID;
+class gcReplicationVisitor;
 
 template <class T>
 class cGUIDT {
@@ -64,6 +65,11 @@ public:
     int FindRegionSet(unsigned int, int *, int *) const;
     static int IsMapLoading(bool);
     static int IsObjectLoading(void);
+    void LoadRegionSet(const cGUIDT<gcRegion> *);
+    void LoadRegion(const cGUIDT<gcRegion> &, int, bool);
+    void MemCardReplicate(gcReplicationVisitor &);
+    void MemCardReplicateStreamedCinematic(gcReplicationVisitor &);
+    void MemCardReplicateStreamedCinematicLoad(gcReplicationVisitor &);
 
     char pad_000[0x140];
     int mFlags;                             // 0x140
