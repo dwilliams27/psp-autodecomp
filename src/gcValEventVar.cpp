@@ -13,6 +13,13 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
+    operator const char *() const { return _data; }
+};
+
 class cMemPoolNS {
 public:
     static cMemPoolNS *GetPoolFromPtr(const void *);
@@ -77,7 +84,9 @@ public:
     }
     ~gcValEventVar();
     void AssignCopy(const cBase *);
+    void Set(float);
     float Evaluate(void) const;
+    void GetText(char *) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static gcValEventVar *New(cMemPool *, cBase *);
@@ -96,6 +105,7 @@ public:
 
 template <class T> T *dcast(const cBase *);
 
+extern void cStrCat(char *, const char *);
 extern void *g_expressionEvalStack;
 
 // ── AssignCopy ──  @ 0x0034282c, 56B
@@ -146,6 +156,68 @@ float gcValEventVar::Evaluate(void) const {
         }
     default:
         return 0.0f;
+    }
+}
+
+// ── Set ──  @ 0x00342d20, 184B
+void gcValEventVar::Set(float value) {
+    int selector = mField08;
+    int index;
+    int base;
+    int *ctx;
+    unsigned char *event;
+
+    switch (selector) {
+    case 0:
+        index = mFieldC;
+        ctx = (int *)g_expressionEvalStack;
+        base = 0;
+        if (ctx != 0) {
+            base = ctx[4];
+        }
+        *(float *)((index << 2) + base + 8) = value;
+        return;
+    case 1:
+        index = mFieldC;
+        ctx = (int *)g_expressionEvalStack;
+        base = 0;
+        if (ctx != 0) {
+            base = ctx[4];
+        }
+        *(float *)((index << 2) + base + 0x18) = value;
+        return;
+    case 2:
+        {
+            int flag = 0;
+            float zero = 0.0f;
+            ctx = (int *)g_expressionEvalStack;
+            if (value != zero) {
+                flag = 1;
+            }
+            event = 0;
+            if (ctx != 0) {
+                event = (unsigned char *)ctx[3];
+            }
+            event[0x18] = flag;
+        }
+        return;
+    }
+}
+
+// ── GetText ──  @ 0x00342dd8, 192B
+void gcValEventVar::GetText(char *buf) const {
+    int selector = mField08;
+
+    switch (selector) {
+    case 0:
+        cStrCat(buf, cStr((const char *)0x36F3FC, mFieldC + 1));
+        break;
+    case 1:
+        cStrCat(buf, cStr((const char *)0x36F408, mFieldC + 1));
+        break;
+    case 2:
+        cStrCat(buf, cStr((const char *)0x36F414));
+        break;
     }
 }
 
