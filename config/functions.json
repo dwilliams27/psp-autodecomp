@@ -16313,7 +16313,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0000b2dc",
@@ -16323,7 +16323,14 @@
       "0x00009f74"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryKCopyObjectPC6HcObjectRC6FcGUID"
+    "mangled_symbol": "__0fIcFactoryKCopyObjectPC6HcObjectRC6FcGUID",
+    "src_file": "src/cFactory.cpp",
+    "symbol_name": "__0fIcFactoryKCopyObjectPC6HcObjectRC6FcGUID",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "b4da2b68",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T05:32:02Z"
   },
   {
     "address": "0x0000b2dc",
@@ -16606,7 +16613,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000ed148",
@@ -16617,7 +16624,21 @@
       "0x0016e838"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIcFactoryMDeleteGroupsv"
+    "mangled_symbol": "__0fIcFactoryMDeleteGroupsv",
+    "failure_notes": [
+      {
+        "session": "b4da2b68",
+        "notes": "Body matches the expected pattern (slt+beqz/bnez+lh/jalr loop with delete dispatch at classdesc+0x50 calling fn(this+offset, 3)) but compiles to 152B vs expected 160B. The 8 missing bytes are the trailing 'b .; nop' (0x1000ffff 0x00000000) trap appended after the normal jr ra epilogue. This is the documented 'TRAILING_B_TRAP' research issue tracked in docs/research_todos.md item #1 \u2014 affects ~580 EBOOT functions (321 destructors, 95 AssignCopys, 86 operator=s, etc.) and remains unsolved. SNC under -O2 on plain C/C++ does not emit this trailer. Prior agents tried for(;;){}, __builtin_unreachable() (unsupported), inline __asm__('.word 0x1000ffff') (placed before epilogue), __attribute__((noreturn)), .set noreorder. None work.\n\nSecondary issue: register allocation has s0 and s1 swapped \u2014 expected uses s0 for groups pointer and s1 for loop counter; my output has s1 for groups and s0 for counter. Tried multiple variable-declaration orderings (groups before/after count, i declared inside vs outside the for-loop, while vs for vs do-while), tried #pragma control sched=1 (changes prologue scheduling but not the loop register allocation), tried for(;...;++i,++groups) syntax, tried 'continue' pattern. Register allocator picks the same way regardless. Likely a register-allocator quirk tied to live-range ordering that we can't influence from source. Even if fixed, the function still fails the 8-byte trap diff.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:32:02Z",
+        "src_file": "src/cFactory.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/b4da2b68/0000c038__agent_self_reported_failure__src_cFactory.cpp"
+      }
+    ]
   },
   {
     "address": "0x0000c0d8",
@@ -19416,7 +19437,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000021f4"
     ],
@@ -20093,7 +20114,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00011e88",
       "0x00012234",
@@ -82050,7 +82071,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000eb7dc",
       "0x000eb840"
@@ -82059,7 +82080,21 @@
       "0x000f364c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcCinematicInstanceJUpdateAll6KcTimeValueT"
+    "mangled_symbol": "__0fTgcCinematicInstanceJUpdateAll6KcTimeValueT",
+    "failure_notes": [
+      {
+        "session": "930ddec5",
+        "notes": "Best result is 19/160 bytes differ. Function semantically matches: snapshot the circular intrusive list at D_0037D7C4 (linked via offset 0x54) into a 128-entry stack array, then iterate and call Update(dt) on each, then call FreeDynamicInstances. Loop2 + prologue + epilogue match expected exactly (the trick that fixes loop2 is `gcCinematicInstance **p = (gcCinematicInstance **)((char *)snapshot - 4); ... p[1]->Update(dt); ...` which lets the compiler emit `move s2, sp; lw a0, 4(s2)` instead of `addiu s2, sp, 4; lw a0, 0(s2)`; the current source uses the equivalent `snapshot[i]` form which compiles to identical code).\n\nThe remaining 19-byte diff is entirely in loop1: expected uses INDEX-based addressing (`sll a2, s0, 2; addu a2, sp, a2; sw a1, 4(a2)` recomputed each iter, with `addiu s0, s0, 1` in the bne delay slot), while our SNC strength-reduces to a running POINTER (`move a1, sp` once, `sw a2, 4(a1)`, with `addiu a1, a1, 4` in the delay slot). Both encode `snapshot[i] = cur` with identical semantics.\n\nApproaches tried: (1) plain `snapshot[count] = cur; count++` \u2014 pointer-based, 19B diff. (2) `snapshot[count++] = cur` \u2014 same. (3) count++ moved before/after the cur-advance \u2014 same. (4) `__asm__ volatile(\"\":::\"memory\")` between the array store and the next-link load \u2014 no effect on strength reduction. (5) `*(gcCinematicInstance * volatile *)&snapshot[count] = cur` \u2014 no effect. (6) `for (count=0;;count++) { ...; if (cur==head) break; }` style \u2014 93/160 diff (much worse). (7) Declaring cur and count up front instead of inline \u2014 26/160 diff (worse). (8) `#pragma control mopt=0` over the whole function \u2014 applies to whole function only, fixes loop1 (index-based) but converts loop2 to index-based too AND drops s3 saved register, gives 156B size mismatch. -Xmopt=0 reproduces this. The pragma cannot scope to a single loop.\n\nPermuter ran 120s but picked the wrong same-size function (gcCinematicInstance::GetType is also exactly 160B and comes first in the .o; permuter at tools/permuter.py picks size_matches[0] and has no --symbol arg despite the warning text mentioning one). Did not attempt putting UpdateAll in a temp solo file because the diff is structural (full loop1 reorder, not 2-3 instruction permutation).\n\nThis is a compiler version divergence: the original SNC chose loop1=index AND loop2=pointer, a hybrid that our SNC 1.2.7503.0 cannot reproduce with any single -Xmopt setting. NOT a bnel/beql divergence (no branch-likely involved). Loop1 strength reduction is decided per-function by SNC and isn't overridable in source. Source preserved at src/gcCinematicInstance.cpp:265-285 as the closest semantic+structural match (loop2 + prologue + epilogue exact). Next agent could try: (a) -Xxopt=N variants (N=0..5), (b) put UpdateAll alone in a temp file for the permuter, (c) experiment with making count an unsigned/size_t/long type, or (d) recompile pspcor.exe with strength-reduction tuning.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T04:53:04Z",
+        "src_file": "src/gcCinematicInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/930ddec5/000eb73c__agent_self_reported_failure__src_gcCinematicInstance.cpp"
+      }
+    ]
   },
   {
     "address": "0x000eb7dc",
@@ -82244,7 +82279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e4e34"
     ],
@@ -82252,7 +82287,21 @@
       "0x00107fe8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcCinematicInstanceLDrawDialogsvK"
+    "mangled_symbol": "__0fTgcCinematicInstanceLDrawDialogsvK",
+    "failure_notes": [
+      {
+        "session": "930ddec5",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T04:53:04Z",
+        "src_file": "src/gcCinematicInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/930ddec5/000ebe48__post_revert_compile_failed__src_gcCinematicInstance.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ebee0",
@@ -89564,13 +89613,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x002fab08"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOgcGameSettingsPSaveGameCapturei"
+    "mangled_symbol": "__0fOgcGameSettingsPSaveGameCapturei",
+    "failure_notes": [
+      {
+        "session": "2d06b88e",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:20:04Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/2d06b88e/00103374__post_revert_compile_failed__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00103410",
@@ -89808,7 +89871,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00056574"
     ],
@@ -89817,7 +89880,21 @@
       "0x001038d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsVProfileCheckFreeSpacePCcK"
+    "mangled_symbol": "__0fOgcGameSettingsVProfileCheckFreeSpacePCcK",
+    "failure_notes": [
+      {
+        "session": "2d06b88e",
+        "notes": "Failed at 152/176 bytes (24 byte size mismatch). Function is functionally correct and structurally similar; the diff is purely compiler optimization choice. Tried 8+ structural variants: nested ifs, separate if blocks, has_items boolean, size_first reused as first pointer, explicit unk74 local. Best is current: simple nested ifs with int unk74 = (*(int**)0x37D7DC)[29] declared first to force eager loading of unk74 at function start (matches expected). Root cause: my SNC build aggressively CSEs the 0x3FFFFFFF mask register and uses beqzl (branch likely) for the inner if(size>0) check, which lets it merge the size_first computation into delay slots. The expected disassembly recomputes the mask 3 times (once per access) and uses regular beqz with productive moves in delay slots ('move t2, a2' twice), giving 4 more instructions. The expected uses t1 as a transient carrier for both 'first' pointer and 'size_first' int (the lw t1, 0(a1) overwrites the t1 mask, forcing recomputation later). I could not find source-level structure that forces the compiler to (a) skip CSE on the mask constant, or (b) prefer beqz over beqzl when delay slot can be productive. Permuter doesn't run on multi-function files (RuntimeError: Found 1268B .text but expected 176B function). Suggested next steps for retry: try splitting this function into its own .cpp file so permuter can run; or try -Xmopt or -Xxopt pragma overrides; or look for an SNC opt-disabling pragma that forces fresh constant materialization.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:20:04Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/2d06b88e/0010451c__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x001045cc",

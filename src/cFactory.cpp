@@ -59,8 +59,10 @@ public:
     void LoadLocalized(const char *);
     int Load(void);
     cObject *CreateObject(const cType *, const cGUID &, bool, unsigned int, bool);
+    cObject *CopyObject(const cObject *, const cGUID &);
     cObject *FindObject(const cType *, const cGUID &, bool) const;
     void *FindGroup(const cType *);
+    void DeleteGroups(void);
     void ClearVisitedReferences(unsigned int);
     void MarkForClean(unsigned int);
     void DeleteMarkedForClean(unsigned int, bool);
@@ -92,6 +94,7 @@ public:
 class cGroup {
 public:
     cObject *CreateObject(const cType *, const cGUID &, cMemPool *, bool, bool);
+    cObject *CopyObject(const cObject *, const cGUID &, cMemPool *);
     cObject *FindObject(const cGUID &) const;
 };
 
@@ -305,6 +308,49 @@ extern char cFactoryvirtualtable[];
 
 cFactory::~cFactory() {
     *(void **)((char *)this + 4) = cFactoryvirtualtable;
+}
+
+// ── cFactory::CopyObject(const cObject *, const cGUID &) ──
+cObject *cFactory::CopyObject(const cObject *pObject, const cGUID &guid) {
+    char *classdesc = *(char **)((char *)pObject + 4);
+    TypeDispatchEntry *entry = (TypeDispatchEntry *)(classdesc + 8);
+    cType *type = entry->fn((char *)pObject + entry->offset);
+    cGroup *group = (cGroup *)this->FindGroup(type);
+    if (group == 0) {
+        return 0;
+    }
+    cMemPool *pool = cMemPool::GetPoolFromPtr(group);
+    return group->CopyObject(pObject, guid, pool);
+}
+
+// ── cFactory::DeleteGroups(void) ──
+struct GroupArrayDispatchEntry {
+    short offset;
+    short _pad;
+    void **(*fn)(void *, int *);
+};
+
+struct DeleteDispatchEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, int);
+};
+
+void cFactory::DeleteGroups(void) {
+    int count = 0;
+    char *classdesc = *(char **)((char *)this + 4);
+    GroupArrayDispatchEntry *entry = (GroupArrayDispatchEntry *)(classdesc + 168);
+    void **groups = entry->fn((char *)this + entry->offset, &count);
+    for (int i = 0; i < count; i++) {
+        void *obj = *groups;
+        if (obj != 0) {
+            char *desc = *(char **)((char *)obj + 4);
+            DeleteDispatchEntry *de = (DeleteDispatchEntry *)(desc + 80);
+            de->fn((char *)obj + de->offset, 3);
+            *groups = 0;
+        }
+        groups++;
+    }
 }
 
 // ── cFactory::Read(cFile &, cMemPool *) ──
