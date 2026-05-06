@@ -23,6 +23,7 @@ public:
     void Copy(cMemPool *, cBase *) const;
     void Write(cFile &) const;
     int Load(void);
+    int IsEditable(void) const;
     static int GetNameFromGUID(const cGUID &, const cType *, bool, bool, cName *);
 };
 

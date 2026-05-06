@@ -125,6 +125,36 @@ void cObject::Write(cFile &file) const {
 }
 
 // ============================================================
+// cObject::IsEditable(void) const
+// @ 0x0000a50c, 128B
+// ============================================================
+namespace {
+struct cObjectVTableEntry {
+    short offset;          // +0 this-adjust
+    short pad;             // +2
+    int *(*fn)(void *);    // +4 function pointer (returns ptr to int)
+};
+}
+
+int cObject::IsEditable(void) const {
+    unsigned short flags = *(const unsigned short *)((const char *)this + 0x28);
+    if (flags & 0x20) return 0;
+    int ro = ((flags & 0x08) != 0) & 0xFF;
+    if (ro) return 0;
+
+    char *vtable = *(char **)((char *)this + 4);
+    cObjectVTableEntry *entry = (cObjectVTableEntry *)(vtable + 8);
+    short adj = entry->offset;
+    int *(*fn)(void *) = entry->fn;
+    int *result = fn((char *)this + adj);
+
+    int v = 0;
+    if (*result & 1) v = 1;
+    if (v & 0xFF) return 1;
+    return 0;
+}
+
+// ============================================================
 // cObject::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)
 // @ 0x00009cb0, 120B
 // ============================================================
@@ -138,7 +168,9 @@ void cObject::VisitReferences(
     if (callback != 0) {
         callback(base, (unsigned int)this, ctx);
     }
-    if (*(int *)((char *)this + 0x30) != 0) {
+    unsigned int x = *(unsigned int *)((char *)this + 0x30);
+    register int zero __asm__("$0");
+    if (((zero != x) & 0xFF) != 0) {
         *(unsigned short *)((char *)this + 0x28) |=
             (unsigned short)(flags & 0xFE00);
     }

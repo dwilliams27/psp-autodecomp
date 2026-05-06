@@ -15476,7 +15476,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0000b850",
@@ -15537,7 +15537,14 @@
         "notes": "cObject::VisitReferences \u2014 8-byte diff (108B vs expected 120B). Missing two instructions in the int-to-bool conversion: `xor a0,zero,a0` + `andi a0,a0,0xff`. Expected sequence at the test of m30: lw; xor-with-zero (identity move); sltu zero,x (bool convert); andi 0xff (byte mask); beqz. SNC elides both the xor-with-zero and the andi-0xff in every C/C++ source pattern I tried (bool, unsigned char, (x!=0), !!x, volatile, union reinterp, long, char cast, etc.). Binary-wide scan shows this xor-zero + sltu + andi-0xff idiom occurs in only ~6 functions total (this one, cObject::~cObject, and 3 cHandlePairT::GetName templates), suggesting a specific internal SNC construct (possibly a compiler-emitted bool-field access or template-instantiation idiom) that plain source cannot reproduce. All other instructions including the lhu 40(s1) direct-offset load (after removing my earlier pointer-alias variable) now match. The body of the if-branch is byte-identical. Remaining diff is purely the bool-conversion sequence. Only inline asm would force it, which violates the project norm against submitting asm-wrapped code. Leaving as 'failed' per the strict criterion in CLAUDE.md \u2014 not unmatchable_bnel (no bnel involved)."
       }
     ],
-    "mangled_symbol": "__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "src_file": "src/cObject.cpp",
+    "symbol_name": "__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "13d93993",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:39:18Z"
   },
   {
     "address": "0x00009d28",
@@ -15958,11 +15965,18 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fHcObjectKIsEditablevK"
+    "mangled_symbol": "__0fHcObjectKIsEditablevK",
+    "src_file": "src/cObject.cpp",
+    "symbol_name": "__0fHcObjectKIsEditablevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "13d93993",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:39:18Z"
   },
   {
     "address": "0x0000a58c",
