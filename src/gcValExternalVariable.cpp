@@ -5,11 +5,17 @@
 //   gcValExternalVariable::Write(cFile &) const               @ 0x003430ac  (gcAll_psp.obj)
 //   gcValExternalVariable::New(cMemPool *, cBase *) static    @ 0x00342ed0
 //   gcValExternalVariable::~gcValExternalVariable(void)       @ 0x00343698
+//   gcValExternalVariable::GetText(char *) const              @ 0x003432d4
 
 class cBase;
 class cFile;
 class cMemPool;
 class cType;
+
+class gcValPointValue {
+public:
+    void GetText(char *) const;
+};
 
 class cWriteBlock {
 public:
@@ -62,6 +68,7 @@ public:
     gcValExternalVariable(cBase *parent);
     ~gcValExternalVariable();
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -77,6 +84,23 @@ public:
 
 extern char gcLValuevirtualtable[];
 extern char gcValExternalVariablevirtualtable[];
+extern void *D_00038890[];
+
+void cStrCat(char *, const char *);
+
+struct HandleObject {
+    char pad0[8];
+    char name[20];
+    short nameLen;
+    char pad1[18];
+    int handle;
+};
+
+struct cTypeTextMethod {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
 
 inline gcLValue::gcLValue(cBase *parent) {
     mVtable = gcLValuevirtualtable;
@@ -122,6 +146,67 @@ cBase *gcValExternalVariable::New(cMemPool *pool, cBase *parent) {
 // ─────────────────────────────────────────────────────────────────────────
 gcValExternalVariable::~gcValExternalVariable() {
     *(void **)((char *)this + 4) = gcLValuevirtualtable;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValExternalVariable::GetText(char *) const  @ 0x003432d4, 172B
+// ─────────────────────────────────────────────────────────────────────────
+void gcValExternalVariable::GetText(char *buf) const {
+    int h = mHandle.mIndex;
+    HandleObject *obj;
+    if (h == 0) {
+        obj = 0;
+    } else {
+        HandleObject *cand = (HandleObject *)D_00038890[h & 0xFFFF];
+        obj = 0;
+        if (cand != 0) {
+            if (cand->handle == h) {
+                obj = cand;
+            }
+        }
+    }
+
+    const char *text;
+    if (obj != 0) {
+        unsigned int empty = (obj->nameLen == 0);
+        empty &= 0xFF;
+        if (empty) {
+            text = (const char *)0x36DAB8;
+            goto object_done;
+        }
+        text = (const char *)obj + 8;
+object_done:
+        __asm__ volatile("" : : "r"(text));
+        goto append;
+    } else if (h != 0) {
+        text = (const char *)0x36DAC4;
+    } else {
+        text = (const char *)0x36DACC;
+    }
+append:
+    cStrCat(buf, text);
+}
+
+// ODR-WARNING: split-TU method addition for gcValPointValue. Keep this local
+// redeclaration minimal so existing matched gcValPointValue siblings do not drift.
+// ─────────────────────────────────────────────────────────────────────────
+// gcValPointValue::GetText(char *) const  @ 0x003577e8, 176B
+// ─────────────────────────────────────────────────────────────────────────
+void gcValPointValue::GetText(char *buf) const {
+    const char *space = (const char *)0x36DAF0;
+    cStrCat(buf, space);
+
+    if (*(const int *)((const char *)this + 8) == 0) {
+        cStrCat(buf, (const char *)0x36E6DC);
+        char *base = (char *)this + 0x10;
+        const cTypeTextMethod *method =
+            (const cTypeTextMethod *)(*(const char **)((const char *)this + 0x14) + 0x78);
+        method->fn(base + method->offset, buf);
+        cStrCat(buf, (const char *)0x36DCEC);
+    }
+
+    cStrCat(buf, (const char *)0x36DADC);
+    cStrCat(buf, space);
 }
 
 static cType *type_base;
