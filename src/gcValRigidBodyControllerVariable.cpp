@@ -70,6 +70,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
 };
 
 class gcValTableEntry {
@@ -91,6 +92,7 @@ T dcast(const cBase *);
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrAppend(char *, const char *, ...);
 
 __asm__(".globl gcValRigidBodyControllerVariablevirtualtable_abs\n"
         "gcValRigidBodyControllerVariablevirtualtable_abs = 0x9c40\n");
@@ -203,6 +205,30 @@ const cType *gcValRigidBodyControllerVariable::GetType(void) const {
             0, 0, 0);
     }
     return type_gcValRigidBodyControllerVariable;
+}
+
+void gcValRigidBodyControllerVariable::GetText(char *buf) const {
+    const cTypeMethod *slot =
+        (const cTypeMethod *)(*(char **)((const char *)this + 0x0C) + 0x78);
+    const char *desired = (const char *)this + 0x08;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)slot->fn)((void *)(desired + slot->offset), buf);
+
+    int flag = 0;
+    int selector = *(const int *)((const char *)this + 0x34);
+    const char *text = (const char *)0x36DAF0;
+
+    if (selector != 3 && selector != 4) {
+        if (selector != 5) {
+            flag = 1;
+        }
+    }
+
+    if ((flag & 0xFF) != 0) {
+        cStrAppend(buf, (const char *)0x36F714, text, (char *)this + 0x38);
+    } else {
+        cStrAppend(buf, (const char *)0x36F734, text, (char *)this + 0x38);
+    }
 }
 
 void gcValTableEntry::Write(cFile &file) const {

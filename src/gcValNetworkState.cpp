@@ -81,6 +81,15 @@ extern char gcValNetworkStatevirtualtable[];
 extern char gcValNetworkState_cBase_vtable[];
 extern char cBaseclassdesc[];
 
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 class gcValNetworkState : public gcValue {
 public:
     int pad0;
@@ -92,6 +101,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
 
     // Inlined into the deleting-destructor variant.
@@ -282,4 +292,31 @@ const cType *gcValNetworkState::GetType(void) const {
             0, 0, 0x14A, type_value, gcValNetworkState::New, 0, 0, 0);
     }
     return type_gcValNetworkState;
+}
+
+void gcValNetworkState::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36F65C, (const char *)0x36DAF0);
+
+    if (((this->mField8 == 8) & 0xFF) != 0) {
+        int val = *(int *)((const char *)this + 0x0C);
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)check + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(buf, (const char *)0x36DCEC);
 }

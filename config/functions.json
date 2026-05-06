@@ -189439,7 +189439,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00121a90"
@@ -226969,14 +226969,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcValNetworkStateHGetTextPcK"
+    "mangled_symbol": "__0fRgcValNetworkStateHGetTextPcK",
+    "src_file": "src/gcValNetworkState.cpp",
+    "symbol_name": "__0fRgcValNetworkStateHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "36ff2d72",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:45:12Z"
   },
   {
     "address": "0x00353700",
@@ -228452,13 +228460,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fggcValRigidBodyControllerVariableHGetTextPcK"
+    "mangled_symbol": "__0fggcValRigidBodyControllerVariableHGetTextPcK",
+    "src_file": "src/gcValRigidBodyControllerVariable.cpp",
+    "symbol_name": "__0fggcValRigidBodyControllerVariableHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "36ff2d72",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:45:12Z"
   },
   {
     "address": "0x003598b0",
@@ -229109,7 +229125,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
