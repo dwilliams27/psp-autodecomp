@@ -82050,7 +82050,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000eb7dc",
       "0x000eb840"
@@ -82244,7 +82244,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e4e34"
     ],
@@ -88082,7 +88082,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f3918"
@@ -88135,7 +88135,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0550"
     ],
@@ -94260,7 +94260,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00048a8c",
       "0x00170854"
@@ -94275,7 +94275,14 @@
         "notes": "gcEntityController::PostUpdateFinal(void) (148B expected, 144B produced; 4 bytes short, 1 instruction short). Function walks: if (m_attack && m_attack->IsActive() && (anim = ((eDynamicModel*)(*this+0x80))->GetAnimationState())) { t.mTime = sign_extend_30bit(anim[12]); m_attack->QueryCollisions(this[0], t); }. The tail sequence differs in one instruction. Expected puts the 0x40000000 constant in a3, loads entity2 into a2, and emits: `sw a0,0(sp); lw a3,0(sp); move a0,a1; move a1,a2; jal; move a2,a3` (37 instrs). Mine puts 0x40000000 in a2 and entity2 in a3, producing `sw a0,0(sp); move a0,a1; lw a2,0(sp); jal; move a1,a3` (36 instrs \u2014 one fewer because the reload goes directly into the final arg register a2 instead of going via a temp and then being moved into a2 in the delay slot). Tried: (1) reordering attack2/entity2/t declarations in 4 variants, (2) splitting t.mTime computation into a separate `int tmp` temp \u2014 went in wrong direction (140B), (3) forcing stack addressing via `int *pt = (int*)&t` \u2014 still 144B, (4) permuter \u2014 couldn't start because it requires matching size initially and refuses to search from a 144B baseline against a 148B expected. No flag variant tried (only -Xsched=2 is in scope for gcAll_psp). Root cause is the register allocator's choice of a2-vs-a3 for the 0x40000000 constant and the resulting scheduling of the cTimeValue arg into a2 \u2014 a hint the compiler picks based on something subtle in how the following arguments are loaded. Not a bnel divergence (no branch-likely in the differing region), just a genuine scheduling/RA hole that probably needs either (a) a small source restructuring I didn't discover, (b) permuter enhancement to tolerate starting-size mismatch, or (c) verifying the original source used a slightly different expression tree for the bit manipulation."
       }
     ],
-    "mangled_symbol": "__0fSgcEntityControllerPPostUpdateFinalv"
+    "mangled_symbol": "__0fSgcEntityControllerPPostUpdateFinalv",
+    "src_file": "src/gcEntityController.cpp",
+    "symbol_name": "__0fSgcEntityControllerPPostUpdateFinalv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "25957895",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T04:52:33Z"
   },
   {
     "address": "0x00111190",
@@ -94532,7 +94539,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00118c98",
       "0x001b9c64"
@@ -94543,7 +94550,14 @@
       "0x0015626c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcEntityControllerMOnDeselectedv"
+    "mangled_symbol": "__0fSgcEntityControllerMOnDeselectedv",
+    "src_file": "src/gcEntityController.cpp",
+    "symbol_name": "__0fSgcEntityControllerMOnDeselectedv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "25957895",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T04:52:33Z"
   },
   {
     "address": "0x00111cd0",

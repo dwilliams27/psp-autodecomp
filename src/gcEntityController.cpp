@@ -169,6 +169,7 @@ public:
     void OnMemPoolReset(const cMemPool *, unsigned int);
     void ValidateNavMeshPos(void);
     void OnActivated(void);
+    void OnDeselected(void);
     void PostUpdateFinal(void);
 
     static void operator delete(void *p);
@@ -405,6 +406,43 @@ void gcEntityController::OnActivated(void) {
                                 *(gcEventParams *)&scratch.word1C);
 }
 
+// ── OnDeselected (0x00111c08) ──
+
+void gcEntityController::OnDeselected(void) {
+    gcEntity *entity = *(gcEntity **)this;
+    EntityActivatedScratch scratch;
+
+    scratch.zero10 = 0;
+    scratch.zero14 = 0;
+    scratch.flag18 = 1;
+    scratch.words0[0] = 0;
+    scratch.words0[1] = 0;
+    scratch.words0[2] = 0;
+    scratch.words0[3] = 0;
+    scratch.word1C = 0;
+    scratch.floats20[0] = 0.0f;
+    scratch.word58 = 0;
+    __vec_new(scratch.vec74, 2, 8, (void (*)(void *))0x2275F0);
+    scratch.floats20[1] = 0.0f;
+    scratch.floats20[2] = 0.0f;
+    scratch.floats20[3] = 0.0f;
+    scratch.floats20[4] = 0.0f;
+    scratch.floats20[5] = 0.0f;
+    scratch.floats20[6] = 0.0f;
+    scratch.floats20[7] = 0.0f;
+    scratch.floats20[8] = 0.0f;
+    scratch.floats20[9] = 0.0f;
+    scratch.word5C = 0;
+    scratch.word60 = 0;
+    scratch.word64 = 0;
+    scratch.word68 = 0;
+    scratch.word6C = 0;
+    scratch.word70 = 0;
+    gcEntity_Send_SystemMessage(entity, false, gcEntity::DESIRED_STATE_MACHINE_2, 5,
+                                *(gcEventStackData *)&scratch.words0[0],
+                                *(gcEventParams *)&scratch.word1C);
+}
+
 // ── PostUpdateFinal (0x001110fc) ──
 
 void gcEntityController::PostUpdateFinal(void) {
@@ -414,10 +452,17 @@ void gcEntityController::PostUpdateFinal(void) {
     void *anim = ((eDynamicModel *)((char *)*(void **)this + 0x80))->GetAnimationState();
     if (anim == 0) return;
 
-    int raw = *(int *)((char *)anim + 12);
+    struct AnimTimeView {
+        int padA;
+        int padB;
+        int padC;
+        signed int time : 31;
+        unsigned int flag : 1;
+    };
+    AnimTimeView *view = (AnimTimeView *)anim;
     gcEntityAttackState *attack2 = *(gcEntityAttackState **)((char *)this + 0x7C);
     gcEntity *entity2 = *(gcEntity **)this;
     cTimeValue t;
-    t.mTime = ((raw & 0x7FFFFFFF) ^ 0x40000000) - 0x40000000;
+    t.mTime = view->time;
     attack2->QueryCollisions(entity2, t);
 }
