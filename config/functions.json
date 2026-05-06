@@ -75762,7 +75762,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000d76a8",
@@ -75835,6 +75835,18 @@
       {
         "session": "7339ae7d",
         "notes": "The function iterates a linked list of gcExpression nodes, checking evaluation flags from a global context (at 0x37D7B4). For each node, it checks if flags & 1 (skip evaluation) or flags & 2 (early return condition). If either is true, it restores the saved expression and returns the float result from the evaluation state. Otherwise, it dispatches to the node's Evaluate method via vtable+0x70 and GetNext method via vtable+0xA8.\n\nThe blocking issue is the || short-circuit pattern for (skipEval || (flags & 2)). The expected code uses full short-circuit evaluation: bnez skipEval -> andi flags,2 -> sltu -> andi 0xff -> beqz -> earlyReturn variable -> bnezl exit. My closest version (228 bytes vs 232 expected) uses goto-based control flow with __asm__ volatile memory barrier to prevent OR folding, which successfully produces the short-circuit branch pattern (bnez then sltu). However, SNC removes the andi 0xff after sltu because it knows sltu always produces 0/1. This is a fundamental SNC -O2 optimization that cannot be prevented with source-level changes \u2014 confirmed by the prior attempt and exhaustive testing (bool casts, unsigned char variables, inline functions, separate variables). The missing andi 0xff costs 1 instruction = 4 bytes, exactly matching the 228 vs 232 byte difference. Additionally, SNC merges the earlyReturn check directly into the flag check branches (bnezl to exit with savedExpr in delay slot), which further compacts the code. The register allocation, stack frame (16 bytes, s0/s1/s2/ra), dispatch code, and loop structure all match correctly. The evalState access pattern (loaded in delay slot of loop back bnez) also matches. This may require an undiscovered SNC flag or a different SNC compiler version to generate the redundant andi 0xff."
+      },
+      {
+        "session": "84d1bdae",
+        "notes": "228B compiled vs 232B expected (4B / 1 instruction short). Same closest match as prior 2 sessions. The blocking instruction is the redundant `andi a1, a1, 0xff` at 0xd5398, emitted by original SNC right after `sltu a1, zero, a1` (which already produces 0/1). Our SNC version (1.2.7503.0) elides this redundant byte mask as a known optimization. This is documented in docs/postmortems/2026-04-22-overnight-2.md as INSTRUCTION_ELISION: 'SNC elides `xor zero,x` + `andi 0xff` in every bool/int shape tried' (cObject::VisitReferences hits the same blocker). Patterns exhausted across 3 sessions: explicit (bool) casts, (unsigned char) casts, `!!(x)`, separate named bool variables on the stack, inline functions returning bool, `__asm__ volatile(\"\" ::: \"memory\")` barriers, goto-based control flow, if/else if chains, ternary forms. The current goto+memory-barrier form correctly produces the short-circuit branch shape (bnez skipEval -> andi flags,2 -> sltu) up to that point but SNC always drops the trailing andi 0xff. Body, frame (16B, s0/s1/s2/ra), register allocation, dispatch via vt+0x70/0xA8, evalState/currentExpr accesses through gcEvalCtx, and the return-via-bnezl-with-sw-in-delay all match. The missing andi is the only real divergence and it cascades: without that 4-byte cushion the surrounding bnezl/beqzl shape compacts by exactly 4 bytes vs expected. Genuine compiler-version difference; needs either a different SNC build or pspcor.exe patch to fix at the codegen level (no source-level workaround found in any prior attempt).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:43:52Z",
+        "src_file": "src/gcExpressionList.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/84d1bdae/000d5348__agent_self_reported_failure__src_gcExpressionList.cpp"
       }
     ],
     "mangled_symbol": "__0fQgcExpressionListIEvaluatevK"
@@ -75921,7 +75933,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000d515c",
@@ -75929,7 +75941,21 @@
       "0x000d54ec"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fQgcExpressionListRDeleteExpressionsv"
+    "mangled_symbol": "__0fQgcExpressionListRDeleteExpressionsv",
+    "failure_notes": [
+      {
+        "session": "84d1bdae",
+        "notes": "Body matches EXACTLY at 128B (every instruction byte-identical to expected up to and including the epilogue `addiu sp,sp,16` at 0xd567c). The 8-byte gap (128B vs 136B expected) is the well-known unsolved `b self; nop` (.word 0x1000ffff; .word 0x00000000) trailer that SNC under -O2 will not emit on plain C/C++ source. Per docs/research_todos.md and docs/postmortems/2026-04-21-overnight.md, ~580 EBOOT functions end with this pattern (321 dtors, 95 AssignCopys, 86 operator=s, etc.). Prior agents have tried `for(;;){}`, `__builtin_unreachable()` (SNC-unsupported), inline `__asm__(\".word 0x1000ffff\")`, `__attribute__((noreturn))`, separate `goto end; end: return; for(;;){}` \u2014 all either DCE'd by SNC, placed wrong, or unsupported. This is a genuinely unsolved compiler-version divergence. Source structure: standard linked-list iteration, calling vt+0xA8 (next-getter) and vt+0x50 (delete entry, takes int=3 arg) per node, then NULLing the head. The C is correct; the trap-loop tail is the blocker.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:43:52Z",
+        "src_file": "src/gcExpressionList.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/84d1bdae/000d5600__agent_self_reported_failure__src_gcExpressionList.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d5688",
@@ -107915,7 +107941,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001314",
       "0x000d8708"
@@ -107930,7 +107956,21 @@
       "0x0030943c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcUIEditBoxMSetCursorPosi"
+    "mangled_symbol": "__0fLgcUIEditBoxMSetCursorPosi",
+    "failure_notes": [
+      {
+        "session": "65a5a0de",
+        "notes": "gcUIEditBox::SetCursorPos(int) (148B). Implemented as: load len from cStrLength when mpString!=0, clamp pos into newPos with `newPos=0; if(pos>0){newPos=pos; if(newPos>=len) newPos=len;}`, then `if(newPos!=mCursorPos){ mCursorPos=newPos; mEditFlags|=0x80000000; SetSizeDirty(); copy 0x118->0x120; }`. SetSizeDirty called via extern \"C\" __0fKgcUIWidgetMSetSizeDirtyv(this) since I can't add the declaration to gcUIWidget.h (header is intentional/locked).\n\nResult: 13/148 bytes diff. Three remaining diffs all stem from target keeping newPos in callee-saved s0 across the !=mCursorPos branch, while my build keeps it in a1: (1) `slt a2, s0, a0` (target) vs `slt a2, a1, a0` (mine), (2) `move s0, a1` in beq delay slot (target) vs `nop` (mine), (3) `sw s0, 0x11c(s1)` (target) vs `sw a1, 0x11c(s1)` (mine). The downstream code is byte-identical: `lw a0,0x110(s1); lui a1,0x8000; or; sw a0,0x110(s1); jal SetSizeDirty; struct copy 0x118->0x120`.\n\nTried: pos>=len vs newPos>=len bound check (worse: 22/148), permuter 180s/2359 candidates (zero improvement from 13). Root cause: SNC's register allocator doesn't promote newPos to s0 for my source structure even though s0 is otherwise free; target's compiler chose s0 because newPos must survive across the lui-a1 sequence (a1 is clobbered) \u2014 target uses delay-slot move-to-s0 pattern; mine reorders to do the sw before the lui so a1 survives just long enough. The choice is purely scheduler/regalloc determined and resists source perturbation. Trying volatile, reordering the assignment with mEditFlags first, and explicit local copies all produced the same a1-based codegen. Falls under the documented SNC scheduling/register-allocation divergence class, not a logical mismatch.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:27:12Z",
+        "src_file": "src/gcUIEditBox.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/65a5a0de/0013a98c__agent_self_reported_failure__src_gcUIEditBox.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013aa20",
@@ -108046,13 +108086,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0013ab1c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fLgcUIEditBoxLHandleBlink6KcTimeValue"
+    "mangled_symbol": "__0fLgcUIEditBoxLHandleBlink6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "65a5a0de",
+        "notes": "gcUIEditBox::HandleBlink(cTimeValue) (132B). Implemented as: `int timer=mBlinkTimer; if(timer>0){ timer-=time.mTime; mBlinkTimer=timer; if(timer>0) return; SetCursorVisible(!IsCursorVisible()); } if(timer<=0){ *(t+0x120)=*(t+0x118); }`. SetCursorVisible/IsCursorVisible added as inline helpers in gcUIEditBox.h that read/write the 0x80000000 bit of mEditFlags.\n\nResult: 49/132 bytes diff (matches 128B size \u2014 short by exactly one instruction in the prologue). Body from offset 0x14 onward matches byte-exact (subu/bgtz/sw 0x120; load mEditFlags + 0x80000000 mask + sltu/sltiu/andi triple; toggle branch; struct copy via addiu+lw+addiu+sw). The two `andi 0xff` redundancies the SNC bool conversion pattern produces match in count and ordering.\n\nThe diff is purely the prologue scheduling around blez:\n  Target (5 instr):   addiu sp,-16; move a2,a1; lw a1,0x120(a0); blez a1,end; sw a2,0(sp)  [delay slot productive]\n  Mine   (6 instr):   addiu sp,-16; lw a2,0x120(a0); sw a1,0(sp); move a1,a2; blez a1,end; nop\nTarget loads timer directly into a1 (clobbering the time param) AFTER spilling time to a2 first, then in the blez delay slot stores a2 to stack. Then immediately reloads from stack at offset 0x14 (`lw a2,0(sp)`) \u2014 a wasteful spill+reload pattern characteristic of treating the by-value cTimeValue param as having a stack home.\n\nTried: SetCursorVisible(!IsCursorVisible()) inline form; explicit `bool h=!IsCursorVisible(); SetCursorVisible(h);` (same 49 diff); intermediate unsigned char with &0xff casts (worse: 6 andis instead of 4, beqzl instead of beqz, 102 bytes diff); `if(mBlinkTimer>0)` direct field access vs local `int timer`; pre-loading `int t=time.mTime` (no change); permuter 180s/2348 candidates (zero improvement from 49). Root cause: SNC's prologue scheduler decides on register ordering for parameters/spill based on signals I can't reach from C++ source \u2014 target appears to have been compiled with the parameter treated as a stack-resident cTimeValue (perhaps original signature was `const cTimeValue&` and source emitted matching by-value codegen, or a different pass through the parameter ABI). Falls into same SNC scheduling/regalloc divergence class as SetCursorPos.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:27:12Z",
+        "src_file": "src/gcUIEditBox.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/65a5a0de/0013ac08__agent_self_reported_failure__src_gcUIEditBox.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013ac8c",
@@ -115155,7 +115209,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00111f08",
       "0x00112d5c",
@@ -115163,7 +115217,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcNPCBipedControllerEMove6KcTimeValue"
+    "mangled_symbol": "__0fUgcNPCBipedControllerEMove6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "2a8a8d21",
+        "notes": "gcNPCBipedController::Move(cTimeValue) \u2014 132B target, our compile is 140B (8B over) with 73/132 byte diff. Body logic is correct: HandleNextAnimation(t), bool-cast bnez on entity+0x218 != 0, UpdateLocalToWorld(t,&sp10,(mVec3*)(this+0xA0)), test nav+0x4C & 2, HandleHeightOnPath(&sp10.position). The (unsigned char)(x!=0) idiom matches expected (lw/sltu zero,x/andi 0xff/bnez). Diff is purely register allocation: expected uses 3 callee-saved (s0=this, s1=nav, s2=entity) and reloads t via lw a1,0(sp) before each call; ours uses 4 callee-saved (s0=this, s1=t, s2=nav, s3=entity), caching t in s1 with move a1,s1 before each call. The extra s3 save/restore + frame growth accounts for the 8 byte overage. Tried: original form, &t pointer form (worse, 86B diff), asm volatile(\"\":\"+m\"(t)) clobber barrier (worse, 77B diff). Cannot coax SNC to skip caching t in callee-saved s1 when t is used twice across calls \u2014 heuristic divergence with original SNC. Permuter not run (size mismatch prevents baseline scoring without --symbol arg, and tools/permuter.py main() doesn't expose target_symbol kwarg). Best closure: register-allocation heuristic divergence in SNC 1.2.7503.0 vs original game's compiler revision.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:38:39Z",
+        "src_file": "src/gcNPCBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/2a8a8d21/00154eac__agent_self_reported_failure__src_gcNPCBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00154f30",
@@ -115175,14 +115243,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0011211c",
       "0x001174b4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcNPCBipedControllerPPostPhysicsMove6KcTimeValue"
+    "mangled_symbol": "__0fUgcNPCBipedControllerPPostPhysicsMove6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "2a8a8d21",
+        "notes": "gcNPCBipedController::PostPhysicsMove(cTimeValue) \u2014 252B target, our compile is 244B (8B short) with size-mismatch (compare_func reports SIZE MISMATCH so byte-diff cannot run; structural diff is 8 bytes / 2 instructions in the boolean block). Body logic is correct: GetVelocity, this+0xB4 = sp10[8], if (entity2+0x10C & 4) call vtable+0xB8 method, mOCS copy via lv.q/sv.q, ApplyMovement(t,&sp20), then nav+0x4C flag combo. The terminal flag block computes cond = (flags&4) && (!(flags&1) || (flags&0x10)) and ORs 8 into nav+0x4C if true. Expected emits this with 12 instr: bnez+andi(delay)+b+li(delay)+beqz+li(delay)+andi+bnez+li(delay)+b+li(delay) \u2014 every delay slot writes a0 (cond). Our SNC is more aggressive and emits 10 instr: beqz+li(delay)+andi+beqz+li(delay)+li+andi+bnezl+li(delay-likely) \u2014 folds the final cond=0 path by predicating cond=0 before the third test and using branch-likely. Same logical result, 2 fewer instructions. Tried: else-if chain (244B), nested-if (244B), && + || form (240B), goto+labels (252B but 113B diff \u2014 restructured prologue badly), `cond = 0` initializer (244B). The 244B form is closest. This is structurally identical to the bnel heuristic divergence in docs/decisions/006: SNC 1.2.7503.0 chose branch-likely fold where the original chose explicit b+li sequences. 8B diff matches docs/decisions/006 diagnostic criteria 1, but our specific instruction is bnezl vs bnez+b+li (not bnel vs bne+nop) so doesn't strictly meet criterion 2. Permuter not run (multi-function .o + no --symbol flag in tools/permuter.py main causes baseline-scoring failure).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:38:39Z",
+        "src_file": "src/gcNPCBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/2a8a8d21/00154f30__agent_self_reported_failure__src_gcNPCBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0015502c",
@@ -115388,7 +115470,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00111f08",
       "0x00112d5c",
@@ -115396,7 +115478,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcNPCFlyingControllerEMove6KcTimeValue"
+    "mangled_symbol": "__0fVgcNPCFlyingControllerEMove6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "f22fa737",
+        "notes": "gcNPCFlyingController::Move(cTimeValue), 132B, mismatch 59/132 bytes. Both function size and instruction count match. Calls: HandleNextAnimation(t), conditional UpdateLocalToWorld(t, &sp10, this+0xA0), conditional HandleHeightOnPath(&sp10.position). Source structure: load entity *this, call HandleNextAnimation(t), if (entity->unk218 != 0) return early, load nav = entity->unk1F8, call UpdateLocalToWorld, then check nav->unk4C & 2 for HandleHeightOnPath. Mine uses 3 saved regs (s0=this, s1=t cached, s2=entity then s2=nav reused). Tried: (1) loading entity+nav before HandleNextAnimation \u2014 generates 4 saved regs (s0..s3) and 112B stack, worse (73 byte diff). (2) loading nav after the entity check \u2014 current best, 3 saved regs but compiler caches t in s1. (3) if-not pattern with else block instead of early return \u2014 73 byte diff. (4) #pragma control sched=1 \u2014 81 byte diff. (5) sched=0 \u2014 95 byte diff. ROOT CAUSE: Expected uses s0=this, s1=nav (loaded BEFORE HandleNextAnimation), s2=entity (kept across calls), with t reloaded from sp+0 each time before each call. Mine uses s0=this, s1=t (cached), s2=entity then s2=nav (reused). Compiler chose to promote t to a saved reg instead of keeping it on stack \u2014 likely because it sees only 3 callee-saves needed and decides caching t saves 1 instruction. Need source structure that makes compiler keep both entity AND nav alive across the first call (3 saved regs naturally) WITHOUT promoting t to s1. Same issue exists on sibling gcNPCBipedController::Move @ 0x00154eac (also unmatched). Permuter unusable here (tools/permuter.py errors on multi-function .o). Likely an SNC heuristic difference between the original ProDG SN compiler and our wibo+pspsnc 1.2.7503.0.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:49:48Z",
+        "src_file": "src/gcNPCFlyingController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/f22fa737/00155490__agent_self_reported_failure__src_gcNPCFlyingController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00155514",
@@ -115408,13 +115504,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0011211c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcNPCFlyingControllerPPostPhysicsMove6KcTimeValue"
+    "mangled_symbol": "__0fVgcNPCFlyingControllerPPostPhysicsMove6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "f22fa737",
+        "notes": "gcNPCFlyingController::PostPhysicsMove(cTimeValue), 228B, mismatch 55/228 bytes. SIZE NOW MATCHES (was 12-16 bytes short initially). Required restructuring: (1) introduce explicit `char *base = (char *)entity + 0x80;` BEFORE function-pointer table lookup so compiler emits `addiu a1, s2, 128` early and uses a2/a3 for lh/lw reads (matched function-pointer call section perfectly). (2) Use `mOCS sp10;` followed by field-by-field assignment `sp10.position = src->position; sp10.row0 = src->row0; sp10.row1 = src->row1; sp10.row2 = src->row2;` to get compiler-generated lv.q/sv.q in the order position-then-rows (matched the lv.q sequence with single C120 reg). (3) Use goto/early-exit pattern for the boolean (a 4-way nested test on flags & 4, & 1, & 0x10) to get explicit b/li delay-slot pattern. (4) Use `*(volatile int *)((char *)nav + 0x4C) = ... | 8;` on the WRITE side to force compiler to emit `nop; lw; ori; sw` (reload from memory) instead of `ori s1, 8; sw` (reuse cached value); without volatile, mine optimizes the |= 8 down by reusing s1=flags. REMAINING DIFFS (55 bytes): (a) lv.q section uses a0 for src base (`addiu a0, s2, 144`) instead of expected a1 (`addiu a1, s2, 144`) \u2014 register allocation choice. (b) ApplyMovement setup: mine loads t directly into a1 mid-section then move a0,s1 in delay slot; expected loads t into a3 (an intermediate register), then move a1,a3 in delay slot. (c) Boolean section structure differs: mine uses bnez+b chain (4 branches each with li delay slot), expected uses a beqz+li delay+andi+bnez pattern at one point \u2014 total instruction count matches but branch directions are different. These remaining diffs are pure register allocation / scheduling decisions that are hard to control from C source. Tried sched pragmas (worse). Permuter unusable on this .o. Likely SNC heuristic divergence.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-05T23:49:48Z",
+        "src_file": "src/gcNPCFlyingController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_170107/f22fa737/00155514__agent_self_reported_failure__src_gcNPCFlyingController.cpp"
+      }
+    ]
   },
   {
     "address": "0x001555f8",
