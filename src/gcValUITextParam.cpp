@@ -31,6 +31,7 @@ struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
+    void GetText(char *) const;
     void Write(cWriteBlock &) const;
 };
 
@@ -64,6 +65,12 @@ struct DtorDeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct TextDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 class gcLValue {
 public:
     cBase *mParent;
@@ -78,6 +85,7 @@ public:
 
     ~gcValUITextParam();
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -97,6 +105,8 @@ static cType *type_expression;
 static cType *type_value;
 static cType *type_variable;
 static cType *type_gcValUITextParam;
+
+void cStrCat(char *, const char *);
 
 struct AllocEntry {
     short offset;
@@ -157,6 +167,36 @@ void gcValUITextParam::Write(cFile &file) const {
     ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x14))->Write(wb);
     wb.End();
+}
+
+// -- gcValUITextParam::GetText(char *) const @ 0x00367dc8 --
+void gcValUITextParam::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+    cStrCat(buf, (const char *)0x36F804);
+
+    int val = *(int *)((const char *)this + 0x14);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        TextDispatchEntry *entry = (TextDispatchEntry *)(typeInfo + 0xD0);
+        entry->fn((char *)val + entry->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+    cStrCat(buf, (const char *)0x36E2E8);
 }
 
 const cType *gcValUITextParam::GetType(void) const {

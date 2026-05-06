@@ -192936,7 +192936,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -210511,7 +210511,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221847,7 +221847,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221855,7 +221855,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcValEnumerationEntryHGetTextPcK"
+    "mangled_symbol": "__0fVgcValEnumerationEntryHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "26f4c877",
+        "notes": "Closest attempt is a split-TU canonical C++ method with the helper GetText(buf, false), exact first tagged-value presence test, cStrAppend(0x36DCBC), and desired-value +0xD0 GetText dispatch. Manual variants tried: owning class TU, prompt-requested gcValUITextParam TU placement, split TU, explicit bool local to get the helper-call delay slot, mutating the first val variable to force the sltu/andi/sltu bool conversion, direct slot->fn versus short/function locals, register-bound objVal, and zero-cost asm dependencies on this/owner. Permuter ran 300s and improved from 20 differing bytes to 16 but did not match. The remaining difference is register allocation in the second desired-value dispatch block: generated code keeps the object pointer in s1 and calls through a3, while expected keeps the object/check in a0/a1 and calls through a2. This appears to be SNC register allocation drift, not a control-flow or scheduling mismatch; no pure assembly workaround was used.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T23:57:50Z",
+        "src_file": "src/gcValEnumerationEntry_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/26f4c877/00342470__agent_self_reported_failure__src_gcValEnumerationEntry_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x00342548",
@@ -232162,14 +232176,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00001368",
       "0x0012e67c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValUITextParamHGetTextPcK"
+    "mangled_symbol": "__0fQgcValUITextParamHGetTextPcK",
+    "src_file": "src/gcValUITextParam.cpp",
+    "symbol_name": "__0fQgcValUITextParamHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "26f4c877",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:57:50Z"
   },
   {
     "address": "0x00367e98",
