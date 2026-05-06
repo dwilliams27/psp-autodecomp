@@ -84964,7 +84964,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000efae4"
     ],
@@ -84973,7 +84973,14 @@
       "0x000f2ad4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapOFillRegionListP6GcGUIDT76IgcRegion_iK"
+    "mangled_symbol": "__0fFgcMapOFillRegionListP6GcGUIDT76IgcRegion_iK",
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapOFillRegionListP6GcGUIDT76IgcRegion_iK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d3a7655e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T01:25:06Z"
   },
   {
     "address": "0x000f2ad4",
@@ -85011,7 +85018,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000f2c8c"
     ],
@@ -85019,7 +85026,21 @@
       "0x000f1a40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapNLoadRegionSetiTB"
+    "mangled_symbol": "__0fFgcMapNLoadRegionSetiTB",
+    "failure_notes": [
+      {
+        "session": "d3a7655e",
+        "notes": "gcMap::LoadRegionSet(int, int) \u2014 control flow structure matches expected exactly: bltz/bnezl/slt bounds check pattern x2, with goto label structure mirroring the matched ClearRegionSetState. Best diff: 17/148 bytes. The remaining differences are register allocation: SNC chose a1 for both 'group' and 'set' (chaining loads into same register), while expected put 'group' in a3 and 'set' in a1. Tried: void* vs gcRegionSetGroup* typing, set=0 init at decl, if(group==0) goto vs if(group!=0) wrapping, declaring set inside vs outside if-block, dummy variable trick. Permuter ran 180s, 1969 candidates, ZERO improvement. Root cause: SNC register allocator merges group/sets/set into one register chain in mine, expected splits group\u2192a3, set\u2192a1 to allow set=0 to fill the beqz delay slot. Source preserved at lines 394-435 in src/gcMap.cpp for retry.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:25:06Z",
+        "src_file": "src/gcMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/d3a7655e/000f2bf8__agent_self_reported_failure__src_gcMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f2c8c",
@@ -89578,7 +89599,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00056990"
     ],
@@ -89910,7 +89931,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00104ef4"
     ],

@@ -70,6 +70,8 @@ public:
     static int IsMapLoading(bool);
     static int IsObjectLoading(void);
     void LoadRegionSet(const cGUIDT<gcRegion> *);
+    void LoadRegionSet(int, int);
+    int FillRegionList(cGUIDT<gcRegion> *, int) const;
     void LoadRegion(const cGUIDT<gcRegion> &, int, bool);
     void MemCardReplicate(gcReplicationVisitor &);
     void MemCardReplicateStreamedCinematic(gcReplicationVisitor &);

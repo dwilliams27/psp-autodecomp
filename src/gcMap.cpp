@@ -103,6 +103,7 @@ public:
     void **m_arrayData;
 
     void ClearRegionSetState(int) const;
+    void FillRegionList(cGUIDT<gcRegion> *, int &, int) const;
 };
 
 struct TypeMethodPool {
@@ -388,6 +389,72 @@ void gcMap::LoadRegionSet(const cGUIDT<gcRegion> *guids) {
     for (int i = 0; i < 2; i++) {
         LoadRegion(guids[i], i, true);
     }
+}
+
+void gcMap::LoadRegionSet(int groupIdx, int setIdx) {
+    gcRegionSetGroup *group;
+    gcRegionSetGroup **groups;
+    if (groupIdx >= 0) {
+        groups = *(gcRegionSetGroup ***)((char *)this + 0x398);
+        int count = 0;
+        if (groups != 0) {
+            count = ((int *)groups)[-1];
+        }
+        if (groupIdx < count) {
+            goto valid_group;
+        }
+    }
+    group = 0;
+    goto have_group;
+valid_group:
+    group = *(gcRegionSetGroup **)((char *)groups + (groupIdx << 2));
+have_group:
+    void *set = 0;
+    void **sets;
+    if (group != 0) {
+        if (setIdx >= 0) {
+            sets = *(void ***)((char *)group + 0x20);
+            int count = 0;
+            if (sets != 0) {
+                count = ((int *)sets)[-1];
+            }
+            if (setIdx < count) {
+                goto valid_set;
+            }
+        }
+        set = 0;
+        goto have_set;
+valid_set:
+        set = *(void **)((char *)sets + (setIdx << 2));
+have_set:
+        ;
+    }
+    if (set != 0) {
+        LoadRegionSet((const cGUIDT<gcRegion> *)((char *)set + 8));
+    }
+}
+
+int gcMap::FillRegionList(cGUIDT<gcRegion> *list, int max) const {
+    int count = 0;
+    int i = 0;
+    gcRegionSetGroup **dummy = *(gcRegionSetGroup ***)((const char *)this + 0x398);
+    int byteOffset = 0;
+    (void)dummy;
+    while (true) {
+        int total = 0;
+        if (*(gcRegionSetGroup ***)((const char *)this + 0x398) != 0) {
+            total = ((int *)*(gcRegionSetGroup ***)((const char *)this + 0x398))[-1];
+        }
+        if (i >= total) break;
+        gcRegionSetGroup *group = *(gcRegionSetGroup **)(
+            (char *)*(gcRegionSetGroup ***)((const char *)this + 0x398) + byteOffset);
+        if (group != 0) {
+            group->FillRegionList(list, count, max);
+        }
+        i++;
+        byteOffset += 4;
+    }
+    return count;
 }
 
 class gcEntity {
