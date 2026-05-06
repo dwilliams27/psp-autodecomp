@@ -190303,7 +190303,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x00004b38"
@@ -209815,7 +209815,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
@@ -224628,14 +224628,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValLobbyMailInfoHGetTextPcK"
+    "mangled_symbol": "__0fSgcValLobbyMailInfoHGetTextPcK",
+    "src_file": "src/gcValLobbyMailInfo.cpp",
+    "symbol_name": "__0fSgcValLobbyMailInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f86db89b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:38:55Z"
   },
   {
     "address": "0x0034a640",
@@ -225848,14 +225856,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValLobbyUserInfoHGetTextPcK"
+    "mangled_symbol": "__0fSgcValLobbyUserInfoHGetTextPcK",
+    "src_file": "src/gcValLobbyMailInfo.cpp",
+    "symbol_name": "__0fSgcValLobbyUserInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f86db89b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:38:55Z"
   },
   {
     "address": "0x0034f67c",

@@ -51,6 +51,12 @@ struct DtorDeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -86,6 +92,9 @@ public:
     void Write(cFile &) const;
 };
 
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
 class gcValLobbyMailInfo : public gcValue {
 public:
     gcDesiredValue mDesired;   // 0x08 — start of embedded gcDesiredValue
@@ -94,6 +103,7 @@ public:
     ~gcValLobbyMailInfo();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
 
@@ -106,6 +116,11 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+class gcValLobbyUserInfo : public gcValue {
+public:
+    void GetText(char *) const;
 };
 
 class gcValObjectCompare : public gcValue {
@@ -326,4 +341,56 @@ void gcValLobbyMailInfo::Write(cFile &file) const {
     wb.Write(this->mFieldC);
     ((gcDesiredValue *)((char *)this + 8))->Write(wb);
     wb.End();
+}
+
+// ── gcValLobbyMailInfo::GetText(char *) const @ 0x0034a588 ──
+void gcValLobbyMailInfo::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36F4FC);
+
+    int val = *(int *)((const char *)this + 0x08);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
+}
+
+// ── gcValLobbyUserInfo::GetText(char *) const @ 0x0034f5c4 ──
+void gcValLobbyUserInfo::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36F574);
+
+    int val = *(int *)((const char *)this + 0x0C);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
 }
