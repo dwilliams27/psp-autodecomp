@@ -60,6 +60,7 @@ public:
 
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     ~gcValLobbyStatus();
     void Write(cFile &) const;
 
@@ -75,6 +76,7 @@ public:
 };
 
 extern char gcValLobbyStatusvirtualtable[];
+void cStrAppend(char *, const char *, ...);
 
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
@@ -132,6 +134,23 @@ void gcValLobbyStatus::Write(cFile &file) const {
     wb.Write(this->f8);
     wb.Write(this->fC);
     wb.End();
+}
+
+// -- gcValLobbyStatus::GetText(char *) const @ 0x0015af44 --
+void gcValLobbyStatus::GetText(char *buf) const {
+    const char *arg = (const char *)0x36DAF0;
+    cStrAppend(buf, (const char *)0x36F55C, arg);
+
+    int status = this->f8;
+    if (status == 0) {
+        cStrAppend(buf, (const char *)0x36F570, arg);
+    } else if (status == 1) {
+        cStrAppend(buf, (const char *)0x36F570, arg);
+    } else if (status == 2) {
+        cStrAppend(buf, (const char *)0x36F570, arg);
+    } else if (status == 3) {
+        cStrAppend(buf, (const char *)0x36F570, arg);
+    }
 }
 
 // ── gcValLobbyStatus::~gcValLobbyStatus(void) @ 0x0034ed50 ──

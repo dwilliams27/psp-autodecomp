@@ -117976,13 +117976,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValLobbyStatusHGetTextPcK"
+    "mangled_symbol": "__0fQgcValLobbyStatusHGetTextPcK",
+    "src_file": "src/gcValLobbyStatus.cpp",
+    "symbol_name": "__0fQgcValLobbyStatusHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f9bd68b2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:22:37Z"
   },
   {
     "address": "0x0015b01c",
@@ -209090,14 +209098,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoUISetFontHGetTextPcK"
+    "mangled_symbol": "__0fNgcDoUISetFontHGetTextPcK",
+    "src_file": "src/gcDoUISetFont.cpp",
+    "symbol_name": "__0fNgcDoUISetFontHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f9bd68b2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:22:37Z"
   },
   {
     "address": "0x0030f86c",
@@ -222236,7 +222252,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],
@@ -227899,7 +227915,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],

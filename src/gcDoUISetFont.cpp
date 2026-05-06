@@ -60,6 +60,7 @@ class gcDesiredUIWidgetHelper {
 public:
     char _pad[12];   // 3 ints
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
 };
 
 class gcDoUISetFont : public gcAction {
@@ -71,6 +72,7 @@ public:
     ~gcDoUISetFont();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -86,6 +88,8 @@ extern char gcDoUISetFontvirtualtable[];
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(void *, int);
 gcDoUISetFont *dcast(const cBase *);
+void cStrAppend(char *, const char *, ...);
+extern void *D_00038890[];
 
 struct PoolBlock {
     char pad[0x1C];
@@ -96,6 +100,13 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct HandleObject {
+    char pad0[0x1C];
+    short nameLen;
+    char pad1[0x12];
+    int handle;
 };
 
 static cType *type_action asm("D_000385D4");
@@ -169,6 +180,49 @@ void gcDoUISetFont::Write(cFile &file) const {
     mWidget.Write(wb);
     mHandle.Write(wb);
     wb.End();
+}
+
+// -- gcDoUISetFont::GetText(char *) const @ 0x0030f788 --
+void gcDoUISetFont::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->GetText(local);
+
+    register const char *fmt __asm__("$4") = (const char *)0x36F088;
+    register int h __asm__("$5") = *(int *)((char *)this + 0x18);
+    register HandleObject *obj __asm__("$6");
+    if (h == 0) {
+        obj = 0;
+    } else {
+        register HandleObject *cand __asm__("$7") =
+            (HandleObject *)D_00038890[h & 0xFFFF];
+        obj = 0;
+        if (cand != 0) {
+            if (cand->handle == h) {
+                obj = cand;
+            }
+        }
+    }
+
+    const char *text;
+    if (obj != 0) {
+        unsigned int empty = (obj->nameLen == 0);
+        empty &= 0xFF;
+        if (empty) {
+            text = (const char *)0x36DAB8;
+            goto object_done;
+        }
+        text = (const char *)obj + 8;
+object_done:
+        __asm__ volatile("" : : "r"(text));
+        goto append;
+    } else if (h != 0) {
+        text = (const char *)0x36DAC4;
+    } else {
+        text = (const char *)0x36DACC;
+    }
+append:
+    cStrAppend(buf, fmt, local, text);
 }
 
 // ── gcDoUISetFont::~gcDoUISetFont @ 0x0030fba8 ──
