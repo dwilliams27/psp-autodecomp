@@ -199130,7 +199130,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -199333,7 +199333,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -207219,13 +207219,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoTimerActivateHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoTimerActivateHGetTextPcK",
+    "src_file": "src/gcDoTimerActivate.cpp",
+    "symbol_name": "__0fRgcDoTimerActivateHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "71995353",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:26:20Z"
   },
   {
     "address": "0x00308168",
@@ -219321,13 +219329,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValEntityIsValidHGetTextPcK"
+    "mangled_symbol": "__0fSgcValEntityIsValidHGetTextPcK",
+    "src_file": "src/gcValEntityIsValid.cpp",
+    "symbol_name": "__0fSgcValEntityIsValidHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "71995353",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:26:20Z"
   },
   {
     "address": "0x003359b8",

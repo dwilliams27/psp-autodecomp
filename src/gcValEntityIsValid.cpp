@@ -56,6 +56,7 @@ public:
     bool field_34;
 
     void AssignCopy(const cBase *);
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -65,6 +66,7 @@ gcValEntityIsValid *dcast(const cBase *);
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrAppend(char *, const char *, ...);
 
 extern const char gcValEntityIsValid_base_name[];
 extern const char gcValEntityIsValid_base_desc[];
@@ -110,6 +112,24 @@ void gcValEntityIsValid::Write(cFile &file) const {
 
     wb.Write(field_34);
     wb.End();
+}
+
+void gcValEntityIsValid::GetText(char *buf) const {
+    const cTypeMethod *entityText =
+        (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 0x78);
+    const char *entityBase = (const char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)entityText->fn)((void *)(entityBase + entityText->offset), buf);
+
+    cStrAppend(buf, (const char *)0x36F34C);
+    if (field_34) {
+        const cTypeMethod *templateText =
+            (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)this + 0x38))->mType + 0x78);
+        const char *templateBase = (const char *)this + 0x38;
+        ((TextFn)templateText->fn)((void *)(templateBase + templateText->offset), buf);
+        cStrAppend(buf, (const char *)0x36E440);
+    }
+    cStrAppend(buf, (const char *)0x36EBE4);
 }
 
 static cType *type_base;

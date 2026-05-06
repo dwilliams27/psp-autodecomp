@@ -45,11 +45,18 @@ public:
 };
 
 typedef void (*TimerWriteFn)(cBase *, cFile *);
+typedef void (*TimerTextFn)(void *, char *);
 
 struct TimerWriteSlot {
     short        mOffset;     // +0
     short        _pad;        // +2
     TimerWriteFn mFn;         // +4
+};
+
+struct TimerTextSlot {
+    short       mOffset;     // +0
+    short       _pad;        // +2
+    TimerTextFn mFn;         // +4
 };
 
 struct TimerTypeInfoWrite {
@@ -74,6 +81,7 @@ public:
     // 0x21: bool
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     ~gcDoTimerActivate(void);
     static void operator delete(void *);
@@ -91,6 +99,8 @@ extern char gcDoTimerActivate_desobj_mid_vtable[] asm("D_000008D8");
 extern char gcDoTimerActivate_vtable1[];
 extern const char gcDoTimerActivate_base_name[] asm("D_0036D894");
 extern const char gcDoTimerActivate_base_desc[] asm("D_0036D89C");
+
+void cStrAppend(char *, const char *, ...);
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
@@ -178,6 +188,31 @@ void gcDoTimerActivate::Write(cFile &file) const {
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.Write(*(const bool *)((char *)this + 0x21));
     wb.End();
+}
+
+// 0x003080d0 - gcDoTimerActivate::GetText(char *) const
+void gcDoTimerActivate::GetText(char *buf) const {
+    TimerTextSlot *slot = (TimerTextSlot *)(*(char **)((const char *)this + 0x10) + 0x78);
+    char *base = (char *)this + 0x0C;
+    slot->mFn(base + slot->mOffset, buf);
+
+    const char *fmt = (const char *)0x36EFCC;
+    const char *state;
+    register const char *arg __asm__("$6");
+    if (*(const unsigned char *)((const char *)this + 0x20) != 0) {
+        if (*(const unsigned char *)((const char *)this + 0x21) != 0) {
+            state = (const char *)0x36EFD4;
+        } else {
+            state = (const char *)0x36EFE4;
+        }
+        arg = state;
+        goto append;
+    }
+    state = (const char *)0x36EFF0;
+    arg = state;
+
+append:
+    cStrAppend(buf, fmt, arg);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
