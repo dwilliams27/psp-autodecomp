@@ -1,0 +1,4012 @@
+[
+  {
+    "address": "0x0002bb40",
+    "name": "eShape::ComputeMinAxis(void)",
+    "size": 408
+  },
+  {
+    "address": "0x0014ff20",
+    "name": "gcDoSwitchCase::Evaluate(void) const",
+    "size": 240
+  },
+  {
+    "address": "0x00020564",
+    "name": "eWorld::MoveIntoRooms(void)",
+    "size": 264
+  },
+  {
+    "address": "0x00318db0",
+    "name": "gcDoWhile::SetChild(int, gcExpression *)",
+    "size": 240
+  },
+  {
+    "address": "0x00087068",
+    "name": "eSilhouetteModelMtl::~eSilhouetteModelMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x0001c990",
+    "name": "eConfigBase::Reset(cMemPool *, bool)",
+    "size": 300
+  },
+  {
+    "address": "0x00084444",
+    "name": "eReflectionModelMtl::~eReflectionModelMtl(void)",
+    "size": 452
+  },
+  {
+    "address": "0x00067648",
+    "name": "eBipedController::UpdateGroundMovement(mVec3 *, mVec3 *)",
+    "size": 148
+  },
+  {
+    "address": "0x000653a4",
+    "name": "eBipedController::Deactivate(eDynamicModel *)",
+    "size": 176
+  },
+  {
+    "address": "0x0003ab18",
+    "name": "eInputJoystick::UpdatePointerPos(mVec2 &, unsigned char, unsigned char, float *, float *) static",
+    "size": 280
+  },
+  {
+    "address": "0x0003aee0",
+    "name": "eInputJoystick::DrawPointer(int, const eCamera &) static",
+    "size": 444
+  },
+  {
+    "address": "0x0036128c",
+    "name": "gcValTrinaryOp::GetTextSeparator(int) const",
+    "size": 148
+  },
+  {
+    "address": "0x0007df50",
+    "name": "eProjectedModelMtl::~eProjectedModelMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x00083150",
+    "name": "eProjectedDynamicMtl::~eProjectedDynamicMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x000888c0",
+    "name": "eStandardHeightmapMtl::~eStandardHeightmapMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x0008974c",
+    "name": "eStandardParticleSystemMtl::~eStandardParticleSystemMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x0008a4b8",
+    "name": "eStandardWeatherEffectMtl::~eStandardWeatherEffectMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x0008b384",
+    "name": "eTwoPassModelMtl::~eTwoPassModelMtl(void)",
+    "size": 464
+  },
+  {
+    "address": "0x000879f4",
+    "name": "eStandardGeomTrailMtl::~eStandardGeomTrailMtl(void)",
+    "size": 480
+  },
+  {
+    "address": "0x00150580",
+    "name": "gcDoSwitch::Evaluate(void) const",
+    "size": 508
+  },
+  {
+    "address": "0x00086c9c",
+    "name": "eShadowVolumeTexture::GetFullTexCoords(mVec4 *) const",
+    "size": 192
+  },
+  {
+    "address": "0x000758c8",
+    "name": "eKeyframedControllerTemplate::GetInstanceType(void) const",
+    "size": 216
+  },
+  {
+    "address": "0x0005f07c",
+    "name": "eStaticPointLight::GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const",
+    "size": 224
+  },
+  {
+    "address": "0x00020dfc",
+    "name": "eSoundData::GetExternalDependency(int, cFilename *) const",
+    "size": 228
+  },
+  {
+    "address": "0x0005f844",
+    "name": "eStaticSpotLight::GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const",
+    "size": 360
+  },
+  {
+    "address": "0x000ef658",
+    "name": "gcRegion::RemoveFromWorld(void)",
+    "size": 364
+  },
+  {
+    "address": "0x002f0ca0",
+    "name": "gcDoPlayCinematic::~gcDoPlayCinematic(void)",
+    "size": 416
+  },
+  {
+    "address": "0x0030c34c",
+    "name": "gcDoUIFade::~gcDoUIFade(void)",
+    "size": 444
+  },
+  {
+    "address": "0x00081f74",
+    "name": "eOnePassModelMtl::~eOnePassModelMtl(void)",
+    "size": 480
+  },
+  {
+    "address": "0x00067e34",
+    "name": "eSphereShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 164
+  },
+  {
+    "address": "0x00067d88",
+    "name": "eSphereShape::GetCollisionHandler(const mVec3 &) const",
+    "size": 172
+  },
+  {
+    "address": "0x00068100",
+    "name": "eSphereShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 384
+  },
+  {
+    "address": "0x0035bb20",
+    "name": "gcValStateTimer::Set(float)",
+    "size": 100
+  },
+  {
+    "address": "0x0034725c",
+    "name": "gcValHeadset::Set(float)",
+    "size": 108
+  },
+  {
+    "address": "0x00044ac4",
+    "name": "eStaticMesh::Free(void)",
+    "size": 120
+  },
+  {
+    "address": "0x0027dd34",
+    "name": "gcGameStrings::Get(wchar_t *, int) const",
+    "size": 128
+  },
+  {
+    "address": "0x0012111c",
+    "name": "gcPlayer::BindLocalController(void) static",
+    "size": 168
+  },
+  {
+    "address": "0x001205e8",
+    "name": "gcPlayer::AssignClientPlayerId(nwConnectionHandle, int, const char *, float) static",
+    "size": 200
+  },
+  {
+    "address": "0x000614cc",
+    "name": "eWeatherEffectTemplate::GetInstanceType(void) const",
+    "size": 216
+  },
+  {
+    "address": "0x00062a70",
+    "name": "eBipedControllerTemplate::GetInstanceType(void) const",
+    "size": 216
+  },
+  {
+    "address": "0x00008f50",
+    "name": "cNamed::GenerateName(const char *)",
+    "size": 224
+  },
+  {
+    "address": "0x0002c21c",
+    "name": "eMaterial::ApplyVirtual(const eCamera *, const eWorld *) const",
+    "size": 224
+  },
+  {
+    "address": "0x0034adb8",
+    "name": "gcValLobbyOptions::Set(float)",
+    "size": 224
+  },
+  {
+    "address": "0x0036a510",
+    "name": "gcValUnaryOp::SetChild(int, gcExpression *)",
+    "size": 240
+  },
+  {
+    "address": "0x0005d820",
+    "name": "eVolume::SetVolumeFlagsOnOff(unsigned int, unsigned int)",
+    "size": 264
+  },
+  {
+    "address": "0x0013bcd8",
+    "name": "gcUIGeomTemplate::GetInstanceType(void) const",
+    "size": 280
+  },
+  {
+    "address": "0x0035ee5c",
+    "name": "gcValStringIndex::~gcValStringIndex(void)",
+    "size": 332
+  },
+  {
+    "address": "0x002674a0",
+    "name": "gcEntityGeomConfig::GetName(char *) const",
+    "size": 348
+  },
+  {
+    "address": "0x002d9834",
+    "name": "gcDoFunction::GetText(char *) const",
+    "size": 348
+  },
+  {
+    "address": "0x0033b938",
+    "name": "gcValEntityPrimaryController::~gcValEntityPrimaryController(void)",
+    "size": 360
+  },
+  {
+    "address": "0x0031513c",
+    "name": "gcDoUISetTextColor::Evaluate(void) const",
+    "size": 468
+  },
+  {
+    "address": "0x001202b8",
+    "name": "gcPlayer::AssignLocalController(int, bool) static",
+    "size": 480
+  },
+  {
+    "address": "0x00361ab0",
+    "name": "gcValUIChecked::Set(float)",
+    "size": 508
+  },
+  {
+    "address": "0x000079fc",
+    "name": "cListSubscriber::NotifyRemove(cListSubscriber *&, void *) static",
+    "size": 128
+  },
+  {
+    "address": "0x000077c4",
+    "name": "cListSubscriber::Select(int)",
+    "size": 200
+  },
+  {
+    "address": "0x0003b4ec",
+    "name": "eInputMouse::BeginDrag(const mVec2 &, eColor, cHandleT<eMaterial>) static",
+    "size": 68
+  },
+  {
+    "address": "0x00002164",
+    "name": "cVolatile::Initialize(void) static",
+    "size": 144
+  },
+  {
+    "address": "0x0013c6e8",
+    "name": "gcRoomInstance::Reset(cMemPool *, bool)",
+    "size": 176
+  },
+  {
+    "address": "0x00105db0",
+    "name": "gcGameGlobals::Create(void) static",
+    "size": 192
+  },
+  {
+    "address": "0x00350a24",
+    "name": "gcValMouseState::GetText(char *) const",
+    "size": 196
+  },
+  {
+    "address": "0x0005c93c",
+    "name": "eRoomEnvironment::Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *) const",
+    "size": 200
+  },
+  {
+    "address": "0x002b0c7c",
+    "name": "gcDoEntityFindAttached::Evaluate(void) const",
+    "size": 212
+  },
+  {
+    "address": "0x0020e5f0",
+    "name": "eBodyWorldConstraintConfig::GetInstanceType(void) const",
+    "size": 216
+  },
+  {
+    "address": "0x0020e8ac",
+    "name": "eSimpleMotorConfig::GetInstanceType(void) const",
+    "size": 216
+  },
+  {
+    "address": "0x000814ac",
+    "name": "eFilteredTexture::GetFullTexCoords(mVec4 *) const",
+    "size": 220
+  },
+  {
+    "address": "0x00319e9c",
+    "name": "gcDynamicModelConfig::GetControllerType(void) const",
+    "size": 220
+  },
+  {
+    "address": "0x0031cc30",
+    "name": "gcGeomTrailConfig::GetControllerType(void) const",
+    "size": 220
+  },
+  {
+    "address": "0x0031de74",
+    "name": "gcParticleSystemConfig::GetControllerType(void) const",
+    "size": 220
+  },
+  {
+    "address": "0x0031fc10",
+    "name": "gcShadowConfig::GetControllerType(void) const",
+    "size": 220
+  },
+  {
+    "address": "0x00366f7c",
+    "name": "gcValUITexCoord::GetText(char *) const",
+    "size": 244
+  },
+  {
+    "address": "0x0012ede0",
+    "name": "gcDesiredUIWidget::Get(bool) const",
+    "size": 256
+  },
+  {
+    "address": "0x002b2b98",
+    "name": "gcDoEntityForEach::Write(cFile &) const",
+    "size": 276
+  },
+  {
+    "address": "0x00157e44",
+    "name": "gcSimpleControllerTemplate::GetInstanceType(void) const",
+    "size": 288
+  },
+  {
+    "address": "0x001582dc",
+    "name": "gcStationaryControllerTemplate::GetInstanceType(void) const",
+    "size": 288
+  },
+  {
+    "address": "0x002100a8",
+    "name": "eDynamicLightTemplate::~eDynamicLightTemplate(void)",
+    "size": 300
+  },
+  {
+    "address": "0x00215db4",
+    "name": "eShadowTemplate::~eShadowTemplate(void)",
+    "size": 300
+  },
+  {
+    "address": "0x0003c6b8",
+    "name": "eFluidVolume::ReadOld(cReadBlock &)",
+    "size": 324
+  },
+  {
+    "address": "0x0030ffc8",
+    "name": "gcDoUISetOrigin::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x002f2cd0",
+    "name": "gcDoPlayerSetViewport::Evaluate(void) const",
+    "size": 340
+  },
+  {
+    "address": "0x00321eac",
+    "name": "gcValBipedControllerVariable::~gcValBipedControllerVariable(void)",
+    "size": 360
+  },
+  {
+    "address": "0x0033225c",
+    "name": "gcValEntityHasVariables::~gcValEntityHasVariables(void)",
+    "size": 360
+  },
+  {
+    "address": "0x00335248",
+    "name": "gcValEntityIsLocallyControlled::~gcValEntityIsLocallyControlled(void)",
+    "size": 360
+  },
+  {
+    "address": "0x00341b18",
+    "name": "gcValEntityVelocity::~gcValEntityVelocity(void)",
+    "size": 360
+  },
+  {
+    "address": "0x003441f0",
+    "name": "gcValFlyingControllerVariable::~gcValFlyingControllerVariable(void)",
+    "size": 360
+  },
+  {
+    "address": "0x000529cc",
+    "name": "eHeightmap::Reset(cMemPool *, bool)",
+    "size": 404
+  },
+  {
+    "address": "0x00052cb8",
+    "name": "eHeightmap::Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *, unsigned int, int, const cHandleT<eMaterial> *, float) const",
+    "size": 404
+  },
+  {
+    "address": "0x001525bc",
+    "name": "gcPCBipedControllerTemplate::GetInstanceType(void) const",
+    "size": 408
+  },
+  {
+    "address": "0x00154bd8",
+    "name": "gcNPCBipedControllerTemplate::GetInstanceType(void) const",
+    "size": 408
+  },
+  {
+    "address": "0x0030c898",
+    "name": "gcDoUISetFocus::Evaluate(void) const",
+    "size": 412
+  },
+  {
+    "address": "0x00325e0c",
+    "name": "gcValDriveStatus::Evaluate(void) const",
+    "size": 416
+  },
+  {
+    "address": "0x0003b6b4",
+    "name": "eInputMouse::DrawCursor(const eCamera &) static",
+    "size": 420
+  },
+  {
+    "address": "0x00322b50",
+    "name": "gcValCameraVariable::Set(float)",
+    "size": 424
+  },
+  {
+    "address": "0x002730b0",
+    "name": "gcTableColumnStringBuffer::~gcTableColumnStringBuffer(void)",
+    "size": 464
+  },
+  {
+    "address": "0x0002cad0",
+    "name": "eGeom::CleanNeedsUpdateList(void) static",
+    "size": 80
+  },
+  {
+    "address": "0x000ed2e4",
+    "name": "gcStreamedCinematic::Delete(cBase *) static",
+    "size": 312
+  },
+  {
+    "address": "0x000ed4e4",
+    "name": "gcStreamedCinematic::AddToWorld(void)",
+    "size": 380
+  },
+  {
+    "address": "0x00041ce4",
+    "name": "eStaticModel::PlatformRead(cFile &, cMemPool *)",
+    "size": 428
+  },
+  {
+    "address": "0x0002c5c0",
+    "name": "eGeom::~eGeom(void)",
+    "size": 440
+  },
+  {
+    "address": "0x00041f54",
+    "name": "eStaticModel::~eStaticModel(void)",
+    "size": 484
+  },
+  {
+    "address": "0x00078734",
+    "name": "eGeomCurve::Reset(cMemPool *, bool)",
+    "size": 168
+  },
+  {
+    "address": "0x003199e8",
+    "name": "gcDoPortalActivate::GetText(char *) const",
+    "size": 184
+  },
+  {
+    "address": "0x002a2ad4",
+    "name": "gcDoEntityApplyRigidBodyImpulse::GetText(char *) const",
+    "size": 208
+  },
+  {
+    "address": "0x0030f788",
+    "name": "gcDoUISetFont::GetText(char *) const",
+    "size": 228
+  },
+  {
+    "address": "0x0013e5b0",
+    "name": "gcPartialEntityControllerTemplate::CreateAndResetInstance(cMemPool *, gcEntity *, const gcPartialEntityControllerTemplate *, gcPartialEntityController **) static",
+    "size": 280
+  },
+  {
+    "address": "0x00205bb0",
+    "name": "eModelMtlSet::~eModelMtlSet(void)",
+    "size": 284
+  },
+  {
+    "address": "0x00155ef0",
+    "name": "gcRigidBodyControllerTemplate::GetInstanceType(void) const",
+    "size": 288
+  },
+  {
+    "address": "0x002713e4",
+    "name": "gcTableColumnByte::~gcTableColumnByte(void)",
+    "size": 288
+  },
+  {
+    "address": "0x00060810",
+    "name": "eWeatherEffect::~eWeatherEffect(void)",
+    "size": 292
+  },
+  {
+    "address": "0x002e73ec",
+    "name": "gcDoLog::~gcDoLog(void)",
+    "size": 300
+  },
+  {
+    "address": "0x0015806c",
+    "name": "gcSimpleController::Move(cTimeValue)",
+    "size": 308
+  },
+  {
+    "address": "0x002142e8",
+    "name": "eParticleSystemTemplate::~eParticleSystemTemplate(void)",
+    "size": 312
+  },
+  {
+    "address": "0x0003bc70",
+    "name": "eLensFlareSprite::GetName(char *) const",
+    "size": 316
+  },
+  {
+    "address": "0x002e6fb0",
+    "name": "gcDoLog::GetText(char *) const",
+    "size": 320
+  },
+  {
+    "address": "0x003502f4",
+    "name": "gcValMemCardStatus::Evaluate(void) const",
+    "size": 336
+  },
+  {
+    "address": "0x0013794c",
+    "name": "gcStaticInstance::Activate(bool)",
+    "size": 348
+  },
+  {
+    "address": "0x00328468",
+    "name": "gcValEntityControllerVariable::~gcValEntityControllerVariable(void)",
+    "size": 360
+  },
+  {
+    "address": "0x003304b0",
+    "name": "gcValEntityHasConstants::~gcValEntityHasConstants(void)",
+    "size": 360
+  },
+  {
+    "address": "0x002710c8",
+    "name": "gcTableColumnByte::SetSize(int)",
+    "size": 384
+  },
+  {
+    "address": "0x002e6518",
+    "name": "gcDoLobbyUserOp::Evaluate(void) const",
+    "size": 396
+  },
+  {
+    "address": "0x0015519c",
+    "name": "gcNPCFlyingControllerTemplate::GetInstanceType(void) const",
+    "size": 408
+  },
+  {
+    "address": "0x000d6790",
+    "name": "gcString::~gcString(void)",
+    "size": 424
+  },
+  {
+    "address": "0x000332a8",
+    "name": "eDecalSystem::~eDecalSystem(void)",
+    "size": 428
+  },
+  {
+    "address": "0x0011e328",
+    "name": "gcValControllerState::~gcValControllerState(void)",
+    "size": 448
+  },
+  {
+    "address": "0x0031d09c",
+    "name": "gcNPCBipedController::AssignCopy(const cBase *)",
+    "size": 448
+  },
+  {
+    "address": "0x0007a064",
+    "name": "eGeomWake::~eGeomWake(void)",
+    "size": 476
+  },
+  {
+    "address": "0x0031d810",
+    "name": "gcNPCFlyingController::AssignCopy(const cBase *)",
+    "size": 476
+  },
+  {
+    "address": "0x0034fd30",
+    "name": "gcValMapLoading::Evaluate(void) const",
+    "size": 488
+  },
+  {
+    "address": "0x001e0c5c",
+    "name": "eBoxShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 244
+  },
+  {
+    "address": "0x0006e130",
+    "name": "eBoxShape::GetSupport(const mVec3 &, const mOCS &, mVec3 *) const",
+    "size": 272
+  },
+  {
+    "address": "0x0006d868",
+    "name": "eBoxShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 420
+  },
+  {
+    "address": "0x000522c4",
+    "name": "eHeightmapTemplate::GetRelativeFilename(void) const",
+    "size": 188
+  },
+  {
+    "address": "0x00031814",
+    "name": "eRenderTarget::GetFullTexCoords(mVec4 *) const",
+    "size": 268
+  },
+  {
+    "address": "0x00052168",
+    "name": "eHeightmapTemplate::~eHeightmapTemplate(void)",
+    "size": 348
+  },
+  {
+    "address": "0x000857a8",
+    "name": "eRefractionModelMtl::operator=(const eRefractionModelMtl &)",
+    "size": 428
+  },
+  {
+    "address": "0x00031570",
+    "name": "eRenderTarget::Select(cHandleT<eTexture>, bool, cHandleT<eTexture>, unsigned int, eViewport *)",
+    "size": 436
+  },
+  {
+    "address": "0x000855e4",
+    "name": "eRefractionModelMtl::~eRefractionModelMtl(void)",
+    "size": 452
+  },
+  {
+    "address": "0x00056b94",
+    "name": "eMemCard::GetCardClusterSize(void) static",
+    "size": 156
+  },
+  {
+    "address": "0x00055c78",
+    "name": "eMemCard::DeleteList(void) static",
+    "size": 232
+  },
+  {
+    "address": "0x001483fc",
+    "name": "gcGeomCurveController::SetTarget(cHandleT<gcEntity>, const cName &)",
+    "size": 264
+  },
+  {
+    "address": "0x0013c048",
+    "name": "gcUIMarqueeControl::UpdateUI(cTimeValue, const gcEventStackData &)",
+    "size": 284
+  },
+  {
+    "address": "0x0013c1a8",
+    "name": "gcUIMarqueeControl::OnDraw(const eCamera &, const mOCS &, const mVec2 &, const mVec2 &, float, float, float, unsigned int)",
+    "size": 320
+  },
+  {
+    "address": "0x0030f0a0",
+    "name": "gcDoUISendMessage::~gcDoUISendMessage(void)",
+    "size": 360
+  },
+  {
+    "address": "0x0017ee88",
+    "name": "gcGeomCurveController::Replicate(gcReplicationVisitor *)",
+    "size": 388
+  },
+  {
+    "address": "0x0002f960",
+    "name": "eVideo::SetFogInfo(const eCamera *) static",
+    "size": 424
+  },
+  {
+    "address": "0x0030e86c",
+    "name": "gcDoUISendMessage::GetText(char *) const",
+    "size": 428
+  },
+  {
+    "address": "0x00030308",
+    "name": "eVideo::DrawQuad(float, float, float, float, const mVec4 &, unsigned int) static",
+    "size": 436
+  },
+  {
+    "address": "0x00030634",
+    "name": "eVideo::FlipRegistered(cTimeValue) static",
+    "size": 440
+  },
+  {
+    "address": "0x0002fd58",
+    "name": "eVideo::SetViewport(const eViewport *) static",
+    "size": 448
+  },
+  {
+    "address": "0x0002fb08",
+    "name": "eVideo::Clear(bool, bool, unsigned int, float, const eViewport *) static",
+    "size": 484
+  },
+  {
+    "address": "0x0005fce8",
+    "name": "eStaticSunLight::GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const",
+    "size": 220
+  },
+  {
+    "address": "0x000ea9e4",
+    "name": "gcCinematic::CreateDynamicInstance(void)",
+    "size": 224
+  },
+  {
+    "address": "0x0015629c",
+    "name": "gcRigidBodyController::OnActivated(void)",
+    "size": 308
+  },
+  {
+    "address": "0x003623a4",
+    "name": "gcValUIEnabled::Set(float)",
+    "size": 316
+  },
+  {
+    "address": "0x00369f98",
+    "name": "gcValUIVisible::Set(float)",
+    "size": 316
+  },
+  {
+    "address": "0x0029c900",
+    "name": "gcDoChangeState::~gcDoChangeState(void)",
+    "size": 324
+  },
+  {
+    "address": "0x0036225c",
+    "name": "gcValUIEnabled::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x00369e50",
+    "name": "gcValUIVisible::Evaluate(void) const",
+    "size": 328
+  },
+  {
+    "address": "0x00156118",
+    "name": "gcRigidBodyController::OnSelected(void)",
+    "size": 340
+  },
+  {
+    "address": "0x002ea2bc",
+    "name": "gcDoObjectForEachRelationship::~gcDoObjectForEachRelationship(void)",
+    "size": 344
+  },
+  {
+    "address": "0x00363888",
+    "name": "gcValUIOpacity::Evaluate(void) const",
+    "size": 344
+  },
+  {
+    "address": "0x0005fdc4",
+    "name": "eStaticSunLight::DrawLensFlare(const eWorld *, const eCamera &, const eCamera &)",
+    "size": 400
+  },
+  {
+    "address": "0x003639e0",
+    "name": "gcValUIOpacity::Set(float)",
+    "size": 408
+  },
+  {
+    "address": "0x0029bdc4",
+    "name": "gcDoChangeState::GetText(char *) const",
+    "size": 416
+  },
+  {
+    "address": "0x00153f68",
+    "name": "gcFlyingController::WriteMovement(cOutStream &, bool) const",
+    "size": 420
+  },
+  {
+    "address": "0x0015410c",
+    "name": "gcFlyingController::ReadMovement(cInStream &, bool)",
+    "size": 460
+  },
+  {
+    "address": "0x000eab04",
+    "name": "gcCinematic::IsStreamed(void) const",
+    "size": 476
+  },
+  {
+    "address": "0x002e9c3c",
+    "name": "gcDoObjectForEachRelationship::GetText(char *) const",
+    "size": 484
+  },
+  {
+    "address": "0x00011bdc",
+    "name": "eMoviePlatform::AllocWorkArea(int, int)",
+    "size": 164
+  },
+  {
+    "address": "0x00012c94",
+    "name": "eMoviePlatform::dispbuf_show(void)",
+    "size": 164
+  },
+  {
+    "address": "0x0001218c",
+    "name": "eMoviePlatform::decode_videoDecodeEnd(void)",
+    "size": 168
+  },
+  {
+    "address": "0x00013374",
+    "name": "eMoviePlatform::avsync_Compare(void)",
+    "size": 172
+  },
+  {
+    "address": "0x00011d64",
+    "name": "eMoviePlatform::control_create(void)",
+    "size": 176
+  },
+  {
+    "address": "0x00013194",
+    "name": "eMoviePlatform::soundbuf_swapbuf(char *)",
+    "size": 196
+  },
+  {
+    "address": "0x000130b0",
+    "name": "eMoviePlatform::soundbuf_thread(void)",
+    "size": 228
+  },
+  {
+    "address": "0x00011f80",
+    "name": "eMoviePlatform::decode_audioDecode(void)",
+    "size": 248
+  },
+  {
+    "address": "0x000135c4",
+    "name": "eMoviePlatform::read_thread(void)",
+    "size": 260
+  },
+  {
+    "address": "0x00011ad4",
+    "name": "eMoviePlatform::ringbufferCallBack(void *, int, void *) static",
+    "size": 264
+  },
+  {
+    "address": "0x00012078",
+    "name": "eMoviePlatform::decode_videoDecode(void)",
+    "size": 276
+  },
+  {
+    "address": "0x00012b6c",
+    "name": "eMoviePlatform::dispbuf_thread(void)",
+    "size": 296
+  },
+  {
+    "address": "0x00012d38",
+    "name": "eMoviePlatform::soundbuf_create(void)",
+    "size": 404
+  },
+  {
+    "address": "0x00012788",
+    "name": "eMoviePlatform::dispbuf_create(int)",
+    "size": 440
+  },
+  {
+    "address": "0x000118c0",
+    "name": "eDynamicVertChunk::End(eDynamicChunkHandle *)",
+    "size": 128
+  },
+  {
+    "address": "0x0030a634",
+    "name": "gcDoUIEffect::GetText(char *) const",
+    "size": 136
+  },
+  {
+    "address": "0x0001195c",
+    "name": "eDynamicVertChunk::Begin(void)",
+    "size": 152
+  },
+  {
+    "address": "0x0000530c",
+    "name": "cFile::Close(bool)",
+    "size": 160
+  },
+  {
+    "address": "0x0006fe40",
+    "name": "eTriangleShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 160
+  },
+  {
+    "address": "0x003477a4",
+    "name": "gcValKeyboardState::GetText(char *) const",
+    "size": 180
+  },
+  {
+    "address": "0x00342d20",
+    "name": "gcValEventVar::Set(float)",
+    "size": 184
+  },
+  {
+    "address": "0x00342dd8",
+    "name": "gcValEventVar::GetText(char *) const",
+    "size": 192
+  },
+  {
+    "address": "0x0006fd54",
+    "name": "eTriangleShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 212
+  },
+  {
+    "address": "0x00005234",
+    "name": "cFile::Open(const char *)",
+    "size": 216
+  },
+  {
+    "address": "0x00070020",
+    "name": "eTriangleShape::GetSupport(const mVec3 &, const mOCS &, eCollisionSupport *) const",
+    "size": 220
+  },
+  {
+    "address": "0x00060140",
+    "name": "eStaticSurfaceLight::GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const",
+    "size": 260
+  },
+  {
+    "address": "0x0013ffcc",
+    "name": "gcPartialBodyControllerTemplate::GetAnimation(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 264
+  },
+  {
+    "address": "0x00140144",
+    "name": "gcPartialBodyControllerTemplate::GetAttack(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 264
+  },
+  {
+    "address": "0x000349cc",
+    "name": "eCollisionPair::GetBodyASurface(int) const",
+    "size": 280
+  },
+  {
+    "address": "0x00347684",
+    "name": "gcValKeyboardState::Evaluate(void) const",
+    "size": 288
+  },
+  {
+    "address": "0x0012ca6c",
+    "name": "gcTimer::UpdateAll(cTimeValue) static",
+    "size": 292
+  },
+  {
+    "address": "0x00325234",
+    "name": "gcValConsoleInfo::~gcValConsoleInfo(void)",
+    "size": 296
+  },
+  {
+    "address": "0x00270d78",
+    "name": "gcDesiredString::~gcDesiredString(void)",
+    "size": 304
+  },
+  {
+    "address": "0x001f49f8",
+    "name": "eMeshShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 332
+  },
+  {
+    "address": "0x000341b8",
+    "name": "eCollisionPair::IsDisjoint(void) const",
+    "size": 336
+  },
+  {
+    "address": "0x001398c8",
+    "name": "gcUIButton::UpdateUI(cTimeValue, const gcEventStackData &)",
+    "size": 352
+  },
+  {
+    "address": "0x00121e30",
+    "name": "gcUIControl::OnGetSize(mVec2 *, mVec2 *, unsigned int) const",
+    "size": 364
+  },
+  {
+    "address": "0x00121fe8",
+    "name": "gcUIControl::GetSpriteToDraw(unsigned int) const",
+    "size": 368
+  },
+  {
+    "address": "0x0004f5c8",
+    "name": "eMeshShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 388
+  },
+  {
+    "address": "0x00060244",
+    "name": "eStaticSurfaceLight::GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const",
+    "size": 408
+  },
+  {
+    "address": "0x00158e84",
+    "name": "gcValConsoleInfo::GetText(char *) const",
+    "size": 408
+  },
+  {
+    "address": "0x0012a560",
+    "name": "gcDesiredString::ReadHandle(cReadBlock &, unsigned int)",
+    "size": 416
+  },
+  {
+    "address": "0x00139a84",
+    "name": "gcUIButton::GetSpriteToDraw(unsigned int) const",
+    "size": 424
+  },
+  {
+    "address": "0x0013e164",
+    "name": "gcDoConsoleOp::EvaluateCommon(void) const",
+    "size": 460
+  },
+  {
+    "address": "0x0012c89c",
+    "name": "gcTimer::DeactivateAll(const cMemPool *) static",
+    "size": 464
+  },
+  {
+    "address": "0x0029d708",
+    "name": "gcDoConsoleOp::~gcDoConsoleOp(void)",
+    "size": 476
+  },
+  {
+    "address": "0x0030a448",
+    "name": "gcDoUIEffect::Evaluate(void) const",
+    "size": 492
+  },
+  {
+    "address": "0x000499a8",
+    "name": "eDynamicModel::RemoveFromBroadphase(void)",
+    "size": 164
+  },
+  {
+    "address": "0x0004a284",
+    "name": "eDynamicModel::SetShapeController(eRigidBodyState *, ePhysicsController *, unsigned int)",
+    "size": 176
+  },
+  {
+    "address": "0x00048cc8",
+    "name": "eDynamicModel::ResetAnimationState(void)",
+    "size": 180
+  },
+  {
+    "address": "0x00047aa4",
+    "name": "eDynamicModel::SetGeomFlagsOnOff(unsigned int, unsigned int)",
+    "size": 188
+  },
+  {
+    "address": "0x0004a188",
+    "name": "eDynamicModel::SnapControllerTo(const mOCS &, bool)",
+    "size": 252
+  },
+  {
+    "address": "0x00047e7c",
+    "name": "eDynamicModel::SetSkin(int, int, int, cTimeValue)",
+    "size": 260
+  },
+  {
+    "address": "0x0004a6b8",
+    "name": "eDynamicModel::UpdateStatic(const eDynamicMesh *)",
+    "size": 296
+  },
+  {
+    "address": "0x00048adc",
+    "name": "eDynamicModel::CalcNodeDelta(cTimeValue, int, mVec3 *, mQuat *) const",
+    "size": 492
+  },
+  {
+    "address": "0x002738e0",
+    "name": "gcTableColumnGUID::Compare(int, int) const",
+    "size": 160
+  },
+  {
+    "address": "0x00086810",
+    "name": "eShadowVolumeModelMtl::Unapply(void) const",
+    "size": 172
+  },
+  {
+    "address": "0x0007b3dc",
+    "name": "eTextureMap::Apply(int, const eCamera *, const eWorld *) const",
+    "size": 200
+  },
+  {
+    "address": "0x00086744",
+    "name": "eShadowVolumeModelMtl::ApplyDynamic(const eDrawInfo &, const mOCS &, float, unsigned int, eColor) const",
+    "size": 204
+  },
+  {
+    "address": "0x0014a2c8",
+    "name": "gcParticleSystemController::SetTarget(cHandleT<gcEntity>, const cName &)",
+    "size": 244
+  },
+  {
+    "address": "0x00273980",
+    "name": "gcTableColumnGUID::~gcTableColumnGUID(void)",
+    "size": 288
+  },
+  {
+    "address": "0x0007af6c",
+    "name": "eTextureMap::PlatformFree(void)",
+    "size": 300
+  },
+  {
+    "address": "0x0014a3d8",
+    "name": "gcParticleSystemController::Update(cTimeValue)",
+    "size": 380
+  },
+  {
+    "address": "0x0017f00c",
+    "name": "gcParticleSystemController::Replicate(gcReplicationVisitor *)",
+    "size": 388
+  },
+  {
+    "address": "0x00273628",
+    "name": "gcTableColumnGUID::SetSize(int)",
+    "size": 416
+  },
+  {
+    "address": "0x000862f0",
+    "name": "eShadowVolumeModelMtl::~eShadowVolumeModelMtl(void)",
+    "size": 440
+  },
+  {
+    "address": "0x00213598",
+    "name": "eTextureMap::AssignCopy(const cBase *)",
+    "size": 488
+  },
+  {
+    "address": "0x00332768",
+    "name": "gcValEntityIsActive::Evaluate(void) const",
+    "size": 104
+  },
+  {
+    "address": "0x0013a388",
+    "name": "gcUICheckBox::GetFocusedSpriteToDraw(void) const",
+    "size": 112
+  },
+  {
+    "address": "0x000f00c8",
+    "name": "gcConfig::Reset(cMemPool *, bool)",
+    "size": 136
+  },
+  {
+    "address": "0x0010af00",
+    "name": "gcState::GetName(void) const",
+    "size": 164
+  },
+  {
+    "address": "0x00039a64",
+    "name": "eFont::GetKern(wchar_t) const",
+    "size": 176
+  },
+  {
+    "address": "0x001dfb50",
+    "name": "eConfigPSP::GetAudioFrequency(bool) const",
+    "size": 176
+  },
+  {
+    "address": "0x0015af44",
+    "name": "gcValLobbyStatus::GetText(char *) const",
+    "size": 216
+  },
+  {
+    "address": "0x000efc00",
+    "name": "gcRegionSetGroup::ClearRegionSetState(int) const",
+    "size": 256
+  },
+  {
+    "address": "0x0010afa4",
+    "name": "gcState::ProcessMessage(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, gcStateInfo *, const gcEventParams &, const gcEventStackData &, float *, bool *)",
+    "size": 264
+  },
+  {
+    "address": "0x0007cf30",
+    "name": "eProjectorTemplate::Write(cFile &) const",
+    "size": 276
+  },
+  {
+    "address": "0x000efae4",
+    "name": "gcRegionSetGroup::FillRegionList(cGUIDT<gcRegion> *, int &, int) const",
+    "size": 284
+  },
+  {
+    "address": "0x0023a0e4",
+    "name": "gcBoolSet::~gcBoolSet(void)",
+    "size": 288
+  },
+  {
+    "address": "0x002496a0",
+    "name": "gcFloatSet::~gcFloatSet(void)",
+    "size": 288
+  },
+  {
+    "address": "0x000794a0",
+    "name": "eGeomTrail::~eGeomTrail(void)",
+    "size": 292
+  },
+  {
+    "address": "0x001e7a50",
+    "name": "eFont::GetType(void) const",
+    "size": 296
+  },
+  {
+    "address": "0x002150b0",
+    "name": "eProjectorTemplate::~eProjectorTemplate(void)",
+    "size": 300
+  },
+  {
+    "address": "0x000795c4",
+    "name": "eGeomTrail::Reset(cMemPool *, bool)",
+    "size": 344
+  },
+  {
+    "address": "0x0005d1a8",
+    "name": "eSky::~eSky(void)",
+    "size": 356
+  },
+  {
+    "address": "0x001236ec",
+    "name": "gcUITextControl::OnTextChanged(void)",
+    "size": 360
+  },
+  {
+    "address": "0x00332bc0",
+    "name": "gcValEntityIsActive::~gcValEntityIsActive(void)",
+    "size": 360
+  },
+  {
+    "address": "0x0034ebe8",
+    "name": "gcValLobbyStatus::Evaluate(void) const",
+    "size": 360
+  },
+  {
+    "address": "0x001232d0",
+    "name": "gcUITextControl::SetText(const wchar_t *, int)",
+    "size": 368
+  },
+  {
+    "address": "0x00239f40",
+    "name": "gcBoolSet::SetSize(int)",
+    "size": 384
+  },
+  {
+    "address": "0x002494e4",
+    "name": "gcFloatSet::SetSize(int)",
+    "size": 408
+  },
+  {
+    "address": "0x0005d30c",
+    "name": "eSky::Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *) const",
+    "size": 412
+  },
+  {
+    "address": "0x000f0150",
+    "name": "gcConfig::CalcPresetSizes(void)",
+    "size": 416
+  },
+  {
+    "address": "0x001df9ac",
+    "name": "eConfigPSP::GetAudioBytesPerSecond(unsigned int) const",
+    "size": 420
+  },
+  {
+    "address": "0x0013a1a8",
+    "name": "gcUICheckBox::GetSpriteToDraw(unsigned int) const",
+    "size": 480
+  },
+  {
+    "address": "0x00076bf4",
+    "name": "eRigidBodyController::Deactivate(eDynamicModel *)",
+    "size": 148
+  },
+  {
+    "address": "0x0010d1d4",
+    "name": "gcStateMachine::GetSubObject(cSubHandleT<gcState>, int) const",
+    "size": 172
+  },
+  {
+    "address": "0x0010d328",
+    "name": "gcStateMachine::GetSubObject(cSubHandleT<gcStateFunction>, int) const",
+    "size": 172
+  },
+  {
+    "address": "0x00076e1c",
+    "name": "eRigidBodyController::GetCullAABB(mBox *, mVec3 *) const",
+    "size": 292
+  },
+  {
+    "address": "0x0010cdd8",
+    "name": "gcStateMachine::~gcStateMachine(void)",
+    "size": 360
+  },
+  {
+    "address": "0x00076c88",
+    "name": "eRigidBodyController::PostUpdate(mOCS *, eDynamicModel *) const",
+    "size": 404
+  },
+  {
+    "address": "0x000ebe48",
+    "name": "gcCinematicInstance::DrawDialogs(void) const",
+    "size": 152
+  },
+  {
+    "address": "0x000eb73c",
+    "name": "gcCinematicInstance::UpdateAll(cTimeValue) static",
+    "size": 160
+  },
+  {
+    "address": "0x000ebc64",
+    "name": "gcCinematicInstance::FindPlayingCinematic(cHandle, bool) static",
+    "size": 168
+  },
+  {
+    "address": "0x000ebd0c",
+    "name": "gcCinematicInstance::FindPlayingCinematic(gcCinematic *, cHandle) static",
+    "size": 168
+  },
+  {
+    "address": "0x000eb3e8",
+    "name": "gcCinematicInstance::Play(cHandle, float)",
+    "size": 264
+  },
+  {
+    "address": "0x000eb238",
+    "name": "gcCinematicInstance::~gcCinematicInstance(void)",
+    "size": 424
+  },
+  {
+    "address": "0x00290094",
+    "name": "gcUIControlString::GetName(char *) const",
+    "size": 116
+  },
+  {
+    "address": "0x0013b458",
+    "name": "gcUIGeom::Reset(cMemPool *, bool)",
+    "size": 140
+  },
+  {
+    "address": "0x000698d0",
+    "name": "eMultiSphereShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 200
+  },
+  {
+    "address": "0x00068d18",
+    "name": "eMultiSphereShape::GetCollisionHandler(const mVec3 &) const",
+    "size": 228
+  },
+  {
+    "address": "0x00068dfc",
+    "name": "eMultiSphereShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 260
+  },
+  {
+    "address": "0x0013b798",
+    "name": "gcUIGeom::Draw(const eDrawInfo &) const",
+    "size": 296
+  },
+  {
+    "address": "0x0013b918",
+    "name": "gcUIGeom::OnAddedToWorld(void)",
+    "size": 348
+  },
+  {
+    "address": "0x000691b4",
+    "name": "eMultiSphereShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 428
+  },
+  {
+    "address": "0x0028fd0c",
+    "name": "gcUIControlString::Set(const wchar_t *) const",
+    "size": 452
+  },
+  {
+    "address": "0x0028fed0",
+    "name": "gcUIControlString::Set(const gcStringValue *) const",
+    "size": 452
+  },
+  {
+    "address": "0x00069360",
+    "name": "eMultiSphereShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 468
+  },
+  {
+    "address": "0x00147ad0",
+    "name": "gcLookAtController::IsValid(void) const",
+    "size": 140
+  },
+  {
+    "address": "0x00147b5c",
+    "name": "gcLookAtController::OnActivated(void)",
+    "size": 180
+  },
+  {
+    "address": "0x00147250",
+    "name": "gcLookAtController::SetPitch(float)",
+    "size": 204
+  },
+  {
+    "address": "0x0014731c",
+    "name": "gcLookAtController::SetRoll(float)",
+    "size": 204
+  },
+  {
+    "address": "0x00147180",
+    "name": "gcLookAtController::SetHeading(float)",
+    "size": 208
+  },
+  {
+    "address": "0x001476c8",
+    "name": "gcLookAtController::LookAt(cHandleT<gcEntity>, const cName &)",
+    "size": 248
+  },
+  {
+    "address": "0x0000e63c",
+    "name": "cBufferedFile::WaitForFill(void)",
+    "size": 112
+  },
+  {
+    "address": "0x00021250",
+    "name": "eSound::eSound(cBase *)",
+    "size": 120
+  },
+  {
+    "address": "0x0000e570",
+    "name": "cBufferedFile::Reset(unsigned int)",
+    "size": 124
+  },
+  {
+    "address": "0x0027ebd0",
+    "name": "gcGenericSubscriber::GetIndex(void *) const",
+    "size": 124
+  },
+  {
+    "address": "0x0002154c",
+    "name": "eSound::Play(void)",
+    "size": 148
+  },
+  {
+    "address": "0x0027eca0",
+    "name": "gcGenericSubscriber::OnAdded(void *)",
+    "size": 152
+  },
+  {
+    "address": "0x00002a18",
+    "name": "cMemAllocator::FreePoolMemory(void)",
+    "size": 168
+  },
+  {
+    "address": "0x000214a0",
+    "name": "eSound::Update(cTimeValue)",
+    "size": 172
+  },
+  {
+    "address": "0x0027ed38",
+    "name": "gcGenericSubscriber::OnRemoved(void *)",
+    "size": 192
+  },
+  {
+    "address": "0x0000e484",
+    "name": "cBufferedFile::Open(const char *, unsigned int)",
+    "size": 208
+  },
+  {
+    "address": "0x0000e710",
+    "name": "cBufferedFile::SetFilePos(unsigned int)",
+    "size": 232
+  },
+  {
+    "address": "0x00021354",
+    "name": "eSound::SetSoundFlagsOnOff(unsigned int, unsigned int)",
+    "size": 268
+  },
+  {
+    "address": "0x0027edf8",
+    "name": "gcGenericSubscriber::~gcGenericSubscriber(void)",
+    "size": 288
+  },
+  {
+    "address": "0x000028cc",
+    "name": "cMemAllocator::AllocPoolMemory(unsigned int, void *)",
+    "size": 332
+  },
+  {
+    "address": "0x00002c80",
+    "name": "cMemAllocator::PlatformFree(void *, unsigned int) static",
+    "size": 336
+  },
+  {
+    "address": "0x00002ac0",
+    "name": "cMemAllocator::PlatformMalloc(unsigned int, unsigned int) static",
+    "size": 448
+  },
+  {
+    "address": "0x0011dfec",
+    "name": "gcDesiredEntity::GetRelationships(cHandleT<gcEnumeration>, int, cObject **) const",
+    "size": 108
+  },
+  {
+    "address": "0x0036acf0",
+    "name": "gcValVariable::Evaluate(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x0036ad70",
+    "name": "gcValVariable::Set(float)",
+    "size": 144
+  },
+  {
+    "address": "0x0036ae00",
+    "name": "gcValVariable::GetText(char *) const",
+    "size": 172
+  },
+  {
+    "address": "0x0005bab0",
+    "name": "ePath::PathT2Units(float) const",
+    "size": 176
+  },
+  {
+    "address": "0x00045018",
+    "name": "eDynamicGeom::AddChild(eDynamicGeom *, int)",
+    "size": 188
+  },
+  {
+    "address": "0x0011ded8",
+    "name": "gcDesiredEntity::HasRelationship(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool) const",
+    "size": 196
+  },
+  {
+    "address": "0x0005bd64",
+    "name": "ePath::GetPosAt(float, mVec3 *) const",
+    "size": 212
+  },
+  {
+    "address": "0x000454b0",
+    "name": "eDynamicGeom::ApplyLocalToWorld(const mOCS &)",
+    "size": 232
+  },
+  {
+    "address": "0x000453b4",
+    "name": "eDynamicGeom::UpdateLocalToWorld(void)",
+    "size": 252
+  },
+  {
+    "address": "0x000450d4",
+    "name": "eDynamicGeom::Detach(void)",
+    "size": 296
+  },
+  {
+    "address": "0x0005b5e0",
+    "name": "ePath::~ePath(void)",
+    "size": 300
+  },
+  {
+    "address": "0x0012194c",
+    "name": "gcDesiredCamera::GetFromEntity(gcEntity *, bool) static",
+    "size": 324
+  },
+  {
+    "address": "0x0026050c",
+    "name": "gcDesiredEntity::~gcDesiredEntity(void)",
+    "size": 336
+  },
+  {
+    "address": "0x00045260",
+    "name": "eDynamicGeom::CullAttached(const cType *, unsigned int, const eCamera &, const mFrustum &, eCameraBins *, unsigned int, int, const cHandleT<eMaterial> *, float) const",
+    "size": 340
+  },
+  {
+    "address": "0x001217e8",
+    "name": "gcDesiredCamera::Get(bool) const",
+    "size": 356
+  },
+  {
+    "address": "0x00121680",
+    "name": "gcDesiredCamera::~gcDesiredCamera(void)",
+    "size": 360
+  },
+  {
+    "address": "0x00044e20",
+    "name": "eDynamicGeom::GetOpacity(const eCamera &, float) const",
+    "size": 504
+  },
+  {
+    "address": "0x001e0d80",
+    "name": "eCapsuleShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 144
+  },
+  {
+    "address": "0x0006af04",
+    "name": "eCapsuleShape::GetVolumeUnderPlane(eDragAreaUtil *, const mPlane &, const mOCS &, float *, mVec3 *) const",
+    "size": 184
+  },
+  {
+    "address": "0x0006adf4",
+    "name": "eCapsuleShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 200
+  },
+  {
+    "address": "0x0006a27c",
+    "name": "eCapsuleShape::GetCollisionHandler(const mVec3 &) const",
+    "size": 228
+  },
+  {
+    "address": "0x0006a360",
+    "name": "eCapsuleShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 236
+  },
+  {
+    "address": "0x0006a6f0",
+    "name": "eCapsuleShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 440
+  },
+  {
+    "address": "0x0006a8a8",
+    "name": "eCapsuleShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 468
+  },
+  {
+    "address": "0x0006b024",
+    "name": "eCapsuleShape::GetSupport(const mVec3 &, const mOCS &, eCollisionSupport *) const",
+    "size": 476
+  },
+  {
+    "address": "0x00021c50",
+    "name": "eBspTree::Contains(const mVec3 &) const",
+    "size": 148
+  },
+  {
+    "address": "0x00021b80",
+    "name": "eBspTree::ReadOld(cReadBlock &)",
+    "size": 208
+  },
+  {
+    "address": "0x0002160c",
+    "name": "eBspTree::Write(cFile &) const",
+    "size": 348
+  },
+  {
+    "address": "0x000219bc",
+    "name": "eBspTree::~eBspTree(void)",
+    "size": 452
+  },
+  {
+    "address": "0x000221e8",
+    "name": "eBspTree::Contains(int, const eShape *, const mOCS &, bool *, bool *) const",
+    "size": 468
+  },
+  {
+    "address": "0x000f7aa4",
+    "name": "gcBackgroundLoader::Load(const cGUIDT<gcRegion> *, int *)",
+    "size": 144
+  },
+  {
+    "address": "0x000f7c1c",
+    "name": "gcBackgroundLoader::IsLoadingMap(bool) const",
+    "size": 156
+  },
+  {
+    "address": "0x000f804c",
+    "name": "gcBackgroundLoader::PreLoad(void)",
+    "size": 168
+  },
+  {
+    "address": "0x000f7e40",
+    "name": "gcBackgroundLoader::WaitForFinish(void)",
+    "size": 172
+  },
+  {
+    "address": "0x000f7d34",
+    "name": "gcBackgroundLoader::OnExit(void)",
+    "size": 268
+  },
+  {
+    "address": "0x000f7eec",
+    "name": "gcBackgroundLoader::Run(void)",
+    "size": 352
+  },
+  {
+    "address": "0x000f81ac",
+    "name": "gcBackgroundLoader::LoadRegions(void)",
+    "size": 476
+  },
+  {
+    "address": "0x001284d8",
+    "name": "gcDesiredEntityTemplate::GetRelationships(cHandleT<gcEnumeration>, int, cObject **) const",
+    "size": 108
+  },
+  {
+    "address": "0x00148090",
+    "name": "gcSubGeomController::SetFade(float, cTimeValue)",
+    "size": 112
+  },
+  {
+    "address": "0x000d6f48",
+    "name": "gcStringTable::GetStringHandle(int) const",
+    "size": 140
+  },
+  {
+    "address": "0x00073cf8",
+    "name": "eCompoundShape::GetVolume(void) const",
+    "size": 148
+  },
+  {
+    "address": "0x000d707c",
+    "name": "gcStringTable::GetSubObject(cSubHandleT<gcString>, int) const",
+    "size": 172
+  },
+  {
+    "address": "0x000719dc",
+    "name": "eConvexHullShape::GetSupport(const mVec3 &, const mOCS &, mVec3 *) const",
+    "size": 200
+  },
+  {
+    "address": "0x00148100",
+    "name": "gcSubGeomController::Update(cTimeValue)",
+    "size": 220
+  },
+  {
+    "address": "0x001e0e10",
+    "name": "eConvexHullShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 240
+  },
+  {
+    "address": "0x000724a0",
+    "name": "eConvexHullShape::GetInertialTensorAndVolume(float, mVec3 *, float *) const",
+    "size": 280
+  },
+  {
+    "address": "0x0020b4ec",
+    "name": "eCompoundShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 300
+  },
+  {
+    "address": "0x0026950c",
+    "name": "gcDesiredEntityTemplate::~gcDesiredEntityTemplate(void)",
+    "size": 304
+  },
+  {
+    "address": "0x00147de4",
+    "name": "gcSubGeomController::CreateAndResetInstance(cMemPool *, gcEntity *, const gcEntityGeomConfig *, eDynamicGeom *, gcSubGeomController **) static",
+    "size": 324
+  },
+  {
+    "address": "0x0007359c",
+    "name": "eCompoundShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 336
+  },
+  {
+    "address": "0x000d6dec",
+    "name": "gcStringTable::Set(int, const wchar_t *)",
+    "size": 348
+  },
+  {
+    "address": "0x000d7128",
+    "name": "gcStringTable::GetSubObjectHandle(cSubHandleT<gcString>, int) const",
+    "size": 360
+  },
+  {
+    "address": "0x00147f28",
+    "name": "gcSubGeomController::Replicate(gcReplicationVisitor *)",
+    "size": 360
+  },
+  {
+    "address": "0x00072ea8",
+    "name": "eCompoundShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 368
+  },
+  {
+    "address": "0x00127c0c",
+    "name": "gcDesiredEntityTemplate::GetText(char *) const",
+    "size": 396
+  },
+  {
+    "address": "0x0007340c",
+    "name": "eCompoundShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 400
+  },
+  {
+    "address": "0x00070b94",
+    "name": "eConvexHullShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 404
+  },
+  {
+    "address": "0x001282e8",
+    "name": "gcDesiredEntityTemplate::HasRelationship(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool) const",
+    "size": 416
+  },
+  {
+    "address": "0x00073b1c",
+    "name": "eCompoundShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 476
+  },
+  {
+    "address": "0x00038ce8",
+    "name": "eSprite::SetTexCoord1(mVec2)",
+    "size": 92
+  },
+  {
+    "address": "0x0003857c",
+    "name": "eSprite::GetTextureSize(mVec2 *) const",
+    "size": 112
+  },
+  {
+    "address": "0x000384e0",
+    "name": "eSprite::GetTexture(void) const",
+    "size": 156
+  },
+  {
+    "address": "0x00038da0",
+    "name": "eSprite::GetTexCoord1(void) const",
+    "size": 248
+  },
+  {
+    "address": "0x00038e98",
+    "name": "eSprite::GetTexCoord2(void) const",
+    "size": 248
+  },
+  {
+    "address": "0x001110fc",
+    "name": "gcEntityController::PostUpdateFinal(void)",
+    "size": 148
+  },
+  {
+    "address": "0x00111c08",
+    "name": "gcEntityController::OnDeselected(void)",
+    "size": 200
+  },
+  {
+    "address": "0x001119cc",
+    "name": "gcEntityController::OnDeactivated(void)",
+    "size": 220
+  },
+  {
+    "address": "0x00112d5c",
+    "name": "gcEntityController::HandleHeightOnPath(mVec3 *)",
+    "size": 288
+  },
+  {
+    "address": "0x001117d4",
+    "name": "gcEntityController::ReadMovement(cInStream &, bool)",
+    "size": 304
+  },
+  {
+    "address": "0x00111688",
+    "name": "gcEntityController::WriteMovement(cOutStream &, bool) const",
+    "size": 332
+  },
+  {
+    "address": "0x00110d18",
+    "name": "gcEntityController::PlayAnimation(const gcEntityAnimationConfig *, cTimeValue, bool)",
+    "size": 344
+  },
+  {
+    "address": "0x00111aa8",
+    "name": "gcEntityController::OnSelected(void)",
+    "size": 352
+  },
+  {
+    "address": "0x001114cc",
+    "name": "gcEntityController::ValidateNavMeshPos(void)",
+    "size": 444
+  },
+  {
+    "address": "0x00108d04",
+    "name": "gcNetGame::HasFullAuthority(void) static",
+    "size": 104
+  },
+  {
+    "address": "0x00108bd8",
+    "name": "gcNetGame::IsClientConnecting(void) static",
+    "size": 116
+  },
+  {
+    "address": "0x00108748",
+    "name": "gcNetGame::Synchronize(void) static",
+    "size": 160
+  },
+  {
+    "address": "0x00108680",
+    "name": "gcNetGame::Stop(void) static",
+    "size": 200
+  },
+  {
+    "address": "0x00108f54",
+    "name": "gcNetGame::GetNumActiveConnections(unsigned int) static",
+    "size": 248
+  },
+  {
+    "address": "0x00108300",
+    "name": "gcNetGame::StartClient(bool, const nwAddress &, const char *) static",
+    "size": 288
+  },
+  {
+    "address": "0x00108d6c",
+    "name": "gcNetGame::AreClientsInSync(void) static",
+    "size": 488
+  },
+  {
+    "address": "0x001eb91c",
+    "name": "ePortal::AssignCopy(const cBase *)",
+    "size": 216
+  },
+  {
+    "address": "0x000402cc",
+    "name": "ePortal::Write(cFile &) const",
+    "size": 248
+  },
+  {
+    "address": "0x00040bd4",
+    "name": "ePortal::Clip(const mPlane &, const mVec3 *, int, mVec3 *, int &) const",
+    "size": 340
+  },
+  {
+    "address": "0x00040a68",
+    "name": "ePortal::RayIntersects(const mRay &, float, bool) const",
+    "size": 364
+  },
+  {
+    "address": "0x00103844",
+    "name": "gcGameSettings::SaveGameGetSize(void) const",
+    "size": 148
+  },
+  {
+    "address": "0x00105058",
+    "name": "gcGameSettings::ProfileHeaderValue(const gcStringValue *, int) const",
+    "size": 148
+  },
+  {
+    "address": "0x00103374",
+    "name": "gcGameSettings::SaveGameCapture(int)",
+    "size": 156
+  },
+  {
+    "address": "0x0010451c",
+    "name": "gcGameSettings::ProfileCheckFreeSpace(const char *) const",
+    "size": 176
+  },
+  {
+    "address": "0x0010514c",
+    "name": "gcGameSettings::GetAppTitle(void)",
+    "size": 184
+  },
+  {
+    "address": "0x00103788",
+    "name": "gcGameSettings::SaveGameRestore(int)",
+    "size": 188
+  },
+  {
+    "address": "0x000f0838",
+    "name": "gcConfiguration::Create(void) static",
+    "size": 192
+  },
+  {
+    "address": "0x00104370",
+    "name": "gcGameSettings::SaveGameGetCount(void) const",
+    "size": 192
+  },
+  {
+    "address": "0x000f08f8",
+    "name": "gcConfiguration::GetCoreConfigType(void)",
+    "size": 228
+  },
+  {
+    "address": "0x000f09dc",
+    "name": "gcConfiguration::GetEngineConfigType(void)",
+    "size": 228
+  },
+  {
+    "address": "0x000f0ac0",
+    "name": "gcConfiguration::GetNetworkConfigType(void)",
+    "size": 228
+  },
+  {
+    "address": "0x00104430",
+    "name": "gcGameSettings::ProfileCheckFreeSpace(const gcStringValue *) const",
+    "size": 236
+  },
+  {
+    "address": "0x00104ef4",
+    "name": "gcGameSettings::ProfileFind(const gcStringValue *) const",
+    "size": 248
+  },
+  {
+    "address": "0x000f069c",
+    "name": "gcConfiguration::~gcConfiguration(void)",
+    "size": 312
+  },
+  {
+    "address": "0x001058b4",
+    "name": "gcGameSettings::OnProfileReset(gcProfile *, float)",
+    "size": 380
+  },
+  {
+    "address": "0x0014074c",
+    "name": "gcPartialBodyController::Update(cTimeValue)",
+    "size": 148
+  },
+  {
+    "address": "0x001407e0",
+    "name": "gcPartialBodyController::PostUpdateFinal(void)",
+    "size": 160
+  },
+  {
+    "address": "0x00140474",
+    "name": "gcPartialBodyController::Reset(cMemPool *, bool)",
+    "size": 288
+  },
+  {
+    "address": "0x001405f4",
+    "name": "gcPartialBodyController::PlayAnimation(const gcEntityAnimationConfig *, bool)",
+    "size": 344
+  },
+  {
+    "address": "0x00140a3c",
+    "name": "gcPartialBodyController::HandleNextAnimation(cTimeValue)",
+    "size": 400
+  },
+  {
+    "address": "0x00140888",
+    "name": "gcPartialBodyController::OnDeactivated(void)",
+    "size": 436
+  },
+  {
+    "address": "0x001a8618",
+    "name": "nwSocket::DestroyConnection(nwConnectionHandle)",
+    "size": 112
+  },
+  {
+    "address": "0x001a8d04",
+    "name": "nwSocket::WriteId(cOutStream &)",
+    "size": 112
+  },
+  {
+    "address": "0x001a7f78",
+    "name": "nwSocket::FlushAll(void)",
+    "size": 116
+  },
+  {
+    "address": "0x001a8d74",
+    "name": "nwSocket::ReadId(cInStream &)",
+    "size": 124
+  },
+  {
+    "address": "0x001a8688",
+    "name": "nwSocket::ReceiveImmediate(nwInPacket &, const nwAddress &, nwConnectionHandle)",
+    "size": 148
+  },
+  {
+    "address": "0x001a81b4",
+    "name": "nwSocket::Create(void)",
+    "size": 172
+  },
+  {
+    "address": "0x001a82c4",
+    "name": "nwSocket::Update(cTimeValue)",
+    "size": 172
+  },
+  {
+    "address": "0x001a7d7c",
+    "name": "nwSocket::FindConnection(const nwAddress &)",
+    "size": 188
+  },
+  {
+    "address": "0x001a8b70",
+    "name": "nwSocket::ReceivePackets(void)",
+    "size": 404
+  },
+  {
+    "address": "0x002727dc",
+    "name": "gcTableColumnStringTable::IsValid(void) const",
+    "size": 76
+  },
+  {
+    "address": "0x0012b190",
+    "name": "gcTableColumnStringTable::SetSize(int)",
+    "size": 108
+  },
+  {
+    "address": "0x0013a5d8",
+    "name": "gcUIEditBox::gcUIEditBox(cBase *)",
+    "size": 108
+  },
+  {
+    "address": "0x0013ab9c",
+    "name": "gcUIEditBox::IsUpdateEmpty(bool, bool) const",
+    "size": 108
+  },
+  {
+    "address": "0x000fe134",
+    "name": "gcViewport::OnMapEnded(void) static",
+    "size": 112
+  },
+  {
+    "address": "0x0013a6c0",
+    "name": "gcUIEditBox::AppendString(const wchar_t *)",
+    "size": 112
+  },
+  {
+    "address": "0x00009cb0",
+    "name": "cObject::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)",
+    "size": 120
+  },
+  {
+    "address": "0x000fe300",
+    "name": "gcViewport::GetListeners(mOCS *) static",
+    "size": 120
+  },
+  {
+    "address": "0x000fe484",
+    "name": "gcViewport::MemoryCardReplicateDynamic(gcReplicationVisitor &) static",
+    "size": 124
+  },
+  {
+    "address": "0x0000a50c",
+    "name": "cObject::IsEditable(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x0003789c",
+    "name": "ePhysics::InvalidateCacheEntries(eGeom *)",
+    "size": 140
+  },
+  {
+    "address": "0x000fe1a4",
+    "name": "gcViewport::OnMemPoolResetAll(const cMemPool *, unsigned int) static",
+    "size": 140
+  },
+  {
+    "address": "0x00037a90",
+    "name": "ePhysics::Step(float)",
+    "size": 144
+  },
+  {
+    "address": "0x000fde78",
+    "name": "gcViewport::ResetAll(void) static",
+    "size": 148
+  },
+  {
+    "address": "0x000fdd44",
+    "name": "gcViewport::UpdateAll(cTimeValue) static",
+    "size": 152
+  },
+  {
+    "address": "0x000fdddc",
+    "name": "gcViewport::UpdateUI(cTimeValue) static",
+    "size": 156
+  },
+  {
+    "address": "0x0003800c",
+    "name": "ePhysics::ApplyExternalForcesAndIntegrateVelocity(float)",
+    "size": 160
+  },
+  {
+    "address": "0x002722dc",
+    "name": "gcTableColumnStringTable::Set(int, const wchar_t *, bool)",
+    "size": 164
+  },
+  {
+    "address": "0x0000a238",
+    "name": "cObject::GetLocalizedFilename(const cType *, const cGUID &, cStr *) static",
+    "size": 168
+  },
+  {
+    "address": "0x000373e4",
+    "name": "ePhysics::Initialize(void) static",
+    "size": 172
+  },
+  {
+    "address": "0x000fdc98",
+    "name": "gcViewport::AddToWorld(eWorld *) static",
+    "size": 172
+  },
+  {
+    "address": "0x000374d8",
+    "name": "ePhysics::AddToUpdateList(eSimulatedController *)",
+    "size": 188
+  },
+  {
+    "address": "0x00131e00",
+    "name": "gcUIWidgetList::ValidateCells(void) const",
+    "size": 192
+  },
+  {
+    "address": "0x00037928",
+    "name": "ePhysics::AddExternalContact(eRigidBodyState *, eRigidBodyState *, const mVec3 &, const mVec3 &)",
+    "size": 196
+  },
+  {
+    "address": "0x00132ca0",
+    "name": "gcUIWidgetList::HandleScroll(void)",
+    "size": 204
+  },
+  {
+    "address": "0x00037594",
+    "name": "ePhysics::RemoveFromUpdateList(eSimulatedController *)",
+    "size": 208
+  },
+  {
+    "address": "0x000fe230",
+    "name": "gcViewport::Get(gcEntity *) static",
+    "size": 208
+  },
+  {
+    "address": "0x0000a750",
+    "name": "cObject::WriteHeader(cFile &)",
+    "size": 216
+  },
+  {
+    "address": "0x00038154",
+    "name": "ePhysics::ReduceSleepingCullVolumes(void)",
+    "size": 220
+  },
+  {
+    "address": "0x0013aa40",
+    "name": "gcUIEditBox::Update(cTimeValue, const gcEventStackData &)",
+    "size": 220
+  },
+  {
+    "address": "0x001310fc",
+    "name": "gcUIWidgetList::GetItemFromCell(gcUICell) const",
+    "size": 224
+  },
+  {
+    "address": "0x0000a150",
+    "name": "cObject::GetFilename(cStr *) const",
+    "size": 232
+  },
+  {
+    "address": "0x0013a878",
+    "name": "gcUIEditBox::DeleteString(int, int)",
+    "size": 236
+  },
+  {
+    "address": "0x0007c238",
+    "name": "eParticleSystem::SetAttractorPos(const mVec3 &)",
+    "size": 244
+  },
+  {
+    "address": "0x001322a4",
+    "name": "gcUIWidgetList::HandleMouse(void)",
+    "size": 256
+  },
+  {
+    "address": "0x000fe378",
+    "name": "gcViewport::MemCardReplicate(gcReplicationVisitor &) static",
+    "size": 268
+  },
+  {
+    "address": "0x000fdf0c",
+    "name": "gcViewport::Clear(void) static",
+    "size": 280
+  },
+  {
+    "address": "0x0007b89c",
+    "name": "eParticleSystem::~eParticleSystem(void)",
+    "size": 292
+  },
+  {
+    "address": "0x0013acc4",
+    "name": "gcUIEditBox::OnTextChanged(void)",
+    "size": 320
+  },
+  {
+    "address": "0x0007b9c0",
+    "name": "eParticleSystem::Reset(cMemPool *, bool)",
+    "size": 324
+  },
+  {
+    "address": "0x00130a8c",
+    "name": "gcUIWidgetList::~gcUIWidgetList(void)",
+    "size": 324
+  },
+  {
+    "address": "0x00132d6c",
+    "name": "gcUIWidgetList::FocusCurCell(bool)",
+    "size": 324
+  },
+  {
+    "address": "0x00272388",
+    "name": "gcTableColumnStringTable::Get(int, wchar_t *, int) const",
+    "size": 324
+  },
+  {
+    "address": "0x000fe85c",
+    "name": "gcViewport::DrawMouse(void) static",
+    "size": 328
+  },
+  {
+    "address": "0x0013a730",
+    "name": "gcUIEditBox::InsertString(const wchar_t *, int)",
+    "size": 328
+  },
+  {
+    "address": "0x002724cc",
+    "name": "gcTableColumnStringTable::Get(int, cHandlePairT<gcStringTable, cSubHandleT<gcString> > *) const",
+    "size": 368
+  },
+  {
+    "address": "0x0000a9d8",
+    "name": "cObject::WillBeDeleted(const cBase *, const cMemPool *, unsigned int) static",
+    "size": 372
+  },
+  {
+    "address": "0x0027e0f4",
+    "name": "gcUIWidgetList::AssignCopy(const cBase *)",
+    "size": 376
+  },
+  {
+    "address": "0x00009fc8",
+    "name": "cObject::Load(void)",
+    "size": 392
+  },
+  {
+    "address": "0x0007befc",
+    "name": "eParticleSystem::Draw(const eDrawInfo &) const",
+    "size": 400
+  },
+  {
+    "address": "0x00037e78",
+    "name": "ePhysics::BuildIslandForSleep(eRigidBodyState *, int *, eSimulatedState **, bool *)",
+    "size": 404
+  },
+  {
+    "address": "0x0027263c",
+    "name": "gcTableColumnStringTable::Compare(int, int) const",
+    "size": 416
+  },
+  {
+    "address": "0x0007c08c",
+    "name": "eParticleSystem::Update(cTimeValue)",
+    "size": 428
+  },
+  {
+    "address": "0x00009dc4",
+    "name": "cObject::~cObject(void)",
+    "size": 432
+  },
+  {
+    "address": "0x0000a58c",
+    "name": "cObject::GetObjectOwner(cBase *) static",
+    "size": 452
+  },
+  {
+    "address": "0x00132acc",
+    "name": "gcUIWidgetList::HandleKeyboard(void)",
+    "size": 468
+  },
+  {
+    "address": "0x0000a2e0",
+    "name": "cObject::BuildFilename(const cType *, const cGUID &, bool, bool, cStr *, const char *) static",
+    "size": 480
+  },
+  {
+    "address": "0x0013ae04",
+    "name": "gcUIEditBox::HandleKeyboard(void)",
+    "size": 500
+  },
+  {
+    "address": "0x0000b23c",
+    "name": "cFactory::CopyObject(const cObject *, const cGUID &)",
+    "size": 160
+  },
+  {
+    "address": "0x0000c038",
+    "name": "cFactory::DeleteGroups(void)",
+    "size": 160
+  },
+  {
+    "address": "0x0000bc90",
+    "name": "cFactory::DeleteMarkedForClean(unsigned int, bool)",
+    "size": 180
+  },
+  {
+    "address": "0x0000c0d8",
+    "name": "cFactory::OnNameChanged(void)",
+    "size": 180
+  },
+  {
+    "address": "0x0000bbd4",
+    "name": "cFactory::MarkForClean(unsigned int)",
+    "size": 188
+  },
+  {
+    "address": "0x0000b648",
+    "name": "cFactory::CleanGroups(unsigned int, bool)",
+    "size": 196
+  },
+  {
+    "address": "0x0000b70c",
+    "name": "cFactory::LoadLocalized(const char *)",
+    "size": 236
+  },
+  {
+    "address": "0x0000bd44",
+    "name": "cFactory::WriteGroups(cWriteBlock &) const",
+    "size": 236
+  },
+  {
+    "address": "0x0000bac4",
+    "name": "cFactory::ClearVisitedReferences(unsigned int)",
+    "size": 272
+  },
+  {
+    "address": "0x0000af74",
+    "name": "cFactory::LoadObject(const cType *, const cGUID &, unsigned int, cFile *, bool)",
+    "size": 416
+  },
+  {
+    "address": "0x000dc14c",
+    "name": "gcUIWidget::Show(bool)",
+    "size": 128
+  },
+  {
+    "address": "0x000dc9c4",
+    "name": "gcUIWidget::IsUpdateEmpty(bool, bool) const",
+    "size": 212
+  },
+  {
+    "address": "0x000da254",
+    "name": "gcUIWidget::ProcessesMessage(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 252
+  },
+  {
+    "address": "0x000dca98",
+    "name": "gcUIWidget::GetResizableSizes(const cArray<cHandleT<eSprite> > &, const mVec2 &, float *, const cArray<cHandleT<eSprite> > &) static",
+    "size": 304
+  },
+  {
+    "address": "0x000d9a64",
+    "name": "gcUIWidget::Send(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, const gcEventParams &, const gcEventStackData &) const",
+    "size": 404
+  },
+  {
+    "address": "0x000dc1d4",
+    "name": "gcUIWidget::GetScreenPos(const eCamera *, const eRect &, unsigned int, mVec2 *, mVec2 *, mVec2 *, mVec2 *) const",
+    "size": 420
+  },
+  {
+    "address": "0x000d8708",
+    "name": "gcUIWidget::SetSizeDirty(void)",
+    "size": 436
+  },
+  {
+    "address": "0x000d958c",
+    "name": "gcUIWidget::GetCell(gcUICell *) const",
+    "size": 480
+  },
+  {
+    "address": "0x000d88bc",
+    "name": "gcUIWidget::KeepsVisibleSize(void) const",
+    "size": 492
+  },
+  {
+    "address": "0x00057a40",
+    "name": "eNavMesh::Activate(bool)",
+    "size": 148
+  },
+  {
+    "address": "0x00059664",
+    "name": "eNavMesh::FindNavMeshFromPoint(const mVec3 *, unsigned char &) static",
+    "size": 312
+  },
+  {
+    "address": "0x00059ff4",
+    "name": "eNavMesh::GetNavTriVerts(int, mVec3 *) const",
+    "size": 332
+  },
+  {
+    "address": "0x00058d14",
+    "name": "eNavMesh::ClampMovement(eNavMeshPos *, const mVec3 *, float, bool) static",
+    "size": 352
+  },
+  {
+    "address": "0x00057c18",
+    "name": "eNavMesh::GetAllEdgeVerts(int, mVec3 *, int *) const",
+    "size": 356
+  },
+  {
+    "address": "0x00058b60",
+    "name": "eNavMesh::ContainsPointAtTri(const mVec3 &, unsigned char) const",
+    "size": 436
+  },
+  {
+    "address": "0x00057d7c",
+    "name": "eNavMesh::GetTriCenter(unsigned char, mVec3 *) const",
+    "size": 456
+  },
+  {
+    "address": "0x000e5280",
+    "name": "gcUIDialog::ReplaceControl(gcUIWidget *)",
+    "size": 168
+  },
+  {
+    "address": "0x000e51c8",
+    "name": "gcUIDialog::CreateControl(gcUIWidget *)",
+    "size": 184
+  },
+  {
+    "address": "0x000e8d58",
+    "name": "gcUIDialog::IsUpdateEmpty(bool) const",
+    "size": 212
+  },
+  {
+    "address": "0x000e7d5c",
+    "name": "gcUIDialog::FocusNearestNeighbor(gcUIWidget *)",
+    "size": 224
+  },
+  {
+    "address": "0x000e36a0",
+    "name": "gcUIDialog::Write(cOutStream &) const",
+    "size": 248
+  },
+  {
+    "address": "0x000e8c5c",
+    "name": "gcUIDialog::ProcessesMessage(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 252
+  },
+  {
+    "address": "0x000e8584",
+    "name": "gcUIDialog::OnControlChanged(gcUIWidget *, unsigned int, unsigned int)",
+    "size": 292
+  },
+  {
+    "address": "0x000e7a94",
+    "name": "gcUIDialog::DrawBackdrop(const eCamera &, const mOCS &, const eRect &, float, float) const",
+    "size": 344
+  },
+  {
+    "address": "0x000e83dc",
+    "name": "gcUIDialog::OnClosed(const gcDoUIShowDialog *, float *)",
+    "size": 344
+  },
+  {
+    "address": "0x000e4e34",
+    "name": "gcUIDialog::Draw(unsigned int)",
+    "size": 352
+  },
+  {
+    "address": "0x000e5718",
+    "name": "gcUIDialog::IsPointerDriven(void) const",
+    "size": 368
+  },
+  {
+    "address": "0x000e7bec",
+    "name": "gcUIDialog::FocusFirstControl(bool)",
+    "size": 368
+  },
+  {
+    "address": "0x000e5328",
+    "name": "gcUIDialog::SetNumControls(int)",
+    "size": 384
+  },
+  {
+    "address": "0x000e4030",
+    "name": "gcUIDialog::Send(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, const gcEventParams &, const gcEventStackData &) const",
+    "size": 396
+  },
+  {
+    "address": "0x000e8a84",
+    "name": "gcUIDialog::TransitionUpdate(cTimeValue)",
+    "size": 472
+  },
+  {
+    "address": "0x000e69f8",
+    "name": "gcUIDialog::HandleMouse(void)",
+    "size": 480
+  },
+  {
+    "address": "0x000e3920",
+    "name": "gcUIDialog::CreateDynamicInstance(const cGUID &)",
+    "size": 500
+  },
+  {
+    "address": "0x000e0b80",
+    "name": "gcUI::GetActiveSpawnedDialogCount(const gcUIDialog *) static",
+    "size": 108
+  },
+  {
+    "address": "0x000e08a0",
+    "name": "gcUI::CloseDialog(gcUIDialog *, const gcDoUIShowDialog *, float *)",
+    "size": 124
+  },
+  {
+    "address": "0x000e0a6c",
+    "name": "gcUI::GetFocusedDialog(void) const",
+    "size": 136
+  },
+  {
+    "address": "0x000e0af4",
+    "name": "gcUI::GetActiveSpawnedDialog(const gcUIDialog *) static",
+    "size": 140
+  },
+  {
+    "address": "0x000e1cec",
+    "name": "gcUI::GetMouseAvailable(void)",
+    "size": 164
+  },
+  {
+    "address": "0x000e16cc",
+    "name": "gcUI::RemoveDialog(int)",
+    "size": 176
+  },
+  {
+    "address": "0x000e091c",
+    "name": "gcUI::CloseAllDialogs(void)",
+    "size": 236
+  },
+  {
+    "address": "0x000e0550",
+    "name": "gcUI::Update(cTimeValue)",
+    "size": 324
+  },
+  {
+    "address": "0x000e0f10",
+    "name": "gcUI::OnMemPoolReset(const cMemPool *, unsigned int)",
+    "size": 368
+  },
+  {
+    "address": "0x000e1d90",
+    "name": "gcUI::GetMousePositions(const eCamera &, const mOCS &) const",
+    "size": 372
+  },
+  {
+    "address": "0x0006cbb8",
+    "name": "eSimulatedController::ApplyTorque(int, const mVec3 &)",
+    "size": 124
+  },
+  {
+    "address": "0x0006c410",
+    "name": "eSimulatedController::ClearExternalForces(void)",
+    "size": 128
+  },
+  {
+    "address": "0x0006cfec",
+    "name": "eSimulatedController::SnapConstraints(void)",
+    "size": 128
+  },
+  {
+    "address": "0x0006c07c",
+    "name": "eSimulatedController::Activate(eDynamicModel *)",
+    "size": 156
+  },
+  {
+    "address": "0x0006c118",
+    "name": "eSimulatedController::Deactivate(eDynamicModel *)",
+    "size": 164
+  },
+  {
+    "address": "0x0006c928",
+    "name": "eSimulatedController::ApplyUnembedImpulse(int, const mVec3 &)",
+    "size": 164
+  },
+  {
+    "address": "0x0006c880",
+    "name": "eSimulatedController::ApplyForce(int, const mVec3 &, const mVec3 &)",
+    "size": 168
+  },
+  {
+    "address": "0x0006d12c",
+    "name": "eSimulatedController::GetSubObjectIndex(const cName &) const",
+    "size": 212
+  },
+  {
+    "address": "0x0006c7a8",
+    "name": "eSimulatedController::ApplyImpulse(int, const mVec3 &, const mVec3 &)",
+    "size": 216
+  },
+  {
+    "address": "0x0006ce24",
+    "name": "eSimulatedController::AddContact(const mVec3 &, const mVec3 &, cBase *, cHandleT<eSurface>, int, float, int)",
+    "size": 216
+  },
+  {
+    "address": "0x0006cad0",
+    "name": "eSimulatedController::ApplyPositionedForce(int, const mVec3 &, const mVec3 &)",
+    "size": 232
+  },
+  {
+    "address": "0x0006cf04",
+    "name": "eSimulatedController::ForceSleepState(bool)",
+    "size": 232
+  },
+  {
+    "address": "0x0006c9cc",
+    "name": "eSimulatedController::ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &)",
+    "size": 260
+  },
+  {
+    "address": "0x0006bf10",
+    "name": "eSimulatedController::~eSimulatedController(void)",
+    "size": 364
+  },
+  {
+    "address": "0x0006cc34",
+    "name": "eSimulatedController::IntegrateVelocity(float)",
+    "size": 488
+  },
+  {
+    "address": "0x000f2c8c",
+    "name": "gcMap::LoadRegionSet(const cGUIDT<gcRegion> *)",
+    "size": 104
+  },
+  {
+    "address": "0x000f3ecc",
+    "name": "gcMap::MemCardReplicate(gcReplicationVisitor &)",
+    "size": 112
+  },
+  {
+    "address": "0x000f4f68",
+    "name": "gcMap::HandleNextRegionLoad(void)",
+    "size": 124
+  },
+  {
+    "address": "0x000f3e44",
+    "name": "gcMap::ResetNetConnection(int)",
+    "size": 136
+  },
+  {
+    "address": "0x000f2bf8",
+    "name": "gcMap::LoadRegionSet(int, int)",
+    "size": 148
+  },
+  {
+    "address": "0x000f2a30",
+    "name": "gcMap::FillRegionList(cGUIDT<gcRegion> *, int) const",
+    "size": 164
+  },
+  {
+    "address": "0x000f612c",
+    "name": "gcMap::WriteDynamicallyLoadedObjectsToLoad(cOutStream &)",
+    "size": 196
+  },
+  {
+    "address": "0x000f3a88",
+    "name": "gcMap::RemoveFromWorld(void)",
+    "size": 200
+  },
+  {
+    "address": "0x000f2cf4",
+    "name": "gcMap::FindRegionSet(unsigned int, int *, int *) const",
+    "size": 212
+  },
+  {
+    "address": "0x000f1e7c",
+    "name": "gcMap::LoadObjectBackgroundAdd(int, const cType *, const cGUID &)",
+    "size": 224
+  },
+  {
+    "address": "0x000f6048",
+    "name": "gcMap::ReadDynamicallyLoadedObjects(cInStream &)",
+    "size": 228
+  },
+  {
+    "address": "0x000f41b8",
+    "name": "gcMap::PlayCinematic(gcCinematic *, cHandle, float, bool) static",
+    "size": 236
+  },
+  {
+    "address": "0x000f1768",
+    "name": "gcMap::LoadBackground(const cGUIDT<gcMap> &, const cGUIDT<gcLoadingScreen> &, unsigned int) static",
+    "size": 240
+  },
+  {
+    "address": "0x000f6f54",
+    "name": "gcMap::MemCardReplicateStreamedCinematicLoad(gcReplicationVisitor &)",
+    "size": 240
+  },
+  {
+    "address": "0x000f2770",
+    "name": "gcMap::HasRegion(const cGUIDT<gcRegion> &) const",
+    "size": 252
+  },
+  {
+    "address": "0x000f1fa8",
+    "name": "gcMap::CreateRegion(const cGUIDT<gcRegion> &, int, bool)",
+    "size": 256
+  },
+  {
+    "address": "0x000f61f0",
+    "name": "gcMap::ReadDynamicallyLoadedObjectsToLoad(cInStream &)",
+    "size": 264
+  },
+  {
+    "address": "0x000f59bc",
+    "name": "gcMap::HandleObjectLoadingForeground(void)",
+    "size": 268
+  },
+  {
+    "address": "0x000f40a0",
+    "name": "gcMap::ClearRegionState(const cGUIDT<gcRegion> &)",
+    "size": 280
+  },
+  {
+    "address": "0x000f4fe4",
+    "name": "gcMap::WaitForBackgroundLoad(void)",
+    "size": 280
+  },
+  {
+    "address": "0x000f72a0",
+    "name": "gcMap::ApplyRegionState(gcRegionBase *)",
+    "size": 284
+  },
+  {
+    "address": "0x000f2ad4",
+    "name": "gcMap::GetRegionIndex(const cGUIDT<gcRegion> &) const",
+    "size": 292
+  },
+  {
+    "address": "0x000f2904",
+    "name": "gcMap::GetLoadingRegions(cGUIDT<gcRegion> *) const",
+    "size": 300
+  },
+  {
+    "address": "0x00166f10",
+    "name": "gcMap::OnMemPoolReset(const cMemPool *, unsigned int)",
+    "size": 312
+  },
+  {
+    "address": "0x000f4860",
+    "name": "gcMap::HandleStreamedCinematicStart(void)",
+    "size": 320
+  },
+  {
+    "address": "0x000f20a8",
+    "name": "gcMap::LoadRegion(const cGUIDT<gcRegion> &, int, bool)",
+    "size": 340
+  },
+  {
+    "address": "0x000f21fc",
+    "name": "gcMap::LoadRegionsBackground(int, int, const gcEvent *, const gcEvent *, bool, bool)",
+    "size": 404
+  },
+  {
+    "address": "0x000f1a40",
+    "name": "gcMap::Load(bool)",
+    "size": 416
+  },
+  {
+    "address": "0x000f7044",
+    "name": "gcMap::MemCardReplicateStreamedCinematicLoad(gcReplicationVisitor &, int)",
+    "size": 428
+  },
+  {
+    "address": "0x000f6da4",
+    "name": "gcMap::MemCardReplicateStreamedCinematic(gcReplicationVisitor &, int)",
+    "size": 432
+  },
+  {
+    "address": "0x000f49a0",
+    "name": "gcMap::HandleNextStreamedCinematic(void)",
+    "size": 468
+  },
+  {
+    "address": "0x000f43a0",
+    "name": "gcMap::DeleteRegion(int)",
+    "size": 472
+  },
+  {
+    "address": "0x000f6370",
+    "name": "gcMap::DynamicallyLoadedObjectsSetToLoadDiffer(void)",
+    "size": 492
+  },
+  {
+    "address": "0x00126f1c",
+    "name": "gcEntityTemplate::FindConstantsIndex(cHandleT<gcEnumeration>) const",
+    "size": 112
+  },
+  {
+    "address": "0x00126f8c",
+    "name": "gcEntityTemplate::FindVariablesIndex(cHandleT<gcEnumeration>) const",
+    "size": 112
+  },
+  {
+    "address": "0x0000c430",
+    "name": "cGroup::FindObject(const cGUID &) const",
+    "size": 116
+  },
+  {
+    "address": "0x00126ffc",
+    "name": "gcEntityTemplate::FindTimeSinceSetIndex(cHandleT<gcEnumeration>) const",
+    "size": 116
+  },
+  {
+    "address": "0x00127070",
+    "name": "gcEntityTemplate::FindRelationshipSetIndex(cHandleT<gcEnumeration>) const",
+    "size": 116
+  },
+  {
+    "address": "0x0000c4a4",
+    "name": "cGroup::RemoveAll(void)",
+    "size": 160
+  },
+  {
+    "address": "0x0000c544",
+    "name": "cGroup::AddObject(cObject *, const cGUID &, bool, bool)",
+    "size": 180
+  },
+  {
+    "address": "0x000038d4",
+    "name": "cDynamicMemAllocator::StopBlock(bool)",
+    "size": 200
+  },
+  {
+    "address": "0x0000c880",
+    "name": "cGroup::CreateObject(const cType *, const cGUID &, cMemPool *, bool, bool)",
+    "size": 236
+  },
+  {
+    "address": "0x000037e0",
+    "name": "cDynamicMemAllocator::EndBlock(cMemBlockAllocation *, cMemBlockAllocation *)",
+    "size": 244
+  },
+  {
+    "address": "0x00127230",
+    "name": "gcEntityTemplate::FindRelationshipSet(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool, int *, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 256
+  },
+  {
+    "address": "0x0000cce8",
+    "name": "cGroup::ReadLocalized(cFile &, cMemPool *) static",
+    "size": 288
+  },
+  {
+    "address": "0x00127630",
+    "name": "gcEntityTemplate::GetRelationships(cHandleT<gcEnumeration>, int, cObject **) const",
+    "size": 292
+  },
+  {
+    "address": "0x0000c96c",
+    "name": "cGroup::CopyObject(const cObject *, const cGUID &, cMemPool *)",
+    "size": 300
+  },
+  {
+    "address": "0x00003558",
+    "name": "cDynamicMemAllocator::Free(void *)",
+    "size": 324
+  },
+  {
+    "address": "0x0000369c",
+    "name": "cDynamicMemAllocator::BeginBlock(cMemBlockAllocation *)",
+    "size": 324
+  },
+  {
+    "address": "0x001270e4",
+    "name": "gcEntityTemplate::HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 332
+  },
+  {
+    "address": "0x00003a10",
+    "name": "cDynamicMemAllocator::AddToBin(cDynamicMemTag *)",
+    "size": 392
+  },
+  {
+    "address": "0x0000cae4",
+    "name": "cGroup::Clean(unsigned int, bool)",
+    "size": 416
+  },
+  {
+    "address": "0x000031d0",
+    "name": "cDynamicMemAllocator::Reset(void)",
+    "size": 440
+  },
+  {
+    "address": "0x00003390",
+    "name": "cDynamicMemAllocator::Malloc(unsigned int, int, const char *, int)",
+    "size": 456
+  },
+  {
+    "address": "0x001a7758",
+    "name": "nwConnection::DispatchMessages(unsigned char *, int, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool) static",
+    "size": 164
+  },
+  {
+    "address": "0x001a6e48",
+    "name": "nwConnection::BufferOutBlock(unsigned int, int, unsigned char *)",
+    "size": 200
+  },
+  {
+    "address": "0x001a691c",
+    "name": "nwConnection::Update(cTimeValue)",
+    "size": 204
+  },
+  {
+    "address": "0x001a70fc",
+    "name": "nwConnection::ReceiveAck(nwInPacket &)",
+    "size": 204
+  },
+  {
+    "address": "0x001a69e8",
+    "name": "nwConnection::UpdatePing(cTimeValue)",
+    "size": 216
+  },
+  {
+    "address": "0x001a6640",
+    "name": "nwConnection::Connect(const char *, bool)",
+    "size": 220
+  },
+  {
+    "address": "0x0002f5a4",
+    "name": "eCamera::UpdateFOVScalar(void)",
+    "size": 232
+  },
+  {
+    "address": "0x001a6148",
+    "name": "nwConnection::Close(void)",
+    "size": 236
+  },
+  {
+    "address": "0x001a6f10",
+    "name": "nwConnection::ResendReliable(nwOutPacket &, int)",
+    "size": 240
+  },
+  {
+    "address": "0x0002f4b0",
+    "name": "eCamera::UpdateWorldToProj(void)",
+    "size": 244
+  },
+  {
+    "address": "0x001a7608",
+    "name": "nwConnection::BufferInBlock(unsigned int, unsigned char *, int)",
+    "size": 244
+  },
+  {
+    "address": "0x0002e074",
+    "name": "eCamera::GetOrthoRect(eRect *) const",
+    "size": 248
+  },
+  {
+    "address": "0x001a7000",
+    "name": "nwConnection::Receive(int, nwInPacket &)",
+    "size": 252
+  },
+  {
+    "address": "0x0002eac0",
+    "name": "eCamera::CalculateWorldToCamera(const mOCS &, const mMatrix4 &, mMatrix4 *, mMatrix4 *) static",
+    "size": 256
+  },
+  {
+    "address": "0x0002f3a4",
+    "name": "eCamera::GetAdjustedFOV(float, float *, float *, float) const",
+    "size": 268
+  },
+  {
+    "address": "0x001a77fc",
+    "name": "nwConnection::DispatchMessage(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool) static",
+    "size": 284
+  },
+  {
+    "address": "0x001a6234",
+    "name": "nwConnection::FlushAll(void)",
+    "size": 296
+  },
+  {
+    "address": "0x001a6cd0",
+    "name": "nwConnection::SendAckAndPing(nwOutPacket &)",
+    "size": 304
+  },
+  {
+    "address": "0x0002db1c",
+    "name": "eCamera::SetOrtho(float)",
+    "size": 312
+  },
+  {
+    "address": "0x001a67e4",
+    "name": "nwConnection::AllocateBuffers(void)",
+    "size": 312
+  },
+  {
+    "address": "0x0002f23c",
+    "name": "eCamera::AdjustFrustum(void)",
+    "size": 360
+  },
+  {
+    "address": "0x001a7498",
+    "name": "nwConnection::ReceiveReliable(unsigned int, unsigned char *, int)",
+    "size": 368
+  },
+  {
+    "address": "0x0002d96c",
+    "name": "eCamera::SetFrustum(const mFrustum &)",
+    "size": 432
+  },
+  {
+    "address": "0x0002ebc0",
+    "name": "eCamera::XformWorldToScreen(const mVec3 &, mVec3 *, int, int) const",
+    "size": 500
+  },
+  {
+    "address": "0x00141290",
+    "name": "gcBipedController::Update(cTimeValue)",
+    "size": 184
+  },
+  {
+    "address": "0x0014205c",
+    "name": "gcBipedController::OnActivated(void)",
+    "size": 248
+  },
+  {
+    "address": "0x00141ebc",
+    "name": "gcBipedController::OnSelected(void)",
+    "size": 336
+  },
+  {
+    "address": "0x00141b90",
+    "name": "gcBipedController::EnableWallWalk(bool)",
+    "size": 376
+  },
+  {
+    "address": "0x00141348",
+    "name": "gcBipedController::GetBipedShape(void) const",
+    "size": 396
+  },
+  {
+    "address": "0x00141a04",
+    "name": "gcBipedController::IsWallWalkEnabled(void) const",
+    "size": 396
+  },
+  {
+    "address": "0x00141874",
+    "name": "gcBipedController::IsOnGround(void) const",
+    "size": 400
+  },
+  {
+    "address": "0x00141d08",
+    "name": "gcBipedController::SetBipedShape(int, const mVec3 &)",
+    "size": 436
+  },
+  {
+    "address": "0x001414d4",
+    "name": "gcBipedController::IsFalling(void) const",
+    "size": 464
+  },
+  {
+    "address": "0x001416a4",
+    "name": "gcBipedController::IsSliding(void) const",
+    "size": 464
+  },
+  {
+    "address": "0x0010061c",
+    "name": "gcProfile::GetControllerId(void) const",
+    "size": 152
+  },
+  {
+    "address": "0x000fefa8",
+    "name": "gcProfile::ResetSaveGame(bool)",
+    "size": 160
+  },
+  {
+    "address": "0x00101aa8",
+    "name": "gcProfile::CalcCRC(void) const",
+    "size": 236
+  },
+  {
+    "address": "0x00100c2c",
+    "name": "gcProfile::ResetVariables(cArray<cArray<float> > &, const cBaseArrayT<gcFloatSet *> &) static",
+    "size": 312
+  },
+  {
+    "address": "0x00100d64",
+    "name": "gcProfile::WriteVariables(cOutStream &, const cArray<cArray<float> > &) static",
+    "size": 312
+  },
+  {
+    "address": "0x00100e9c",
+    "name": "gcProfile::ReadVariables(cInStream &, cArray<cArray<float> > &) static",
+    "size": 328
+  },
+  {
+    "address": "0x0010194c",
+    "name": "gcProfile::ReadTables(cInStream &, cArray<cHandleT<gcTableTemplate> > &) static",
+    "size": 348
+  },
+  {
+    "address": "0x001015ac",
+    "name": "gcProfile::ReadStrings(cInStream &, cArray<cArray<cStrW> > &) static",
+    "size": 364
+  },
+  {
+    "address": "0x000fee28",
+    "name": "gcProfile::Reset(bool)",
+    "size": 384
+  },
+  {
+    "address": "0x0010141c",
+    "name": "gcProfile::WriteStrings(cOutStream &, const cArray<cArray<cStrW> > &) static",
+    "size": 400
+  },
+  {
+    "address": "0x000fff78",
+    "name": "gcProfile::SetVariable(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, float)",
+    "size": 492
+  },
+  {
+    "address": "0x0010037c",
+    "name": "gcProfile::SetString(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, const wchar_t *)",
+    "size": 496
+  },
+  {
+    "address": "0x0000f240",
+    "name": "cFileSystemPlatform::Open(cFilePlatform *) static",
+    "size": 128
+  },
+  {
+    "address": "0x0000f6c8",
+    "name": "cFileSystemPlatform::AppendPath(char *, const char *) static",
+    "size": 144
+  },
+  {
+    "address": "0x0000f15c",
+    "name": "cFileSystemPlatform::PollAsync(cFilePlatform *) static",
+    "size": 164
+  },
+  {
+    "address": "0x0000f504",
+    "name": "cFileSystemPlatform::GetFileStatus(void) static",
+    "size": 184
+  },
+  {
+    "address": "0x0000fa00",
+    "name": "cFileSystemPlatform::UMDCallback(int, int, void *) static",
+    "size": 188
+  },
+  {
+    "address": "0x0000f5bc",
+    "name": "cFileSystemPlatform::MakeFullFilename(const char *, const char *, char *) static",
+    "size": 208
+  },
+  {
+    "address": "0x0000f084",
+    "name": "cFileSystemPlatform::WaitAsync(cFilePlatform *) static",
+    "size": 216
+  },
+  {
+    "address": "0x0000ed3c",
+    "name": "cFileSystemPlatform::FileExists(const char *) static",
+    "size": 236
+  },
+  {
+    "address": "0x0000f2c0",
+    "name": "cFileSystemPlatform::OpenFromPack(cFilePlatform *) static",
+    "size": 308
+  },
+  {
+    "address": "0x0000f758",
+    "name": "cFileSystemPlatform::CallbackThread(unsigned int, void *) static",
+    "size": 312
+  },
+  {
+    "address": "0x0000f890",
+    "name": "cFileSystemPlatform::PowerCallback(int, int, void *) static",
+    "size": 368
+  },
+  {
+    "address": "0x00238f34",
+    "name": "gcEnumeration::IsIndexed(void) const",
+    "size": 152
+  },
+  {
+    "address": "0x00239094",
+    "name": "gcEnumeration::HasReplicatedEntries(void) const",
+    "size": 160
+  },
+  {
+    "address": "0x0003ecfc",
+    "name": "eRoom::Free(void)",
+    "size": 172
+  },
+  {
+    "address": "0x000d4088",
+    "name": "gcEnumeration::Reset(cMemPool *, bool)",
+    "size": 180
+  },
+  {
+    "address": "0x0003eda8",
+    "name": "eRoom::AddGeom(eGeom *, const mSphere &)",
+    "size": 200
+  },
+  {
+    "address": "0x0003f3ac",
+    "name": "eRoom::AddVolume(eVolume *, const mSphere &)",
+    "size": 200
+  },
+  {
+    "address": "0x00238fcc",
+    "name": "gcEnumeration::GetSize(void) const",
+    "size": 200
+  },
+  {
+    "address": "0x0003f294",
+    "name": "eRoom::ClearRoomGeomList(eGeom *)",
+    "size": 280
+  },
+  {
+    "address": "0x0003f81c",
+    "name": "eRoom::ClearRoomVolumeList(eVolume *)",
+    "size": 280
+  },
+  {
+    "address": "0x000d4a8c",
+    "name": "gcEnumeration::IsEntryReplicated(int) const",
+    "size": 280
+  },
+  {
+    "address": "0x000d4958",
+    "name": "gcEnumeration::GetEntryName(int, char *) const",
+    "size": 308
+  },
+  {
+    "address": "0x0003dcd4",
+    "name": "eRoom::GetEnvironment(bool) const",
+    "size": 316
+  },
+  {
+    "address": "0x0003de10",
+    "name": "eRoom::AddToWorld(eWorld *, const eRoomSet *)",
+    "size": 316
+  },
+  {
+    "address": "0x0003df4c",
+    "name": "eRoom::RemoveFromWorld(eWorld *)",
+    "size": 328
+  },
+  {
+    "address": "0x0003e094",
+    "name": "eRoom::Contains(const mVec3 &) const",
+    "size": 340
+  },
+  {
+    "address": "0x0003e8dc",
+    "name": "eRoom::QueryVolumes(unsigned int, eVolumeQuery *, const cBase *) const",
+    "size": 344
+  },
+  {
+    "address": "0x000d4ba4",
+    "name": "gcEnumeration::AddNew(gcEnumerationEntry *, cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > *)",
+    "size": 424
+  },
+  {
+    "address": "0x000d413c",
+    "name": "gcEnumeration::GetSubObject(cSubHandleT<gcEnumerationEntry>, int) const",
+    "size": 428
+  },
+  {
+    "address": "0x000d478c",
+    "name": "gcEnumeration::Get(int) const",
+    "size": 460
+  },
+  {
+    "address": "0x000d42e8",
+    "name": "gcEnumeration::IsValid(cSubHandleT<gcEnumerationEntry>, int) const",
+    "size": 480
+  },
+  {
+    "address": "0x0002ac10",
+    "name": "eCollision::IsBehindTriangle(const mVec3 *, const mOCS &, mPlane *) static",
+    "size": 148
+  },
+  {
+    "address": "0x0002ab74",
+    "name": "eCollision::AABBContainsTriangle(const mVec3 *, const mBox &) static",
+    "size": 156
+  },
+  {
+    "address": "0x00022e4c",
+    "name": "eCollision::GetSeperationAxis(const eShape *, const eShape *, const mOCS &, const mOCS &, mVec3 *) static",
+    "size": 160
+  },
+  {
+    "address": "0x0002b43c",
+    "name": "eCollision::GetEdgeTriContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 160
+  },
+  {
+    "address": "0x0002b4dc",
+    "name": "eCollision::GetEdgeFaceContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 160
+  },
+  {
+    "address": "0x000227ac",
+    "name": "eCollision::GJKGetSupport(const mVec3 &, const eShape *, const eShape *, const mOCS &, const mOCS &, mVec3 *) static",
+    "size": 204
+  },
+  {
+    "address": "0x0002ad94",
+    "name": "eCollision::GetPointPointContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 232
+  },
+  {
+    "address": "0x00029cd8",
+    "name": "eCollision::UpdateClosestLine(const mVec3 &, const mVec3 &, const mVec3 &, const mVec3 &, float *, mVec3 *, int *, mVec3 *) static",
+    "size": 240
+  },
+  {
+    "address": "0x0002aca4",
+    "name": "eCollision::InitContactFunctions(void) static",
+    "size": 240
+  },
+  {
+    "address": "0x0002aa68",
+    "name": "eCollision::TestSeperationAxis(float, float, float, float, const mVec3 &, float *, mVec3 *, eCollisionContactInfo *, bool, const mVec3 &) static",
+    "size": 268
+  },
+  {
+    "address": "0x0002b318",
+    "name": "eCollision::GetPointCircleContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 292
+  },
+  {
+    "address": "0x0002ae7c",
+    "name": "eCollision::GetPointEdgeContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 380
+  },
+  {
+    "address": "0x00029724",
+    "name": "eCollision::CompoundMesh(const eCompoundShape &, const eMeshShape &, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) static",
+    "size": 384
+  },
+  {
+    "address": "0x0002aff8",
+    "name": "eCollision::GetPointTriContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 400
+  },
+  {
+    "address": "0x0002b188",
+    "name": "eCollision::GetPointFaceContacts(const eCollisionSupport *, const eCollisionSupport *, eContactResult *) static",
+    "size": 400
+  },
+  {
+    "address": "0x0002b5f4",
+    "name": "eCollision::IntersectCylinder(const mVec3 &, const mVec3 &, float, const mVec3 &, const mVec3 &, float *, float *) static",
+    "size": 404
+  },
+  {
+    "address": "0x000298a4",
+    "name": "eCollision::CompoundHeightmap(const eCompoundShape &, const eHeightmapShape &, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) static",
+    "size": 432
+  },
+  {
+    "address": "0x000275f4",
+    "name": "eCollision::MultiSphereCapsule(const eMultiSphereShape &, const eCapsuleShape &, const mOCS &, const mOCS &, eCollisionContactInfo *) static",
+    "size": 500
+  },
+  {
+    "address": "0x000277e8",
+    "name": "eCollision::MultiSphereConvexHull(const eMultiSphereShape &, const eConvexHullShape &, const mOCS &, const mOCS &, eCollisionContactInfo *) static",
+    "size": 500
+  },
+  {
+    "address": "0x00107e14",
+    "name": "gcGame::ResetNetConnection(int)",
+    "size": 160
+  },
+  {
+    "address": "0x00106810",
+    "name": "gcGame::GetMapIndex(const cGUIDT<gcMap> &) const",
+    "size": 172
+  },
+  {
+    "address": "0x00106970",
+    "name": "gcGame::SetNextMapToLoadRegionSetIndex(const cGUIDT<gcMap> &, const cGUIDT<gcLoadingScreen> &, int, cGUIDT)",
+    "size": 172
+  },
+  {
+    "address": "0x00106c34",
+    "name": "gcGame::PlayInitialCinematic(void)",
+    "size": 172
+  },
+  {
+    "address": "0x001068bc",
+    "name": "gcGame::SetNextMapToLoad(const cGUIDT<gcMap> &, const cGUIDT<gcLoadingScreen> &, const cGUIDT<gcRegion> *, unsigned int)",
+    "size": 180
+  },
+  {
+    "address": "0x00106a1c",
+    "name": "gcGame::CreateLoadingScreen(const cGUIDT<gcLoadingScreen> &)",
+    "size": 224
+  },
+  {
+    "address": "0x00105e78",
+    "name": "gcGame::Create(void) static",
+    "size": 236
+  },
+  {
+    "address": "0x00107240",
+    "name": "gcGame::FindStreamedCinematicAll(const cGUIDT<gcStreamedCinematic> &) static",
+    "size": 268
+  },
+  {
+    "address": "0x00107428",
+    "name": "gcGame::FindStreamedCinematic(const cGUIDT<gcStreamedCinematic> &, const cBaseArrayT<gcStreamedCinematicConfigGroup *> *, int *, cBaseArrayT) static",
+    "size": 276
+  },
+  {
+    "address": "0x0010753c",
+    "name": "gcGame::CreateStreamedCinematic(const gcStreamedCinematicConfig *) static",
+    "size": 276
+  },
+  {
+    "address": "0x00106afc",
+    "name": "gcGame::LoadLoadingScreen(const cGUIDT<gcLoadingScreen> &)",
+    "size": 284
+  },
+  {
+    "address": "0x00105f64",
+    "name": "gcGame::Run(void) static",
+    "size": 288
+  },
+  {
+    "address": "0x00106420",
+    "name": "gcGame::ResetNextCinematicPools(void)",
+    "size": 296
+  },
+  {
+    "address": "0x00107110",
+    "name": "gcGame::OnMapEnded(void)",
+    "size": 304
+  },
+  {
+    "address": "0x00107650",
+    "name": "gcGame::LoadStreamedCinematic(const gcStreamedCinematicConfig *) static",
+    "size": 304
+  },
+  {
+    "address": "0x00107eb4",
+    "name": "gcGame::NetworkError(void) static",
+    "size": 308
+  },
+  {
+    "address": "0x0010800c",
+    "name": "gcGame::OnNetworkConnectionEstablished(void) static",
+    "size": 308
+  },
+  {
+    "address": "0x00106680",
+    "name": "gcGame::LoadMap(const cGUIDT<gcMap> &, bool)",
+    "size": 328
+  },
+  {
+    "address": "0x001062c8",
+    "name": "gcGame::ResetLoadingCinematicPools(void)",
+    "size": 344
+  },
+  {
+    "address": "0x00108140",
+    "name": "gcGame::MemCardReplicate(gcReplicationVisitor &)",
+    "size": 416
+  },
+  {
+    "address": "0x0024eb5c",
+    "name": "gcGame::AssignCopy(const cBase *)",
+    "size": 496
+  },
+  {
+    "address": "0x0001ee88",
+    "name": "eAudio::ResumeAllSounds(void) static",
+    "size": 116
+  },
+  {
+    "address": "0x0001ed94",
+    "name": "eAudio::PauseAllSounds(void) static",
+    "size": 128
+  },
+  {
+    "address": "0x0001d9f8",
+    "name": "eAudio::OnMemPoolReset(const cMemPool *, unsigned int) static",
+    "size": 144
+  },
+  {
+    "address": "0x0001f3c4",
+    "name": "eAudio::SetChannelVolume(const eAudioChannel *, float, int, const mOCS *) static",
+    "size": 156
+  },
+  {
+    "address": "0x0001e648",
+    "name": "eAudio::PauseSound(int, cTimeValue) static",
+    "size": 184
+  },
+  {
+    "address": "0x0001e58c",
+    "name": "eAudio::StopSound(cHandleT<eSoundData>, cTimeValue) static",
+    "size": 188
+  },
+  {
+    "address": "0x0001f460",
+    "name": "eAudio::SetChannelFrequency(const eAudioChannel *, float) static",
+    "size": 208
+  },
+  {
+    "address": "0x0001e700",
+    "name": "eAudio::ResumeSound(int, cTimeValue) static",
+    "size": 276
+  },
+  {
+    "address": "0x0001ea40",
+    "name": "eAudio::SetSoundVolumeOffset(int, float, bool) static",
+    "size": 280
+  },
+  {
+    "address": "0x0001ebc8",
+    "name": "eAudio::StopAllSounds(void) static",
+    "size": 344
+  },
+  {
+    "address": "0x0001e3f4",
+    "name": "eAudio::StopSound(int, cTimeValue) static",
+    "size": 408
+  },
+  {
+    "address": "0x0001e89c",
+    "name": "eAudio::SetSoundFrequencyOffset(int, float, bool) static",
+    "size": 420
+  },
+  {
+    "address": "0x0001efdc",
+    "name": "eAudio::Initialize(cTimeValue) static",
+    "size": 420
+  },
+  {
+    "address": "0x0001d818",
+    "name": "eAudio::Update(cTimeValue, int, const mOCS *, eWorld *) static",
+    "size": 480
+  },
+  {
+    "address": "0x0001f180",
+    "name": "eAudio::PlayChannel(const eAudioChannel *, float, float, int, const mOCS *) static",
+    "size": 488
+  },
+  {
+    "address": "0x000dddd0",
+    "name": "gcUIWidgetGroup::InitialUpdate(void)",
+    "size": 112
+  },
+  {
+    "address": "0x000dde40",
+    "name": "gcUIWidgetGroup::InitialUpdateUI(void)",
+    "size": 112
+  },
+  {
+    "address": "0x000dfc8c",
+    "name": "gcUIWidgetGroup::InsertInDrawOrder(int, gcUIWidget *, gcUIWidget *)",
+    "size": 192
+  },
+  {
+    "address": "0x000def00",
+    "name": "gcUIWidgetGroup::InsertIntoDialog(gcUIDialog *)",
+    "size": 252
+  },
+  {
+    "address": "0x000df620",
+    "name": "gcUIWidgetGroup::DeleteAllWidgets(bool)",
+    "size": 276
+  },
+  {
+    "address": "0x000df4f8",
+    "name": "gcUIWidgetGroup::DeleteCellWidgets(gcUICell, bool)",
+    "size": 296
+  },
+  {
+    "address": "0x000dfa28",
+    "name": "gcUIWidgetGroup::GetCellPos(gcUICell) const",
+    "size": 304
+  },
+  {
+    "address": "0x000dfb58",
+    "name": "gcUIWidgetGroup::RemoveCellWidget(gcUICell, gcUIWidget *)",
+    "size": 308
+  },
+  {
+    "address": "0x000df734",
+    "name": "gcUIWidgetGroup::InsertInDrawOrder(gcUICell, cSubHandleT<gcUIWidget>, cSubHandleT)",
+    "size": 316
+  },
+  {
+    "address": "0x000df870",
+    "name": "gcUIWidgetGroup::FindWidgetCell(cSubHandleT<gcUIWidget>, gcUICell *) const",
+    "size": 356
+  },
+  {
+    "address": "0x000e0000",
+    "name": "gcUIWidgetGroup::IsUpdateEmpty(bool, bool) const",
+    "size": 404
+  },
+  {
+    "address": "0x0023c9f4",
+    "name": "gcUIWidgetGroup::AssignCopy(const cBase *)",
+    "size": 428
+  },
+  {
+    "address": "0x000de6f8",
+    "name": "gcUIWidgetGroup::Focus(bool, bool)",
+    "size": 464
+  },
+  {
+    "address": "0x000de348",
+    "name": "gcUIWidgetGroup::OnConfirm(const gcEventStackData &)",
+    "size": 472
+  },
+  {
+    "address": "0x000de520",
+    "name": "gcUIWidgetGroup::OnBack(const gcEventStackData &)",
+    "size": 472
+  },
+  {
+    "address": "0x000ded28",
+    "name": "gcUIWidgetGroup::OnGetSize(mVec2 *, mVec2 *, unsigned int) const",
+    "size": 472
+  },
+  {
+    "address": "0x000ddbf4",
+    "name": "gcUIWidgetGroup::Reset(cMemPool *, bool)",
+    "size": 476
+  },
+  {
+    "address": "0x000e0194",
+    "name": "gcUIWidgetGroup::UpdateChildEffects(cTimeValue)",
+    "size": 488
+  },
+  {
+    "address": "0x000ddeb0",
+    "name": "gcUIWidgetGroup::Update(cTimeValue, const gcEventStackData &)",
+    "size": 496
+  },
+  {
+    "address": "0x00114828",
+    "name": "gcEntity::OnMemPoolResetAll(const cMemPool *, unsigned int) static",
+    "size": 120
+  },
+  {
+    "address": "0x0011877c",
+    "name": "gcEntity::IsSoundChannelReplicated(int) const",
+    "size": 120
+  },
+  {
+    "address": "0x001187f4",
+    "name": "gcEntity::SetSoundFrequencyOffset(int, float, bool)",
+    "size": 136
+  },
+  {
+    "address": "0x001188dc",
+    "name": "gcEntity::SetSoundVolumeOffset(int, float, bool)",
+    "size": 136
+  },
+  {
+    "address": "0x00117db8",
+    "name": "gcEntity::GetVecToPoint(const cName &, const mVec3 &, mVec3 *) const",
+    "size": 140
+  },
+  {
+    "address": "0x00114a88",
+    "name": "gcEntity::GetConstant(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 144
+  },
+  {
+    "address": "0x00115494",
+    "name": "gcEntity::HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 148
+  },
+  {
+    "address": "0x001148a0",
+    "name": "gcEntity::HasConstants(cHandleT<gcEnumeration>) const",
+    "size": 152
+  },
+  {
+    "address": "0x00114b18",
+    "name": "gcEntity::HasVariables(cHandleT<gcEnumeration>) const",
+    "size": 152
+  },
+  {
+    "address": "0x00114d00",
+    "name": "gcEntity::HasTimeSinceSet(cHandleT<gcEnumeration>) const",
+    "size": 152
+  },
+  {
+    "address": "0x00115038",
+    "name": "gcEntity::HasRelationshipSet(cHandleT<gcEnumeration>) const",
+    "size": 152
+  },
+  {
+    "address": "0x00119a7c",
+    "name": "gcEntity::OnFullscreenCinematicStarted(void) static",
+    "size": 152
+  },
+  {
+    "address": "0x001196f0",
+    "name": "gcEntity::ResetNetConnection(int) static",
+    "size": 156
+  },
+  {
+    "address": "0x00117e44",
+    "name": "gcEntity::GetVecToEntityHelper(const cName &, const gcEntity *, const cName &, mVec3 *) const",
+    "size": 160
+  },
+  {
+    "address": "0x001178fc",
+    "name": "gcEntity::LerpTo(const gcEntity *, short, cTimeValue, bool)",
+    "size": 168
+  },
+  {
+    "address": "0x001193e4",
+    "name": "gcEntity::IsLocallyControlled(void) const",
+    "size": 176
+  },
+  {
+    "address": "0x00117ae0",
+    "name": "gcEntity::AttachToParent(gcEntity *, const cName &, bool)",
+    "size": 180
+  },
+  {
+    "address": "0x00115b54",
+    "name": "gcEntity::GetInitialController(void) const",
+    "size": 184
+  },
+  {
+    "address": "0x00116528",
+    "name": "gcEntity::Activate(bool)",
+    "size": 184
+  },
+  {
+    "address": "0x0011adf0",
+    "name": "gcEntity::UpdateFading(cTimeValue)",
+    "size": 196
+  },
+  {
+    "address": "0x00117834",
+    "name": "gcEntity::LerpTo(const mOCS &, cTimeValue, bool)",
+    "size": 200
+  },
+  {
+    "address": "0x001168ec",
+    "name": "gcEntity::DestroyAllDynamic(void) static",
+    "size": 208
+  },
+  {
+    "address": "0x0011a7e4",
+    "name": "gcEntity::OnSpawned(cMemPool *, const cName &, int)",
+    "size": 208
+  },
+  {
+    "address": "0x00118684",
+    "name": "gcEntity::StopSound(int)",
+    "size": 248
+  },
+  {
+    "address": "0x0011ace4",
+    "name": "gcEntity::HandleParentChange(void)",
+    "size": 268
+  },
+  {
+    "address": "0x00115760",
+    "name": "gcEntity::SetPrimaryController(int, bool)",
+    "size": 276
+  },
+  {
+    "address": "0x00115528",
+    "name": "gcEntity::HasAnyCategory(int, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > *) const",
+    "size": 280
+  },
+  {
+    "address": "0x001195d4",
+    "name": "gcEntity::NetReplicate(nwConnectionHandle, bool) const",
+    "size": 284
+  },
+  {
+    "address": "0x00115640",
+    "name": "gcEntity::HasAllCategories(int, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > *) const",
+    "size": 288
+  },
+  {
+    "address": "0x0011a6c0",
+    "name": "gcEntity::ApplyPrimaryControllerChange(void)",
+    "size": 292
+  },
+  {
+    "address": "0x001146f8",
+    "name": "gcEntity::OnMemPoolReset(const cMemPool *, unsigned int)",
+    "size": 304
+  },
+  {
+    "address": "0x001179a4",
+    "name": "gcEntity::HandleTriggerActivation(const gcTrigger *, bool) static",
+    "size": 316
+  },
+  {
+    "address": "0x00116e68",
+    "name": "gcEntity::FadeOut(cTimeValue, bool)",
+    "size": 320
+  },
+  {
+    "address": "0x00119494",
+    "name": "gcEntity::Deliver(const nwMsg &, nwConnectionHandle)",
+    "size": 320
+  },
+  {
+    "address": "0x00116d24",
+    "name": "gcEntity::FadeIn(cTimeValue, bool)",
+    "size": 324
+  },
+  {
+    "address": "0x0011aba0",
+    "name": "gcEntity::Move(cTimeValue)",
+    "size": 324
+  },
+  {
+    "address": "0x001181d8",
+    "name": "gcEntity::CalcLeadingPosition(const mVec3 &, const mVec3 &, const mVec3 &, const mVec3 &, float, mVec3 *) static",
+    "size": 332
+  },
+  {
+    "address": "0x00114938",
+    "name": "gcEntity::FindConstant(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool, int *, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 336
+  },
+  {
+    "address": "0x00114bb0",
+    "name": "gcEntity::FindVariable(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool, int *, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 336
+  },
+  {
+    "address": "0x00114d98",
+    "name": "gcEntity::FindTimeSinceSet(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool, int *, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 336
+  },
+  {
+    "address": "0x00114ee8",
+    "name": "gcEntity::FindRelationshipSet(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, bool, int *, const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 336
+  },
+  {
+    "address": "0x00119294",
+    "name": "gcEntity::SetNetClientId(int, nwConnectionHandle)",
+    "size": 336
+  },
+  {
+    "address": "0x00116fa8",
+    "name": "gcEntity::Revive(bool)",
+    "size": 344
+  },
+  {
+    "address": "0x001169bc",
+    "name": "gcEntity::CleanDynamic(unsigned int) static",
+    "size": 384
+  },
+  {
+    "address": "0x00118324",
+    "name": "gcEntity::GetLeadingVecToEntity(const cName &, const gcEntity *, const cName &, float, mVec3 *) const",
+    "size": 408
+  },
+  {
+    "address": "0x00119b14",
+    "name": "gcEntity::OnFullscreenCinematicEnded(void) static",
+    "size": 416
+  },
+  {
+    "address": "0x001150d0",
+    "name": "gcEntity::GetRelationship(int, int) const",
+    "size": 420
+  },
+  {
+    "address": "0x001184bc",
+    "name": "gcEntity::PlaySound(int, cHandleT<eSoundData>, float, cHandleT<eSoundData>, cTimeValue, bool, short)",
+    "size": 456
+  },
+  {
+    "address": "0x00116b3c",
+    "name": "gcEntity::Destroy(cTimeValue)",
+    "size": 488
+  }
+]

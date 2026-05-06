@@ -119,6 +119,14 @@ python3 tools/func_db.py stats
 tail -f logs/match_*.jsonl
 ```
 
+**Claude binary path:** Orchestrator hardcodes `/usr/local/bin/claude` (`tools/common.py`). The autodecomp sandbox can't read `~/.local/bin/claude` (modern installer location), so the binary must live in a system path. If `claude update` moves it, restore with:
+
+```bash
+sudo cp -RL /Users/$USER/.local/share/claude/versions/<VER> /usr/local/share/claude/<VER>
+sudo ln -sfn /usr/local/share/claude/<VER> /usr/local/bin/claude
+sudo chmod -R a+rX /usr/local/share/claude
+```
+
 ## Norms
 
 **Quality:**

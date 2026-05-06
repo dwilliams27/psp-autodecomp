@@ -1,0 +1,917 @@
+[
+  {
+    "address": "0x000f2c8c",
+    "name": "gcMap::LoadRegionSet(const cGUIDT<gcRegion> *)",
+    "size": 104
+  },
+  {
+    "address": "0x000f3ecc",
+    "name": "gcMap::MemCardReplicate(gcReplicationVisitor &)",
+    "size": 112
+  },
+  {
+    "address": "0x000fe134",
+    "name": "gcViewport::OnMapEnded(void) static",
+    "size": 112
+  },
+  {
+    "address": "0x00009cb0",
+    "name": "cObject::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)",
+    "size": 120
+  },
+  {
+    "address": "0x000fe300",
+    "name": "gcViewport::GetListeners(mOCS *) static",
+    "size": 120
+  },
+  {
+    "address": "0x0006cbb8",
+    "name": "eSimulatedController::ApplyTorque(int, const mVec3 &)",
+    "size": 124
+  },
+  {
+    "address": "0x000f4f68",
+    "name": "gcMap::HandleNextRegionLoad(void)",
+    "size": 124
+  },
+  {
+    "address": "0x000fe484",
+    "name": "gcViewport::MemoryCardReplicateDynamic(gcReplicationVisitor &) static",
+    "size": 124
+  },
+  {
+    "address": "0x0000a50c",
+    "name": "cObject::IsEditable(void) const",
+    "size": 128
+  },
+  {
+    "address": "0x0006c410",
+    "name": "eSimulatedController::ClearExternalForces(void)",
+    "size": 128
+  },
+  {
+    "address": "0x0006cfec",
+    "name": "eSimulatedController::SnapConstraints(void)",
+    "size": 128
+  },
+  {
+    "address": "0x000f3e44",
+    "name": "gcMap::ResetNetConnection(int)",
+    "size": 136
+  },
+  {
+    "address": "0x000fe1a4",
+    "name": "gcViewport::OnMemPoolResetAll(const cMemPool *, unsigned int) static",
+    "size": 140
+  },
+  {
+    "address": "0x001e0d80",
+    "name": "eCapsuleShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 144
+  },
+  {
+    "address": "0x00073cf8",
+    "name": "eCompoundShape::GetVolume(void) const",
+    "size": 148
+  },
+  {
+    "address": "0x000f2bf8",
+    "name": "gcMap::LoadRegionSet(int, int)",
+    "size": 148
+  },
+  {
+    "address": "0x000fde78",
+    "name": "gcViewport::ResetAll(void) static",
+    "size": 148
+  },
+  {
+    "address": "0x00103844",
+    "name": "gcGameSettings::SaveGameGetSize(void) const",
+    "size": 148
+  },
+  {
+    "address": "0x00105058",
+    "name": "gcGameSettings::ProfileHeaderValue(const gcStringValue *, int) const",
+    "size": 148
+  },
+  {
+    "address": "0x001110fc",
+    "name": "gcEntityController::PostUpdateFinal(void)",
+    "size": 148
+  },
+  {
+    "address": "0x000ebe48",
+    "name": "gcCinematicInstance::DrawDialogs(void) const",
+    "size": 152
+  },
+  {
+    "address": "0x000fdd44",
+    "name": "gcViewport::UpdateAll(cTimeValue) static",
+    "size": 152
+  },
+  {
+    "address": "0x0006c07c",
+    "name": "eSimulatedController::Activate(eDynamicModel *)",
+    "size": 156
+  },
+  {
+    "address": "0x000fdddc",
+    "name": "gcViewport::UpdateUI(cTimeValue) static",
+    "size": 156
+  },
+  {
+    "address": "0x00103374",
+    "name": "gcGameSettings::SaveGameCapture(int)",
+    "size": 156
+  },
+  {
+    "address": "0x0000b23c",
+    "name": "cFactory::CopyObject(const cObject *, const cGUID &)",
+    "size": 160
+  },
+  {
+    "address": "0x0000c038",
+    "name": "cFactory::DeleteGroups(void)",
+    "size": 160
+  },
+  {
+    "address": "0x000eb73c",
+    "name": "gcCinematicInstance::UpdateAll(cTimeValue) static",
+    "size": 160
+  },
+  {
+    "address": "0x00011bdc",
+    "name": "eMoviePlatform::AllocWorkArea(int, int)",
+    "size": 164
+  },
+  {
+    "address": "0x00012c94",
+    "name": "eMoviePlatform::dispbuf_show(void)",
+    "size": 164
+  },
+  {
+    "address": "0x000499a8",
+    "name": "eDynamicModel::RemoveFromBroadphase(void)",
+    "size": 164
+  },
+  {
+    "address": "0x0006c118",
+    "name": "eSimulatedController::Deactivate(eDynamicModel *)",
+    "size": 164
+  },
+  {
+    "address": "0x0006c928",
+    "name": "eSimulatedController::ApplyUnembedImpulse(int, const mVec3 &)",
+    "size": 164
+  },
+  {
+    "address": "0x000f2a30",
+    "name": "gcMap::FillRegionList(cGUIDT<gcRegion> *, int) const",
+    "size": 164
+  },
+  {
+    "address": "0x001a7758",
+    "name": "nwConnection::DispatchMessages(unsigned char *, int, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool) static",
+    "size": 164
+  },
+  {
+    "address": "0x0000a238",
+    "name": "cObject::GetLocalizedFilename(const cType *, const cGUID &, cStr *) static",
+    "size": 168
+  },
+  {
+    "address": "0x0001218c",
+    "name": "eMoviePlatform::decode_videoDecodeEnd(void)",
+    "size": 168
+  },
+  {
+    "address": "0x0006c880",
+    "name": "eSimulatedController::ApplyForce(int, const mVec3 &, const mVec3 &)",
+    "size": 168
+  },
+  {
+    "address": "0x000e5280",
+    "name": "gcUIDialog::ReplaceControl(gcUIWidget *)",
+    "size": 168
+  },
+  {
+    "address": "0x000ebc64",
+    "name": "gcCinematicInstance::FindPlayingCinematic(cHandle, bool) static",
+    "size": 168
+  },
+  {
+    "address": "0x000ebd0c",
+    "name": "gcCinematicInstance::FindPlayingCinematic(gcCinematic *, cHandle) static",
+    "size": 168
+  },
+  {
+    "address": "0x00013374",
+    "name": "eMoviePlatform::avsync_Compare(void)",
+    "size": 172
+  },
+  {
+    "address": "0x000fdc98",
+    "name": "gcViewport::AddToWorld(eWorld *) static",
+    "size": 172
+  },
+  {
+    "address": "0x00011d64",
+    "name": "eMoviePlatform::control_create(void)",
+    "size": 176
+  },
+  {
+    "address": "0x0004a284",
+    "name": "eDynamicModel::SetShapeController(eRigidBodyState *, ePhysicsController *, unsigned int)",
+    "size": 176
+  },
+  {
+    "address": "0x0010451c",
+    "name": "gcGameSettings::ProfileCheckFreeSpace(const char *) const",
+    "size": 176
+  },
+  {
+    "address": "0x0000bc90",
+    "name": "cFactory::DeleteMarkedForClean(unsigned int, bool)",
+    "size": 180
+  },
+  {
+    "address": "0x0000c0d8",
+    "name": "cFactory::OnNameChanged(void)",
+    "size": 180
+  },
+  {
+    "address": "0x00048cc8",
+    "name": "eDynamicModel::ResetAnimationState(void)",
+    "size": 180
+  },
+  {
+    "address": "0x0006af04",
+    "name": "eCapsuleShape::GetVolumeUnderPlane(eDragAreaUtil *, const mPlane &, const mOCS &, float *, mVec3 *) const",
+    "size": 184
+  },
+  {
+    "address": "0x000e51c8",
+    "name": "gcUIDialog::CreateControl(gcUIWidget *)",
+    "size": 184
+  },
+  {
+    "address": "0x0010514c",
+    "name": "gcGameSettings::GetAppTitle(void)",
+    "size": 184
+  },
+  {
+    "address": "0x0000bbd4",
+    "name": "cFactory::MarkForClean(unsigned int)",
+    "size": 188
+  },
+  {
+    "address": "0x00047aa4",
+    "name": "eDynamicModel::SetGeomFlagsOnOff(unsigned int, unsigned int)",
+    "size": 188
+  },
+  {
+    "address": "0x00103788",
+    "name": "gcGameSettings::SaveGameRestore(int)",
+    "size": 188
+  },
+  {
+    "address": "0x00104370",
+    "name": "gcGameSettings::SaveGameGetCount(void) const",
+    "size": 192
+  },
+  {
+    "address": "0x0000b648",
+    "name": "cFactory::CleanGroups(unsigned int, bool)",
+    "size": 196
+  },
+  {
+    "address": "0x00013194",
+    "name": "eMoviePlatform::soundbuf_swapbuf(char *)",
+    "size": 196
+  },
+  {
+    "address": "0x000f612c",
+    "name": "gcMap::WriteDynamicallyLoadedObjectsToLoad(cOutStream &)",
+    "size": 196
+  },
+  {
+    "address": "0x000698d0",
+    "name": "eMultiSphereShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 200
+  },
+  {
+    "address": "0x0006adf4",
+    "name": "eCapsuleShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 200
+  },
+  {
+    "address": "0x000f3a88",
+    "name": "gcMap::RemoveFromWorld(void)",
+    "size": 200
+  },
+  {
+    "address": "0x00111c08",
+    "name": "gcEntityController::OnDeselected(void)",
+    "size": 200
+  },
+  {
+    "address": "0x001a6e48",
+    "name": "nwConnection::BufferOutBlock(unsigned int, int, unsigned char *)",
+    "size": 200
+  },
+  {
+    "address": "0x001a691c",
+    "name": "nwConnection::Update(cTimeValue)",
+    "size": 204
+  },
+  {
+    "address": "0x001a70fc",
+    "name": "nwConnection::ReceiveAck(nwInPacket &)",
+    "size": 204
+  },
+  {
+    "address": "0x000fe230",
+    "name": "gcViewport::Get(gcEntity *) static",
+    "size": 208
+  },
+  {
+    "address": "0x0006d12c",
+    "name": "eSimulatedController::GetSubObjectIndex(const cName &) const",
+    "size": 212
+  },
+  {
+    "address": "0x000e8d58",
+    "name": "gcUIDialog::IsUpdateEmpty(bool) const",
+    "size": 212
+  },
+  {
+    "address": "0x000f2cf4",
+    "name": "gcMap::FindRegionSet(unsigned int, int *, int *) const",
+    "size": 212
+  },
+  {
+    "address": "0x0000a750",
+    "name": "cObject::WriteHeader(cFile &)",
+    "size": 216
+  },
+  {
+    "address": "0x0006c7a8",
+    "name": "eSimulatedController::ApplyImpulse(int, const mVec3 &, const mVec3 &)",
+    "size": 216
+  },
+  {
+    "address": "0x0006ce24",
+    "name": "eSimulatedController::AddContact(const mVec3 &, const mVec3 &, cBase *, cHandleT<eSurface>, int, float, int)",
+    "size": 216
+  },
+  {
+    "address": "0x001a69e8",
+    "name": "nwConnection::UpdatePing(cTimeValue)",
+    "size": 216
+  },
+  {
+    "address": "0x001119cc",
+    "name": "gcEntityController::OnDeactivated(void)",
+    "size": 220
+  },
+  {
+    "address": "0x001a6640",
+    "name": "nwConnection::Connect(const char *, bool)",
+    "size": 220
+  },
+  {
+    "address": "0x000e7d5c",
+    "name": "gcUIDialog::FocusNearestNeighbor(gcUIWidget *)",
+    "size": 224
+  },
+  {
+    "address": "0x000f1e7c",
+    "name": "gcMap::LoadObjectBackgroundAdd(int, const cType *, const cGUID &)",
+    "size": 224
+  },
+  {
+    "address": "0x000130b0",
+    "name": "eMoviePlatform::soundbuf_thread(void)",
+    "size": 228
+  },
+  {
+    "address": "0x00068d18",
+    "name": "eMultiSphereShape::GetCollisionHandler(const mVec3 &) const",
+    "size": 228
+  },
+  {
+    "address": "0x0006a27c",
+    "name": "eCapsuleShape::GetCollisionHandler(const mVec3 &) const",
+    "size": 228
+  },
+  {
+    "address": "0x000f6048",
+    "name": "gcMap::ReadDynamicallyLoadedObjects(cInStream &)",
+    "size": 228
+  },
+  {
+    "address": "0x0000a150",
+    "name": "cObject::GetFilename(cStr *) const",
+    "size": 232
+  },
+  {
+    "address": "0x0006cad0",
+    "name": "eSimulatedController::ApplyPositionedForce(int, const mVec3 &, const mVec3 &)",
+    "size": 232
+  },
+  {
+    "address": "0x0006cf04",
+    "name": "eSimulatedController::ForceSleepState(bool)",
+    "size": 232
+  },
+  {
+    "address": "0x0000b70c",
+    "name": "cFactory::LoadLocalized(const char *)",
+    "size": 236
+  },
+  {
+    "address": "0x0000bd44",
+    "name": "cFactory::WriteGroups(cWriteBlock &) const",
+    "size": 236
+  },
+  {
+    "address": "0x0006a360",
+    "name": "eCapsuleShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 236
+  },
+  {
+    "address": "0x000f41b8",
+    "name": "gcMap::PlayCinematic(gcCinematic *, cHandle, float, bool) static",
+    "size": 236
+  },
+  {
+    "address": "0x00104430",
+    "name": "gcGameSettings::ProfileCheckFreeSpace(const gcStringValue *) const",
+    "size": 236
+  },
+  {
+    "address": "0x001a6148",
+    "name": "nwConnection::Close(void)",
+    "size": 236
+  },
+  {
+    "address": "0x000f1768",
+    "name": "gcMap::LoadBackground(const cGUIDT<gcMap> &, const cGUIDT<gcLoadingScreen> &, unsigned int) static",
+    "size": 240
+  },
+  {
+    "address": "0x000f6f54",
+    "name": "gcMap::MemCardReplicateStreamedCinematicLoad(gcReplicationVisitor &)",
+    "size": 240
+  },
+  {
+    "address": "0x001a6f10",
+    "name": "nwConnection::ResendReliable(nwOutPacket &, int)",
+    "size": 240
+  },
+  {
+    "address": "0x001a7608",
+    "name": "nwConnection::BufferInBlock(unsigned int, unsigned char *, int)",
+    "size": 244
+  },
+  {
+    "address": "0x00011f80",
+    "name": "eMoviePlatform::decode_audioDecode(void)",
+    "size": 248
+  },
+  {
+    "address": "0x000e36a0",
+    "name": "gcUIDialog::Write(cOutStream &) const",
+    "size": 248
+  },
+  {
+    "address": "0x00104ef4",
+    "name": "gcGameSettings::ProfileFind(const gcStringValue *) const",
+    "size": 248
+  },
+  {
+    "address": "0x0004a188",
+    "name": "eDynamicModel::SnapControllerTo(const mOCS &, bool)",
+    "size": 252
+  },
+  {
+    "address": "0x000e8c5c",
+    "name": "gcUIDialog::ProcessesMessage(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const",
+    "size": 252
+  },
+  {
+    "address": "0x000f2770",
+    "name": "gcMap::HasRegion(const cGUIDT<gcRegion> &) const",
+    "size": 252
+  },
+  {
+    "address": "0x001a7000",
+    "name": "nwConnection::Receive(int, nwInPacket &)",
+    "size": 252
+  },
+  {
+    "address": "0x000f1fa8",
+    "name": "gcMap::CreateRegion(const cGUIDT<gcRegion> &, int, bool)",
+    "size": 256
+  },
+  {
+    "address": "0x000135c4",
+    "name": "eMoviePlatform::read_thread(void)",
+    "size": 260
+  },
+  {
+    "address": "0x00047e7c",
+    "name": "eDynamicModel::SetSkin(int, int, int, cTimeValue)",
+    "size": 260
+  },
+  {
+    "address": "0x00068dfc",
+    "name": "eMultiSphereShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 260
+  },
+  {
+    "address": "0x0006c9cc",
+    "name": "eSimulatedController::ApplyPositionedImpulse(int, const mVec3 &, const mVec3 &)",
+    "size": 260
+  },
+  {
+    "address": "0x00011ad4",
+    "name": "eMoviePlatform::ringbufferCallBack(void *, int, void *) static",
+    "size": 264
+  },
+  {
+    "address": "0x000eb3e8",
+    "name": "gcCinematicInstance::Play(cHandle, float)",
+    "size": 264
+  },
+  {
+    "address": "0x000f61f0",
+    "name": "gcMap::ReadDynamicallyLoadedObjectsToLoad(cInStream &)",
+    "size": 264
+  },
+  {
+    "address": "0x000f59bc",
+    "name": "gcMap::HandleObjectLoadingForeground(void)",
+    "size": 268
+  },
+  {
+    "address": "0x000fe378",
+    "name": "gcViewport::MemCardReplicate(gcReplicationVisitor &) static",
+    "size": 268
+  },
+  {
+    "address": "0x0000bac4",
+    "name": "cFactory::ClearVisitedReferences(unsigned int)",
+    "size": 272
+  },
+  {
+    "address": "0x00012078",
+    "name": "eMoviePlatform::decode_videoDecode(void)",
+    "size": 276
+  },
+  {
+    "address": "0x000f40a0",
+    "name": "gcMap::ClearRegionState(const cGUIDT<gcRegion> &)",
+    "size": 280
+  },
+  {
+    "address": "0x000f4fe4",
+    "name": "gcMap::WaitForBackgroundLoad(void)",
+    "size": 280
+  },
+  {
+    "address": "0x000fdf0c",
+    "name": "gcViewport::Clear(void) static",
+    "size": 280
+  },
+  {
+    "address": "0x000f72a0",
+    "name": "gcMap::ApplyRegionState(gcRegionBase *)",
+    "size": 284
+  },
+  {
+    "address": "0x001a77fc",
+    "name": "nwConnection::DispatchMessage(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle, bool) static",
+    "size": 284
+  },
+  {
+    "address": "0x00112d5c",
+    "name": "gcEntityController::HandleHeightOnPath(mVec3 *)",
+    "size": 288
+  },
+  {
+    "address": "0x000e8584",
+    "name": "gcUIDialog::OnControlChanged(gcUIWidget *, unsigned int, unsigned int)",
+    "size": 292
+  },
+  {
+    "address": "0x000f2ad4",
+    "name": "gcMap::GetRegionIndex(const cGUIDT<gcRegion> &) const",
+    "size": 292
+  },
+  {
+    "address": "0x00012b6c",
+    "name": "eMoviePlatform::dispbuf_thread(void)",
+    "size": 296
+  },
+  {
+    "address": "0x0004a6b8",
+    "name": "eDynamicModel::UpdateStatic(const eDynamicMesh *)",
+    "size": 296
+  },
+  {
+    "address": "0x001a6234",
+    "name": "nwConnection::FlushAll(void)",
+    "size": 296
+  },
+  {
+    "address": "0x000f2904",
+    "name": "gcMap::GetLoadingRegions(cGUIDT<gcRegion> *) const",
+    "size": 300
+  },
+  {
+    "address": "0x0020b4ec",
+    "name": "eCompoundShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "size": 300
+  },
+  {
+    "address": "0x001117d4",
+    "name": "gcEntityController::ReadMovement(cInStream &, bool)",
+    "size": 304
+  },
+  {
+    "address": "0x001a6cd0",
+    "name": "nwConnection::SendAckAndPing(nwOutPacket &)",
+    "size": 304
+  },
+  {
+    "address": "0x00166f10",
+    "name": "gcMap::OnMemPoolReset(const cMemPool *, unsigned int)",
+    "size": 312
+  },
+  {
+    "address": "0x001a67e4",
+    "name": "nwConnection::AllocateBuffers(void)",
+    "size": 312
+  },
+  {
+    "address": "0x000f4860",
+    "name": "gcMap::HandleStreamedCinematicStart(void)",
+    "size": 320
+  },
+  {
+    "address": "0x000fe85c",
+    "name": "gcViewport::DrawMouse(void) static",
+    "size": 328
+  },
+  {
+    "address": "0x00111688",
+    "name": "gcEntityController::WriteMovement(cOutStream &, bool) const",
+    "size": 332
+  },
+  {
+    "address": "0x0007359c",
+    "name": "eCompoundShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 336
+  },
+  {
+    "address": "0x000f20a8",
+    "name": "gcMap::LoadRegion(const cGUIDT<gcRegion> &, int, bool)",
+    "size": 340
+  },
+  {
+    "address": "0x000e7a94",
+    "name": "gcUIDialog::DrawBackdrop(const eCamera &, const mOCS &, const eRect &, float, float) const",
+    "size": 344
+  },
+  {
+    "address": "0x000e83dc",
+    "name": "gcUIDialog::OnClosed(const gcDoUIShowDialog *, float *)",
+    "size": 344
+  },
+  {
+    "address": "0x00110d18",
+    "name": "gcEntityController::PlayAnimation(const gcEntityAnimationConfig *, cTimeValue, bool)",
+    "size": 344
+  },
+  {
+    "address": "0x000e4e34",
+    "name": "gcUIDialog::Draw(unsigned int)",
+    "size": 352
+  },
+  {
+    "address": "0x00111aa8",
+    "name": "gcEntityController::OnSelected(void)",
+    "size": 352
+  },
+  {
+    "address": "0x0006bf10",
+    "name": "eSimulatedController::~eSimulatedController(void)",
+    "size": 364
+  },
+  {
+    "address": "0x00072ea8",
+    "name": "eCompoundShape::CastRay(const mRay &, const eCollisionInfo &, mVec3 *, mVec3 *, float *) const",
+    "size": 368
+  },
+  {
+    "address": "0x000e5718",
+    "name": "gcUIDialog::IsPointerDriven(void) const",
+    "size": 368
+  },
+  {
+    "address": "0x000e7bec",
+    "name": "gcUIDialog::FocusFirstControl(bool)",
+    "size": 368
+  },
+  {
+    "address": "0x001a7498",
+    "name": "nwConnection::ReceiveReliable(unsigned int, unsigned char *, int)",
+    "size": 368
+  },
+  {
+    "address": "0x0000a9d8",
+    "name": "cObject::WillBeDeleted(const cBase *, const cMemPool *, unsigned int) static",
+    "size": 372
+  },
+  {
+    "address": "0x001058b4",
+    "name": "gcGameSettings::OnProfileReset(gcProfile *, float)",
+    "size": 380
+  },
+  {
+    "address": "0x000e5328",
+    "name": "gcUIDialog::SetNumControls(int)",
+    "size": 384
+  },
+  {
+    "address": "0x00009fc8",
+    "name": "cObject::Load(void)",
+    "size": 392
+  },
+  {
+    "address": "0x000e4030",
+    "name": "gcUIDialog::Send(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &, const gcEventParams &, const gcEventStackData &) const",
+    "size": 396
+  },
+  {
+    "address": "0x0007340c",
+    "name": "eCompoundShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 400
+  },
+  {
+    "address": "0x00012d38",
+    "name": "eMoviePlatform::soundbuf_create(void)",
+    "size": 404
+  },
+  {
+    "address": "0x000f21fc",
+    "name": "gcMap::LoadRegionsBackground(int, int, const gcEvent *, const gcEvent *, bool, bool)",
+    "size": 404
+  },
+  {
+    "address": "0x0000af74",
+    "name": "cFactory::LoadObject(const cType *, const cGUID &, unsigned int, cFile *, bool)",
+    "size": 416
+  },
+  {
+    "address": "0x000f1a40",
+    "name": "gcMap::Load(bool)",
+    "size": 416
+  },
+  {
+    "address": "0x0002f960",
+    "name": "eVideo::SetFogInfo(const eCamera *) static",
+    "size": 424
+  },
+  {
+    "address": "0x000eb238",
+    "name": "gcCinematicInstance::~gcCinematicInstance(void)",
+    "size": 424
+  },
+  {
+    "address": "0x000691b4",
+    "name": "eMultiSphereShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 428
+  },
+  {
+    "address": "0x000f7044",
+    "name": "gcMap::MemCardReplicateStreamedCinematicLoad(gcReplicationVisitor &, int)",
+    "size": 428
+  },
+  {
+    "address": "0x00009dc4",
+    "name": "cObject::~cObject(void)",
+    "size": 432
+  },
+  {
+    "address": "0x000f6da4",
+    "name": "gcMap::MemCardReplicateStreamedCinematic(gcReplicationVisitor &, int)",
+    "size": 432
+  },
+  {
+    "address": "0x00030308",
+    "name": "eVideo::DrawQuad(float, float, float, float, const mVec4 &, unsigned int) static",
+    "size": 436
+  },
+  {
+    "address": "0x00012788",
+    "name": "eMoviePlatform::dispbuf_create(int)",
+    "size": 440
+  },
+  {
+    "address": "0x00030634",
+    "name": "eVideo::FlipRegistered(cTimeValue) static",
+    "size": 440
+  },
+  {
+    "address": "0x0006a6f0",
+    "name": "eCapsuleShape::GetEmbedContacts(int, const mSphere *, const eCollisionInfo &, eContactCollector *) const",
+    "size": 440
+  },
+  {
+    "address": "0x001114cc",
+    "name": "gcEntityController::ValidateNavMeshPos(void)",
+    "size": 444
+  },
+  {
+    "address": "0x0002fd58",
+    "name": "eVideo::SetViewport(const eViewport *) static",
+    "size": 448
+  },
+  {
+    "address": "0x0000a58c",
+    "name": "cObject::GetObjectOwner(cBase *) static",
+    "size": 452
+  },
+  {
+    "address": "0x00069360",
+    "name": "eMultiSphereShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 468
+  },
+  {
+    "address": "0x0006a8a8",
+    "name": "eCapsuleShape::GetAABB(mBox *, const mOCS &) const",
+    "size": 468
+  },
+  {
+    "address": "0x000f49a0",
+    "name": "gcMap::HandleNextStreamedCinematic(void)",
+    "size": 468
+  },
+  {
+    "address": "0x000e8a84",
+    "name": "gcUIDialog::TransitionUpdate(cTimeValue)",
+    "size": 472
+  },
+  {
+    "address": "0x000f43a0",
+    "name": "gcMap::DeleteRegion(int)",
+    "size": 472
+  },
+  {
+    "address": "0x0006b024",
+    "name": "eCapsuleShape::GetSupport(const mVec3 &, const mOCS &, eCollisionSupport *) const",
+    "size": 476
+  },
+  {
+    "address": "0x00073b1c",
+    "name": "eCompoundShape::GetInertialTensor(float, mVec3 *) const",
+    "size": 476
+  },
+  {
+    "address": "0x0000a2e0",
+    "name": "cObject::BuildFilename(const cType *, const cGUID &, bool, bool, cStr *, const char *) static",
+    "size": 480
+  },
+  {
+    "address": "0x000e69f8",
+    "name": "gcUIDialog::HandleMouse(void)",
+    "size": 480
+  },
+  {
+    "address": "0x0002fb08",
+    "name": "eVideo::Clear(bool, bool, unsigned int, float, const eViewport *) static",
+    "size": 484
+  },
+  {
+    "address": "0x0006cc34",
+    "name": "eSimulatedController::IntegrateVelocity(float)",
+    "size": 488
+  },
+  {
+    "address": "0x00048adc",
+    "name": "eDynamicModel::CalcNodeDelta(cTimeValue, int, mVec3 *, mQuat *) const",
+    "size": 492
+  },
+  {
+    "address": "0x000f6370",
+    "name": "gcMap::DynamicallyLoadedObjectsSetToLoadDiffer(void)",
+    "size": 492
+  },
+  {
+    "address": "0x000e3920",
+    "name": "gcUIDialog::CreateDynamicInstance(const cGUID &)",
+    "size": 500
+  }
+]
