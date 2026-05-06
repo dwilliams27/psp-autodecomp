@@ -41,6 +41,8 @@ public:
 
 class gcDoSetEventObjectArray {
 public:
+    float Evaluate(void) const;
+    void GetText(char *) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -79,7 +81,31 @@ struct DtorSlot {
     void (*fn)(void *, int);
 };
 
+typedef float (*EvaluateFn)(const void *);
+struct EvaluateSlot {
+    short offset;
+    short pad;
+    EvaluateFn fn;
+};
+
+typedef int (*EvaluateObjectFn)(void *, int);
+struct EvaluateObjectSlot {
+    short offset;
+    short pad;
+    EvaluateObjectFn fn;
+};
+
+struct TextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 void *cMemPool_GetPoolFromPtr(const void *);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
+extern void *g_expressionEvalStack asm("D_0037D7B4");
 
 inline void gcDoSetEventObjectArray::operator delete(void *ptr) {
     void *pool = cMemPool_GetPoolFromPtr(ptr);
@@ -122,6 +148,89 @@ void gcDoSetEventObjectArray::Write(cFile &file) const {
     ((cBaseArray *)((char *)this + 16))->Write(wb);
     ((gcDesiredValue *)((char *)this + 24))->Write(wb);
     wb.End();
+}
+
+// ----------------------------------------------------------------
+// gcDoSetEventObjectArray::Evaluate(void) const @ 0x002fddf4
+// ----------------------------------------------------------------
+float gcDoSetEventObjectArray::Evaluate(void) const {
+    int val = *(int *)((const char *)this + 0x18);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    const void *ptr = (const void *)val;
+
+    float value;
+    if (ptr != 0) {
+        EvaluateSlot *slot = (EvaluateSlot *)(*(char **)((const char *)ptr + 4) + 0x70);
+        value = slot->fn((const char *)ptr + slot->offset);
+    } else {
+        value = 0.0f;
+    }
+    register int index __asm__("$4") = (int)value;
+
+    if (index >= 0) {
+        int *items = *(int **)((const char *)this + 0x10);
+        int count = 0;
+        if (items != 0) {
+            count = items[-1];
+        }
+        if (index < count) {
+            register int stackBase __asm__("$17") = 0;
+            int *itemSlot = items + index;
+            void *stack = g_expressionEvalStack;
+            int *item = (int *)*itemSlot;
+            if (stack != 0) {
+                stackBase = *(int *)((char *)stack + 0x10);
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int result = 0;
+            if (item != 0) {
+                EvaluateObjectSlot *slot =
+                    (EvaluateObjectSlot *)(*(char **)((char *)item + 4) + 0x70);
+                result = slot->fn((char *)item + slot->offset, 0);
+            }
+            *(int *)(stackBase + (*(int *)((const char *)this + 0x0C) * 4) + 0x40) = result;
+            return 1.0f;
+        }
+    }
+    return 0.0f;
+}
+
+// ----------------------------------------------------------------
+// gcDoSetEventObjectArray::GetText(char *) const @ 0x002fdf1c
+// ----------------------------------------------------------------
+void gcDoSetEventObjectArray::GetText(char *buf) const {
+    int val = *(int *)((const char *)this + 0x18);
+    char text[256];
+    text[0] = '\0';
+
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    void *ptr = (void *)val;
+
+    if (ptr != 0) {
+        TextSlot *slot = (TextSlot *)(*(char **)((char *)ptr + 4) + 0xD0);
+        slot->fn((char *)ptr + slot->offset, text);
+    } else {
+        cStrCat(text, (const char *)0x36DB24);
+    }
+    cStrAppend(buf, (const char *)0x36EF38, (const char *)0x36DAF0, text);
 }
 
 // ----------------------------------------------------------------

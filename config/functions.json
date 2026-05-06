@@ -112380,7 +112380,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00336c04"
@@ -204373,11 +204373,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcDoSetEventObjectIEvaluatevK"
+    "mangled_symbol": "__0fSgcDoSetEventObjectIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "aa50c272",
+        "notes": "Implemented a real C++ Evaluate body using the tagged-reference ownership check, the D_0037D7B4 expression-evaluation stack global, vtable+0x70 dispatch, and final stack slot write. Existing matched siblings in the TU remain matched. Tried declaration reordering, result/flag lifetime changes, explicit register variables for a0/a1/a3, splitting context declaration from assignment, duplicating then re-merging the vtable slot computation, and an attempted section-padding nop. The closest stable source is 200B versus the 204B target; permuter could not run because it could not isolate this function from the multi-function .o.\n\nThe remaining mismatch is in codegen shape, not high-level behavior. The target keeps the referenced object in a1, the result in a0, uses the same tagged-pointer bool pattern, but has a duplicated addiu/type-slot path and a trailing nop/padding byte range that our source either optimizes away or, if forced with top-level asm, gets attributed to the wrong neighboring symbol and regresses the destructor. The first global/value load ordering also drifts depending on declaration order. I did not force the sequence with inline MIPS assembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:44:03Z",
+        "src_file": "src/gcDoSetEventObject.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/aa50c272/002fd2ac__agent_self_reported_failure__src_gcDoSetEventObject.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fd378",
@@ -204389,14 +204403,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00004bac"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoSetEventObjectHGetTextPcK"
+    "mangled_symbol": "__0fSgcDoSetEventObjectHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "aa50c272",
+        "notes": "Implemented GetText with the local 256-byte cStr buffer, tagged-reference ownership check, vtable+0x80 name lookup, cStrAppend with D_0036DCE4, vtable+0x78 recursive GetText, fallback cStr::Set(D_0036DB38), and final cStrAppend(D_0036EF30, D_0036DAF0, text). The best source compiles to the correct 280B size and compare_func reports only 7 differing bytes.\n\nThe residual diff is localized to the inner tagged-pointer assignment block. The target emits a non-likely beqz with nop, then an unconditional branch with `s1 = 0` in the delay slot; SNC compacts the source to a branch-likely form (`bnezl` with the assignment in the likely delay slot). Tried structured if/else, inverted condition, goto labels, empty memory barriers, and a register-bound format pointer to preserve s2 across the first virtual call. The s2/name-call scheduling now matches, but the branch-likely heuristic remains different. I did not replace the block with hand-written branch assembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:44:03Z",
+        "src_file": "src/gcDoSetEventObject.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/aa50c272/002fd378__agent_self_reported_failure__src_gcDoSetEventObject.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fd490",
@@ -204576,11 +204604,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fXgcDoSetEventObjectArrayIEvaluatevK"
+    "mangled_symbol": "__0fXgcDoSetEventObjectArrayIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "1c8d6b4f",
+        "notes": "Closest semantically valid source is the current C++ body in src/gcDoSetEventObjectArray.cpp. Manual attempts covered direct val-zeroing, separate desired-object pointer locals, float-temporary truncation for the null path, early-return vs nested bounds checks, moving the selected item load around the g_expressionEvalStack load, explicit no-op else barriers to force beqz/b instead of bnezl, and local register bindings for index/stackBase. These got the function to the correct 296-byte size with the same high-level calls, bounds checks, null handling, stack write, and 1.0f/0.0f returns, while preserving all previously matched siblings in the TU.\n\nA 300s permuter run compiled 4071 candidates and improved the diff from 138 to 116 bytes, but its best saved variant briefly used an invalid EvaluateObjectSlot field order (function pointer at offset 0, offset at 6). I restored the real slot layout (offset at 0, fn at 4), leaving a 117/296-byte mismatch. The remaining diff is mainly SNC register/control-flow shape: the original keeps the first desired pointer/index in a0/a1 and uses a non-likely branch around the expression-stack load with a nearby failure return block; our closest valid source still differs in those allocation and scheduling choices.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:57:31Z",
+        "src_file": "src/gcDoSetEventObjectArray.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/1c8d6b4f/002fddf4__agent_self_reported_failure__src_gcDoSetEventObjectArray.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fdf1c",
@@ -204592,14 +204634,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoSetEventObjectArrayHGetTextPcK"
+    "mangled_symbol": "__0fXgcDoSetEventObjectArrayHGetTextPcK",
+    "src_file": "src/gcDoSetEventObjectArray.cpp",
+    "symbol_name": "__0fXgcDoSetEventObjectArrayHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1c8d6b4f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T22:57:31Z"
   },
   {
     "address": "0x002fdfc0",
@@ -207773,7 +207823,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
@@ -216102,11 +216152,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNgcValConstantIEvaluatevK"
+    "mangled_symbol": "__0fNgcValConstantIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "12b6f125",
+        "notes": "category=REG_ALLOC. Closest attempt uses the same direct C++ handle-table reconstruction as the sibling gcValVariable::Evaluate failure snapshot: load the cHandle index at this+8, validate D_00038890[(unsigned short)idx] against field 0x30, branch to a duplicate table reload, then return float field 0x44. This produces the correct 128-byte size, matching control flow, offsets, duplicate reload, zero return placement, and keeps the already-matched gcValConstant siblings matched.\n\nThe remaining diff is 8 bytes in the first handle lookup only. Our SNC build loads the table candidate into a1 and keeps the resolved pointer in a2, while the target loads the candidate into a2 and keeps the resolved pointer in a1; the differing instructions are the li/beqz/lw/move register fields around that lookup. Tried typed HandleObject versus void*, direct offset versus cHandle access, explicit unsigned-short temporaries, table-base locals, branch/goto variants, local register bindings, and a 300s permuter pass (9,240 generated / 3,199 compiled candidates) with zero improvement. This matches the documented local register-selection drift for the same pattern in gcValVariable::Evaluate.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:56:16Z",
+        "src_file": "src/gcValConstant.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/12b6f125/00325668__agent_self_reported_failure__src_gcValConstant.cpp"
+      }
+    ]
   },
   {
     "address": "0x003256e8",
@@ -216118,13 +216182,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcValConstantHGetTextPcK"
+    "mangled_symbol": "__0fNgcValConstantHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "12b6f125",
+        "notes": "Closest attempt reconstructs the validated handle lookup, object-name empty check, three fallback strings, and single cStrCat tail call. It compiles to the correct 172-byte size and matches the handle validation and branch structure. The object text path now has the expected lh/sltiu/andi and delay-slot address calculation shape after using the same object_done barrier pattern as gcValEntityHasVariables::GetText.\n\nThe remaining diff is 10 bytes in caller-register selection for the selected string. The target carries the text pointer in a1 through the object/fallback tail and has a nop in the jal delay slot; our build carries it in a2 and emits move a1,a2 in the cStrCat delay slot, with corresponding a1/a2 differences in the string loads and object text addiu. Tried register-bound text variables, object_done barriers, direct per-branch cStrCat calls, text/objectText temporary reshaping, and a 300s permuter pass (11,520 generated / 4,361 compiled candidates) with zero improvement. The likely root cause is the same source-insensitive caller-register tie-break in this handle/text selection pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T22:56:16Z",
+        "src_file": "src/gcValConstant.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/12b6f125/003256e8__agent_self_reported_failure__src_gcValConstant.cpp"
+      }
+    ]
   },
   {
     "address": "0x00325794",
@@ -226859,7 +226937,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -232745,7 +232823,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],
