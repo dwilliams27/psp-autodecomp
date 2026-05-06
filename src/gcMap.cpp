@@ -394,6 +394,7 @@ class gcEntity {
 public:
     static void DestroyAllDynamic(void);
     static void MemoryCardReplicateDynamic(gcReplicationVisitor &);
+    static void ResetNetConnection(int);
 };
 
 void gcMap::MemCardReplicate(gcReplicationVisitor &v) {
@@ -732,4 +733,67 @@ done:
     if (group != 0) {
         group->ClearRegionSetState(state);
     }
+}
+
+void gcMap::HandleNextRegionLoad(void) {
+    int region0 = *(int *)((char *)this + 0x3C8);
+    if (region0 < 0) {
+        return;
+    }
+    int region1 = *(int *)((char *)this + 0x3CC);
+    if (region1 < 0) {
+        return;
+    }
+    LoadRegionsBackground(
+        region0,
+        region1,
+        *(const gcEvent **)((char *)this + 0x3D0),
+        *(const gcEvent **)((char *)this + 0x3D4),
+        (mFlags & 0x20) != 0,
+        false);
+    *(int *)((char *)this + 0x3C8) = -1;
+    *(int *)((char *)this + 0x3CC) = -1;
+    mFlags &= ~0x20;
+}
+
+class cOutStream;
+class cInStream;
+
+class gcReplicationVisitor {
+public:
+    int mMode;                // 0x00
+    cOutStream *mOutStream;   // 0x04
+    cInStream *mInStream;     // 0x08
+    int mStreamPos;           // 0x0C
+    int mNetConnection;       // 0x10
+    int mReadActive;          // 0x14
+    bool mWriteEnabled;       // 0x18
+    bool mByteSwap;           // 0x19
+
+    void SetNetConnection(int);
+};
+
+struct VisitorDispatchEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, gcReplicationVisitor *);
+};
+
+void gcMap::ResetNetConnection(int conn) {
+    gcReplicationVisitor visitor;
+    visitor.mMode = 0x401;
+    visitor.mOutStream = 0;
+    visitor.mInStream = 0;
+    visitor.mStreamPos = -1;
+    visitor.mNetConnection = -1;
+    visitor.mReadActive = 0;
+    visitor.mWriteEnabled = true;
+    visitor.SetNetConnection(conn);
+
+    if (this != 0) {
+        char *type = *(char **)((char *)this + 4);
+        VisitorDispatchEntry *entry = (VisitorDispatchEntry *)(type + 0xD0);
+        entry->fn((char *)this + entry->offset, &visitor);
+    }
+    gcEntity::ResetNetConnection(conn);
 }

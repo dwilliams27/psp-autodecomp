@@ -9,6 +9,7 @@ class cMemPool;
 class cFile;
 class cType;
 class cGUID;
+class gcEvent;
 class gcReplicationVisitor;
 
 template <class T>
@@ -47,6 +48,9 @@ public:
     int AddToWorld(void);
     void PostUpdate(void);
     void HandleCinematicSkip(void);
+    void HandleNextRegionLoad(void);
+    void LoadRegionsBackground(int, int, const gcEvent *, const gcEvent *, bool, bool);
+    void ResetNetConnection(int);
     void CancelCurrentCinematic(void);
     void LoadObjectBackgroundBegin(cHandleT<gcEntity>);
     void UnloadAllRegions(void);
