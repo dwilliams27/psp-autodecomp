@@ -14,6 +14,25 @@ public:
     ~gcUI();
     void Reset(void);
     void CloseAllDialogs(void);
+    void DeleteSpawned(void);
+};
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+class mOCS {
+public:
+    v4sf_t q0;  // 0x00
+    v4sf_t q1;  // 0x10
+    v4sf_t q2;  // 0x20
+    v4sf_t q3;  // 0x30
+};
+
+struct CameraListenerData {
+    char pad[0xFB0];
+    v4sf_t q0;  // 0xFB0
+    v4sf_t q1;  // 0xFC0
+    v4sf_t q2;  // 0xFD0
+    v4sf_t q3;  // 0xFE0
 };
 
 class cReadBlock {
@@ -70,6 +89,8 @@ public:
     static bool Initialize(void);
     static void CloseAllDialogs(void);
     static void ResetAll(void);
+    static void OnMapEnded(void);
+    static void GetListeners(mOCS *out);
     const cType *GetType(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -272,6 +293,43 @@ void gcViewport::CloseAllDialogs(void) {
         offset += 0x1390;
     } while (i < 5);
     ((gcUI *)0x99928)->CloseAllDialogs();
+}
+
+// ── gcViewport::OnMapEnded(void) static @ 0x000FE134 ──
+void gcViewport::OnMapEnded(void) {
+    gcViewport::CloseAllDialogs();
+    int i = 0;
+    int offset = 0;
+    do {
+        char *cam = D_0037D840 + offset + 0x10;
+        ((gcUI *)(cam + 0x11E4))->DeleteSpawned();
+        i += 1;
+        offset += 0x1390;
+    } while (i < 5);
+    ((gcUI *)0x99928)->DeleteSpawned();
+}
+
+// ── gcViewport::GetListeners(mOCS *) static @ 0x000FE300 ──
+void gcViewport::GetListeners(mOCS *out) {
+    int outIdx = 0;
+    int i = 0;
+    int offset = 0;
+    do {
+        unsigned char *viewport = (unsigned char *)D_0037D840 + offset;
+        if (viewport[0x1380]) {
+            if (viewport[0x1381]) {
+                CameraListenerData *src = (CameraListenerData *)((char *)viewport + 0x10);
+                mOCS *dst = &out[outIdx];
+                dst->q3 = src->q3;
+                outIdx++;
+                dst->q0 = src->q0;
+                dst->q1 = src->q1;
+                dst->q2 = src->q2;
+            }
+        }
+        i += 1;
+        offset += 0x1390;
+    } while (i < 5);
 }
 
 // ── gcViewport::GetType(void) const @ 0x00249248 ──

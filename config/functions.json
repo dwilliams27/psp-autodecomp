@@ -54683,7 +54683,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000380ac"
@@ -54971,7 +54971,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0006bbb8"
     ],
@@ -88152,7 +88152,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000e0a08",
       "0x000fe024"
@@ -88161,7 +88161,14 @@
       "0x000f2ed8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportKOnMapEndedvT"
+    "mangled_symbol": "__0fKgcViewportKOnMapEndedvT",
+    "src_file": "src/gcViewport.cpp",
+    "symbol_name": "__0fKgcViewportKOnMapEndedvT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c6946a0e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:36:51Z"
   },
   {
     "address": "0x000fe1a4",
@@ -88213,13 +88220,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f364c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKgcViewportMGetListenersP6EmOCST"
+    "mangled_symbol": "__0fKgcViewportMGetListenersP6EmOCST",
+    "failure_notes": [
+      {
+        "session": "c6946a0e",
+        "notes": "VFPU listener-extraction loop. Structurally near-correct: lv.q/sv.q register encoding matches (vt=6 / C120 with -Xvfpumatrix=1 -Xvfpuscalar=8), correct offset constants (0xFE0/0xFB0/0xFC0/0xFD0 src, 0x30/0x00/0x10/0x20 dst), correct branch types (beqzl outer + beqz inner), correct outIdx++ placement between first sv.q and second lv.q. CURRENT DIFF: my output is 116B (29 instructions) vs expected 120B (30 instructions). The single missing instruction is the `sll a1, v0, 0x6` that the EBOOT uses to compute `dst = out + outIdx*64` from a scalar counter. With -Xmopt=1 (default for gcAll_psp.obj), SNC strength-reduces `&out[outIdx]` into a pointer induction variable: it inits `a0 = out + 0` at function entry (extra dead-add `addu a0,a0,a1` with a1=0), then increments `a0 += 64` after each successful body, replacing the per-iteration `sll+add` with a single `move t1,a0; addiu a0,a0,64`. ROOT CAUSE / WORKAROUND: confirmed that recompiling with `-Xmopt=0` (`extern/wibo extern/snc/pspsnc.exe -c -O2 -G0 -Xsched=2 -Xmopt=0 -Xvfpumatrix=1 -Xvfpuscalar=8 ...`) produces the EXACT instruction sequence of expected (sll v0,6 + addu a0,a1, no induction, no dead init), with only register-allocation cosmetic differences. The fix is therefore a per-file Makefile override `$(BUILD_DIR)/src/gcViewport.cpp.o: CFLAGS += -Xmopt=0` (analogous to the existing `gcUIWidget_InsertIntoDialog.cpp.o: ... -Xmopt=0` line) \u2014 but agents are forbidden from editing the Makefile, so this needs human approval. ATTEMPTS TRIED: (1) `&out[outIdx]` with mOCS struct; (2) `(v4sf_t *)((char*)out + outIdx*64)`; (3) `(outIdx << 6)` instead of `*64`; (4) `out[outIdx-1]` after pre-increment; (5) permuter for 240s found only 1 trivial improvement (92\u219291 byte diff, never matched). All variants produce induction-variable codegen with -Xmopt=1. The CameraListenerData struct (pad[0xFB0]+4 quads) and mOCS class (4 quads) typing is correct and the v4sf_t loads/stores already use full 14-bit immediate offsets. NEXT STEP: add `$(BUILD_DIR)/src/gcViewport.cpp.o: CFLAGS += -Xmopt=0` to Makefile (will need to verify other matched gcViewport functions still match \u2014 likely fine since none of them rely on -Xmopt=1 strength reduction).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T00:36:51Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/c6946a0e/000fe300__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fe378",
