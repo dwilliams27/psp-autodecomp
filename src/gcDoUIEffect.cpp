@@ -39,6 +39,7 @@ public:
 
 class gcDesiredUIWidgetHelper {
 public:
+    void GetText(char *) const;
     void Write(class cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
@@ -56,6 +57,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcDoUIEffect();
@@ -71,6 +73,7 @@ public:
 void gcAction_gcAction(gcDoUIEffect *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(gcDesiredUIWidgetHelper *, int);
 gcDoUIEffect *dcast(const cBase *);
+void cStrAppend(char *, const char *, ...);
 extern char gcDoUIEffectvirtualtable[];
 extern const char gcDoUIEffect_base_name[];
 extern const char gcDoUIEffect_base_desc[];
@@ -155,6 +158,19 @@ void gcDoUIEffect::Write(cFile &file) const {
     wb.Write(((int *)this)[7]);
     wb.Write(((int *)this)[6]);
     wb.End();
+}
+
+// 0x0030a634 — GetText(char *) const, 136B
+void gcDoUIEffect::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 0x0C))->GetText(local);
+
+    if (*(const int *)((const char *)this + 0x18) == 0) {
+        cStrAppend(buf, (const char *)0x36F004, local, (const char *)0x36DAF0);
+    } else {
+        cStrAppend(buf, (const char *)0x36F014, local, (const char *)0x36DAF0);
+    }
 }
 
 // 0x0030a6bc — VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)

@@ -207823,14 +207823,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoUIEffectHGetTextPcK"
+    "mangled_symbol": "__0fMgcDoUIEffectHGetTextPcK",
+    "src_file": "src/gcDoUIEffect.cpp",
+    "symbol_name": "__0fMgcDoUIEffectHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c9cfa829",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:07:03Z"
   },
   {
     "address": "0x0030a6bc",
@@ -211574,7 +211582,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00004b38"
@@ -223425,7 +223433,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -232823,13 +232831,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcValVariableHGetTextPcK"
+    "mangled_symbol": "__0fNgcValVariableHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "c9cfa829",
+        "notes": "Closest C attempt is a split-TU gcValVariable::GetText implementation that exactly matches the handle lookup and object-name control flow, but remains at 10/172 differing bytes. The byte diff is localized to register allocation for the final text pointer: generated code keeps the chosen string/object-name pointer in a2 and emits move a1,a2 in the cStrCat delay slot, while the original writes those same values into a1 at each branch target and leaves the call delay slot as nop.\n\nTried the in-class method, a split-TU local redeclaration, const char*/char*/void* text variants, typed and raw void* handle objects, D_00038890 symbol vs literal table access, register bindings for h/obj/text/out, object-branch goto restructuring, memory/input barriers, sched=1, and a 120s permuter run (1545 compiled candidates, no improvement). This looks like low-leverage SNC register allocation drift rather than a control-flow mismatch; all non-register behavior bytes line up.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T23:07:03Z",
+        "src_file": "src/gcValVariable_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/c9cfa829/0036ae00__agent_self_reported_failure__src_gcValVariable_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x0036aeac",

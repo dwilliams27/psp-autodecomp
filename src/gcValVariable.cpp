@@ -63,6 +63,7 @@ public:
     gcValVariable(cBase *parent);
     ~gcValVariable();
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
