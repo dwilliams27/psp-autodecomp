@@ -38,6 +38,11 @@ struct eSimulatedBodyEntry {
     void *cache;
 };
 
+class eSimulatedState {
+public:
+    void WakeUp(void);
+};
+
 extern cType *D_000385DC;
 extern cType *D_000469D8;
 extern cType *D_000469E8;
@@ -184,6 +189,68 @@ void eSimulatedController::SetPosition(int index, const mVec3 &position) {
         eRigidBodyState *body = (eRigidBodyState *)entry->body;
         body->position = *(const v4sf_t *)&position;
         body->Update();
+    }
+}
+
+void eSimulatedController::ApplyTorque(int index, const mVec3 &torque) {
+    char *entries = (char *)bodyEntries;
+    __asm__ volatile("" : "+r"(entries));
+    eSimulatedBodyEntry *entry =
+        (eSimulatedBodyEntry *)(entries + (index * 0x30));
+    int ok = 0;
+    if (entry->body != 0) {
+        if (entry->cache != 0) {
+            ok = 1;
+        }
+    }
+    ok = ok & 0xFF;
+    if (ok != 0) {
+        void *body = entry->body;
+        __asm__ volatile(
+            "lv.q C120, 0x10(%0)\n"
+            "lv.q C130, 0(%1)\n"
+            "vadd.t C120, C120, C130\n"
+            "sv.q C120, 0x10(%0)\n"
+            :
+            : "r"(entry), "r"(&torque)
+            : "memory");
+        if ((*(unsigned short *)((char *)body + 0x98) & 0x40) != 0) {
+            ((eSimulatedState *)entry)->WakeUp();
+        }
+    }
+}
+
+void eSimulatedController::ClearExternalForces(void) {
+    char *entries = (char *)bodyEntries;
+    int count = 0;
+    if (entries != 0) {
+        count = *(int *)(entries - 4) & 0x3FFFFFFF;
+    }
+    int i = 0;
+    if (i < count) {
+        __asm__ volatile("mtc1 $0, $f12" ::: "$f12");
+        do {
+            __asm__ volatile(
+                "mfc1 $7, $f12\n"
+                "mfc1 $8, $f12\n"
+                "mfc1 $9, $f12\n"
+                "mtv $7, S120\n"
+                "mtv $8, S121\n"
+                "mtv $9, S122\n"
+                "sv.q C120, 0(%0)\n"
+                "mfc1 $7, $f12\n"
+                "mfc1 $8, $f12\n"
+                "mfc1 $9, $f12\n"
+                "mtv $7, S120\n"
+                "mtv $8, S121\n"
+                "mtv $9, S122\n"
+                "sv.q C120, 0x10(%0)\n"
+                :
+                : "r"(entries)
+                : "$7", "$8", "$9", "memory");
+            i++;
+            entries += 0x30;
+        } while (i < count);
     }
 }
 

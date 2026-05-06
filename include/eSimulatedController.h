@@ -28,6 +28,8 @@ public:
     int GetCollisionMask(void) const;
     void SetCollisionMask(unsigned int);
     void SetPosition(int index, const mVec3 &pos);
+    void ApplyTorque(int index, const mVec3 &torque);
+    void ClearExternalForces(void);
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;

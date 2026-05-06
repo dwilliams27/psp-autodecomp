@@ -54697,13 +54697,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000380ac"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerTClearExternalForcesv"
+    "mangled_symbol": "__0fUeSimulatedControllerTClearExternalForcesv",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerTClearExternalForcesv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "59fc168f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:41:52Z"
   },
   {
     "address": "0x0006c490",
@@ -54985,7 +54992,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0006bbb8"
     ],
@@ -54993,7 +55000,14 @@
       "0x0006b8f4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerLApplyTorqueiRC6FmVec3"
+    "mangled_symbol": "__0fUeSimulatedControllerLApplyTorqueiRC6FmVec3",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerLApplyTorqueiRC6FmVec3",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "59fc168f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:41:52Z"
   },
   {
     "address": "0x0006cc34",
@@ -85323,7 +85337,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000ec9c8",
       "0x001196f0"
@@ -85705,7 +85719,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f21fc"
     ],
@@ -88194,7 +88208,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0f10",
       "0x000f8a80"
@@ -88289,7 +88303,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e1380"
     ],
