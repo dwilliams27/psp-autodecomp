@@ -1,5 +1,9 @@
 #include "eCompoundShape.h"
 #include "eCollision.h"
+#include "eBoxShape.h"
+#include "mOCS.h"
+
+extern "C" float fabsf(float);
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -165,4 +169,83 @@ int eCompoundShape::Collide(const eMeshShape *other, int a, int b, const mOCS &o
 // ── eCompoundShape::Collide(const eHeightmapShape *, ...) @ 0x00073b00 ──
 int eCompoundShape::Collide(const eHeightmapShape *other, int a, int b, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
     return eCollision::CompoundHeightmap(*this, *other, a, b, ocs1, ocs2, info);
+}
+
+struct GetVolumeVtableEntry {
+    short thisOffset;
+    short pad;
+    float (*fn)(const void *);
+};
+
+// ── eCompoundShape::GetProjectedMinMax(...) @ 0x0020b4ec ──
+void eCompoundShape::GetProjectedMinMax(const mVec3 &axis, const mOCS &ocs, float *min, float *max) const {
+    eBoxShape box(0);
+    mOCS scratch;
+    GetBoxShape(ocs, &box, &scratch);
+
+    float center;
+    float row_dot;
+
+    // dot(scratch.position, axis) -> center
+    __asm__ volatile(
+        "lv.q C120, 0(%2)\n"
+        "lv.q C130, 0(%3)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a0, S100\n"
+        "mtc1 $a0, %0\n"
+        "lv.q C120, 0(%4)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a0, S100\n"
+        "mtc1 $a0, %1\n"
+        : "=f"(center), "=f"(row_dot)
+        : "r"(&scratch.position), "r"(&axis), "r"(&scratch.row0)
+        : "$a0", "memory"
+    );
+    float extent = fabsf(row_dot) * box.mHalfExtents[0];
+
+    const char *prow1 = (const char *)&scratch + 0x10;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "lv.q C130, 0(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a0, S100\n"
+        "mtc1 $a0, %0\n"
+        : "=f"(row_dot)
+        : "r"(prow1), "r"(&axis)
+        : "$a0", "memory"
+    );
+    extent += fabsf(row_dot) * box.mHalfExtents[1];
+
+    const char *prow2 = (const char *)&scratch + 0x20;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "lv.q C130, 0(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a0, S100\n"
+        "mtc1 $a0, %0\n"
+        : "=f"(row_dot)
+        : "r"(prow2), "r"(&axis)
+        : "$a0", "memory"
+    );
+    extent += fabsf(row_dot) * box.mHalfExtents[2];
+
+    *min = center - extent;
+    *max = center + extent;
+}
+
+// ── eCompoundShape::GetVolume(void) const @ 0x00073cf8 ──
+float eCompoundShape::GetVolume(void) const {
+    float total = 0.0f;
+    int i = 0;
+    while (true) {
+        int count = 0;
+        if (mSubShapes != 0) count = ((int *)mSubShapes)[-1];
+        if (i >= count) break;
+        eShape *sub = mSubShapes[i];
+        char *vt = *(char **)((char *)sub + 4);
+        GetVolumeVtableEntry *e = (GetVolumeVtableEntry *)(vt + 0x128);
+        total += e->fn((char *)sub + e->thisOffset);
+        i++;
+    }
+    return total;
 }

@@ -57877,11 +57877,18 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeCompoundShapeJGetVolumevK"
+    "mangled_symbol": "__0fOeCompoundShapeJGetVolumevK",
+    "src_file": "src/eCompoundShape.cpp",
+    "symbol_name": "__0fOeCompoundShapeJGetVolumevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d38281bd",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T01:17:29Z"
   },
   {
     "address": "0x00073d8c",
@@ -88072,7 +88079,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0550",
       "0x000f8f08"
@@ -88118,7 +88125,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0520",
       "0x000f88f8",
@@ -151743,7 +151750,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0006d4b4",
       "0x0006d4e8",
@@ -151752,7 +151759,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeSGetProjectedMinMaxRC6FmVec3RC6EmOCSPfTDK"
+    "mangled_symbol": "__0fOeCompoundShapeSGetProjectedMinMaxRC6FmVec3RC6EmOCSPfTDK",
+    "failure_notes": [
+      {
+        "session": "d38281bd",
+        "notes": "GetProjectedMinMax \u2014 size matches at 300B; semantics correct (eBoxShape ctor, GetBoxShape, 4 vdots, 3 fabsf, sub/add, dtor with li a1,2). Reduced byte diff from 171 \u2192 152. Frame layout now matches expected (-256, saves at 208-240). Combined position+row0 dots into one asm block to reuse axis in C130 (matches expected behavior at 0x60-0x80). Remaining diffs are compiler-quirk specific: (1) Expected emits 'mtc1 $a0, $f12' INSIDE fabsf's delay slot \u2014 this requires the int dot result to flow from inline-asm output as int, then be reinterpreted-to-float at fabsf's calling convention boundary, where SNC fills the jal delay slot with the mtc1. The natural C constructs (union, *(float*)&i, register int __asm__) all force a stack slot or place mtc1 before the jal with empty delay slot. (2) Expected uses direct 'lv.q C120, 0xC0(sp)' / 'lv.q 0x90(sp)' sp-relative addressing for position and row0; mine uses addiu+lv.q via a0/s5 (cost: 4 extra bytes per load). (3) Expected uses 'addiu s2,sp,128; lwc1 0(s2)/4(s2)/8(s2)' base-register pattern for box.mHalfExtents[0..2]; mine uses 'lwc1 128/132/136(sp)' direct. Mark failed pending: builtin/intrinsic for int\u2192float bitcast that produces mtc1 in calling-convention delay slot, OR a custom asm operator that emits the value into $a0 with type 'float' so the compiler can move it to $f12 itself.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:17:29Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/d38281bd/0020b4ec__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0020b618",
