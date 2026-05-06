@@ -1,10 +1,16 @@
 #include "thread.h"
 #include <displaysvc.h>
 #include <libmpeg.h>
+#include <libwave.h>
 #include <utility/utility_module.h>
 
 extern "C" void __0oNcFilePlatformctv(void *);
 extern "C" void *memset(void *, int, unsigned int);
+extern "C" void *memcpy(void *, const void *, unsigned int);
+extern "C" {
+    extern float g_eAudio_masterVolume;  // at 0x37D0CC (eAudio::s_fMasterVolume)
+    extern float g_eMovie_volume;        // at 0x37D2EC (eMovie::s_fVolume)
+}
 
 class eMoviePlatform {
 public:
@@ -69,12 +75,14 @@ public:
     void avsync_video_setPts(unsigned int);
     static void OnSuspend(void *);
     void control_delete(void);
+    int control_create(void);
+    int soundbuf_swapbuf(char *);
     void Close(bool);
     void control_setCondition(unsigned int);
     int control_getCondition(void);
     void read_checkConditionEnd(void);
-    int read_isEnd(void);
     int read_getCapacity(void);
+    int read_isEnd(void);
     int read_isFull(void);
     static int read_func(unsigned int, void *);
     static bool Initialize(void);
@@ -458,8 +466,8 @@ int eMoviePlatform::read_create(void) {
     *(int *)((char *)this + 0x380) = thread;
     if (thread >= 0) {
         int state = 1;
-        __asm__ volatile("" ::: "memory");
         int start = *(int *)((char *)this + 0x1E4);
+        __asm__ volatile("" ::: "memory");
         *(int *)((char *)this + 0x38C) = state;
         int end = *(int *)((char *)this + 0x1F0);
         *(int *)((char *)this + 0x388) = start;
@@ -507,6 +515,53 @@ int eMoviePlatform::decode_videoDecodeEnd(void) {
         dispbuf_setPts(pts);
         dispbuf_dataSet();
     }
+    return 0;
+}
+
+int eMoviePlatform::control_create(void) {
+    int flag1 = sceKernelCreateEventFlag((const char *)0x36CF5C, 0x200, 0, 0);
+    *(int *)((char *)this + 0x2B0) = flag1;
+    if (flag1 < 0) {
+        return 0;
+    }
+
+    int flag2 = sceKernelCreateEventFlag((const char *)0x36CF70, 0x200, 0, 0);
+    *(int *)((char *)this + 0x2B4) = flag2;
+    if (flag2 < 0) {
+        return 0;
+    }
+
+    int cb = sceDisplaySetVblankCallback(0, (void (*)(int, void *))0x11D44, this);
+    *(unsigned char *)((char *)this + 0x2AC) = (cb == 0);
+    sceKernelClearEventFlag(*(int *)((char *)this + 0x2B0), 0);
+    sceKernelClearEventFlag(*(int *)((char *)this + 0x2B4), 0);
+    return 1;
+}
+
+int eMoviePlatform::soundbuf_swapbuf(char *buf) {
+    int swapIdx = *(int *)((char *)this + 0x340);
+    memcpy(*(void **)((char *)this + swapIdx * 4 + 0x350),
+           buf,
+           *(unsigned int *)((char *)this + 0x338));
+
+    m_soundbuf_readIdx = (m_soundbuf_readIdx + 1) % m_soundbuf_end;
+
+    int vol = (int)(g_eAudio_masterVolume * g_eMovie_volume * 32768.0f);
+    int clamped = 0;
+    if (vol > 0) {
+        clamped = vol;
+        if (clamped >= 0x8000) {
+            clamped = 0x8000;
+        }
+    }
+
+    int swapIdx2 = *(int *)((char *)this + 0x340);
+    int vol_l = clamped;
+    __asm__ volatile("" ::: "memory");
+    void *outbuf = *(void **)((char *)this + swapIdx2 * 4 + 0x350);
+    sceWaveAudioWriteBlocking(2, vol_l, vol_l, outbuf);
+
+    *(int *)((char *)this + 0x340) = *(int *)((char *)this + 0x340) ^ 1;
     return 0;
 }
 

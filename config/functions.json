@@ -16559,7 +16559,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000b648",
       "0x0000bc90"
@@ -16671,7 +16671,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -19562,7 +19562,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001c2a00",
       "0x0036bbbc",
@@ -19572,7 +19572,14 @@
       "0x00090acc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformOcontrol_createv"
+    "mangled_symbol": "__0fOeMoviePlatformOcontrol_createv",
+    "src_file": "src/eMoviePlatform.cpp",
+    "symbol_name": "__0fOeMoviePlatformOcontrol_createv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "bc92252d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T07:56:16Z"
   },
   {
     "address": "0x00011e14",
@@ -20421,7 +20428,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001ad364",
       "0x001c2c08"
@@ -20430,7 +20437,14 @@
       "0x000130b0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformQsoundbuf_swapbufPc"
+    "mangled_symbol": "__0fOeMoviePlatformQsoundbuf_swapbufPc",
+    "src_file": "src/eMoviePlatform.cpp",
+    "symbol_name": "__0fOeMoviePlatformQsoundbuf_swapbufPc",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "bc92252d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T07:56:16Z"
   },
   {
     "address": "0x00013258",
@@ -40140,7 +40154,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00044d78",
       "0x000497a0",
@@ -40454,7 +40468,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000a6098",
@@ -82334,7 +82348,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000eab04"
     ],
@@ -82342,7 +82356,21 @@
       "0x000f41b8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcCinematicInstanceUFindPlayingCinematic6HcHandlebT"
+    "mangled_symbol": "__0fTgcCinematicInstanceUFindPlayingCinematic6HcHandlebT",
+    "failure_notes": [
+      {
+        "session": "eceb75ce",
+        "notes": "FindPlayingCinematic(cHandle, bool) static \u2014 closest at 29/168 bytes diff after permuter (240s, 7632 candidates, 0 improvements). Function is a circular doubly-linked list iteration over D_0037D7C4. The bool materialization pattern `((handle.mIndex ^ nodeHandle) == 0) & 0xFF` generates the correct xor;sltiu;andi prologue, and the bnel at loop continuation matches with `lw a0,8(s1)` in the delay slot.\n\nRemaining diff is purely scheduling/register allocation: original allocates the bool result to register a1 (intermediate xor result in a2), keeping a0 free to preload the IsStreamed `this` argument in the delay slot of `beqz a1`. My version reuses register a0 for the entire xor;sltiu;andi chain, which forces the load to be deferred to the jal delay slot, and produces `beqzl a0` (branch-likely) instead of `beqz a1` \u2014 with `lw s1, 84(s1)` (advance node) in the beqzl delay slot, plus a duplicated `lw s1, 84(s1)` after the IsStreamed check.\n\nTried: explicit int eq local; bool eq variable; separate diff/eq variables; single-expression && form; explicit goto-style control flow; || form (worse, 82 bytes); explicit gcCinematic* local cached before the if; permuter for 240s. All produced the same a0-only register allocation chain. The compiler's choice between (beqz + preload-this) vs (beqzl + advance-node) appears to be driven by a deeper internal heuristic not directly controllable from C++ source. Likely matchable only with a structural insight not yet found \u2014 perhaps a different cHandle/cBase access pattern that gives the compiler reason to allocate the bool to a non-a0 register.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T07:45:07Z",
+        "src_file": "src/gcCinematicInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/eceb75ce/000ebc64__agent_self_reported_failure__src_gcCinematicInstance.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ebd0c",
@@ -82354,13 +82382,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x002ef1bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fTgcCinematicInstanceUFindPlayingCinematicP6LgcCinematic6HcHandleT"
+    "mangled_symbol": "__0fTgcCinematicInstanceUFindPlayingCinematicP6LgcCinematic6HcHandleT",
+    "failure_notes": [
+      {
+        "session": "eceb75ce",
+        "notes": "FindPlayingCinematic(gcCinematic *, cHandle) static \u2014 closest at 58/168 bytes diff after permuter (240s, 6600 candidates, 1 improvement). Successfully hoisted the (void**)0x38890 + (handle&0xFFFF) table address computation outside the loop (matches LICM in original). Bool materialization at the end matches (xor;sltiu;andi). The bnel for cinematic mismatch and outer bnel both match.\n\nRemaining diffs:\n1. Prologue: original uses `sw a1, 0(sp); lui a1, 0x38; lw a1, -10300(a1); beqz a1, end; nop; lw t0, 0(sp); move v0, a1`. Mine uses `move a2, a1; lui a1, 0x0; lw a1, 0(a1); move v0, a1; beqz v0, end; sw a2, 0(sp); lw t1, 0(sp)` \u2014 extra `move a2, a1`, different order, uses t1 instead of t0.\n2. Table address final reg: original lands tablePtr in a3, mine lands it in t0. Affects 5 instruction encodings.\n3. Table lookup branch sense: original uses `bnezl t0, target / lw t1, 0(a3)` (Pattern 1 null-check-and-dereference) followed by `b end_with_null; li a2, 0x0`. Mine uses `beqz t1, end_with_null; li a2, 0x0; lw a3, 0(t0)` (regular beqz with var_a2 = NULL in delay, falls through to load).\n\nTried: simple if/else with valid=NULL initialized once (current best); explicit goto-chain with else-if (worse, 106 bytes); m2c-style structure with valid=NULL set in else and inside table-lookup; if (node != NULL) wrapper vs early return (no change); permuter found 1 improvement reaching 58 bytes. Root cause is the same as fn1: SNC's register allocation for prologue handle-spill and the table-lookup branch shape. The two functions seem to require structural insights about how cHandle/cBase are accessed in the original \u2014 possibly cHandle has helper methods or a Resolve() method that's inlined and gives the compiler different scheduling latitude.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T07:45:07Z",
+        "src_file": "src/gcCinematicInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/eceb75ce/000ebd0c__agent_self_reported_failure__src_gcCinematicInstance.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ebdb4",
