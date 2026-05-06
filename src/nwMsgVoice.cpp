@@ -4,8 +4,11 @@
 class nwMsg;
 class cOutStream;
 class nwAddress;
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+#ifndef NW_HANDLE_TYPES_DEFINED
+#define NW_HANDLE_TYPES_DEFINED
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
+#endif
 
 extern "C" void *memcpy(void *, const void *, unsigned int);
 

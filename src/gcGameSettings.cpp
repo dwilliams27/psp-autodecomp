@@ -89,7 +89,7 @@ public:
     gcGameSettings(cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
-    static void SaveGameFormat(void);
+    void SaveGameFormat(void);
     int ProfileFind(const gcStringValue *) const;
     bool ProfileExists(const gcStringValue *) const;
     unsigned char ProfileIsCorrupt(const gcStringValue *) const;

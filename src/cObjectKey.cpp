@@ -101,9 +101,9 @@ void __abort_execution(an_error_code code) {
 // cGetParentalLevel(void)  @ 0x00001b80 (cAll_psp.obj, 48B)
 // -----------------------------------------------------------------------------
 
-extern "C" int cGetConfigTerritory(void);
+int cGetConfigTerritory(void);
 
-extern "C" int cGetParentalLevel(void) {
+int cGetParentalLevel(void) {
     int t = cGetConfigTerritory();
     int *p = *(int **)0x37C074 + t;
     __asm__ volatile("" ::: "memory");

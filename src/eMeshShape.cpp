@@ -93,7 +93,7 @@ int eMeshShape::Collide(const eShape *shape, int a, int b, const mOCS &ocs1, con
     }
     return 0;
 }
-#pragma control sched=2
+#pragma control sched=1
 
 const cType *eMeshShape::GetType(void) const {
     if (D_00046A04 == 0) {

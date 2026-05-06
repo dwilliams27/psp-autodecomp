@@ -13,8 +13,11 @@ class gcEventStackData;
 template <class A, class B> class cHandlePairT;
 template <class A> class cSubHandleT;
 
-typedef int nwSocketHandle;
-typedef int nwConnectionHandle;
+#ifndef NW_HANDLE_TYPES_DEFINED
+#define NW_HANDLE_TYPES_DEFINED
+struct nwSocketHandle { int mValue; };
+struct nwConnectionHandle { int mValue; };
+#endif
 
 struct nwMsgBuffer {
     char _pad[0x4B0];

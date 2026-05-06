@@ -114,9 +114,10 @@ public:
     static void RecheckPresent();
 };
 
-namespace eInput {
-    void RecheckPresent();
-}
+class eInput {
+public:
+    static void RecheckPresent();
+};
 
 class gcUI {
 public:

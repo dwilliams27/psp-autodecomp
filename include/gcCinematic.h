@@ -61,7 +61,7 @@ public:
     void Chain(cHandleT<gcCinematic>, cHandle, float);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
-    void Write(cOutStream &) const;
+    void Write(cOutStream &);
     int Read(cFile &, cMemPool *);
     void Read(cInStream &);
     const cType *GetType(void) const;

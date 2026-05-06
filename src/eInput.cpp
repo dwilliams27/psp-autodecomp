@@ -20,11 +20,12 @@ public:
     static void Reset();
 };
 
-namespace eInput {
-    bool Initialize();
-    void Reset();
-    void ResetIdleTime();
-}
+class eInput {
+public:
+    static bool Initialize();
+    static void Reset();
+    static void ResetIdleTime();
+};
 
 // ── eInput::Initialize(void) static @ 0x00030d14 ──
 bool eInput::Initialize() {

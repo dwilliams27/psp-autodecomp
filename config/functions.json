@@ -99,8 +99,8 @@
       "0x001054b4"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetBuildId",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FLcGetBuildIdv",
     "mangled_symbol": "__0FLcGetBuildIdv"
   },
   {
@@ -119,8 +119,8 @@
       "0x0027dd34"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetBuildDateTime",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FRcGetBuildDateTimev",
     "mangled_symbol": "__0FRcGetBuildDateTimev"
   },
   {
@@ -139,8 +139,8 @@
       "0x0027dd34"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetBuildInfo",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FNcGetBuildInfov",
     "mangled_symbol": "__0FNcGetBuildInfov"
   },
   {
@@ -160,8 +160,8 @@
       "0x0013e164"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cRestartApp",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FLcRestartAppb",
     "mangled_symbol": "__0FLcRestartAppb"
   },
   {
@@ -180,8 +180,8 @@
       "0x00105f64"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cRestartedApp",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FNcRestartedAppb",
     "mangled_symbol": "__0FNcRestartedAppb"
   },
   {
@@ -202,8 +202,8 @@
       "0x0015901c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cIsAppRestarting",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FQcIsAppRestartingv",
     "mangled_symbol": "__0FQcIsAppRestartingv"
   },
   {
@@ -222,8 +222,8 @@
       "0x0015901c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cIsAppRestarted",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FPcIsAppRestartedv",
     "mangled_symbol": "__0FPcIsAppRestartedv"
   },
   {
@@ -242,8 +242,8 @@
       "0x0015901c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cIsAppQuickStarted",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FScIsAppQuickStartedv",
     "mangled_symbol": "__0FScIsAppQuickStartedv"
   },
   {
@@ -262,8 +262,8 @@
       "0x0013e164"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cSetAppQuickStarted",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FTcSetAppQuickStartedb",
     "mangled_symbol": "__0FTcSetAppQuickStartedb"
   },
   {
@@ -350,8 +350,8 @@
       "0x00004de8"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cSetCommandLine",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FPcSetCommandLinePCc",
     "mangled_symbol": "__0FPcSetCommandLinePCc"
   },
   {
@@ -476,7 +476,7 @@
     ],
     "is_leaf": true,
     "src_file": "src/std_bad_alloc.cpp",
-    "symbol_name": "cGetRandomSeed",
+    "symbol_name": "__0FOcGetRandomSeedPUiTB",
     "mangled_symbol": "__0FOcGetRandomSeedPUiTB"
   },
   {
@@ -498,7 +498,7 @@
     ],
     "is_leaf": true,
     "src_file": "src/cSetRandomSeed.cpp",
-    "symbol_name": "cSetRandomSeed",
+    "symbol_name": "__0FOcSetRandomSeedUiTB",
     "mangled_symbol": "__0FOcSetRandomSeedUiTB"
   },
   {
@@ -1597,8 +1597,8 @@
         "notes": "[backfill] no existing src file found (via entry, session_results, or convention)"
       }
     ],
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetConfigTerritory",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FTcGetConfigTerritoryv",
     "mangled_symbol": "__0FTcGetConfigTerritoryv"
   },
   {
@@ -1660,7 +1660,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0FRcGetParentalLevelv",
     "src_file": "src/cObjectKey.cpp",
-    "symbol_name": "cGetParentalLevel",
+    "symbol_name": "__0FRcGetParentalLevelv",
     "matched_by_backend": "claude",
     "matched_by_session_id": "bfc03d2b",
     "matched_by_model": "claude-opus-4-7",
@@ -1708,8 +1708,8 @@
       "0x0013e164"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cQuitApp",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FIcQuitAppv",
     "mangled_symbol": "__0FIcQuitAppv"
   },
   {
@@ -1766,7 +1766,7 @@
     ],
     "is_leaf": true,
     "src_file": "src/std_bad_alloc.cpp",
-    "symbol_name": "cCorePowerSave",
+    "symbol_name": "__0FOcCorePowerSaveb",
     "mangled_symbol": "__0FOcCorePowerSaveb"
   },
   {
@@ -1785,8 +1785,8 @@
       "0x000050ec"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cBuildPath",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FKcBuildPathPCc",
     "mangled_symbol": "__0FKcBuildPathPCc"
   },
   {
@@ -1813,8 +1813,8 @@
       "0x001dfb50"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetCurrentPlatform",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FTcGetCurrentPlatformv",
     "mangled_symbol": "__0FTcGetCurrentPlatformv"
   },
   {
@@ -1833,8 +1833,8 @@
       "0x00001d54"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cGetFPUControl",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FOcGetFPUControlv",
     "mangled_symbol": "__0FOcGetFPUControlv"
   },
   {
@@ -3013,8 +3013,8 @@
       "0x00003134"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cDynamicMemAllocator_LogAllocations",
+    "src_file": "src/cDynamicMemAllocator.cpp",
+    "symbol_name": "__0fUcDynamicMemAllocatorOLogAllocationsvK",
     "mangled_symbol": "__0fUcDynamicMemAllocatorOLogAllocationsvK",
     "failure_notes": [
       {
@@ -5054,8 +5054,8 @@
       "0x000050ec"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cFileSystem_Create",
+    "src_file": "src/cDynamicMemAllocator.cpp",
+    "symbol_name": "__0fLcFileSystemGCreatePCcT",
     "mangled_symbol": "__0fLcFileSystemGCreatePCcT",
     "failure_notes": [
       {
@@ -5158,8 +5158,8 @@
       "0x00005b3c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cFileSystem_Write",
+    "src_file": "src/cFileSystem.cpp",
+    "symbol_name": "__0fLcFileSystemFWriteP6LcFileHandlePCvUiT",
     "mangled_symbol": "__0fLcFileSystemFWriteP6LcFileHandlePCvUiT",
     "failure_notes": [
       {
@@ -6523,8 +6523,8 @@
       "0x000050ec"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cFile__OnCreated",
+    "src_file": "src/cFileSystem.cpp",
+    "symbol_name": "__0fFcFileJOnCreatedv",
     "mangled_symbol": "__0fFcFileJOnCreatedv",
     "failure_notes": [
       {
@@ -6549,8 +6549,8 @@
       "0x0000530c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cFile__OnClosed",
+    "src_file": "src/cFile.cpp",
+    "symbol_name": "__0fFcFileIOnClosedv",
     "mangled_symbol": "__0fFcFileIOnClosedv",
     "failure_notes": [
       {
@@ -13516,8 +13516,8 @@
       "0x0013081c"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cListSubscriber_SetNumVisible",
+    "src_file": "src/cListSubscriber.cpp",
+    "symbol_name": "__0fPcListSubscriberNSetNumVisiblei",
     "mangled_symbol": "__0fPcListSubscriberNSetNumVisiblei",
     "failure_notes": [
       {
@@ -15476,7 +15476,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [
       "0x0000b850",
@@ -15544,7 +15544,11 @@
     "matched_by_session_id": "13d93993",
     "matched_by_model": "claude-opus-4-7",
     "matched_by_identity": "claude/claude-opus-4-7",
-    "matched_at": "2026-05-06T00:39:18Z"
+    "matched_at": "2026-05-06T00:39:18Z",
+    "symbol_mangling_expected": "__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00009d28",
@@ -31819,7 +31823,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fGeInputKInitializevT",
     "src_file": "src/eInput.cpp",
-    "symbol_name": "__0F5GeInputKInitializev",
+    "symbol_name": "__0fGeInputKInitializevT",
     "matched_by_backend": "codex",
     "matched_by_session_id": "ca445103",
     "matched_by_model": "gpt-5.5",
@@ -31849,7 +31853,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fGeInputFResetvT",
     "src_file": "src/eInput.cpp",
-    "symbol_name": "__0F5GeInputFResetv",
+    "symbol_name": "__0fGeInputFResetvT",
     "matched_by_backend": "claude",
     "matched_by_session_id": "0b8519d1",
     "matched_by_model": "claude-opus-4-7",
@@ -31908,7 +31912,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fGeInputNResetIdleTimevT",
     "src_file": "src/eInput.cpp",
-    "symbol_name": "__0F5GeInputNResetIdleTimev",
+    "symbol_name": "__0fGeInputNResetIdleTimevT",
     "matched_by_backend": "claude",
     "matched_by_session_id": "0b8519d1",
     "matched_by_model": "claude-opus-4-7",
@@ -31942,7 +31946,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fGeInputORecheckPresentvT",
     "src_file": "src/gcEntityCustomAnimationGroup.cpp",
-    "symbol_name": "__0F5GeInputORecheckPresentv",
+    "symbol_name": "__0fGeInputORecheckPresentvT",
     "matched_by_backend": "codex",
     "matched_by_session_id": "fa29dee2",
     "matched_by_model": "gpt-5.5",
@@ -33694,8 +33698,8 @@
       "0x0009c508"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "eBroadphase_MarkPairsUnvisited",
+    "src_file": "src/eBroadphase.cpp",
+    "symbol_name": "__0fLeBroadphaseSMarkPairsUnvisitedP6PeRigidBodyState",
     "mangled_symbol": "__0fLeBroadphaseSMarkPairsUnvisitedP6PeRigidBodyState",
     "failure_notes": [
       {
@@ -38664,8 +38668,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "eStaticModel_GetEmbedContacts",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0fMeStaticModelQGetEmbedContactsRC6OeCollisionInfoiPC6HmSphereP6ReContactCollectorK",
     "mangled_symbol": "__0fMeStaticModelQGetEmbedContactsRC6OeCollisionInfoiPC6HmSphereP6ReContactCollectorK",
     "failure_notes": [
       {
@@ -82645,7 +82649,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fTgcCinematicInstanceFWriteR6KcOutStream",
     "src_file": "src/gcCinematicInstance.cpp",
-    "symbol_name": "__0fTgcCinematicInstanceFWriteR6KcOutStreamK",
+    "symbol_name": "__0fTgcCinematicInstanceFWriteR6KcOutStream",
     "matched_by_backend": "codex",
     "matched_by_session_id": "0b7ed13e",
     "matched_by_model": "gpt-5.4",
@@ -90092,7 +90096,7 @@
     ],
     "is_leaf": false,
     "src_file": "src/gcGameSettings.cpp",
-    "symbol_name": "__0fOgcGameSettingsOSaveGameFormatvT",
+    "symbol_name": "__0fOgcGameSettingsOSaveGameFormatv",
     "mangled_symbol": "__0fOgcGameSettingsOSaveGameFormatv"
   },
   {
@@ -100297,7 +100301,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fMgcMsgLoadMapFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "src_file": "src/gcMsgLoadMap.cpp",
-    "symbol_name": "__0fMgcMsgLoadMapFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fMgcMsgLoadMapFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "claude",
     "matched_by_session_id": "59af1e41",
     "matched_by_model": "claude-opus-4-7",
@@ -100557,7 +100561,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fQgcMsgLoadRegionsFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "src_file": "src/gcMsgLoadRegions.cpp",
-    "symbol_name": "__0fQgcMsgLoadRegionsFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fQgcMsgLoadRegionsFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "f6cbf877",
     "matched_by_model": "gpt-5.5",
@@ -106496,7 +106500,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fUgcMsgRequestPlayerIdFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "src_file": "src/gcMsgRequestPlayerId.cpp",
-    "symbol_name": "__0fUgcMsgRequestPlayerIdFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fUgcMsgRequestPlayerIdFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "claude",
     "matched_by_session_id": "5d0d1601",
     "matched_by_model": "claude-opus-4-7",
@@ -106557,7 +106561,7 @@
       }
     ],
     "src_file": "src/gcMsgAssignPlayerId.cpp",
-    "symbol_name": "__0fTgcMsgAssignPlayerIdFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fTgcMsgAssignPlayerIdFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "06ca227f",
     "matched_by_model": "gpt-5.5",
@@ -106779,7 +106783,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fWgcMsgEntitySendMessageFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "src_file": "src/gcMsgEntitySendMessage.cpp",
-    "symbol_name": "__0fWgcMsgEntitySendMessageFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fWgcMsgEntitySendMessageFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "claude",
     "matched_by_session_id": "14e30e4d",
     "matched_by_model": "claude-opus-4-7",
@@ -114882,7 +114886,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fTgcPCBipedControllerLOnSnappedToRC6EmOCSb",
     "src_file": "src/gcPCBipedController.cpp",
-    "symbol_name": "__0fTgcPCBipedControllerLOnSnappedToRC6EmOCSUi",
+    "symbol_name": "__0fTgcPCBipedControllerLOnSnappedToRC6EmOCSb",
     "matched_by_backend": "codex",
     "matched_by_session_id": "9d0e3fd2",
     "matched_by_model": "gpt-5.5",
@@ -122937,7 +122941,7 @@
     "is_leaf": false,
     "mangled_symbol": "__0fKnwMsgVoiceFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "src_file": "src/nwMsgVoice.cpp",
-    "symbol_name": "__0fKnwMsgVoiceFWriteR6KcOutStreamiRC6JnwAddressTCK",
+    "symbol_name": "__0fKnwMsgVoiceFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "1dd86bd8",
     "matched_by_model": "gpt-5.5",
@@ -126019,7 +126023,7 @@
     "callers": [],
     "is_leaf": true,
     "src_file": "src/eofread.cpp",
-    "symbol_name": "__0FHeofreadv",
+    "symbol_name": "eofread",
     "mangled_symbol": "eofread"
   },
   {
@@ -129611,8 +129615,8 @@
       "0x001ba690"
     ],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "free_in_mem_block",
+    "src_file": "src/cCoreGlobals.cpp",
+    "symbol_name": "__0FRfree_in_mem_blockPv",
     "mangled_symbol": "__0FRfree_in_mem_blockPv"
   },
   {
@@ -130667,7 +130671,7 @@
     ],
     "is_leaf": true,
     "src_file": "src/matherr.cpp",
-    "symbol_name": "__0FHmatherrv",
+    "symbol_name": "matherr",
     "mangled_symbol": "matherr"
   },
   {
@@ -131102,7 +131106,7 @@
     ],
     "is_leaf": true,
     "src_file": "src/_init.cpp",
-    "symbol_name": "__0FF_initv",
+    "symbol_name": "_init",
     "mangled_symbol": "_init"
   },
   {
@@ -132223,8 +132227,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cBase_SetDirty",
+    "src_file": "src/nwMsgConnectionAccepted.cpp",
+    "symbol_name": "__0fFcBaseISetDirtyv",
     "mangled_symbol": "__0fFcBaseISetDirtyv",
     "failure_notes": [
       {
@@ -132247,8 +132251,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cBase_IsEditable",
+    "src_file": "src/nwMsgConnectionAccepted.cpp",
+    "symbol_name": "__0fFcBaseKIsEditablevK",
     "mangled_symbol": "__0fFcBaseKIsEditablevK",
     "failure_notes": [
       {
@@ -132271,8 +132275,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cBase_Reset",
+    "src_file": "src/nwMsgConnectionAccepted.cpp",
+    "symbol_name": "__0fFcBaseFResetP6IcMemPoolb",
     "mangled_symbol": "__0fFcBaseFResetP6IcMemPoolb",
     "failure_notes": [
       {
@@ -132295,8 +132299,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "cBase_GetName",
+    "src_file": "src/nwMsgConnectionAccepted.cpp",
+    "symbol_name": "__0fFcBaseHGetNamePcK",
     "mangled_symbol": "__0fFcBaseHGetNamePcK",
     "failure_notes": [
       {
@@ -132351,13 +132355,17 @@
     "obj_file": "gcDoReadFile.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/cBase_VisitReferences.cpp",
     "symbol_name": "__0fFcBasePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fFcBasePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fFcBasePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fFcBasePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fFcBasePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x001c3c58",
@@ -132591,8 +132599,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "gcAction_SetNext",
+    "src_file": "src/gcAction.cpp",
+    "symbol_name": "__0fIgcActionHSetNextP6MgcExpression",
     "mangled_symbol": "__0fIgcActionHSetNextP6MgcExpression",
     "failure_notes": [
       {
@@ -149871,7 +149879,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00009cb0"
     ],
@@ -149883,7 +149891,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "fca1372f",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-26T07:16:41Z"
+    "matched_at": "2026-04-26T07:16:41Z",
+    "symbol_mangling_expected": "__0fVeDynamicFluidTemplatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fVeDynamicFluidTemplatePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00205508",
@@ -152256,8 +152268,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "eCompoundShape_GetNumSubShapes",
+    "src_file": "src/gcAction.cpp",
+    "symbol_name": "__0fOeCompoundShapePGetNumSubShapesvK",
     "mangled_symbol": "__0fOeCompoundShapePGetNumSubShapesvK",
     "failure_notes": [
       {
@@ -165356,8 +165368,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "gcBoolSet_GetSize",
+    "src_file": "src/gcBoolSet.cpp",
+    "symbol_name": "__0fJgcBoolSetHGetSizevK",
     "mangled_symbol": "__0fJgcBoolSetHGetSizevK",
     "failure_notes": [
       {
@@ -165599,7 +165611,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x000d5688"
     ],
@@ -165613,7 +165625,11 @@
     "matched_by_model": "gpt-5.4",
     "matched_by_effort": "high",
     "matched_by_identity": "codex/gpt-5.4/high",
-    "matched_at": "2026-04-29T17:54:04Z"
+    "matched_at": "2026-04-29T17:54:04Z",
+    "symbol_mangling_expected": "__0fHgcEventPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fHgcEventPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0023a890",
@@ -173675,8 +173691,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "gcMsgRequestLoadedState_New",
+    "src_file": "src/cFile.cpp",
+    "symbol_name": "__0fXgcMsgRequestLoadedStateDNewR6LnwMsgBufferT",
     "mangled_symbol": "__0fXgcMsgRequestLoadedStateDNewR6LnwMsgBufferT",
     "failure_notes": [
       {
@@ -180619,13 +180635,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcEventString.cpp",
     "symbol_name": "__0fNgcEventStringPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fNgcEventStringPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fNgcEventStringPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fNgcEventStringPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fNgcEventStringPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0027bf28",
@@ -181375,13 +181395,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcGameStrings.cpp",
     "symbol_name": "__0fNgcGameStringsPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fNgcGameStringsPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fNgcGameStringsPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fNgcGameStringsPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fNgcGameStringsPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0027de20",
@@ -186193,7 +186217,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00270834"
     ],
@@ -186201,7 +186225,11 @@
     "is_leaf": false,
     "src_file": "src/gcStringTableValue.cpp",
     "symbol_name": "__0fSgcStringTableValuePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fSgcStringTableValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fSgcStringTableValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fSgcStringTableValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fSgcStringTableValuePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00289e00",
@@ -187159,7 +187187,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -187173,7 +187201,11 @@
     "matched_by_model": "gpt-5.4-mini",
     "matched_by_effort": "high",
     "matched_by_identity": "codex/gpt-5.4-mini/high",
-    "matched_at": "2026-04-29T17:50:07Z"
+    "matched_at": "2026-04-29T17:50:07Z",
+    "symbol_mangling_expected": "__0fRgcUIControlStringPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fRgcUIControlStringPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00290188",
@@ -188357,8 +188389,8 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/free_functions.c",
-    "symbol_name": "gcDoBreak_Evaluate",
+    "src_file": "src/gcDoBreak.cpp",
+    "symbol_name": "__0fJgcDoBreakIEvaluatevK",
     "mangled_symbol": "__0fJgcDoBreakIEvaluatevK",
     "failure_notes": [
       {
@@ -202613,13 +202645,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcDoPlayerWarp.cpp",
     "symbol_name": "__0fOgcDoPlayerWarpPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fOgcDoPlayerWarpPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fOgcDoPlayerWarpPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fOgcDoPlayerWarpPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcDoPlayerWarpPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x002f38f0",
@@ -207504,7 +207540,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -207516,7 +207552,11 @@
     "matched_by_backend": "codex",
     "matched_by_session_id": "99dcbebe",
     "matched_by_model": "gpt-5.5",
-    "matched_at": "2026-04-29T03:40:34Z"
+    "matched_at": "2026-04-29T03:40:34Z",
+    "symbol_mangling_expected": "__0fMgcDoUIEffectPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fMgcDoUIEffectPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0030a73c",
@@ -208003,7 +208043,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -208015,7 +208055,11 @@
     "matched_by_backend": "codex",
     "matched_by_session_id": "4c0f2796",
     "matched_by_model": "gpt-5.5",
-    "matched_at": "2026-04-28T23:18:05Z"
+    "matched_at": "2026-04-28T23:18:05Z",
+    "symbol_mangling_expected": "__0fOgcDoUISetFocusPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcDoUISetFocusPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0030cafc",
@@ -208931,7 +208975,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -208943,7 +208987,11 @@
     "matched_by_backend": "codex",
     "matched_by_session_id": "ffcc9658",
     "matched_by_model": "gpt-5.5",
-    "matched_at": "2026-04-28T23:55:13Z"
+    "matched_at": "2026-04-28T23:55:13Z",
+    "symbol_mangling_expected": "__0fPgcDoUISetOriginPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fPgcDoUISetOriginPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003101e0",
@@ -209820,7 +209868,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -209832,7 +209880,11 @@
     "matched_by_backend": "codex",
     "matched_by_session_id": "5fc87930",
     "matched_by_model": "gpt-5.5",
-    "matched_at": "2026-04-28T23:57:07Z"
+    "matched_at": "2026-04-28T23:57:07Z",
+    "symbol_mangling_expected": "__0fSgcDoUISetTextColorPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fSgcDoUISetTextColorPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003153f0",
@@ -210315,7 +210367,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x000d5688",
       "0x00279e30"
@@ -210324,7 +210376,11 @@
     "is_leaf": false,
     "src_file": "src/gcDoUIWidgetForEach.cpp",
     "symbol_name": "__0fTgcDoUIWidgetForEachPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fTgcDoUIWidgetForEachPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fTgcDoUIWidgetForEachPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fTgcDoUIWidgetForEachPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fTgcDoUIWidgetForEachPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00316c20",
@@ -215308,13 +215364,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcValCameraValue.cpp",
     "symbol_name": "__0fQgcValCameraValuePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fQgcValCameraValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fQgcValCameraValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fQgcValCameraValuePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fQgcValCameraValuePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00323914",
@@ -222110,13 +222170,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcValFPSInfo.cpp",
     "symbol_name": "__0fMgcValFPSInfoPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fMgcValFPSInfoPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fMgcValFPSInfoPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fMgcValFPSInfoPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fMgcValFPSInfoPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003445f4",
@@ -222976,13 +223040,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcValKeyboardState.cpp",
     "symbol_name": "__0fSgcValKeyboardStatePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fSgcValKeyboardStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fSgcValKeyboardStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fSgcValKeyboardStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fSgcValKeyboardStatePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00347894",
@@ -225852,13 +225920,17 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [],
     "callers": [],
     "is_leaf": true,
     "src_file": "src/gcValMouseState.cpp",
     "symbol_name": "__0fPgcValMouseStatePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB",
-    "mangled_symbol": "__0fPgcValMouseStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB"
+    "mangled_symbol": "__0fPgcValMouseStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_expected": "__0fPgcValMouseStatePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fPgcValMouseStatePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00350b24",
@@ -229711,7 +229783,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -229723,7 +229795,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "a1223bbb",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-27T19:18:51Z"
+    "matched_at": "2026-04-27T19:18:51Z",
+    "symbol_mangling_expected": "__0fOgcValUICheckedPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcValUICheckedPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00361e9c",
@@ -229955,7 +230031,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -229967,7 +230043,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "3a63a1b2",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-27T19:19:24Z"
+    "matched_at": "2026-04-27T19:19:24Z",
+    "symbol_mangling_expected": "__0fOgcValUIEnabledPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcValUIEnabledPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003625b0",
@@ -230407,7 +230487,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -230419,7 +230499,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "5de0a84a",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-27T19:20:47Z"
+    "matched_at": "2026-04-27T19:20:47Z",
+    "symbol_mangling_expected": "__0fOgcValUIOpacityPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcValUIOpacityPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00363c48",
@@ -230648,7 +230732,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -230662,7 +230746,11 @@
     "matched_by_model": "gpt-5.5",
     "matched_by_effort": "high",
     "matched_by_identity": "codex/gpt-5.5/high",
-    "matched_at": "2026-04-29T17:52:14Z"
+    "matched_at": "2026-04-29T17:52:14Z",
+    "symbol_mangling_expected": "__0fPgcValUIPositionPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fPgcValUIPositionPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00365200",
@@ -230892,7 +230980,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -230904,7 +230992,11 @@
     "matched_by_backend": "codex",
     "matched_by_session_id": "5d4adc49",
     "matched_by_model": "gpt-5.5",
-    "matched_at": "2026-04-29T00:06:22Z"
+    "matched_at": "2026-04-29T00:06:22Z",
+    "symbol_mangling_expected": "__0fLgcValUISizePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fLgcValUISizePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003664f8",
@@ -231145,7 +231237,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -231159,7 +231251,11 @@
     "matched_by_model": "gpt-5.5",
     "matched_by_effort": "high",
     "matched_by_identity": "codex/gpt-5.5/high",
-    "matched_at": "2026-04-29T17:52:14Z"
+    "matched_at": "2026-04-29T17:52:14Z",
+    "symbol_mangling_expected": "__0fPgcValUITexCoordPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fPgcValUITexCoordPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x003670f0",
@@ -231614,7 +231710,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -231626,7 +231722,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "e83e080f",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-28T09:46:16Z"
+    "matched_at": "2026-04-28T09:46:16Z",
+    "symbol_mangling_expected": "__0fKgcValUIVarPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fKgcValUIVarPVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x00369a90",
@@ -231858,7 +231958,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "unmatchable_symbol_mangling",
     "callees": [
       "0x00279e30"
     ],
@@ -231870,7 +231970,11 @@
     "matched_by_backend": "claude",
     "matched_by_session_id": "6fb67a89",
     "matched_by_model": "claude-opus-4-7",
-    "matched_at": "2026-04-27T19:25:06Z"
+    "matched_at": "2026-04-27T19:25:06Z",
+    "symbol_mangling_expected": "__0fOgcValUIVisiblePVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB",
+    "symbol_mangling_emitted_candidates": [
+      "__0fOgcValUIVisiblePVisitReferencesUiP6FcBasePFP6FcBaseUiPv_vPvTB"
+    ]
   },
   {
     "address": "0x0036a1a4",

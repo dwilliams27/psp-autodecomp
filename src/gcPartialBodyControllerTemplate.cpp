@@ -156,11 +156,11 @@ gcPartialBodyControllerTemplate::gcPartialBodyControllerTemplate(cBase *owner)
 // =====================================================================
 void gcPartialBodyControllerTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 3);
-    wb.Write(mField1C);
     gcPartialEntityControllerTemplate::Write(file);
-    wb.End();
-    mArr2.Write(wb);
     mArr1.Write(wb);
+    wb.Write(mField1C);
+    mArr2.Write(wb);
+    wb.End();
 }
 
 // =====================================================================

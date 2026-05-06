@@ -54,7 +54,7 @@ class gcBipedController : public gcCreatureController {
 public:
     gcBipedController(cBase *);
     ~gcBipedController();
-    void OnSnappedTo(const mOCS &, unsigned int)
+    void OnSnappedTo(const mOCS &, bool)
         __asm__("__0fRgcBipedControllerLOnSnappedToRC6EmOCSb");
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -66,7 +66,7 @@ public:
     ~gcPCBipedController();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
-    void OnSnappedTo(const mOCS &, unsigned int)
+    void OnSnappedTo(const mOCS &, bool)
         __asm__("__0fTgcPCBipedControllerLOnSnappedToRC6EmOCSb");
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -130,9 +130,10 @@ void gcPCBipedController::Write(cFile &file) const {
 }
 
 // ── gcPCBipedController::OnSnappedTo(const mOCS &, bool) @ 0x00152f88 ──
-void gcPCBipedController::OnSnappedTo(const mOCS &ocs, unsigned int snapped) {
+extern "C" void __0fTgcPCBipedControllerLOnSnappedToRC6EmOCSb(
+    gcPCBipedController *self, const mOCS &ocs, unsigned int snapped) {
     unsigned int doReset = snapped & 0xFF;
-    gcBipedController_OnSnappedTo_raw(this, ocs, doReset);
+    gcBipedController_OnSnappedTo_raw(self, ocs, doReset);
     if (doReset != 0) {
         __asm__ volatile(
             "mtc1 $0, $f12\n"
@@ -144,7 +145,7 @@ void gcPCBipedController::OnSnappedTo(const mOCS &ocs, unsigned int snapped) {
             "mtv $6, S122\n"
             "sv.q C120, 0xC0(%0)\n"
             :
-            : "r"(this)
+            : "r"(self)
             : "$4", "$5", "$6", "$f12", "memory");
     }
 }

@@ -5,7 +5,7 @@
 extern unsigned int gRandomSeed1;  // linker-placed at 0x37BC14
 extern unsigned int gRandomSeed2;  // linker-placed at 0x37BC10
 
-extern "C" void cGetRandomSeed(unsigned int *seed1, unsigned int *seed2) {
+void cGetRandomSeed(unsigned int *seed1, unsigned int *seed2) {
     *seed1 = gRandomSeed1;
     *seed2 = gRandomSeed2;
 }
@@ -13,7 +13,7 @@ extern "C" void cGetRandomSeed(unsigned int *seed1, unsigned int *seed2) {
 // ---- Function 4: cCorePowerSave (cAll_psp.obj @ 0x00001d04, 28B) ----
 extern unsigned char gCorePowerSave;  // linker-placed at 0x37C0A8
 
-extern "C" void cCorePowerSave(bool enable) {
+void cCorePowerSave(bool enable) {
     if ((unsigned char)enable != gCorePowerSave) {
         gCorePowerSave = (unsigned char)enable;
     }

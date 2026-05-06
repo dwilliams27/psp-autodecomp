@@ -126,7 +126,7 @@ void gcCinematicInstance::Write(cFile &file) const {
 }
 
 // Function 2a: 0x000ec27c, 152 bytes
-void gcCinematicInstance::Write(cOutStream &stream) const {
+void gcCinematicInstance::Write(cOutStream &stream) {
     ((const cHandle *)((const char *)this + 8))->Write(stream);
     stream.Write(*(const float *)((const char *)this + 0xC), true);
     __0fKcTimeValueFWriteR6KcOutStreamK((const char *)this + 0x10, stream);
