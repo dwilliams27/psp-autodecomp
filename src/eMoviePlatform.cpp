@@ -1,5 +1,6 @@
 #include "thread.h"
 #include <displaysvc.h>
+#include <libmpeg.h>
 #include <utility/utility_module.h>
 
 extern "C" void __0oNcFilePlatformctv(void *);
@@ -59,6 +60,8 @@ public:
     int soundbuf_setBuf(void);
     void soundbuf_delete(void);
     int read_create(void);
+    int decode_videoDecodeEnd(void);
+    int avsync_Compare(void);
 
     int avsync_create(void);
     void avsync_delete(void);
@@ -462,6 +465,47 @@ int eMoviePlatform::read_create(void) {
         *(int *)((char *)this + 0x388) = start;
         *(int *)((char *)this + 0x384) = end;
         return 1;
+    }
+    return 0;
+}
+
+int eMoviePlatform::avsync_Compare(void) {
+    int sound_start = m_soundbuf_start;
+    if (sound_start == 0 || m_dispbuf_start == 0) {
+        return 1;
+    }
+    int sound_pts = soundbuf_getPts();
+    int disp_pts = dispbuf_getPts();
+    int threshold = *(int *)((char *)this + 0x37C);
+    int diff = sound_pts - disp_pts;
+    int rv = 4;
+    if (!(diff < -(threshold + threshold))) {
+        if (!((threshold + threshold) < diff)) {
+            rv = 1;
+            goto end;
+        }
+    }
+    if ((threshold + threshold) < diff) rv = 2;
+end:
+    return rv;
+}
+
+int eMoviePlatform::decode_videoDecodeEnd(void) {
+    int sp_local;
+    if (dispbuf_getCapacity() == 0) {
+        return 1;
+    }
+    *(int *)((char *)this + 0x2B8) = dispbuf_getDrawbuf();
+    int ret = sceMpegAvcDecodeStopYCbCr((SceMpeg *)((char *)this + 0xC),
+                                         (SceUChar8 **)((char *)this + 0x2B8),
+                                         &sp_local);
+    if (ret != 0) {
+        return ret;
+    }
+    if (sp_local > 0) {
+        unsigned int pts = avsync_video_getPts();
+        dispbuf_setPts(pts);
+        dispbuf_dataSet();
     }
     return 0;
 }

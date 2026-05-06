@@ -19810,7 +19810,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000129c8",
       "0x00012a14",
@@ -19823,7 +19823,14 @@
       "0x000912e4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformVdecode_videoDecodeEndv"
+    "mangled_symbol": "__0fOeMoviePlatformVdecode_videoDecodeEndv",
+    "src_file": "src/eMoviePlatform.cpp",
+    "symbol_name": "__0fOeMoviePlatformVdecode_videoDecodeEndv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "1c72153d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T06:56:48Z"
   },
   {
     "address": "0x00012234",
@@ -20538,7 +20545,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00012ae8",
       "0x00012fcc"
@@ -20547,7 +20554,21 @@
       "0x00012b6c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformOavsync_Comparev"
+    "mangled_symbol": "__0fOeMoviePlatformOavsync_Comparev",
+    "failure_notes": [
+      {
+        "session": "1c72153d",
+        "notes": "Best match achieved: 25/172 bytes differ. Structure is functionally correct (returns 1/2/4 based on diff vs 2*threshold). Logic: if (m_soundbuf_start == 0 || m_dispbuf_start == 0) return 1; compute diff = soundbuf_getPts() - dispbuf_getPts(); if diff < -2*threshold OR diff > 2*threshold, compute ret in {2, 4}; else return 1. Final source uses goto end pattern with shared epilog.\n\nRemaining diffs are concentrated in the final 'compute' block. The target uses the SNC bnezl branch-likely pattern (Pattern 5: 'if (cond) flag = lit') with `bnezl s0, +1; li a0, 2; move v0, a0` for the final `if (isGreater) ret = 2; return ret;`. SNC allocates ret to a0 and emits `move v0, a0` at the very end. Our compiler instead allocates ret to v0 directly and uses `beqz s0, +2; nop; li v0, 2`, missing the bnezl pattern and the move instruction. This is a 4-byte size difference (43 instr target vs 42 instr ours).\n\nAdditional differences: target recomputes 2*threshold (addu a1, negu a1, addu a0 = 3 instr) while ours uses (addu a0, negu a1 = 2 instr) saving an instruction; target fills two `b` delay slots with `li a0, 4` while ours has nops there.\n\nApproaches tried (all variants of source structure for the if/else/compute logic):\n1. `if (isLess || isGreater) { ret = 4; if (isGreater) ret = 2; return ret; } return 1;` -- 74 bytes diff (uses OR codegen)\n2. `if/else if/else` cascade with `ret = 4` then `if (isGreater) ret = 2;` -- 72 bytes\n3. `if (isLess) goto block_7; if (!isGreater) return 1; block_7: ret = 4; if (isGreater) ret = 2;` -- 56 bytes (DOES emit bnezl, .word 0x56000001)\n4. Without explicit isGreater var, repeating `(threshold + threshold) < diff` -- 51 bytes\n5. Shared epilog via `goto end` -- 33 bytes (lost bnezl)\n6. Inverted polarity with `if (!isLess)` outer -- 25 bytes (best, BEQZ matches but no bnezl)\n7. sched=1 pragma -- 61-68 bytes worse\n\nRoot cause hypothesis: SNC at -O2 sched=2 prefers bnezl + non-v0 register + move when the conditional set is followed only by a return AND the value lives across non-trivial branch shapes. Our current source has rv life-cycle rooted in v0 (initialized via `int rv = 4` early, hoisted to `li v0, 4` before any branch). Target's structure keeps the value in a0 throughout, which suggests the source initializes the value DEEP inside conditional branches (in delay slots) rather than upfront. Could not find a C source structure that triggers this exact register allocation choice.\n\nNot a bnel divergence per ADR-006 (this is bnezl pattern selection, not bnel/beql heuristic mismatch). May benefit from permuter run; current permuter requires isolated source file.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T06:56:48Z",
+        "src_file": "src/eMoviePlatform.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/1c72153d/00013374__agent_self_reported_failure__src_eMoviePlatform.cpp"
+      }
+    ]
   },
   {
     "address": "0x00013420",
@@ -80453,7 +80474,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000ccc",
       "0x000e5328"
@@ -80474,7 +80495,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000d8230",
