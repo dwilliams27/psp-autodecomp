@@ -139,7 +139,12 @@ echo ""
 # -i required: sets up login environment so macOS Keychain is accessible for Claude auth.
 # --preserve-env=OPENAI_API_KEY lets the codex backend use a parent-exported key
 # (no-op if unset; codex falls through to its own auth.json).
-# Embed repo path directly in the command string since -i sanitizes env.
+# Embed shell-quoted absolute paths directly in the command string. On macOS,
+# `sudo -i ... bash -c script arg...` does not reliably preserve positional
+# args after the login-shell boundary, so do not depend on `$1` for REPO_DIR.
+ORCH_CMD="umask 0002 && cd $(printf '%q' "$REPO_DIR") && python3 $(printf '%q' "$REPO_DIR/tools/orchestrator.py")"
+for arg in "${ORCH_ARGS[@]}"; do
+    ORCH_CMD+=" $(printf '%q' "$arg")"
+done
 sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" \
-    bash -c 'umask 0002 && cd "$1" && shift && python3 tools/orchestrator.py "$@"' \
-    bash "$REPO_DIR" "${ORCH_ARGS[@]}"
+    bash -lc "$ORCH_CMD"
