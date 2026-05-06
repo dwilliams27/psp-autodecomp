@@ -29,6 +29,7 @@ public:
 class gcDesiredUIWidgetHelper {
 public:
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
 };
 
 class gcDesiredValue {
@@ -61,6 +62,7 @@ struct VTableSlot {
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern "C" void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
+void cStrAppend(char *, const char *, ...);
 
 extern char gcDoUISetStatevirtualtable[];
 extern char D_000006F8[];
@@ -87,6 +89,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoUISetState &operator=(const gcDoUISetState &);
 };
@@ -222,6 +225,24 @@ void gcDoUISetState::Write(cFile &file) const {
     slot0->fn((cBase *)((char *)base0 + slot0->offset), wb._file);
 
     wb.End();
+}
+
+void gcDoUISetState::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 0x0C))->GetText(local);
+    cStrAppend(buf, (const char *)0x36F0C4, local);
+
+    unsigned int mask = 1;
+    do {
+        int enabled = (*(int *)((const char *)this + 0x18) & mask) != 0;
+        enabled = enabled & 0xFF;
+        if (enabled != 0) {
+            cStrAppend(buf, (const char *)0x36DBAC, (const char *)0x36DAF0);
+        }
+        mask = mask << 1;
+    } while (mask != 0);
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
 
 void gcDoUISetTextSprite::AssignCopy(const cBase *other) {

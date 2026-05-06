@@ -190303,14 +190303,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00001368",
       "0x00004b38"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoDecalSpawnHGetTextPcK"
+    "mangled_symbol": "__0fOgcDoDecalSpawnHGetTextPcK",
+    "src_file": "src/gcDoDecalSpawn.cpp",
+    "symbol_name": "__0fOgcDoDecalSpawnHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81568538",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:43:57Z"
   },
   {
     "address": "0x0029e1c8",
@@ -209815,14 +209823,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoUISetStateHGetTextPcK"
+    "mangled_symbol": "__0fOgcDoUISetStateHGetTextPcK",
+    "src_file": "src/gcDoUISetState.cpp",
+    "symbol_name": "__0fOgcDoUISetStateHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81568538",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:43:57Z"
   },
   {
     "address": "0x00311d40",
@@ -221807,7 +221823,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -232098,7 +232114,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368",
       "0x0012e67c"

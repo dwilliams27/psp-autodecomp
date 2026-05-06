@@ -31,12 +31,19 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
+};
+
 class gcDoDecalSpawn {
 public:
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *);
     const cType *GetType(void) const;
     ~gcDoDecalSpawn(void);
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -72,6 +79,7 @@ struct DtorSlot {
 void gcAction_gcAction(gcDoDecalSpawn *, cBase *);
 void gcAction_Write(const gcDoDecalSpawn *, cFile &);
 void *cMemPool_GetPoolFromPtr(const void *);
+void cStrCat(char *, const char *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoDecalSpawnvirtualtable[];
 extern cType *D_000385D4;
@@ -137,6 +145,42 @@ void gcDoDecalSpawn::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x14))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+void gcDoDecalSpawn::GetText(char *buf) const {
+    int val = *(int *)((const char *)this + 0x14);
+    const char *fmt = (const char *)0x36E454;
+    int flag;
+    if (val == 0) {
+        flag = 1;
+    } else {
+        int table = 0x38890;
+        int offset = (val & 0xFFFF) << 2;
+        int entry = *(int *)(offset + table);
+        int check = 0;
+        if (entry != 0) {
+            if (*(int *)(entry + 0x30) == val) {
+                check = entry;
+            }
+        }
+        flag = check == 0;
+        flag = flag & 0xFF;
+    }
+
+    const char *arg;
+    if (flag != 0) {
+        arg = (const char *)0x36DACC;
+    } else {
+        int entry = 0;
+        if (val != 0) {
+            int table = 0x38890;
+            int offset = (val & 0xFFFF) << 2;
+            entry = *(int *)(offset + table);
+        }
+        arg = (const char *)(entry + 8);
+    }
+    const cStr &text = cStr(fmt, arg);
+    cStrCat(buf, (const char *)&text);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
