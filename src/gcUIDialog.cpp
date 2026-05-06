@@ -115,7 +115,6 @@ void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
     }
     if (cObject::WillBeDeleted((cBase *)mEvent1, pool, flags)) {
         mEvent1 = 0;
-        __asm__ volatile("" ::: "memory");
     }
     if (cObject::WillBeDeleted((cBase *)mEvent2, pool, flags)) {
         mEvent2 = 0;
@@ -130,7 +129,7 @@ void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
 
 int gcUIDialog::PausesGame(void) const {
     int flags = mFlags;
-    int pauses = (char)((flags & 2) != 0);
+    int pauses = (unsigned char)((flags & 2) != 0);
     if (pauses == 0) {
         goto return_false;
     }
@@ -144,9 +143,9 @@ int gcUIDialog::PausesGame(void) const {
         }
     }
 
-    int *connectionStates = (int *)0x37D884;
     int active = 0;
     int i = 0;
+    int *connectionStates = (int *)0x37D884;
     do {
         if (*connectionStates >= 0) {
             active++;
