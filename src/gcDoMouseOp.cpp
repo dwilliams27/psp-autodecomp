@@ -58,6 +58,7 @@ struct AllocEntry {
 };
 
 typedef void (*WriteFn)(void *, cFile *);
+typedef void (*TextFn)(void *, char *);
 
 struct PoolDeleteSlot {
     short offset;
@@ -75,6 +76,7 @@ extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 void *cMemPool_GetPoolFromPtr(const void *);
+void cStrAppend(char *, const char *, ...);
 
 extern char gcDoMouseOpvirtualtable[];
 extern char D_000006F8[];
@@ -96,6 +98,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     ~gcDoMouseOp(void);
 };
@@ -169,6 +172,19 @@ void gcDoMouseOp::Write(cFile &file) const {
     ((WriteFn)entry->fn)(base + entry->offset, *(cFile **)&wb._data[0]);
 
     wb.End();
+}
+
+// 0x002e7cd8 - gcDoMouseOp::GetText(char *) const
+void gcDoMouseOp::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36ECB8, (const char *)0x36DAF0);
+    if (*(const int *)((const char *)this + 0x0C) == 3) {
+        const cTypeMethod *entry =
+            (const cTypeMethod *)((const char *)*(void *const *)((const char *)this + 0x1C) + 0x78);
+        char *base = (char *)this + 0x18;
+        ((TextFn)entry->fn)(base + entry->offset, buf);
+        cStrAppend(buf, (const char *)0x36E440);
+    }
+    cStrAppend(buf, (const char *)0x36EBE4);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.

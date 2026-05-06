@@ -54,6 +54,7 @@ public:
 class gcValEntityPathDirection : public gcValue {
 public:
     void AssignCopy(const cBase *);
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -66,6 +67,7 @@ extern const char gcValEntityPathDirection_base_desc[];
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrAppend(char *, const char *, ...);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -154,6 +156,18 @@ void gcValEntityPathDirection::Write(cFile &file) const {
     wb.Write(*(const unsigned int *)((const char *)this + 0x3C));
     wb.Write(*(const int *)((const char *)this + 0x38));
     wb.End();
+}
+
+void gcValEntityPathDirection::GetText(char *buf) const {
+    const cTypeMethod *entityText =
+        (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 0x78);
+    const char *entityBase = (const char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)entityText->fn)((void *)(entityBase + entityText->offset), buf);
+
+    const char *space = (const char *)0x36DAF0;
+    cStrAppend(buf, (const char *)0x36F374, space);
+    cStrAppend(buf, (const char *)0x36DBB4, space);
 }
 
 static cType *type_base;
