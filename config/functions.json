@@ -189439,14 +189439,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00121a90"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoCameraLookFromPointHGetTextPcK"
+    "mangled_symbol": "__0fXgcDoCameraLookFromPointHGetTextPcK",
+    "src_file": "src/gcDoCameraLookFromPoint.cpp",
+    "symbol_name": "__0fXgcDoCameraLookFromPointHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2f4e3257",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:51:44Z"
   },
   {
     "address": "0x00297e40",
@@ -199559,7 +199567,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -206110,7 +206118,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -229125,14 +229133,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValStatsTrackingHGetTextPcK"
+    "mangled_symbol": "__0fSgcValStatsTrackingHGetTextPcK",
+    "src_file": "src/gcValStatsTracking.cpp",
+    "symbol_name": "__0fSgcValStatsTrackingHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2f4e3257",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:51:44Z"
   },
   {
     "address": "0x0035d2f8",

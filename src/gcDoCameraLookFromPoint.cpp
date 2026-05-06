@@ -25,6 +25,11 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class gcDesiredCamera {
+public:
+    void GetText(char *) const;
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -40,6 +45,12 @@ struct WriteRec {
     short offset;
     short _pad;
     void (*fn)(void *, cFile *);
+};
+
+struct TextRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
 };
 
 struct VTableSlot {
@@ -60,7 +71,10 @@ public:
     gcDoCameraLookFromPoint &operator=(const gcDoCameraLookFromPoint &);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
 };
+
+void cStrAppend(char *, const char *, ...);
 
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
@@ -244,4 +258,37 @@ void gcDoCameraLookFromPoint::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+void gcDoCameraLookFromPoint::GetText(char *buf) const {
+    ((const gcDesiredCamera *)((const char *)this + 0x0C))->GetText(buf);
+
+    const char *fmt = (const char *)0x36E3D0;
+    int hasFrom = *(const signed char *)((const char *)this + 0x6C) != 0;
+    const char *arg;
+    if (hasFrom != 0) {
+        arg = (const char *)0x36E3E4;
+    } else {
+        arg = (const char *)0x36D944;
+    }
+    cStrAppend(buf, fmt, arg);
+
+    {
+        char *typeInfo = *(char **)((const char *)this + 0x50);
+        TextRec *rec = (TextRec *)(typeInfo + 0x78);
+        short off = rec->offset;
+        void *base = (void *)((const char *)this + 0x4C);
+        rec->fn((char *)base + off, buf);
+    }
+
+    if (hasFrom != 0) {
+        cStrAppend(buf, (const char *)0x36DAD8);
+        char *typeInfo = *(char **)((const char *)this + 0x64);
+        TextRec *rec = (TextRec *)(typeInfo + 0x78);
+        short off = rec->offset;
+        void *base = (void *)((const char *)this + 0x60);
+        rec->fn((char *)base + off, buf);
+    }
+
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
