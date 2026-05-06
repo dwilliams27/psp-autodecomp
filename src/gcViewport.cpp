@@ -9,12 +9,15 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 class cType;
+class gcReplicationVisitor;
 class gcUI {
 public:
     ~gcUI();
     void Reset(void);
     void CloseAllDialogs(void);
     void DeleteSpawned(void);
+    void MemoryCardReplicateDynamic(gcReplicationVisitor &);
+    void OnMemPoolReset(const cMemPool *, unsigned int);
 };
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
@@ -71,6 +74,7 @@ class gcCamera {
 public:
     gcCamera(void);
     gcCamera &operator=(const gcCamera &);
+    void OnMemPoolReset(const cMemPool *, unsigned int);
 };
 
 class gcViewport {
@@ -90,6 +94,8 @@ public:
     static void CloseAllDialogs(void);
     static void ResetAll(void);
     static void OnMapEnded(void);
+    static void MemoryCardReplicateDynamic(gcReplicationVisitor &);
+    static void OnMemPoolResetAll(const cMemPool *, unsigned int);
     static void GetListeners(mOCS *out);
     const cType *GetType(void) const;
     static void operator delete(void *p) {
@@ -327,6 +333,32 @@ void gcViewport::GetListeners(mOCS *out) {
                 dst->q2 = src->q2;
             }
         }
+        i += 1;
+        offset += 0x1390;
+    } while (i < 5);
+}
+
+// ── gcViewport::MemoryCardReplicateDynamic(gcReplicationVisitor &) static @ 0x000FE484 ──
+void gcViewport::MemoryCardReplicateDynamic(gcReplicationVisitor &visitor) {
+    ((gcUI *)0x99928)->MemoryCardReplicateDynamic(visitor);
+    int i = 0;
+    int offset = 0;
+    do {
+        char *cam = D_0037D840 + offset + 0x10;
+        ((gcUI *)(cam + 0x11E4))->MemoryCardReplicateDynamic(visitor);
+        i += 1;
+        offset += 0x1390;
+    } while (i < 5);
+}
+
+// ── gcViewport::OnMemPoolResetAll(const cMemPool *, unsigned int) static @ 0x000FE1A4 ──
+void gcViewport::OnMemPoolResetAll(const cMemPool *pool, unsigned int flags) {
+    ((gcUI *)0x99928)->OnMemPoolReset(pool, flags);
+    int i = 0;
+    int offset = 0;
+    do {
+        char *cam = D_0037D840 + offset + 0x10;
+        ((gcCamera *)cam)->OnMemPoolReset(pool, flags);
         i += 1;
         offset += 0x1390;
     } while (i < 5);

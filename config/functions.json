@@ -54636,7 +54636,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000374d8",
       "0x00037890",
@@ -55119,7 +55119,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -88208,7 +88208,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000e0f10",
       "0x000f8a80"
@@ -88217,7 +88217,14 @@
       "0x00166f10"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportROnMemPoolResetAllPC6IcMemPoolUiT"
+    "mangled_symbol": "__0fKgcViewportROnMemPoolResetAllPC6IcMemPoolUiT",
+    "src_file": "src/gcViewport.cpp",
+    "symbol_name": "__0fKgcViewportROnMemPoolResetAllPC6IcMemPoolUiT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a6edc621",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:44:04Z"
   },
   {
     "address": "0x000fe230",
@@ -88303,7 +88310,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000e1380"
     ],
@@ -88311,7 +88318,14 @@
       "0x00108140"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportaMemoryCardReplicateDynamicR6UgcReplicationVisitorT"
+    "mangled_symbol": "__0fKgcViewportaMemoryCardReplicateDynamicR6UgcReplicationVisitorT",
+    "src_file": "src/gcViewport.cpp",
+    "symbol_name": "__0fKgcViewportaMemoryCardReplicateDynamicR6UgcReplicationVisitorT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a6edc621",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:44:04Z"
   },
   {
     "address": "0x000fe500",
