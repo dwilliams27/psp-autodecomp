@@ -34,6 +34,8 @@ public:
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
     void SnapConstraints(void);
     void Activate(eDynamicModel *);
+    void Deactivate(eDynamicModel *);
+    void ApplyUnembedImpulse(int index, const mVec3 &impulse);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;

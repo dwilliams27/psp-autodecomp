@@ -220,6 +220,45 @@ void eSimulatedController::ApplyTorque(int index, const mVec3 &torque) {
     }
 }
 
+void eSimulatedController::ApplyUnembedImpulse(int index, const mVec3 &impulse) {
+    float magnitude;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "vdot.t S100, C120, C120\n"
+        "vsqrt.s S100, S100\n"
+        "mfv %0, S100\n"
+        : "=r"(magnitude)
+        : "r"(&impulse)
+        : "memory");
+    if (magnitude != 0.0f) {
+        __asm__ volatile("" ::: "memory");
+        char *entries = (char *)bodyEntries;
+        eSimulatedBodyEntry *entry =
+            (eSimulatedBodyEntry *)(entries + (index * 0x30));
+        int ok = 0;
+        if (entry->body != 0) {
+            if (entry->cache != 0) {
+                ok = 1;
+            }
+        }
+        ok = ok & 0xFF;
+        if (ok != 0) {
+            void *body = entry->body;
+            __asm__ volatile(
+                "lv.q C120, 0x60(%0)\n"
+                "lv.q C130, 0(%1)\n"
+                "vadd.t C120, C120, C130\n"
+                "sv.q C120, 0x60(%0)\n"
+                :
+                : "r"(body), "r"(&impulse)
+                : "memory");
+            if ((*(unsigned short *)((char *)body + 0x98) & 0x40) != 0) {
+                ((eSimulatedState *)entry)->WakeUp();
+            }
+        }
+    }
+}
+
 void eSimulatedController::ClearExternalForces(void) {
     char *entries = (char *)bodyEntries;
     int count = 0;
@@ -291,7 +330,9 @@ class ePhysics {
 public:
     static ePhysics *Get(void);
     void AddToUpdateList(eSimulatedController *);
+    void RemoveFromUpdateList(eSimulatedController *);
     void AddMotor(eSimulatedMotor *);
+    void RemoveMotor(eSimulatedMotor *);
 };
 
 #pragma control sched=2
@@ -343,6 +384,36 @@ void eSimulatedController::Activate(eDynamicModel *) {
                 __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr2) : "r"(this));
                 eSimulatedMotor *m = *(eSimulatedMotor **)(arr2 + off);
                 phys->AddMotor(m);
+                __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr) : "r"(this));
+            }
+            i++;
+            off += 4;
+        } else {
+            return;
+        }
+    } while (true);
+}
+
+void eSimulatedController::Deactivate(eDynamicModel *) {
+    RemoveContacts();
+    ePhysics::Get()->RemoveFromUpdateList(this);
+    int i = 0;
+    register char *arr __asm__("$4");
+    __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr) : "r"(this));
+    int off = 0;
+    do {
+        int count = 0;
+        if (arr != 0) {
+            count = *(int *)(arr - 4);
+        }
+        if (i < count) {
+            void *motor = *(void **)(arr + off);
+            if (motor != 0) {
+                ePhysics *phys = ePhysics::Get();
+                char *arr2;
+                __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr2) : "r"(this));
+                eSimulatedMotor *m = *(eSimulatedMotor **)(arr2 + off);
+                phys->RemoveMotor(m);
                 __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr) : "r"(this));
             }
             i++;
