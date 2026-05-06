@@ -4,6 +4,7 @@
 //   gcValStateTimer::~gcValStateTimer(void)              @ 0x0035b980 (100B)
 //   gcValStateTimer::Write(cFile &) const                @ 0x0035b9e4 (76B)
 //   gcValStateTimer::Evaluate(void) const                @ 0x0035baec (52B)
+//   gcValStateTimer::Set(float)                          @ 0x0035bb20 (100B)
 //   gcValStateTimer::GetText(char *) const               @ 0x0035bb84 (40B)
 //
 // gcValStateTimer is a leaf cBase-derived class with no extra payload —
@@ -78,6 +79,7 @@ public:
     void  GetText(char *) const;
     const cType *GetType(void) const;
     float Evaluate(void) const;
+    void  Set(float);
     void  Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -127,6 +129,32 @@ float gcValStateTimer::Evaluate(void) const {
     }
     p += 24;
     return *(float *)0x36C800 * (float)*(int *)p;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// gcValStateTimer::Set(float)  @ 0x0035bb20, 100B
+// ──────────────────────────────────────────────────────────────────────────
+void gcValStateTimer::Set(float value) {
+    char *p = *(char **)0x37D864;
+    if (p != 0) {
+        float scale = (float)*(int *)0x36C7FC;
+        p += 24;
+        float product;
+        __asm__ volatile("mul.s %0, %1, %2" : "=f"(product) : "f"(value), "f"(scale));
+        int t = (int)product;
+        volatile int sp0 = t;
+        volatile int sp4 = t;
+        volatile int sp8 = t;
+        volatile int spC;
+        volatile int *src;
+        if (t == 0) {
+            spC = 1;
+            src = &spC;
+        } else {
+            src = &sp8;
+        }
+        *(int *)p = *src;
+    }
 }
 
 // ──────────────────────────────────────────────────────────────────────────

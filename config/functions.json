@@ -56098,11 +56098,19 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fJeBoxShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K"
+    "mangled_symbol": "__0fJeBoxShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K",
+    "src_file": "src/eBoxShape_GetSupport.cpp",
+    "symbol_name": "__0fJeBoxShapeKGetSupportRC6FmVec3RC6EmOCSP6FmVec3K",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "08ac25d1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T21:56:57Z"
   },
   {
     "address": "0x0006e240",
@@ -60835,11 +60843,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeGeomCurveFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fKeGeomCurveFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "80a153b6",
+        "notes": "Implemented eGeomCurve::Reset as canonical C++ in src/eGeomCurve.cpp and tried plain m2c-style temporaries, explicit goto-shaped control flow, sched=1 bracketing, register-bound lookup locals, volatile/register value loads, and a 5 minute permuter run. The permuter could not run usefully because it compiled the file as sched=2 and could not locate the expected 168B symbol. The closest source uses register-bound a2/a3 locals for the handle table lookup and matches the first lookup structure, but the emitted function is 164B instead of 168B.\n\nThe remaining diff is concentrated in the second handle lookup/final byte load. Current code emits the right lookup registers through the bnel, but loads the byte into a1 and stores a1; the target keeps the pointer/value in a2, has an extra lbu in the zero-handle branch delay slot, then stores a2. This appears to be a local register-allocation/scheduling choice around the final lbu rather than a semantic control-flow mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:50:22Z",
+        "src_file": "src/eGeomCurve.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/80a153b6/00078734__agent_self_reported_failure__src_eGeomCurve.cpp"
+      }
+    ]
   },
   {
     "address": "0x000787dc",
@@ -75606,11 +75628,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNgcEnumerationFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fNgcEnumerationFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "80a153b6",
+        "notes": "Implemented gcEnumeration::Reset in the requested src/eGeomCurve.cpp as a local class redeclaration. Tried plain m2c-style temporaries, register-bound a1/a2 handle lookup locals, explicit label/goto loop shapes, inverted item-null tests, and memory barriers around the flag clear. The closest attempt is the current source: it is the correct 180B size and differs by 12 bytes.\n\nThe remaining bytes are a register swap in the initial D_00038890 handle lookup (current candidate/result use a1/a2 opposite of target) plus two branch-likely details in the array scan. The target uses beqzl for the null item with index increment in the delay slot, then uses the later flag beqz delay slot for the non-null index increment; source restructurings that produced branch-likely either duplicated the loop exit and worsened the diff or changed the handle lookup register allocation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:50:22Z",
+        "src_file": "src/eGeomCurve.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/80a153b6/000d4088__agent_self_reported_failure__src_eGeomCurve.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d413c",
@@ -85372,7 +85408,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f286c"
     ],
@@ -85421,7 +85457,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f2a30",
       "0x001b9c64"
@@ -228413,11 +228449,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fPgcValStateTimerDSetf"
+    "mangled_symbol": "__0fPgcValStateTimerDSetf",
+    "src_file": "src/gcValStateTimer.cpp",
+    "symbol_name": "__0fPgcValStateTimerDSetf",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "08ac25d1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T21:56:57Z"
   },
   {
     "address": "0x0035bb84",
