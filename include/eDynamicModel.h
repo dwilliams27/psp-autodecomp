@@ -32,6 +32,10 @@ public:
     void AddToBroadphase(void);
     void ResetPartialAnimationController(int);
     void OnRemovedFromWorld(void);
+    void SetGeomFlagsOnOff(unsigned int, unsigned int);
+    bool HasCollision(void) const;
+    void RemoveFromBroadphase(void);
+    void ResetAnimationState(void);
     bool NeedsSkinning(const eDynamicMesh *, int, int *) const;
     void *GetCurrentPhysicsController(void) const;
     void *GetCurrentPhysicsController(void);

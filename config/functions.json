@@ -16418,7 +16418,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000cae4"
     ],
@@ -16538,7 +16538,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000bbd4"
     ],
@@ -16559,7 +16559,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000b648",
       "0x0000bc90"
@@ -16569,7 +16569,21 @@
       "0x0000bc90"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryUDeleteMarkedForCleanUib"
+    "mangled_symbol": "__0fIcFactoryUDeleteMarkedForCleanUib",
+    "failure_notes": [
+      {
+        "session": "287a7542",
+        "notes": "cFactory::DeleteMarkedForClean(unsigned int, bool) \u2014 7 byte diff remains, all 1-byte register-encoding differences. Function structure matches expected exactly EXCEPT for s2/s3 saved-register swap in the loop: expected uses counter\u2192s3 (HIGHER) and pointer\u2192s2 (LOWER); mine uses counter\u2192s2 (LOWER) and pointer\u2192s3 (HIGHER). Diffs are in: li (counter init), slt\u00d72 (count comparisons), move (pointer init from v0), lw (pointer deref), addiu\u00d72 (counter increment, pointer +=4). All other instructions match including prologue/epilogue, vtable dispatch (offset 176), recursive call to DeleteMarkedForClean(child, param, false), and CleanGroups(0, flag) tail call.\n\nExperiments tried: (1) variable declaration order swaps (i before/after groups); (2) declaring i with initial 0 vs uninitialized; (3) for-loop vs while-loop vs if+do-while; (4) putting count init before vs after dispatch entry computation. None changed the s2/s3 assignment. Permuter ran 150s, 1575 candidates, zero improvement.\n\nThe contrast with sibling cFactory::DeleteGroups (matched) is striking: DG has only 2 saved-reg loop variables (s0=counter, s1=ptr \u2014 counter LOWER), while DMFC has 5 saved regs total (s0=arg1, s1=this, s4=bool, s2/s3=loop vars). With s4 already taken before s2/s3 are needed, SNC apparently allocates the loop vars in a different order than for DG. The choice (counter\u2192s3 vs counter\u2192s2) appears compiler-deterministic with no source-level lever. May need to try entirely different loop structures (pointer-comparison loop, manually-decremented counter, recursion replaced with goto-based iteration) but those would be significant departures from clean C.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T08:14:01Z",
+        "src_file": "src/cFactory.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/287a7542/0000bc90__agent_self_reported_failure__src_cFactory.cpp"
+      }
+    ]
   },
   {
     "address": "0x0000bd44",
@@ -16671,7 +16685,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -16679,7 +16693,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryNOnNameChangedv"
+    "mangled_symbol": "__0fIcFactoryNOnNameChangedv",
+    "failure_notes": [
+      {
+        "session": "287a7542",
+        "notes": "cFactory::OnNameChanged(void) \u2014 3 byte diff remains. CRC32 hash of the name string copied into pool+4. Reduced from 15 \u2192 12 \u2192 11 \u2192 3 bytes through these key fixes:\n\n1) Use cMemBlockSuspend's dual-counter `var_a3 = var_a0` dance pattern: declare `int var_a3; int var_a0 = len-1;` then assign `var_a3 = var_a0;` before the loop. Loop body reads var_a3 first (`old_a0 = var_a3`), then `var_a3 = var_a0 - 1` and `var_a0 = var_a3` in delay slot.\n2) Add `__asm__ volatile(\"\" ::: \"memory\");` between `crc = t1 ^ (crc>>8)` and `var_a0 = var_a3` in the loop body. WITHOUT this barrier the compiler reorders `addiu (counter dec)` BEFORE `srl (crc shift)`, causing 8 bytes of mismatch. Cribbed from cMemBlockSuspend cMemPool ctor pattern.\n3) Write the table access as `*(unsigned int *)(((crc^*p)&0xff)*4 + 0x37BC50)` instead of `table[idx]` to flip the addu operand order from `addu t1,t0,t1` to `addu t1,t1,t0` (matches expected).\n\nRemaining 3 bytes are dual-counter init register swap: expected emits `addiu a0,v0,-1; move a3,a0` (var_a0 \u2192 physical a0); mine emits `addiu a3,v0,-1; move a0,a3` (var_a0 \u2192 physical a3). The roles in the loop body (a0=current, a3=shadow) match expected exactly \u2014 only the pre-loop initialization writes to opposite registers.\n\nExperiments tried: variable name swaps (var_current/var_shadow), declaration-order swaps, both-with-initializer vs uninit-then-assign patterns, declarations inside vs outside the if-block (the inside variant exploded to 97 bytes diff \u2014 bad). Permuter ran 200s, 2336 candidates compiled, zero improvement past 3 bytes. The compiler's choice of which dance variable gets a0 vs a3 appears deterministic but not source-controllable through any lever I could find. Curiously, sibling matched function cMemBlockSuspend::cMemPool::cMemPool uses the same dance pattern but lands on physical registers a1/a3 instead of a0/a3 \u2014 register pressure from the surrounding context (more locals in the ctor) likely shifts the allocator. For OnNameChanged with very few locals, the allocator picked an order I cannot flip from C source.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T08:14:01Z",
+        "src_file": "src/cFactory.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/287a7542/0000c0d8__agent_self_reported_failure__src_cFactory.cpp"
+      }
+    ]
   },
   {
     "address": "0x0000c18c",
@@ -40154,7 +40182,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00044d78",
       "0x000497a0",
@@ -40169,7 +40197,14 @@
       "0x001772d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelRSetGeomFlagsOnOffUiTB"
+    "mangled_symbol": "__0fNeDynamicModelRSetGeomFlagsOnOffUiTB",
+    "src_file": "src/eDynamicModel.cpp",
+    "symbol_name": "__0fNeDynamicModelRSetGeomFlagsOnOffUiTB",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "888688e8",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T08:22:46Z"
   },
   {
     "address": "0x00047b60",
@@ -40468,7 +40503,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000a6098",
@@ -40476,7 +40511,21 @@
       "0x00170f00"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelTResetAnimationStatev"
+    "mangled_symbol": "__0fNeDynamicModelTResetAnimationStatev",
+    "failure_notes": [
+      {
+        "session": "888688e8",
+        "notes": "Got to 17/180 byte diff (90.6% match). Function structure, instruction order, and scheduling all align with expected. Remaining diff is purely register naming inside the loop body: our compile uses byteOff=t1 and len=t0, expected has byteOff=t0 and len=t1. The compiler picks t2 for `i` (matching expected), then allocates t1 for byteOff (second declared variable used in loop preamble) and t0 for len (third variable, declared inside loop). Expected allocates them swapped (t0 for byteOff, t1 for len) \u2014 this is an SNC register-allocator quirk we couldn't trigger from C source.\n\nApproaches tried: (1) various declaration orders of i/byteOff/len (in/out of loop); (2) for-loop vs while-true; (3) ternary vs if-else for len computation; (4) keeping len at function scope; (5) using raw pointer arithmetic instead of struct accessor; (6) inserting `__asm__ volatile(\"\" ::: \"memory\")` barrier (this fixed scheduling, putting `lw a1` reload into the b instruction's delay slot, dropping diff from 26 \u2192 17 bytes); (7) `__asm__ volatile(\"\" : \"+r\"(byteOff))` register pin attempts (made things worse); (8) swapping i++/byteOff += 16 order. Permuter ran 180s with sched=1 (auto-detected from filename) and could only improve from 149 \u2192 148 byte diff under sched=1, suggesting sched=2 is correct (pragma in source).\n\nThe remaining 17 bytes are likely 4-5 instructions where t0/t1 register encoding bytes differ (slt, addu, addiu i++, addiu byteOff+=16, beqz, lw, and). All control flow, memory access patterns, and immediate constants match expected. No source-level fix appears to coax SNC into picking byteOff=t0 instead of t1. Possibly needs permuter run with sched=2 enforced, or the original may use a structurally different loop (e.g., recasting i as a pointer derivative).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T08:22:46Z",
+        "src_file": "src/eDynamicModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/888688e8/00048cc8__agent_self_reported_failure__src_eDynamicModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x00048d7c",
@@ -89886,7 +89935,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000fe024"
     ],
@@ -90329,7 +90378,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d707c"
     ],

@@ -696,3 +696,48 @@ void eDynamicModel::ResetPartialAnimationController(int idx) {
         i++;
     } while (i < 4);
 }
+
+#pragma control sched=2
+
+void eDynamicModel::ResetAnimationState(void) {
+    char *arr = *(char **)((char *)this + 0x124);
+    int empty = 1;
+    if (arr != 0) empty = (*(int *)(arr - 4) & 0x3FFFFFFF) == 0;
+    if (empty) return;
+
+    *(unsigned char *)((char *)this + 0x13C) = 0;
+    *(unsigned char *)((char *)this + 0xD2) |= 0x10;
+
+    int i = 0;
+    int byteOff = 0;
+    while (true) {
+        int len = 0;
+        if (arr != 0) len = *(int *)(arr - 4) & 0x3FFFFFFF;
+        if (i >= len) break;
+        eDynamicModel_AnimEntry *e = (eDynamicModel_AnimEntry *)(arr + byteOff);
+        e->f0 = 0;
+        e->f4 = 0.0f;
+        e->f8 = 1.0f;
+        e->lo31 = 0;
+        e->hi1 = 0;
+        i++;
+        byteOff += 16;
+        __asm__ volatile("" ::: "memory");
+        arr = *(char **)((char *)this + 0x124);
+    }
+}
+
+#pragma control sched=2
+
+void eDynamicModel::SetGeomFlagsOnOff(unsigned int on, unsigned int off) {
+    unsigned int flags = *(unsigned char *)((char *)this + 0x8C);
+    unsigned int newFlags = (flags | on) & ~off;
+    bool was = (flags & 2) != 0;
+    bool will = (newFlags & 2) != 0;
+    if (was && !will) {
+        if (HasCollision()) RemoveFromBroadphase();
+    } else if (!was && will) {
+        if (HasCollision()) AddToBroadphase();
+    }
+    eDynamicGeom::SetGeomFlagsOnOff(on, off);
+}
