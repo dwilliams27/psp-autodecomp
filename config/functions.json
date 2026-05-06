@@ -112362,13 +112362,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00336c04"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcLookAtControllerKSetHeadingf"
+    "mangled_symbol": "__0fSgcLookAtControllerKSetHeadingf",
+    "src_file": "src/gcLookAtController_SetHeading.cpp",
+    "symbol_name": "__0fSgcLookAtControllerKSetHeadingf",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "484c7fe6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:12:59Z"
   },
   {
     "address": "0x00147250",
@@ -112406,13 +112414,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00336c04"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcLookAtControllerHSetRollf"
+    "mangled_symbol": "__0fSgcLookAtControllerHSetRollf",
+    "src_file": "src/gcLookAtController_SetRoll.cpp",
+    "symbol_name": "__0fSgcLookAtControllerHSetRollf",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "484c7fe6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:12:59Z"
   },
   {
     "address": "0x001473e8",
@@ -191138,7 +191154,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
@@ -226321,7 +226337,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
