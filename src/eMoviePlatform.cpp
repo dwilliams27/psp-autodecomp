@@ -52,6 +52,10 @@ public:
     int dispbuf_checkDecodeEnd(void);
     int soundbuf_getDrawbuf(void);
     int GetWorkAreaFreeSize(int);
+    int AllocWorkArea(int, int);
+    int dispbuf_show(void);
+    void dispbuf_DrawFrame(char *);
+    void control_waitDisp(void);
     int soundbuf_setBuf(void);
     void soundbuf_delete(void);
     int read_create(void);
@@ -78,6 +82,17 @@ public:
     static int s_pBase;
 
     static int GetFreeSize(int);
+    static int Alloc(unsigned int, int);
+};
+
+class eVideo {
+public:
+    static void PreFlip(void);
+};
+
+class eVideoPlatform {
+public:
+    static void Flip(bool, bool);
 };
 
 #pragma control sched=1
@@ -317,6 +332,42 @@ int eMoviePlatform::GetWorkAreaFreeSize(int align) {
     unsigned int m1 = un - 1;
     unsigned int aligned = ((unsigned int)m_workAreaSize + m1) / un * un;
     return m_workAreaCurrent - (int)(aligned - (unsigned int)base);
+}
+
+int eMoviePlatform::AllocWorkArea(int align, int size) {
+    int result = 0;
+    int useVolatile = (cVolatile::s_pBase != 0) & 0xff;
+    if (useVolatile == 0) {
+        int n = align;
+        if (n < 4) {
+            n = 4;
+        }
+        unsigned int un = (unsigned int)(n + 3) >> 2 << 2;
+        __asm__ volatile("" ::: "memory");
+        unsigned int m1 = un - 1;
+        unsigned int aligned = ((unsigned int)m1 + m_workAreaSize) / un * un;
+        unsigned int newSize = aligned + (unsigned int)size;
+        if ((unsigned int)((int)newSize - m_workAreaBase) <= (unsigned int)m_workAreaCurrent) {
+            m_workAreaSize = (int)newSize;
+            result = (int)aligned;
+        }
+        return result;
+    }
+    return cVolatile::Alloc((unsigned int)size, align);
+}
+
+int eMoviePlatform::dispbuf_show(void) {
+    int state = *(int *)((char *)this + 0x2F4);
+    if (state == 1 || state == 0xFF) {
+        eVideo::PreFlip();
+        dispbuf_DrawFrame((char *)m_dispbuf_buf[m_dispbuf_readIdx]);
+        m_dispbuf_readIdx = (m_dispbuf_readIdx + 1) % m_dispbuf_end;
+        control_waitDisp();
+        eVideoPlatform::Flip(true, false);
+    } else {
+        m_dispbuf_readIdx = (m_dispbuf_readIdx + 1) % m_dispbuf_end;
+    }
+    return 0;
 }
 
 int eMoviePlatform::soundbuf_setBuf(void) {

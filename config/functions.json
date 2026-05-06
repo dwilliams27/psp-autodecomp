@@ -19437,7 +19437,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000021f4"
     ],
@@ -19447,7 +19447,21 @@
       "0x00090acc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformNAllocWorkAreaiTB"
+    "mangled_symbol": "__0fOeMoviePlatformNAllocWorkAreaiTB",
+    "failure_notes": [
+      {
+        "session": "5160fab3",
+        "notes": "Persistent BLOCK-ORDER divergence between our SNC (pspsnc 1.2.7503.0) and original. SNC consistently emits NO-VOLATILE PATH inline / VOLATILE PATH (cVolatile::Alloc) far, but expected has the OPPOSITE: VOLATILE INLINE / NO-VOLATILE FAR. Function size matches (164B / 41 inst) when source is `if (useVolatile == 0) { rest; return result; } return Alloc;` \u2014 identical instructions, just block order swapped. Permuter ran 120s, found a tiny improvement to 96/164 (added __asm__ memory barrier + swapped operand order in `(m_workAreaSize + m1)`), but cannot flip block order. Tried: (1) `if(vol!=0) return Alloc; rest` with various result=0 placements \u2014 all give bnez-to-vol-far; (2) inverted `if(vol==0) {rest} return Alloc` \u2014 bnez-to-alloc-far (best, 96/164); (3) #pragma sched=1 \u2014 moved sw ra in prologue, made it 124/164; (4) -Xxopt=0/5, -Xmopt=0 flag toggles \u2014 no change. Sister method GetWorkAreaFreeSize matches because expected ALSO has bnez-to-vol-far there (same direction my SNC emits), suggesting expected AllocWorkArea was compiled by an SNC version that decided differently for this specific function. The decision likely depends on internal heuristics (early-return count, body shape) that diverged between SNC versions. All 96 mismatched bytes are inside the swapped blocks \u2014 semantically/structurally correct, byte layout differs. Likely needs either an undocumented compiler flag, an SNC binary patch (cf. 006-bnel-compiler-divergence ADR), or `unmatchable` classification \u2014 though it doesn't fit the strict 8-byte criterion.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:52:54Z",
+        "src_file": "src/eMoviePlatform.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/5160fab3/00011bdc__agent_self_reported_failure__src_eMoviePlatform.cpp"
+      }
+    ]
   },
   {
     "address": "0x00011c80",
@@ -20114,7 +20128,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00011e88",
       "0x00012234",
@@ -20125,7 +20139,14 @@
       "0x00012b6c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformMdispbuf_showv"
+    "mangled_symbol": "__0fOeMoviePlatformMdispbuf_showv",
+    "src_file": "src/eMoviePlatform.cpp",
+    "symbol_name": "__0fOeMoviePlatformMdispbuf_showv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5160fab3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T05:52:54Z"
   },
   {
     "address": "0x00012d38",
@@ -40719,7 +40740,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00035818",
       "0x00037890",
@@ -40978,7 +40999,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00064f68",
@@ -54700,7 +54721,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00037594",
       "0x00037890",
@@ -54980,7 +55001,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0006bbb8"
     ],
@@ -88131,13 +88152,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f3918"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKgcViewportKAddToWorldP6GeWorldT"
+    "mangled_symbol": "__0fKgcViewportKAddToWorldP6GeWorldT",
+    "failure_notes": [
+      {
+        "session": "cf7a051d",
+        "notes": "gcViewport::AddToWorld(eWorld *) static \u2014 121/172 bytes differ (improved from initial 150/172). Function logic IS correct: 5-iter outer loop writing viewport[offset+0x10+0x1124]=world, viewport[+0x1128]=0, then inner copy loop reading from (*D_0037D854)->[0x4B4] (cArray-style int* with size at [-1] & 0x3FFFFFFF) and writing elements to viewport[+0x10+0x112C] onwards. Reloads (*D_0037D854)->[0x4B4] each inner iteration.\n\nKey structural quirks reproduced in source:\n  \u2022 16-byte stack frame with `lw a3,0(sp); lw a2,4(sp)` AT FUNCTION ENTRY (uninitialized reads) and `sw a3,0(sp); sw a2,4(sp)` AT EXIT \u2014 produced via `volatile int slot0,slot1; int last_a3=slot0; int last_a2=slot1; ... slot0=last_a3; slot1=last_a2;`.\n  \u2022 `move a2,a3; sw a2,0(a1)` carrier pattern in inner body \u2014 produced via `last_a3 = src[k]; last_a2 = last_a3; *dst = last_a2;` with both locals alive across loop.\n  \u2022 D_0037D854 deref folded to `lw r,1204(r)` \u2014 produced via `extern struct GlobalCfg *D_0037D854; ... D_0037D854->mArr` (struct typed declaration with mArr at offset 0x4B4).\n  \u2022 Camera field stores folded \u2014 produced via `extern struct CamSlot ...; ((CamSlot*)(D_0037D840+offset+0x10))->mWorld = world;`. Without struct typing, SNC emits separate `addiu reg,cam,0x1124; sw a0,0(reg)` instead of folded `sw a0,0x1124(cam)`.\n\nRemaining 3 extra instructions vs expected (43 instr) \u2192 mine has 46 instr:\n  (a) `addiu v0,a2,16` creating new register v0 for cam \u2014 expected does `addiu a1,a1,16` in-place. SNC chose to materialize cam in a separate register from the loaded base+offset. Tried `cam += 0x10` as separate statement \u2014 same output.\n  (b)+(c) Initial `move a3,t0` and delay-slot `move a3,t0` (after `b` back to inner loop) \u2014 SNC duplicates the src pointer into two registers (t0 used for src+byteOff body load, a3 used for src[-1] count load). Expected uses single register (t2) for both. The compiler fills the b's delay slot with this no-op move instead of the productive `lw t2,1204(t2)` (src reload) that expected uses. Also missing the `beqzl v0,...; addiu t6,t6,1` branch-likely-with-side-effect pattern at the inner-exit branch.\n\nRegister names also differ throughout (mine: t7/t6 carriers, t5/t4 outer counter/offset, a1 mask, t1/v1 global highs, t0 src; expected: a3/a2 carriers, t6/t5, t1 mask, t3/t4 highs, t2 src). Reg names follow from structural diffs.\n\nPermuter not run successfully \u2014 `tools/permuter.py src/gcViewport.cpp 0x000fdc98` errors with `Could not locate target function in compiled .o. Found 2092B .text but expected 172B function.` (multi-function-file isolation issue in permuter.py). Worth retrying with single-function isolation harness if available, or by temporarily moving AddToWorld to its own .cpp file. Significant improvement (150\u2192121 bytes diff) achieved by adding struct types for both D_0037D854 (GlobalCfg with mArr at 0x4B4) and the camera (CamSlot with mWorld/mFlag/mArr at 0x1124/0x1128/0x112C). Source is structurally correct and significantly closer than initial attempt; remaining diff is SNC scheduling/allocator decisions not reachable from C source-level changes.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:32:52Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/cf7a051d/000fdc98__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fdd44",
@@ -88184,7 +88219,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e0550"
     ],
@@ -88197,7 +88232,21 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportIUpdateUI6KcTimeValueT"
+    "mangled_symbol": "__0fKgcViewportIUpdateUI6KcTimeValueT",
+    "failure_notes": [
+      {
+        "session": "cf7a051d",
+        "notes": "gcViewport::UpdateUI(cTimeValue) static \u2014 12/156 bytes differ. SAME compiler quirk as the previously failed UpdateAll at 0x000fdd44 (sibling function, identical structure documented in functions.json session 78471c89). Function logic is fully correct: do-while loop (5 iters) testing viewport[offset+0x1380], calling gcUI::Update(t) at viewport+offset+0x10+0x11E4, then post-loop call to gcUI::Update at 0x99928 if D_0037D840[0xED0]==0.\n\nThe 12-byte diff is purely register allocation: SNC chose s1=global_high, s2=offset; expected has s2=global_high, s1=offset. The s1/s2 swap propagates to: prologue saves (sw s1/s2 at swapped stack offsets), the lui of global high register, two `lw a0,...(sN)` reloads, two `addu a1,a0,sN` (one with operand order also flipped: expected `addu a1,a0,s1` vs mine `addu a1,s2,a0`), and the offset-increment `addiu sN,sN,5008`.\n\nUpdateAll attempted: declaring offset before i, intermediate `char *vp = D_0037D840 + offset`, array-index form `((unsigned char*)D_0037D840)[offset+0x1380]`, plus 90s/874-candidate permuter run \u2014 all zero improvement. SNC's interference-graph coloring is loop-shape-dependent and not source-controllable. Sibling matched methods in this same file (CloseAllDialogs at 0xfe024, OnMapEnded at 0xfe134, OnMemPoolResetAll at 0xfe1a4, MemoryCardReplicateDynamic at 0xfe484) allocate global_high to varying registers, so there's no single allocation rule. Likely needs SNC pspcor.exe binary patching to fix the allocator preference, similar to docs/decisions/006-bnel-compiler-divergence.md but for register coloring rather than branch-likely heuristics. Diff exceeds the 8-byte unmatchable threshold (and isn't bnel/beql), so stays 'failed'.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T05:32:52Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/cf7a051d/000fdddc__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fde78",
