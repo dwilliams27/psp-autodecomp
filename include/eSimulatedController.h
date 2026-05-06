@@ -7,6 +7,7 @@ class cBase;
 class eGeom;
 class cFile;
 class cMemPool;
+class cName;
 class cType;
 class eDynamicModel;
 
@@ -30,6 +31,8 @@ public:
     void SetCollisionMask(unsigned int);
     void SetPosition(int index, const mVec3 &pos);
     void ApplyTorque(int index, const mVec3 &torque);
+    void ApplyForce(int index, const mVec3 &force, const mVec3 &pos);
+    int GetSubObjectIndex(const cName &) const;
     void ClearExternalForces(void);
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
     void SnapConstraints(void);

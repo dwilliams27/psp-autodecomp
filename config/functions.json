@@ -55060,13 +55060,20 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0006bbb8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerKApplyForceiRC6FmVec3TC"
+    "mangled_symbol": "__0fUeSimulatedControllerKApplyForceiRC6FmVec3TC",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerKApplyForceiRC6FmVec3TC",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6fb12182",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T07:14:56Z"
   },
   {
     "address": "0x0006c928",
@@ -55342,13 +55349,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00358ff4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerRGetSubObjectIndexRC6FcNameK"
+    "mangled_symbol": "__0fUeSimulatedControllerRGetSubObjectIndexRC6FcNameK",
+    "failure_notes": [
+      {
+        "session": "6fb12182",
+        "notes": "GetSubObjectIndex: 93/212 bytes differ. The first 12 instructions match (entry computation including `addu t0,a3,a0; lw t1,36(t0)`) using the IsSleeping-style asm hints (`__asm__(\"ori %0,$0,0\")` for offset/idx initialization to defeat CSE that would hoist `entries+0x24`) and an inlined eSimulatedBodyEntry cast.\n\nThree main sources of remaining divergence:\n\n(1) Register allocation differences cascade through the inner cName comparison. Expected uses sub->t1, subLen->t0, argLen->t2; ours uses sub->t2, subLen->t1, argLen->t0. SNC chose to keep entry_p alive in t0 instead of overwriting it. Tried declaring `entry` as separate vs inlined, neither helped.\n\n(2) Original emits `move t3,t0` in the delay slot of `beq t2,t3,equal_hash` to save subLen for later use as `addiu t1,t3,3`. Our compiler instead computes `addiu t0,t1,3` directly in the delay slot. This is a different scheduling decision.\n\n(3) `bnel t1,t0,...` (0x51280003) appears at 0x3f4 in our output where expected has `bne t0,t2,...` (0x150a0005). Per docs/decisions/006-bnel-compiler-divergence.md this is a known SNC version divergence that cannot be fixed in source.\n\nApproaches tried:\n- if/else short-circuit in C (got OR-fused into `or t3,t1,t0; bnez t3`)\n- Explicit goto for short-circuit (got separate bnez sequences, best result at 93 bytes)\n- Goto-everywhere structure with labelled blocks (got worse at 104-127 bytes)\n- Using struct member access for cache field vs explicit `*(char**)(entries+offset+0x24)` (struct version slightly better)\n- Using helper variables `t0,t1,t2` named to match expected register flow (no improvement)\n\nPermuter ran 180s, but its `find_function` picks the first 212B symbol (GetType) so its baseline of 155 is wrong. Permuter could not find improvements due to the size-collision bug (no --symbol flag exposed).\n\nRoot cause: this is a control-flow-heavy scalar function where SNC's register allocator and basic-block layout decisions differ from the original SNC version that built the binary, plus one bnel/bne divergence that's already documented as unfixable. Doesn't quite meet the unmatchable criteria (>8 byte diff in non-bnel/beql instructions) so left as failed.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T07:14:56Z",
+        "src_file": "src/eSimulatedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/6fb12182/0006d12c__agent_self_reported_failure__src_eSimulatedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006d200",
@@ -82292,7 +82313,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000eab04"
     ],
@@ -82312,7 +82333,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x002ef1bc"

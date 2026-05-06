@@ -38,9 +38,23 @@ struct eSimulatedBodyEntry {
     void *cache;
 };
 
+struct eSimulatedSubEntry {
+    char _pad0[0x08];
+    char chars[0x14];
+    short length;
+    unsigned short hash;
+};
+
 class eSimulatedState {
 public:
     void WakeUp(void);
+};
+
+class cName {
+public:
+    char chars[0x14];
+    short length;
+    unsigned short hash;
 };
 
 extern cType *D_000385DC;
@@ -213,6 +227,111 @@ void eSimulatedController::ApplyTorque(int index, const mVec3 &torque) {
             "sv.q C120, 0x10(%0)\n"
             :
             : "r"(entry), "r"(&torque)
+            : "memory");
+        if ((*(unsigned short *)((char *)body + 0x98) & 0x40) != 0) {
+            ((eSimulatedState *)entry)->WakeUp();
+        }
+    }
+}
+
+int eSimulatedController::GetSubObjectIndex(const cName &name) const {
+    int idx;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(idx));
+    char *entries = (char *)bodyEntries;
+    int mask = 0x3FFFFFFF;
+    int offset;
+    __asm__ volatile("ori %0, $0, 0" : "=r"(offset));
+
+    while (true) {
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)(entries - 4) & mask;
+        }
+        if (idx >= count) {
+            break;
+        }
+
+        eSimulatedSubEntry *sub = (eSimulatedSubEntry *)
+            ((eSimulatedBodyEntry *)(entries + offset))->cache;
+        short subLen = sub->length;
+        short argLen = name.length;
+
+        int matched;
+        if (subLen != 0) goto check_lengths;
+        if (argLen != 0) goto check_lengths;
+        matched = 1;
+        goto check_match;
+    check_lengths:
+        if (subLen != argLen) {
+            matched = 0;
+        } else if (sub->hash != name.hash) {
+            matched = 0;
+        } else {
+            char *t2 = sub->chars;
+            char *t1_end = t2 + (((subLen + 3) >> 2) << 2);
+            const char *t0 = (const char *)&name;
+            if (t2 == t1_end) {
+                matched = 1;
+            } else {
+                while (true) {
+                    if (*(int *)t2 != *(const int *)t0) {
+                        matched = 0;
+                        break;
+                    }
+                    t2 += 4;
+                    t0 += 4;
+                    if (t2 == t1_end) {
+                        matched = 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+    check_match:
+        if (matched) {
+            return idx;
+        }
+        idx++;
+        offset += 0x30;
+    }
+    return -1;
+}
+
+void eSimulatedController::ApplyForce(int index, const mVec3 &force, const mVec3 &pos) {
+    char *entries = (char *)bodyEntries;
+    __asm__ volatile("" : "+r"(entries));
+    eSimulatedBodyEntry *entry =
+        (eSimulatedBodyEntry *)(entries + (index * 0x30));
+    int ok = 0;
+    if (entry->body != 0) {
+        if (entry->cache != 0) {
+            ok = 1;
+        }
+    }
+    ok = ok & 0xFF;
+    if (ok != 0) {
+        void *body = entry->body;
+        v4sf_t local_pos;
+        v4sf_t local_torque;
+        __asm__ volatile(
+            "lv.q C120, 0(%2)\n"
+            "lv.q C130, 0(%3)\n"
+            "vadd.t C120, C120, C130\n"
+            "sv.q C120, 0(%2)\n"
+            "lv.q C120, 0(%4)\n"
+            "sv.q C120, %0\n"
+            "lv.q C000, 0(%5)\n"
+            "lv.q C010, 0x10(%5)\n"
+            "lv.q C020, 0x20(%5)\n"
+            "lv.q C030, 0x30(%5)\n"
+            "vtfm3.t C130, M000, C120\n"
+            "sv.q C130, 0x10($sp)\n"
+            "lv.q C120, 0x10(%2)\n"
+            "vadd.t C120, C120, C130\n"
+            "sv.q C120, 0x10(%2)\n"
+            : "=m"(local_pos), "=m"(local_torque)
+            : "r"(entry), "r"(&force), "r"(&pos), "r"(body)
             : "memory");
         if ((*(unsigned short *)((char *)body + 0x98) & 0x40) != 0) {
             ((eSimulatedState *)entry)->WakeUp();
