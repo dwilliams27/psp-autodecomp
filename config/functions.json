@@ -199130,14 +199130,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoLobbyConfigureGameHGetTextPcK"
+    "mangled_symbol": "__0fWgcDoLobbyConfigureGameHGetTextPcK",
+    "src_file": "src/gcDoLobbyConfigureGame_GetText.cpp",
+    "symbol_name": "__0fWgcDoLobbyConfigureGameHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "be5a6471",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:34:12Z"
   },
   {
     "address": "0x002e038c",
@@ -199333,14 +199341,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoLobbyFriendOpHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoLobbyFriendOpHGetTextPcK",
+    "src_file": "src/gcDoLobbyConfigureGame_GetText.cpp",
+    "symbol_name": "__0fRgcDoLobbyFriendOpHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "be5a6471",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:34:12Z"
   },
   {
     "address": "0x002e1074",
@@ -201593,7 +201609,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -210938,7 +210954,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
