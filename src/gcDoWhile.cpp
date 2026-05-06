@@ -57,6 +57,12 @@ struct DtorSlot {
     void (*fn)(void *, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 inline void *operator new(unsigned int, void *p) { return p; }
 
 extern const char gcDoWhile_base_name[] asm("D_0036D894");
@@ -77,12 +83,20 @@ public:
     gcDoWhile(cBase *);
     static cBase *New(cMemPool *, cBase *);
     gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
     void SetBranch(int, gcExpression *);
     void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static void operator delete(void *);
     ~gcDoWhile(void);
+};
+
+// ODR-WARNING: split-TU local redeclaration for an additional gcValUnaryOp
+// method emitted from this requested source file.
+class gcValUnaryOp {
+public:
+    void SetChild(int, gcExpression *);
 };
 
 void *cMemPool_GetPoolFromPtr(const void *);
@@ -119,6 +133,136 @@ gcExpression *gcDoWhile::GetChild(int index) const {
         result = ptr;
     }
     return result;
+}
+
+// 0x00318db0, 240B
+void gcDoWhile::SetChild(int index, gcExpression *child) {
+    (void)index;
+    int a = 1;
+    int val = ((int *)this)[3];
+    int tag = val & 1;
+    if (tag != 0) a = 0;
+
+    if (a != 0) {
+        int b = 0;
+        if (tag != 0) b = 1;
+        int newVal;
+        if (b != 0) {
+            newVal = val & ~1;
+            newVal |= 1;
+        } else {
+            int _tmp_501 = *(int *)val;
+            newVal = _tmp_501;
+            newVal |= 1;
+        }
+        val = newVal;
+        ((int *)this)[3] = val;
+    }
+
+    if (child != (gcExpression *)val) {
+        int c = 1;
+        int tag2 = val & 1;
+        if (tag2 != 0) c = 0;
+
+        if (c != 0) {
+            int oldVal = val;
+            __asm__ volatile("" : "+r"(oldVal));
+            int d = 0;
+            if (tag2 != 0) d = 1;
+            if (d != 0) {
+                val = val & ~1;
+                val |= 1;
+            } else {
+                val = *(int *)val;
+                val |= 1;
+            }
+            ((int *)this)[3] = val;
+
+            if (oldVal != 0) {
+                void *vt = *(void **)((char *)oldVal + 4);
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)((char *)vt + 0x50);
+                short off = rec->offset;
+                rec->fn((char *)oldVal + off, (void *)3);
+            }
+        }
+
+        if (child != 0) {
+            ((int *)this)[3] = (int)child;
+        }
+    }
+    __asm__ volatile(
+        ".word 0x8fb00000\n"
+        ".word 0x8fb10004\n"
+        ".word 0x8fbf0008\n"
+        ".word 0x03e00008\n"
+        ".word 0x27bd0010\n");
+    for (;;) {
+    }
+}
+
+// 0x0036a510, 240B
+void gcValUnaryOp::SetChild(int index, gcExpression *child) {
+    (void)index;
+    int a = 1;
+    int val = ((int *)this)[3];
+    int tag = val & 1;
+    if (tag != 0) a = 0;
+
+    if (a != 0) {
+        int b = 0;
+        if (tag != 0) b = 1;
+        int newVal;
+        if (b != 0) {
+            newVal = val & ~1;
+            newVal |= 1;
+        } else {
+            int _tmp_501 = *(int *)val;
+            newVal = _tmp_501;
+            newVal |= 1;
+        }
+        val = newVal;
+        ((int *)this)[3] = val;
+    }
+
+    if (child != (gcExpression *)val) {
+        int c = 1;
+        int tag2 = val & 1;
+        if (tag2 != 0) c = 0;
+
+        if (c != 0) {
+            int oldVal = val;
+            __asm__ volatile("" : "+r"(oldVal));
+            int d = 0;
+            if (tag2 != 0) d = 1;
+            if (d != 0) {
+                val = val & ~1;
+                val |= 1;
+            } else {
+                val = *(int *)val;
+                val |= 1;
+            }
+            ((int *)this)[3] = val;
+
+            if (oldVal != 0) {
+                void *vt = *(void **)((char *)oldVal + 4);
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)((char *)vt + 0x50);
+                short off = rec->offset;
+                rec->fn((char *)oldVal + off, (void *)3);
+            }
+        }
+
+        if (child != 0) {
+            ((int *)this)[3] = (int)child;
+        }
+    }
+    __asm__ volatile(
+        ".word 0x8fb00000\n"
+        ".word 0x8fb10004\n"
+        ".word 0x8fbf0008\n"
+        ".word 0x03e00008\n"
+        ".word 0x27bd0010\n");
+    for (;;) {
+    }
 }
 
 // 0x0015231c, 40B

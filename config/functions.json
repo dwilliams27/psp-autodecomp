@@ -53224,7 +53224,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00027358"
     ],
@@ -57238,7 +57238,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000277e8"
     ],
@@ -207080,7 +207080,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
@@ -210979,11 +210979,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fJgcDoWhileISetChildiP6MgcExpression"
+    "mangled_symbol": "__0fJgcDoWhileISetChildiP6MgcExpression",
+    "src_file": "src/gcDoWhile.cpp",
+    "symbol_name": "__0fJgcDoWhileISetChildiP6MgcExpression",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "360d10cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T21:07:57Z"
   },
   {
     "address": "0x00318ea0",
@@ -218276,7 +218284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],
@@ -232127,11 +232135,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fMgcValUnaryOpISetChildiP6MgcExpression"
+    "mangled_symbol": "__0fMgcValUnaryOpISetChildiP6MgcExpression",
+    "src_file": "src/gcDoWhile.cpp",
+    "symbol_name": "__0fMgcValUnaryOpISetChildiP6MgcExpression",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "360d10cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T21:07:57Z"
   },
   {
     "address": "0x0036a600",
