@@ -6,6 +6,7 @@
 //   gcValKeyboardState::New(cMemPool *, cBase *) static   @ 0x00347394   144B
 //   gcValKeyboardState::Write(cFile &) const              @ 0x0034753c   100B
 //   gcValKeyboardState::Read(cFile &, cMemPool *)         @ 0x003475a0   228B
+//   gcValKeyboardState::GetText(char *) const             @ 0x003477a4   180B
 //   gcValKeyboardState::VisitReferences(...)              @ 0x00347858    60B
 //   gcValKeyboardState::~gcValKeyboardState(void)         @ 0x00347894   100B
 
@@ -29,6 +30,9 @@ public:
 extern char gcValuevirtualtable[];
 extern char gcValKeyboardStatevirtualtable[];
 extern char cBaseclassdesc[];                       // @ 0x37E6A8
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 class cWriteBlock {
 public:
@@ -84,6 +88,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *,
         void (*)(cBase *, unsigned int, void *),
         void *, unsigned int);
@@ -184,6 +189,34 @@ success:
     cFileSystem::Read(*(void **)rb._data[0], (char *)this + 8, 4);
     cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0xC, 4);
     return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValKeyboardState::GetText(char *) const @ 0x003477a4
+// ─────────────────────────────────────────────────────────────────────────
+void gcValKeyboardState::GetText(char *buf) const {
+    cStrCat(buf, (const char *)0x36F4A0);
+    int value = this->mField8;
+    const char *text = (const char *)0x36DAF0;
+
+    int showSuffix;
+    if (value >= 6) {
+        showSuffix = 1;
+        if (value < 9) {
+            showSuffix = 0;
+        }
+    } else {
+        showSuffix = 1;
+    }
+
+    if (showSuffix != 0) {
+        cStrCat(buf, text);
+        if (this->mField8 != 4) {
+            cStrAppend(buf, (const char *)0x36DCB8, text);
+        }
+    } else {
+        cStrCat(buf, text);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────

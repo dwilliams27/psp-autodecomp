@@ -3,12 +3,20 @@
 // Functions in this file:
 //   0x00319534 gcDoPortalActivate::New(cMemPool *, cBase *)   192B
 //   0x0031981c gcDoPortalActivate::Write(cFile &) const       120B
+//   0x003199e8 gcDoPortalActivate::GetText(char *) const      184B
 
 class cBase;
 class cFile;
 class cFileHandle;
 class cMemPool;
 class cType;
+
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
+    operator const char *() const { return _data; }
+};
 
 class cFile {
 public:
@@ -68,6 +76,7 @@ public:
 // Dispatch slot in gcDesiredObject's secondary vtable (at this+0x10).
 typedef void (*EntityWriteFn)(cBase *, cFile *);
 typedef void (*EntityReadFn)(void *, cFile *, cMemPool *);
+typedef void (*EntityTextFn)(void *, char *);
 
 struct EntityWriteSlot {
     short          mOffset;     // +0
@@ -89,6 +98,17 @@ struct EntityTypeInfoWrite {
 struct EntityTypeInfoRead {
     char           _pad[0x30];
     EntityReadSlot mSlot;        // +0x30
+};
+
+struct EntityTextSlot {
+    short        mOffset;       // +0
+    short        _pad;          // +2
+    EntityTextFn mFn;           // +4
+};
+
+struct EntityTypeInfoText {
+    char           _pad[0x78];
+    EntityTextSlot mSlot;        // +0x78
 };
 
 class ePortal {
@@ -118,6 +138,7 @@ public:
     ~gcDoPortalActivate(void);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void GetText(char *) const;
     float Evaluate(void) const;
 
     static void operator delete(void *p);
@@ -138,6 +159,8 @@ static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoPortalActivate asm("D_0009F764");
+
+void cStrAppend(char *, const char *, ...);
 
 struct PoolBlock {
     char  _pad[0x1C];
@@ -286,6 +309,31 @@ success:
               (cFile *)rb._data[0],
               cMemPool::GetPoolFromPtr(embedded));
     return result;
+}
+
+// ── gcDoPortalActivate::GetText @ 0x003199e8 ──
+void gcDoPortalActivate::GetText(char *buf) const {
+    const char *fmt = (const char *)0x36F13C;
+    const char *state;
+    if (*(const unsigned char *)((const char *)this + 0x20) != 0) {
+        state = (const char *)0x36F150;
+    } else {
+        state = (const char *)0x36F158;
+    }
+    cStrAppend(buf, cStr(fmt, state));
+
+    char portalText[256];
+    register char *portalBuf __asm__("$18") = portalText;
+    EntityTypeInfoText *ti = *(EntityTypeInfoText **)((const char *)this + 0x10);
+    portalText[0] = '\0';
+    EntityTextSlot *slot = &ti->mSlot;
+    short off = slot->mOffset;
+    char *embedded = (char *)this + 0x0C;
+    EntityTextFn fn = slot->mFn;
+    fn(embedded + off, portalBuf);
+
+    cStrAppend(buf, portalBuf);
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
 
 // ── gcDoPortalActivate::Evaluate @ 0x003199a0 ──
