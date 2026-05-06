@@ -46,6 +46,7 @@ REASON_COMPILE_FAILED = "compile_failed"
 REASON_NO_O_FILE = "no_o_file"
 REASON_NO_SYMBOLS = "no_symbols_in_o"
 REASON_NO_NAMED_SYMBOL = "no_symbol_with_matching_name"
+REASON_SYMBOL_NAME_MISMATCH = "symbol_name_mismatch"
 REASON_BYTE_MISMATCH = "byte_mismatch"
 REASON_AMBIGUOUS = "ambiguous_multiple_symbols_match"
 REASON_SHORT_EBOOT_READ = "short_eboot_read"
@@ -68,13 +69,13 @@ _OP_CODES = {
 }
 
 
-def sym_encodes_func(sym_name: str, func: dict) -> bool:
-    """True iff sym_name mangles to the (class, method) pair in `func`.
+def sym_heuristically_encodes_func(sym_name: str, func: dict) -> bool:
+    """Best-effort class/method mangling heuristic.
 
-    First checks for an exact match against the DB's authoritative
-    `mangled_symbol` field (populated from the .sym file). Falls back
-    to heuristic class/method substring matching for the rare entries
-    without a mangled_symbol.
+    This intentionally ignores the DB's `mangled_symbol` field. It is
+    used only for legacy entries that do not have authoritative mangling
+    and for diagnostics that explain "same method, wrong signature"
+    symbol drift.
 
     Heuristic rules (SNC mangling from docs/research/snc-name-mangling.md):
       - Regular method: `<class><lenLetter><method>` with 1-3 char gap
@@ -87,13 +88,6 @@ def sym_encodes_func(sym_name: str, func: dict) -> bool:
     Unknown operators return False (we'd rather mark unverifiable than
     silently accept the wrong symbol).
     """
-    # Exact match against authoritative mangled_symbol from .sym file.
-    # Handles templates, nested classes, and other names the heuristic
-    # can't substring-match.
-    mangled = func.get("mangled_symbol")
-    if mangled and sym_name == mangled:
-        return True
-
     cls = func.get("class_name") or ""
     method = (func.get("method_name") or "").split("(", 1)[0]
     if not method:
@@ -133,6 +127,20 @@ def sym_encodes_func(sym_name: str, func: dict) -> bool:
     return method in sym_name
 
 
+def sym_encodes_func(sym_name: str, func: dict) -> bool:
+    """True iff sym_name is the DB-authoritative symbol for `func`.
+
+    If `func` has a `mangled_symbol`, that exact name is mandatory. The
+    fallback heuristic is only for older/partial DB rows without a
+    mangled symbol; accepting a heuristic match when the authoritative
+    name differs lets signature drift masquerade as a byte match.
+    """
+    mangled = func.get("mangled_symbol")
+    if mangled:
+        return sym_name == mangled
+    return sym_heuristically_encodes_func(sym_name, func)
+
+
 @dataclass
 class VerifyResult:
     """Outcome of a single byte-match check. Immutable record of everything
@@ -141,6 +149,7 @@ class VerifyResult:
     ok: bool
     reason: str
     sym_name: Optional[str] = None
+    expected_sym_name: Optional[str] = None
     o_file: Optional[str] = None
     ambiguous_syms: list[str] = field(default_factory=list)
     diff_count: int = 0
@@ -443,10 +452,12 @@ def check_byte_match(func: dict, src_file: str,
       1. Compile src_file (raise on failure), unless caller passed a fresh
          o_path already built for this src_file.
       2. Read every text symbol's bytes from the resulting .o.
-      3. Filter to symbols whose mangled form encodes func's (class, method)
-         per sym_encodes_func. This is the key gate against the old
-         first-byte-match-wins bug.
-      4. If zero named candidates: NO_MATCHING_SYMBOL.
+      3. Filter to symbols whose name is valid for func per
+         sym_encodes_func. If the DB has `mangled_symbol`, the emitted
+         symbol must equal it exactly.
+      4. If zero named candidates: SYMBOL_NAME_MISMATCH when a
+         same-class/method drift candidate exists, otherwise
+         NO_MATCHING_SYMBOL.
       5. Read EBOOT bytes at func.address with func.size.
       6. Apply relocation masking within each named candidate, compare.
       7. If any named candidate byte-matches: verified (return its sym).
@@ -474,9 +485,25 @@ def check_byte_match(func: dict, src_file: str,
         if sym_encodes_func(sn, func)
     }
     if not named_candidates:
+        mangled = func.get("mangled_symbol")
+        if mangled:
+            drift_candidates = sorted(
+                sn for sn in syms
+                if sym_heuristically_encodes_func(sn, func)
+            )
+            if drift_candidates:
+                return VerifyResult(
+                    ok=False,
+                    reason=REASON_SYMBOL_NAME_MISMATCH,
+                    sym_name=drift_candidates[0],
+                    expected_sym_name=mangled,
+                    o_file=o_path,
+                    ambiguous_syms=drift_candidates,
+                )
         return VerifyResult(
             ok=False,
             reason=REASON_NO_NAMED_SYMBOL,
+            expected_sym_name=func.get("mangled_symbol"),
             o_file=o_path,
         )
 

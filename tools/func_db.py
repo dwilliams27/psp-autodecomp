@@ -404,6 +404,17 @@ def cmd_stats(args):
     for s, count in sorted(statuses.items()):
         print(f"  {s}: {count}")
 
+    excluded_statuses = {"unmatchable_symbol_mangling"}
+    matchable = [f for f in functions if f["match_status"] not in excluded_statuses]
+    if len(matchable) != len(functions):
+        matched = sum(1 for f in matchable if f["match_status"] == "matched")
+        pct = (matched * 100 / len(matchable)) if matchable else 0.0
+        print(
+            f"  matched-rate denominator excludes "
+            f"{len(functions) - len(matchable)} symbol-mangling unmatchable "
+            f"function(s): {matched}/{len(matchable)} ({pct:.1f}%)"
+        )
+
     # Top classes
     class_counts = {}
     for f in functions:

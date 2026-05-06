@@ -86,6 +86,7 @@ Read relevant docs in `docs/research/` BEFORE matching.
 | `snc-constructor-codegen.md` | Constructors initializing float members |
 | `snc-loop-switch.md` | Loops or switch statements |
 | `snc-name-mangling.md` | Determining mangled symbol names |
+| `snc-register-allocation.md` | Read when <=8-byte register-encoding diff after permuter |
 
 ## Matching workflow
 

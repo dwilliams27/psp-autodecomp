@@ -79,6 +79,8 @@ def verify_all(verbose: bool = False, fix: bool = False,
             note = f"{result.reason}"
             if result.sym_name:
                 note += f" (sym={result.sym_name})"
+            if result.expected_sym_name:
+                note += f" expected={result.expected_sym_name}"
             if result.diff_count:
                 note += f" diff_count={result.diff_count}"
             problems.append((func, note))

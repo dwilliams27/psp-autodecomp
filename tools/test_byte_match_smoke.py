@@ -22,6 +22,48 @@ import byte_match
 import verify_matches
 
 
+def test_mangled_symbol_is_authoritative():
+    func = {
+        "address": "0x00001000",
+        "size": 4,
+        "name": "eDynamicModel::SetSkin(int)",
+        "class_name": "eDynamicModel",
+        "method_name": "SetSkin(int)",
+        "mangled_symbol": "__expected_exact_symbol",
+    }
+    same_method_wrong_signature = "__0fGeDynamicModelJSetSkini"
+
+    assert not byte_match.sym_encodes_func(same_method_wrong_signature, func)
+    assert byte_match.sym_heuristically_encodes_func(
+        same_method_wrong_signature, func)
+    assert byte_match.sym_encodes_func("__expected_exact_symbol", func)
+
+
+def test_check_byte_match_reports_symbol_name_mismatch():
+    func = {
+        "address": "0x00001000",
+        "size": 4,
+        "name": "eDynamicModel::SetSkin(int)",
+        "class_name": "eDynamicModel",
+        "method_name": "SetSkin(int)",
+        "mangled_symbol": "__expected_exact_symbol",
+    }
+    syms = {
+        "__0fGeDynamicModelJSetSkini": (b"\x01\x02\x03\x04", 0, []),
+    }
+
+    with mock.patch.object(byte_match, "_cached_symbols_with_bytes_and_relocs",
+                           lambda _path, _mtime: syms), \
+         mock.patch.object(byte_match, "_mtime", lambda _path: 1.0):
+        result = byte_match.check_byte_match(
+            func, "src/eDynamicModel.cpp", o_path="build/src/eDynamicModel.cpp.o")
+
+    assert not result.ok
+    assert result.reason == byte_match.REASON_SYMBOL_NAME_MISMATCH
+    assert result.sym_name == "__0fGeDynamicModelJSetSkini"
+    assert result.expected_sym_name == "__expected_exact_symbol"
+
+
 def test_compile_src_forces_rebuild():
     with tempfile.TemporaryDirectory(prefix="byte_match_smoke_") as tmp:
         obj = os.path.join(tmp, "build", "src", "Foo.cpp.o")
@@ -84,6 +126,8 @@ def test_verify_fix_compile_failures_requires_opt_in():
 
 
 def main():
+    test_mangled_symbol_is_authoritative()
+    test_check_byte_match_reports_symbol_name_mismatch()
     test_compile_src_forces_rebuild()
     test_verify_fix_compile_failures_requires_opt_in()
     print("byte_match smoke: PASS")

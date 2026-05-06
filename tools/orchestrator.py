@@ -37,7 +37,7 @@ from common import (DB_PATH, EBOOT_PATH, OBJDUMP,
                     canonical_method_pattern, load_db, save_db,
                     filter_functions, build_addr_map,
                     fix_vfpu_disassembly, strip_cpp_comments)
-from byte_match import CompileFailed, check_byte_match
+from byte_match import CompileFailed, check_byte_match, compile_src
 from backends import (AgentRateLimited, AgentRefused, AVAILABLE_BACKENDS,
                       get_backend, run_session)
 from ab_schedule import (Schedule, build_schedule, identity_key,
@@ -89,6 +89,7 @@ OUTCOME_RATE_LIMIT = "rate_limit"
 OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
 OUTCOME_PREP_ERROR = "prep_error"
+STATUS_UNMATCHABLE_SYMBOL_MANGLING = "unmatchable_symbol_mangling"
 
 
 def unmatchable_reason(func):
@@ -102,6 +103,8 @@ def unmatchable_reason(func):
     short_name = name.split("(", 1)[0]
     size = int(func.get("size") or 0)
 
+    if func.get("match_status") == STATUS_UNMATCHABLE_SYMBOL_MANGLING:
+        return "source cannot emit DB-authoritative mangled symbol"
     if size == 0:
         return "zero-size label/import stub"
     if name in _UNMATCHABLE_EXACT_NAMES or short_name in _UNMATCHABLE_EXACT_NAMES:
@@ -113,6 +116,10 @@ def unmatchable_reason(func):
 
 def is_known_unmatchable(func):
     return unmatchable_reason(func) is not None
+
+
+def is_stats_excluded(func):
+    return func.get("match_status") == STATUS_UNMATCHABLE_SYMBOL_MANGLING
 
 
 def apply_decisions_to_funcs(addr_index, decisions, session_id,
@@ -425,6 +432,7 @@ class WorkContext:
     functions: list
     exact_paths: set
     sibling_prefixes: tuple
+    sibling_guard_funcs: list = field(default_factory=list)
     peer_query: object = None
     worktree: Optional[str] = None
     identity: str = ""
@@ -1056,6 +1064,212 @@ def revert_paths(paths, worktree=None):
                 raise RuntimeError(
                     f"revert_paths: os.remove({full}) failed: {e}"
                 ) from e
+
+
+def collect_sibling_guard_funcs(functions, batch, exact_paths, sibling_prefixes):
+    """Snapshot matched functions that could be affected by this session.
+
+    The snapshot is captured when a session is dispatched, before the
+    agent writes anything. Post-session checks only use these copies so
+    newly matched functions from this or peer sessions are not mistaken
+    for "previously matched" siblings.
+    """
+    batch_addrs = {f["address"] for f in batch}
+    batch_classes = {f.get("class_name") for f in batch}
+    batch_classes.discard(None)
+    batch_classes.discard("")
+    exact_srcs = {
+        p.lstrip("./") for p in exact_paths
+        if p.startswith("src/") and p.endswith((".cpp", ".c"))
+    }
+
+    guarded = []
+    seen = set()
+    for func in functions:
+        if func.get("match_status") != "matched":
+            continue
+        if func.get("address") in batch_addrs:
+            continue
+        src = (func.get("src_file") or "").lstrip("./")
+        if not src:
+            continue
+        same_tu = src in exact_srcs
+        same_split_tu = src.endswith(".cpp") and src.startswith(sibling_prefixes)
+        same_class = bool(batch_classes and func.get("class_name") in batch_classes)
+        if not (same_tu or same_split_tu or same_class):
+            continue
+        addr = func["address"]
+        if addr in seen:
+            continue
+        guarded.append(dict(func))
+        seen.add(addr)
+    return guarded
+
+
+def _select_sibling_guard_funcs(guard_funcs, touched_paths):
+    touched_srcs = {
+        p.lstrip("./") for p in touched_paths
+        if p.startswith("src/") and p.endswith((".cpp", ".c"))
+    }
+    touched_headers = {
+        p.lstrip("./") for p in touched_paths
+        if p.startswith("include/") and p.endswith(".h")
+    }
+    if not touched_srcs and not touched_headers:
+        return []
+
+    selected = []
+    seen = set()
+    for func in guard_funcs:
+        src = (func.get("src_file") or "").lstrip("./")
+        if not src:
+            continue
+        if touched_headers or src in touched_srcs:
+            addr = func["address"]
+            if addr not in seen:
+                selected.append(func)
+                seen.add(addr)
+    return selected
+
+
+def verify_sibling_regressions(guard_funcs, touched_paths, worktree=None):
+    """Return regression records for previously matched siblings.
+
+    Each touched source is compiled once, then every captured sibling in
+    that source is checked through byte_match.check_byte_match. Header
+    edits conservatively re-check all captured same-class siblings.
+    """
+    to_check = _select_sibling_guard_funcs(guard_funcs, touched_paths)
+    if not to_check:
+        return []
+
+    by_src = {}
+    for func in to_check:
+        by_src.setdefault(func["src_file"].lstrip("./"), []).append(func)
+
+    regressions = []
+    for src_file, funcs in sorted(by_src.items()):
+        full_src = os.path.join(worktree, src_file) if worktree else src_file
+        if not os.path.exists(full_src):
+            for func in funcs:
+                regressions.append({
+                    "address": func["address"],
+                    "name": func["name"],
+                    "src_file": src_file,
+                    "reason": "src_file_missing",
+                    "diff_count": 0,
+                    "byte_diffs": [],
+                })
+            continue
+
+        try:
+            o_path = compile_src(src_file, cwd=worktree)
+        except CompileFailed as e:
+            for func in funcs:
+                regressions.append({
+                    "address": func["address"],
+                    "name": func["name"],
+                    "src_file": src_file,
+                    "reason": "compile_failed",
+                    "error": str(e)[:500],
+                    "diff_count": 0,
+                    "byte_diffs": [],
+                })
+            continue
+        except RuntimeError as e:
+            for func in funcs:
+                regressions.append({
+                    "address": func["address"],
+                    "name": func["name"],
+                    "src_file": src_file,
+                    "reason": "verify_tooling_error",
+                    "error": str(e)[:500],
+                    "diff_count": 0,
+                    "byte_diffs": [],
+                })
+            continue
+
+        for func in funcs:
+            try:
+                result = check_byte_match(
+                    func, src_file, cwd=worktree, o_path=o_path)
+            except CompileFailed as e:
+                regressions.append({
+                    "address": func["address"],
+                    "name": func["name"],
+                    "src_file": src_file,
+                    "reason": "compile_failed",
+                    "error": str(e)[:500],
+                    "diff_count": 0,
+                    "byte_diffs": [],
+                })
+                continue
+            except RuntimeError as e:
+                regressions.append({
+                    "address": func["address"],
+                    "name": func["name"],
+                    "src_file": src_file,
+                    "reason": "verify_tooling_error",
+                    "error": str(e)[:500],
+                    "diff_count": 0,
+                    "byte_diffs": [],
+                })
+                continue
+
+            if result.ok:
+                continue
+            regressions.append({
+                "address": func["address"],
+                "name": func["name"],
+                "src_file": src_file,
+                "reason": result.reason,
+                "sym_name": result.sym_name,
+                "expected_sym_name": result.expected_sym_name,
+                "diff_count": result.diff_count,
+                "byte_diffs": result.byte_diffs,
+            })
+    return regressions
+
+
+def _looks_like_header_method_declaration(text):
+    if "(" not in text or ")" not in text or not text.endswith(";"):
+        return False
+    if text.startswith(("#", "//")):
+        return False
+    if re.match(r"^(typedef|using|extern|static_assert|if|for|while|switch|return)\b", text):
+        return False
+    if "(*" in text:
+        return False
+    return bool(re.search(r"(?:~?[A-Za-z_]\w*|operator\S+)\s*\(", text))
+
+
+def detect_header_method_additions(paths, worktree=None):
+    """Find added method declarations in edited headers.
+
+    Header edits that add class methods perturb SNC's TU-wide allocator.
+    Agents should use the split-TU pattern instead, so these additions
+    are rejected before any otherwise-valid match can be committed.
+    """
+    violations = {}
+    for path in sorted(p.lstrip("./") for p in paths):
+        if not path.startswith("include/") or not path.endswith(".h"):
+            continue
+        ok, out, err = git_run("diff", "--unified=0", "--", path,
+                               cwd=worktree)
+        if not ok:
+            raise RuntimeError(
+                f"git diff failed while checking header edits for {path}: {err}"
+            )
+        additions = []
+        for line in out.splitlines():
+            if not line.startswith("+") or line.startswith("+++"):
+                continue
+            text = line[1:].strip()
+            if _looks_like_header_method_declaration(text):
+                additions.append(text)
+        if additions:
+            violations[path] = additions
+    return violations
 
 
 def snapshot_and_revert_dirty_sources(ctx, reason, failure_note=None):
@@ -1893,6 +2107,8 @@ def run_one_session(ctx):
             "diff_count": result.diff_count,
             "byte_diffs": result.byte_diffs,
             "reason": result.reason,
+            "sym_name": result.sym_name,
+            "expected_sym_name": result.expected_sym_name,
         })
         d.status = "failed"
         d.src_file = None
@@ -2096,6 +2312,8 @@ def run_one_session(ctx):
                     "name": func["name"],
                     "reason": result.reason,
                     "diff_count": result.diff_count,
+                    "sym_name": result.sym_name,
+                    "expected_sym_name": result.expected_sym_name,
                 })
                 d.status = "failed"
                 d.failure_src_file = d.src_file
@@ -2106,6 +2324,134 @@ def run_one_session(ctx):
                 )
                 d.verify_reason = "post_revert_byte_mismatch"
                 matched_funcs.remove(func)
+
+    if matched_funcs and ledger:
+        try:
+            header_method_additions = detect_header_method_additions(
+                ledger, worktree=ctx.worktree)
+        except RuntimeError as e:
+            log(f"  HEADER-GUARD ERROR: {e}")
+            log_event(log_path, {
+                "event": "header_guard_error",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "error": str(e),
+            })
+            try:
+                revert_paths(ledger, worktree=ctx.worktree)
+                ledger = set()
+            except RuntimeError as re:
+                log_event(log_path, {
+                    "event": "header_guard_revert_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "error": str(re),
+                })
+            outcome.system_error = str(e)
+            return outcome
+
+        if header_method_additions:
+            log("  HEADER CLASS-METHOD MODIFICATION: rejecting session; "
+                "use split-TU pattern instead")
+            for path, additions in sorted(header_method_additions.items()):
+                log(f"    {path}: {len(additions)} added method declaration(s)")
+            log_event(log_path, {
+                "event": "header_class_modification",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "paths": sorted(header_method_additions),
+                "additions": header_method_additions,
+                "message": (
+                    "Do not add methods to include/*.h for a match; create "
+                    "src/<Class>_<Method>.cpp with a local class redeclaration. "
+                    "See docs/direction/005-regalloc-drift-guards.md."
+                ),
+            })
+            for func in list(matched_funcs):
+                d = decisions[func["address"]]
+                d.status = "failed"
+                d.failure_src_file = d.src_file or addr_to_src.get(func["address"])
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = (
+                    "session added method declarations to include/*.h; "
+                    "use the split-TU pattern instead"
+                )
+                d.verify_reason = "header_class_modification"
+                matched_funcs.remove(func)
+            snapshot_failed_decisions(
+                decisions, batch, session_id, log_path, variant, backend,
+                worktree=ctx.worktree, extra_paths=ledger,
+            )
+            try:
+                revert_paths(ledger, worktree=ctx.worktree)
+                ledger = set()
+                matched_files = set()
+            except RuntimeError as e:
+                log_event(log_path, {
+                    "event": "header_class_modification_revert_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "error": str(e),
+                })
+                outcome.system_error = str(e)
+                return outcome
+
+    if matched_funcs and ledger:
+        regressions = verify_sibling_regressions(
+            ctx.sibling_guard_funcs, ledger, worktree=ctx.worktree)
+        if regressions:
+            affected = [r["address"] for r in regressions]
+            log(f"  SIBLING REGRESSION: rejecting session; "
+                f"{len(regressions)} previously matched function(s) regressed")
+            for r in regressions[:10]:
+                log(f"    {r['address']} {r['name']} — {r['reason']}")
+            if len(regressions) > 10:
+                log(f"    ... and {len(regressions) - 10} more")
+            log_event(log_path, {
+                "event": "sibling_regressed",
+                "session_id": session_id,
+                "variant": variant,
+                "backend": backend.name,
+                "affected_addresses": affected,
+                "regressions": regressions,
+            })
+            note = (
+                "session regressed previously matched sibling(s): "
+                + ", ".join(affected[:12])
+                + (" ..." if len(affected) > 12 else "")
+            )
+            for func in list(matched_funcs):
+                d = decisions[func["address"]]
+                d.status = "failed"
+                d.failure_src_file = d.src_file or addr_to_src.get(func["address"])
+                d.src_file = None
+                d.symbol_name = None
+                d.failure_note = note
+                d.verify_reason = "sibling_regressed"
+                matched_funcs.remove(func)
+            snapshot_failed_decisions(
+                decisions, batch, session_id, log_path, variant, backend,
+                worktree=ctx.worktree, extra_paths=ledger,
+            )
+            try:
+                revert_paths(ledger, worktree=ctx.worktree)
+                ledger = set()
+                matched_files = set()
+            except RuntimeError as e:
+                log_event(log_path, {
+                    "event": "sibling_regression_revert_failed",
+                    "session_id": session_id,
+                    "variant": variant,
+                    "backend": backend.name,
+                    "error": str(e),
+                })
+                outcome.system_error = str(e)
+                return outcome
 
     snapshot_failed_decisions(
         decisions, batch, session_id, log_path, variant, backend,
@@ -2626,15 +2972,24 @@ def validate_source_quality(matched_files, root_dir=None):
 
 
 def print_progress(functions, start_time, log_path=None):
-    total = sum(1 for f in functions if f["size"] > 0)
-    matched = sum(1 for f in functions if f["match_status"] == "matched")
-    failed = sum(1 for f in functions if f["match_status"] == "failed")
-    untried = sum(1 for f in functions if f["match_status"] == "untried")
+    stats_funcs = [
+        f for f in functions
+        if f["size"] > 0 and not is_stats_excluded(f)
+    ]
+    total = len(stats_funcs)
+    matched = sum(1 for f in stats_funcs if f["match_status"] == "matched")
+    failed = sum(1 for f in stats_funcs if f["match_status"] == "failed")
+    untried = sum(1 for f in stats_funcs if f["match_status"] == "untried")
+    excluded = sum(1 for f in functions if is_stats_excluded(f))
     elapsed = datetime.now() - start_time
     elapsed_str = str(elapsed).split(".")[0]
+    pct = (matched * 100 / total) if total else 0.0
 
-    log(f"Progress: {matched}/{total} matched ({matched*100/total:.1f}%), "
-        f"{failed} failed, {untried} untried | elapsed: {elapsed_str}")
+    log(f"Progress: {matched}/{total} matched ({pct:.1f}%), "
+        f"{failed} failed, {untried} untried"
+        + (f", {excluded} symbol-mangling unmatchable excluded"
+           if excluded else "")
+        + f" | elapsed: {elapsed_str}")
 
     if log_path:
         log_event(log_path, {
@@ -2643,6 +2998,7 @@ def print_progress(functions, start_time, log_path=None):
             "failed_total": failed,
             "untried_total": untried,
             "total": total,
+            "symbol_mangling_unmatchable_excluded": excluded,
             "elapsed_s": elapsed.total_seconds(),
         })
 
@@ -3146,6 +3502,8 @@ def main():
                 queue_kind = "shootout"
             exact_paths, sibling_prefixes = compute_allowed_paths(
                 batch, class_to_header=class_header_map)
+            sibling_guard_funcs = collect_sibling_guard_funcs(
+                functions, batch, exact_paths, sibling_prefixes)
             counters["total_attempted"] += len(batch)
             busy_slots.add(slot_idx)
 
@@ -3174,6 +3532,7 @@ def main():
                  "class_name": f.get("class_name") or ""}
                 for f in batch
             ],
+            "sibling_guard_count": len(sibling_guard_funcs),
         })
 
         ctx = WorkContext(
@@ -3187,6 +3546,7 @@ def main():
             functions=functions,
             exact_paths=exact_paths,
             sibling_prefixes=sibling_prefixes,
+            sibling_guard_funcs=sibling_guard_funcs,
             worktree=slot.worktree,
             identity=identity,
             queue_kind=queue_kind,

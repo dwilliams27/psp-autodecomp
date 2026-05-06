@@ -14,6 +14,7 @@
 #                                                             # Mode B: every backend attempts every function
 #   ./tools/run_overnight.sh --hours 8 --backend claude,codex --paired-reserve 50
 #                                                             # Mode C: 50 functions reserved for shootout
+#   ./tools/run_overnight.sh --allow-drift --hours 8          # loud override for known DB byte drift
 #
 # Auth: --backend claude uses the autodecomp user's Keychain (unlocked below).
 #       --backend codex uses the autodecomp user's ~/.codex/auth.json
@@ -25,18 +26,53 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SANDBOX_USER="autodecomp"
 
-# Check if --dry-run flag is present (skip sandbox for testing)
+# Check wrapper-only flags before passing the rest to the orchestrator.
 DRY_RUN=false
+ALLOW_DRIFT=false
+ORCH_ARGS=()
 for arg in "$@"; do
-    if [[ "$arg" == "--dry-run" ]]; then
-        DRY_RUN=true
-    fi
+    case "$arg" in
+        --dry-run)
+            DRY_RUN=true
+            ORCH_ARGS+=("$arg")
+            ;;
+        --allow-drift)
+            ALLOW_DRIFT=true
+            ;;
+        *)
+            ORCH_ARGS+=("$arg")
+            ;;
+    esac
 done
+
+# Pre-flight DB drift gate. Keep this outside the sandbox setup so a
+# broken matched database fails before PF/keychain work begins.
+cd "$REPO_DIR"
+mkdir -p "$REPO_DIR/build/src"
+chmod a+rwx "$REPO_DIR/build/src" 2>/dev/null || true
+if [[ "$ALLOW_DRIFT" == "true" ]]; then
+    echo "WARNING: --allow-drift set; skipping verify_matches pre-flight."
+    echo "This run may inherit already-broken matched DB entries."
+    echo ""
+else
+    echo "Pre-flight: verifying all matched DB entries..."
+    set +e
+    python3 tools/verify_matches.py
+    VERIFY_RC=$?
+    set -e
+    if [[ "$VERIFY_RC" -ne 0 ]]; then
+        echo ""
+        echo "Pre-flight verify_matches failed. Refusing to start overnight run."
+        echo "Fix the drift or rerun with --allow-drift to override explicitly."
+        exit "$VERIFY_RC"
+    fi
+    echo "Pre-flight: OK — all matched DB entries byte-verify."
+    echo ""
+fi
 
 if [[ "$DRY_RUN" == "true" ]]; then
     echo "=== DRY RUN (no sandbox) ==="
-    cd "$REPO_DIR"
-    python3 tools/orchestrator.py "$@"
+    python3 tools/orchestrator.py "${ORCH_ARGS[@]}"
     exit $?
 fi
 
@@ -56,7 +92,7 @@ fi
 echo "=== Overnight Matching Run ==="
 echo "Repo: $REPO_DIR"
 echo "User: $SANDBOX_USER"
-echo "Args: $*"
+echo "Args: ${ORCH_ARGS[*]}"
 echo ""
 
 # Enable PF firewall — load rules and enable
@@ -104,4 +140,6 @@ echo ""
 # --preserve-env=OPENAI_API_KEY lets the codex backend use a parent-exported key
 # (no-op if unset; codex falls through to its own auth.json).
 # Embed repo path directly in the command string since -i sanitizes env.
-sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -c "umask 0002 && cd '$REPO_DIR' && python3 tools/orchestrator.py $*"
+sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" \
+    bash -c 'umask 0002 && cd "$1" && shift && python3 tools/orchestrator.py "$@"' \
+    bash "$REPO_DIR" "${ORCH_ARGS[@]}"

@@ -191,6 +191,47 @@ def _make_fake_run_session(observed_classes, lock,
 _PENDING_BATCHES = {}
 
 
+def _run_guard_helper_unit_tests(orchestrator):
+    batch = [_make_func(0x5000, "eFoo", 9)]
+    matched_same_tu = _make_func(0x5100, "eFoo", 1)
+    matched_same_tu["match_status"] = "matched"
+    matched_same_tu["src_file"] = "src/eFoo.cpp"
+    matched_split = _make_func(0x5200, "eFoo", 2)
+    matched_split["match_status"] = "matched"
+    matched_split["src_file"] = "src/eFoo_Helper.cpp"
+    matched_other = _make_func(0x5300, "eBar", 3)
+    matched_other["match_status"] = "matched"
+    matched_other["src_file"] = "src/eBar.cpp"
+
+    guards = orchestrator.collect_sibling_guard_funcs(
+        [batch[0], matched_same_tu, matched_split, matched_other],
+        batch,
+        {"src/eFoo.cpp", "include/eFoo.h"},
+        ("src/eFoo_",),
+    )
+    assert {g["address"] for g in guards} == {
+        matched_same_tu["address"], matched_split["address"]
+    }
+
+    selected_src = orchestrator._select_sibling_guard_funcs(
+        guards, {"src/eFoo.cpp"})
+    assert [g["address"] for g in selected_src] == [matched_same_tu["address"]]
+
+    selected_header = orchestrator._select_sibling_guard_funcs(
+        guards, {"include/eFoo.h"})
+    assert {g["address"] for g in selected_header} == {
+        matched_same_tu["address"], matched_split["address"]
+    }
+
+    assert orchestrator._looks_like_header_method_declaration(
+        "void SetGeomFlagsOnOff(unsigned int, unsigned int);")
+    assert not orchestrator._looks_like_header_method_declaration(
+        "int (*callback)(int);")
+    assert not orchestrator._looks_like_header_method_declaration(
+        "int mFlags;")
+    print("guard helper unit tests: PASS")
+
+
 def _record_pending_batch_via_session_start(orig_log_event):
     """Hook into log_event to capture the (session_id, batch, allowed_paths)
     triple from session_start events so the fake run_session can replay them.
@@ -217,6 +258,7 @@ def main():
         with _cwd(tmp):
             import orchestrator
             from backends import base as backends_base
+            _run_guard_helper_unit_tests(orchestrator)
 
             # Replace heavy/external dependencies with fakes.
             orchestrator.ensure_expected_o = lambda func: None
