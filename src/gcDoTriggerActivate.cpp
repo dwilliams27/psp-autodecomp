@@ -59,6 +59,19 @@ struct EntityTypeInfoWrite {
     EntityWriteSlot mSlot;       // +0x28
 };
 
+typedef void (*EntityGetTextFn)(void *, char *);
+
+struct EntityGetTextSlot {
+    short           mOffset;     // +0
+    short           _pad;        // +2
+    EntityGetTextFn mFn;         // +4
+};
+
+struct EntityTypeInfoText {
+    char              _pad[0x78];
+    EntityGetTextSlot mSlot;     // +0x78
+};
+
 struct DtorSlot {
     short offset;
     short _pad;
@@ -75,6 +88,7 @@ public:
     // 0x20: bool
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     ~gcDoTriggerActivate(void);
     static void operator delete(void *);
@@ -97,6 +111,8 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoTriggerActivate;
+
+void cStrAppend(char *, const char *, ...);
 
 struct PoolBlock {
     char  _pad[0x1C];
@@ -172,6 +188,23 @@ void gcDoTriggerActivate::Write(cFile &file) const {
 
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.End();
+}
+
+// ── gcDoTriggerActivate::GetText @ 0x00308b38 ──
+void gcDoTriggerActivate::GetText(char *buf) const {
+    EntityTypeInfoText *ti = *(EntityTypeInfoText **)((char *)this + 0x10);
+    EntityGetTextSlot *slot = &ti->mSlot;
+    void *embedded = (char *)this + 0x0C;
+    slot->mFn((char *)embedded + slot->mOffset, buf);
+
+    const char *fmt = (const char *)0x36EFCC;
+    const char *state;
+    if (*(const unsigned char *)((char *)this + 0x20) != 0) {
+        state = (const char *)0x36EFE4;
+    } else {
+        state = (const char *)0x36EFF0;
+    }
+    cStrAppend(buf, fmt, state);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
