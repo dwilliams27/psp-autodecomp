@@ -57,8 +57,19 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
+
+class gcUIControl {
+public:
+    enum gcUISprite {
+        gcUISprite_0 = 0
+    };
+    static const char *GetSpriteText(gcUISprite);
+};
+
+void cStrCat(char *, const char *);
 
 struct DeleteRecord {
     short offset;
@@ -96,6 +107,7 @@ public:
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcValUITexCoord();
 
@@ -202,6 +214,41 @@ void gcValUITexCoord::Write(cFile &file) const {
     wb.Write(mField1C);
     wb.Write(mField20);
     wb.End();
+}
+
+// ============================================================
+// 0x00366f7c — GetText(char *) const
+// ============================================================
+void gcValUITexCoord::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->GetText(local);
+    cStrCat(buf, local);
+
+    const char *sep = (const char *)0x36DADC;
+    cStrCat(buf, sep);
+    cStrCat(buf, gcUIControl::GetSpriteText((gcUIControl::gcUISprite)mField14));
+    cStrCat(buf, sep);
+
+    const char *text;
+    switch (mField18) {
+    case 0:
+        text = (const char *)0x36F7D4;
+        break;
+    case 1:
+        text = (const char *)0x36F7E0;
+        break;
+    case 2:
+        text = (const char *)0x36F7EC;
+        break;
+    case 3:
+        text = (const char *)0x36F7F8;
+        break;
+    default:
+        text = (const char *)0x36DAF0;
+        break;
+    }
+    cStrCat(buf, text);
 }
 
 // ============================================================

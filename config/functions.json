@@ -200668,7 +200668,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
@@ -218873,14 +218873,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00001368",
       "0x00004b38"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityIsInFluidHGetTextPcK"
+    "mangled_symbol": "__0fUgcValEntityIsInFluidHGetTextPcK",
+    "src_file": "src/gcValEntityIsInFluid.cpp",
+    "symbol_name": "__0fUgcValEntityIsInFluidHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c3320bff",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:21:06Z"
   },
   {
     "address": "0x0033455c",
@@ -219965,7 +219973,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
@@ -231729,7 +231737,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00001368",
       "0x00121f9c",
@@ -231737,7 +231745,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValUITexCoordHGetTextPcK"
+    "mangled_symbol": "__0fPgcValUITexCoordHGetTextPcK",
+    "src_file": "src/gcValUITexCoord.cpp",
+    "symbol_name": "__0fPgcValUITexCoordHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c3320bff",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:21:06Z"
   },
   {
     "address": "0x00367070",

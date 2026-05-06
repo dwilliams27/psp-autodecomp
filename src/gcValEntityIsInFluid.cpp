@@ -33,6 +33,13 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
+    operator const char *() const { return _data; }
+};
+
 struct cNameData { int _w[6]; };
 
 struct cTypeMethod {
@@ -74,10 +81,12 @@ public:
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    void GetText(char *) const;
 };
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrCat(char *, const char *);
 
 extern char cBaseclassdesc[];
 extern char D_00000338[];
@@ -186,4 +195,14 @@ void gcValEntityIsInFluid::Write(cFile &file) const {
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     ((const cName *)((const char *)this + 0x34))->Write(wb);
     wb.End();
+}
+
+// 0x003344f0 (108B) — GetText
+void gcValEntityIsInFluid::GetText(char *buf) const {
+    const cTypeMethod *e =
+        (const cTypeMethod *)((char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 120);
+    char *base = (char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)e->fn)(base + e->offset, buf);
+    cStrCat(buf, cStr((const char *)0x36F320, (const char *)this + 0x34));
 }
