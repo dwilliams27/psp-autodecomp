@@ -117976,7 +117976,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
@@ -191154,13 +191154,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ffgcDoEntityApplyRigidBodyImpulseHGetTextPcK"
+    "mangled_symbol": "__0ffgcDoEntityApplyRigidBodyImpulseHGetTextPcK",
+    "src_file": "src/gcValMouseState.cpp",
+    "symbol_name": "__0ffgcDoEntityApplyRigidBodyImpulseHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "85472c8b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:18:05Z"
   },
   {
     "address": "0x002a2ba4",
@@ -209074,7 +209082,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x0012e67c"
@@ -226337,14 +226345,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValMouseStateHGetTextPcK"
+    "mangled_symbol": "__0fPgcValMouseStateHGetTextPcK",
+    "src_file": "src/gcValMouseState.cpp",
+    "symbol_name": "__0fPgcValMouseStateHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "85472c8b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:18:05Z"
   },
   {
     "address": "0x00350ae8",

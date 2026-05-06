@@ -1,9 +1,28 @@
-#include "gcValMouseState.h"
 #include "cBase.h"
 
 class cFile;
 class cMemPool;
 struct cFileHandle;
+
+class gcValMouseState {
+public:
+    ~gcValMouseState(void);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    void GetText(char *) const;
+    void VisitReferences(unsigned int, cBase *,
+        void (*)(cBase *, unsigned int, void *),
+        void *, unsigned int);
+    static void operator delete(void *p);
+
+    int pad0;
+    int pad4;
+    int pad8;
+    int padC;
+};
 
 class cWriteBlock {
 public:
@@ -34,6 +53,8 @@ public:
 };
 
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char gcValMouseStatevirtualtable[];
 extern char gcValMouseStateDerivedvtable[];
@@ -43,6 +64,17 @@ class gcValNavMeshDirection {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+};
+
+class gcDoEntityApplyRigidBodyImpulse {
+public:
+    void GetText(char *) const;
+};
+
+struct gcDoEntityApplyRigidBodyImpulse_TextRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
 };
 
 gcValMouseState *dcast(const cBase *);
@@ -187,6 +219,83 @@ success:
     cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 8, 4);
     cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 12, 4);
     return result;
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcValMouseState::GetText(char *) const  @ 0x00350a24, 196B
+// -----------------------------------------------------------------------------
+void gcValMouseState::GetText(char *buf) const {
+    cStrCat(buf, (const char *)0x36F5A0);
+    const char *text = (const char *)0x36DAF0;
+
+    register int showSuffix __asm__("$4");
+    switch (this->pad8) {
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+        showSuffix = 0;
+        break;
+    default:
+        showSuffix = 1;
+        break;
+    }
+
+    if (showSuffix != 0) {
+        cStrCat(buf, text);
+        if (this->pad8 != 4) {
+            cStrAppend(buf, (const char *)0x36DCB8, text);
+        }
+    } else {
+        cStrCat(buf, text);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Function: gcDoEntityApplyRigidBodyImpulse::GetText(char *) const
+// @ 0x002a2ad4, 208B
+// -----------------------------------------------------------------------------
+void gcDoEntityApplyRigidBodyImpulse::GetText(char *buf) const {
+    gcDoEntityApplyRigidBodyImpulse_TextRec *rec =
+        (gcDoEntityApplyRigidBodyImpulse_TextRec *)
+        (*(char **)((const char *)this + 0x30) + 0x78);
+    char *desired = (char *)this + 0x2C;
+    rec->fn(desired + rec->offset, buf);
+
+    int flag = *(int *)((const char *)this + 0x0C);
+    const char *fmt = (const char *)0x36E4B4;
+    int mode = *(int *)((const char *)this + 0x10);
+    const char *kind;
+    if (flag == 0) {
+        kind = (const char *)0x36E4C8;
+    } else {
+        kind = (const char *)0x36E428;
+    }
+
+    const char *space;
+    if (mode == 0) {
+        space = (const char *)0x36E4D0;
+    } else if (mode == 1) {
+        space = (const char *)0x36E4E0;
+    } else {
+        space = (const char *)0x36E4E8;
+    }
+
+    char *name;
+    if (mode == 0) {
+        name = (char *)0x36D944;
+    } else {
+        name = (char *)this + 0x14;
+    }
+
+    cStrAppend(buf, fmt, kind, space, name);
 }
 
 // -----------------------------------------------------------------------------
