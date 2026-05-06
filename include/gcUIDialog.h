@@ -43,7 +43,9 @@ public:
     void Reset(cMemPool *pool, bool flag);
     void Focus(void);
     void Close(void);
-    void CreateControl(gcUIWidget *);
+    int CreateControl(gcUIWidget *);
+    void ReplaceControl(gcUIWidget *);
+    void SetNumControls(int);
     void Update(cTimeValue);
     void Write(cOutStream &) const;
 };

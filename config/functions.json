@@ -19562,7 +19562,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001c2a00",
       "0x0036bbbc",
@@ -20421,7 +20421,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001ad364",
       "0x001c2c08"
@@ -80495,7 +80495,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00000ccc",
       "0x000e5328"
@@ -80504,7 +80504,14 @@
       "0x000d8aa8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIDialogNCreateControlP6KgcUIWidget"
+    "mangled_symbol": "__0fKgcUIDialogNCreateControlP6KgcUIWidget",
+    "src_file": "src/gcUIDialog.cpp",
+    "symbol_name": "__0fKgcUIDialogNCreateControlP6KgcUIWidget",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4b7556f0",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T07:39:01Z"
   },
   {
     "address": "0x000e5280",
@@ -80516,14 +80523,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000d8230",
       "0x0015d588"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKgcUIDialogOReplaceControlP6KgcUIWidget"
+    "mangled_symbol": "__0fKgcUIDialogOReplaceControlP6KgcUIWidget",
+    "failure_notes": [
+      {
+        "session": "4b7556f0",
+        "notes": "ReplaceControl body matches first 160 bytes EXACTLY (verified via direct EBOOT byte comparison). Function compiles to 160 bytes; expected DB size is 168 bytes because the original PRX has an 8-byte trap (`b .; nop` = 0xffff0010 0x00000000) appended to the function symbol. The body bytes at offsets 0..159 are byte-for-byte identical with the expected; only the trailing 8 trap bytes are missing.\n\nThe trap injection is blocked by SNC's function reordering on this 18-method file. Tried multiple approaches:\n  (a) File-scope `__asm__(\".word 0x1000ffff\")` + `.size __0fK..., 0xa8` directives placed RIGHT AFTER ReplaceControl in source. SNC reorders functions in this file (gcUIDialog) so ReplaceControl ends up at .s position 18 of 19 while my asm directives get placed at unrelated source-line positions. Compiler's auto `.size SYMBOL, $L_end - SYMBOL` then OVERRIDES my .size override since it appears LATER in the .s output.\n  (b) Inline `__asm__ volatile(\".word 0x1000ffff\")` inside the function body. The compiler places it as the convergence point of all early-skip branches, corrupting control flow.\n  (c) Anchor with dummy trailing function. The dummy gets reordered to .s line 18 (start), pulling my directives to the wrong .text position \u2014 bytes go in the wrong place.\n  (d) Placing asm directives at end-of-file (no trailing function). SNC silently DROPS them \u2014 they don't appear in .s at all.\n\nThe pattern works in src/gcDesiredCustomAnimation.cpp and src/eCameraEffect.cpp because those files are smaller (4\u20135 functions) and SNC keeps source order for them. With ~18 functions, SNC reorders aggressively.\n\nCalling pattern is exactly the indirect-virtual-destructor sequence (jalr through vt[1] with thunk offset). Same trap-truncation issue affects gcUIDialog::FreeDynamicInstance (also 8 bytes short, marked failed).\n\nNext-attempt suggestions: explore SNC compiler control variables for disabling function reordering; try `#pragma control` directives that affect output ordering; consider whether putting ReplaceControl in a separate .cpp file (waiver of CLAUDE.md class-method rule) is acceptable for trap-affected functions.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T07:39:01Z",
+        "src_file": "src/gcUIDialog.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/4b7556f0/000e5280__agent_self_reported_failure__src_gcUIDialog.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e5328",

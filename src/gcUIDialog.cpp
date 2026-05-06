@@ -115,6 +115,7 @@ void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
     }
     if (cObject::WillBeDeleted((cBase *)mEvent1, pool, flags)) {
         mEvent1 = 0;
+        __asm__ volatile("" ::: "memory");
     }
     if (cObject::WillBeDeleted((cBase *)mEvent2, pool, flags)) {
         mEvent2 = 0;
@@ -129,7 +130,7 @@ void gcUIDialog::OnMemPoolReset(const cMemPool *pool, unsigned int flags) {
 
 int gcUIDialog::PausesGame(void) const {
     int flags = mFlags;
-    int pauses = (unsigned char)((flags & 2) != 0);
+    int pauses = (char)((flags & 2) != 0);
     if (pauses == 0) {
         goto return_false;
     }
@@ -143,9 +144,9 @@ int gcUIDialog::PausesGame(void) const {
         }
     }
 
+    int *connectionStates = (int *)0x37D884;
     int active = 0;
     int i = 0;
-    int *connectionStates = (int *)0x37D884;
     do {
         if (*connectionStates >= 0) {
             active++;
@@ -199,6 +200,7 @@ void gcUIDialog::Write(cOutStream &out) const {
     float *var_s2;
     float *var_s3;
     int var_s3_2;
+    __asm__ volatile("" ::: "memory");
     int var_s4;
 
     ((cHandleRef *)((char *)this + 0x48))->Write(out);
@@ -271,6 +273,35 @@ void gcUIDialog::FreeDynamicInstance(gcUIDialog *dialog) {
     }
 }
 
+extern "C" int cIRand(void);
+
+int gcUIDialog::CreateControl(gcUIWidget *widget) {
+    int idx = -1;
+    int i = 0;
+    int count = *(int *)((char *)this + 0x90);
+    if (i < count) {
+        gcUIWidget **p = *(gcUIWidget ***)((char *)this + 0x94);
+        do {
+            if (*p == 0) {
+                idx = i;
+                break;
+            }
+            i++;
+            p++;
+        } while (i < count);
+    }
+    if (idx == -1) {
+        SetNumControls(count + 1);
+        idx = *(int *)((char *)this + 0x90) - 1;
+    }
+    (*(gcUIWidget ***)((char *)this + 0x94))[idx] = widget;
+    int handle = ((cIRand() & 0x7FFF) | 1) << 16 | idx;
+    *(int *)((char *)widget + 0x28) = handle;
+    __asm__ volatile("" ::: "memory");
+    int *p = (int *)((char *)widget + 0x28);
+    return *p;
+}
+
 int gcUIDialog::IsNextMouseOver(gcUIWidget *widget, int skip) const {
     int i;
     gcUIWidget *focus;
@@ -287,4 +318,21 @@ int gcUIDialog::IsNextMouseOver(gcUIWidget *widget, int skip) const {
         p++;
     }
     return 0;
+}
+
+void gcUIDialog::ReplaceControl(gcUIWidget *widget) {
+    int idx = *(int *)((char *)widget + 0x28) & 0xFFFF;
+    gcUIWidget **controls = *(gcUIWidget ***)((char *)this + 0x94);
+    if (controls != 0 && idx >= 0 && idx < *(int *)((char *)this + 0x90)) {
+        gcUIWidget **slot = controls + idx;
+        gcUIWidget *old = *slot;
+        if (old != 0) {
+            int *vt = (int *)(((char **)old)[1] + 0x50);
+            short thunk = *(short *)vt;
+            ((void (*)(char *, int))vt[1])((char *)old + thunk, 3);
+            (*(gcUIWidget ***)((char *)this + 0x94))[idx] = 0;
+            slot = (*(gcUIWidget ***)((char *)this + 0x94)) + idx;
+        }
+        *slot = widget;
+    }
 }
