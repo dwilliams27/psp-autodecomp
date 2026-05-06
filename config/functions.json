@@ -199567,14 +199567,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoLobbyMailOpHGetTextPcK"
+    "mangled_symbol": "__0fPgcDoLobbyMailOpHGetTextPcK",
+    "src_file": "src/gcDoLobbyMailOp.cpp",
+    "symbol_name": "__0fPgcDoLobbyMailOpHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b303f3da",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:55:53Z"
   },
   {
     "address": "0x002e1c50",
@@ -204252,7 +204260,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -206118,14 +206126,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoStatsTrackingOpHGetTextPcK"
+    "mangled_symbol": "__0fTgcDoStatsTrackingOpHGetTextPcK",
+    "src_file": "src/gcDoStatsTrackingOp.cpp",
+    "symbol_name": "__0fTgcDoStatsTrackingOpHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b303f3da",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T23:55:53Z"
   },
   {
     "address": "0x0030430c",
@@ -230005,7 +230021,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"

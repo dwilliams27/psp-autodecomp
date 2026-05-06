@@ -34,12 +34,15 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoStatsTrackingOp &operator=(const gcDoStatsTrackingOp &);
 };
 
 void gcAction_gcAction(gcDoStatsTrackingOp *, cBase *);
 void gcAction_Write(const gcDoStatsTrackingOp *, cFile &);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char gcDoStatsTrackingOpvirtualtable[];
 
@@ -63,6 +66,12 @@ struct VTableSlot {
     short offset;
     short _pad;
     const cType *(*getType)(void *);
+};
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
 };
 
 static cType *type_base asm("D_000385DC");
@@ -198,4 +207,37 @@ void gcDoStatsTrackingOp::Write(cFile &file) const {
     }
     wb.WriteBase(ptr2);
     wb.End();
+}
+
+void gcDoStatsTrackingOp::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36EF60, (const char *)0x36DAF0);
+
+    int flag = 0;
+    int op = *(int *)((const char *)this + 0x0C);
+    if (op == 7 || op == 9 || op == 8) {
+        flag = 1;
+    }
+    int useValue = flag & 0xFF;
+    if (useValue != 0) {
+        int val = *(int *)((const char *)this + 0x10);
+        int owned = 0;
+        if (val & 1) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(buf, (const char *)0x36DCEC);
 }

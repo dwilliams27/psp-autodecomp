@@ -16,6 +16,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     ~gcDoLobbyMailOp(void);
     void Write(cFile &) const;
 };
@@ -64,8 +65,16 @@ struct DtorSlot {
     void (*fn)(void *, int);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 void gcAction_gcAction(gcDoLobbyMailOp *, cBase *);
 void gcAction_Write(const gcDoLobbyMailOp *, cFile &);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 void *cMemPool_GetPoolFromPtr(const void *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyMailOpvirtualtable[];
@@ -135,6 +144,36 @@ void gcDoLobbyMailOp::Write(cFile &file) const {
     wb.Write(*(int *)((char *)this + 0x10));
     ((gcDesiredValue *)((char *)this + 0x14))->Write(wb);
     wb.End();
+}
+
+// ── gcDoLobbyMailOp::GetText(char *) const @ 0x002e1b6c ──
+void gcDoLobbyMailOp::GetText(char *buf) const {
+    const char *arg = (const char *)0x36DAF0;
+    cStrAppend(buf, (const char *)0x36EC84, arg);
+
+    int val = *(int *)((const char *)this + 0x14);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    if (*(int *)((const char *)this + 0x0C) == 3) {
+        cStrAppend(buf, (const char *)0x36DBAC, arg);
+    }
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
