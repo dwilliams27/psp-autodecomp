@@ -15888,7 +15888,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000123c",
       "0x00004bac",
@@ -16008,7 +16008,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053ac",
       "0x00005458",
@@ -19789,7 +19789,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000129c8",
       "0x00012a14",
@@ -20517,7 +20517,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00012ae8",
       "0x00012fcc"
@@ -40740,7 +40740,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00035818",
       "0x00037890",
@@ -40750,7 +40750,21 @@
       "0x00047aa4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelURemoveFromBroadphasev"
+    "mangled_symbol": "__0fNeDynamicModelURemoveFromBroadphasev",
+    "failure_notes": [
+      {
+        "session": "af005f70",
+        "notes": "RemoveFromBroadphase: 78/164 byte diff. Sized correctly (164B match). Function structure and call sequence correct: bp = (eBroadphase*)(ePhysics::Get() + 0x20); loop reads arr from this->110 each iter, computes len=(arr-4)&0x3FFFFFFF, calls bp->RemoveRigidBody(arr+byteOff) then ePhysics::Get()->InvalidateCacheEntries(this), increments i, byteOff+=192. Pragma sched=2 placed before function. Tried `for(int i=0;;i++)` form with arr+i*192 strength reduction (gave best result), `while`+explicit byteOff variable, `do-while`, comma-operator condition, goto-loop, inverting break-vs-return. Best version: for-loop with `(eRigidBodyState*)(arr + i*192)` indexing. Compiler emits exactly the same prologue (matched), but loop body has extra `move a1, a0` at loop-top \u2014 compiler keeps arr in a1 across iterations (with reload from delay slot of unconditional branch) instead of using a0 directly like the expected code does. Cascade: mine uses a1 for arr, a0 for len-scratch; expected uses a0 for arr, a1 for len-scratch. The extra move + register-swap accounts for ~all 78 byte diffs. AddToBroadphase (same loop pattern, also failed in DB) almost certainly has the same compiler-allocator behavior \u2014 appears to be a reproducible SNC sched=2 quirk for two-call loops. No source-level mutation removed the move. Permuter could not be run (multi-function file rejected by tool). Closest possible from C source without the compiler emitting extra `move`.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T06:15:04Z",
+        "src_file": "src/eDynamicModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/af005f70/000499a8__agent_self_reported_failure__src_eDynamicModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x00049a4c",
@@ -40999,7 +41013,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00064f68",
@@ -41010,7 +41024,21 @@
       "0x000a6098"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeDynamicModelSSetShapeControllerP6PeRigidBodyStateP6SePhysicsControllerUi"
+    "mangled_symbol": "__0fNeDynamicModelSSetShapeControllerP6PeRigidBodyStateP6SePhysicsControllerUi",
+    "failure_notes": [
+      {
+        "session": "af005f70",
+        "notes": "SetShapeController: 10/176 byte diff (sized correctly). Two structural issues remaining after extensive iteration. (1) Path 2 instruction scheduling: `lw a3, 276(a0)` and `li t0, -7` are SWAPPED (mine: lw,li; expected: li,lw). Tried explicit `int defaultPtr` extraction (which fixed register choice and unblocked the bnezl pattern, dropping diff from 71 to 10), reordering source statements, masked-temp variable, volatile reads \u2014 none flipped this specific scheduling decision. (2) FLT_MAX constant encoding: mine emits `lui 0x7f80; addiu -1` for 0x7f7fffff; expected emits `lui 0x7f7f; ori 0xffff`. Tradeoff: using inline asm for lui/ori (matches encoding) prevents the compiler from hoisting lui into the `beqz a0` delay slot (adds nop, costs 8 bytes + cascade); using C constant (0x7f7fffff or composed shift|or) lets compiler fill delay slot but it picks lui+addiu encoding. Tried `0x7f7f0000|0xffff`, `(0x7f7fu<<16)|0xffffu`, two-step assignment, unsigned types \u2014 compiler always folds to lui+addiu. KEY POSITIVES achieved: bnezl emission (via `if (controller==0)` form + volatile read in path 2 first lhu), correct lui/ori encoding for fmin (0xff7fffff), interleaved second lui before first sv.q (via splitting mtv/sv.q asm blocks), correct path duplication of lbu/andi (via explicit doVfpu variable computed in both branches). Permuter ran 3312 mutations in 120s with zero improvement \u2014 confirms this is a deep compiler decision not reachable via source mutation. The 10-byte diff is ~2 swapped instructions + 1 alternate-encoding instruction; both appear to be compiler-internal heuristics that source can't influence.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T06:15:04Z",
+        "src_file": "src/eDynamicModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/af005f70/0004a284__agent_self_reported_failure__src_eDynamicModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004a334",
@@ -123562,7 +123590,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a6604",
       "0x001ad364"
@@ -123571,7 +123599,21 @@
       "0x001a6b50"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionOBufferOutBlockUiiPUc"
+    "mangled_symbol": "__0fMnwConnectionOBufferOutBlockUiiPUc",
+    "failure_notes": [
+      {
+        "session": "31119d3c",
+        "notes": "Best attempt is 196B vs expected 200B (4 bytes / one instruction shorter). The body is functionally identical to expected and matches all observable patterns except for one missing `move a3, a0` at the start of the write path. My compiler tracks that `data` lives in both a0 (from the `move a0, a3` delay slot of the beqz) and a3 (original parameter) at the branch target, then freely uses a3 as a temp for mFieldCE0 \u2014 yielding `lw a3, 0xCE0(s1); addu a2, a3, a2` (header in a2). The original SNC build conservatively re-asserts `move a3, a0; lw a0, 0xCE0(s1)` (header in a0), yielding the extra instruction.\n\nAll other body bytes match exactly: `addiu t0,s1,44` filling the lw a0/a3 load-use delay, direct `sh s0,4(a0/a2)` and `sh zero,6(a0/a2)`, indirect `lw a1,0(t0)` for mSeqNumber, `addiu+sw` pointer-advance for the seq store filling its own load-use delay, the `lw a2,0xCE0(s1); lw a3,0xCE4(s1)` reload pair before memcpy, and `srl/sll` round-up tail. Achieved by combining a struct cast (nwOutBlockHeader{id,size,pad,seq}) for the first three fields with explicit `int *seqDst = (int *)((unsigned char *)hdr + 8); *seqDst = *seqp;` for the seq store \u2014 a hybrid that gets both direct sh offsets AND the pointer-advance sw.\n\nTried: pure struct cast (188B, no addiu fills); raw pointer with `p += 8` (192B, addiu+sw advance but addiu+sh on shorts); `int *seqp = &mSeqNumber` (triggers the addiu t0 fill, advanced from 188B\u2192196B); `unsigned char *src = data` alias and `unsigned char *base = (unsigned char *)mFieldCE0` (no effect \u2014 optimized away); `#pragma control sched=1` (same shape, still 196B). Permuter would not run on multi-function file (`Could not locate target function in compiled .o. Found 1488B .text but expected 200B function`).\n\nRoot cause: SNC register allocator picks header pointer destination based on which register is freer. With `data` provably alive in a0 (delay-slot move), my compiler sees a3 as free and uses it for mFieldCE0. The original build chose the opposite \u2014 saved data to a3 first via the redundant move, then used a0. Likely needs a source pattern that makes the compiler think a3 will be clobbered (inline-asm clobber on $a3, or perhaps the original used `data` in a way I haven't found that prevents the optimization). Worth retrying with inline-asm clobber pin or extracting BufferOutBlock to its own file so the permuter can run.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T06:24:53Z",
+        "src_file": "src/nwConnection.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_232432/31119d3c/001a6e48__agent_self_reported_failure__src_nwConnection.cpp"
+      }
+    ]
   },
   {
     "address": "0x001a6f10",
@@ -123830,7 +123872,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a77fc"
     ],
@@ -123839,7 +123881,14 @@
       "0x001a7498"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionQDispatchMessagesPUci6OnwSocketHandleRC6JnwAddress6SnwConnectionHandlebT"
+    "mangled_symbol": "__0fMnwConnectionQDispatchMessagesPUci6OnwSocketHandleRC6JnwAddress6SnwConnectionHandlebT",
+    "src_file": "src/nwConnection.cpp",
+    "symbol_name": "__0fMnwConnectionQDispatchMessagesPUci6OnwSocketHandleRC6JnwAddress6SnwConnectionHandlebT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "31119d3c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T06:24:53Z"
   },
   {
     "address": "0x001a77fc",

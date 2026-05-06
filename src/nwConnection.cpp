@@ -18,6 +18,9 @@ public:
 class cInStream {
 public:
     void Read(unsigned int &, int, bool);
+    unsigned char *mData;     // 0x00
+    int mField4;              // 0x04
+    int mBitPos;              // 0x08
 };
 
 class cOutStream {
@@ -86,8 +89,13 @@ public:
     float GetQuality() const;
     void UpdateSendRate(cTimeValue);
     void SetError(nwConnectionError);
+    void BufferOutBlock(unsigned int, int, unsigned char *);
     static unsigned char BuildMessage(const nwMsg &, cOutStream &, nwSocketHandle,
                                       const nwAddress &, nwConnectionHandle);
+    static void DispatchMessages(unsigned char *, int, nwSocketHandle,
+                                 const nwAddress &, nwConnectionHandle, bool);
+    static void DispatchMessage(cInStream &, nwSocketHandle, const nwAddress &,
+                                nwConnectionHandle, bool);
 
     nwSocket *mSocket;          // 0x00
     int mHandle;                // 0x04
@@ -139,6 +147,7 @@ struct nwConnectionDeleteRecord4 {
 };
 
 extern "C" void free(void *);
+extern "C" void *memcpy(void *, const void *, unsigned int);
 
 inline void nwConnection::operator delete(void *p) {
     cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -281,6 +290,47 @@ void nwConnection::UpdateSendRate(cTimeValue tv) {
     if (!(instant <= mSendRate)) alpha = 0.965f;
     mFieldCE8 = 0;
     mSendRate = mSendRate * alpha + (1.0f - alpha) * instant;
+}
+
+// DispatchMessages: iterate the byte buffer as a bit-stream and dispatch each msg.
+void nwConnection::DispatchMessages(unsigned char *data, int length, nwSocketHandle h,
+                                    const nwAddress &addr, nwConnectionHandle ch, bool flag) {
+    if (length != 0) {
+        cInStream stream;
+        stream.mData = data;
+        stream.mField4 = length;
+        stream.mBitPos = 0;
+        do {
+            DispatchMessage(stream, h, addr, ch, flag);
+        } while (((stream.mBitPos + 7) >> 3) < length);
+    }
+}
+
+struct nwOutBlockHeader {
+    unsigned int id;
+    short size;
+    short pad;
+    int seq;
+};
+
+// BufferOutBlock: append a block header + payload to the outgoing buffer.
+void nwConnection::BufferOutBlock(unsigned int blockId, int size, unsigned char *data) {
+    if ((int)mErrorCallback2 < mFieldCE4 + size + 12) {
+        SetError((nwConnectionError)9);
+        return;
+    }
+
+    int *seqp = &mSeqNumber;
+    nwOutBlockHeader *hdr = (nwOutBlockHeader *)((unsigned char *)mFieldCE0 + mFieldCE4);
+    hdr->id = blockId;
+    hdr->size = (short)size;
+    hdr->pad = 0;
+    int *seqDst = (int *)((unsigned char *)hdr + 8);
+    *seqDst = *seqp;
+
+    memcpy((unsigned char *)mFieldCE0 + mFieldCE4 + 12, data, size);
+
+    mFieldCE4 = (((unsigned int)(size + 3) >> 2) * 4) + mFieldCE4 + 12;
 }
 
 // ResendConnect: if we've waited long enough, resend the connect packet.
