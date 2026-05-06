@@ -70,6 +70,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void Reset(cMemPool *, bool);
     void Update(cTimeValue);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -100,6 +101,12 @@ struct TypeVtableEntry {
     short offset;
     short _pad;
     const cType *(*fn)(const void *);
+};
+
+struct GeomUpdateEntry {
+    short offset;
+    short _pad;
+    void (*fn)(float, float, void *, int, int);
 };
 
 extern cType *D_000385DC;
@@ -166,6 +173,24 @@ void gcUIGeom::Update(cTimeValue t) {
         void (*fn)(void *) = (void (*)(void *))entry[1];
         fn((char *)this + adj);
     }
+}
+
+// ── gcUIGeom::Reset(cMemPool *, bool) @ 0x0013b458 ──
+void gcUIGeom::Reset(cMemPool *, bool) {
+    void *geom = *(void **)((char *)this + 0x60);
+    if (geom != 0) {
+        float geomValue = *(float *)((char *)geom + 0x50);
+        float factor = 1.4142135f;
+        float oldValue = *(volatile float *)((char *)this + 0x74);
+        float newValue = geomValue * factor * 0.5f;
+        if (newValue != oldValue) {
+            char *vt = *(char **)((char *)this + 4);
+            *(float *)((char *)this + 0x74) = newValue;
+            GeomUpdateEntry *entry = (GeomUpdateEntry *)(vt + 0x70);
+            entry->fn(newValue, oldValue, (char *)this + entry->offset, 4, 0);
+        }
+    }
+    *(unsigned char *)((char *)this + 0x8D) = 1;
 }
 
 const cType *gcUIGeom::GetType(void) const {

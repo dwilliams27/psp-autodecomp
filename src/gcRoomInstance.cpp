@@ -56,6 +56,7 @@ public:
     ~gcRoomInstance();
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void Reset(cMemPool *, bool);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *);
@@ -187,6 +188,45 @@ void gcRoomInstance::AssignCopy(const cBase *base) {
     ((gcEvent *)((char *)this + 0x4C))->operator=(*(const gcEvent *)((const char *)other + 0x4C));
     ((gcEvent *)((char *)this + 0x68))->operator=(*(const gcEvent *)((const char *)other + 0x68));
     *(int *)((char *)this + 0x84) = *(const int *)((const char *)other + 0x84);
+}
+
+void gcRoomInstance::Reset(cMemPool *, bool) {
+    int value = *(int *)((char *)this + 0x44);
+    int valid;
+    if (value == 0) {
+        valid = 0;
+    } else {
+        HandleEntry *entry = D_00038890[value & 0xFFFF];
+        HandleEntry *found = 0;
+        if (entry != 0) {
+            if (entry->handle == value) {
+                found = entry;
+            }
+        }
+        valid = found != 0;
+    }
+
+    if ((valid & 0xFF) != 0) {
+        HandleEntry *entry = 0;
+        if (value != 0) {
+            entry = D_00038890[value & 0xFFFF];
+        }
+        int *nextRoom = (int *)((char *)this + 0x48);
+        int next = *nextRoom;
+        __asm__ volatile(
+            "addiu $a3, %1, 0x00e8\n"
+            "sw %0, 0($a3)"
+            :
+            : "r"(next), "r"(entry)
+            : "a3", "memory");
+
+        value = *(volatile int *)((char *)this + 0x44);
+        entry = 0;
+        if (value != 0) {
+            entry = D_00038890[value & 0xFFFF];
+        }
+        entry->roomInstance = (int)this;
+    }
 }
 
 void gcRoomInstance::Write(cFile &file) const {

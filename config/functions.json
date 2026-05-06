@@ -11304,7 +11304,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000d4ba4"
@@ -11484,7 +11484,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00102bdc",
@@ -24930,11 +24930,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fLeConfigBaseFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fLeConfigBaseFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "e6df5ee1",
+        "notes": "Implemented eConfigBase::Reset in src/eConfigBase.cpp rather than gcViewport.cpp because this is a class method and the repo rule requires canonical class placement. The closest saved source is a switch over mode with explicit global stores, sched=1, and a volatile stack sink to preserve the original dead sw to 0(sp). This compiles cleanly and all existing eConfigBase siblings still match, but Reset is 284 bytes versus the target 300 bytes.\n\nManual attempts included an m2c-style switch, explicit if/goto branch ladders for the negative/default paths, duplicated default blocks, direct absolute int stores, char-pointer byte-offset stores, and a two-int struct copy idiom for the resolution globals. The closest version is still short because SNC merges the negative and >=4 default cases that the original keeps as a duplicated 30 Hz block, and it hoists destination address setup plus performs mflo earlier than the target. A 300-second permuter run could not start usefully because the current compiled symbol size differs from the expected 300B function, so tools/permuter.py failed to locate the target function in the object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:38:31Z",
+        "src_file": "src/eConfigBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/e6df5ee1/0001c990__agent_self_reported_failure__src_eConfigBase.cpp"
+      }
+    ]
   },
   {
     "address": "0x0001cabc",
@@ -57306,13 +57320,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00094c38"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "0624aacd",
+        "notes": "Implemented the canonical negate-normal delegate in C++: call eCollision::CapsuleConvexHull(*shape, *this, ocs2, ocs1, info), then loop over contact normals at info+0x20 with stride 0x40 using only the required VFPU lv.q/vneg.t/sv.q inline asm. The closest attempt is 21/140 bytes different. The remaining differences are register-allocation and scheduling only: my build emits move a2,a0 before move s0,t2, assigns a3=t0 before a2=t1, and uses a0 as the loop counter with a1 as the contact pointer; the target uses s0 first, assigns a2=t1 before a3=t0, and uses a1 as the counter with a0 as the pointer. Control flow, call target, contact-count reloads, and return paths are otherwise the same shape.\n\nTried the direct-if source shape from the matched eSphereShape 140B delegates, scoping the counter inside the hit branch, declaring the pointer before the counter, and fixed-register variables/raw $a0 VFPU asm. These either worsened to 47/83/87-byte diffs or produced a different loop CFG. A 300s permuter run generated 9,312 candidates, compiled 4,432, and found zero improvement over the 21-byte baseline. This appears to be the documented eConvexHullShape 140B Collide context/register-allocation drift rather than missing C logic.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:31:03Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/0624aacd/000714b0__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007153c",
@@ -57324,13 +57352,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00028390"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fQeConvexHullShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "0624aacd",
+        "notes": "Implemented the matching C++ structure for eCollision::ConvexHullConvexHull(*shape, *this, ocs2, ocs1, info), followed by the same contact-normal negation loop. The closest build is also 21/140 bytes different with the same shared register-allocation pattern as the capsule overload: helper-call argument moves are ordered differently and the loop counter/pointer are allocated to a0/a1 instead of target a1/a0. The mangled relocation for ConvexHullConvexHull is emitted correctly from a local eCollision declaration because include/eCollision.h lacks this static method.\n\nApplied the same manual restructurings as the capsule overload and ran the same 300s permuter search over the shared 140B pattern; none improved the 21-byte baseline. Since all three eConvexHullShape negate-normal delegates in this TU show the same byte diff, the likely root cause is the known SNC context-sensitive register allocator state for 140B Collide wrappers, not a per-helper semantic issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:31:03Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/0624aacd/0007153c__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000715c8",
@@ -60777,7 +60819,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -75548,7 +75590,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -88733,14 +88775,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x001174f0",
       "0x0012194c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKgcViewportDGetP6IgcEntityT"
+    "mangled_symbol": "__0fKgcViewportDGetP6IgcEntityT",
+    "failure_notes": [
+      {
+        "session": "e6df5ee1",
+        "notes": "Implemented gcViewport::Get as a canonical static C++ method in src/gcViewport.cpp, modeling the five-entry viewport loop, active byte at +0x1380, current camera slot stride of 0x240, entity handle lookup through the table at 0x38890, and the candidate id check at +0x30. Manual restructurings tried include direct m2c-style gotos, explicit active/load temporaries, separate table/camera/viewport variables, a struct-based unsigned active load to force lbu, and declaration-order changes to chase the original a1/a2/a3/t0 allocation. The best manual version got the function to the correct 208-byte size but still had large register-allocation drift and branch-shape differences.\n\nRan the permuter for 300 seconds with --save-best. It compiled 4225 candidates and improved the function from 119 to 112 differing bytes, then saved that best source. The remaining diff is dominated by register allocation and branch-likely shape: the original keeps the loop counter in t0, the active/slot/found value in a2, the table base in a1, and camera in a3; the compiled source still assigns the loop counter/table/inner temporaries differently and emits ordinary beqz rather than the original beqzl inactive-viewport path. This looks like source-leverage is low unless a more exact register-allocation seed or surrounding TU context is reproduced.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:38:31Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/e6df5ee1/000fe230__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fe300",
@@ -109018,11 +109074,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcUIGeomFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fIgcUIGeomFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "9396db86",
+        "notes": "Closest source is a C++ implementation of the Reset dirty-update path: load geom at +0x60, compute geom+0x50 * 1.4142135f * 0.5f, compare against this+0x74, store the new value, call the vtable entry at +0x70, then set this+0x8D. Tried direct expression, split geom/factor/half locals, volatile old-value load, condition inversion, sched=1, register-bound float locals, and a short inline-asm old-value load. The best stable form is 6/140 bytes off; all control flow, integer registers, store/call sequence, and size match.\n\nThe remaining diff is isolated to FPU register allocation/order in the first arithmetic block: current uses mtc1 constant into $f14 and old value in $f13, with c.eq.s $f12,$f13, while target uses constant in $f13, old value in $f14, and c.eq.s $f14,$f12. A 120s permuter run generated 2688 candidates / 1191 compiled with zero improvement (best stayed 6 bytes). This looks like an SNC FPU register-allocation/scheduling artifact with no obvious source leverage beyond the tried restructurings.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-06T21:40:16Z",
+        "src_file": "src/gcUIGeom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/9396db86/0013b458__agent_self_reported_failure__src_gcUIGeom.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013b4e4",
@@ -109582,11 +109652,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOgcRoomInstanceFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fOgcRoomInstanceFResetP6IcMemPoolb",
+    "src_file": "src/gcRoomInstance.cpp",
+    "symbol_name": "__0fOgcRoomInstanceFResetP6IcMemPoolb",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "9396db86",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-06T21:40:16Z"
   },
   {
     "address": "0x0013c798",
