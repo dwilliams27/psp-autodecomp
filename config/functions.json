@@ -88100,7 +88100,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e0550",
       "0x000f8f08"
@@ -88109,7 +88109,21 @@
       "0x000f364c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportJUpdateAll6KcTimeValueT"
+    "mangled_symbol": "__0fKgcViewportJUpdateAll6KcTimeValueT",
+    "failure_notes": [
+      {
+        "session": "78471c89",
+        "notes": "gcViewport::UpdateAll(cTimeValue) static \u2014 12 bytes diff (out of 152). Function structure is fully correct: do-while loop checking unk1380, calling gcCamera::Update(dt) per viewport, post-loop checking D_0037D840[0xED0] and calling gcUI::Update(dt) at 0x99928. All instructions and order match expected. The 12-byte diff is purely register allocation:\n\nExpected: i\u2192s3, offset\u2192s1, global_high\u2192s2, dt\u2192s0\nMine:     i\u2192s3, offset\u2192s2, global_high\u2192s1, dt\u2192s0\n\nThe s1/s2 swap for offset vs global_high produces different encoded bytes in: prologue saves (sw s1/s2 swapped order), `lui` of global high reg, two `lw a0, ...(sN)` reloads, two `addu a0,a0,sN` (one with operand order also flipped: expected `addu a1,a0,s1` vs mine `addu a1,s2,a0`), and the offset increment `addiu sN,sN,5008`.\n\nTried: (a) declaring offset before i in source, (b) introducing local `char *vp = D_0037D840 + offset;`, (c) `((unsigned char*)D_0037D840)[offset+0x1380]` array-index form (current best \u2014 gives clean `lbu a1, 0x1380(a1)` overwriting + recompute pattern, just wrong reg names), (d) various comparison forms.\n\nPermuter: 90s, 874 candidates, zero improvement. SNC's allocator has a deterministic preference for s2=global / s1=offset that we couldn't trigger. CloseAllDialogs and OnMemPoolResetAll in the same file allocate global_high to LOWER s-regs (s0, s2 respectively), so the rule isn't simply 'global gets s2'. Likely requires understanding SNC's interference graph coloring heuristic, which appears to be loop-shape-dependent. Current source is structurally correct and the closest possible attempt; the only remaining issue is reg allocation outside source-level control.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:42:55Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/78471c89/000fdd44__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fdddc",
@@ -88146,7 +88160,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e0520",
       "0x000f88f8",
@@ -88158,7 +88172,21 @@
       "0x0016f4bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportIResetAllvT"
+    "mangled_symbol": "__0fKgcViewportIResetAllvT",
+    "failure_notes": [
+      {
+        "session": "78471c89",
+        "notes": "gcViewport::ResetAll(void) static \u2014 11 bytes diff (out of 148). Function structure is correct: do-while loop calling gcCamera::Reset() and writing unk1381=1 for each of 5 viewports, then post-loop writes viewport[4].unk1380=0, calls gcUI::Reset() at 0x99928, calls SetFullscreen(true). Two unresolvable diffs:\n\n(1) Prologue li-instruction ordering: SNC emits `li s2,0; li s0,1` while expected has `li s0,1; li s2,0` (s0=hoisted constant 1 used in loop sb, s2=offset). Pure scheduler decision \u2014 tried multiple variable declaration orders, no change.\n\n(2) Post-loop store: expected emits `addiu a0,a0,0x4E40; li a1,0; sb a1,0x1380(a0)` (3 instr). My best emits `addiu a0,a0,0x4E40; addiu a0,a0,0x1380; sb zero,0(a0)` via `char *vp4 = D_0037D840 + 0x4E40; *(unsigned char*)(vp4 + 0x1380) = 0;`. Without `vp4` indirection the compiler folds to single `+0x61C0`. With struct array indexing `((gcViewportRow*)D_0037D840)[4].unk1380 = val` it also folds. Tried adding `unsigned char val = 0` to force `li a1,0` instead of `sb $zero` \u2014 that gets emitted but still doesn't fold the offset into sb's immediate.\n\nPermuter: 60s, 618 candidates compiled, no improvement past 11 bytes. Root cause: SNC's constant folding rules differ between source forms \u2014 the original SNC build emitted the split form here, but our pspsnc 1.2.7503.0 always either folds both to a single sb or splits into two addiu+sb (instead of expected addiu+sb-with-imm). Likely needs a specific source idiom we haven't found. Closest source: `char *vp4 = D_0037D840 + 0x4E40; *(unsigned char*)(vp4 + 0x1380) = 0;`.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:42:55Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/78471c89/000fde78__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fdf0c",
@@ -89599,7 +89627,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00056990"
     ],
@@ -89607,7 +89635,21 @@
       "0x0035a31c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsPSaveGameGetSizevK"
+    "mangled_symbol": "__0fOgcGameSettingsPSaveGameGetSizevK",
+    "failure_notes": [
+      {
+        "session": "a96922c7",
+        "notes": "gcGameSettings::SaveGameGetSize(void) const \u2014 42/148 bytes mismatch (~28%). Logic structure matches target: load global gcConfig at 0x37D7DC -> mField74 (offset 0x74), compute mProfileNames size and (when nonempty) mField68[0] size, call eMemCard::GetSaveSize(sysArg, nameSize, itemSize). Used `((int *)*(void **)0x37D7DC)[29]` to coax the lui/lw -> lw with offset 0x74 codegen pattern (matches target). Three remaining divergences: (1) Target uses register a2 for the global pointer (8ca6d7dc + 8cc60074), mine uses a1 (8ca5d7dc + 8ca60074) \u2014 different scratch register pick. (2) Target schedules `lw a0, 104(a0)` (mField68 load) into the delay slot of `beqz mProfileNames`; mine puts `li a1,0` in the delay slot and emits the lw a0 BEFORE sw ra. (3) Target uses beqzl (branch-likely) at the hasItems test with delay slot `move a0, a2` (annulled if !taken); mine emits regular beqz with extra `move t0, a3` because the slt result lands in a3 instead of t0. Tried multiple variable-declaration orderings (nameSize/itemSize/hasItems decl order, items declared early vs late, hasItems init in delay vs explicit). Permuter ran 2 minutes (1488 candidates compiled) \u2014 zero improvement, baseline 42 unchanged. The branch-likely divergence may be the documented SNC beqzl/bnel heuristic difference per docs/decisions/006-bnel-compiler-divergence.md. Pattern aligns with sched=2 but the scheduler picks different register/delay-slot allocation than original SNC.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:44:08Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/a96922c7/00103844__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x001038d8",
@@ -89931,7 +89973,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00104ef4"
     ],
@@ -89939,7 +89981,21 @@
       "0x0035a31c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsSProfileHeaderValuePC6NgcStringValueiK"
+    "mangled_symbol": "__0fOgcGameSettingsSProfileHeaderValuePC6NgcStringValueiK",
+    "failure_notes": [
+      {
+        "session": "a96922c7",
+        "notes": "gcGameSettings::ProfileHeaderValue(const gcStringValue *, int) const \u2014 42/148 bytes mismatch (~28%). Logic structure correct: bounds-check arg2 ([0,2)), call ProfileFind, return *(float*)(mProfiles + p*24 + 12 + arg2*4) on success, 0.0f otherwise. Used inline-asm barrier on header pointer to force `addiu a0, a0, 12` separation \u2014 that part matches target. Core remaining divergence is epilogue layout: target emits success path with `b shared_tail; lwc1 $f0, 0(a0)` (delay slot) and has TWO failure epilogues \u2014 arg2-OOB has its own full mtc1+lw...jr block, while ProfileFind<0 has `mtc1 zero` then falls through to a tail SHARED with the success branch. My output emits FOUR distinct return blocks (success + 3 failure paths) all with full epilogues. Tried structures: (a) outer combined `if (idx >= 0 && idx < 2)` with inner `if (p >= 0) { return ...; } return 0.0f; ... return 0.0f;` (best, 42 mismatch); (b) goto-label single-zero-return (140B too short, all merged); (c) `if (idx<0||idx>=2)` combined first-check (60 mismatch); (d) `if (p<0) return 0;` early-return form (76 mismatch, generated bgez instead of bltz); (e) result-variable single-return with else block (60 mismatch). The asymmetric shared-tail with arg2-OOB kept distinct is a specific SNC layout choice I could not trigger via source structure. Permuter not run on this one (covered by sibling permute on SaveGameGetSize). Likely needs permuter or compiler-pattern research on shared-tail-with-distinct-prologue heuristic.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T01:44:08Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/a96922c7/00105058__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x001050ec",
