@@ -4,6 +4,7 @@
 //   0x00353978 gcValObjectCompare::New(cMemPool *, cBase *) static  144B
 //   0x00353a08 gcValObjectCompare::GetType(void) const              280B
 //   0x00353b20 gcValObjectCompare::Write(cFile &) const             172B
+//   0x00353d88 gcValObjectCompare::Evaluate(void) const             296B
 
 class cBase;
 class cFile;
@@ -45,6 +46,12 @@ struct DispatchEntry {
     cType *(*fn)(void *);
 };
 
+struct EvalDispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, int);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -63,6 +70,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
 };
 
 extern char cBaseclassdesc[];
@@ -202,4 +210,80 @@ void gcValObjectCompare::Write(cFile &file) const {
     }
     wb.WriteBase(ptrB);
     wb.End();
+}
+
+float gcValObjectCompare::Evaluate(void) const {
+    const gcValObjectCompare *self = this;
+    int value = self->mObjectA;
+    __asm__ volatile("" : "+r"(self) :: "memory");
+    int left = 0;
+    int flag;
+    int tag = value & 1;
+    int ok;
+
+    flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        ok = 0;
+    } else {
+        ok = ((unsigned int)value > 0);
+        ok = (unsigned char)ok;
+        ok = ((unsigned int)ok > 0);
+    }
+    if (ok != 0) {
+        flag = 0;
+        if (tag != 0) {
+            flag = 1;
+        }
+        char *desc;
+        if (flag == 0) {
+            desc = *(char **)(value + 4);
+        } else {
+            value = 0;
+            desc = *(char **)(4 + value);
+        }
+        EvalDispatchEntry *entry = (EvalDispatchEntry *)(desc + 0x70);
+        left = entry->fn((char *)value + entry->offset, 0);
+    }
+
+    flag = 0;
+    int right = 0;
+    value = self->mObjectB;
+    tag = value & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        ok = 0;
+    } else {
+        ok = ((unsigned int)value > 0);
+        ok = (unsigned char)ok;
+        ok = ((unsigned int)ok > 0);
+    }
+    if (ok != 0) {
+        __asm__ volatile("" ::: "memory");
+        flag = 0;
+        if (tag != 0) {
+            flag = 1;
+        }
+        char *desc;
+        if (flag == 0) {
+            desc = *(char **)(value + 4);
+        } else {
+            value = 0;
+            desc = *(char **)(value + 4);
+        }
+        EvalDispatchEntry *entry = (EvalDispatchEntry *)(desc + 0x70);
+        right = entry->fn((char *)value + entry->offset, 0);
+    }
+
+    float result;
+    if (left == right) {
+        result = 1.0f;
+    } else {
+        __asm__ volatile("mtc1 $0,%0" : "=f"(result));
+    }
+    return result;
 }
