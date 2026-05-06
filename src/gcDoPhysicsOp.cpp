@@ -78,12 +78,21 @@ public:
     static void operator delete(void *);
     const cType *GetType(void) const;
     ~gcDoPhysicsOp(void);
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
 extern char gcDoPhysicsOpvirtualtable[];   // @ 0x43B8
 void *cMemPool_GetPoolFromPtr(const void *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
@@ -148,6 +157,32 @@ const cType *gcDoPhysicsOp::GetType(void) const {
             0, 0, 0x264, type_action, gcDoPhysicsOp::New, 0, 0, 0);
     }
     return type_gcDoPhysicsOp;
+}
+
+// -- gcDoPhysicsOp::GetText @ 0x002ec978 --
+void gcDoPhysicsOp::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36ED00, (const char *)0x36DAF0);
+
+    int val = *(int *)((const char *)this + 0x10);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
