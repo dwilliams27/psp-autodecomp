@@ -8,6 +8,7 @@ class eGeom;
 class cFile;
 class cMemPool;
 class cType;
+class eDynamicModel;
 
 class ePhysicsController {
 public:
@@ -31,6 +32,8 @@ public:
     void ApplyTorque(int index, const mVec3 &torque);
     void ClearExternalForces(void);
     void GetVelocity(int index, const mVec3 &pos, mVec3 *out) const;
+    void SnapConstraints(void);
+    void Activate(eDynamicModel *);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;

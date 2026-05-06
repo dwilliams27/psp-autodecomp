@@ -53871,7 +53871,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0006d4b4",
       "0x0006d4e8",
@@ -53879,7 +53879,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeTGetVolumeUnderPlaneP6NeDragAreaUtilRC6GmPlaneRC6EmOCSPfP6FmVec3K"
+    "mangled_symbol": "__0fNeCapsuleShapeTGetVolumeUnderPlaneP6NeDragAreaUtilRC6GmPlaneRC6EmOCSPfP6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "4b37bedc",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T00:51:31Z",
+        "src_file": "src/eCapsuleShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/4b37bedc/0006af04__post_revert_compile_failed__src_eCapsuleShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0006afbc",
@@ -54636,7 +54650,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000374d8",
       "0x00037890",
@@ -54646,7 +54660,14 @@
       "0x00076978"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerIActivateP6NeDynamicModel"
+    "mangled_symbol": "__0fUeSimulatedControllerIActivateP6NeDynamicModel",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerIActivateP6NeDynamicModel",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "bb70172d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:57:38Z"
   },
   {
     "address": "0x0006c118",
@@ -55119,11 +55140,18 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeSimulatedControllerPSnapConstraintsv"
+    "mangled_symbol": "__0fUeSimulatedControllerPSnapConstraintsv",
+    "src_file": "src/eSimulatedController.cpp",
+    "symbol_name": "__0fUeSimulatedControllerPSnapConstraintsv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "bb70172d",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-06T00:57:38Z"
   },
   {
     "address": "0x0006d06c",
@@ -57849,7 +57877,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -84929,7 +84957,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000efae4"
     ],
@@ -84976,7 +85004,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000f2c8c"
     ],
@@ -141239,11 +141267,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeCapsuleShapeSGetProjectedMinMaxRC6FmVec3RC6EmOCSPfTDK"
+    "mangled_symbol": "__0fNeCapsuleShapeSGetProjectedMinMaxRC6FmVec3RC6EmOCSPfTDK",
+    "failure_notes": [
+      {
+        "session": "4b37bedc",
+        "notes": "match relied on out-of-scope header edits; post-revert recompile failed",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-06T00:51:31Z",
+        "src_file": "src/eCapsuleShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260505_191203/4b37bedc/001e0d80__post_revert_compile_failed__src_eCapsuleShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x001e0e10",
@@ -151701,7 +151743,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0006d4b4",
       "0x0006d4e8",

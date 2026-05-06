@@ -285,6 +285,75 @@ void eSimulatedController::SetCollisionMask(unsigned int mask) {
     } while (true);
 }
 
+class eDynamicModel;
+class eSimulatedMotor;
+class ePhysics {
+public:
+    static ePhysics *Get(void);
+    void AddToUpdateList(eSimulatedController *);
+    void AddMotor(eSimulatedMotor *);
+};
+
+#pragma control sched=2
+typedef void (*eConstraintSnapFn)(void *);
+
+void eSimulatedController::SnapConstraints(void) {
+    int i = 0;
+    register char *arr __asm__("$4");
+    __asm__ volatile("lw %0, 0x3C(%1)" : "=r"(arr) : "r"(this));
+    int off = 0;
+    do {
+        int count = 0;
+        if (arr != 0) {
+            count = *(int *)(arr - 4);
+        }
+        if (i < count) {
+            char *p = ((char **)(arr + off))[0];
+            char *cfg = ((char **)p)[1];
+            char *base = cfg + 0x80;
+            short adj = *(short *)base;
+            eConstraintSnapFn fn = ((eConstraintSnapFn *)base)[1];
+            fn(p + adj);
+            i++;
+            off += 4;
+            __asm__ volatile("" ::: "memory");
+            arr = *(char **)((char *)this + 0x3C);
+        } else {
+            return;
+        }
+    } while (true);
+}
+
+void eSimulatedController::Activate(eDynamicModel *) {
+    ePhysics::Get()->AddToUpdateList(this);
+    int i = 0;
+    register char *arr __asm__("$4");
+    __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr) : "r"(this));
+    int off = 0;
+    do {
+        int count = 0;
+        if (arr != 0) {
+            count = *(int *)(arr - 4);
+        }
+        if (i < count) {
+            void *motor = *(void **)(arr + off);
+            if (motor != 0) {
+                ePhysics *phys = ePhysics::Get();
+                char *arr2;
+                __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr2) : "r"(this));
+                eSimulatedMotor *m = *(eSimulatedMotor **)(arr2 + off);
+                phys->AddMotor(m);
+                __asm__ volatile("lw %0, 0x44(%1)" : "=r"(arr) : "r"(this));
+            }
+            i++;
+            off += 4;
+        } else {
+            return;
+        }
+    } while (true);
+}
+
+#pragma control sched=1
 const cType *eBipedController::GetType(void) const {
     if (D_00046BB4 == 0) {
         if (D_000469D8 == 0) {
