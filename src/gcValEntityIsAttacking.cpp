@@ -54,13 +54,29 @@ struct AllocEntry {
 
 class gcValEntityIsAttacking : public gcValue {
 public:
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
+void cStrCat(char *, const char *);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+void gcValEntityIsAttacking::GetText(char *buf) const {
+    const cTypeMethod *entityText =
+        (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 0x78);
+    const char *entityBase = (const char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)entityText->fn)((void *)(entityBase + entityText->offset), buf);
+
+    if (*(const int *)((const char *)this + 0x4C) & 2) {
+        cStrCat(buf, (const char *)0x36F2EC);
+    } else {
+        cStrCat(buf, (const char *)0x36F30C);
+    }
+}
 
 void gcValEntityIsAttacking::Write(cFile &file) const {
     cWriteBlock wb(file, 1);

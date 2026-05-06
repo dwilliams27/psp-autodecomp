@@ -1,4 +1,5 @@
 #include "eShape.h"
+#include "eCollision.h"
 
 class mVec3;
 class cBase;
@@ -33,6 +34,7 @@ class eConvexHullShape : public eShape {
 public:
     eConvexHullShape(cBase *);
 
+    int Collide(const eMultiSphereShape *, int, int, const mOCS &, const mOCS &, eCollisionContactInfo *) const;
     void GetInertialTensor(float, mVec3 *) const;
     void GetInertialTensorAndVolume(float, mVec3 *, float *) const;
     float GetVolume(void) const;
@@ -64,6 +66,29 @@ eConvexHullShape::eConvexHullShape(cBase *parent) : eShape(parent) {
     *(int *)((char *)this + 0x9C) = 0;
     __asm__ volatile("" ::: "memory");
     *(float *)((char *)this + 0xA0) = 0.0f;
+}
+
+// eConvexHullShape::Collide(const eMultiSphereShape *, ...) const - 0x00071424
+int eConvexHullShape::Collide(const eMultiSphereShape *shape, int, int, const mOCS &ocs1, const mOCS &ocs2, eCollisionContactInfo *info) const {
+    int hit = eCollision::MultiSphereConvexHull(*shape, *this, ocs2, ocs1, info);
+    int i = 0;
+    if (hit != 0) {
+        if (i < *(int *)((char *)info + 0x14)) {
+            char *p = (char *)info + 0x20;
+            do {
+                __asm__ volatile(
+                    "lv.q C120, 0(%0)\n"
+                    "vneg.t C120, C120\n"
+                    "sv.q C120, 0(%0)\n"
+                    :: "r"(p) : "memory"
+                );
+                i++;
+                p += 0x40;
+            } while (i < *(int *)((char *)info + 0x14));
+        }
+        return 1;
+    }
+    return 0;
 }
 
 // eConvexHullShape::GetVolume(void) const @ 0x00071688
