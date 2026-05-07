@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -22,6 +23,19 @@ from common import EBOOT_PATH, OBJDUMP, TEXT_FILE_OFFSET, load_db, mask_relocati
 
 DEFAULT_ADDRS = ["0x0005dccc", "0x0000ab98"]
 DEFAULT_OUT = Path("build/research/read_prologue")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WIBO = REPO_ROOT / "extern/wibo"
+SNC = REPO_ROOT / "extern/snc/pspsnc.exe"
+DIRECT_CFLAGS = [
+    "-c",
+    "-O2",
+    "-G0",
+    "-Xsched=2",
+    "-Xvfpumatrix=1",
+    "-Xvfpuscalar=8",
+    f"-I{REPO_ROOT / 'extern/include'}",
+    f"-I{REPO_ROOT / 'include'}",
+]
 
 
 def _norm_addr(addr: str) -> str:
@@ -102,6 +116,41 @@ def _compile_source(src_file: str) -> str:
         raise SystemExit(str(exc)) from exc
 
 
+def _direct_compile_source(src_file: str, case_dir: Path,
+                           extra_flags: list[str]) -> tuple[str, list[str]]:
+    case_dir = case_dir.resolve()
+    src_path = Path(src_file)
+    if not src_path.is_absolute():
+        src_path = REPO_ROOT / src_path
+    src_path = src_path.resolve()
+
+    o_path = case_dir / "compiled.o"
+    cmd = [
+        str(WIBO),
+        str(SNC),
+        *DIRECT_CFLAGS,
+        *extra_flags,
+        "-o",
+        "compiled.o",
+        str(src_path),
+    ]
+    result = subprocess.run(
+        cmd,
+        cwd=case_dir,
+        capture_output=True,
+        text=True,
+    )
+    (case_dir / "compile_command.txt").write_text(shlex.join(cmd) + "\n")
+    (case_dir / "compile_stdout.txt").write_text(result.stdout)
+    (case_dir / "compile_stderr.txt").write_text(result.stderr)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise SystemExit(f"direct compile failed for {src_file}: {detail[:1000]}")
+    if not o_path.exists():
+        raise RuntimeError(f"direct compile succeeded but {o_path} not found")
+    return str(o_path), cmd
+
+
 def _symbol_bytes(o_path: str, func: dict) -> tuple[str, bytes, list[tuple[int, int]]]:
     symbols = symbols_with_bytes_and_relocs(o_path)
     preferred = [
@@ -160,6 +209,10 @@ def _word_diff(expected: bytes, compiled: bytes, limit_bytes: int) -> list[str]:
     return lines
 
 
+def _byte_diff_count(left: bytes, right: bytes) -> int:
+    return sum(1 for a, b in zip(left, right) if a != b)
+
+
 def _masked_for_diff(expected: bytes, compiled: bytes,
                      relocs: list[tuple[int, int]]) -> tuple[bytes, bytes, list[tuple[int, int]]]:
     cmp_len = min(len(expected), len(compiled))
@@ -174,10 +227,14 @@ def _masked_for_diff(expected: bytes, compiled: bytes,
 
 
 def analyze_address(func: dict, src_file: str | None, out_dir: Path,
-                    window_bytes: int, compile_source: bool) -> Path:
+                    window_bytes: int, compile_source: bool,
+                    direct_compile: bool, extra_flags: list[str],
+                    variant: str | None) -> Path:
     addr = func["address"]
     safe = addr[2:]
     case_dir = out_dir / safe
+    if variant:
+        case_dir = case_dir / variant
     case_dir.mkdir(parents=True, exist_ok=True)
 
     expected = _expected_bytes(func)
@@ -191,12 +248,16 @@ def analyze_address(func: dict, src_file: str | None, out_dir: Path,
     relocs: list[tuple[int, int]] = []
     sym_name = None
     o_path = None
+    compile_cmd: list[str] = []
     compiled_disasm = "(not compiled)\n"
     object_disasm = "(not compiled)\n"
     if compile_source:
         if not src_file:
             raise SystemExit(f"no source candidate found for {addr} {func['name']}")
-        o_path = _compile_source(src_file)
+        if direct_compile:
+            o_path, compile_cmd = _direct_compile_source(src_file, case_dir, extra_flags)
+        else:
+            o_path = _compile_source(src_file)
         sym_name, compiled, relocs = _symbol_bytes(o_path, func)
         masked_expected, masked_compiled, relocs = _masked_for_diff(expected, compiled, relocs)
         compiled_disasm = _disassemble_raw(
@@ -216,8 +277,22 @@ def analyze_address(func: dict, src_file: str | None, out_dir: Path,
     report.append(f"- Source: `{src_file or '(none)'}`")
     report.append(f"- Object: `{o_path or '(not compiled)'}`")
     report.append(f"- Symbol: `{sym_name or func.get('mangled_symbol') or '(unknown)'}`")
+    report.append(f"- Compile mode: `{'direct' if direct_compile else 'make'}`")
+    if compile_cmd:
+        report.append(f"- Compiler command: `{shlex.join(compile_cmd)}`")
+        report.append("- Compiler stdout: `compile_stdout.txt`")
+        report.append("- Compiler stderr: `compile_stderr.txt`")
     if relocs:
         report.append(f"- Function-relative relocations: `{relocs}`")
+    if compiled:
+        cmp_len = min(len(expected), len(compiled))
+        report.append(
+            f"- Raw byte diffs: `{_byte_diff_count(expected[:cmp_len], compiled[:cmp_len])}/{cmp_len}`"
+        )
+        report.append(
+            f"- Verification-masked byte diffs: "
+            f"`{_byte_diff_count(masked_expected, masked_compiled)}/{len(masked_expected)}`"
+        )
     report.append("")
     if compiled:
         report.append("## Raw Word Diff")
@@ -273,10 +348,20 @@ def main() -> int:
                         help="Initial byte window to disassemble/diff.")
     parser.add_argument("--no-compile", action="store_true",
                         help="Only extract/disassemble original EBOOT bytes.")
+    parser.add_argument("--direct-compile", action="store_true",
+                        help="Compile directly through SNC instead of make.")
+    parser.add_argument("--extra-flag", action="append", default=[],
+                        help="Extra SNC flag for direct compilation. Can be repeated.")
+    parser.add_argument("--variant",
+                        help="Subdirectory name under each address for artifacts.")
     args = parser.parse_args()
 
     overrides = _source_override_map(args.source)
     out_dir = Path(args.out_dir)
+    direct_compile = args.direct_compile or bool(args.extra_flag)
+    variant = args.variant
+    if direct_compile and not variant:
+        variant = "direct"
 
     reports = []
     for addr in args.addresses:
@@ -288,6 +373,9 @@ def main() -> int:
             out_dir,
             args.window_bytes,
             compile_source=not args.no_compile,
+            direct_compile=direct_compile,
+            extra_flags=args.extra_flag,
+            variant=variant,
         ))
 
     print("Read prologue harness reports:")

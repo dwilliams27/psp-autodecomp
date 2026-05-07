@@ -106,6 +106,43 @@ matched rows can produce the right shape, but `cFactory::Read` shows that
 source shaping alone does not consistently pin `li s3,1` before the
 constructor call.
 
+Additional controls:
+
+- Moving the `result` inline asm before `cReadBlock rb(...)` in
+  `src/cFactory.cpp` was tested and reverted. It made `cFactory::Read` worse:
+  `34/188` differing bytes instead of the baseline `20/188`. That source shape
+  pushes the function toward the all-saves-first matched exemplar, not the
+  original `cFactory` hybrid ordering.
+- Direct compile with `-Xsched=1` is also worse for `cFactory::Read`:
+  `26/188` verification-masked byte diffs.
+- Direct compile with `-Xsched=0` is much worse: `127/188`
+  verification-masked byte diffs.
+
+Trace collection is now reproducible through the harness direct-compile mode.
+Example:
+
+```sh
+python3 tools/research/read_prologue_harness.py 0x0000ab98 \
+  --variant trace-tr10 --extra-flag=-keeptemp --extra-flag=-tr10
+```
+
+Useful trace observations:
+
+- `-tr2` prints the source tree before pre-IRB. For `cFactory::Read`, this
+  already has the `cReadBlock` constructor before the inline asm block.
+- `-tr10` prints ACIR after the optimizer. For `cFactory::Read`, it still has
+  `OP_CALL("__0oKcReadBlockct...")` before the inline asm `OP_MACHINE` that
+  produces `result`. For matched `eDynamicFluid::Read`, the `OP_MACHINE`
+  appears before the constructor call.
+- `-tr3`, `-tr11`, and `-tt26` produced no stdout for this case.
+- `-tt10,1` and `-tt10,511` show OPT phase progress and counts, but not enough
+  instruction-order detail to explain the final prologue drift.
+- `-keeptemp` preserves final `.s` output. That confirms the bad ordering is
+  present before assembly: `cFactory::Read` emits the constructor call before
+  the inline asm `ori $19,$0,1`, while the original needs the `li s3,1` before
+  the constructor call without adopting the matched exemplar's all-saves-first
+  prologue.
+
 ## Non-Goals
 
 - Do not post-process object files or EBOOT bytes. The project should preserve
@@ -194,3 +231,12 @@ Milestone 4:
   `cFactory::Read` reproduces the exact pre-`cReadBlock` scheduling drift.
   Next step is Milestone 2 trace collection with `-keeptemp`, `-tr<N>`,
   `-tt10,<mask>`, and `-tt26,<mask>`.
+- 2026-05-07: Extended the harness with direct SNC compile mode, trace
+  variants, captured `compile_stdout.txt`/`compile_stderr.txt`, preserved
+  `-keeptemp` files, and report-level raw/masked byte-diff counts.
+- 2026-05-07: Collected initial traces for `cFactory::Read` and
+  `eDynamicFluid::Read`. `-tr10` is the most useful current trace level because
+  it shows the optimized ACIR ordering of constructor call vs inline asm.
+  `sched=1`, `sched=0`, and a source-level "asm before constructor" probe all
+  moved `cFactory::Read` farther away, so the next implementation target remains
+  pspcor lowering/scheduler/prologue behavior rather than a broad source recipe.
