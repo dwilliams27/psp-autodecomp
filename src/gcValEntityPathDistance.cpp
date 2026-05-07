@@ -52,6 +52,7 @@ public:
 
 class gcValEntityPathDistance : public gcValue {
 public:
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -79,6 +80,7 @@ extern const char gcValEntityPathDistance_base_desc[] asm("D_0036D89C");
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
 extern "C" void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
+void cStrAppend(char *, const char *, ...);
 
 cBase *gcValEntityPathDistance::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -204,6 +206,18 @@ void gcValEntityPathDistance::Write(cFile &file) const {
     wb.Write(*(const int *)((const char *)this + 0x3C));
     ((const gcDesiredValue *)((const char *)this + 0x40))->Write(wb);
     wb.End();
+}
+
+void gcValEntityPathDistance::GetText(char *buf) const {
+    const cTypeMethod *entityText =
+        (const cTypeMethod *)((const char *)((const gcDesiredObject *)((const char *)this + 8))->mType + 0x78);
+    const char *entityBase = (const char *)this + 8;
+    typedef void (*TextFn)(void *, char *);
+    ((TextFn)entityText->fn)((void *)(entityBase + entityText->offset), buf);
+
+    const char *space = (const char *)0x36DAF0;
+    cStrAppend(buf, (const char *)0x36F374, space);
+    cStrAppend(buf, (const char *)0x36F37C, space);
 }
 
 static cType *type_base;

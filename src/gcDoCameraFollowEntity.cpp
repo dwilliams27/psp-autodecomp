@@ -30,6 +30,12 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct TextRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -46,6 +52,12 @@ extern "C" void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+void cStrAppend(char *, const char *, ...);
+
+class gcDesiredCamera {
+public:
+    void GetText(char *) const;
+};
 
 extern char D_00000338[];
 extern char gcDoCameraModevirtualtable[];
@@ -58,6 +70,7 @@ class gcDoCameraFollowEntity : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -162,4 +175,17 @@ void gcDoCameraFollowEntity::Write(cFile &file) const {
 
     wb.Write(*(const int *)((const char *)this + 0x78));
     wb.End();
+}
+
+void gcDoCameraFollowEntity::GetText(char *buf) const {
+    ((const gcDesiredCamera *)((const char *)this + 0x0C))->GetText(buf);
+    cStrAppend(buf, (const char *)0x36E390, (const char *)0x36DAF0);
+
+    char *typeInfo = *(char **)((const char *)this + 0x50);
+    TextRec *rec = (TextRec *)(typeInfo + 0x78);
+    short off = rec->offset;
+    void *base = (void *)((const char *)this + 0x4C);
+    rec->fn((char *)base + off, buf);
+
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
