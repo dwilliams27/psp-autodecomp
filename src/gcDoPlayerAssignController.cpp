@@ -5,6 +5,7 @@
 // Functions:
 //   0x002F0FE4 gcDoPlayerAssignController::New(cMemPool *, cBase *) static  152B
 //   0x002F1194 gcDoPlayerAssignController::Write(cFile &) const             112B
+//   0x002F155C gcDoPlayerAssignController::GetText(char *) const            408B
 
 class cBase;
 class cFile;
@@ -84,9 +85,19 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoPlayerAssignController &operator=(const gcDoPlayerAssignController &);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
@@ -197,4 +208,76 @@ void gcDoPlayerAssignController::Write(cFile &file) const {
     mDesired1.Write(wb);
     mDesired2.Write(wb);
     wb.End();
+}
+
+void gcDoPlayerAssignController::GetText(char *buf) const {
+    register const gcDoPlayerAssignController *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+
+    cStrAppend(out, (const char *)0x36EDBC, (const char *)0x36DAF0);
+
+    int valid = 0;
+    int controller = *(int *)((const char *)self + 0x0C);
+    if ((controller == 3) || (controller == 5)) {
+        valid = 1;
+    }
+    valid &= 0xFF;
+
+    if (valid != 0) {
+        cStrAppend(out, (const char *)0x36E440);
+
+        int flag = 0;
+        int val = *(int *)((const char *)self + 0x10);
+        int tag = val & 1;
+        if (tag != 0) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        controller = *(int *)((const char *)self + 0x0C);
+    }
+
+    int valid2 = 0;
+    if ((controller == 3) || (controller == 5)) {
+        valid2 = 1;
+    }
+    valid2 &= 0xFF;
+
+    if (valid2 != 0) {
+        cStrAppend(out, (const char *)0x36DAD8);
+
+        int flag2 = 0;
+        int val2 = *(int *)((const char *)self + 0x14);
+        if (val2 & 1) {
+            flag2 = 1;
+        }
+        if (flag2 != 0) {
+            val2 = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check2 = val2;
+        if (check2 != 0) {
+            char *typeInfo2 = *(char **)(check2 + 4);
+            GetTextSlot *slot2 = (GetTextSlot *)(typeInfo2 + 0xD0);
+            slot2->fn((char *)val2 + slot2->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(out, (const char *)0x36DCEC);
 }

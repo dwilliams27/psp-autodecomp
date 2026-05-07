@@ -3,6 +3,7 @@
 // Functions:
 //   0x0035dad0  gcValStringCompare::New(cMemPool *, cBase *) static
 //   0x0035dc84  gcValStringCompare::Write(cFile &) const
+//   0x0035e0cc  gcValStringCompare::GetText(char *) const
 
 class cBase;
 class cFile;
@@ -35,10 +36,11 @@ public:
     bool mCaseSensitive;
     bool mExact;
 
-    gcValStringCompare &operator=(const gcValStringCompare &);
     static cBase *New(cMemPool *, cBase *);
-    void AssignCopy(const cBase *);
+    gcValStringCompare &operator=(const gcValStringCompare &);
     const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -58,6 +60,15 @@ struct DispatchEntry {
     short pad;
     cType *(*fn)(void *);
 };
+
+struct cTypeMethod {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCopy(char *, const char *);
 
 class cType {
 public:
@@ -207,4 +218,104 @@ void gcValStringCompare::Write(cFile &file) const {
     wb.Write(mCaseSensitive);
     wb.Write(mExact);
     wb.End();
+}
+
+void gcValStringCompare::GetText(char *buf) const {
+    register const gcValStringCompare *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char left[256];
+    char right[256];
+
+    left[0] = '\0';
+    right[0] = '\0';
+    __asm__ volatile("" ::: "memory");
+
+    int flag = 0;
+    int val = *(int *)((const char *)self + 0x08);
+    int tag = val & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int valid;
+    if (flag != 0) {
+        valid = 0;
+    } else {
+        valid = val != 0;
+        valid &= 0xFF;
+        valid = valid != 0;
+    }
+
+    int tag2;
+    int val2;
+
+    if (valid != 0) {
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+
+        int base = val;
+        char *type;
+        if (flag2 != 0) {
+            base = 0;
+            type = *(char **)(base + 4);
+        } else {
+            type = *(char **)(base + 4);
+        }
+
+        cTypeMethod *slot = (cTypeMethod *)(type + 0x40);
+        ((void (*)(void *, char *))slot->fn)((char *)base + slot->offset,
+                                             left);
+        val2 = *(int *)((const char *)self + 0x0C);
+        tag2 = val2 & 1;
+    } else {
+        cStrCopy(left, (const char *)0x36DACC);
+        val2 = *(int *)((const char *)self + 0x0C);
+        tag2 = val2 & 1;
+    }
+
+    int flag3 = 0;
+    if (tag2 != 0) {
+        flag3 = 1;
+    }
+
+    int valid2;
+    if (flag3 != 0) {
+        valid2 = 0;
+    } else {
+        valid2 = val2 != 0;
+        valid2 &= 0xFF;
+        valid2 = valid2 != 0;
+    }
+
+    if (valid2 != 0) {
+        int flag4 = 0;
+        if (tag2 != 0) {
+            flag4 = 1;
+        }
+
+        int base2 = val2;
+        char *type2;
+        if (flag4 != 0) {
+            base2 = 0;
+            type2 = *(char **)(base2 + 4);
+        } else {
+            type2 = *(char **)(base2 + 4);
+        }
+
+        cTypeMethod *slot2 = (cTypeMethod *)(type2 + 0x40);
+        ((void (*)(void *, char *))slot2->fn)((char *)base2 + slot2->offset,
+                                              right);
+    } else {
+        cStrCopy(right, (const char *)0x36DACC);
+    }
+
+    const char *fmt;
+    if (*(unsigned char *)((const char *)self + 0x11) != 0) {
+        fmt = (const char *)0x36F778;
+    } else {
+        fmt = (const char *)0x36F784;
+    }
+    cStrAppend(out, fmt, left, right);
 }
