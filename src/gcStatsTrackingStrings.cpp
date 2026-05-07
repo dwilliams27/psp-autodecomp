@@ -53,6 +53,15 @@ struct DispatchEntry {
     cType *(*fn)(void *, short, void *);
 };
 
+struct GetNameSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
 extern char cBaseclassdesc[];
 extern char gcStatsTrackingStringsvirtualtable[];
 extern cType *D_000385DC;
@@ -69,6 +78,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     gcStatsTrackingStrings &operator=(const gcStatsTrackingStrings &);
     void AssignCopy(const cBase *);
+    void GetName(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
 };
@@ -197,4 +207,49 @@ cast_done:
         }
     }
     operator=(*other);
+}
+
+void gcStatsTrackingStrings::GetName(char *buf) const {
+    cStrAppend(buf, (const char *)0x36E2EC, (const char *)0x36DAF0);
+
+    int val = *(const int *)((const char *)this + 0x10);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+
+    if (flag != 0) {
+        val = 0;
+    } else {
+        val = (val != 0);
+        val &= 0xFF;
+        val = (val != 0);
+    }
+
+    if (val != 0) {
+        cStrCat(buf, (const char *)0x36E300);
+
+        register int val2 __asm__("$4") =
+            *(const int *)((const char *)this + 0x10);
+        register int check __asm__("$5") = 0;
+        register int bit2 __asm__("$6") = val2 & 1;
+        if (bit2) {
+            check = 1;
+        }
+
+        char *typeInfo;
+        if (check != 0) {
+            check = 0;
+            typeInfo = *(char **)(check + 4);
+        } else {
+            check = val2;
+            typeInfo = *(char **)(check + 4);
+        }
+        GetNameSlot *entry = (GetNameSlot *)(typeInfo + 0x40);
+        short off = entry->offset;
+        void (*fn)(void *, char *) = entry->fn;
+        fn((char *)check + off, buf);
+
+        cStrCat(buf, (const char *)0x36E2E8);
+    }
 }
