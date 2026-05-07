@@ -37025,7 +37025,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005690",
       "0x00009030",
@@ -62218,7 +62218,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -62242,6 +62242,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T21:52:38Z"
+      },
+      {
+        "session": "f0ee6a97",
+        "notes": "Kept eProjectorTemplate::Write(cFile &) const in src/eProjectorTemplate.cpp and tried a different loop family from the prior failed session: an advancing cHandle pointer initialized from the array base, explicit register binding for the array pointer/index, and an offset initialization guarded by an empty asm constraint. This improves the prior extra-saved-register form by removing s4 and producing the same 32-byte frame and tail write sequence, but compare_func still reports a 268-byte emitted symbol versus the 276-byte target.\n\nThe blocker is still the handle-array loop. The target uses s2 first as the array base, moves it through a0, then reuses s2 as the loop index while s3 becomes the advancing handle pointer after an initial base+offset add; it also uses a normal beqz with li s3,0 in the delay slot. The current closest source uses s2 as the advancing handle pointer and s3 as the index, and SNC folds the zero-offset initialization plus emits a beqzl that pulls the following bool load into the delay slot. A 120s permuter run only improved the byte-diff metric from 169 to 167 and did not find the missing loop shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:27:23Z",
+        "src_file": "src/eProjectorTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f0ee6a97/0007cf30__agent_self_reported_failure__src_eProjectorTemplate.cpp"
       }
     ]
   },
@@ -78567,7 +78579,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -152657,7 +152669,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -156823,13 +156835,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeLightEmitModelMtlHGetTypevK"
+    "mangled_symbol": "__0fSeLightEmitModelMtlHGetTypevK",
+    "src_file": "src/eLightEmitModelMtl.cpp",
+    "symbol_name": "__0fSeLightEmitModelMtlHGetTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "9f793b01",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:42:53Z"
   },
   {
     "address": "0x00219210",
@@ -166742,7 +166762,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000dd7cc"
@@ -166929,13 +166949,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fEgcUIKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fEgcUIKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "9f793b01",
+        "notes": "Implemented gcUI::AssignCopy with the inline cType lazy initialization, virtual GetType dispatch, parent-type walk, and byte-ordered field copies/loops from the target disassembly. Manual variants tried included direct scalar copies, a mixed int/float block struct for the two 0x24-byte fader blocks, reordered loop setup for the two 32-entry pointer arrays, different target/type null-check structures for the inlined dcast, and factory-pointer scheduling changes around cType::InitializeType. The best manual form got structurally close but the type-walk branch shape and copy-loop register choices still drifted.\n\nRan the project permuter for 300s with --save-best; it improved the diff from 319 to 253 bytes but did not converge. The saved source in src/gcUI.cpp is the closest attempt. Remaining differences are not a simple <=8 byte register-allocation drift: the inlined dcast emits the wrong target-null branch shape, which shifts the following block copy, and the final float-pair loop still uses different source/destination registers and ordering. Existing unrelated gcUI.cpp compare_func issues for Write/GetMouseAvailable were present outside this target; matched siblings such as ctor/New/GetType/Read/DeleteSpawned/GetFocusedDialog/GetActiveSpawnedDialogCount/RemoveFromDestroyList still verify after reverting permuter changes outside AssignCopy.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:42:53Z",
+        "src_file": "src/gcUI.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/9f793b01/0023d64c__agent_self_reported_failure__src_gcUI.cpp"
+      }
+    ]
   },
   {
     "address": "0x0023d8d8",
@@ -174821,7 +174855,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009d70",
@@ -174840,6 +174874,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T23:39:14Z"
+      },
+      {
+        "session": "aa0a0fab",
+        "notes": "Tried a different approach from the prior session: split gcEntityCustomAttack::AssignCopy into its own minimal TU and removed the fuller inherited class definition from src/gcEntityCustomAttack.cpp so GetType/Write/New remain matched while AssignCopy no longer inherits that file's layout pressure. The split TU emits the post-return self-branch and the symbol table reports the requested 0x140 size, but the actual .text body is still 316B and compare_func reports a 316B symbol. More importantly, the body still uses a 32-byte frame with s0-s3 saved, while the target uses a 16-byte frame with only s0-s2. The first half is semantically similar, but expected keeps value in a2/tag in a0 and uses a3 for the second tag check; the compiled attempt keeps value in a0/a1 and saves an extra s3 for the clone offset.\n\nI also tried register-binding this/src/slot in the original TU, but that worsened the diff and still saved s3. The cleanest current source is the split TU because it preserves the already matched GetType/Write/New in src/gcEntityCustomAttack.cpp and isolates the failing method. A future retry should try to eliminate the s3 live range in the clone call, likely by arranging the copy offset to stay in a1 and be folded into s2 in the GetPool delay slot, matching target instructions at 0x265cf0-0x265d04.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:40:00Z",
+        "src_file": "src/gcEntityCustomAttack_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/aa0a0fab/00265c28__agent_self_reported_failure__src_gcEntityCustomAttack_AssignCopy.cpp"
       }
     ]
   },
@@ -196135,7 +196181,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -196143,7 +196189,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoEntitySetAttractorHGetTextPcK"
+    "mangled_symbol": "__0fWgcDoEntitySetAttractorHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "44c56e19",
+        "notes": "Implemented gcDoEntitySetAttractor::GetText with canonical C++ syntax in src/gcDoEntitySetAttractor.cpp. The surrounding New/GetType/Write methods continue to match. Closest retained attempt compiles to 504B vs expected 508B; control flow is semantically aligned, including the two +0x78 desired-object text calls, +0xD0 desired value dispatch, fallback cStrCat(0x36DB24), temporary cStr construction with format 0x36E4F8, separator selection, and mode==1 suffix path.\n\nThe remaining mismatch is codegen/scheduling in the middle of the mode==0 path. SNC allocates the temporary cStr format pointer and stack object differently: expected keeps the cStr object in s3 and a 0x37 high-half in s4, with an extra unconditional branch in the invalid desired-value fallback; the closest source keeps the full format pointer in s3 and object in s4, producing a 4-byte size shortfall plus large downstream register diffs. Tried several restructurings: duplicated post-dispatch reloads to get the andi in the branch delay slot, moved name pointer into s0, normalized vs non-normalized boolean validity checks, forced register variables, and a placement-new storage variant (reverted because it introduced null-check code). Root cause appears to be local/register allocation around the cStr temporary rather than the high-level control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:32:16Z",
+        "src_file": "src/gcDoEntitySetAttractor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/44c56e19/002c4950__agent_self_reported_failure__src_gcDoEntitySetAttractor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c4b4c",
@@ -204294,14 +204354,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoReturnKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKgcDoReturnKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "aa0a0fab",
+        "notes": "Added a split-TU canonical C++ gcDoReturn::AssignCopy implementation because the shared header does not declare this method and editing the header would risk regressing matched siblings. The closest attempt follows the dcast/type-init and managed-child deep-copy structure from the disassembly and emits the required post-return self-branch, but it still compiles 16 bytes short in actual .text (684B vs expected 700B) and has register drift: SNC assigns the child slot to s3 and type-cache globals to s4-s7, while the target keeps this+0x0C in s7 and uses s3 for type_gcDoReturn. A register-bound selfChildSlot attempt using $23 did not take; the compiler still chose s3 and kept type_base in s7. The child ownership/reclone path also differs in value/tag register choices (our value tends to live in a0/a1 where target uses a2/a0/a3 and later s7).\n\nThe type-initialization control flow is structurally close and the vtable dcast loop shape matches the expected branch-likely/bnel pattern, so the likely blocker is SNC register allocation seeded by the local variables in the post-cast deep-copy path. A future retry should focus on forcing s7=this+0x0C without stealing s7 from type_base, perhaps by reordering the type-cache temporaries or using a different local-class/global declaration pattern, then restructure the managed pointer release/copy code to keep the old value in a2 through the first tag tests.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:40:00Z",
+        "src_file": "src/gcDoReturn_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/aa0a0fab/002f9a34__agent_self_reported_failure__src_gcDoReturn_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x002f9cf0",
@@ -223981,7 +224055,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -223989,7 +224063,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValGameSettingHGetTextPcK"
+    "mangled_symbol": "__0fQgcValGameSettingHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "44c56e19",
+        "notes": "Implemented gcValGameSetting::GetText in its canonical class TU, src/gcValGameSetting.cpp, not the prompt typo path. AssignCopy/GetType/New/Write all continue to match. The first desired-value +0x0C render compiles very close to the target, including the tagged-pointer clear, +0xD0 virtual text dispatch, cStrCat fallback, and cStrAppend(0x36DBAC, 0x36DAF0). The helper call was adjusted to match the target argument scheduling with li a2,0 before the call.\n\nRemaining diffs are mainly branch-shape and register-allocation in the kind range test and the post-helper +0x24 validity check. Tried nested if/else, m2c-style gotos, explicit less5/less6/less4 temporaries, and reordered branch variable declarations. The target uses a beqzl range-test form with slti kind<6 in the delay slot and keeps the +0x24 value in a1 while using a0 as the tag/valid flag; the closest C variants either use ordinary beqz or allocate the loaded value in a0, causing large downstream byte diffs despite matching behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:32:16Z",
+        "src_file": "src/gcValGameSetting.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/44c56e19/003455bc__agent_self_reported_failure__src_gcValGameSetting.cpp"
+      }
+    ]
   },
   {
     "address": "0x003457c0",
@@ -228245,14 +228333,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001428"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValObjectCompareHGetTextPcK"
+    "mangled_symbol": "__0fSgcValObjectCompareHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "f0ee6a97",
+        "notes": "Added a canonical C++ gcValObjectCompare::GetText(char *) const implementation using two 256-byte stack buffers, the tagged-pointer validity test from the existing Evaluate/GetText family, the type+0x80 name slot, the type+0x78 text slot, cStrCopy fallback, and final cStrAppend formatting. Iterated through plain m2c shape, saved-register bindings for self/out/right buffer and constants, reordered tagged tests, added/removed scheduler barriers around the impossible tagged clear, and ran the permuter for 120s; the closest checked source still reports 163/520 bytes different.\n\nThe remaining mismatch is codegen shape rather than semantics. The target keeps the left object in s3 and right buffer in s2, loads prefix/suffix into specific saved registers, and emits a beqz+nop followed by an unconditional branch with the clear in the delay slot before the vtable load. The current closest source gets the stack frame, external calls, and overall control flow, but SNC still emits duplicated vtable loads around the tagged-clear block and allocates/reorders the second half differently. A useful next attempt should focus specifically on reproducing the tagged-clear branch shape and the right-object s4/s0 register transition, not on the high-level text logic.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:27:23Z",
+        "src_file": "src/gcValObjectCompare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f0ee6a97/00353eb0__agent_self_reported_failure__src_gcValObjectCompare.cpp"
+      }
+    ]
   },
   {
     "address": "0x003540b8",

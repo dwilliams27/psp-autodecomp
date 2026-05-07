@@ -65,6 +65,7 @@ public:
     ~gcUI();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void AssignCopy(const cBase *);
     void Write(cOutStream &) const;
     int Read(cFile &, cMemPool *);
     void DeleteSpawned(void);
@@ -139,6 +140,27 @@ struct gcUI_ActiveSpawnScan {
     char pad[0x54];
     void **active;
 };
+
+struct gcUI_TypeVtableEntry {
+    short offset;
+    short pad;
+    const cType *(*fn)(const void *);
+};
+
+struct gcUI_CopyBlock {
+    int field08;
+    int field00;
+    int field18;
+    int field04;
+    int field10;
+    float field14;
+    int field1C;
+    float field0C;
+    float field20;
+};
+
+extern cType *D_000385DC;
+extern cType *D_00099924;
 
 extern "C" void *__vec_new(void *, int, int, void *);
 
@@ -252,6 +274,98 @@ int gcUI::Read(cFile &file, cMemPool *) {
     }
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+// ── AssignCopy ──  @ 0x0023d64c, 652B
+void gcUI::AssignCopy(const cBase *base) {
+    gcUI *other = 0;
+    if (base != 0) {
+        if (D_00099924 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType(
+                    (const char *)0x36D894, (const char *)0x36D89C,
+                    1, 0, 0, 0, 0, 0);
+            }
+            const cType *parentType = D_000385DC;
+            D_00099924 = cType::InitializeType(0, 0, 0xED, parentType,
+                                               (cBase *(*)(cMemPool *, cBase *))0x23D8D8,
+                                               0, 0, 0);
+                                               __asm__ volatile("" ::: "memory");
+        }
+        const gcUI_TypeVtableEntry *entry =
+            (const gcUI_TypeVtableEntry *)(*(const char **)((const char *)base + 4) + 8);
+        const cType *target = D_00099924;
+        const cType *type = entry->fn((const char *)base + entry->offset);
+        int isUI;
+        if (target != 0) {
+            goto have_target;
+        }
+        goto type_failed;
+have_target:
+        if (type != 0) {
+            do {
+                if (type == target) {
+                    isUI = 1;
+                    goto checked_type;
+                }
+                type = *(const cType *const *)((const char *)type + 0x1C);
+            } while (type != 0);
+        }
+type_failed:
+        isUI = 0;
+checked_type:
+        if (isUI != 0) {
+            other = (gcUI *)base;
+        }
+    }
+
+    const char *src = (const char *)other;
+    char *dst = (char *)this;
+
+    *(gcUI_CopyBlock *)(dst + 0x08) = *(const gcUI_CopyBlock *)(src + 0x08);
+    *(gcUI_CopyBlock *)(dst + 0x2C) = *(const gcUI_CopyBlock *)(src + 0x2C);
+
+    const int *srcDialogs = (const int *)src;
+    int *dstDialogs = (int *)dst;
+    __asm__ volatile("" ::: "memory");
+    int i = 0;
+    ((int *)dst)[0x50 / 4] = ((const int *)src)[0x50 / 4];
+    do {
+        i += 1;
+        dstDialogs[0x54 / 4] = srcDialogs[0x54 / 4];
+        srcDialogs += 1;
+        dstDialogs += 1;
+    } while (i < 0x20);
+
+    ((int *)dst)[0xD4 / 4] = ((const int *)src)[0xD4 / 4];
+    __asm__ volatile("" ::: "memory");
+    int _tmp_100 = ((const int *)src)[0xD8 / 4];
+    int j = 0;
+    ((int *)dst)[0xD8 / 4] = _tmp_100;
+    int *dstDestroy = (int *)dst;
+    const int *srcDestroy = (const int *)other;
+    do {
+        j += 1;
+        dstDestroy[0xDC / 4] = srcDestroy[0xDC / 4];
+        srcDestroy += 1;
+        dstDestroy += 1;
+    } while (j < 0x20);
+
+    ((float *)dst)[0x164 / 4] = ((const float *)src)[0x164 / 4];
+    ((int *)dst)[0x15C / 4] = ((const int *)src)[0x15C / 4];
+    __asm__ volatile("" ::: "memory");
+    ((float *)dst)[0x160 / 4] = ((const float *)src)[0x160 / 4];
+
+    const char *srcFaders = (const char *)other + 0x168;
+    dst += 0x168;
+    int k = 0;
+    do {
+        srcFaders += 8;
+        k += 1;
+        *(float *)(dst + 4) = *(const float *)(srcFaders + 4);
+        *(float *)dst = *(const float *)srcFaders;
+        dst += 8;
+    } while ((unsigned int)k < 4U);
 }
 
 // ── DeleteSpawned ──  @ 0x000e0a08, 100B

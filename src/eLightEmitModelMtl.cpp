@@ -9,6 +9,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType;
 
 class cWriteBlock {
 public:
@@ -57,6 +58,7 @@ public:
     ~eLightEmitModelMtl(void);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -72,6 +74,23 @@ public:
 };
 
 extern char eLightEmitModelMtlvirtualtable[];
+
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_00040FEC;
+extern cType *D_00040FF8;
+extern cType *D_00046B28;
+extern cType *D_00046C7C;
+extern cType *D_00046C80;
 
 template <class T>
 T dcast(const cBase *);
@@ -129,5 +148,62 @@ cBase *eLightEmitModelMtl::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── eLightEmitModelMtl::GetType @ 0x00218ffc ──
+#pragma control sched=1
+const cType *eLightEmitModelMtl::GetType(void) const {
+    if (D_00046C80 == 0) {
+        if (D_00046C7C == 0) {
+            if (D_00046B28 == 0) {
+                if (D_00040FF8 == 0) {
+                    if (D_00040FEC == 0) {
+                        if (D_000385E4 == 0) {
+                            if (D_000385E0 == 0) {
+                                if (D_000385DC == 0) {
+                                    const char *name = (const char *)0x36CD74;
+                                    const char *desc = (const char *)0x36CD7C;
+                                    __asm__ volatile("" : "+r"(name), "+r"(desc));
+                                    D_000385DC = cType::InitializeType(
+                                        name, desc, 1, 0, 0, 0, 0, 0);
+                                }
+                                const cType *parentType = D_000385DC;
+                                cBase *(*factory)(cMemPool *, cBase *) =
+                                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                                __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                                D_000385E0 = cType::InitializeType(
+                                    0, 0, 2, parentType, factory, 0, 0, 0);
+                            }
+                            D_000385E4 = cType::InitializeType(
+                                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                        }
+                        const cType *parentType = D_000385E4;
+                        const char *kindName = (const char *)0x36CDCC;
+                        const char *kindDesc = (const char *)0x36CDD8;
+                        __asm__ volatile("" : "+r"(parentType), "+r"(kindName), "+r"(kindDesc));
+                        D_00040FEC = cType::InitializeType(
+                            0, 0, 0x10, parentType, 0, kindName, kindDesc, 5);
+                    }
+                    D_00040FF8 = cType::InitializeType(0, 0, 0x12, D_00040FEC,
+                                                       0, 0, 0, 0);
+                }
+                D_00046B28 = cType::InitializeType(0, 0, 0x13, D_00040FF8,
+                                                   0, 0, 0, 0);
+            }
+            const cType *parentType = D_00046B28;
+            cBase *(*factory)(cMemPool *, cBase *) =
+                (cBase *(*)(cMemPool *, cBase *))0x218920;
+            __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+            D_00046C7C = cType::InitializeType(0, 0, 0x1B, parentType, factory,
+                                               0, 0, 0);
+        }
+        const cType *parentType = D_00046C7C;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x218F80;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046C80 = cType::InitializeType(0, 0, 0x53, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046C80;
 }
 #pragma control sched=2
