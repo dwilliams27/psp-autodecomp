@@ -3,6 +3,9 @@ class cFile;
 class cMemPool;
 class cType;
 
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
 class cWriteBlock {
 public:
     cFile *_file;
@@ -28,6 +31,12 @@ struct DesiredWriteSlot {
     short mOffset;
     short _pad;
     DesiredWriteFn mFn;
+};
+
+struct DesiredTextSlot {
+    short mOffset;
+    short _pad;
+    void (*mFn)(void *, char *);
 };
 
 struct DesiredTypeInfoWrite {
@@ -70,6 +79,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
 };
 
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
@@ -194,4 +204,39 @@ void gcValTableInfo::Write(cFile &file) const {
     wb.Write(*(int *)((char *)this + 0x1C));
     ((const gcDesiredValue *)((const char *)this + 0x20))->Write(wb);
     wb.End();
+}
+
+void gcValTableInfo::GetText(char *buf) const {
+    char *typeInfo = *(char **)((const char *)this + 0x0C);
+    DesiredTextSlot *textSlot = (DesiredTextSlot *)(typeInfo + 0x78);
+    char *base = (char *)this + 0x08;
+    textSlot->mFn(base + textSlot->mOffset, buf);
+
+    cStrAppend(buf, (const char *)0x36DCB8, (const char *)0x36DAF0);
+
+    if (*(int *)((const char *)this + 0x1C) == 2) {
+        cStrCat(buf, (const char *)0x36E8D0);
+
+        int val = *(int *)((const char *)this + 0x20);
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *entryType = *(char **)(check + 4);
+            DesiredTextSlot *entry = (DesiredTextSlot *)(entryType + 0xD0);
+            entry->mFn((char *)check + entry->mOffset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+
+        cStrCat(buf, (const char *)0x36E90C);
+    }
 }

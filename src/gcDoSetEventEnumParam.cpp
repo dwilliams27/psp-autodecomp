@@ -8,6 +8,9 @@ class cBase;
 class cFile;
 class cType;
 
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 
@@ -73,6 +76,7 @@ public:
     //   +0x14 (= outer 0x20): (parent | 1)
     // 0x24: int field (set to 0)
     void Write(cFile &) const;
+    void GetText(char *) const;
     ~gcDoSetEventEnumParam(void);
     const cType *GetType(void) const;
     void VisitReferences(unsigned int, cBase *,
@@ -108,6 +112,12 @@ struct DtorSlot {
     void (*fn)(void *, int);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 // Type-info slot used for the embedded sub-object's virtual Write dispatch.
 typedef void (*EntryWriteFn)(cBase *, cFile *);
 
@@ -134,6 +144,63 @@ public:
                          void (*)(cBase *, unsigned int, void *),
                          void *, unsigned int);
 };
+
+class gcDesiredEnumerationEntryHelper {
+public:
+    void GetText(char *, bool) const;
+};
+
+// ============================================================
+// 0x002fc87c — GetText(char *) const, 244B
+// ============================================================
+void gcDoSetEventEnumParam::GetText(char *buf) const {
+    const gcDoSetEventEnumParam *self = this;
+    cStrAppend(buf, (const char *)0x36E678, (const char *)0x36DAF0);
+    register bool asValue __asm__("$6") = false;
+    ((const gcDesiredEnumerationEntryHelper *)((const char *)self + 0x14))->GetText(buf, asValue);
+
+    int val = *(int *)((const char *)self + 0x20);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+
+    if (flag != 0) {
+        val = 0;
+    } else {
+        val = (val != 0);
+        val &= 0xFF;
+        val = (val != 0);
+    }
+
+    if (val != 0) {
+        cStrAppend(buf, (const char *)0x36DCBC);
+
+        int val2 = *(int *)((const char *)self + 0x20);
+        int bit2 = val2 & 1;
+        int flag2 = 0;
+        if (bit2 != 0) {
+            flag2 = 1;
+        }
+        __asm__ volatile("" : "+r"(self));
+        if (flag2 != 0) {
+            val2 = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        unsigned int check = val2;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            short off = slot->offset;
+            void (*fn)(void *, char *) = slot->fn;
+            fn((char *)check + off, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+}
 
 // ============================================================
 // 0x002fc4e0 — Write(cFile &) const, 120B
