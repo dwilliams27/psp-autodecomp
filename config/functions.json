@@ -91436,7 +91436,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000ccc"
     ],
@@ -167250,7 +167250,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000e92a0"
@@ -167315,7 +167315,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001428"
     ],
@@ -170446,7 +170446,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00105e70"
@@ -192300,7 +192300,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0011b6f4",
       "0x0011b714",
@@ -192319,6 +192319,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T22:56:49Z"
+      },
+      {
+        "session": "1a939e2d",
+        "notes": "Closest attempt is now 292B and only 4 bytes differ. I added small inline asm materialization for the two values SNC would not naturally keep live: `addiu s0,s1,12` before the desired-object ctor path and `ori s2,zero,1` before the helper ctor path. That fixed the prior size gap and made the VFPU tail use the right live `s0`/`s2` values. The remaining mismatch is the call argument setup for `gcDesiredObject_gcDesiredObject`: generated code still emits `addiu a0,s1,12` at the call site, while target wants `move a0,s0`. I tried register-bound locals and an asm output constraint to make the compiler recognize the `s0` value as the argument; SNC either ignored the binding or deleted the materialization, reverting to the 288B/284B variants. Root cause appears to be argument rematerialization across the ctor call rather than a structural C issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:04:01Z",
+        "src_file": "src/gcDoEntityBipedSetShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1a939e2d/002a7edc__agent_self_reported_failure__src_gcDoEntityBipedSetShape.cpp"
       }
     ]
   },
@@ -192432,7 +192444,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -192440,7 +192452,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoEntityBipedSetShapeHGetTextPcK"
+    "mangled_symbol": "__0fXgcDoEntityBipedSetShapeHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "1a939e2d",
+        "notes": "Implemented the full GetText body with the desired-object text dispatch, owned-pointer/null text path, duplicated float-to-double conversion blocks, and final `cStrAppend` varargs. Best compiling version is size-correct at 356B but still differs by 164 bytes. The target keeps `this` in s1 until converting it to the vector base, keeps `buf` in s0, and uses s2/s3/s4/s5 for the three double vararg pairs. SNC keeps drifting allocation to s0/s4/s5 in the duplicated conversion version. I tried hoisting conversions after the branch, duplicating conversions in each branch, using a separate vector pointer, using adjusted self as the vector pointer, volatile float loads, native `double` casts instead of explicit `__extendsfdf2`, and sched=1. The closest form uses explicit `__extendsfdf2` and duplicated branches; remaining issue is register allocation and delay-slot scheduling around the conversion calls.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:04:01Z",
+        "src_file": "src/gcDoEntityBipedSetShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1a939e2d/002a8784__agent_self_reported_failure__src_gcDoEntityBipedSetShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a88e8",
@@ -192512,7 +192538,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x00142c24"
@@ -192531,7 +192557,15 @@
         "variant": "base",
         "timestamp": "2026-04-29T22:53:35Z"
       }
-    ]
+    ],
+    "src_file": "src/gcDoEntityCastRay.cpp",
+    "symbol_name": "__0fRgcDoEntityCastRayKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "95092209",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:06:07Z"
   },
   {
     "address": "0x002a946c",
@@ -223290,7 +223324,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0015a350"
@@ -223309,7 +223343,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T01:04:13Z"
       }
-    ]
+    ],
+    "src_file": "src/gcValGameSetting.cpp",
+    "symbol_name": "__0fQgcValGameSettingKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "95092209",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:06:07Z"
   },
   {
     "address": "0x00344838",

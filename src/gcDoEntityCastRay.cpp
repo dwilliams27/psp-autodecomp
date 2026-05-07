@@ -208,18 +208,20 @@ void gcDoEntityCastRay::AssignCopy(const cBase *base) {
         if (wantedType == 0) {
             ok = 0;
         } else if (type != 0) {
-            while (type != 0) {
-                if (type == wantedType) {
-                    ok = 1;
-                    goto done;
-                }
+        loop:
+            if (type == wantedType) {
+                ok = 1;
+            } else {
                 type = type->mParent;
+                if (type != 0) {
+                    goto loop;
+                }
+                goto fail;
             }
-            ok = 0;
         } else {
+fail:
             ok = 0;
         }
-done:
         if (ok != 0) {
             other = (const gcDoEntityCastRay *)base;
         }

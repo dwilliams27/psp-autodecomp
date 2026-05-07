@@ -156,9 +156,10 @@ void gcValGameSetting::AssignCopy(const cBase *base) {
                 if (type != 0) {
                     goto loop;
                 }
-                ok = 0;
+                goto fail;
             }
         } else {
+fail:
             ok = 0;
         }
         if (ok != 0) {
