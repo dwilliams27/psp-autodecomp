@@ -29,6 +29,12 @@ public:
     void Write(cFile &) const;
 };
 
+class cStr {
+public:
+    char _data[256];
+    void Set(const char *, ...);
+};
+
 class gcAction : public gcExpression {
 public:
     cBase *mOwner;
@@ -69,6 +75,14 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 extern "C" void gcAction_gcAction(void *, cBase *);
 
 extern char gcDoReadFilevirtualtable[];
@@ -82,6 +96,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     gcDoReadFile &operator=(const gcDoReadFile &);
     void Write(cFile &) const;
 };
@@ -202,4 +217,72 @@ void gcDoReadFile::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+void gcDoReadFile::GetText(char *buf) const {
+    register const gcDoReadFile *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    register const char *defaultText __asm__("$18") = (const char *)0x36C768;
+
+    cStrAppend(out, (const char *)0x36C758, defaultText);
+
+    int op = *(int *)((const char *)self + 0x0C);
+    if (op == 2) {
+        int value = *(int *)((const char *)self + 0x10);
+        int owned = 0;
+        int tagged = value & 1;
+        if (tagged != 0) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36C740);
+        }
+        cStrAppend(out, (const char *)0x36C76C);
+    } else if (op == 3) {
+        char text[256];
+        int value = *(int *)((const char *)self + 0x14);
+        text[0] = '\0';
+        int owned = 0;
+        int tagged = value & 1;
+        if (tagged != 0) {
+            owned = 1;
+        }
+        int valid;
+        if (owned != 0) {
+            valid = 0;
+        } else {
+            valid = value != 0;
+            valid &= 0xFF;
+            valid = valid != 0;
+        }
+        if (valid != 0) {
+            int owned2 = 0;
+            if (tagged != 0) {
+                owned2 = 1;
+            }
+            char *typeInfo;
+            if (owned2 != 0) {
+                value = 0;
+                typeInfo = *(char **)(value + 4);
+            } else {
+                typeInfo = *(char **)(value + 4);
+            }
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x40);
+            slot->fn((char *)value + slot->offset, text);
+        } else {
+            ((cStr *)text)->Set(defaultText);
+        }
+        cStrAppend(out, (const char *)0x36C770, text);
+    }
+
+    cStrAppend(out, (const char *)0x36C774);
 }

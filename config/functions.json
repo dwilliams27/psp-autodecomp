@@ -133378,7 +133378,7 @@
     "obj_file": "gcDoReadFile.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -133386,7 +133386,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoReadFileHGetTextPcK"
+    "mangled_symbol": "__0fMgcDoReadFileHGetTextPcK",
+    "src_file": "src/gcDoReadFile.cpp",
+    "symbol_name": "__0fMgcDoReadFileHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2a3e26a3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:23:23Z"
   },
   {
     "address": "0x001c464c",
@@ -133591,7 +133599,7 @@
     "obj_file": "gcDoRecord.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -133599,7 +133607,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoRecordHGetTextPcK"
+    "mangled_symbol": "__0fKgcDoRecordHGetTextPcK",
+    "src_file": "src/gcDoRecord.cpp",
+    "symbol_name": "__0fKgcDoRecordHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2a3e26a3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:23:23Z"
   },
   {
     "address": "0x001c5530",
@@ -196119,7 +196135,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -223965,7 +223981,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
