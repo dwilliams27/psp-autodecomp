@@ -96103,7 +96103,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00110a30"
@@ -96638,7 +96638,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00117e44",
@@ -196820,14 +196820,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerHGetTextPcK"
+    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerHGetTextPcK",
+    "src_file": "src/gcValHasPartialController.cpp",
+    "symbol_name": "__0fegcDoEntitySetPrimaryControllerHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "36ed7da4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:13:31Z"
   },
   {
     "address": "0x002caf7c",
@@ -223516,7 +223524,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -223524,7 +223532,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValHasPartialControllerHGetTextPcK"
+    "mangled_symbol": "__0fZgcValHasPartialControllerHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "36ed7da4",
+        "notes": "Closest attempt compiles and keeps all previously matched sibling methods intact, but gcValHasPartialController::GetText remains at 23/312 bytes different. I matched the opening virtual desired-object GetText call, the partial-controller string selection, the first tagged-pointer validity test, and the final suffix; the remaining disassembly differences are localized to two areas: the helper GetText(false) call emits addiu a0,this,0x3c before li a2,0 while the original emits li a2,0 first, and the second tagged-pointer dispatch reload allocates the value in s1 instead of keeping it in a0/a1/a2 like the original.\n\nTried high-level if/else, goto-shaped bool conversion matching gcValObjectIsValid, separate and reused val variables, explicit a0/a1/a2 register bindings, keeping self live through inline asm, memory barriers, and a 300s permuter run (8,952 generated / 4,158 compiled candidates) with no improvement over the 23-byte baseline. Root cause appears to be SNC register/scheduler drift around the second tagged pointer dispatch; source-level leverage was exhausted without converting the function to assembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:13:31Z",
+        "src_file": "src/gcValHasPartialController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/36ed7da4/00346654__agent_self_reported_failure__src_gcValHasPartialController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0034678c",

@@ -53,9 +53,15 @@ struct AllocEntry {
 
 class gcValHasPartialController : public gcValue {
 public:
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+};
+
+class gcDoEntitySetPrimaryController {
+public:
+    void GetText(char *) const;
 };
 
 class gcValLookAtControllerVariable : public gcValue {
@@ -63,11 +69,145 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class gcDesiredEnumerationEntryHelper {
+public:
+    void GetText(char *, bool) const;
+};
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 extern const char gcValHasPartialController_base_name[];
 extern const char gcValHasPartialController_base_desc[];
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
+void gcValHasPartialController::GetText(char *buf) const {
+    const gcValHasPartialController *self = this;
+    cTypeMethod *entityText =
+        (cTypeMethod *)((char *)((gcDesiredObject *)((char *)self + 8))->mType +
+                        0x78);
+    char *entityBase = (char *)self + 8;
+    ((void (*)(void *, char *))entityText->fn)(entityBase + entityText->offset,
+                                               buf);
+
+    const char *partial;
+    if (*(unsigned char *)((const char *)self + 0x4C) != 0) {
+        partial = (const char *)0x36F45C;
+    } else {
+        partial = (const char *)0x36F47C;
+    }
+    cStrCat(buf, partial);
+
+    register int asValue __asm__("a2") = 0;
+    __asm__ volatile("" : "+r"(asValue));
+    ((const gcDesiredEnumerationEntryHelper *)((const char *)self + 0x3C))
+        ->GetText(buf, asValue);
+
+    int flag = 0;
+    int val = *(int *)((const char *)self + 0x48);
+    int tag = val & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int valid;
+    if (flag == 0) goto has_partial_not_tagged;
+    valid = 0;
+    goto has_partial_valid_done;
+has_partial_not_tagged:
+    valid = val != 0;
+    valid &= 0xFF;
+    valid = valid != 0;
+has_partial_valid_done:
+
+    if (valid != 0) {
+        cStrAppend(buf, (const char *)0x36DCBC);
+
+        flag = 0;
+        val = *(int *)((const char *)self + 0x48);
+        __asm__ volatile("" : "+r"(val), "+r"(self));
+        tag = val & 1;
+        if (tag != 0) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)check + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+
+    cStrCat(buf, (const char *)0x36E2E8);
+}
+
+void gcDoEntitySetPrimaryController::GetText(char *buf) const {
+    register const gcDoEntitySetPrimaryController *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    cTypeMethod *entityText =
+        (cTypeMethod *)((char *)*(void **)((const char *)self + 0x10) + 0x78);
+    char *entityBase = (char *)self + 0x0C;
+    ((void (*)(void *, char *))entityText->fn)(entityBase + entityText->offset,
+                                               out);
+
+    unsigned char usePrimary = *(unsigned char *)((const char *)self + 0x3D);
+    unsigned char enabled = *(unsigned char *)((const char *)self + 0x3C);
+    if (usePrimary != 0) {
+        const char *fmt = (const char *)0x36EA8C;
+        const char *state;
+        if (enabled != 0) {
+            state = (const char *)0x36E428;
+        } else {
+            state = (const char *)0x36EAA8;
+        }
+        cStrAppend(out, fmt, state);
+    } else {
+        const char *fmt = (const char *)0x36EAAC;
+        const char *state;
+        if (enabled != 0) {
+            state = (const char *)0x36E428;
+        } else {
+            state = (const char *)0x36EAA8;
+        }
+        cStrAppend(out, fmt, state);
+
+        int val = *(int *)((const char *)self + 0x38);
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)check + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        cStrAppend(out, (const char *)0x36DCEC);
+    }
+}
 
 void gcValHasPartialController::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
