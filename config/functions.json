@@ -17740,7 +17740,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000012d0",
       "0x00001428",
@@ -17751,7 +17751,15 @@
       "0x0000ff18"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5EcXMLFcNodeHSetTextPCc"
+    "mangled_symbol": "__0f5EcXMLFcNodeHSetTextPCc",
+    "src_file": "src/cXML_cNode.cpp",
+    "symbol_name": "__0f5EcXMLFcNodeHSetTextPCc",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "05dfc607",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T18:53:17Z"
   },
   {
     "address": "0x0000def4",
@@ -25729,7 +25737,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0001ddcc",
@@ -33648,7 +33656,13 @@
     "is_leaf": false,
     "mangled_symbol": "__0fPeRigidBodyStateISetShapePC6GeShape",
     "src_file": "src/eRigidBodyState.cpp",
-    "symbol_name": "__0fPeRigidBodyStateISetShapePC6GeShape"
+    "symbol_name": "__0fPeRigidBodyStateISetShapePC6GeShape",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "92c3b0ee",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T18:39:27Z"
   },
   {
     "address": "0x000352a0",
@@ -46983,7 +46997,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000062e0",
       "0x000065f0",
@@ -47004,6 +47018,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:10:12Z"
+      },
+      {
+        "session": "48b189c0",
+        "notes": "Implemented the literal cOutStream bit write, cHandle::Write(out), the three-float loop from +0x10, and the final 8-bit cell write in canonical eNavMeshPos::Write syntax. I tried direct if-body form, explicit goto/label form, an explicit canWrite temporary, double &0xFF boolean shaping, direct reloads of the cell byte, forcing the loop true argument into register s4, and both sched=2 and a sched=1 pragma around the method.\n\nThe closest output is 308B versus the expected 312B. sched=1 gives the target-like early prologue saves and the s4-backed float-write argument, but SNC still emits a normal beqz at the post-overflow guard instead of the expected beqzl with the next cell-byte load in the delay slot. The resulting bit-write block is one instruction shorter, and final-call scheduling still differs slightly. Root cause appears to be branch-likely/source-shape compiler heuristic drift rather than missing logic.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:42:03Z",
+        "src_file": "src/eNavMeshPos.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/48b189c0/00057054__agent_self_reported_failure__src_eNavMeshPos.cpp"
       }
     ]
   },
@@ -97396,13 +97422,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0033dde8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityXSetSoundFrequencyOffsetifb"
+    "mangled_symbol": "__0fIgcEntityXSetSoundFrequencyOffsetifb",
+    "failure_notes": [
+      {
+        "session": "b68e8a3b",
+        "notes": "session added method declarations to include/*.h; use the split-TU pattern instead",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:46:05Z",
+        "src_file": "src/gcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b68e8a3b/001187f4__header_class_modification__src_gcEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x0011887c",
@@ -97434,13 +97474,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0033dde8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityUSetSoundVolumeOffsetifb"
+    "mangled_symbol": "__0fIgcEntityUSetSoundVolumeOffsetifb",
+    "failure_notes": [
+      {
+        "session": "b68e8a3b",
+        "notes": "session added method declarations to include/*.h; use the split-TU pattern instead",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:46:05Z",
+        "src_file": "src/gcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b68e8a3b/001188dc__header_class_modification__src_gcEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x00118964",
@@ -116206,7 +116260,13 @@
     "is_leaf": false,
     "mangled_symbol": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK",
     "src_file": "src/gcEntityTemplateRelationship.cpp",
-    "symbol_name": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK"
+    "symbol_name": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "92c3b0ee",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T18:39:27Z"
   },
   {
     "address": "0x00153c70",
@@ -180285,13 +180345,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcTableColumnGUIDHSetSizei"
+    "mangled_symbol": "__0fRgcTableColumnGUIDHSetSizei",
+    "failure_notes": [
+      {
+        "session": "05dfc607",
+        "notes": "Closest source compiles to the correct 416-byte size and matches the original control-flow shape for allocation failure, the copy loop, and the old-buffer delete path, but 25 bytes still differ. I tried if/else versus goto allocation joins, loop-carried destination pointers, ternary versus if source selection, explicit allocator temporaries to recover the a1/a2/a3/t1 call sequence, empty asm barriers, register-asm hints for the copy and cleanup temporaries, and an m2c-style old-count loop rewrite. A 120-second permuter run generated 4,536 candidates, compiled 1,676, and found no improvement from the 25-byte baseline.\n\nThe remaining diff appears to be register-allocation/context drift rather than source semantics: the allocator call now matches exactly, and the first copy-loop precheck matches except for an equivalent initial destination `move a2,s3` where original uses `addu a2,s3,a1` with a1 known zero. The cleanup block uses a0/a1/a2/a3 for oldData/oldCount/index/condition while the original reuses s1 for oldData and a0/a1/a2 for count/index/condition. Further local source reshaping either preserved the same 25-byte diff or regressed size/control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:53:17Z",
+        "src_file": "src/cXML_cNode.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/05dfc607/00273628__agent_self_reported_failure__src_cXML_cNode.cpp"
+      }
+    ]
   },
   {
     "address": "0x002737c8",
@@ -188086,7 +188160,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000015cc",
       "0x0000d470",
@@ -217772,7 +217846,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0011d8c0",
@@ -217780,7 +217854,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fcgcValBipedControllerVariableDSetf"
+    "mangled_symbol": "__0fcgcValBipedControllerVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "48b189c0",
+        "notes": "Added a split-TU canonical gcValBipedControllerVariable::Set(float) with local declarations, matching the gcDesiredEntity::Get(true) call, the entity controller array checks, full gcBipedController type-cache initialization chain, vtable type query, parent-type walk, selector 12 EnableWallWalk path, and selector 13 float store path. I tried a straightforward nested form, a goto/failure-label form to mirror the disassembly, direct reload of the entity controller array after the type check, binding the resulting controller to a0, and several final selector shapes using if/else and goto labels.\n\nBest structurally close output currently compiles to 668B versus the 680B target. The prologue and type-cache register allocation are close, but SNC collapses several failure paths directly into the final join instead of the target's shared no-controller stub, and the selector tail remains shorter: it emits ordinary beqz/store/call scheduling instead of the target's branch-likely store path and extra branch around the wall-walk block. A 120s permuter probe could not run because the compiled .text size did not match the expected target size, so it could not locate the function in the .o.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:42:03Z",
+        "src_file": "src/gcValBipedControllerVariable_Set.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/48b189c0/0032180c__agent_self_reported_failure__src_gcValBipedControllerVariable_Set.cpp"
+      }
+    ]
   },
   {
     "address": "0x00321ab4",
@@ -231698,7 +231786,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00049f18",
@@ -232376,7 +232464,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000123c",
       "0x000015cc",
