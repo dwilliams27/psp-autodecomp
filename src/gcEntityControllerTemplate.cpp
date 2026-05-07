@@ -67,10 +67,25 @@ public:
     ~gcEntityControllerTemplate();
     void Reset(cMemPool *, bool);
     const cType *GetType(void) const;
+    void GetName(char *) const;
     void Write(cFile &) const;
     int FindAttackSet(cHandleT<gcEnumeration>) const;
     int FindAnimationSet(cHandleT<gcEnumeration>) const;
     static void operator delete(void *p);
+};
+
+class cXML {
+public:
+    class cNode {
+    public:
+        int SetText(const char *);
+    };
+
+    char _pad0[4];
+    unsigned char mFlag4;
+
+    cNode *Find(const char *, bool);
+    bool SetText(const char *, const char *, bool);
 };
 
 // Set entry — cHandleT<gcEnumeration> at +8 (same shape as gcPartialBodyControllerSet)
@@ -85,6 +100,14 @@ extern cType *D_0009A400;
 extern char gcEntityControllerTemplate_dtor_classdesc[];
 extern char cBase_dtor_classdesc[];
 extern "C" void free(void *);
+void cStrCopy(char *, const char *);
+
+struct gcNameHandleEntry {
+    char _pad0[0x1C];
+    short mNameIndex;
+    char _pad1E[0x12];
+    int mHandle;
+};
 
 struct DeleteRec {
     short offset;
@@ -145,6 +168,103 @@ const cType *gcEntityControllerTemplate::GetType(void) const {
         D_0009A400 = cType::InitializeType(0, 0, 0x9A, D_000385DC, 0, 0, 0, 0);
     }
     return D_0009A400;
+}
+
+// =====================================================================
+// 0x0025cc44 — GetName(char *) const
+// =====================================================================
+void gcEntityControllerTemplate::GetName(char *buf) const {
+    const char *base = (const char *)this + 0x10;
+    volatile int *slot1 = (volatile int *)base;
+    volatile int *slot2 = (volatile int *)(base + 4);
+    int handle2 = *slot2;
+    gcNameHandleEntry *valid2;
+    if (handle2 == 0) {
+        valid2 = 0;
+    } else {
+        char *table = (char *)0x38890;
+        gcNameHandleEntry *candidate =
+            *(gcNameHandleEntry **)(table + ((handle2 & 0xFFFF) << 2));
+        valid2 = 0;
+        if (candidate != 0 && candidate->mHandle == handle2) {
+            valid2 = candidate;
+        }
+    }
+
+    void *name;
+    if (valid2 != 0) {
+        int handle = *slot2;
+        gcNameHandleEntry *entry;
+        if (handle == 0) {
+            entry = 0;
+        } else {
+            char *table = (char *)0x38890;
+            gcNameHandleEntry *candidate =
+                *(gcNameHandleEntry **)(table + ((handle & 0xFFFF) << 2));
+            entry = 0;
+            if (candidate != 0 && candidate->mHandle == handle) {
+                entry = candidate;
+            }
+        }
+        if (entry != 0) {
+            int unnamed = ((unsigned int)(int)entry->mNameIndex < 1u);
+            unnamed &= 0xFF;
+            name = (char *)entry + 8;
+            if (unnamed != 0) {
+                name = (void *)0x36DAB8;
+            }
+            __asm__ volatile("" : : "r"(name));
+            goto copy;
+        } else if (handle != 0) {
+            name = (void *)0x36DAC4;
+        } else {
+            name = (void *)0x36DACC;
+        }
+    } else {
+        int handle = *slot1;
+        gcNameHandleEntry *entry;
+        if (handle == 0) {
+            entry = 0;
+        } else {
+            char *table = (char *)0x38890;
+            gcNameHandleEntry *candidate =
+                *(gcNameHandleEntry **)(table + ((handle & 0xFFFF) << 2));
+            entry = 0;
+            if (candidate != 0 && candidate->mHandle == handle) {
+                entry = candidate;
+            }
+        }
+        if (entry != 0) {
+            int unnamed = ((unsigned int)(int)entry->mNameIndex < 1u);
+            unnamed &= 0xFF;
+            name = (char *)entry + 8;
+            if (unnamed != 0) {
+                name = (void *)0x36DAB8;
+            }
+            __asm__ volatile("" : : "r"(name));
+            goto copy;
+        } else if (handle != 0) {
+            name = (void *)0x36DAC4;
+        } else {
+            name = (void *)0x36DACC;
+        }
+    }
+copy:
+    cStrCopy(buf, (const char *)name);
+}
+
+// =====================================================================
+// 0x0000d470 — cXML::SetText(const char *, const char *, bool)
+// =====================================================================
+bool cXML::SetText(const char *name, const char *text, bool createIfMissing) {
+    cNode *node = Find(name, createIfMissing);
+    if (node != 0) {
+        if (node->SetText(text) != 0) {
+            return true;
+        }
+        mFlag4 = 0;
+    }
+    return false;
 }
 
 // =====================================================================

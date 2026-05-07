@@ -17497,7 +17497,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000d5f0",
       "0x0000ddd8"
@@ -17507,7 +17507,15 @@
       "0x0035d04c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fEcXMLHSetTextPCcTBb"
+    "mangled_symbol": "__0fEcXMLHSetTextPCcTBb",
+    "src_file": "src/gcEntityControllerTemplate.cpp",
+    "symbol_name": "__0fEcXMLHSetTextPCcTBb",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b4bc26dc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T15:55:02Z"
   },
   {
     "address": "0x0000d4e0",
@@ -25986,7 +25994,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0001d224",
       "0x0008cedc",
@@ -26009,7 +26017,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001c3874"
     ],
@@ -26938,7 +26946,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00020358",
       "0x00020398"
@@ -48618,7 +48626,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0003f474",
       "0x0005d928"
@@ -83896,7 +83904,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001428",
       "0x00007534",
@@ -83905,7 +83913,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcStreamedCinematicConfigHGetNamePcK"
+    "mangled_symbol": "__0fZgcStreamedCinematicConfigHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "2ff24103",
+        "notes": "Implemented gcStreamedCinematicConfig::GetName in the canonical class file rather than the prompt's duplicated scoreboard path, following the repo method-placement rule. The body models the two-entry streamed cinematic table at D_0037D7D4, copies matching cinematic names through cName::Set into a 24-byte cName stack object, falls back through lazy cObject/gcStreamedCinematic type initialization (D_000385DC/D_000385E0/D_000385E4/D_00040C90/D_00099AD4), calls cObject::GetNameFromGUID on this+8, then cStrCopy's the cName to the caller buffer. Existing constructor/destructor/Write/AssignCopy/New/GetType in this TU still compare matched.\n\nThe closest saved source compiles to 712B versus the 720B target. I tried both a compact cName layout and explicit volatile halfword clears; volatile recovered separate sh stores but regressed the function to 704B and changed the prologue/control-flow shape, so it was reverted. The saved 712B version differs mostly in scheduler/register allocation and local-clear shape: target stores cName len/cap with separate sh instructions and keeps this/buf as s1/s0 with table base in s2 early, while this source keeps this/buf as s0/s1 and coalesces some halfword clears into word stores. The type initialization chain and fallback call sequence are semantically aligned.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T15:51:53Z",
+        "src_file": "src/gcStreamedCinematicConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/2ff24103/000edc10__agent_self_reported_failure__src_gcStreamedCinematicConfig.cpp"
+      }
+    ]
   },
   {
     "address": "0x000edee0",
@@ -169220,7 +169242,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00007534",
@@ -169228,7 +169250,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcRegionSetHGetNamePcK"
+    "mangled_symbol": "__0fLgcRegionSetHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "a0e6862d",
+        "notes": "Implemented the full gcRegionSet::GetName control flow in canonical C++: local cName scratch initialization, six-level lazy cType initialization through D_000385DC/D_000385E0/D_000385E4/D_00040C90/D_00099AE0/D_00099AE4, two calls to cObject::GetNameFromGUID, and separator append selection. The closest version has the correct 636-byte size, preserves existing matched gcRegionSet siblings, and differs by 130/636 bytes. The remaining diff is mostly register allocation and scheduling: SNC assigns the GUID cursor/counter to s7/s6 instead of expected s6/s7 despite register-binding attempts, emits addiu+sh for the cName halfword clears instead of direct sh to stack offsets, and orders the two separator string stack stores differently. A stack array for the two format strings fixed the size and forced stack loads, but the prologue and loop registers still drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T15:46:33Z",
+        "src_file": "src/gcRegionSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/a0e6862d/00245db0__agent_self_reported_failure__src_gcRegionSet.cpp"
+      }
+    ]
   },
   {
     "address": "0x0024602c",
@@ -172828,13 +172864,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001428"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcEntityControllerTemplateHGetNamePcK"
+    "mangled_symbol": "__0fagcEntityControllerTemplateHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "b4bc26dc",
+        "notes": "Closest attempt is the structured handle-table version now left in src/gcEntityControllerTemplate.cpp. It performs the three 0x38890 lookups, uses volatile handle slots to force the original reloads, and adds explicit local entry-name joins. The generated function is 380B versus the 388B target. The remaining drift is around the selected-name carrier: SNC keeps the chosen string pointer in $a2 and emits move $a1,$a2 in the cStrCopy delay slot, while the target keeps it in $a1 and has a nop delay slot. The first prologue save is also scheduled earlier than target, but the main size gap comes from shorter local name/none joins.\n\nTried straightforward high-level C, volatile slot reloads, base-plus-index table addressing to force lui/addiu/addu/lw, explicit goto join labels with empty barriers, fixed-register name carriers, void* name carriers, and an m2c-shaped rewrite with dead cStrCopy arguments. The m2c rewrite worsened register flow, so I restored the closest structured source. The permuter could not run on this multi-function translation unit: it failed to isolate the target symbol and exited with 'Could not locate target function in compiled .o'. Likely root cause is local register allocation/control-flow shaping around the two duplicated handle-name selection blocks rather than a semantic issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T15:55:02Z",
+        "src_file": "src/gcEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b4bc26dc/0025cc44__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0025cdc8",
@@ -184954,14 +185004,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcLobbyScoreboardStringsHGetNamePcK"
+    "mangled_symbol": "__0fYgcLobbyScoreboardStringsHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "2ff24103",
+        "notes": "Implemented the full high-level GetName body in the owning class file using the matched lobby string patterns: prefix append 0x36E0A4, tagged desired-object handling for fields +0x08/+0x0C/+0x18, vtable GetName dispatch at +0xD0 and +0x40, fallback string 0x36DB24, the intermediate 0x36E0B8 append, and final cStrAppend with 0x36E060/0x36DAF0. Tried the straightforward m2c shape, the exemplar-style tagged-pointer normalization with memory barriers, inverted flag branches to recover the target's beqz+nop+branch pattern, and register-bound variants for the early a1 value; the register-bound variant reached the expected 476B size but changed 175/476 bytes, so the saved source is the closer structural version.\n\nThe closest saved source compiles to 468B versus the 476B target. The remaining delta is concentrated in branch/register shape: SNC keeps val in a0 where the target keeps the first two desired values in a1 and inserts a move into a0 before dispatch; it also emits a normal beqz around the middle scratch-name path rather than the target's beqzl with scratch[0]=0 in the delay slot. A 120-second permuter attempt did not run because tools/permuter.py could not isolate this function in the multi-function TU (`Found 1380B .text but expected 476B function`).",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T15:51:53Z",
+        "src_file": "src/gcLobbyScoreboardStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/2ff24103/00282fbc__agent_self_reported_failure__src_gcLobbyScoreboardStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00283198",
@@ -186757,7 +186821,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -186766,7 +186830,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcProfileStringHGetNamePcK"
+    "mangled_symbol": "__0fPgcProfileStringHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "a0e6862d",
+        "notes": "Implemented gcProfileString::GetName in src/gcRegionSet.cpp with the expected cStrCopy prefix, tagged-pointer object-name dispatch, suffix append, mode==1 helper text, optional related-object append, and final close string. Adding the explicit memory barriers from the matched GetName exemplars brought the function from 396B to 412B, but the expected size is 416B. The closest two-argument virtual-call form keeps the branch-likely structure but drops the expected preservation move in the first virtual dispatch: target loads the object in a1, moves it to a2 before loading the slot, and calls through t0; SNC instead keeps the object in a0/a1 and uses a2 for the slot/function, making the non-null path one instruction shorter. Trying an apparent four-argument call forced a preservation move but changed the branch form to non-likely and was not closer. A 60-second permuter pass could not run because the compiled function size did not match the expected 416B, so it could not locate the target in the .o.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T15:46:33Z",
+        "src_file": "src/gcRegionSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/a0e6862d/002872fc__agent_self_reported_failure__src_gcRegionSet.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028749c",
