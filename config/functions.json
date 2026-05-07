@@ -184061,14 +184061,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyMailStringsKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcLobbyMailStringsKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "78c0e3a1",
+        "notes": "Implemented the full C++ AssignCopy body using the gcLobbyFriendStrings/gcDesiredValue ownership-copy pattern, with the type initialization chain, dcast loop, self-copy check, release path, clone path, and trailing branch/nop size sentinel. Moving AssignCopy after the destructor was necessary so the .size sentinel landed inside this symbol; before that the function was 616B instead of the expected 624B. The direct source shape produced a correct-size function with 164 differing bytes, mostly a broad callee-save allocation rotation: expected keeps the desired-value slot in s6 and type globals in s3/s4/s5, while this TU tends to put the slot in s3 and rotate the globals through s4/s5/s6. Attempts to force s6 with register asm were ignored or worsened scheduling; using explicit global pointer locals got the s6 slot but introduced addiu address materialization and branch-likely changes.\n\nRan one 300s SNC permuter pass with --save-best. It improved AssignCopy to 147 differing bytes, but the saved candidate also regressed already matched New/destructor via unrelated constructor/destructor and struct-layout perturbations; those collateral edits were reverted, leaving the closest safe source at 148 differing bytes while preserving all existing matches. Current remaining diff is still dominated by the same callee-save register allocation drift plus a reshaped clone tail from the permuter candidate. category=REG_ALLOC/TU_CONTEXT.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T09:28:08Z",
+        "src_file": "src/gcLobbyMailStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/78c0e3a1/00281e1c__agent_self_reported_failure__src_gcLobbyMailStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028208c",
@@ -184196,14 +184210,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyMailStringsHGetNamePcK"
+    "mangled_symbol": "__0fSgcLobbyMailStringsHGetNamePcK",
+    "src_file": "src/gcLobbyMailStrings.cpp",
+    "symbol_name": "__0fSgcLobbyMailStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "78c0e3a1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:28:08Z"
   },
   {
     "address": "0x00282508",
@@ -184677,7 +184699,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -184812,7 +184834,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
