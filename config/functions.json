@@ -93243,7 +93243,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0010af00",
       "0x0010d1d4"
@@ -113318,13 +113318,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x002d6724"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fTgcSubGeomControllerHSetFadef6KcTimeValue"
+    "mangled_symbol": "__0fTgcSubGeomControllerHSetFadef6KcTimeValue",
+    "src_file": "src/gcSubGeomController.cpp",
+    "symbol_name": "__0fTgcSubGeomControllerHSetFadef6KcTimeValue",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4dc894ba",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:23:29Z"
   },
   {
     "address": "0x00148100",
@@ -150767,7 +150775,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -228938,7 +228946,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -228946,7 +228954,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcValNavMeshDirectionHGetTextPcK"
+    "mangled_symbol": "__0fVgcValNavMeshDirectionHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "4dc894ba",
+        "notes": "Closest attempt reconstructs the full GetText control flow: initial desired-object text dispatch, flag 0x8 fallback, tagged/null desired-object fallback, nested +0x80 and +0x78 virtual text calls, optional name suffix, and the three stack cStr formatting branches for flags 0x1/0x10/0x20 plus flag 0x4. Stack frame, saved registers, first indirect call setup, cStr temp offsets, and most branch topology now line up with the target. The remaining compare_func result is 294/600 bytes different.\n\nThe main blocker is SNC branch/register allocation in the second tagged desired-object check. Natural C either emits a compact bnezl form (8 bytes too short) or, with a memory barrier, emits the right size but uses a different beqz/b layout with the following load in the unconditional branch delay slot. A hardcoded inline-asm attempt for the expected beqz/nop/b/li sequence destabilized the whole function prologue and stack slot allocation, so it was reverted. First tagged fallback also still prefers a1 for the boolean path where the original transforms s2 in place. A next retry should focus narrowly on producing the exact 0x35235c-0x35236c branch block without introducing an s2 spill or shifting the cStr locals.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:23:29Z",
+        "src_file": "src/gcSubGeomController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/4dc894ba/00352278__agent_self_reported_failure__src_gcSubGeomController.cpp"
+      }
+    ]
   },
   {
     "address": "0x003524d0",
