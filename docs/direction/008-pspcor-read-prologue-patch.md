@@ -169,6 +169,16 @@ Useful trace observations:
   - `-tt20,1`: local register allocation trace.
   - `-tt25,1`: CFG dump.
   Trace kinds `31+` are rejected by this compiler as illegal trace passes.
+- Static analysis of the scheduler trace setup at `0x4247e1` found the
+  scheduler-specific pass-1 trace kind: `-tt19,<mask>`. The harness now uses
+  `-tt19,65535` as `trace-tt19-all`.
+- `-tt19,65535` is the clearest current scheduler trace. For
+  `cFactory::Read`, BB1 enters `CG_Schedule` with `MOP_jal
+  __0oKcReadBlockctR6FcFileUib` before the inline asm `MOP_asm`, and leaves
+  `CG_Schedule` in the same order. For matched `eDynamicFluid::Read`, BB1
+  enters and leaves with the inline asm before the constructor call. That means
+  the pass-1 scheduler is preserving the lowered order here; it is not the pass
+  that first creates the constructor-before-result ordering.
 - `-keeptemp` preserves final `.s` output. That confirms the bad ordering is
   present before assembly: `cFactory::Read` emits the constructor call before
   the inline asm `ori $19,$0,1`, while the original needs the `li s3,1` before
@@ -243,7 +253,8 @@ Milestone 4:
 
 2. Collect trace outputs.
    - Use `-keeptemp`, `-tr<N>`, `-tt10,<mask>`, `-tt14,1`, `-tt15,1`,
-     `-tt20,1`, `-tt25,1`, and `-tt26,<mask>` on the minimal source pair.
+     `-tt19,65535`, `-tt20,1`, `-tt25,1`, and `-tt26,<mask>` on the
+     minimal source pair.
    - Compare `sched=1` and `sched=2` output for the failed exemplar.
    - Identify the last trace point before the bad ordering appears.
 
@@ -315,3 +326,8 @@ Milestone 4:
   `-tt20,1` for local register allocation, and `-tt25,1` for CFG dumps. This
   keeps Milestone 2 focused on scheduler/LRA evidence before any pspcor binary
   patch is designed.
+- 2026-05-07: Static scheduler trace setup at `0x4247e1` showed pass 1 uses
+  `-tt19,<mask>`. Added `trace-tt19-all` and validated it on both exemplars.
+  The scheduler trace shows `CG_Schedule` preserves each function's incoming
+  call-vs-asm order, pushing the likely fix boundary earlier than scheduler
+  priority selection or into a narrower prologue/save-order interaction.

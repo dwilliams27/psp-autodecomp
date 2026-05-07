@@ -39,6 +39,7 @@ TRACE_SWEEP_VARIANTS = [
     ("trace-tt10-511", ["-keeptemp", "-tt10,511"]),
     ("trace-tt14-1", ["-keeptemp", "-tt14,1"]),
     ("trace-tt15-1", ["-keeptemp", "-tt15,1"]),
+    ("trace-tt19-all", ["-keeptemp", "-tt19,65535"]),
     ("trace-tt20-1", ["-keeptemp", "-tt20,1"]),
     ("trace-tt25-1", ["-keeptemp", "-tt25,1"]),
     ("trace-tt26-1", ["-keeptemp", "-tt26,1"]),
@@ -302,6 +303,10 @@ def _write_trace_summary(case_dir: Path, func: dict, sym_name: str | None) -> No
         ("optimizer entry", "Entrypoint:"),
         ("GRA summary", "<gra>"),
         ("CG expansion", "<cgex>"),
+        ("scheduler entry", "Entering CG_Schedule"),
+        ("scheduler post data", "post sched data"),
+        ("scheduled asm", "MOP_asm"),
+        ("scheduled call", "MOP_jal"),
         ("LRA block", "Local Register Allocation for BB:"),
         ("CFG dump", "CONTROL FLOW GRAPH"),
     ]
