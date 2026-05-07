@@ -12,6 +12,11 @@ public:
     void End(void);
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -33,6 +38,11 @@ public:
     unsigned int value;
 
     void Write(cWriteBlock &) const;
+};
+
+class gcDesiredEntity {
+public:
+    gcDesiredEntity &operator=(const gcDesiredEntity &);
 };
 
 class gcExpression {
@@ -62,6 +72,29 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct cTypeNode {
+    char pad[0x1C];
+    cTypeNode *parent;
+};
+
+struct VTableSlot {
+    short offset;
+    short pad;
+    const cType *(*getType)(void *);
+};
+
+struct DtorRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *, short);
+};
+
+struct CloneRec {
+    short offset;
+    short pad;
+    int (*fn)(void *, cMemPool *, int, void *);
+};
+
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
@@ -80,6 +113,7 @@ public:
     bool field_3D;
 
     static cBase *New(cMemPool *, cBase *);
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
 };
@@ -142,6 +176,145 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoEntitySetPrimaryController;
+
+void gcDoEntitySetPrimaryController::AssignCopy(const cBase *other) {
+    const cBase *copy = 0;
+    register char *ownSlot __asm__("$s7") = (char *)this + 0x38;
+
+    if (other != 0) {
+        if (!type_gcDoEntitySetPrimaryController) {
+            if (!type_action) {
+                if (!type_expression) {
+                    if (!type_base) {
+                        type_base = cType::InitializeType(
+                            (const char *)0x36D894, (const char *)0x36D89C,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_expression = cType::InitializeType(
+                        0, 0, 0x6A, type_base, 0, 0, 0, 0);
+                }
+                type_action = cType::InitializeType(
+                    0, 0, 0x6B, type_expression, 0, 0, 0, 0);
+            }
+            type_gcDoEntitySetPrimaryController = cType::InitializeType(
+                0, 0, 0x11D, type_action,
+                gcDoEntitySetPrimaryController::New, 0, 0, 0);
+        }
+
+        void *vt = ((void **)other)[1];
+        const cType *target = type_gcDoEntitySetPrimaryController;
+        VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
+        short off = slot->offset;
+        const cType *(*getType)(void *) = slot->getType;
+        const cType *type = getType((char *)other + off);
+        int ok;
+
+        if (target == 0) {
+            ok = 0;
+            goto cast_done;
+        }
+        if (type != 0) {
+        cast_loop:
+            if (type == target) {
+                ok = 1;
+                goto cast_done;
+            }
+            type = (const cType *)((cTypeNode *)type)->parent;
+            if (type != 0) {
+                goto cast_loop;
+            }
+        }
+        ok = 0;
+    cast_done:
+        if (ok != 0) {
+            copy = other;
+        }
+    }
+
+    int flags = *(int *)((char *)this + 8) & ~3;
+    *(int *)((char *)this + 8) = flags;
+    int srcBits = *(int *)((const char *)copy + 8) & 3;
+    *(int *)((char *)this + 8) = flags | srcBits;
+    ((gcDesiredEntity *)((char *)this + 0x0C))->operator=(
+        *(const gcDesiredEntity *)((const char *)copy + 0x0C));
+
+    if ((const char *)copy + 0x38 != ownSlot) {
+        goto copy_slot;
+    }
+    goto copy_bytes;
+
+copy_slot:
+    {
+        int currentWord = *(int *)((char *)this + 0x38);
+        int ownsCurrent = 1;
+        int currentTag = currentWord & 1;
+        if (currentTag != 0) {
+            ownsCurrent = 0;
+        }
+        if (ownsCurrent != 0) {
+            int current = currentWord;
+            int isTagged = 0;
+            if (currentTag != 0) {
+                isTagged = 1;
+            }
+            int replacement;
+            if (isTagged != 0) {
+                replacement = currentWord & ~1;
+                replacement |= 1;
+            } else {
+                replacement = *(int *)currentWord;
+                replacement |= 1;
+            }
+            *(int *)((char *)this + 0x38) = replacement;
+            if (current != 0) {
+                char *vt2 = *(char **)(current + 4);
+                DtorRec *rec = (DtorRec *)(vt2 + 0x50);
+                short doff = rec->offset;
+                void (*fn)(void *, int, void *, short) = rec->fn;
+                fn((char *)current + doff, 3, (void *)fn, doff);
+            }
+        }
+
+        int src = *(int *)((const char *)copy + 0x38);
+        int ownsSrc = 1;
+        int srcTag = src & 1;
+        if (srcTag != 0) {
+            ownsSrc = 0;
+        }
+        if (ownsSrc != 0) {
+            char *vt3 = *(char **)(src + 4);
+            CloneRec *rec = (CloneRec *)(vt3 + 0x10);
+            short coff = rec->offset;
+            char *srcBase = (char *)src + coff;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(ownSlot);
+            int old = *(int *)((char *)this + 0x38);
+            int oldTagged = 0;
+            void *fn = (void *)rec->fn;
+            int oldTag = old & 1;
+            if (oldTag != 0) {
+                oldTagged = 1;
+            }
+            int oldArg;
+            if (oldTagged != 0) {
+                oldArg = old & ~1;
+            } else {
+                oldArg = *(int *)old;
+            }
+            *(int *)((char *)this + 0x38) =
+                rec->fn(srcBase, pool, oldArg, fn);
+        }
+    }
+
+copy_bytes:
+    *(unsigned char *)((char *)this + 0x3C) =
+        *(const unsigned char *)((const char *)copy + 0x3C);
+    *(unsigned char *)((char *)this + 0x3D) =
+        *(const unsigned char *)((const char *)copy + 0x3D);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fegcDoEntitySetPrimaryControllerKAssignCopyPC6FcBase, 0x2e0\n");
 
 const cType *gcDoEntitySetPrimaryController::GetType(void) const {
     if (!type_gcDoEntitySetPrimaryController) {
