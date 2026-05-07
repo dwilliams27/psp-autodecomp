@@ -18266,7 +18266,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0000e570",
       "0x0000e6ac"
@@ -18275,7 +18275,15 @@
       "0x00004ff4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNcBufferedFileKSetFilePosUi"
+    "mangled_symbol": "__0fNcBufferedFileKSetFilePosUi",
+    "src_file": "src/cBufferedFile.cpp",
+    "symbol_name": "__0fNcBufferedFileKSetFilePosUi",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8989221c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T16:19:05Z"
   },
   {
     "address": "0x0000e7f8",
@@ -40524,7 +40532,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00047fd0",
       "0x000484e8"
@@ -40535,7 +40543,21 @@
       "0x002ccf40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelHSetSkiniNCB6KcTimeValue"
+    "mangled_symbol": "__0fNeDynamicModelHSetSkiniNCB6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "408a09e1",
+        "notes": "Added a canonical C++ split-TU implementation for eDynamicModel::SetSkin(int, int, int, cTimeValue) because the shared eDynamicModel.h only declares the neighboring cHandleT<eSkin> overload. The implementation reconstructs the mesh skin-array bounds check, D_00038890 handle resolution, this+0xFC store, SetMaterialSet(materialSet, time), SetSurfaceSet(surfaceSet), and the three-field clear path. The closest current compile is correct size but still mismatches 173/260 bytes.\n\nMain blockers are source-shape/register allocation around the early negative-index path and handle lookup. I tried a simple nested C version, a goto-shaped clear path, explicit negative-index first-store handling, reordered count/skins declarations to keep the array in a3 and count in a2, and a volatile stack local for the resolved handle. The count/skins reorder improves the middle of the function, but SNC emits bgez+branch or non-likely bltz forms instead of the original bltzl with sw zero,252(s0) in the delay slot, and the handle comparison drifts into bnel or inverted register roles. sched=2 was used as hinted; sched=1 was not pursued after the large source-shape diffs.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:17:41Z",
+        "src_file": "src/eDynamicModel_SetSkinInt.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/408a09e1/00047e7c__agent_self_reported_failure__src_eDynamicModel_SetSkinInt.cpp"
+      }
+    ]
   },
   {
     "address": "0x00047f80",
@@ -62304,13 +62326,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0014a3d8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPeParticleSystemPSetAttractorPosRC6FmVec3"
+    "mangled_symbol": "__0fPeParticleSystemPSetAttractorPosRC6FmVec3",
+    "failure_notes": [
+      {
+        "session": "8989221c",
+        "notes": "Closest attempt is a canonical eParticleSystem::SetAttractorPos(const mVec3 &) in src/eParticleSystem.cpp using native V4SF temporaries so the stores are compiler-generated rather than inline sv.q. Existing eParticleSystem siblings still match. The closest compare is 140/244 bytes different. It matches the high-level control flow and uses lbu flag checks, vtable rec calls, two OCS transforms, and the second attractor write, but generated code keeps self/src/OCS in a different callee-save layout (notably self in s2 in the closest version), emits the vtable thunk with a2 as the call target rather than the original a1 pattern, and inserts an address addiu before each compiler-generated vector store.\n\nTried all-inline VFPU, native V4SF output stores to get the first sv.q into the beqz delay slot, local declaration reordering to target s3/s1/s0/s2, explicit register variables, rec-struct vtable access, and swapped vector constraints to influence C120/C130 allocation. The main root cause appears to be a combined SNC register-allocation/VFPU-output allocation drift: the original wants C120 as the input vector and C130 as the compiler-stored result, while SNC for these source forms tends to allocate the result in C120 or add a pre-store address register. A future retry should focus on forcing the native output into C130 without adding a move, and on reproducing the vtable call as lw a0,4(s1); addiu a1,a0,0xB8; lh a0,0(a1); lw a1,4(a1); jalr a1.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:19:05Z",
+        "src_file": "src/eParticleSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/8989221c/0007c238__agent_self_reported_failure__src_eParticleSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007c32c",
@@ -102476,7 +102512,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -102484,7 +102520,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDesiredEntityTemplateHGetTextPcK"
+    "mangled_symbol": "__0fXgcDesiredEntityTemplateHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "408a09e1",
+        "notes": "Added gcDesiredEntityTemplate::GetText(char *) const in the canonical class file, following the m2c control flow and nearby gcDesiredEnumeration/gcDesiredObjectT GetText handle-resolution patterns. The current source reaches the correct 396-byte function size and preserves existing matched siblings in the TU, but GetText still mismatches 259/396 bytes.\n\nThe dominant diff starts in the prologue and cascades: the original schedules lw a2,20(a0) before saving s0 and keeps the first value in a2 with the bool flag in a1; SNC emits sw s0/move s0,a1 first, then lw a1,20(a0), putting the same logic in a1/a2. I also reshaped the external-object path to share the final epilogue, which fixed the early-return layout, but the virtual GetText dispatch still emits bnez/addiu/lw instead of the original beqzl null-check load pattern. A brief sched=1 probe made other already-matched methods in the file worse and did not improve this target, so the closest sched=2 source was kept.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:17:41Z",
+        "src_file": "src/gcDesiredEntityTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/408a09e1/00127c0c__agent_self_reported_failure__src_gcDesiredEntityTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00127d98",
@@ -103022,7 +103072,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -103364,7 +103414,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -121033,7 +121083,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x0023a260"
@@ -206124,7 +206174,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"

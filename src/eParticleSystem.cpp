@@ -1,5 +1,15 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
+#include "mVec3.h"
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+struct eParticleSystem_UpdateRec {
+    short offset;
+    short pad;
+    void (*fn)(void *);
+};
+
 class cBase;
 class cFile;
 class cMemPool;
@@ -39,6 +49,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    void SetAttractorPos(const mVec3 &);
 };
 
 struct AllocRec {
@@ -139,4 +150,65 @@ const cType *eParticleSystem::GetType(void) const {
                                            0, 0, 0);
     }
     return D_00046C44;
+}
+
+void eParticleSystem::SetAttractorPos(const mVec3 &pos) {
+    unsigned char *attractor = *(unsigned char **)((unsigned char *)this + 0x60);
+    unsigned char secondary = *(unsigned char *)(attractor + 0x4D);
+    unsigned char *ocs;
+    unsigned char *self = (unsigned char *)this;
+    const unsigned char *src = (const unsigned char *)&pos;
+
+    if (secondary == 0 && *(unsigned char *)(attractor + 0x4C) == 0) {
+        if (*(unsigned char *)(self + 0x8C) & 4) {
+            unsigned char *vtab = (unsigned char *)((void **)self)[1];
+            eParticleSystem_UpdateRec *rec =
+                (eParticleSystem_UpdateRec *)(vtab + 0xB8);
+            short off = rec->offset;
+            void (*fn)(void *) = rec->fn;
+            fn(self + off);
+        }
+
+        ocs = self + 0x10;
+        v4sf_t scratch;
+        v4sf_t out;
+        __asm__ volatile(
+            "lv.q %1, 0x0(%2)\n"
+            "lv.q C000, 0x0(%3)\n"
+            "lv.q C010, 0x10(%3)\n"
+            "lv.q C020, 0x20(%3)\n"
+            "lv.q C030, 0x30(%3)\n"
+            "vsub.t %1, %1, C030\n"
+            "vtfm3.t %0, M000, %1"
+            : "=v"(out), "=v"(scratch)
+            : "r"(src), "r"(ocs)
+            : "memory");
+        *(v4sf_t *)(self + 0x120) = out;
+
+        if (attractor != 0 && *(unsigned char *)(attractor + 0x4C) != 0) {
+            if (*(unsigned char *)(self + 0x8C) & 4) {
+                unsigned char *vtab = (unsigned char *)((void **)self)[1];
+                eParticleSystem_UpdateRec *rec =
+                    (eParticleSystem_UpdateRec *)(vtab + 0xB8);
+                short off = rec->offset;
+                void (*fn)(void *) = rec->fn;
+                fn(self + off);
+            }
+
+            v4sf_t scratch2;
+            v4sf_t out2;
+            __asm__ volatile(
+                "lv.q %1, 0x0(%2)\n"
+                "lv.q C000, 0x0(%3)\n"
+                "lv.q C010, 0x10(%3)\n"
+                "lv.q C020, 0x20(%3)\n"
+                "lv.q C030, 0x30(%3)\n"
+                "vsub.t %1, %1, C030\n"
+                "vtfm3.t %0, M000, %1"
+                : "=v"(out2), "=v"(scratch2)
+                : "r"(src), "r"(ocs)
+                : "memory");
+            *(v4sf_t *)(attractor + 0x170) = out2;
+        }
+    }
 }

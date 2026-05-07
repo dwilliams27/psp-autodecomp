@@ -56,6 +56,9 @@ public:
         }
     }
     void Close(void);
+    void Reset(unsigned int pos);
+    void NextBuffer(void);
+    void SetFilePos(unsigned int pos);
     bool IsOpen(void) const;
 };
 
@@ -93,4 +96,23 @@ cBufferedFile::~cBufferedFile(void) {
     sceKernelFreeFpl(mAllocHandle, mBufferPtr[0]);
     sceKernelFreeFpl(mAllocHandle, mBufferPtr[1]);
     sceKernelDeleteFpl(mAllocHandle);
+}
+
+void cBufferedFile::SetFilePos(unsigned int pos) {
+    int curBuf = mCurrentBuffer;
+    unsigned int curPos = mFilePos[curBuf];
+
+    if (pos >= curPos && pos < curPos + mBufferSize) {
+        mBufPos = pos - curPos;
+        return;
+    }
+
+    unsigned int nextPos = mFilePos[(curBuf == 0) & 0xFF];
+    if (pos >= nextPos && pos < nextPos + mBufferSize) {
+        NextBuffer();
+        mBufPos = pos - nextPos;
+        return;
+    }
+
+    Reset(pos);
 }
