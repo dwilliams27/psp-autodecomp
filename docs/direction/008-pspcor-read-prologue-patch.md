@@ -118,6 +118,26 @@ Additional controls:
 - Direct compile with `-Xsched=0` is much worse: `127/188`
   verification-masked byte diffs.
 
+`tools/research/read_prologue_source_variants.py` now makes these probes
+repeatable without editing `src/cFactory.cpp`. Current `cFactory::Read` source
+variant sweep:
+
+| Variant | Compiled Size | Verification-Masked Diffs |
+|---|---:|---:|
+| `current` | 188 | `20/188` |
+| `asm_after_ctor_memory` | 188 | `20/188` |
+| `asm_before_ctor` | 188 | `34/188` |
+| `asm_before_ctor_memory` | 188 | `34/188` |
+| `plain_before_ctor` | 176 | `105/188` |
+| `plain_after_ctor` | 176 | `105/188` |
+| `volatile_before_ctor` | 208 | `127/188` |
+| `current_sched1` | 188 | `26/188` |
+| `asm_before_ctor_sched1` | 188 | `31/188` |
+
+The best source-level shape remains the current checked-in source. A memory
+clobber on the post-constructor asm is neutral; all other tested source shapes
+move farther from the target.
+
 Trace collection is now reproducible through the harness direct-compile mode.
 Example:
 
@@ -280,3 +300,7 @@ Milestone 4:
   string/xref index from `extern/snc/pspcor.exe` using `strings` and `objdump`.
   The current scheduler/LRA map no longer depends on the missing historical
   `/tmp/pspcor_string_index.json` artifact.
+- 2026-05-07: Added `tools/research/read_prologue_source_variants.py` and ran
+  the repeatable source-shape sweep for `cFactory::Read`. The current source
+  and the current source plus an asm memory clobber tie for best at `20/188`
+  masked diffs; every other tested source shape is worse or changes size.

@@ -246,7 +246,7 @@ def _word_diff(expected: bytes, compiled: bytes, limit_bytes: int) -> list[str]:
 
 
 def _byte_diff_count(left: bytes, right: bytes) -> int:
-    return sum(1 for a, b in zip(left, right) if a != b)
+    return sum(1 for a, b in zip(left, right) if a != b) + abs(len(left) - len(right))
 
 
 def _masked_for_diff(expected: bytes, compiled: bytes,
@@ -371,6 +371,8 @@ def analyze_address(func: dict, src_file: str | None, out_dir: Path,
     report.append(f"- Source: `{src_file or '(none)'}`")
     report.append(f"- Object: `{o_path or '(not compiled)'}`")
     report.append(f"- Symbol: `{sym_name or func.get('mangled_symbol') or '(unknown)'}`")
+    if compiled:
+        report.append(f"- Compiled size: `{len(compiled)}`")
     report.append(f"- Compile mode: `{'direct' if direct_compile else 'make'}`")
     if compile_cmd:
         report.append(f"- Compiler command: `{shlex.join(compile_cmd)}`")
@@ -379,13 +381,12 @@ def analyze_address(func: dict, src_file: str | None, out_dir: Path,
     if relocs:
         report.append(f"- Function-relative relocations: `{relocs}`")
     if compiled:
-        cmp_len = min(len(expected), len(compiled))
         report.append(
-            f"- Raw byte diffs: `{_byte_diff_count(expected[:cmp_len], compiled[:cmp_len])}/{cmp_len}`"
+            f"- Raw byte diffs: `{_byte_diff_count(expected, compiled)}/{len(expected)}`"
         )
         report.append(
             f"- Verification-masked byte diffs: "
-            f"`{_byte_diff_count(masked_expected, masked_compiled)}/{len(masked_expected)}`"
+            f"`{_byte_diff_count(masked_expected, masked_compiled)}/{len(expected)}`"
         )
     report.append("")
     if compiled:
