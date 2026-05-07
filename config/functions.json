@@ -113310,7 +113310,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x002d6724"
@@ -144382,7 +144382,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x001e48f0",
@@ -144390,7 +144390,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDecalSystemKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fMeDecalSystemKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "de3b426a",
+        "notes": "Closest source reconstructs the lazy cType initialization, dynamic-cast loop, VFPU quad copies, scalar field copies, and cArrayBase assignments, but remains at 46/540 bytes differing under compare_func.py. I tried sched=1, default scheduling, explicit sched=2, removing InitializeType argument barriers to match the sibling GetType schedule, introducing a self alias, and explicit register binding for this/base; the register-binding variants got worse. A 300s permuter run generated 11,544 candidates, compiled 3,730, and found zero improvement from its 50-byte baseline.\n\nThe residual mismatch appears to be source-level register allocation drift in this TU: the closest build keeps this in s1 and base/other staging in s0 where the original keeps this in s0 and base in s1, so all later VFPU stores and scalar stores encode the wrong saved register even though the instruction sequence and offsets are otherwise the intended AssignCopy template. There is also minor scheduling around the 0x5C float and 0x50 VFPU copy, but the dominant issue is the saved-register assignment.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:14:06Z",
+        "src_file": "src/eDecalSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/de3b426a/001e4e04__agent_self_reported_failure__src_eDecalSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x001e5020",
@@ -228902,7 +228916,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -235591,13 +235605,21 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLnwConfigPSPKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fLnwConfigPSPKAssignCopyPC6FcBase",
+    "src_file": "src/nwConfigPSP.cpp",
+    "symbol_name": "__0fLnwConfigPSPKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "de3b426a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:14:06Z"
   },
   {
     "address": "0x0036b6a8",
