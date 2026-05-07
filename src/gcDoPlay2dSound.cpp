@@ -39,6 +39,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetText(char *) const;
     gcDoPlay2dSound &operator=(const gcDoPlay2dSound &);
 };
 
@@ -74,6 +75,15 @@ struct VTableSlot {
     short pad;
     const cType *(*getType)(void *);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char gcDoPlay2dSoundvirtualtable[];
 extern char gcDoPlayMovievirtualtable[];
@@ -199,6 +209,103 @@ void gcDoPlay2dSound::Write(cFile &file) const {
     wb.Write(((const int *)this)[4]);
     ((const gcDesiredValue *)((const char *)this + 0x2C))->Write(wb);
     wb.End();
+}
+
+void gcDoPlay2dSound::GetText(char *buf) const {
+    register const gcDoPlay2dSound *self __asm__("$17") = this;
+    register char *out __asm__("$16") = buf;
+
+    switch (*(int *)((const char *)self + 0x0C)) {
+    case 0: {
+        cStrCat(out, (const char *)0x36ED10);
+        char *typeInfo = *(char **)((const char *)self + 0x18);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x78);
+        char *sub = (char *)self + 0x14;
+        slot->fn(sub + slot->offset, out);
+        break;
+    }
+    case 1: {
+        cStrCat(out, (const char *)0x36ED1C);
+        char *typeInfo = *(char **)((const char *)self + 0x18);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x78);
+        char *sub = (char *)self + 0x14;
+        slot->fn(sub + slot->offset, out);
+        break;
+    }
+    case 2: {
+        cStrCat(out, (const char *)0x36ED28);
+        char *typeInfo = *(char **)((const char *)self + 0x18);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x78);
+        char *sub = (char *)self + 0x14;
+        slot->fn(sub + slot->offset, out);
+        break;
+    }
+    case 3:
+        cStrCat(out, (const char *)0x36ED38);
+        break;
+    case 4:
+        cStrCat(out, (const char *)0x36ED48);
+        break;
+    case 5:
+        cStrCat(out, (const char *)0x36ED58);
+        break;
+    case 6:
+        cStrCat(out, (const char *)0x36ED6C);
+        break;
+    case 7: {
+        cStrCat(out, (const char *)0x36ED7C);
+        char *typeInfo = *(char **)((const char *)self + 0x18);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x78);
+        char *sub = (char *)self + 0x14;
+        slot->fn(sub + slot->offset, out);
+        break;
+    }
+    case 8:
+        cStrCat(out, (const char *)0x36ED8C);
+        break;
+    case 9:
+        cStrAppend(out, (const char *)0x36ED9C, (const char *)0x36DAF0);
+        break;
+    }
+
+    int value = *(int *)((const char *)self + 0x28);
+    int owned = 0;
+    int tagged = value & 1;
+    if (tagged != 0) {
+        owned = 1;
+    }
+    if (owned != 0) {
+        value = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    if (value != 0) {
+        cStrCat(out, (const char *)0x36EAF0);
+
+        value = *(int *)((const char *)self + 0x28);
+        owned = 0;
+        tagged = value & 1;
+        if (tagged != 0) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        cStrCat(out, (const char *)0x36E48C);
+    }
+
+    cStrAppend(out, (const char *)0x36DCEC);
 }
 
 cBase *gcDoPlayMovie::New(cMemPool *pool, cBase *parent) {

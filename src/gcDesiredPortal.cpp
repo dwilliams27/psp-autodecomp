@@ -67,9 +67,22 @@ struct DtorDeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct TypeDispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
+struct DesiredObjectCopyEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, cMemPool *, int);
+};
+
 class gcDesiredPortal {
 public:
     ~gcDesiredPortal();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -83,6 +96,134 @@ public:
         fn(block + off, p);
     }
 };
+
+// 0x00293b18 - gcDesiredPortal::AssignCopy(const cBase *)
+void gcDesiredPortal::AssignCopy(const cBase *base) {
+    const gcDesiredPortal *other = 0;
+    char *dstObjectSlot = (char *)this + 8;
+
+    if (base != 0) {
+        if (D_0009F5A0 == 0) {
+            if (D_0009F3F4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_0009F3F4 = cType::InitializeType(
+                    0, 0, 0x12C, D_000385DC, 0, 0, 0, 0);
+            }
+            D_0009F5A0 = cType::InitializeType(
+                0, 0, 0x225, D_0009F3F4, &gcDesiredPortal::New, 0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((const char *)base + 4);
+        cType *target = D_0009F5A0;
+        TypeDispatchEntry *entry = (TypeDispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = *(cType **)((char *)type + 0x1C);
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcDesiredPortal *)base;
+        }
+    }
+
+    char *srcObjectSlot = (char *)other + 8;
+    char *srcFields = (char *)other + 12;
+    if (srcObjectSlot != dstObjectSlot) {
+        int oldValue = *(int *)((char *)this + 8);
+        int keep = 1;
+        int oldTagged = oldValue & 1;
+        if (oldTagged != 0) {
+            keep = 0;
+        }
+        if (keep != 0) {
+            int replacement;
+            int owned = 0;
+            if (oldTagged != 0) {
+                owned = 1;
+            }
+            if (owned != 0) {
+                replacement = oldValue & -2;
+            } else {
+                replacement = *(int *)oldValue;
+            }
+            replacement |= 1;
+            *(int *)((char *)this + 8) = replacement;
+            if (oldValue != 0) {
+                char *obj = (char *)oldValue;
+                char *typeInfo = *(char **)(obj + 4);
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)(typeInfo + 0x50);
+                short off = rec->offset;
+                void (*dtor)(void *, void *) = rec->fn;
+                dtor(obj + off, (void *)3);
+            }
+        }
+
+        int srcValue = *(int *)((char *)other + 8);
+        int srcKeep = 1;
+        int srcTagged = srcValue & 1;
+        if (srcTagged != 0) {
+            srcKeep = 0;
+        }
+        if (srcKeep != 0) {
+            char *srcObj = (char *)srcValue;
+            char *typeInfo = *(char **)(srcObj + 4);
+            DesiredObjectCopyEntry *entry =
+                (DesiredObjectCopyEntry *)(typeInfo + 0x10);
+            short off = entry->offset;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(dstObjectSlot);
+
+            int dstValue = *(int *)((char *)this + 8);
+            int dstOwned = 0;
+            int dstTagged = dstValue & 1;
+            if (dstTagged != 0) {
+                dstOwned = 1;
+            }
+            int dstObj;
+            if (dstOwned != 0) {
+                dstObj = dstValue & -2;
+            } else {
+                dstObj = *(int *)dstValue;
+            }
+            *(int *)((char *)this + 8) =
+                entry->fn(srcObj + off, pool, dstObj);
+        }
+        srcFields = (char *)other + 12;
+    }
+
+    *(int *)((char *)this + 12) = *(int *)srcFields;
+    *(int *)((char *)this + 16) = *(int *)(srcFields + 4);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
 
 __asm__(".word 0x1000ffff\n");
 __asm__(".word 0x00000000\n");

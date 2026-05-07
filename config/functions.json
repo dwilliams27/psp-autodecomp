@@ -134481,7 +134481,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -141913,7 +141913,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -174948,14 +174948,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcDesiredCustomAnimationKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fYgcDesiredCustomAnimationKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "0f602de8",
+        "notes": "Reconstructed gcDesiredCustomAnimation::AssignCopy in canonical C++ with the same type-initialization chain, dcast loop, desired-object release/copy virtual calls, and final 0x0C/0x10 field copy. Existing matched functions in the TU still compare cleanly, but this method compiles to 628B versus the expected 636B and does not byte-match.\n\nThe closest source has the right high-level control flow and branch-likely shape in the cast loop and copy tail, but SNC allocates the long-lived this+8 pointer to s3 and rotates the type-cache address registers to s4/s5/s6; the target uses s6 for this+8 and s3/s4/s5 for the three type globals. Explicit slot locals made the register assignment look right but inserted extra address-addiu scheduling and worsened the diff. Inline register attempts were either ignored or produced wrong code. The permuter could not start because the compiled symbol size is still 628B rather than the expected 636B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:07:07Z",
+        "src_file": "src/gcDesiredCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/0f602de8/0026575c__agent_self_reported_failure__src_gcDesiredCustomAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x002659d8",
@@ -175356,14 +175370,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredCustomAttackKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fVgcDesiredCustomAttackKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "0f602de8",
+        "notes": "Reconstructed gcDesiredCustomAttack::AssignCopy in the requested TU using the same body as the animation variant, with D_0009F438, type id 0x1CF, and gcDesiredCustomAttack::New. The source compiles and does not disturb the previously matched gcDesiredCustomAnimation functions, but the attack AssignCopy also compiles to 628B versus the expected 636B.\n\nThe remaining issue mirrors the animation function exactly: control flow is close, but the compiler chooses a different callee-save layout for the this+8 pointer and related temporaries. Manual rewrites tried direct globals, explicit type-cache slot locals, reordered flag/current/source variables, goto-shaped copy-tail control flow, and inline register nudges. The slot-local approach fixed the visible register class for part of the function but changed scheduling and inserted extra address materialization, so the closest retained attempt is the cleaner C++ body with the register-allocation drift documented above.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:07:07Z",
+        "src_file": "src/gcDesiredCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/0f602de8/00266e20__agent_self_reported_failure__src_gcDesiredCustomAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026709c",
@@ -176623,14 +176651,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDesiredPathKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fNgcDesiredPathKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "8c0a942c",
+        "notes": "Closest attempt reconstructs gcDesiredPath::AssignCopy as canonical C++ using the matched type-initialization/dcast scaffold, an inline gcDesiredObject::operator= for the desired-object reference at offset 0x08, and a two-word copy for offsets 0x0C/0x10. This produces the correct 636B symbol size, correct prologue/type-cache register layout, correct cast loop, correct branch distances, and preserves all previously matched gcDesiredPath siblings. A 300s permuter pass improved the best result from 46 to 43 differing bytes and saved the current source.\n\nThe remaining mismatch is localized to register allocation inside the inlined smart-reference assignment. The original uses a2/a1/a0 for the first release flag sequence and later reuses s6 for the destination smart pointer after cMemPool::GetPoolFromPtr, while SNC in this split TU keeps several values in a0/s6 differently. Manual attempts included raw offset code, member-access code, inline base assignment, explicit register bindings, source-order changes around the pool lookup, sched=1, a memory barrier, and struct tail copy. Control flow and instruction count are otherwise aligned; this appears to need a very specific original source idiom or broader TU context to resolve.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:17:20Z",
+        "src_file": "src/gcDesiredPath.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/8c0a942c/0026b8b8__agent_self_reported_failure__src_gcDesiredPath.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026bb34",
@@ -176911,14 +176953,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDesiredPointKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcDesiredPointKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "8c0a942c",
+        "notes": "Closest attempt mirrors the gcDesiredPath reconstruction for gcDesiredPoint with D_0009F464, type id 0x14D, and gcDesiredPoint::New. It compiles cleanly, keeps destructor/Write/New/GetType matched, emits the expected 636B AssignCopy symbol with the trailing branch/nop pad, and lands at the same 43-byte mismatch after applying the best source-shape found on the path sibling.\n\nThe mismatch pattern is the same smart-reference register allocation drift as gcDesiredPath: the type initialization, dcast loop, branch distances, final two-word copy, and symbol sizing are correct, but the inlined assignment chooses different temporaries for the release/copy flag sequences and for the pool/old-destination values around cMemPool::GetPoolFromPtr. I did not run a second full permuter pass because the point body is the same template and the path pass already exhausted 300s with only a 46 to 43 byte improvement.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:17:20Z",
+        "src_file": "src/gcDesiredPoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/8c0a942c/0026c9fc__agent_self_reported_failure__src_gcDesiredPoint.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026cc78",
@@ -177148,14 +177204,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDesiredSoundDataKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcDesiredSoundDataKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "82d8796f",
+        "notes": "Implemented the full lazy cType initialization and dynamic-cast pattern for gcDesiredSoundData::AssignCopy, then tried two assignment-body shapes: a direct m2c-style expansion and the established gcDesiredObject::operator= helper pattern from gcDesiredPath. The helper version gives the closest stable result: correct 0x27c symbol size with the trailing self-branch padding, and all matched siblings in the TU remain byte-exact. The remaining diff is 43/636 bytes in the inlined desired-object mNext assignment/copy block after the cast; the top-level type init, cast loop, final two-word copy offsets, calls, and branch skeleton are structurally aligned.\n\nThe mismatch appears to be SNC register-allocation/source-shape drift in the handle-copy block rather than missing semantics: our build assigns the old/current/source/copy-base temporaries to a0/a1/a2/s4/s6 differently from the original, especially around the release path and the cMemPool::GetPoolFromPtr copy path. I also tried explicit register variables and empty asm constraints to force a2/a1/a0/s6 roles; those made the body shorter and worse, so the source was restored to the fuller helper shape. A permuter attempt could not run because it failed to locate the target cleanly in this multi-symbol TU.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:22:13Z",
+        "src_file": "src/gcDesiredSoundData.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/82d8796f/0026dae4__agent_self_reported_failure__src_gcDesiredSoundData.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026dd60",
@@ -177410,14 +177480,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredSpriteKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcDesiredSpriteKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "82d8796f",
+        "notes": "Implemented gcDesiredSprite::AssignCopy using the same class-specific lazy cType initialization and dynamic-cast pattern, with type global D_0009F46C, type id 0x16E, and gcDesiredSprite::New. The emitted function fails in the same way as the SoundData twin: correct 0x27c padded symbol shape under the gcDesiredObject::operator= helper, matched destructor/Write/New/GetType siblings, but 43/636 bytes differ in the inlined desired-object assignment block.\n\nBecause the two functions are byte-identical except for the expected type global/type id/factory relocations, the root cause is almost certainly the same register-allocation/source-shape issue in the mNext release/copy sequence. Direct expansion, helper-based assignment, and explicit register-binding attempts were tested on the shared pattern; the binding attempt worsened the size, so the source is checkpointed at the closest 43-byte mismatch for retry.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:22:13Z",
+        "src_file": "src/gcDesiredSprite.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/82d8796f/0026ec28__agent_self_reported_failure__src_gcDesiredSprite.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026eea4",
@@ -177668,14 +177752,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredStringTableKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fUgcDesiredStringTableKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "a2e5ca9b",
+        "notes": "Implemented gcDesiredStringTable::AssignCopy in canonical C++ form with the expected lazy cType chain (D_000385DC -> D_0009F3F4 -> D_0009F470), dynamic-cast parent walk, inlined gcDesiredObject mNext release/copy logic, final two-word copy at offsets 0x0C/0x10, and the 0x27c size sentinel with trailing self-branch padding. The method compiles to the correct 636B size, the RTTI/type-init/cast section matches structurally, and all existing siblings in src/gcDesiredStringTable.cpp still compare as matched. Final compare is 43/636 bytes different; the diff starts in the inlined tagged-pointer assignment after the self-copy check, where original SNC uses a2/a1/a0 for the old-value flag sequence and later reuses s6 for the destination smart pointer around cMemPool::GetPoolFromPtr, while this TU allocates those temporaries through a0/a1/a2/s6 differently.\n\nTried the established gcDesiredPath helper pattern, a no-register m2c-style variant (regressed to 46/636 bytes different), and a 300s permuter pass with --save-best. The permuter generated 9408 candidates, compiled 4453, and found no improvement over the 43-byte baseline. Root cause appears to be the known desired-object smart-reference register allocation/source-context drift rather than missing semantics; category=REG_ALLOC/TU_CONTEXT.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:29:14Z",
+        "src_file": "src/gcDesiredStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/a2e5ca9b/0026fd6c__agent_self_reported_failure__src_gcDesiredStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026ffe8",
@@ -179852,14 +179950,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDesiredTableTemplateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcDesiredTableTemplateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "a2e5ca9b",
+        "notes": "Implemented gcDesiredTableTemplate::AssignCopy with the same canonical body as gcDesiredStringTable, using D_0009F498, type id 0xEB, and gcDesiredTableTemplate::New. It compiles to the correct 636B shape with the trailing branch/nop padding, and destructor/Write/New/GetType in src/gcDesiredTableTemplate.cpp remain byte-exact. Final compare is 43/636 bytes different, with the same localized mismatch in the inlined gcDesiredObject mNext release/copy block; the type initialization, dynamic-cast loop, final two-word copy, and branch distances otherwise align.\n\nI did not run a second permuter pass because this target is byte-identical to the string-table target except for relocations/type ID, and the string-table 300s pass found zero improvements from the same source shape. The remaining issue is the same a0/a1/a2/s6 temporary allocation drift around the tagged-pointer release and cMemPool::GetPoolFromPtr copy path; category=REG_ALLOC/TU_CONTEXT.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:29:14Z",
+        "src_file": "src/gcDesiredTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/a2e5ca9b/00274e48__agent_self_reported_failure__src_gcDesiredTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x002750c4",
@@ -180228,14 +180340,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDesiredTimerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcDesiredTimerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "cbf7d0a5",
+        "notes": "Implemented gcDesiredTimer::AssignCopy with the correct lazy cType initialization chain (D_000385DC -> D_0009F3F4 -> D_0009F4A0, type IDs 1/0x12C/0x12F), canonical dynamic-cast parent walk, gcDesiredObject smart-reference assignment, and final two-word copy at offsets 0x0C/0x10. Tried a direct m2c-style expansion, a literal pointer-temporary variant, explicit register bindings for the self+8 slot and tagged-pointer temporaries, the established inline gcDesiredObject::operator= source shape from other gcDesired* failures, and the label-address dead-loop trick for the trailing sentinel.\n\nThe best stable source recovers the expected top-level register layout through type initialization and cast, but Timer still compiles as a 628B symbol versus the expected 636B. When forcing the 8B trailing loop inside the function, SNC's register allocation shifts badly and the body regresses to hundreds of differing bytes. The remaining blocker appears to be the same TU/context-sensitive smart-reference assignment/sentinel placement issue documented in prior gcDesiredPath/gcDesiredSoundData attempts, not missing semantics.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:32:21Z",
+        "src_file": "src/gcDesiredTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/cbf7d0a5/002768e4__agent_self_reported_failure__src_gcDesiredTimer.cpp"
+      }
+    ]
   },
   {
     "address": "0x00276b60",
@@ -180621,14 +180747,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredTriggerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQgcDesiredTriggerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "cbf7d0a5",
+        "notes": "Implemented gcDesiredTrigger::AssignCopy with the same source shape as Timer, using D_0009F4A8 and type ID 0x12E with gcDesiredTrigger::New. The generated function is the correct 636B size and matches the expected lazy type initialization, dynamic-cast loop, branch skeleton, final two-word copy, and trailing sentinel.\n\nThe remaining diff is 43/636 bytes, localized to register allocation and short-lived temporary ordering inside the inlined gcDesiredObject smart-reference release/clone path around vtable+0x50, cMemPool::GetPoolFromPtr(this+8), and vtable+0x10. Direct expansion and explicit register bindings worsened size or register allocation; this matches the known gcDesired* REG_ALLOC/TU_CONTEXT failure pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:32:21Z",
+        "src_file": "src/gcDesiredTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/cbf7d0a5/002789ac__agent_self_reported_failure__src_gcDesiredTimer.cpp"
+      }
+    ]
   },
   {
     "address": "0x00278c28",
@@ -180858,14 +180998,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDesiredUIDialogKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcDesiredUIDialogKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "245423f8",
+        "notes": "Implemented gcDesiredUIDialog::AssignCopy as a canonical C++ method with the observed lazy cType initialization chain, dynamic-cast walk through type+0x1C, tagged destination handle release, source handle clone through the type+0x10 dispatch record, and final two-word copy from source+0x0C. Existing siblings in src/gcDesiredUIDialog.cpp still compare byte-exact, but AssignCopy remains size-mismatched: expected 636B, closest current symbol is 612B. Earlier more semantic variants produced 616B and 628B, but all had the same underlying allocation drift.\n\nThe dominant mismatch is register allocation, not control-flow understanding: SNC assigns the long-lived destination slot/temp_s6 to s3 in this TU, while the target uses s6 and keeps the lazy-init globals in s3/s4/s5. Our output shifts those globals to s4/s5/s6, which cascades through the prologue, lazy-init block, slot compare, GetPoolFromPtr call, and epilogue. I tried m2c-shaped arg0/arg1 temporaries, explicit goto labels, fixed-register locals using both numeric and named callee-save registers, and a sched=1 probe; none moved temp_s6 to s6. A bounded permuter pass was attempted but could not start because tools/permuter.py requires locating a 636B target-sized symbol and the closest compiled symbol is size-mismatched.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:38:10Z",
+        "src_file": "src/gcDesiredUIDialog.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/245423f8/00279964__agent_self_reported_failure__src_gcDesiredUIDialog.cpp"
+      }
+    ]
   },
   {
     "address": "0x00279be0",
@@ -181371,7 +181525,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -189262,14 +189416,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredPortalKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcDesiredPortalKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f9902c9c",
+        "notes": "Reconstructed gcDesiredPortal::AssignCopy in canonical C++ syntax with the correct lazy type-init chain, dynamic-cast walk, desired-object release/copy path, and final two-word copy. Existing matched portal siblings still compare cleanly, but the closest source emits a 608-byte AssignCopy symbol versus the 636-byte target. The type-init/cast half is structurally close, but the assignment tail does not land on the original allocation: expected keeps this in s0, casted source in s2, destination object slot in s6, and type-cache globals in s3-s5; the closest local source keeps the destination slot in s3 and shifts the cache globals up, shortening the tail and changing several branch/delay-slot shapes.\n\nTried raw m2c-style field copying, explicit register-variable declarations, moving the destination slot lifetime before/after the cast, sched=1, and an inline semantic AssignFrom/operator= shape. The semantic helper got the prologue closer with s6 live but emitted an extra helper symbol unless reverted, and still stayed 604B. This looks like source-level leverage around SNC register allocation/lifetime shape rather than missing semantics; a future retry should focus on forcing dstObjectSlot into s6 while leaving D_0009F5A0/D_0009F3F4/D_000385DC in s3/s4/s5, or model the underlying gcDesiredObjectT assignment more faithfully.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:42:12Z",
+        "src_file": "src/gcDesiredPortal.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f9902c9c/00293b18__agent_self_reported_failure__src_gcDesiredPortal.cpp"
+      }
+    ]
   },
   {
     "address": "0x00293d94",
@@ -203098,14 +203266,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoPlay2dSoundHGetTextPcK"
+    "mangled_symbol": "__0fPgcDoPlay2dSoundHGetTextPcK",
+    "src_file": "src/gcDoPlay2dSound.cpp",
+    "symbol_name": "__0fPgcDoPlay2dSoundHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f9902c9c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T10:42:12Z"
   },
   {
     "address": "0x002ee318",
@@ -213622,7 +213798,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
