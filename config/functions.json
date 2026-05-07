@@ -145550,7 +145550,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -145564,7 +145564,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeRoomKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fFeRoomKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "3060ad5d",
+        "notes": "Implemented eRoom::AssignCopy canonically in src/eRoom.cpp with the same lazy init/dynamic-cast pattern as eAll exemplars, cObject::operator=, native V4SF copies for the VFPU blocks, and the array/base-array assignment calls in target byte order. Size is exact at 720B and all existing eRoom.cpp matched siblings remain matched except the pre-existing eRoom::Free DB size mismatch. The remaining AssignCopy diff is 5/720 bytes: only register encodings in scalar field-copy instructions around offsets +0xCC and +0xEC (target keeps +0xCC in a2 for the following eRoomTreeNode array assignment and uses a1/a0 for the +0xEC copy). Tried pointer-copy reshaping, temp splitting, register-bound locals, minimal inline asm experiments, and a 120s permuter run (4032 generated / 1806 compiled, no improvement; best stayed 17 raw bytes/5 masked bytes). This appears to be local register allocation drift rather than control-flow or scheduling.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:53:16Z",
+        "src_file": "src/eRoom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/3060ad5d/001e9920__agent_self_reported_failure__src_eRoom.cpp"
+      }
+    ]
   },
   {
     "address": "0x001e9bf0",
@@ -192887,7 +192901,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -192895,7 +192909,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoEntityAttachHGetTextPcK"
+    "mangled_symbol": "__0fQgcDoEntityAttachHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "b59baf28",
+        "notes": "Closest attempt compiles to the correct 740-byte size but still differs by 61 bytes. I reconstructed both mode branches in C++ with canonical gcDoEntityAttach::GetText syntax, explicit GetTextSlot dispatches, tagged-pointer ownership checks, cStr constructor call via __0oEcStrctPCce, and register bindings for s0-s5 around the large stack temporaries. A 5-minute permuter run improved the function from 89 differing bytes to 61, but did not match; I reverted the permuter's unrelated changes that regressed already matched sibling methods.\n\nThe remaining differences appear to be SNC scheduling/register-allocation details inside the mode 0 string-build path and the mode 1 first tagged-pointer validity check. The control-flow and size are now right; the mismatch is mostly instruction ordering/register choices around s2/s3/s4/s5 setup, reuse of the tag bit after the virtual GetText/cStrCat branch, and the final cStrAppend suffix path. Further work should start from the current source and compare against the prompt disassembly around 0x2a4428-0x2a4538 and 0x2a4584-0x2a4658.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T13:03:37Z",
+        "src_file": "src/gcDoEntityAttach.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b59baf28/002a43a0__agent_self_reported_failure__src_gcDoEntityAttach.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a4684",
@@ -203242,14 +203270,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoObjectLoadHGetTextPcK"
+    "mangled_symbol": "__0fOgcDoObjectLoadHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "b59baf28",
+        "notes": "Closest attempt is a direct C++ reconstruction of gcDoObjectLoad::GetText in the requested TU, including the initial mode 0/1 branch, three tagged-pointer GetText dispatches, object-id table lookup at 0x38890, and the optional desired object text at offset 0x20. It compiles cleanly and leaves the pre-existing gcDoEntityAttach methods matched, but the symbol is 776 bytes versus the expected 784 bytes. compare_func therefore reports a size mismatch before byte diffing.\n\nThe likely root cause is a still-too-compact source shape in one of the middle object-name or tagged-pointer blocks. The disassembly shows slightly more verbose branch structure around the 0x38890 lookup/name selection and later desired-value checks than the compiler currently emits from this source. I attempted to run the permuter for this function, but tools/permuter.py could not locate the target function in the compiled .o while the size mismatch was present, so no automated search ran.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T13:03:37Z",
+        "src_file": "src/gcDoEntityAttach.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b59baf28/002eaeb4__agent_self_reported_failure__src_gcDoEntityAttach.cpp"
+      }
+    ]
   },
   {
     "address": "0x002eb1c4",
@@ -204223,7 +204265,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -204231,7 +204273,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoPlayerSetEntityKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTgcDoPlayerSetEntityKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "3060ad5d",
+        "notes": "Implemented the canonical C++ AssignCopy body in src/gcDoPlayerSetEntity.cpp using the matched lazy cType init/dynamic-cast pattern, explicit tagged-pointer copy for the desired value at +0x0C, cMemPool::GetPoolFromPtr cloning, and gcDesiredEntity::operator= for the +0x10 member. The existing matched siblings in the file still compare cleanly. The closest source compiles to a 704B symbol versus the DB/target 712B; the missing 8 bytes are the original post-return infinite-loop padding (`1000ffff; nop`) shown at 0x002f1adc. Attempts to add file-level .word/.size padding did not affect the symbol size, and a manual epilogue plus loop changed register allocation and produced a large mismatch. Before the padding issue, the body required several source restructurings around the old tagged value copy (split originalValue, explicit mask variable, duplicated OR) to reach the current size.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:53:16Z",
+        "src_file": "src/gcDoPlayerSetEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/3060ad5d/002f181c__agent_self_reported_failure__src_gcDoPlayerSetEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x002f1ae4",
