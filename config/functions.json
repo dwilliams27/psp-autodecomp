@@ -103072,7 +103072,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -103088,7 +103088,21 @@
       "0x0030e86c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredEventParamsHGetTextPcbK"
+    "mangled_symbol": "__0fUgcDesiredEventParamsHGetTextPcbK",
+    "failure_notes": [
+      {
+        "session": "f3312286",
+        "notes": "Reconstructed gcDesiredEventParams::GetText(char *, bool) const with the two array loops, gcDesiredEnumerationEntry::GetTextEx calls, and final tagged event-object text expansion. Existing matched siblings in src/gcDesiredEventParams.cpp still compare cleanly, and the closest attempt has the correct 476-byte function size, but compare_func still reports a broad 370/476 byte mismatch. The main blocker is saved-register allocation in the two loops: the original uses s3/s4 as index/offset and s5/s6/s7 for the repeated string constants, while the compiler consistently assigns the constants to s3/s4/s5 and pushes the loop counters to s7/s6 despite explicit register variables and empty asm constraints. I also tried literal string operands, named locals, forced register declarations, and both common-code and duplicated final event-object vtable dispatch shapes; none moved the loop allocation into the expected pattern.\n\nThe final tagged-pointer block was also tested with and without memory barriers and duplicated branches to reproduce the original beqzl/lw shape. A bounded permuter attempt could not run: tools/permuter.py failed to locate the target in the compiled multi-function object and exited with 'Found 908B .text but expected 476B function.' The closest source is left in src/gcDesiredEventParams.cpp for the next retry; likely next steps are to isolate this method in a split TU or find a source-lifetime trick that makes SNC allocate the loop counters before the hoisted string constants.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:34:40Z",
+        "src_file": "src/gcDesiredEventParams.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/f3312286/0012944c__agent_self_reported_failure__src_gcDesiredEventParams.cpp"
+      }
+    ]
   },
   {
     "address": "0x00129628",
@@ -103414,7 +103428,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -103426,7 +103440,21 @@
       "0x0012a71c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredStringHelperHGetTextPcK"
+    "mangled_symbol": "__0fVgcDesiredStringHelperHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "0c9a8943",
+        "notes": "Implemented gcDesiredStringHelper::GetText(char *) const in canonical C++ in the requested file. The final source matches the 428B target size and all calls/handle lookup structure. Manual iterations fixed the prologue, two handle-table resolution blocks, the cSubHandle ABI for gcStringTable::GetSubObject by calling the known mangled external entry with an explicit stack temporary, and the sltiu empty-name test. A 300s permuter run generated 9192 candidates, compiled 4337, and improved the helper from 7 differing bytes to 1 differing byte; the saved source is that best candidate.\n\nThe sole remaining raw non-relocation diff is the branch offset in the table-name empty/non-empty subcase: target branches from the 0x36DAB8 assignment to the short local join (branch offset +1), while the closest source branches directly to the common cStrAppend join (branch offset +9). Inverting the condition and moving the barrier made the diff worse (15-49 bytes), so the closest saved attempt preserves the 1-byte miss. Root cause appears to be SNC branch layout/scheduling for this tiny conditional assignment rather than missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:32:41Z",
+        "src_file": "src/gcDoEntityFindAttachedBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/0c9a8943/0012a014__agent_self_reported_failure__src_gcDoEntityFindAttachedBase.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012a1c0",
@@ -121083,7 +121111,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x0023a260"
@@ -121093,7 +121121,21 @@
       "0x002b43a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcDoEntityFindAttachedBaseHGetTextPcTBbK"
+    "mangled_symbol": "__0fagcDoEntityFindAttachedBaseHGetTextPcTBbK",
+    "failure_notes": [
+      {
+        "session": "0c9a8943",
+        "notes": "Implemented gcDoEntityFindAttachedBase::GetText(char *, char *, bool) const in canonical C++ with the three stack buffers, desired-object virtual GetText calls, mode dispatch, enumeration handle array loop, and trailing object-mode dispatch. Tried if/else and goto-shaped mode dispatch, byte-offset array induction, preloaded separator constants, explicit register variables, and scheduler barriers. The closest source compiles cleanly but emits a 636B symbol versus the 648B target. The key structural difference is allocator shape: local SNC saves through s6 with an 800-byte frame, while the target saves through s8 with an 816-byte frame and preloads additional loop constants into callee-save registers.\n\nA bounded permuter pass could not run for this function because tools/permuter.py refuses the target when the compiled symbol is not the expected 648B size (compiled TU .text found 1656B). The remaining issue looks like context-dependent register allocation / callee-save pressure rather than a missing semantic block: control flow, calls, string constants, stack buffer offsets, and the array loop are present, but source attempts could not force s7/s8 allocation or the larger frame.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:32:41Z",
+        "src_file": "src/gcDoEntityFindAttachedBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/0c9a8943/0017e110__agent_self_reported_failure__src_gcDoEntityFindAttachedBase.cpp"
+      }
+    ]
   },
   {
     "address": "0x0017e398",
@@ -152393,7 +152435,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -199792,7 +199834,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -201210,7 +201252,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -206174,14 +206216,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoSaveGameOpHGetTextPcK"
+    "mangled_symbol": "__0fOgcDoSaveGameOpHGetTextPcK",
+    "src_file": "src/gcDoSaveGameOp.cpp",
+    "symbol_name": "__0fOgcDoSaveGameOpHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f3312286",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T16:34:40Z"
   },
   {
     "address": "0x002fb4a0",
@@ -212299,7 +212349,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",

@@ -29,6 +29,7 @@ class gcDoSaveGameOp {
 public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
     gcDoSaveGameOp &operator=(const gcDoSaveGameOp &);
@@ -51,7 +52,15 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
 void gcAction_gcAction(gcDoSaveGameOp *, cBase *);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 extern char gcDoSaveGameOpvirtualtable[];
 
 static cType *type_base asm("D_000385DC");
@@ -163,4 +172,148 @@ void gcDoSaveGameOp::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x1C))->Write(wb);
     wb.End();
+}
+
+void gcDoSaveGameOp::GetText(char *buf) const {
+    register const gcDoSaveGameOp *self __asm__("$s0") = this;
+    register char *out __asm__("$s1") = buf;
+
+    cStrAppend(out, (const char *)0x36EF20);
+    cStrAppend(out, (const char *)0x36DAF0);
+
+    int mode = *(const int *)((const char *)self + 0x0C);
+    int flag;
+    switch (mode - 2) {
+    case 0:
+    case 1:
+    case 11:
+    case 14:
+    case 15:
+    case 16:
+    case 21:
+        flag = 1;
+        break;
+    default:
+        flag = 0;
+        break;
+    }
+    if ((flag != 0) || (mode == 15)) {
+        cStrAppend(out, (const char *)0x36DAD8);
+        int value = *(int *)((const char *)self + 0x10);
+        int owned = 0;
+        if (value & 1) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" : "+r"(value));
+        }
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    mode = *(const int *)((const char *)self + 0x0C);
+    switch (mode - 4) {
+    case 0:
+    case 1:
+    case 2:
+    case 16:
+    case 17:
+        flag = 1;
+        break;
+    default:
+        flag = 0;
+        break;
+    }
+    if (flag != 0) {
+        cStrAppend(out, (const char *)0x36DAD8);
+        int value = *(int *)((const char *)self + 0x14);
+        int owned = 0;
+        if (value & 1) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" : "+r"(value));
+        }
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    mode = *(const int *)((const char *)self + 0x0C);
+    if ((mode == 12) || (mode == 7) || (mode == 3)) {
+        flag = 1;
+    } else {
+        flag = 0;
+        __asm__ volatile("" ::: "memory");
+    }
+    if (flag != 0) {
+        cStrAppend(out, (const char *)0x36DAD8);
+        int value = *(int *)((const char *)self + 0x18);
+        int owned = 0;
+        if (value & 1) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" : "+r"(value));
+        }
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    mode = *(const int *)((const char *)self + 0x0C);
+    switch (mode) {
+    case 0:
+    case 1:
+    case 4:
+    case 5:
+    case 6:
+    case 20:
+        flag = 1;
+        break;
+    default:
+        flag = 0;
+        break;
+    }
+    if (flag != 0) {
+        cStrAppend(out, (const char *)0x36DAD8);
+        int value = *(int *)((const char *)self + 0x1C);
+        int owned = 0;
+        if (value & 1) {
+            owned = 1;
+        }
+        if (owned != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" : "+r"(value));
+        }
+        int check = value;
+        if (check != 0) {
+            GetTextSlot *slot = (GetTextSlot *)(*(char **)(check + 4) + 0xD0);
+            slot->fn((char *)value + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(out, (const char *)0x36DCEC);
 }
