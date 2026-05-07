@@ -108482,7 +108482,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -108497,7 +108497,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoUIShowDialogFWriteR6FcFileK"
+    "mangled_symbol": "__0fQgcDoUIShowDialogFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "ec368623",
+        "notes": "Implemented the full gcDoUIShowDialog::Write field order and preserved all previously matched siblings in the same file. The prefix through the two type-dispatch writes, scalar writes, gcDesiredValue/cHandle writes, float-vector writes, and the final bool/int/End sequence is structurally correct. The closest retained attempt is 676B versus the expected 688B. I tried exemplar-style pointer normalization, shared null-write gotos, inverted null/write block ordering, explicit if/else forms to avoid bnezl collapse, and memory barriers. The remaining drift is isolated to the repeated tagged cBase pointer blocks at offsets 0x94/0x98/0x84/0x88: SNC chooses different branch-likely and temporary-register forms for the tag tests and ptr->+8 null checks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:21:54Z",
+        "src_file": "src/gcDoUIShowDialog.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/ec368623/00138d50__agent_self_reported_failure__src_gcDoUIShowDialog.cpp"
+      }
+    ]
   },
   {
     "address": "0x00139000",
@@ -120570,14 +120584,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValControllerStateHGetTextPcK"
+    "mangled_symbol": "__0fUgcValControllerStateHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ec368623",
+        "notes": "Implemented gcValControllerState::GetText in the class source file with the two-stage text construction, virtual text dispatch at type+0x78/type+0xD0, all observed string constants, and the rodata jump-table mapping for state values 7-15 (0x371048 table: 7/8/9/15 use 0x36FC74, 10 emits empty text only, 11-14/default emit empty plus 0x36DCB8 unless state==5). Existing matched methods in the file still match. I tried switch and explicit-goto forms plus register bindings for self/out/empty/close. The retained source is same-size 708B but differs in 535/708 bytes; an earlier same-size variant differed in 433/708. Root cause appears to be first-switch lowering and saved-register allocation (expected keeps empty in s3 and close in s2 with a specific if-chain before the second jump table).",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:21:54Z",
+        "src_file": "src/gcValControllerState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/ec368623/001784b0__agent_self_reported_failure__src_gcValControllerState.cpp"
+      }
+    ]
   },
   {
     "address": "0x00178774",
@@ -144354,7 +144382,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x001e48f0",
@@ -151930,14 +151958,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x00208938"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeBipedControllerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQeBipedControllerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "4122d3c6",
+        "notes": "Implemented eBipedController::AssignCopy(const cBase *) in src/eBipedController.cpp, despite the prompt's write-to typo, to satisfy the class-method file rule. The source reconstructs the lazy type initialization, dcast gate, byte-order field copies, VFPU v4sf copies, the cArrayBase<eBipedState> assignment call at 0x30, and the 8-entry 0x30-stride saved-contact copy loop. Barriers and typed v4sf structs brought the body to a very close compare_func result: 5/660 bytes different under the normal file build.\n\nThe remaining difference is isolated to the dcast vtable call register allocation: current C emits the slot pointer/function pointer through a0/a1/a2, while the target uses a1/a0/a1 for addiu/lh/lw/jalr. Attempts with register-bound entry variables and a small noreorder inline-asm vtable call either did not affect the register choice or shifted the following branch delay slot/regalloc and made the function worse. A 120s permuter run generated 2328 candidates / 1206 compiled and found no improvement. This is likely another source-leverage limit around SNC register allocation for dynamic-cast dispatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:20:42Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/4122d3c6/00208b48__agent_self_reported_failure__src_eBipedController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00208ddc",
@@ -173552,7 +173594,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -173560,7 +173602,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValControllerStateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fUgcValControllerStateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "73f9f814",
+        "notes": "Implemented gcValControllerState::AssignCopy with the matched type-initialization/dcast chain and a manual expansion of the gcDesiredValue copy at +0x40. Existing sibling methods in src/gcValControllerState.cpp still compare as MATCH, but AssignCopy emits a 692-byte symbol versus the expected 708 bytes. The closest attempt has the same high-level blocks and call sequence, but SNC allocates the long-lived desired-value destination pointer to s3 instead of expected s7, pushing type globals to s4-s7 instead of s3-s6. The desired-value copy block is also 8 bytes shorter before the epilogue, and the original dead branch tail is outside the compiler-emitted symbol size. Tried manual expansion, inline gcDesiredValue::operator= shape, fixed-register inline asm for the destination pointer, sched=1, and a permuter pass; the permuter could not run because the compiled function size did not match the expected 708B target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:31:40Z",
+        "src_file": "src/gcValControllerState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/73f9f814/0026065c__agent_self_reported_failure__src_gcValControllerState.cpp"
+      }
+    ]
   },
   {
     "address": "0x00260920",
@@ -187367,7 +187423,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -188020,13 +188076,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcTableStringHGetNamePcK"
+    "mangled_symbol": "__0fNgcTableStringHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "b869f364",
+        "notes": "Implemented gcTableString::GetName(char *) const using the matched GetNameSlot/tagged-pointer patterns from the gc*Strings family: initial embedded object GetName dispatch at typeInfo+0x78, then cStrCat of 0x36E300, two desired-object name appends with tagged-pointer null handling, separator 0x36DAD8, and final suffix 0x36E2E8. Existing siblings in src/gcTableString.cpp still match after adding the method.\n\nClosest attempt compiles to the correct control-flow shape but the emitted symbol is 324B versus the target 328B. The main byte drift is register allocation: SNC assigns this to s1 and buf to s0, while the target uses this in s0 and buf in s1, with the second desired pointer reusing s0. I tried function-order/declaration-order changes, sched=1, explicit local self/out variables, register-variable constraints with empty asm, and minor expression reshapes around the initial virtual call; these either preserved the swapped allocation or made scheduling worse. This looks like SNC register-allocation/context drift rather than a semantic reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:59:54Z",
+        "src_file": "src/gcTableString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b869f364/0028b880__agent_self_reported_failure__src_gcTableString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028b9c8",
@@ -195106,7 +195176,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -199228,14 +199298,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoEntitySubGeomOpHGetTextPcK"
+    "mangled_symbol": "__0fTgcDoEntitySubGeomOpHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "b7aa2003",
+        "notes": "Implemented gcDoEntitySubGeomOp::GetText(char *) const with the five 256-byte stack buffers, nullable desired-object GetText dispatches at fields 0x3c/0x98/0x9c, direct type+0x78 dispatches for fields 0x6c/0x40/0x10, the 0x36EB60 prefix append, and the 0x3701D8 switch mapping: case 0 uses 0x36EB74 with text1/text2, case 1 uses 0x36EB88 with text3, case 2 uses 0x36EB90 with text4 and name at +0x80, and cases 3-6 use 0x36EB88 with text1. Existing matched siblings in src/gcDoEntitySubGeomOp.cpp still match.\n\nClosest retained source is 684B versus the expected 708B. The missing 24B are the duplicated path-join instructions after the three nullable desired-object renders: original SNC emits load-next-field plus tag/addiu in both the virtual-render path and fallback path, while this C shape factors them after the if/else. I also tried explicit duplicated if/else and goto forms plus a split-TU GetText file; those reached 708B but shifted register allocation badly (about 286/708 bytes differed), with value/check registers swapped through the nullable dispatch blocks. Root cause appears to be the interaction between branch-likely lowering and SNC register allocation for the repeated desired-object pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:33:50Z",
+        "src_file": "src/gcDoEntitySubGeomOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b7aa2003/002d6e44__agent_self_reported_failure__src_gcDoEntitySubGeomOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002d7108",
@@ -200479,14 +200563,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoLobbyConfigureGameKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcDoLobbyConfigureGameKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b7aa2003",
+        "notes": "Implemented gcDoLobbyConfigureGame::AssignCopy(const cBase *) in the canonical class file with the lazy type initialization, dynamic-cast gate, base flag copy, scalar +0x0c copy, and the gcDesiredValue ownership release/clone sequence. Existing New/GetType/Write/destructor methods in the same file still compare as matches.\n\nClosest retained source compiles to a 696B symbol versus the expected 708B. The C body is structurally close; the expected DB range includes the two-instruction infinite-branch tail at 0x2dfc88 after the normal epilogue. Top-level asm tails in this TU attach after other methods (New/destructor) rather than extending AssignCopy, so compare_func still reports a size mismatch. I also tried forcing the destination desired pointer into s7 with register bindings and moving the declaration later, but SNC either ignored the binding or worsened the stack frame/register allocation. Remaining likely issue is source-level inability to attach the dead tail to this symbol plus s3/s7 allocation drift for the destination desired-value pointer.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:33:50Z",
+        "src_file": "src/gcDoLobbyConfigureGame.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b7aa2003/002df9cc__agent_self_reported_failure__src_gcDoLobbyConfigureGame.cpp"
+      }
+    ]
   },
   {
     "address": "0x002dfc90",
@@ -200901,14 +200999,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoLobbyMailOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcDoLobbyMailOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b025a722",
+        "notes": "Implemented the full AssignCopy shape in canonical C++ syntax, including lazy cType initialization, vtable GetType dynamic cast, gcAction flag copy, and the tagged gcDesiredValue copy/destruct/clone sequence. Existing gcDoLobbyMailOp siblings were kept byte-matching. The closest manual version differed by 202/716 bytes; a 300s permuter run generated 9168 candidates, compiled 4770, and improved only to 192/716 bytes before saving the best source.\n\nThe remaining diff is dominated by callee-save register allocation in the copy tail. The original keeps the destination desired-value address in s7 and uses s3-s6 for type globals/clone metadata; SNC in this split TU keeps the destination in s3/s1 and shifts the type/clone temporaries. Several source restructurings were tried: destination pointer declared before and after the type block, forced local register variables with asm barriers, goto-based and if/else dynamic-cast forms, and an always-inlined copy helper. They either preserved the same register shift or changed the frame to a 32-byte stack frame. This looks like split-TU register allocation drift rather than a semantic source issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:51:19Z",
+        "src_file": "src/gcDoLobbyMailOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b025a722/002e13f8__agent_self_reported_failure__src_gcDoLobbyMailOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e16c4",
@@ -202996,14 +203108,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoPhysicsOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fNgcDoPhysicsOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "73f9f814",
+        "notes": "Implemented gcDoPhysicsOp::AssignCopy in the canonical src/gcDoPhysicsOp.cpp rather than src/gcValControllerState.cpp to respect the class-method file rule. Existing gcDoPhysicsOp siblings remain MATCH, but AssignCopy emits a 692-byte symbol versus the expected 708 bytes. The function matches the expected type initialization, dcast loop, action flag copy, field copy, and gcDesiredValue ownership/copy structure, but has the same allocator drift as gcValControllerState: desired destination pointer is assigned to s3 instead of expected s7, type globals shift upward, and the desired-value copy block is 8 bytes short before the epilogue; the compiler also excludes the original infinite-branch tail from the function symbol. Tried manual expansion, inline gcDesiredValue::operator= shape, fixed-register inline asm, sched=1, and a permuter pass; the permuter could not run because the compiled function size did not match the expected 708B target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:31:40Z",
+        "src_file": "src/gcDoPhysicsOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/73f9f814/002ec170__agent_self_reported_failure__src_gcDoPhysicsOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002ec434",
@@ -212524,14 +212650,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoUserOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKgcDoUserOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "47243c0a",
+        "notes": "Implemented a split-TU canonical C++ gcDoUserOp::AssignCopy with local class redeclaration to avoid editing include/gcDoUserOp.h. The closest attempt reproduces the lazy cType initialization, dynamic type check, base flag copy, and desired-object release/clone sequence, with explicit dead-tail sizing. compare_func reports 213/708 bytes still differ after a 120s permuter run improved the baseline from 225 bytes. The dominant issue is register allocation/code-shape drift in the desired-object block: SNC assigns the desired-object address to s3 in this split TU, while the original uses s7 and keeps type globals in s3-s6, causing many downstream a0/a1/a2/s-register encodings and a few branch offsets to drift. A manual explicit-local rewrite made the mismatch much worse (484/708), and the same source pattern is known to fail in matched-near sibling gcValUIListInfo::AssignCopy. Suspected root cause: category=REG_ALLOC / context-dependent large AssignCopy codegen rather than missing control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:44:22Z",
+        "src_file": "src/gcDoUserOp_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/47243c0a/00316ca8__agent_self_reported_failure__src_gcDoUserOp_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x00316f6c",
@@ -215251,14 +215391,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00006e7c",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fegcProjectileControllerTemplateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fegcProjectileControllerTemplateKAssignCopyPC6FcBase",
+    "src_file": "src/gcProjectileControllerTemplate.cpp",
+    "symbol_name": "__0fegcProjectileControllerTemplateKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b869f364",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T11:59:54Z"
   },
   {
     "address": "0x0031ec28",
@@ -229893,14 +230041,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValPointValueKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcValPointValueKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "47243c0a",
+        "notes": "Implemented a split-TU canonical C++ gcValPointValue::AssignCopy with local class redeclaration, preserving existing gcValPointValue.cpp matched siblings. The closest attempt reproduces lazy type initialization for base/expression/value/gcValPointValue, dynamic cast, word copies, desired-object release/clone, and the final 0x1c/0x20 word copies. compare_func reports 228/708 bytes still differ after a 120s permuter run improved the baseline from 242 bytes. The byte diff has the same structural register-allocation problem as gcDoUserOp::AssignCopy: the desired-object address is allocated to s3 instead of the original s7, and the release/clone sequence uses different a0/a1/a2 lifetimes; the final two-word copy also schedules as direct lw/sw pairs rather than the original addiu/lw/lw/sw/sw shape. Explicit local type temporaries made the mismatch much worse (481/708). Suspected root cause: category=REG_ALLOC / context-dependent large AssignCopy codegen, not an omitted semantic block.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:44:22Z",
+        "src_file": "src/gcValPointValue_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/47243c0a/00356ec0__agent_self_reported_failure__src_gcValPointValue_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x00357184",
@@ -232863,14 +233025,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValUIListInfoKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcValUIListInfoKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b025a722",
+        "notes": "Implemented the analogous AssignCopy in src/gcValUIListInfo.cpp, despite the prompt's duplicate write-target line, to follow the repo's class-method file rule. The method uses the same dynamic-cast and tagged gcDesiredValue copy sequence with gcValUIListInfo offsets and type id 0x1F1. All pre-existing gcValUIListInfo methods still compare as matches.\n\nThis function hits the same register-allocation failure as gcDoLobbyMailOp::AssignCopy. The best source currently compiles to the right 48-byte frame shape after switching the cast block to the goto form, but the compiler still allocates the desired-value destination in s3 and shifts type globals upward instead of using the original s7/s3-s6 layout; compare_func reports a 700B symbol against the 716B DB size because the body is short before the dead 8-byte tail. Further manual variants mirrored the lobby attempts and did not move allocation in the needed direction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:51:19Z",
+        "src_file": "src/gcValUIListInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/b025a722/00362614__agent_self_reported_failure__src_gcValUIListInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x003628e0",
@@ -234718,14 +234894,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012dfdc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUIVisibleDSetf"
+    "mangled_symbol": "__0fOgcValUIVisibleDSetf",
+    "failure_notes": [
+      {
+        "session": "4122d3c6",
+        "notes": "Implemented gcValUIVisible::Set(float) in canonical C++ form with the gcUIWidget lazy type chain (D_0009990C/D_000385E0/D_000385DC), gcDesiredUIWidgetHelper::GetWidget, and the classdesc+0xE8 bool setter dispatch. After restructuring the helper pointer lifetime and slot/flag ordering, compare_func is down to 2/316 bytes different. The remaining diff is only the final virtual-call function-pointer register: current emits lw/jalr through a2, while the target uses a3, with all surrounding instructions and control flow matching.\n\nTried explicit function-pointer locals, register binding to $a3, a barrier on the function pointer, and a short inline-asm call. The inline asm disrupted register allocation and shrank the symbol, so it was reverted to the closest C form. A 120s permuter run generated 2832 candidates / 1013 compiled and found no improvement. Root cause appears to be a last-mile register allocation choice for the indirect call, not a structural mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:20:42Z",
+        "src_file": "src/gcValUIVisible.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/4122d3c6/00369f98__agent_self_reported_failure__src_gcValUIVisible.cpp"
+      }
+    ]
   },
   {
     "address": "0x0036a0d4",
@@ -235357,7 +235547,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

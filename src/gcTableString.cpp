@@ -52,6 +52,12 @@ struct DesiredWriteSlot {
     DesiredWriteFn mFn;
 };
 
+struct GetNameSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
 struct DesiredTypeInfoWrite {
     char _pad[0x28];
     DesiredWriteSlot mSlot;
@@ -75,6 +81,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    void GetName(char *) const;
 };
 
 class gcValTableEntry : public gcStringLValue {
@@ -90,6 +97,8 @@ extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F458;
 extern cType *D_0009F574;
+
+void cStrCat(char *, const char *);
 
 cBase *gcTableString::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -213,6 +222,59 @@ void gcTableString::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 0x1C))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x20))->Write(wb);
     wb.End();
+}
+
+void gcTableString::GetName(char *buf) const {
+    void *typeInfo0 = *(void **)((const char *)this + 0x0C);
+    GetNameSlot *slot0 = (GetNameSlot *)((char *)typeInfo0 + 0x78);
+    char *embedded = (char *)this + 0x08;
+    slot0->fn(embedded + slot0->offset, buf);
+
+    cStrCat(buf, (const char *)0x36E300);
+
+    int val = *(const int *)((const char *)this + 0x1C);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetNameSlot *slot = (GetNameSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrCat(buf, (const char *)0x36DAD8);
+
+    int val2 = *(const int *)((const char *)this + 0x20);
+    int flag2 = 0;
+    if (val2 & 1) {
+        flag2 = 1;
+    }
+    if (flag2 != 0) {
+        val2 = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check2 = val2;
+    if (check2 != 0) {
+        char *typeInfo = *(char **)(check2 + 4);
+        GetNameSlot *slot = (GetNameSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)check2 + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrCat(buf, (const char *)0x36E2E8);
 }
 
 cBase *gcValTableEntry::New(cMemPool *pool, cBase *parent) {

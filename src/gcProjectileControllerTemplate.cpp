@@ -14,6 +14,9 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cType {
 public:
+    char _pad[0x1C];
+    const cType *mParent;
+
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
@@ -34,6 +37,19 @@ public:
     void Write(unsigned int);
     void Write(float);
     void End(void);
+};
+
+class cBaseArray {
+public:
+    int _count;
+    cBase *_owner;
+    cBaseArray &operator=(const cBaseArray &);
+};
+
+struct DispatchEntry {
+    short offset;
+    short _pad;
+    cType *(*fn)(void *, short, void *);
 };
 
 class gcEntityControllerTemplate {
@@ -57,6 +73,7 @@ public:
 
     gcProjectileControllerTemplate(cBase *);
     void Write(cFile &) const;
+    void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
 };
@@ -127,4 +144,109 @@ const cType *gcProjectileControllerTemplate::GetType(void) const {
                                            0, 0, 0);
     }
     return D_0009F7A8;
+}
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
+
+void gcProjectileControllerTemplate::AssignCopy(const cBase *base) {
+    const gcProjectileControllerTemplate *other = 0;
+
+    if (base != 0) {
+        if (D_0009F7A8 == 0) {
+            if (D_0009A400 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_0009A400 = cType::InitializeType(
+                    0, 0, 0x9A, D_000385DC, 0, 0, 0, 0);
+            }
+            D_0009F7A8 = cType::InitializeType(
+                0, 0, 0xF1, D_0009A400, &gcProjectileControllerTemplate::New,
+                0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((const char *)base + 4);
+        cType *target = D_0009F7A8;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcProjectileControllerTemplate *)base;
+        }
+    }
+
+    const cBaseArray &srcArr0 =
+        *(const cBaseArray *)((const char *)other + 0x08);
+    ((cBaseArray *)((char *)this + 0x08))->operator=(srcArr0);
+
+    int i = 0;
+    int *dst = (int *)((char *)this + 0x10);
+    const int *src = (const int *)((const char *)other + 0x10);
+    do {
+        i++;
+        *dst = *src;
+        dst++;
+        src++;
+    } while (i < 2);
+
+    *(unsigned int *)((char *)this + 0x18) =
+        *(const unsigned int *)((const char *)other + 0x18);
+
+    ((cBaseArray *)((char *)this + 0x1C))->operator=(
+        *(const cBaseArray *)((const char *)other + 0x1C));
+
+    *(v4sf_t *)((char *)this + 0x30) =
+        *(const v4sf_t *)((const char *)other + 0x30);
+    *(float *)((char *)this + 0x40) =
+        *(const float *)((const char *)other + 0x40);
+    *(float *)((char *)this + 0x44) =
+        *(const float *)((const char *)other + 0x44);
+    *(float *)((char *)this + 0x48) =
+        *(const float *)((const char *)other + 0x48);
+    *(unsigned int *)((char *)this + 0x50) =
+        *(const unsigned int *)((const char *)other + 0x50);
+    *(float *)((char *)this + 0x54) =
+        *(const float *)((const char *)other + 0x54);
+    *(float *)((char *)this + 0x58) =
+        *(const float *)((const char *)other + 0x58);
+    const char *src68 = (const char *)other + 0x68;
+    char *dst68 = (char *)this + 0x68;
+    *(float *)((char *)this + 0x5C) =
+        *(const float *)((const char *)other + 0x5C);
+    *(float *)((char *)this + 0x60) =
+        *(const float *)((const char *)other + 0x60);
+    *(float *)((char *)this + 0x64) =
+        *(const float *)((const char *)other + 0x64);
+    *(unsigned int *)dst68 = *(const unsigned int *)src68;
+    *(unsigned char *)((char *)this + 0x6C) =
+        *(const unsigned char *)((const char *)other + 0x6C);
 }
