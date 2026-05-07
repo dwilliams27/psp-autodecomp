@@ -23,6 +23,25 @@ from common import EBOOT_PATH, OBJDUMP, TEXT_FILE_OFFSET, load_db, mask_relocati
 
 DEFAULT_ADDRS = ["0x0005dccc", "0x0000ab98"]
 DEFAULT_OUT = Path("build/research/read_prologue")
+TRACE_SWEEP_VARIANTS = [
+    ("trace-tr1", ["-keeptemp", "-tr1"]),
+    ("trace-tr2", ["-keeptemp", "-tr2"]),
+    ("trace-tr3", ["-keeptemp", "-tr3"]),
+    ("trace-tr4", ["-keeptemp", "-tr4"]),
+    ("trace-tr5", ["-keeptemp", "-tr5"]),
+    ("trace-tr6", ["-keeptemp", "-tr6"]),
+    ("trace-tr7", ["-keeptemp", "-tr7"]),
+    ("trace-tr8", ["-keeptemp", "-tr8"]),
+    ("trace-tr9", ["-keeptemp", "-tr9"]),
+    ("trace-tr10", ["-keeptemp", "-tr10"]),
+    ("trace-tr11", ["-keeptemp", "-tr11"]),
+    ("trace-tt10-1", ["-keeptemp", "-tt10,1"]),
+    ("trace-tt10-511", ["-keeptemp", "-tt10,511"]),
+    ("trace-tt26-1", ["-keeptemp", "-tt26,1"]),
+    ("trace-tt26-511", ["-keeptemp", "-tt26,511"]),
+    ("sched1-direct", ["-Xsched=1"]),
+    ("sched0-direct", ["-Xsched=0"]),
+]
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WIBO = REPO_ROOT / "extern/wibo"
 SNC = REPO_ROOT / "extern/snc/pspsnc.exe"
@@ -116,6 +135,22 @@ def _compile_source(src_file: str) -> str:
         raise SystemExit(str(exc)) from exc
 
 
+def _clean_direct_outputs(case_dir: Path) -> None:
+    for name in (
+        "compiled.o",
+        "compile_command.txt",
+        "compile_stdout.txt",
+        "compile_stderr.txt",
+        "trace_summary.md",
+    ):
+        path = case_dir / name
+        if path.exists():
+            path.unlink()
+    for pattern in ("SNC*_0.B", "SNC*_0.I", "SNC*_0.D", "SNC*_0.s"):
+        for path in case_dir.glob(pattern):
+            path.unlink()
+
+
 def _direct_compile_source(src_file: str, case_dir: Path,
                            extra_flags: list[str]) -> tuple[str, list[str]]:
     case_dir = case_dir.resolve()
@@ -125,6 +160,7 @@ def _direct_compile_source(src_file: str, case_dir: Path,
     src_path = src_path.resolve()
 
     o_path = case_dir / "compiled.o"
+    _clean_direct_outputs(case_dir)
     cmd = [
         str(WIBO),
         str(SNC),
@@ -226,6 +262,62 @@ def _masked_for_diff(expected: bytes, compiled: bytes,
     )
 
 
+def _line_hits(lines: list[str], needle: str) -> list[int]:
+    return [i + 1 for i, line in enumerate(lines) if needle in line]
+
+
+def _write_trace_summary(case_dir: Path, func: dict, sym_name: str | None) -> None:
+    stdout_path = case_dir / "compile_stdout.txt"
+    stderr_path = case_dir / "compile_stderr.txt"
+    if not stdout_path.exists() and not stderr_path.exists():
+        return
+
+    stdout_lines = stdout_path.read_text(errors="replace").splitlines()
+    stderr_lines = stderr_path.read_text(errors="replace").splitlines() if stderr_path.exists() else []
+    temp_files = sorted(path.name for path in case_dir.glob("SNC*_0.*"))
+
+    summary = [
+        f"# Trace Summary: {func['address']}",
+        "",
+        f"- Function: `{func['name']}`",
+        f"- Symbol: `{sym_name or func.get('mangled_symbol') or '(unknown)'}`",
+        f"- stdout lines: `{len(stdout_lines)}`",
+        f"- stderr lines: `{len(stderr_lines)}`",
+        f"- kept temp files: `{temp_files}`",
+        "",
+        "## Marker Lines",
+        "",
+    ]
+
+    markers = [
+        ("symbol", sym_name or func.get("mangled_symbol") or ""),
+        ("ReadBlock ctor", "__0oKcReadBlockctR6FcFileUib"),
+        ("ACIR ReadBlock call", 'OP_CALL ("__0oKcReadBlockctR6FcFileUib")'),
+        ("inline asm machine op", "OP_MACHINE"),
+        ("inline asm text", ".i4.asm.gnu"),
+        ("optimizer entry", "Entrypoint:"),
+    ]
+    for label, needle in markers:
+        if not needle:
+            continue
+        hits = _line_hits(stdout_lines, needle)
+        preview = ", ".join(str(n) for n in hits[:12])
+        suffix = " ..." if len(hits) > 12 else ""
+        summary.append(f"- {label}: `{preview or '(none)'}{suffix}`")
+
+    if stdout_lines:
+        summary.extend(["", "## Stdout Head", "", "```"])
+        summary.extend(stdout_lines[:40])
+        summary.append("```")
+
+    if stderr_lines:
+        summary.extend(["", "## Stderr Head", "", "```"])
+        summary.extend(stderr_lines[:40])
+        summary.append("```")
+
+    (case_dir / "trace_summary.md").write_text("\n".join(summary) + "\n")
+
+
 def analyze_address(func: dict, src_file: str | None, out_dir: Path,
                     window_bytes: int, compile_source: bool,
                     direct_compile: bool, extra_flags: list[str],
@@ -268,6 +360,8 @@ def analyze_address(func: dict, src_file: str | None, out_dir: Path,
         (case_dir / "compiled_prologue.disasm").write_text(compiled_disasm)
         (case_dir / "compiled_full.bin").write_bytes(compiled)
         (case_dir / "compiled_object_symbol.disasm").write_text(object_disasm)
+        if direct_compile:
+            _write_trace_summary(case_dir, func, sym_name)
 
     report = []
     report.append(f"# Read Prologue Harness: {addr}\n")
@@ -354,6 +448,8 @@ def main() -> int:
                         help="Extra SNC flag for direct compilation. Can be repeated.")
     parser.add_argument("--variant",
                         help="Subdirectory name under each address for artifacts.")
+    parser.add_argument("--trace-sweep", action="store_true",
+                        help="Run the standard direct-compile trace/scheduler variant sweep.")
     args = parser.parse_args()
 
     overrides = _source_override_map(args.source)
@@ -367,16 +463,31 @@ def main() -> int:
     for addr in args.addresses:
         func = _find_func(addr)
         src_file = _infer_source(func, overrides)
-        reports.append(analyze_address(
-            func,
-            src_file,
-            out_dir,
-            args.window_bytes,
-            compile_source=not args.no_compile,
-            direct_compile=direct_compile,
-            extra_flags=args.extra_flag,
-            variant=variant,
-        ))
+        if args.trace_sweep:
+            if args.no_compile:
+                raise SystemExit("--trace-sweep requires compilation")
+            for sweep_variant, sweep_flags in TRACE_SWEEP_VARIANTS:
+                reports.append(analyze_address(
+                    func,
+                    src_file,
+                    out_dir,
+                    args.window_bytes,
+                    compile_source=True,
+                    direct_compile=True,
+                    extra_flags=sweep_flags,
+                    variant=sweep_variant,
+                ))
+        else:
+            reports.append(analyze_address(
+                func,
+                src_file,
+                out_dir,
+                args.window_bytes,
+                compile_source=not args.no_compile,
+                direct_compile=direct_compile,
+                extra_flags=args.extra_flag,
+                variant=variant,
+            ))
 
     print("Read prologue harness reports:")
     for path in reports:

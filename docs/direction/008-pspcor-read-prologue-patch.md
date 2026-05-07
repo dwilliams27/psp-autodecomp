@@ -126,6 +126,12 @@ python3 tools/research/read_prologue_harness.py 0x0000ab98 \
   --variant trace-tr10 --extra-flag=-keeptemp --extra-flag=-tr10
 ```
 
+The standard trace/control matrix is also reproducible from one command:
+
+```sh
+python3 tools/research/read_prologue_harness.py 0x0000ab98 --trace-sweep
+```
+
 Useful trace observations:
 
 - `-tr2` prints the source tree before pre-IRB. For `cFactory::Read`, this
@@ -142,6 +148,28 @@ Useful trace observations:
   the inline asm `ori $19,$0,1`, while the original needs the `li s3,1` before
   the constructor call without adopting the matched exemplar's all-saves-first
   prologue.
+
+Static compiler map:
+
+- `pspcor.exe` image base is `0x400000`; `.text` is `0x401000..0x4ae596`.
+- `0x41589a` is the CG phase driver. The phase calls visible in local disasm
+  are:
+  - `CG_expand`: string `0x4b0300`, call `0x41ac63`.
+  - `CG_optimize`: string `0x4b02f4`, call `0x423448`.
+  - `CG_sched`: string `0x4b02e8`, call `0x427418`.
+  - `CG_LRA`: string `0x4b02e0`, call `0x496bd9`.
+  - `CG_post_peephole`: string `0x4b02cc`, conditional call `0x48e86f`.
+  - `CG_Emit`: string `0x4b02c4`, call `0x417481`.
+- Highest-priority reverse target is `0x427418`. It is called under the
+  `CG_sched` phase label and references the scheduler diagnostics around
+  `pre_sched`, `post_sched`, dependency graphs, register pressure, and
+  `Entering/Leaving CG_Schedule`.
+- Keep `0x496bd9` in scope because the final prologue shape depends on
+  callee-save assignment and LRA/liveness. The current evidence is not enough
+  to rule out an allocator-driven fix.
+- Deprioritize the `del_slot` cluster for this issue. It is relevant to bnel
+  and delay-slot filling, but this Read drift is the pre-constructor
+  instruction order and callee-save setup.
 
 ## Non-Goals
 
@@ -240,3 +268,7 @@ Milestone 4:
   `sched=1`, `sched=0`, and a source-level "asm before constructor" probe all
   moved `cFactory::Read` farther away, so the next implementation target remains
   pspcor lowering/scheduler/prologue behavior rather than a broad source recipe.
+- 2026-05-07: Added harness `--trace-sweep`, deterministic direct-compile
+  cleanup, and per-variant `trace_summary.md` files. Static mapping confirmed
+  the immediate pspcor targets: phase driver `0x41589a`, scheduler driver
+  `0x427418`, LRA driver `0x496bd9`, and emit driver `0x417481`.
