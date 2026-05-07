@@ -183169,7 +183169,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -183304,7 +183304,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -185839,14 +185839,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcNetworkConfigStringsKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcNetworkConfigStringsKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "49399fea",
+        "notes": "Implemented the full canonical C++ AssignCopy body in gcNetworkConfigStrings.cpp using the matched gcLobbyUserStrings/gcLobbyFriendStrings desired-value copy pattern, with the correct D_0009F554/D_0009F454/D_000385DC type chain, type id 0xF8, class New callback, dynamic-cast loop, self-slot check, release path, clone path, and final mField0C copy. The type-initialization and cast half matches the target instruction-for-instruction; the mismatch starts at the desired-value ownership-bit copy around target offset 0x144. The closest build has the correct 624-byte symbol size after moving AssignCopy to the end-of-file sentinel pattern, but compare_func reports 182/624 differing bytes.\n\nTried the sibling source shape, m2c-style temporary names, explicit class layout fields, reordering old/value/tag declarations, register bindings for srcValue/srcFlag/srcTag/source/clone/current/currentFlag, and moving the method to the end of the TU so the trailing b .; nop sentinel attaches. The remaining root cause appears to be SNC register allocation/scheduling drift in the first release block and final clone-call argument setup: expected keeps the current desired value in a2, old in a0, current clone parent in s6, and pool in a0/a1; the closest source keeps the first block value in a0/a1 and schedules the clone call with pool/current moves reversed. The project permuter was attempted with --save-best but failed before searching because it could not isolate this target function from the multi-function object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T09:47:04Z",
+        "src_file": "src/gcNetworkConfigStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/49399fea/00285b78__agent_self_reported_failure__src_gcNetworkConfigStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00285de8",
@@ -185977,14 +185991,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcNetworkConfigStringsHGetNamePcK"
+    "mangled_symbol": "__0fWgcNetworkConfigStringsHGetNamePcK",
+    "src_file": "src/gcNetworkConfigStrings.cpp",
+    "symbol_name": "__0fWgcNetworkConfigStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "49399fea",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:47:04Z"
   },
   {
     "address": "0x0028627c",
