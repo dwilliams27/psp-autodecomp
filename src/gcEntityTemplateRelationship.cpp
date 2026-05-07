@@ -12,6 +12,7 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 class cType;
+class cObject;
 
 class cWriteBlock {
 public:
@@ -24,8 +25,28 @@ public:
 
 class cHandle {
 public:
+    int mHandle;
     void Write(cWriteBlock &) const;
 };
+
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcEntityTemplate {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcDesiredObjectHelper {
+public:
+    enum gcPrimary {};
+};
+
+extern "C" void gcDesiredObjectHelper_GetDesiredObject_Type(
+    gcDesiredObjectHelper::gcPrimary, int, const cType *, int)
+    asm("__0fVgcDesiredObjectHelperQGetDesiredObject65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimary6HcHandlePC6FcTypebT");
 
 class gcObjectRelationship {
 public:
@@ -62,6 +83,7 @@ public:
     ~gcEntityTemplateRelationship();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void Set(cObject *) const;
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -75,6 +97,9 @@ public:
 };
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
+extern cType *D_0009F448;
 static cType *type_gcObjectRelationship;
 static cType *type_gcEntityTemplateRelationship;
 
@@ -168,4 +193,33 @@ void gcEntityTemplateRelationship::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x24))->Write(inner);
     inner.End();
     wb.End();
+}
+
+void gcEntityTemplateRelationship::Set(cObject *) const {
+    gcDesiredObjectHelper::gcPrimary primary =
+        (gcDesiredObjectHelper::gcPrimary)*(int *)((const char *)this + 0x20);
+    int handle = *(int *)((const char *)this + 0x24);
+
+    if (D_0009F448 == 0) {
+        if (D_000385E4 == 0) {
+            if (D_000385E0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_000385E0 = cType::InitializeType(
+                    0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+            }
+            D_000385E4 = cType::InitializeType(
+                0, 0, 3, D_000385E0, 0, 0, 0, 0);
+        }
+        D_0009F448 = cType::InitializeType(
+            0, 0, 0x8E, D_000385E4, &gcEntityTemplate::New,
+            (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+    }
+    const cType *type = D_0009F448;
+    register int flag __asm__("$7");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(flag));
+    gcDesiredObjectHelper_GetDesiredObject_Type(primary, handle, type, flag);
 }

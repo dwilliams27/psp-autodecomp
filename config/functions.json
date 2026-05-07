@@ -33638,7 +33638,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -33646,7 +33646,9 @@
       "0x000a6098"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeRigidBodyStateISetShapePC6GeShape"
+    "mangled_symbol": "__0fPeRigidBodyStateISetShapePC6GeShape",
+    "src_file": "src/eRigidBodyState.cpp",
+    "symbol_name": "__0fPeRigidBodyStateISetShapePC6GeShape"
   },
   {
     "address": "0x000352a0",
@@ -42498,7 +42500,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -42524,6 +42526,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T21:24:49Z"
+      },
+      {
+        "session": "c3a48504",
+        "notes": "Retried eDynamicModelTemplate::Write from the prior closest source. The baseline keeps all sibling methods matched and emits the correct outer write call order, field offsets, count writes, bool/float/int overloads, base-array writes, WriteBase, and End call, but the Write method is still short. Changing both array loops from pointer-walk `var_s1 > 0` forms to explicit `index < count` forms with zero offsets improved the method from 420B to 440B, confirming the prior diagnosis that the loop gates are the main issue.\n\nThe remaining 4B size gap and byte diff are in loop/prologue shaping. The target first loop uses a non-likely `beqz` with zero-offset setup in the delay slot and then `addu s3,a0,s3`; the current closest source still gets a branch-likely exit with the following bool load in the delay slot and lacks the same base+offset materialization. Register annotations for the zero offsets did not affect SNC's allocation. A direct no-alias rewrite made the function worse by introducing s4 and a 349/444 byte mismatch, so the retained source is the 440B near miss.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:33:19Z",
+        "src_file": "src/eDynamicModelTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/c3a48504/0004bed8__agent_self_reported_failure__src_eDynamicModelTemplate.cpp"
       }
     ]
   },
@@ -43095,7 +43109,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -43111,7 +43125,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDynamicMeshFWriteR6FcFileK"
+    "mangled_symbol": "__0fMeDynamicMeshFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "762e58c0",
+        "notes": "Implemented eDynamicMesh::Write as a split TU with local redeclarations, sched=1, cWriteBlock(file, 8), parent eMesh::Write, five short writes, three counted array-write loops, cBaseArray::Write, shadow-present bool write, optional eDynamicMeshExtrudedShadow::Write, and End(). Tried sched=1 and sched=2, direct pointer loops, explicit zero offset loops, bool expression variants, and a tiny inline-addu loop-shape probe. The permuter could not run because the compiled .text size did not match the target isolation expected by the tool.\n\nThe closest retained attempt emits the correct 556B size, but compare_func reports 307/556 bytes differ. The expected code reloads the first array base into a0, keeps the zero offset in s3, and uses non-likely beqz loop-entry branches with specific delay slots; SNC in the split TU prefers keeping the base in s3 and emits beqzl for the first two array loops. This appears to be transition-zone/context-sensitive register allocation and branch-likely selection, not an omitted field or wrong serialization order.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:34:01Z",
+        "src_file": "src/eDynamicMesh_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/762e58c0/0004d7e0__agent_self_reported_failure__src_eDynamicMesh_Write.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004da0c",
@@ -46955,7 +46983,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000062e0",
       "0x000065f0",
@@ -116169,14 +116197,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012512c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK"
+    "mangled_symbol": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK",
+    "src_file": "src/gcEntityTemplateRelationship.cpp",
+    "symbol_name": "__0fcgcEntityTemplateRelationshipDSetP6HcObjectK"
   },
   {
     "address": "0x00153c70",
@@ -194400,7 +194430,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -194415,7 +194445,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoEntityCastRayFWriteR6FcFileK"
+    "mangled_symbol": "__0fRgcDoEntityCastRayFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "762e58c0",
+        "notes": "Reconstructed the full Write body in canonical C++ syntax in src/gcDoEntityCastRay.cpp. Field order, helper calls, cWriteBlock construction, gcAction::Write, dynamic type-dispatch writes, tagged WriteBase conversions, desired-value writes, bool writes, array count serialization, helper array loop, and End() all match the disassembly structurally. Tested direct C, pointer-temporary variants for the tagged cBase writes, offset-variable loop shapes, a tiny inline-addu loop-shape probe, and attempted the permuter; the permuter could not run because the multi-function translation unit .text did not isolate the 684B target.\n\nThe closest retained attempt emits the correct 684B size, but compare_func reports 345/684 bytes differ. Manual objdump inspection shows the remaining root issue is source-shape/register allocation rather than missing behavior: the first tagged-pointer WriteBase keeps the value in a0 and inserts move a1,a0 where the target keeps the value in a1, and the helper-array loop requires the original li/addu setup around the loop entry. The inline-addu probe fixed size but perturbed branch/register layout enough that many downstream branch encodings differ.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:34:01Z",
+        "src_file": "src/gcDoEntityCastRay.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/762e58c0/002a9768__agent_self_reported_failure__src_gcDoEntityCastRay.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a9a14",
@@ -198240,7 +198284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -198248,7 +198292,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fcgcDoEntitySetGeomCurveTargetKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fcgcDoEntitySetGeomCurveTargetKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "3adb53e8",
+        "notes": "Reconstructed the full AssignCopy body in C++: lazy cType init/dcast, flag-bit copy, gcDesiredEntity operator= calls, tagged child release/clone through vtable slots, pair copy, and 24-byte cName copy. Existing five matched methods in the file remain matched. The closest source emits a 0x32c-byte symbol versus expected 0x334, missing only the original 8-byte dead self-branch tail by size, but prefix comparison still shows 151 byte differences starting at prologue/register allocation. The semantic operations are aligned; the main drift is register assignment through the lazy type-init and child-copy region (our long-lived child slot lands in s3 and shifts type globals through s4/s5/s6/s7, while expected uses s7 for the child slot and s3/s4/s5/s6 for type globals). Tried explicit s7 register binding, empty asm constraints, delayed slot-pointer initialization, sched=1, m2c-style temporary flow, struct-based pair/name copies, and a dead-label tail. The dead-label tail fixed size but changed liveness/prologue badly. File-scope .word tail landed elsewhere under this TU's function ordering. Permuter could not run because the compiled symbol is 8 bytes short and it refused to locate the target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:26:41Z",
+        "src_file": "src/gcDoEntitySetGeomCurveTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/3adb53e8/002c713c__agent_self_reported_failure__src_gcDoEntitySetGeomCurveTarget.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c7470",
@@ -209251,7 +209309,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -209259,7 +209317,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoSwitchKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKgcDoSwitchKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "3adb53e8",
+        "notes": "Implemented gcDoSwitch::AssignCopy in the requested TU using the same dcast/type-init and tagged-child copy pattern, followed by the two gcExpressionList assignments. The closest emitted symbol is 0x2cc bytes versus expected 0x2d4, again missing the original 8-byte dead self-branch tail. The prefix diff is the same allocator shape as the first function: 151 byte differences caused by callee-save register drift, not missing semantics. Attempts included shared type-cache layout, explicit s7 binding for the self child slot, m2c-style branch/temporary structure, sched=1 testing, and matching the expression-list call order. Because both functions share the same shifted register allocation and tail-placement problem, this appears to need original compilation-context allocator state or a reliable way to append tail bytes inside the function without changing liveness.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:26:41Z",
+        "src_file": "src/gcDoEntitySetGeomCurveTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/3adb53e8/00305970__agent_self_reported_failure__src_gcDoEntitySetGeomCurveTarget.cpp"
+      }
+    ]
   },
   {
     "address": "0x00305c44",
@@ -214241,14 +214313,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoPortalActivateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcDoPortalActivateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "c3a48504",
+        "notes": "Implemented gcDoPortalActivate::AssignCopy as canonical C++ in the class file, including the lazy cType initialization/dynamic-cast gate, mNext low-bit transfer, desired-object release/clone handling through the 0x50 and 0x10 dispatch slots, the final 0x18/0x1C word copy, and the 0x20 byte copy. The closest source compiles cleanly and keeps all previously matched siblings matched, but AssignCopy still emits as 724B versus the 732B target.\n\nThe remaining miss is a mix of saved-register allocation drift and tail attribution. The target keeps this+0x14 in s7 while the local TU assigns it to s3 and shifts the type globals to s4-s7; fixed-register annotations did not move SNC's allocation. The generated body is also 8 bytes short because the target symbol includes a dead self-branch tail after jr/stack-pop, while file-scope asm tails in this TU are attributed to other emitted methods rather than AssignCopy. Manual rewrites of the desired-object assignment and tail word copy improved structure but did not solve the s-register mapping or symbol-size tail.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:33:19Z",
+        "src_file": "src/gcDoPortalActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/c3a48504/00319258__agent_self_reported_failure__src_gcDoPortalActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00319534",
@@ -217686,7 +217772,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0011d8c0",
@@ -235244,14 +235330,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValUITextParamKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQgcValUITextParamKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "65bd997e",
+        "notes": "Implemented a canonical gcValUITextParam::AssignCopy with the full lazy type-initialization/dynamic-cast chain and a tagged gcDesiredValue assignment path. The type-check half is structurally close, and all previously matched gcValUITextParam siblings still compare MATCH, but AssignCopy remains a size mismatch: target is 768B while the closest source emits 732B. I tried both an open-coded desired-value copy and an inline gcDesiredValue::operator= shape borrowed from gcLobbyGameStrings; the operator form is the closest saved version. A short permuter pass was not useful here because the multi-function TU prevents target isolation.\n\nThe remaining mismatch is structural/register allocation rather than a small branch-likely last mile. The original keeps this+0x14 in s8, type caches in s3-s7, and uses the byte-order copy sequence from the disassembly before entering the desired-value operator. SNC keeps allocating the desired-value slot to s3 and shifts the type-cache registers upward, which cascades through the assignment tail. Manual register binding for the value slot did not move it to s8. The target also has the trailing 0x1000ffff/nop padding after AssignCopy, but inserting raw words in this TU was not counted in the AssignCopy symbol and instead disturbed Set, so it was reverted.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:25:25Z",
+        "src_file": "src/gcValUITextParam.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/65bd997e/00367154__agent_self_reported_failure__src_gcValUITextParam.cpp"
+      }
+    ]
   },
   {
     "address": "0x00367454",
@@ -235385,7 +235485,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8708",
@@ -235393,7 +235493,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValUITextParamDSetf"
+    "mangled_symbol": "__0fQgcValUITextParamDSetf",
+    "failure_notes": [
+      {
+        "session": "65bd997e",
+        "notes": "Implemented gcValUITextParam::Set(float) with the gcUITextControl type chain, gcDesiredUIWidgetHelper::GetWidget(type_gcUITextControl, true), desired-value evaluation through vtable slot +0x70, float-to-int truncation, text-parameter array bounds check at widget+0xD4, value comparison/store, and gcUIWidget::SetSizeDirty. The type-initialization block and most of the tail match structurally, and existing matched siblings still compare cleanly.\n\nThe closest C version emits 584B versus the 592B target. Reshaping the desired-value zero path to keep a float zero recovered the target's mtc1/trunc.w.s path, but SNC still prefers a compact bnezl assignment for clearing tagged desired values where the target uses a longer beqz/nop/branch-with-delay-slot shape. Adding a memory barrier produced 592B but changed the branch layout and caused a 154-byte mismatch. sched=1 regressed to 572B. The project permuter could not run on this function because it could not isolate the 592B symbol from this multi-function translation unit.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:25:25Z",
+        "src_file": "src/gcValUITextParam.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/65bd997e/00367b78__agent_self_reported_failure__src_gcValUITextParam.cpp"
+      }
+    ]
   },
   {
     "address": "0x00367dc8",
