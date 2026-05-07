@@ -182152,7 +182152,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000dd7cc",
@@ -182171,6 +182171,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T00:35:05Z"
+      },
+      {
+        "session": "eaa8d729",
+        "notes": "Current closest source keeps all other gcUIWidgetList methods matched and emits a structurally close 360B AssignCopy, but the target is 376B. The remaining gap is still the same control-flow shape from the prior retry: our compiler chooses a top `beql a0,s2,copy_fields` with `lw a0,220(s1)` in the delay slot, while the expected code uses `bnel a0,s2,copy_child` with `lw a2,216(s0)` in the delay slot followed by an unconditional branch to copy_fields with the `lw a0,220(s1)` delay slot. The expected object also has a dead 8-byte self-branch tail after the epilogue, which normal C source does not emit.\n\nTried rewriting the child-copy path from gotos into a normal guarded block, inverting/rephrasing the release and clone conditions, duplicating the +0xDC field load across the equal/non-equal paths to give SNC a candidate delay-slot load, and a local `#pragma control sched=1` around the method. The sched pragma changed the prologue and was reverted; the duplicated field-load version worsened the later clone branch shape and was reverted. The project permuter could not run because it could not locate the target function in the compiled multi-function object. Root cause appears to be a branch-likely selection plus dead-tail emission issue rather than the high-level copy semantics.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:31:16Z",
+        "src_file": "src/gcUIWidgetList.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/eaa8d729/0027e0f4__agent_self_reported_failure__src_gcUIWidgetList.cpp"
       }
     ]
   },
@@ -189560,7 +189572,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -190239,7 +190251,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -198643,7 +198655,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -198651,7 +198663,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoFunctionHGetTextPcK"
+    "mangled_symbol": "__0fMgcDoFunctionHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "bb1b0563",
+        "notes": "Implemented gcDoFunction::GetText in canonical C++ form in src/gcDoFunction.cpp. The event-name lookup/table path at 0x38890 is structurally exact after using explicit gotos for the eventId==0 fallthrough and keeping the format pointer live; prologue, first cStrAppend setup, event entry selection, and suffix append all align. The closest source is correct size (348B) and compares at 37 bytes different after a 300s permuter pass improved the baseline from 38 to 37 bytes across 5056 compiled candidates.\n\nThe remaining mismatch is concentrated in the tagged gcDesiredEventParams pointer validity/normalization block after the first cStrAppend. Expected keeps the tagged pointer in a1, the bool/valid flag in a0, and the tag bit in a2, then does move a0,a1 immediately before gcDesiredEventParams_GetText. SNC in this TU repeatedly chooses the sibling allocation shape with the pointer in a0 and flags in a1/a2; manual variants tried included direct val/flag, cBase* ptr temporary, register bindings for a0/a1/a2, memory barriers in the flag branch, and the saved permuter-best variant. This looks like local register-allocation drift in a small tagged-pointer idiom rather than a missed control-flow edge.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:29:41Z",
+        "src_file": "src/gcDoFunction.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/bb1b0563/002d9834__agent_self_reported_failure__src_gcDoFunction.cpp"
+      }
+    ]
   },
   {
     "address": "0x002d9990",
@@ -201574,7 +201600,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -201583,7 +201609,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fdgcDoObjectForEachRelationshipHGetTextPcK"
+    "mangled_symbol": "__0fdgcDoObjectForEachRelationshipHGetTextPcK",
+    "src_file": "src/gcDoObjectForEachRelationship_GetText.cpp",
+    "symbol_name": "__0fdgcDoObjectForEachRelationshipHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "eaa8d729",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:31:16Z"
   },
   {
     "address": "0x002e9e20",
@@ -209309,7 +209343,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -209319,7 +209353,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoUISendMessageHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoUISendMessageHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "bb1b0563",
+        "notes": "Implemented gcDoUISendMessage::GetText in the requested src/gcDoFunction.cpp file with the two 256-byte locals, gcDesiredUIWidgetHelper::GetText, gcDesiredEnumerationEntryHelper::GetText(false), optional message object text dispatch, gcDesiredEventParams::GetText(true), and final child-present suffix. The closest source compiles to the correct 428B size and is 93 bytes different. The initial local-buffer setup was tuned to match the duplicate zero stores and call scheduling; the remaining diff is in the three tagged-pointer checks and the type+0xD0 object text dispatch.\n\nThe same register-allocation issue as gcDoFunction::GetText appears here: expected uses a1/a0/a2 for the first tagged message pointer validity test, while this TU keeps choosing a0/a1/a2. In the inner message-object dispatch, expected emits move a1,a0 followed by beqzl a1 with the fallback lui in the likely delay slot; the current source emits the non-likely/null-check shape or keeps the pointer in a0 depending on the variant. For the trailing event params block, expected uses a0 for the pointer and s2 for the flag, but local restructurings drift between s2/a1/a0 choices. Tried direct if/else, explicit check temporaries, register hints, barriers in the flag branches, and pointer-vs-int temporaries. A 300s permuter pass was attempted, but tools/permuter.py could not locate this second target in the multi-function object and exited before searching.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:29:41Z",
+        "src_file": "src/gcDoFunction.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/bb1b0563/0030e86c__agent_self_reported_failure__src_gcDoFunction.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030ea18",
@@ -226380,7 +226428,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0023039c"
@@ -230436,7 +230484,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001368"
     ],

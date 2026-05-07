@@ -125,22 +125,13 @@ void gcUIWidgetList::AssignCopy(const cBase *base) {
     ((gcUIWidgetGroup *)this)->operator=(*(const gcUIWidgetGroup *)other);
 
     if ((int *)((char *)other + 0xD8) != (int *)((char *)this + 0xD8)) {
-        goto copy_child;
-    }
-    goto copy_fields;
-
-copy_child:
-    {
         int value = *(int *)((char *)this + 0xD8);
         int flag = 1;
         int tag = value & 1;
         if (tag != 0) {
             flag = 0;
         }
-        if (flag == 0) {
-            goto from_other;
-        }
-        {
+        if (flag != 0) {
             int old = value;
             int flag2 = 0;
             if (tag != 0) {
@@ -166,16 +157,12 @@ store_current_child:
             }
         }
 
-from_other:
         value = *(int *)((char *)other + 0xD8);
         flag = 1;
         if (value & 1) {
             flag = 0;
         }
-        if (flag == 0) {
-            goto copy_fields;
-        }
-        {
+        if (flag != 0) {
             int source = value;
             CopyEntry *entry = (CopyEntry *)(*(char **)(source + 4) + 0x10);
             cMemPool *pool = cMemPool::GetPoolFromPtr((char *)this + 0xD8);
@@ -199,7 +186,6 @@ do_copy_child:
         }
     }
 
-copy_fields:
     *(int *)((char *)this + 0xDC) = *(int *)((char *)other + 0xDC);
     {
         short *src = (short *)((char *)other + 0xE0);
