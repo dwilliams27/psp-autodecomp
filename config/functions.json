@@ -52486,13 +52486,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeTGetCollisionHandlerRC6FmVec3K"
+    "mangled_symbol": "__0fMeSphereShapeTGetCollisionHandlerRC6FmVec3K",
+    "src_file": "src/eSphereShape_GetCollisionHandlerVec3.cpp",
+    "symbol_name": "__0fMeSphereShapeTGetCollisionHandlerRC6FmVec3K",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "65709756",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:45:24Z"
   },
   {
     "address": "0x00067e34",
@@ -66440,11 +66448,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeShadowVolumeTextureQGetFullTexCoordsP6FmVec4K"
+    "mangled_symbol": "__0fUeShadowVolumeTextureQGetFullTexCoordsP6FmVec4K",
+    "failure_notes": [
+      {
+        "session": "8124a848",
+        "notes": "Added eShadowVolumeTexture::GetFullTexCoords(mVec4 *) const in the existing sched=1 eShadowVolumeTexture TU. The implementation reconstructs the surface width/height reads from 0x98338, derives the next power-of-two exponents from the float bit pattern, computes normalized u/v, and builds the final VFPU C120 vector with small inline VFPU asm. Manual variants tried included D_00098338 relocation-based access, raw 0x98338 access, a local typed surface struct, and an attempted V4SF aggregate/compiler-generated store path.\n\nThe closest compiling version is 188 bytes for a 192-byte target. The hard blocker is the final store: inline asm emits sv.q before jr ra and leaves jr ra with a nop delay slot, while the original has the sv.q in the jr ra delay slot. A V4SF aggregate initializer would be the likely compiler-generated path for schedulable sv.q, but SNC C++ rejected the aggregate initializer and vector indexing syntax for this V4SF typedef. The permuter could not run because it could not locate a 192-byte target symbol in the compiled object while the emitted symbol is 188 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:38:21Z",
+        "src_file": "src/eShadowVolumeTexture.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/8124a848/00086c9c__agent_self_reported_failure__src_eShadowVolumeTexture.cpp"
+      }
+    ]
   },
   {
     "address": "0x00086d5c",
@@ -91354,7 +91376,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f76f4",
@@ -91364,7 +91386,21 @@
       "0x0035a31c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGgcGameLGetMapIndexRC6GcGUIDT76FgcMap_K"
+    "mangled_symbol": "__0fGgcGameLGetMapIndexRC6GcGUIDT76FgcMap_K",
+    "failure_notes": [
+      {
+        "session": "8124a848",
+        "notes": "Added a canonical gcGame::GetMapIndex(const cGUIDT<gcMap> &) const implementation as a cArray scan over 8-byte GUID entries at this+0x540, with explicit empty-GUID handling, 0x3fffffff count masking, byte-offset iteration, and boolean-and masking patterns. Manual restructurings tried: straightforward for-loop, m2c-style infinite loop, inverted/goto compare block, register-pressure barrier on offset to force maps+offset inside the loop, and declaration-order changes. The closest source currently compiles but differs by 64/172 bytes. It has the right broad control flow and loop tail, but SNC chooses different registers for guid.mA/maps and emits branch-likely compare forms or a maintained element pointer in several variants instead of the original bne/andi sequence.\n\nRan tools/permuter.py for 120s on 0x00106810; it searched 4200 generated candidates / 1922 compiled and improved only from 66 to 64 differing bytes. The best permuter changes were only declaration/order tweaks and did not solve the core register/branch-shape drift. Root cause appears to be local register allocation and compare-block branch selection rather than missing semantic structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:38:21Z",
+        "src_file": "src/gcGame.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/8124a848/00106810__agent_self_reported_failure__src_gcGame.cpp"
+      }
+    ]
   },
   {
     "address": "0x001068bc",
@@ -106454,13 +106490,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x001323a4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOgcUIWidgetListPGetItemFromCell6IgcUICellK"
+    "mangled_symbol": "__0fOgcUIWidgetListPGetItemFromCell6IgcUICellK",
+    "failure_notes": [
+      {
+        "session": "65709756",
+        "notes": "Closest source is a split TU with a non-trivial 4-byte gcUICell so SNC receives the by-value cell through a hidden pointer and emits lh loads from offsets 0 and 2. The middle index arithmetic matches the target structure, including the cArray length loads and vertical/non-vertical paths. Manual attempts included short vs wider gcUICell layouts, signed vs unsigned item tests, separate vs merged final returns, sched=1/2, memory barriers around the final branch, and limited register-binding/inline-asm experiments that were discarded when they broke C variable liveness.\n\nThe remaining saved candidate is 224 bytes like the target but still differs in 122 bytes after a 300s permuter run. The root issue appears to be register allocation plus boolean branch shaping at the opening tagged/null test: current code keeps the child pointer in a3 and tag in a2, while the target keeps child pointer in a2 and tag in a3, and the target emits the longer beqz/b invalid-shaping block. That swap then cascades into the final return block, where current code materializes item+0x18 through a0 but target uses lw v0,24(a2) and conditionally sets a2 to zero.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:45:24Z",
+        "src_file": "src/gcUIWidgetList_GetItemFromCell.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/65709756/001310fc__agent_self_reported_failure__src_gcUIWidgetList_GetItemFromCell.cpp"
+      }
+    ]
   },
   {
     "address": "0x001311dc",
