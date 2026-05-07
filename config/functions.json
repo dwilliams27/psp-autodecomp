@@ -10505,7 +10505,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000068c4"
     ],
@@ -169076,13 +169076,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcConfigKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fIgcConfigKAssignCopyPC6FcBase",
+    "src_file": "src/gcConfig.cpp",
+    "symbol_name": "__0fIgcConfigKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8a2d0176",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:22:23Z"
   },
   {
     "address": "0x00246534",
@@ -176057,14 +176065,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredEnumerationKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fUgcDesiredEnumerationKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "17f28ed3",
+        "notes": "Implemented gcDesiredEnumeration::AssignCopy in the requested TU with the expected lazy type initialization, manual dcast parent walk, tagged current-pointer release through vtable+0x50, source clone through vtable+0x10 using cMemPool::GetPoolFromPtr(this+8), and final two-word tail copy. I tried typed and raw-byte cast result shapes, direct D_000385DC/D_0009F3F4/D_0009F450 globals, a register-binding attempt for self+8, and a simplified tail copy. The current closest attempt compiles to the right broad structure but is 608B versus the expected 636B.\n\nThe main mismatch starts in the prologue/register allocation: expected keeps other in s2, self+8 in s6, and uses s3/s4/s5 as global-base registers for D_0009F450/D_0009F3F4/D_000385DC. This TU keeps self+8 in s3 and shifts the global bases to s4/s5/s6, then carries that drift through the tagged-pointer release/clone block. The source-level control flow appears understood, but the remaining gap looks like TU/context-sensitive SNC register allocation plus a shorter boolean/tagged-pointer code shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:19:43Z",
+        "src_file": "src/gcNPCFlyingController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/17f28ed3/00269954__agent_self_reported_failure__src_gcNPCFlyingController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00269bd0",
@@ -194785,7 +194807,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -194793,7 +194815,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fbgcDoEntityPartialBodyAttackHGetTextPcK"
+    "mangled_symbol": "__0fbgcDoEntityPartialBodyAttackHGetTextPcK",
+    "src_file": "src/gcDoEntityPartialBodyAttack_GetText.cpp",
+    "symbol_name": "__0fbgcDoEntityPartialBodyAttackHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8a2d0176",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:22:23Z"
   },
   {
     "address": "0x002b970c",
@@ -195258,7 +195288,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -214128,7 +214158,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0022bd78"
     ],
@@ -214145,6 +214175,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T23:57:58Z"
+      },
+      {
+        "session": "17f28ed3",
+        "notes": "Started from the prior closest attempt and compared the emitted object against expected/build/func/0031d810.o. The function matches through the dcast call, the initial 0x08..0x25 copies, and everything after the problematic 0x28 record loop once I restored the 0x78 store through a temporary destination pointer. I tried a new loop shape using mutable src/dst cursor variables instead of distinct srcC/src10/src14 temporaries; this improved the byte diff from 211/476 to 190/476 but SNC still introduced an extra t3 for src+0x0C and then drifted through the word-copy sequence.\n\nThe remaining root cause still appears to be the same extremely sensitive register allocation/scheduling in the two-iteration 0x24-byte mixed byte/word record copy. The original wants src cursor reuse in t1/t2 and destination cursor reuse in t0 without ever materializing t3; the closest C shape still schedules src+0x0C into t3 and changes the later word-copy register flow. No pure assembly was used.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:19:43Z",
+        "src_file": "src/gcNPCFlyingController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/17f28ed3/0031d810__agent_self_reported_failure__src_gcNPCFlyingController.cpp"
       }
     ]
   },
@@ -224633,7 +224675,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a5efc",
       "0x001a5f2c"
@@ -226158,7 +226200,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a54fc"
     ],
