@@ -41,6 +41,7 @@ TRACE_SWEEP_VARIANTS = [
     ("trace-tt15-1", ["-keeptemp", "-tt15,1"]),
     ("trace-tt19-all", ["-keeptemp", "-tt19,65535"]),
     ("trace-tt20-1", ["-keeptemp", "-tt20,1"]),
+    ("trace-tt20-all", ["-keeptemp", "-tt20,65535"]),
     ("trace-tt25-1", ["-keeptemp", "-tt25,1"]),
     ("trace-tt26-1", ["-keeptemp", "-tt26,1"]),
     ("trace-tt26-511", ["-keeptemp", "-tt26,511"]),
@@ -308,6 +309,9 @@ def _write_trace_summary(case_dir: Path, func: dict, sym_name: str | None) -> No
         ("scheduled asm", "MOP_asm"),
         ("scheduled call", "MOP_jal"),
         ("LRA block", "Local Register Allocation for BB:"),
+        ("forced LR", "forcedreg is TRUE"),
+        ("register selection", "setup_register_selection"),
+        ("save register", "SAVE: Reg"),
         ("CFG dump", "CONTROL FLOW GRAPH"),
     ]
     for label, needle in markers:

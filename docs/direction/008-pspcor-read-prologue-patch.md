@@ -1,6 +1,6 @@
 # pspcor Read Prologue Patch Project
 
-**Status:** Milestone 1 complete; Milestone 2 in progress  
+**Status:** Milestone 2 complete; paused before patch design
 **Owner:** dwilliams + Codex  
 **Created:** 2026-05-07  
 **Related:** `docs/enhancements-match-lift.md` ML2,
@@ -37,6 +37,10 @@ original game has only five 12-word prologue prefixes:
 That accounts for all 99 failed 188B rows and explains why the current matched
 source recipe does not generalize: it lands the all-saves-first cluster, while
 most failures need the hybrid save/move order.
+
+The hybrid families total 97 rows and all are currently failed. No matched 188B
+row has the hybrid prefix, so the compiler work is aimed at a real corpus-wide
+shape rather than a one-function anomaly.
 
 ## Concrete Divergence
 
@@ -235,6 +239,20 @@ Useful trace observations:
   the inline asm `ori $19,$0,1`, while the original needs the `li s3,1` before
   the constructor call without adopting the matched exemplar's all-saves-first
   prologue.
+- `-tt20,65535` is the clearest local register allocation trace and is now
+  included in the harness as `trace-tt20-all`. It shows both the failed hybrid
+  exemplar and matched all-saves exemplar use the same forced result register
+  and save set:
+  - `cFactory::Read`: result live range `TN77` is forced to register `223`
+    (`"19"`, `s3`); final save summary includes registers `220..223`
+    (`s0..s3`).
+  - `eDynamicFluid::Read`: result live range `TN68` is forced to register
+    `223` (`"19"`, `s3`); final save summary also includes registers
+    `220..223` (`s0..s3`).
+  That makes a pure save-set or result-register allocation fix unlikely. LRA
+  preserves each function's existing call-vs-asm order and binds the same
+  callee-save set; the remaining mismatch is the placement of generated save
+  instructions and copies relative to the already-lowered first basic block.
 
 Static compiler map:
 
@@ -251,13 +269,25 @@ Static compiler map:
   - `CG_LRA`: string `0x4b02e0`, call `0x496bd9`.
   - `CG_post_peephole`: string `0x4b02cc`, conditional call `0x48e86f`.
   - `CG_Emit`: string `0x4b02c4`, call `0x417481`.
-- Highest-priority reverse target is `0x427418`. It is called under the
-  `CG_sched` phase label and references the scheduler diagnostics around
-  `pre_sched`, `post_sched`, dependency graphs, register pressure, and
-  `Entering/Leaving CG_Schedule`.
-- Keep `0x496bd9` in scope because the final prologue shape depends on
-  callee-save assignment and LRA/liveness. The current evidence is not enough
-  to rule out an allocator-driven fix.
+- Highest-priority reverse target is now `0x417481` (`CG_Emit`), especially the
+  prologue/frame construction window `0x4175ed..0x4178de`.
+  Local disassembly shows this window:
+  - calls `0x416170` before computing the frame size at `0x4ef4cc`;
+  - creates prologue/frame `CGINS` records through `0x41b006`;
+  - builds stack operands through `0x45e9d2`;
+  - inserts generated instructions into compiler lists through `0x41626d`.
+- `0x41626d` appears to insert at the head of a list: it writes the previous
+  head to `new->next`, updates `list->head`, and sets `list->tail` only when
+  the list was empty. The repeated `0x41b006` + `0x41626d` calls inside
+  `CG_Emit` are therefore a plausible source of reversed or interleaved final
+  prologue order.
+- Deprioritize `0x427418` for this specific drift. It is still the scheduler
+  driver, but `-tt19,65535` shows `CG_Schedule` preserving incoming order for
+  both exemplars.
+- Keep `0x496bd9` in scope for validation because LRA/liveness still decides
+  which callee-save registers exist. It is no longer the leading patch target
+  because `-tt20,65535` shows the same `s0..s3` save set and `s3` result
+  allocation for the failed and matched exemplars.
 - Deprioritize the `del_slot` cluster for this issue. It is relevant to bnel
   and delay-slot filling, but this Read drift is the pre-constructor
   instruction order and callee-save setup.
@@ -304,8 +334,8 @@ Milestone 4:
 
 2. Collect trace outputs.
    - Use `-keeptemp`, `-tr<N>`, `-tt10,<mask>`, `-tt14,1`, `-tt15,1`,
-     `-tt19,65535`, `-tt20,1`, `-tt25,1`, and `-tt26,<mask>` on the
-     minimal source pair.
+     `-tt19,65535`, `-tt20,1`, `-tt20,65535`, `-tt25,1`, and
+     `-tt26,<mask>` on the minimal source pair.
    - Compare `sched=1` and `sched=2` output for the failed exemplar.
    - Identify the last trace point before the bad ordering appears.
 
@@ -314,8 +344,10 @@ Milestone 4:
      `0x41589a` phase driver, `CG_sched`, `CG_LRA`, `gra` area around
      `0x478534`, and central global state at `0x4edf00`.
    - Use string/function indexes if available; regenerate them if stale.
+   - Current focus is `CG_Emit` at `0x417481`, not the scheduler driver.
 
 4. Design patch strategy.
+   - Stop here for user review before making binary changes.
    - Prefer a narrow heuristic patch or option switch if the responsible
      decision is local.
    - If a trampoline is required, reuse the PE-section-extension strategy from
@@ -390,3 +422,15 @@ Milestone 4:
   the 188B Read prefix clusters. The main cFactory hybrid prefix covers 93
   failed rows, while the all-saves-first prefix covers 21 matched rows and one
   failed row.
+- 2026-05-07: Corpus follow-up confirmed the hybrid families total 97 failed
+  rows and zero matched rows. This makes a broad source-recipe sweep low value:
+  existing matched rows are the all-saves-first family, while the high-value
+  failed cluster needs hybrid save/move placement plus early `li s3,1`.
+- 2026-05-07: Added `trace-tt20-all` (`-tt20,65535`) to the harness. Deep LRA
+  traces show the failed and matched exemplars both force the result into `s3`
+  and save `s0..s3`, so the leading hypothesis is no longer wrong register
+  selection or wrong save set.
+- 2026-05-07: Static reverse work moved the leading patch target from
+  scheduler/LRA to `CG_Emit` at `0x417481`, especially
+  `0x4175ed..0x4178de`, where frame/prologue `CGINS` records are created and
+  inserted. Paused before Milestone 3 patch design/implementation.
