@@ -55,6 +55,15 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct GetTextRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
@@ -67,6 +76,7 @@ class gcDoEntitySetScale : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 
     char _pad0C[0x2C];        // 0x0C
@@ -152,4 +162,38 @@ void gcDoEntitySetScale::Write(cFile &file) const {
     mDesired.Write(wb);
     wb.Write(mScaleType);
     wb.End();
+}
+
+// 0x002cbf60 - gcDoEntitySetScale::GetText(char *) const
+void gcDoEntitySetScale::GetText(char *buf) const {
+    char *out = buf;
+    char *typeInfo0 = *(char **)((const char *)this + 0x10);
+    char local[256];
+    local[0] = '\0';
+    GetTextRec *rec0 = (GetTextRec *)(typeInfo0 + 0x78);
+    char *desired = (char *)this + 0x0C;
+    rec0->fn(desired + rec0->offset, out);
+
+    int val = *(int *)((const char *)this + 0x38);
+    int isOwned = 0;
+    if (val & 1) {
+        isOwned = 1;
+    }
+    void *ptr;
+    if (isOwned != 0) {
+        ptr = 0;
+    } else {
+        ptr = (void *)val;
+    }
+
+    void *textObj = ptr;
+    if (textObj != 0) {
+        GetTextRec *rec = (GetTextRec *)(*(char **)((char *)textObj + 4) + 0xD0);
+        short off = rec->offset;
+        rec->fn((char *)textObj + off, local);
+    } else {
+        cStrCat(local, (const char *)0x36DB24);
+    }
+
+    cStrAppend(out, (const char *)0x36EAC4, (const char *)0x36DAF0, local);
 }

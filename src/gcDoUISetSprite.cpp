@@ -25,6 +25,7 @@ public:
 
 class gcDesiredUIWidgetHelper {
 public:
+    void GetText(char *) const;
     void Write(cWriteBlock &) const;
 };
 
@@ -68,6 +69,7 @@ class gcDoUISetSprite {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -86,6 +88,15 @@ struct WriteSlot {
     short pad;
     void (*fn)(void *, cFile *);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
@@ -153,6 +164,22 @@ void gcDoUISetSprite::Write(cFile &file) const {
     slot->fn((char *)base + slot->offset, wb._file);
 
     wb.End();
+}
+
+// 0x00310ac0 - gcDoUISetSprite::GetText(char *) const
+void gcDoUISetSprite::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 0x0C))->GetText(local);
+
+    cStrAppend(buf, (const char *)0x36F0B0, local, (const char *)0x36DAF0);
+
+    char *typeInfo = *(char **)((const char *)this + 0x20);
+    GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0x78);
+    void *base = (void *)((char *)this + 0x1C);
+    slot->fn((char *)base + slot->offset, buf);
+
+    cStrCat(buf, (const char *)0x36DCEC);
 }
 
 // 0x003157f4 - gcDoUISetTextSprite::Write(cFile &) const
