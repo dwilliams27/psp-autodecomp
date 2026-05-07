@@ -48,6 +48,30 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
+struct CloneEntry {
+    short offset;
+    short pad;
+    cBase *(*fn)(void *, cMemPool *, cBase *);
+};
+
+struct ReleaseEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
+};
+
+struct GetNameSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 struct DtorDeleteRecord {
     short offset;
     short pad;
@@ -82,6 +106,8 @@ public:
         mField0C = 0;
     }
     ~gcLobbyUserStrings();
+    void AssignCopy(const cBase *);
+    void GetName(char *) const;
     void Write(cFile &) const;
     static gcLobbyUserStrings *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -115,6 +141,9 @@ extern cType *D_0009F504;
 extern cType *D_0009F554;
 extern cType *D_0009F5DC;
 extern cType *D_0009F5F0;
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 __asm__(".word 0x1000ffff\n");
 __asm__(".word 0x00000000\n");
@@ -224,4 +253,165 @@ gcLobbyUserStrings *gcLobbyUserStrings::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return result;
+}
+
+// ── gcLobbyUserStrings::GetName(char *) const @ 0x00284abc, 184B ──
+void gcLobbyUserStrings::GetName(char *buf) const {
+    cStrAppend(buf, (const char *)0x36E0D0);
+
+    int val = *(int *)((const char *)this + 0x08);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetNameSlot *slot = (GetNameSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fSgcLobbyUserStringsKAssignCopyPC6FcBase, 0x270\n");
+
+// ── gcLobbyUserStrings::AssignCopy(const cBase *) @ 0x002844ac, 624B ──
+void gcLobbyUserStrings::AssignCopy(const cBase *base) {
+    const gcLobbyUserStrings *other = 0;
+    char *slot = (char *)this + 0x08;
+
+    if (base != 0) {
+        if (D_0009F504 == 0) {
+            if (D_0009F454 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_0009F454 = cType::InitializeType(
+                    0, 0, 0x170, D_000385DC, 0, 0, 0, 0);
+            }
+            D_0009F504 = cType::InitializeType(
+                0, 0, 0x18C, D_0009F454,
+                (cBase *(*)(cMemPool *, cBase *))&gcLobbyUserStrings::New,
+                0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((char *)base + 4);
+        cType *target = D_0009F504;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)*((void **)((char *)type + 0x1C));
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcLobbyUserStrings *)base;
+        }
+    }
+
+    int finalField;
+
+    if ((char *)other + 0x08 != slot) {
+        goto copy_desired;
+    }
+    finalField = other->mField0C;
+    goto done;
+
+copy_desired:
+    {
+        int tag = *(int *)((char *)this + 0x08) & 1;
+        int flag = 1;
+        int _tmp_value = *(int *)((char *)this + 0x08);
+        int value = _tmp_value;
+        if (tag != 0) {
+            flag = 0;
+        }
+        if (flag != 0) {
+            int old = value;
+            int flag2 = 0;
+            if (tag != 0) {
+                flag2 = 1;
+            }
+            if (flag2 != 0) {
+                value &= ~1;
+                value |= 1;
+            } else {
+                value = *(int *)value;
+                value |= 1;
+            }
+            *(int *)((char *)this + 0x08) = value;
+            if (old != 0) {
+                ReleaseEntry *release =
+                    (ReleaseEntry *)(*(char **)(old + 4) + 0x50);
+                release->fn((char *)old + release->offset, 3);
+            }
+        }
+
+        int srcTag = *(int *)((char *)other + 0x08) & 1;
+        int srcFlag = 1;
+        int _tmp_846 = *(int *)((char *)other + 0x08);
+        int srcValue = _tmp_846;
+        if (srcTag != 0) {
+            srcFlag = 0;
+        }
+        if (srcFlag != 0) {
+            int source = srcValue;
+            CloneEntry *clone =
+                (CloneEntry *)(*(char **)(source + 4) + 0x10);
+            short cloneOffset = clone->offset;
+            void *target = (char *)source + cloneOffset;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(slot);
+            int current = *(int *)((char *)this + 0x08);
+            int currentFlag = 0;
+            if (current & 1) {
+                currentFlag = 1;
+            }
+            if (currentFlag != 0) {
+                current &= ~1;
+            } else {
+                current = *(int *)current;
+            }
+            *(int *)((char *)this + 0x08) =
+                (int)clone->fn(target, pool, (cBase *)current);
+        }
+        finalField = other->mField0C;
+    }
+done:
+    mField0C = finalField;
 }
