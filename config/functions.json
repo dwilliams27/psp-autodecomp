@@ -171985,7 +171985,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -192612,7 +192612,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -192620,7 +192620,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoEntityAttackHGetTextPcK"
+    "mangled_symbol": "__0fQgcDoEntityAttackHGetTextPcK",
+    "src_file": "src/gcDoEntityAttack.cpp",
+    "symbol_name": "__0fQgcDoEntityAttackHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "930148cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:04:43Z"
   },
   {
     "address": "0x002a6c78",
@@ -195142,7 +195150,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -195150,7 +195158,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoEntityPlayAnimationHGetTextPcK"
+    "mangled_symbol": "__0fXgcDoEntityPlayAnimationHGetTextPcK",
+    "src_file": "src/gcDoEntityPlayAnimation.cpp",
+    "symbol_name": "__0fXgcDoEntityPlayAnimationHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "930148cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:04:43Z"
   },
   {
     "address": "0x002bb3d4",
@@ -197410,7 +197426,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
