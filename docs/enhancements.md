@@ -181,6 +181,7 @@ The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1
 - **Migrate `tools/permuter.py` off its own compile/nm/objcopy helpers.** Per the pre-commit-review, permuter has its own `compile_source` (via direct WIBO+SNC call, not `make`), its own `extract_text_section` / `get_symbol_bytes` / `score_bytes`. Semantically similar to `byte_match`'s helpers but bypasses `make` for throughput. Two options: (a) add a `compile_src(..., bypass_make=True)` variant in `byte_match` that drops into the raw compiler call permuter needs; (b) keep permuter separate but share the post-compile nm/objcopy/compare helpers. Either way drops ~100 lines of permuter and gives it the same relocation-masking + reason-code semantics as the main path.
 
 - **Harden permuter targeting, telemetry, and invocation gates.** Follow-up from the 2026-05-06 GPT-5.5 high targeted run. The permuter remains useful for small scheduling/barrier/declaration-order wins, but recent runs show low yield on known SNC register-allocation/context drift families and a few tool-level hazards:
+  - **Status 2026-05-07:** implemented on side branch `tooling/permuter-hardening` at commit `6b1b168` (`Harden permuter targeting and telemetry`). Pending work is to merge that branch into main and run a real-asset smoke in the primary worktree, because the side worktree intentionally lacks `extern/` and extracted EBOOT assets.
   - Pass the exact DB symbol/mangled name into `run_search()` and fail closed when multiple same-sized symbols exist. Today multi-function objects can fall back to "first symbol with target size", which produced ambiguous scoring on same-sized 140B `Collide` wrappers.
   - Add a baseline parity check against `compare_func.py` semantics before searching. If the permuter baseline does not match the agent's known diff, stop with a wrong-symbol/wrong-flags diagnostic instead of exploring a misleading search space.
   - Make source overwrites safer: prefer `--save-to`, or make `--save-best` overwrite only on exact match unless an explicit force flag is provided. Non-match saved candidates can perturb already-matched siblings in shared `.cpp` files.
@@ -188,8 +189,7 @@ The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1
   - Add better compile-context controls: explicit arbitrary `--cflag`, stronger `--sched` handling, and optional `-Xgprreserve` / `-Xfprreserve` sweeps for register/FPU allocator cases.
   - Gate orchestrator/prompt usage: run a short smoke pass first, extend to a full 300s pass only if it improves, and skip/limit known no-yield `REG_ALLOC` families after one documented no-improvement pass. For pure callee-save register renames, follow `docs/research/snc-register-allocation.md`: one pass max, record `category=REG_ALLOC`, then move on.
   - Record family-level no-yield evidence from failure notes/logs so targets like `cFactory` s-register swaps, `gcViewport` update siblings, and shape `Collide` context drift do not consume repeated 300s runs across agents.
-
-  Defer implementation until the current overnight run lands so this does not race live source/config mutations.
+  Do not schedule this as new implementation work until the side branch is merged or explicitly superseded.
 
 - **`record_match_provenance()` inverse — backfill older DB entries from `logs/session_results/*.json`.** The migration (`tools/migrations/backfill_match_schema.py`) runs successfully today but flipped 11 entries to `failed` for lack of any session_results record (these are pre-session-results matches). Those might still be recoverable by scanning `asm/` or splat output. Low priority.
 
@@ -244,3 +244,24 @@ The backend layer now has generic rate-limit detection for agent text, tool-resu
 Gap: we only validated the concrete reset-time behavior against Codex logs (`try again at 2:35 PM`). We do not yet have a captured Claude usage-limit stream shape. Claude may emit limits as a `result` subtype, a structured error field, or stderr text that our parser does not preserve fully.
 
 Action: the next time Claude hits a limit, save the surrounding `logs/match_*.jsonl` rows and the CLI stderr tail, then add a unit fixture that proves `AgentRateLimited` fires with a parsed retry time or a conservative fallback pause. This is hardening, not a blocker for Codex-only runs.
+
+## 11. pspcor allocator/scheduler register-allocation research
+
+The TU-context register-allocation pass in `docs/direction/006-tu-context-regalloc-research.md` built an exact-symbol harness and tested generated context seeds across shape `Collide`, cFactory/gcViewport saved-register drift, and value/GetText handle-lookup drift. Result: simple source-side seeds, pressure prefixes, sched variants, and `-Xgprreserve` sweeps did not improve the known best diffs. The original-context pass in `docs/direction/007-original-shape-context-reconstruction.md` then changed emitted shape symbol order while preserving matched guards, but still did not move the repeated shape `Collide` allocator drift.
+
+Those negative results make a deeper compiler-internals project worth tracking if we decide to keep pushing these families.
+
+Scope:
+
+- Map the relevant `pspcor.exe` path around `CG_sched`, `CG_LRA`, and the `gra` allocator area identified in `docs/decisions/010-compiler-internals-experiments.md`.
+- Use trace flags such as `-tr<N>`, `-tt10`, `-tt26`, and `-keeptemp` on minimal reproductions to find where the original and current instruction/register choices diverge.
+- Prefer read-only/static analysis first. Any patch should use a second compiler copy and should be gated behind target-family experiments so existing byte-exact matches are not regressed.
+- Prioritize GPR allocation symptoms that repeat across many failures: `a0/a1` loop pointer/counter swaps in shape `Collide`, `s1/s2/s3` callee-save swaps in cFactory/gcViewport, and `s0/s1`/`a1/a2` allocation drift in GetText/Evaluate families.
+
+Expected output:
+
+- A reproducible microcase or original-context case that exposes the allocator/scheduler decision.
+- A map of candidate decision functions/data structures inside `pspcor.exe`.
+- A recommendation on whether a selective compiler patch is feasible, or whether these families should be classified as compiler-blocked until a different SNC build is found.
+
+Status: open, but only after an explicit decision to pursue compiler internals.
