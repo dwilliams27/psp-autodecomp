@@ -46839,7 +46839,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x0000553c",
@@ -155215,7 +155215,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x002117ac"
@@ -184390,7 +184390,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000015cc",
       "0x001a54fc",
@@ -184398,7 +184398,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyGameStringsDSetPCwK"
+    "mangled_symbol": "__0fSgcLobbyGameStringsDSetPCwK",
+    "src_file": "src/gcLobbyGameStrings.cpp",
+    "symbol_name": "__0fSgcLobbyGameStringsDSetPCwK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "020dd3ce",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:32:51Z"
   },
   {
     "address": "0x0028199c",
@@ -184410,14 +184418,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyGameStringsHGetNamePcK"
+    "mangled_symbol": "__0fSgcLobbyGameStringsHGetNamePcK",
+    "src_file": "src/gcLobbyGameStrings.cpp",
+    "symbol_name": "__0fSgcLobbyGameStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "020dd3ce",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:32:51Z"
   },
   {
     "address": "0x00281a98",

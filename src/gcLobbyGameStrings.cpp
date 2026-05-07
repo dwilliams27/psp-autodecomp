@@ -49,6 +49,11 @@ extern cType *D_0009F454;
 extern cType *D_0009F458;
 extern cType *D_0009F4F4;
 
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+void cStrCopy(char *, const wchar_t *, int);
+void *memset(void *, int, unsigned int);
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -64,6 +69,34 @@ struct DtorDeleteRecord {
     short offset;
     short pad;
     void (*fn)(void *, void *);
+};
+
+struct GetNameSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+struct LobbyDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, int);
+};
+
+struct LobbyGameInfo {
+    char pad04[4];
+    char text0[20];
+    char text1[8];
+    char pad20[8];
+    int field28;
+    char field2C[16];
+    int field3C;
+    char pad40[24];
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
 };
 
 class cBase {
@@ -104,6 +137,8 @@ public:
     ~gcLobbyGameStrings();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    void GetName(char *) const;
+    void Set(const wchar_t *) const;
     const cType *GetType(void) const;
     static gcLobbyGameStrings *New(cMemPool *, cBase *);
 
@@ -270,4 +305,66 @@ gcLobbyGameStrings::~gcLobbyGameStrings() {
         }
     }
     *(char **)((char *)this + 4) = cBaseclassdesc;
+}
+
+// ── gcLobbyGameStrings::GetName(char *) const @ 0x0028199c, 252B ──
+void gcLobbyGameStrings::GetName(char *buf) const {
+    cStrAppend(buf, (const char *)0x36E084);
+
+    if (mField08 == 0) {
+        cStrAppend(buf, (const char *)0x36E058);
+    } else if (mField08 == 2) {
+        cStrAppend(buf, (const char *)0x36E090);
+    } else {
+        int val = mField0C;
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetNameSlot *slot = (GetNameSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
+}
+
+// ── gcLobbyGameStrings::Set(const wchar_t *) const @ 0x002818b8, 228B ──
+void gcLobbyGameStrings::Set(const wchar_t *src) const {
+    LobbyGameInfo info;
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0 && mField08 == 2) {
+        info.field28 = 0;
+        memset(info.field2C, 0, 0x10);
+        info.field3C = 0;
+
+        LobbyDispatchEntry *get =
+            (LobbyDispatchEntry *)(*(char **)lobby + 0x258);
+        get->fn((char *)lobby + get->offset, &info, get->offset);
+
+        int index = mField10;
+        switch (index) {
+        case 0:
+            cStrCopy(info.text0, src, 0x14);
+            break;
+        case 1:
+            cStrCopy(info.text1, src, 8);
+            break;
+        }
+
+        LobbyDispatchEntry *set =
+            (LobbyDispatchEntry *)(*(char **)lobby + 0x260);
+        set->fn((char *)lobby + set->offset, &info, set->offset);
+    }
 }
