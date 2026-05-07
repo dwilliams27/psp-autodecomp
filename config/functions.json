@@ -36713,14 +36713,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000123c",
       "0x001c1484"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeLensFlareSpriteHGetNamePcK"
+    "mangled_symbol": "__0fQeLensFlareSpriteHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "483ca8f9",
+        "notes": "Closest attempt reconstructs the handle lookup, fallback strings, and varargs float-to-double calls. The generated code is 312B vs the expected 316B; after adding a memory barrier, the only size-level structural gap is in the entry-name selection where expected SNC emits an extra branch before the common join (`lui; b; addiu; b; nop`) while this source collapses the empty-name path to `lui; addiu; b; nop`. Earlier variants were 300B/308B and had wrong handle-entry offsets until the entry layout was corrected to name +0x08, length +0x1C, handle +0x30.\n\nRemaining diffs also include register allocation drift: expected keeps `this` in s0, `buf` in s1, format string in s2, and the resolved name in s3; local compilation prefers `this` in s1, `buf` in s0, format in s2. Register binding attempts on callee-saved registers were ignored by SNC in this TU. Root cause appears to be source-level branch-shape plus callee-save allocation drift around the final `cStrFormat(buf, fmt, name, mField10, mField14, mField18)` varargs call.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:38:58Z",
+        "src_file": "src/eLensFlareSprite.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/483ca8f9/0003bc70__agent_self_reported_failure__src_eLensFlareSprite.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003bdac",
@@ -46839,7 +46853,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x0000553c",
@@ -46853,7 +46867,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeNavMeshFWriteR6FcFileK"
+    "mangled_symbol": "__0fIeNavMeshFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "fdce9fd1",
+        "notes": "Closest attempt compiles to 652B against the 656B target. sched=2 produced the wrong prologue and branch-likely loop exits; switching this split TU method to sched=1 fixed the prologue. Rewriting raw array loads into the matched eFont-style cArrayBase<T>::mData pattern and hoisting m2c-style temporaries brought the body into alignment through the array/count writes.\n\nThe remaining observed delta is a single missing instruction before the final portal-array count write: expected has move s1,s0 before jal cWriteBlock::Write(int), then loads the second 0x80 array pointer from 128(s1). The closest source instead keeps this in s0 and loads from 128(s0), producing a 4-byte size shortfall. I tried an explicit self local, register binding, offset-based self expression, and eNavMesh inheriting cObject in the split redeclaration; none induced SNC to preserve this in s1. The permuter was attempted but refused to run because the compiled symbol is 652B while the DB target is 656B. This looks like context/register-allocation drift rather than a semantic source issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:41:56Z",
+        "src_file": "src/eNavMesh_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/fdce9fd1/0005727c__agent_self_reported_failure__src_eNavMesh_Write.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005750c",
@@ -145522,7 +145550,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -155215,14 +155243,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x002117ac"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeGeomTrailKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKeGeomTrailKAssignCopyPC6FcBase",
+    "src_file": "src/eGeomTrail_AssignCopy.cpp",
+    "symbol_name": "__0fKeGeomTrailKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fdce9fd1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:41:56Z"
   },
   {
     "address": "0x00211cb4",
@@ -155485,7 +155521,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00212ba4"
@@ -166854,14 +166890,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcMessageHandlerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQgcMessageHandlerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "483ca8f9",
+        "notes": "Implemented the canonical class method in src/gcMessageHandler.cpp rather than src/eLensFlareSprite.cpp because the class-method placement quality gate rejects cross-class methods. The closest attempt gets the lazy type initialization/dynamic-cast prefix and the four copied words into the same broad shape as the target; using the shared D_000385DC/D_00099908 globals and pointer-style word copies improved the generated size from 548B to 588B. Existing siblings in gcMessageHandler.cpp still compare as matched.\n\nThe expected function is 604B including the trailing two-instruction infinite pad before gcMessageHandler::New; the generated method is 588B. The remaining useful diff is in the cSubHandle destroy/clone assignment: expected keeps dst subobject in s5 and uses a longer old-encoded-handle state machine (`move a3,a0`, `move a0,a2`, separate flag variables, and clone call setup with s3/s1/s5), while local compilation keeps dstSub in s3/s4 variants despite register binding attempts and shortens parts of the branch-likely flag handling. This looks like register-allocation/statement-shape drift in the sub-handle helper sequence, not a semantic unknown.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:38:58Z",
+        "src_file": "src/gcMessageHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/483ca8f9/0023b804__agent_self_reported_failure__src_gcMessageHandler.cpp"
+      }
+    ]
   },
   {
     "address": "0x0023ba60",
@@ -204165,7 +204215,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -222243,7 +222293,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
