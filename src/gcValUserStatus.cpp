@@ -218,13 +218,6 @@ struct GetTextThunk {
     GetTextVFn fn;
 };
 
-static inline void DispatchGetText(cBase *receiver, char *buf) {
-    char *classdesc = *(char **)((char *)receiver + 4);
-    GetTextThunk *thunk = (GetTextThunk *)(classdesc + 0xD0);
-    ((void (*)(void *, char *))thunk->fn)(
-        (char *)receiver + thunk->offset, buf);
-}
-
 void gcValUserStatus::GetText(char *buf) const {
     cStrAppend(buf, gcValUserStatus_fmt1, gcValUserStatus_fmt2);
     int val = mPad8;
@@ -236,14 +229,17 @@ void gcValUserStatus::GetText(char *buf) const {
         if (valC & 1) {
             flag = 1;
         }
-        cBase *ptr;
         if (flag != 0) {
-            ptr = 0;
+            valC = 0;
         } else {
-            ptr = (cBase *)valC;
+            __asm__ volatile("" ::: "memory");
         }
-        if (ptr != 0) {
-            DispatchGetText(ptr, buf);
+        int check = valC;
+        if (check != 0) {
+            char *classdesc = *(char **)(check + 4);
+            GetTextThunk *thunk = (GetTextThunk *)(classdesc + 0xD0);
+            ((void (*)(void *, char *))thunk->fn)(
+                (char *)check + thunk->offset, buf);
         } else {
             cStrCat(buf, gcValUserStatus_str_open);
         }

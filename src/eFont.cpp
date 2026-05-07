@@ -210,35 +210,26 @@ cBase *eFont::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
-#pragma control sched=1
 const cType *eFont::GetType(void) const {
     if (D_00041114 == 0) {
         if (D_000385E4 == 0) {
             if (D_000385E0 == 0) {
                 if (D_000385DC == 0) {
-                    const char *name = (const char *)0x36CD74;
-                    const char *desc = (const char *)0x36CD7C;
-                    __asm__ volatile("" : "+r"(name), "+r"(desc));
-                    D_000385DC = cType::InitializeType(name, desc,
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
                                                        1, 0, 0, 0, 0, 0);
                 }
-                const cType *parentType = D_000385DC;
-                cBase *(*factory)(cMemPool *, cBase *) =
-                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
-                D_000385E0 = cType::InitializeType(0, 0, 2, parentType, factory,
+                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                                   &cNamed::New,
                                                    0, 0, 0);
             }
             D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
                                                0, 0, 0, 0);
         }
-        const cType *parentType = D_000385E4;
-        cBase *(*factory)(cMemPool *, cBase *) =
-            (cBase *(*)(cMemPool *, cBase *))0x1E79D4;
-        const char *kindName = (const char *)0x36CDE8;
-        const char *kindDesc = (const char *)0x36CDF0;
-        D_00041114 = cType::InitializeType(0, 0, 0x40, parentType, factory,
-                                           kindName, kindDesc, 5);
+        D_00041114 = cType::InitializeType(0, 0, 0x40, D_000385E4,
+                                           &eFont::New,
+                                           (const char *)0x36CDE8,
+                                           (const char *)0x36CDF0, 5);
     }
     return D_00041114;
 }
-#pragma control sched=2

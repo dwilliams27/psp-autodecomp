@@ -106172,7 +106172,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -106189,7 +106189,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T21:36:33Z"
       }
-    ]
+    ],
+    "src_file": "src/gcValUserStatus.cpp",
+    "symbol_name": "__0fPgcValUserStatusHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a2d72a56",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:00:31Z"
   },
   {
     "address": "0x001303b8",
@@ -144624,7 +144632,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144642,7 +144650,15 @@
         "variant": "base",
         "timestamp": "2026-04-29T21:27:48Z"
       }
-    ]
+    ],
+    "src_file": "src/eFont.cpp",
+    "symbol_name": "__0fFeFontHGetTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a2d72a56",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:00:31Z"
   },
   {
     "address": "0x001e7b78",
@@ -147457,7 +147473,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00009d70",
@@ -147520,7 +147536,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -192268,7 +192284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011b6f4",
       "0x0011b714",
@@ -192400,7 +192416,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",

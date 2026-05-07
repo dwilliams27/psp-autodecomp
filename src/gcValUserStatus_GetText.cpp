@@ -40,17 +40,17 @@ void gcValUserStatus::GetText(char *buf) const {
         if (valC & 1) {
             flag = 1;
         }
-        cBase *ptr;
         if (flag != 0) {
-            ptr = 0;
+            valC = 0;
         } else {
-            ptr = (cBase *)valC;
+            __asm__ volatile("" ::: "memory");
         }
-        if (ptr != 0) {
-            char *classdesc = *(char **)((char *)ptr + 4);
+        int check = valC;
+        if (check != 0) {
+            char *classdesc = *(char **)(check + 4);
             GetTextThunk *thunk = (GetTextThunk *)(classdesc + 0xD0);
             ((void (*)(void *, char *))thunk->fn)(
-                (char *)ptr + thunk->offset, buf);
+                (char *)check + thunk->offset, buf);
         } else {
             cStrCat(buf, gcValUserStatus_str_open);
         }
