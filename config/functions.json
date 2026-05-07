@@ -25735,7 +25735,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0001ddcc",
@@ -156078,14 +156078,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0021396c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeParticleSystemKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPeParticleSystemKAssignCopyPC6FcBase",
+    "src_file": "src/eParticleSystem.cpp",
+    "symbol_name": "__0fPeParticleSystemKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fbec43c1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T17:01:42Z"
   },
   {
     "address": "0x00214c88",
@@ -166700,7 +166708,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x000012d0",
@@ -166986,7 +166994,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x000012d0",
@@ -167001,7 +167009,20 @@
       "0x00313eb0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMcHandlePairT76NgcStringTable6LcSubHandleT76IgcString__HGetNamePcbTC_PCcK"
+    "mangled_symbol": "__0fMcHandlePairT76NgcStringTable6LcSubHandleT76IgcString__HGetNamePcbTC_PCcK",
+    "failure_notes": [
+      {
+        "session": "fbec43c1",
+        "notes": "Implemented a semantic cHandlePairT<gcStringTable, cSubHandleT<gcString> >::GetName retry with the authoritative bool,bool mangled signature (__0fMcHandlePairT76NgcStringTable6LcSubHandleT76IgcString__HGetNamePcbTC_PCcK), repeated 0x38890 handle-table validation, cStrCopy/cStrCat/cStrAppend selection, IsValid/GetSubObject dispatch, and vtable GetName slot call at typeInfo+0x40. The closest stable split-TU attempt currently emits a 796B symbol versus the 820B target; compare reports a size mismatch. Keeping it split from src/eParticleSystem.cpp is intentional because placing this large template body in that TU perturbed the already-matched eParticleSystem::AssignCopy through SNC context-sensitive allocation.\n\nTried third parameter as char* first, which produced the wrong TB mangling, then corrected to bool for the TC symbol. Tried trivial by-value cSubHandleT, nontrivial cSubHandleT with ctor/dtor declarations, const-reference declarations to force stack-address subhandle passing, explicit src pointer copies for this+4, sched=1/sched=2, and a volatile pad/zero local to chase the target stack-temp layout. The nontrivial version over-expanded with constructor/destructor calls and mismatched broadly; the const-ref/trivial versions are semantically closest but too compact around the empty-subhandle branch and stack temporary setup. The permuter could not run: on the combined TU it could not isolate the target function, and on the split linkonce TU it failed extracting .text from the temporary object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:01:42Z",
+        "src_file": "src/eParticleSystem_GetName.cpp"
+      }
+    ]
   },
   {
     "address": "0x0023b390",
@@ -171457,7 +171478,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x000012d0",
@@ -171647,7 +171668,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x000012d0",
@@ -191864,14 +191885,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoDecalSpawnKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcDoDecalSpawnKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "40467cc7",
+        "notes": "Implemented a canonical C++ gcDoDecalSpawn::AssignCopy body in src/gcDoDecalSpawn.cpp using the matched AssignCopy type-check pattern, manual byte-order field copies, and explicit desired-value detach/copy logic. Iterations fixed the source/destination handle pointer load/store sequence, duplicated the desired-value `| 1` on both tag branches to recover the original branch-delay layout, and kept all existing sibling functions in the TU matching.\n\nClosest build compiles to 724B while expected is 732B. The live body is structurally aligned, but the expected function includes an 8-byte post-return dead self-branch tail (`b .; nop`) inside the AssignCopy symbol. Top-level asm placement that works for the existing destructor does not attach this tail to AssignCopy in this TU; attempts to place the asm before/after the method either routed bytes to another boundary or were not included in the symbol. Remaining likely issue is symbol-tail emission/placement rather than the live C logic, plus residual register allocation differences around s3/s7 in the desired copy path that could only be inspected after solving the size gate.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:49:33Z",
+        "src_file": "src/gcDoDecalSpawn.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/40467cc7/0029d8e4__agent_self_reported_failure__src_gcDoDecalSpawn.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029dbc0",
@@ -202149,14 +202184,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoLobbyUserOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcDoLobbyUserOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "40467cc7",
+        "notes": "Implemented gcDoLobbyUserOp::AssignCopy in the canonical class TU src/gcDoLobbyUserOp.cpp, not the decal TU, to preserve the class-method file rule. The body follows the same AssignCopy type-check pattern, copies flags/ints in target byte order, handles desired-value detach/copy at offset 0x14, and structures the final byte copy with an explicit self-copy branch so the lbu lands in the expected branch-delay slot. Existing New/GetType/GetText/dtor/Write and gcDoLog::GetType all still match.\n\nClosest build compiles to 724B while expected is 732B. As with gcDoDecalSpawn, the live body is the right size/shape but the expected symbol includes an 8-byte dead self-branch tail after the return. I tried explicit unreachable labels and top-level `.word 0x1000ffff; .word 0` placement; SNC optimized the label away or did not attach the asm to AssignCopy's symbol boundary. The next attempt should focus on reproducing that post-return tail without pure-assembly wrapping, then inspect any remaining register drift around the desired copy call.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:49:33Z",
+        "src_file": "src/gcDoLobbyUserOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/40467cc7/002e5efc__agent_self_reported_failure__src_gcDoLobbyUserOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e61d8",
@@ -209399,14 +209448,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoTimerActivateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcDoTimerActivateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f7323bcd",
+        "notes": "Implemented gcDoTimerActivate::AssignCopy with the same reconstructed C shape as the trigger variant, adjusted for type id 0xDF and the extra bool copy at 0x21. The lazy type init, dynamic type walk, desired-object release/copy, two word copies at 0x18/0x1C, and bool byte copies are all expressed in C and all previously matched siblings in src/gcDoTimerActivate.cpp still compare cleanly.\n\nClosest result is a 732-byte symbol versus the DB's 740-byte function. As with gcDoTriggerActivate, the generated body stops at the functional return and is missing only the original 8-byte post-return dead branch tail. The same source-level tail insertion attempts were not successful: file-scope asm either does not attach to the AssignCopy symbol or risks moving the existing destructor tail. This should be retried by someone specifically investigating SNC/file-scope asm symbol sizing for newly added methods.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:54:52Z",
+        "src_file": "src/gcDoTimerActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/f7323bcd/003079dc__agent_self_reported_failure__src_gcDoTimerActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00307cc0",
@@ -209610,14 +209673,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoTriggerActivateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTgcDoTriggerActivateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f7323bcd",
+        "notes": "Implemented gcDoTriggerActivate::AssignCopy in canonical C++ syntax using the matched AssignCopy dynamic-cast template and a manually expanded gcDesiredObject assignment. I tried the direct sibling pattern, removed the explicit selfDesired temporary to recover the target s7 allocation/prologue, split the current/tag/next temporaries to reproduce the redundant branch-likely copy logic, added a zero-cost asm barrier to preserve the masked temporary, and precomputed srcSub before cMemPool::GetPoolFromPtr to get the source pointer add in the call delay slot. Existing matched siblings in src/gcDoTriggerActivate.cpp still compare cleanly.\n\nClosest result is a 724-byte symbol versus the DB's 732-byte function. The C body now reaches the original functional endpoint (jr ra delay at +0x2d0); the remaining 8 bytes are the original dead branch tail (`b .; nop`) after the return. I also tested a split TU and file-scope asm/anchor approaches, but SNC either ignored the trailing file asm at end-of-TU or attached it to a preceding matched symbol, which regressed destructor/New symbol sizing. Root cause appears to be symbol-boundary/tail emission for this late-added method, not the main C control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:54:52Z",
+        "src_file": "src/gcDoTriggerActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/f7323bcd/0030847c__agent_self_reported_failure__src_gcDoTriggerActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00308758",
