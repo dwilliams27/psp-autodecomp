@@ -75,6 +75,13 @@ public:
     static int IsHeadsetAvailable(void);
     static int GetChannel(void);
     static int IsVoiceAllowed(void);
+    static void SetChannel(int);
+    static void AllowVoice(bool);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
 };
 
 class gcLValue {
@@ -96,6 +103,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     float Evaluate(void) const;
+    void Set(float);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -203,6 +211,20 @@ float gcValHeadset::Evaluate(void) const {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// gcValHeadset::Set(float) @ 0x0034725c
+// ─────────────────────────────────────────────────────────────────────────
+
+void gcValHeadset::Set(float value) {
+    if (mField8 < 2) {
+        if (mField8 > 0) {
+            nwHeadset::SetChannel((int)value);
+        }
+    } else if (mField8 < 3) {
+        nwHeadset::AllowVoice(value != 0.0f);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // gcValHeadset::Read(cFile &, cMemPool *) @ 0x003470fc
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -272,13 +294,68 @@ public:
     int pad4;
     int f8;
     void AssignCopy(const cBase *);
+    void Set(float);
 };
 
 gcValLobbyOptions *dcast(const cBase *);
 
+struct LobbyOptionDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, unsigned char);
+};
+
 void gcValLobbyOptions::AssignCopy(const cBase *base) {
     gcValLobbyOptions *other = dcast(base);
     this->f8 = other->f8;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValLobbyOptions::Set(float) @ 0x0034adb8
+// ─────────────────────────────────────────────────────────────────────────
+
+void gcValLobbyOptions::Set(float value) {
+    void *lobby = nwNetwork::GetLobby();
+    register LobbyOptionDispatchEntry *entry __asm__("$7");
+    short offset;
+    register void (*fn)(void *, unsigned char) __asm__("$4");
+    void *object;
+    int field8;
+    int flag;
+
+    if (lobby == 0) return;
+    field8 = f8;
+    if (field8 > 0) goto entryOneCheck;
+    if (field8 < 0) return;
+    goto entryZero;
+entryOneCheck:
+    if (field8 < 2) goto entryOne;
+    return;
+entryZero:
+    flag = 0;
+    __asm__("" : "+r"(entry));
+    entry = (LobbyOptionDispatchEntry *)(*(char **)lobby + 0x4A8);
+    offset = entry->offset;
+    object = (char *)lobby + offset;
+    fn = entry->fn;
+    if (value != 0.0f) {
+        flag = 1;
+    }
+    fn(object, flag);
+    goto done;
+entryOne:
+    flag = 0;
+    __asm__("" : "+r"(entry));
+    entry = (LobbyOptionDispatchEntry *)(*(char **)lobby + 0x4B0);
+    offset = entry->offset;
+    object = (char *)lobby + offset;
+    fn = entry->fn;
+    if (value != 0.0f) {
+        flag = 1;
+    }
+    fn(object, flag);
+done:
+    return;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

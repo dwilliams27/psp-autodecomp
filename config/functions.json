@@ -90121,7 +90121,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -170433,7 +170433,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -224695,14 +224695,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a5efc",
       "0x001a5f2c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcValHeadsetDSetf"
+    "mangled_symbol": "__0fMgcValHeadsetDSetf",
+    "src_file": "src/gcValHeadset.cpp",
+    "symbol_name": "__0fMgcValHeadsetDSetf",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "99ede13a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:36:57Z"
   },
   {
     "address": "0x003472c8",
@@ -226220,13 +226228,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcValLobbyOptionsDSetf"
+    "mangled_symbol": "__0fRgcValLobbyOptionsDSetf",
+    "failure_notes": [
+      {
+        "session": "99ede13a",
+        "notes": "Closest attempt is the permuter-saved source in src/gcValHeadset.cpp at 19/224 bytes differing after a full 300s run (10,824 candidates generated, 3,924 compiled). Manual attempts tried natural if/else dispatch, explicit goto layout to reproduce the bgtz/bltz/bnezl shape, shared vs duplicated return tails, int/bool/unsigned-char setter parameter types, explicit flag variables, separate object/function-pointer temporaries, register bindings for the dispatch entry and callee, empty asm constraints, and sched=1 (which was worse). The control-flow skeleton can be made exact, and the dispatch call registers can also be made exact, but not simultaneously with the original compare/load schedule.\n\nThe remaining mismatch is concentrated in the two virtual setter dispatch blocks and branch-delay slots. The original wants the selector-zero and selector-one paths to preload the lobby vtable in branch delay slots, then perform mtc1/li/c.eq before dispatch-entry loads and call via a0/a1 moves. The closest byte result shifts the mtc1/li setup into those branch-delay regions and changes bnezl delay-slot contents; other variants get the desired dispatch register sequence but leave a 38-byte scheduling mismatch. This looks like an SNC scheduler/register-allocation corner with little remaining C-level leverage.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:36:57Z",
+        "src_file": "src/gcValHeadset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/99ede13a/0034adb8__agent_self_reported_failure__src_gcValHeadset.cpp"
+      }
+    ]
   },
   {
     "address": "0x0034ae98",
