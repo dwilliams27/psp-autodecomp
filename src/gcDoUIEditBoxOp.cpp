@@ -28,7 +28,14 @@ public:
     int mField0;
     int mField4;
     unsigned int mField8;
+    void GetText(char *) const;
     void Write(cWriteBlock &) const;
+};
+
+class cStr {
+public:
+    char _data[256];
+    cStr(const char *, ...);
 };
 
 class gcAction {
@@ -58,6 +65,7 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoUIEditBoxOp &operator=(const gcDoUIEditBoxOp &);
 };
@@ -90,6 +98,15 @@ struct VTableSlot {
     short _pad;
     const cType *(*getType)(void *);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 cBase *gcDoUIEditBoxOp::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -211,4 +228,112 @@ void gcDoUIEditBoxOp::Write(cFile &file) const {
     wb.WriteBase(ptr);
     mField20.Write(wb);
     wb.End();
+}
+
+void gcDoUIEditBoxOp::GetText(char *buf) const {
+    register const gcDoUIEditBoxOp *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char widgetText[256];
+
+    widgetText[0] = *widgetText = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)self + 0x0C))
+        ->GetText(widgetText);
+    cStrAppend(out, (const char *)0x36EFFC, widgetText,
+               (const char *)0x36DAF0);
+
+    int kind = *(int *)((const char *)self + 0x18);
+    int useName = 0;
+    if (kind >= 0) {
+        useName = 0;
+        int less2 = kind < 2;
+        if (less2 == 0) {
+            useName = 0;
+        } else {
+            goto set_use_name;
+        }
+    }
+    goto use_name_done;
+set_use_name:
+    useName = 1;
+use_name_done:
+
+    if (useName != 0) {
+        register const gcDoUIEditBoxOp *savedSelf __asm__("$18") = self;
+        cStr text((const char *)0x36DACC);
+        register char *catOut __asm__("$4") = out;
+
+        int val = *(int *)((const char *)savedSelf + 0x1C);
+        int flag = 0;
+        int tag = val & 1;
+        if (tag != 0) {
+            flag = 1;
+        }
+
+        int valid;
+        if (flag != 0) {
+            valid = 0;
+        } else {
+            valid = val != 0;
+            valid &= 0xFF;
+            valid = valid != 0;
+        }
+
+        if (valid != 0) {
+            int flag2 = 0;
+            if (tag != 0) {
+                flag2 = 1;
+            }
+
+            char *type;
+            if (flag2 != 0) {
+                val = 0;
+                type = *(char **)(val + 4);
+            } else {
+                type = *(char **)(val + 4);
+            }
+
+            GetTextSlot *slot = (GetTextSlot *)(type + 0x40);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, (char *)&text);
+        }
+
+        cStrCat(catOut, (char *)&text);
+    } else {
+        int useValue;
+        if (kind >= 4) {
+            useValue = kind < 6;
+            if (useValue != 0) {
+                useValue = 1;
+            } else {
+                useValue = 0;
+            }
+        } else {
+            useValue = 0;
+        }
+
+        if (useValue != 0) {
+            int val = *(int *)((const char *)self + 0x20);
+            int tagged = 0;
+            if (val & 1) {
+                tagged = 1;
+            }
+            if (tagged != 0) {
+                val = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int check = val;
+            if (check != 0) {
+                char *type = *(char **)(check + 4);
+                GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+                ((void (*)(void *, char *))slot->fn)(
+                    (char *)val + slot->offset, out);
+            } else {
+                cStrCat(out, (const char *)0x36DB24);
+            }
+        }
+    }
+
+    cStrCat(out, (const char *)0x36DCEC);
 }

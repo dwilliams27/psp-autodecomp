@@ -46,6 +46,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -79,6 +80,15 @@ struct eAllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 // ── Write(cFile &) const  @ 0x00323cc8 ──
 void gcValCinematicInfo::Write(cFile &file) const {
@@ -190,4 +200,102 @@ void gcValCinematicInfo::AssignCopy(const cBase *base) {
     }
 
     operator=(*other);
+}
+
+void gcValCinematicInfo::GetText(char *buf) const {
+    register const gcValCinematicInfo *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+
+    cStrAppend(out, (const char *)0x36DCE4, (const char *)0x36DAF0);
+
+    switch (*(int *)((const char *)self + 8)) {
+    case 1:
+    case 2:
+    case 3: {
+        int val = *(int *)((const char *)self + 0x0C);
+        int tagged = 0;
+        int tag = val & 1;
+        register const char *suffix __asm__("$18") = (const char *)0x36E440;
+        if (tag != 0) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+
+        cStrAppend(out, (const char *)0x36DAD8);
+
+        val = *(int *)((const char *)self + 0x10);
+        tagged = 0;
+        if (val & 1) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+
+        cStrAppend(out, suffix);
+        break;
+    }
+    case 7:
+    case 8:
+    case 9: {
+        int val = *(int *)((const char *)self + 0x0C);
+        int tagged = 0;
+        int tag = val & 1;
+        register const char *suffix __asm__("$16") = (const char *)0x36E440;
+        if (tag != 0) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+
+        cStrAppend(out, suffix);
+        break;
+    }
+    case 4:
+    case 5:
+    case 6:
+    default:
+        break;
+    }
+
+    cStrAppend(out, (const char *)0x36EBE4);
 }

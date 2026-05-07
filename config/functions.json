@@ -157137,7 +157137,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000857a8"
@@ -208392,7 +208392,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -208401,7 +208401,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUIEditBoxOpHGetTextPcK"
+    "mangled_symbol": "__0fPgcDoUIEditBoxOpHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "43d70073",
+        "notes": "Closest attempt compiles to the correct 452-byte function size, but compare_func still reports 93/452 differing bytes. The logic is reconstructed: widget helper text at +0x0C, prefix format 0x36EFFC, kind 0-1 rendering the +0x1C desired object's 0x40 text slot through a cStr local initialized with 0x36DACC, kind 4-5 rendering the +0x20 desired value through slot 0xD0, and final cStrCat of 0x36DCEC. Existing matched methods in the TU still match.\n\nThe blocker is codegen shape, not semantics. I tried several range-test spellings and tagged-pointer spellings. The best full-size version uses an explicit goto to force the first range test to 452B, but SNC emits the kind<2 branch with opposite polarity from expected, keeps the +0x1C value in a0 instead of expected a1, and emits the kind 4-5 test through a bnezl form/extra nop rather than expected beqz + explicit branch. A bounded permuter attempt failed before searching because tools/permuter.py could not locate the target function in the compiled .o, so no automated last-mile search ran.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:50:17Z",
+        "src_file": "src/gcDoUIEditBoxOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/43d70073/0030987c__agent_self_reported_failure__src_gcDoUIEditBoxOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x00309a40",
@@ -208834,7 +208848,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -211921,14 +211935,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoViewportSetConfigHGetTextPcK"
+    "mangled_symbol": "__0fVgcDoViewportSetConfigHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "4f32a0e0",
+        "notes": "Implemented gcDoViewportSetConfig::GetText in the canonical class TU. The switch table is decoded as cases 0-2 appending 0x36DAF0, case 3 doing the handle table lookup through 0x38890 and selecting object+8 / 0x36DAB8 / 0x36DAC4 / 0x36DACC, and cases 4-7 dispatching desired object text through vtable slot +0xD0. Existing New/GetType/Write/destructor/gcEnumeration::New functions still compare as matched. The current closest attempt is only 55/412 bytes different; the prologue, switch jump table, case 0-2, desired-object case, and final append are close or exact.\n\nThe remaining diff is concentrated in case 3. I tried direct table indexing, byte-pointer indexing, explicit goto labels for the handle != 0 path, found initialized before/inside the branch, entry==0 vs entry!=0 shapes, unsigned sltiu for the unnamed test, and default-then-override string selection. The closest version keeps the original bnez handle shape and sltiu unnamed check, but SNC still emits a different handle-table address calculation/register allocation and optimizes the found-name branch join differently. The permuter could not run because this multi-function TU produced a larger .text than the single target function, so it failed to locate the target in the compiled object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:39:23Z",
+        "src_file": "src/gcDoViewportSetConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/4f32a0e0/00318128__agent_self_reported_failure__src_gcDoViewportSetConfig.cpp"
+      }
+    ]
   },
   {
     "address": "0x003182c4",
@@ -216736,14 +216764,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValCinematicInfoHGetTextPcK"
+    "mangled_symbol": "__0fSgcValCinematicInfoHGetTextPcK",
+    "src_file": "src/gcValCinematicInfo.cpp",
+    "symbol_name": "__0fSgcValCinematicInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "43d70073",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T06:50:17Z"
   },
   {
     "address": "0x003243bc",
@@ -228294,7 +228330,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -228303,7 +228339,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValObjectHasCategoryHGetTextPcK"
+    "mangled_symbol": "__0fWgcValObjectHasCategoryHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "4f32a0e0",
+        "notes": "Implemented the full GetText control flow in C++: local 256-byte text buffer, first tagged-pointer object text via type slot +0x78, fallback cStrCopy(0x36DACC), enum helper at +0x14, second tagged-pointer expression via type slot +0xD0, and final cStrAppend(0x36EF10). Existing matched siblings in the same TU remain byte-exact. Tried plain C, explicit $s0/$s1 bindings, explicit a2 binding for the helper bool, memory barriers on the untagged paths, and a sched=1 pragma; sched=1 worsened scheduling and explicit object register bindings introduced extra s-register saves. The closest source is the current one, which compares as 272/408 bytes different.\n\nThe remaining mismatch is a register-allocation/scheduling cascade starting at the first object load. Expected moves both this and buf into s0/s1 before loading mObject into a1, then uses a0 as the bool flag and a2 as the tag. Our best compile loads mObject into a0 before saving buf, so a1 is still occupied by the incoming buf argument; this flips the a0/a1 roles through the first virtual call and cascades through the second validity check. The generated control flow is semantically correct and uses the expected helper calls/strings, but I did not find a source form that makes SNC free a1 early enough. The permuter could not run because this is a multi-function TU and it failed to locate the target symbol in the compiled .o.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:39:23Z",
+        "src_file": "src/gcValObjectHasCategory.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/4f32a0e0/00354e90__agent_self_reported_failure__src_gcValObjectHasCategory.cpp"
+      }
+    ]
   },
   {
     "address": "0x00355028",
