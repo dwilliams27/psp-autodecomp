@@ -176621,7 +176621,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -202917,7 +202917,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -204469,7 +204469,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -204479,7 +204479,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoPlayCinematicHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoPlayCinematicHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "c7a66cc1",
+        "notes": "Closest source is a split TU with a local gcDoPlayCinematic redeclaration because the shared header lacks GetText. It reconstructs the initial object-text scratch path, the dense switch table mapping (0/5 first handle, 1 streamed cinematic GUID, 2 suffix only, 3/6 second handle, 4/7/8 desired values), the streamed-cinematic cType chain through D_000385DC/D_000385E0/D_000385E4/D_00040C90/D_00099AD4, and the final suffix check. It compiles cleanly but is 1296B vs the 1320B target.\n\nRemaining mismatch is concentrated in source-level codegen details rather than missing behavior. The initial object-text block still allocates the owned/tag temporaries as $a2/$a1 instead of target $a1/$a2, which also changes the fallback cStrCopy scheduling and branch distances. In the streamed-cinematic branch, the stack cName zeroing is emitted through $s2-relative stores instead of direct sh stores to 0x114/0x116(sp), even after binding the name/GUID registers; handle cases are now inlined and use the corrected handle node layout, but downstream branch offsets stay short because of the early block and name-clear differences.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:03:28Z",
+        "src_file": "src/gcDoPlayCinematic_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/c7a66cc1/002ef938__agent_self_reported_failure__src_gcDoPlayCinematic_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x002efe60",
@@ -228098,14 +228112,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcValLobbyScoreboardInfoHGetTextPcK"
+    "mangled_symbol": "__0fYgcValLobbyScoreboardInfoHGetTextPcK",
+    "src_file": "src/gcValLobbyScoreboardInfo.cpp",
+    "symbol_name": "__0fYgcValLobbyScoreboardInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c7a66cc1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T18:03:28Z"
   },
   {
     "address": "0x0034c088",

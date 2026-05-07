@@ -11,6 +11,12 @@ struct DispatchEntry {
     cType *(*fn)(void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void *fn;
+};
+
 class cType {
 public:
     char pad[0x1C];
@@ -59,8 +65,12 @@ public:
     gcValLobbyScoreboardInfo &operator=(const gcValLobbyScoreboardInfo &);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 static cType *type_base;
 static cType *type_expression;
@@ -159,4 +169,229 @@ void gcValLobbyScoreboardInfo::Write(cFile &file) const {
     }
     wb.WriteBase(ptr1);
     wb.End();
+}
+
+// 0x0034bc6c -- gcValLobbyScoreboardInfo::GetText(char *) const
+void gcValLobbyScoreboardInfo::GetText(char *buf) const {
+    register const gcValLobbyScoreboardInfo *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char local0[256];
+    char local1[256];
+
+    cStrAppend(out, (const char *)0x36F520);
+
+    register const char *close __asm__("$18") = (const char *)0x36E2E8;
+    if (*(int *)((const char *)self + 0x0C) == 0) {
+        int tagged = 0;
+        int val = *(int *)((const char *)self + 0x10);
+        int tag = val & 1;
+        if (tag != 0) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    } else {
+        int owned = 0;
+        int obj = *(int *)((const char *)self + 0x20);
+        int objTag = obj & 1;
+        if (objTag != 0) {
+            owned = 1;
+        }
+
+        int useFallback;
+        if (owned == 0) {
+            goto first_object_not_owned;
+        }
+        useFallback = 1;
+        goto first_object_fallback_done;
+    first_object_not_owned:
+        int zero = obj == 0;
+        zero &= 0xFF;
+        useFallback = zero != 0;
+    first_object_fallback_done:
+
+        if (useFallback != 0) {
+            cStrAppend(out, (const char *)0x36DACC);
+        } else {
+            local0[0] = '\0';
+
+            int ownedAgain = 0;
+            if (objTag != 0) {
+                ownedAgain = 1;
+            }
+
+            char *type;
+            int base = obj;
+            if (ownedAgain != 0) {
+                base = 0;
+                type = *(char **)(base + 4);
+            } else {
+                type = *(char **)(base + 4);
+            }
+
+            GetTextSlot *slot = (GetTextSlot *)(type + 0x40);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)base + slot->offset, local0);
+            cStrAppend(out, local0);
+        }
+    }
+    cStrAppend(out, close);
+
+    cStrAppend(out, (const char *)0x36DCB8, (const char *)0x36DAF0);
+
+    int kind = *(int *)((const char *)self + 8);
+    int isFive = kind == 5;
+    isFive &= 0xFF;
+    if (isFive != 0) {
+        cStrAppend(out, (const char *)0x36E300);
+
+        int tagged = 0;
+        int val = *(int *)((const char *)self + 0x14);
+        int tag = val & 1;
+        if (tag != 0) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        cStrAppend(out, close);
+        kind = *(int *)((const char *)self + 8);
+    }
+
+    int two = 2;
+    int flag = 0;
+    if ((kind == two) || (kind == 3) || (kind == 4)) {
+        flag = 1;
+    }
+    flag &= 0xFF;
+
+    int isFour = kind ^ 4;
+    if (flag != 0) {
+        cStrAppend(out, (const char *)0x36E300);
+
+        int tagged = 0;
+        int val = *(int *)((const char *)self + 0x18);
+        int tag = val & 1;
+        if (tag != 0) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *type = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+            ((void (*)(void *, char *))slot->fn)(
+                (char *)val + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        cStrAppend(out, close);
+        isFour = *(int *)((const char *)self + 8) ^ 4;
+    }
+
+    isFour = isFour == 0;
+    isFour &= 0xFF;
+    if (isFour != 0) {
+        cStrAppend(out, (const char *)0x36E300);
+
+        if (*(int *)((const char *)self + 0x0C) == 0) {
+            int tagged = 0;
+            int val = *(int *)((const char *)self + 0x1C);
+            int tag = val & 1;
+            if (tag != 0) {
+                tagged = 1;
+            }
+            if (tagged != 0) {
+                val = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int check = val;
+            if (check != 0) {
+                char *type = *(char **)(check + 4);
+                GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+                ((void (*)(void *, char *))slot->fn)(
+                    (char *)val + slot->offset, out);
+            } else {
+                cStrCat(out, (const char *)0x36DB24);
+            }
+        } else {
+            int obj = *(int *)((const char *)self + 0x24);
+            int owned = 0;
+            register int objTag __asm__("$16") = obj & 1;
+            if (objTag != 0) {
+                owned = 1;
+            }
+
+            int useFallback;
+            if (owned == 0) {
+                goto second_object_not_owned;
+            }
+            useFallback = 1;
+            goto second_object_fallback_done;
+        second_object_not_owned:
+            int zero = obj == 0;
+            zero &= 0xFF;
+            useFallback = zero != 0;
+        second_object_fallback_done:
+
+            if (useFallback != 0) {
+                cStrAppend(out, (const char *)0x36DACC);
+            } else {
+                local1[0] = '\0';
+                register char *local1Start __asm__("$16") = local1;
+
+                int ownedAgain = 0;
+                if (objTag != 0) {
+                    ownedAgain = 1;
+                }
+
+                char *type;
+                int base = obj;
+                if (ownedAgain != 0) {
+                    base = 0;
+                    type = *(char **)(base + 4);
+                } else {
+                    type = *(char **)(base + 4);
+                }
+
+                GetTextSlot *slot = (GetTextSlot *)(type + 0x40);
+                ((void (*)(void *, char *))slot->fn)(
+                    (char *)base + slot->offset, local1Start);
+                cStrAppend(out, local1Start);
+            }
+        }
+        cStrAppend(out, close);
+    }
 }
