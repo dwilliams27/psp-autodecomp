@@ -196284,7 +196284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368",
       "0x00001428",
@@ -196292,7 +196292,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcDoEntitySetCollisionMaskHGetTextPcK"
+    "mangled_symbol": "__0fagcDoEntitySetCollisionMaskHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "adacff15",
+        "notes": "Added a canonical C++ gcDoEntitySetCollisionMask::GetText(char *) const in the class's existing TU, not the unrelated relationship file, to preserve the class-method file rule. The implementation dispatches the leading desired-entity GetText through typeinfo+0x78, builds the local 256-byte text buffer from either the raw collision mask bits or the secondary desired object, formats individual set bits through cStr::cStr(0x36DAD4, index), and appends the final cStr::cStr(0x36E9CC, text). Existing New/GetType/Write siblings still match.\n\nThe current source compiles to 348 bytes versus the 376-byte target. The target keeps this in s3, buf in s0, text in s1, mask in s3, index in s7, constants in s4/s2/s6, and a cStr temp in s5 with an 0x330-byte frame. SNC from this source uses a smaller 0x320-byte frame, only saves s0-s5, and rematerializes the separator constants inside the loop. I tried register bindings and an empty inline-asm lifetime barrier for the loop constants/index, but SNC still optimized them into immediates. Root cause appears to be register-allocation/lifetime drift around the collision-mask loop rather than incorrect high-level control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:20:34Z",
+        "src_file": "src/gcDoEntitySetCollisionMask.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/adacff15/002c5dfc__agent_self_reported_failure__src_gcDoEntitySetCollisionMask.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c5f74",
@@ -199528,7 +199542,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -199536,7 +199550,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoLoadRegionSetHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoLoadRegionSetHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "d7e0f5d2",
+        "notes": "category=REG_ALLOC. Closest source compiles to the correct 384-byte size and the body/control flow is aligned, including the branch-likely region-name path, duplicated second desired-value load, and the exemplar tagged-pointer memory-barrier pattern. The remaining diff is 7 bytes at the initial global map load: current SNC emits `lui a2, g_gcMap; move s0, a0; lw a0, g_gcMap(a2)` while the original emits `move s0, a0; lui a0, 0x38; lw a0, -10244(a0)`. All later branch targets, calls, stack size, and local layout match.\n\nTried raw absolute `*(gcMap **)0x37D7FC`, named `g_gcMap`, pinned and unpinned map locals, assignment-in-condition variants, source-order changes for the region branch, duplicated post-call loads, memory barriers, and a sched=1 check. A 300-second permuter pass generated 10,680 candidates / compiled 5,035 and found no improvement over the 7-byte baseline. Root cause appears to be local register/scheduling drift for the global-load address temporary; I did not use scalar inline assembly to force it.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:29:32Z",
+        "src_file": "src/gcDoLoadRegionSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/d7e0f5d2/002deeb4__agent_self_reported_failure__src_gcDoLoadRegionSet.cpp"
+      }
+    ]
   },
   {
     "address": "0x002df034",
@@ -200372,14 +200400,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcDoLobbyOpHGetTextPcK"
+    "mangled_symbol": "__0fLgcDoLobbyOpHGetTextPcK",
+    "src_file": "src/gcDoLobbyOp.cpp",
+    "symbol_name": "__0fLgcDoLobbyOpHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d7e0f5d2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T06:29:32Z"
   },
   {
     "address": "0x002e2ffc",
@@ -202937,7 +202973,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -205552,14 +205588,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001428"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcDoSetObjectRelationshipHGetTextPcK"
+    "mangled_symbol": "__0fZgcDoSetObjectRelationshipHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "adacff15",
+        "notes": "Added a canonical C++ gcDoSetObjectRelationship::GetText(char *) const using the two 256-byte stack buffers, tagged-reference validity checks for fields +0x0C/+0x10, vtable+0x80 name lookup, vtable+0x78 recursive GetText, and final cStrAppend(0x36EF30, text, objectText). Matched siblings in the same TU still compare cleanly. The closest stable source compiles to the correct 372-byte size, but compare_func reports 98/372 differing bytes.\n\nTried merged vs duplicated +0x10 loads, moving objectTagged/objectOwned declarations, using s0 as a mutable integer lifetime, adding/removing the empty memory barrier in the tagged assignment block, sched=1 around the method, and a 60-second permuter run. The main remaining difference is register allocation in the two bool-normalization blocks: target keeps the first field value in a1 and the flag in a0, then reuses s0 directly for the second referenced object; SNC from this source prefers a0/a1/a2 differently and inserts a move into s0 after loading +0x10. The branch shape and virtual-call body are otherwise structurally aligned.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:20:34Z",
+        "src_file": "src/gcDoSetObjectRelationship.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/adacff15/002feda8__agent_self_reported_failure__src_gcDoSetObjectRelationship.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fef1c",
@@ -211863,7 +211913,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -228236,7 +228286,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -230204,7 +230254,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001428"

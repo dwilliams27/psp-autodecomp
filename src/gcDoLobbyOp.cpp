@@ -9,6 +9,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoLobbyOp &operator=(const gcDoLobbyOp &);
 };
@@ -52,8 +53,16 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 void gcAction_gcAction(gcDoLobbyOp *, cBase *);
 void gcAction_Write(const gcDoLobbyOp *, cFile &);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 extern char gcDoLobbyOpvirtualtable[];
 extern const char gcDoLobbyOp_base_name[] asm("D_0036D894");
 extern const char gcDoLobbyOp_base_desc[] asm("D_0036D89C");
@@ -177,4 +186,98 @@ void gcDoLobbyOp::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+void gcDoLobbyOp::GetText(char *buf) const {
+    register const gcDoLobbyOp *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    cStrAppend(out, (const char *)0x36EC94, (const char *)0x36DAF0);
+
+    int op = *(int *)((const char *)self + 0x0C);
+    int valid = 0;
+    switch (op) {
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+    case 23:
+    case 24:
+    case 25:
+    case 26:
+    case 27:
+    case 28:
+    case 29:
+    case 30:
+    case 31:
+    case 32:
+    case 33:
+    case 34:
+    case 35:
+        valid = 1;
+        break;
+    default:
+        valid = 0;
+        break;
+    }
+
+    if (valid != 0) {
+        int val0 = *(int *)((const char *)self + 0x10);
+        int flag0 = 0;
+        if (val0 & 1) {
+            flag0 = 1;
+        }
+        if (flag0 != 0) {
+            val0 = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check0 = val0;
+        if (check0 != 0) {
+            char *typeInfo = *(char **)(check0 + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val0 + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+        op = *(int *)((const char *)self + 0x0C);
+    }
+
+    int isJoin = op == 11;
+    isJoin &= 0xFF;
+    if (isJoin != 0) {
+        cStrAppend(out, (const char *)0x36DAD8);
+        int val1 = *(int *)((const char *)self + 0x14);
+        int flag1 = 0;
+        if (val1 & 1) {
+            flag1 = 1;
+        }
+        if (flag1 != 0) {
+            val1 = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check1 = val1;
+        if (check1 != 0) {
+            char *typeInfo = *(char **)(check1 + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val1 + slot->offset, out);
+        } else {
+            cStrCat(out, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(out, (const char *)0x36DCEC);
 }

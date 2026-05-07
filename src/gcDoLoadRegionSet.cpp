@@ -30,13 +30,25 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 class gcDoLoadRegionSet : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoLoadRegionSet &operator=(const gcDoLoadRegionSet &);
+};
+
+class gcMap {
+public:
+    void GetRegionSetName(unsigned int, char *) const;
 };
 
 struct cTypeNode {
@@ -64,6 +76,7 @@ struct AllocEntry {
 extern char D_00003938[];
 extern const char gcDoLoadRegionSet_base_name[];
 extern const char gcDoLoadRegionSet_base_desc[];
+extern gcMap *g_gcMap asm("D_0037D7FC");
 
 static cType *type_base;
 static cType *type_expression;
@@ -71,6 +84,8 @@ static cType *type_action;
 static cType *type_gcDoLoadRegionSet;
 
 void gcAction_gcAction(void *, cBase *);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 extern "C" void gcEvent_ctor(void *, cBase *, const char *)
     __asm__("__0oHgcEventctP6FcBasePCc");
 
@@ -199,4 +214,69 @@ void gcDoLoadRegionSet::Write(cFile &file) const {
     wb.Write(*(const bool *)((const char *)this + 0x50));
     wb.Write(*(const bool *)((const char *)this + 0x51));
     wb.End();
+}
+
+void gcDoLoadRegionSet::GetText(char *buf) const {
+    register const gcDoLoadRegionSet *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char text0[256];
+    char text1[256];
+    char regionName[256];
+
+    gcMap *map = g_gcMap;
+    if (map != 0) {
+        if (*(unsigned char *)((const char *)self + 0x51) != 0) {
+            text0[0] = '\0';
+            text1[0] = '\0';
+            int val0 = *(int *)((const char *)self + 0x10);
+            register char *text1Out __asm__("$18") = text1;
+            int flag0 = 0;
+            if (val0 & 1) {
+                flag0 = 1;
+            }
+            if (flag0 != 0) {
+                val0 = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+            int check0 = val0;
+            int val1;
+            if (check0 != 0) {
+                char *typeInfo = *(char **)(check0 + 4);
+                GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+                slot->fn((char *)val0 + slot->offset, text0);
+                val1 = *(int *)((const char *)self + 0x14);
+            } else {
+                cStrCat(text0, (const char *)0x36DB24);
+                val1 = *(int *)((const char *)self + 0x14);
+            }
+
+            int flag1 = 0;
+            if (val1 & 1) {
+                flag1 = 1;
+            }
+            if (flag1 != 0) {
+                val1 = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+            int check1 = val1;
+            if (check1 != 0) {
+                char *typeInfo = *(char **)(check1 + 4);
+                GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+                slot->fn((char *)val1 + slot->offset, text1Out);
+            } else {
+                cStrCat(text1Out, (const char *)0x36DB24);
+            }
+
+            cStrAppend(out, (const char *)0x36EC0C, text0, text1Out);
+        } else {
+            unsigned int id = *(unsigned int *)((const char *)self + 0x0C);
+            regionName[0] = '\0';
+            map->GetRegionSetName(id, regionName);
+            cStrAppend(out, (const char *)0x36EC24, regionName);
+        }
+    } else {
+        cStrCat(out, (const char *)0x36EC3C);
+    }
 }
