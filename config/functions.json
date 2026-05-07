@@ -18266,7 +18266,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000e570",
       "0x0000e6ac"
@@ -26962,7 +26962,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00020358",
       "0x00020398"
@@ -26979,7 +26979,21 @@
       "0x001772d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeSoundSSetSoundFlagsOnOffUiTB"
+    "mangled_symbol": "__0fGeSoundSSetSoundFlagsOnOffUiTB",
+    "failure_notes": [
+      {
+        "session": "ca1d928d",
+        "notes": "Implemented eSound::SetSoundFlagsOnOff as a local split-TU redeclaration in src/eVolume.cpp, per the prompt. The function compiles to the correct 268-byte size and matches the prologue, flag update, AddSound/RemoveSound call paths, float zeroing path, and overall control flow. A 180s permuter run compiled 2482 candidates and found no improvement over the 9-byte baseline.\n\nThe remaining 9-byte mismatch is entirely in the handle-table validation block. Expected loads the global table base into a3, builds the indexed address and loaded entry in a2, uses a3 as the valid-result register, and checks beqz a3 before proceeding. The closest C emits the same instructions and branches but swaps entry/valid between a2 and a3 after the table lookup, including the addu operand order and subsequent beqz/lw/move register fields. Tried table[index] vs char* indexed loads, declaration reordering, fixed-register hints, sched=1, and the permuter; the root cause looks like low-level register allocation with no obvious C leverage left.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:09:50Z",
+        "src_file": "src/eVolume.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ca1d928d/00021354__agent_self_reported_failure__src_eVolume.cpp"
+      }
+    ]
   },
   {
     "address": "0x00021460",
@@ -30524,7 +30538,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002d96c",
       "0x001a18e8"
@@ -30535,7 +30549,21 @@
       "0x000fadc8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHeCameraISetOrthof"
+    "mangled_symbol": "__0fHeCameraISetOrthof",
+    "failure_notes": [
+      {
+        "session": "6820397c",
+        "notes": "Closest attempt is the split-TU source in src/eCamera_SetOrtho.cpp. It compiles to 308B versus the 312B target. The first flag branch and the aspect > 1.0f branch can be made instruction-for-instruction very close; the current best has the non-flag setup matching through the aspect comparison and the aspect > 1.0f call setup matching the target's f13/f14/f15/f16/f17 argument moves. The remaining gap is in the aspect <= 1.0f branch: expected emits an extra mov.s-style argument shuffle before the mFrustum::SetOrtho call, moving negZoom to f17 before jal and using the jal delay slot for the third argument, while SNC from the current C uses the delay slot for the sixth argument and is one instruction shorter.\n\nTried direct localFrustum calls, pointer calls through an s1-held mFrustum pointer, a 16-byte pad with an empty asm memory operand to force the target 0x80-byte frame and local at sp+0x10, sched=1 A/B, literal half constants, named negHalf/posHalf constants, named left/right temporaries, moving the empty asm out of the FPU setup path, and a short permuter run. The permuter could not score because it requires the compiled function size to equal the expected 312B and this near miss is 308B. Likely root cause is FPU register-allocation/lifetime shaping in the final call arguments, not control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:09:55Z",
+        "src_file": "src/eCamera_SetOrtho.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/6820397c/0002db1c__agent_self_reported_failure__src_eCamera_SetOrtho.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002dc54",
@@ -40496,7 +40524,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00047fd0",
       "0x000484e8"
@@ -48642,7 +48670,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0003f474",
       "0x0005d928"
@@ -48651,7 +48679,21 @@
       "0x0012d5b0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHeVolumeTSetVolumeFlagsOnOffUiTB"
+    "mangled_symbol": "__0fHeVolumeTSetVolumeFlagsOnOffUiTB",
+    "failure_notes": [
+      {
+        "session": "ca1d928d",
+        "notes": "Implemented a C++ method body under sched=1. The flag math, old/new bit tests, store to +0x74, UpdateLocalToWorld call path, and eRoom::RemoveVolume call path can be made byte-identical. The remaining mismatch is isolated to the fallback circular-list unlink block after the room pointer is null. The closest source is 32/264 bytes different after a 180s permuter run improved the baseline from 34 bytes.\n\nThe mismatch appears to be SNC register allocation and branch-likely shaping around the world/head/prev/next pointers: expected keeps world in a1, uses a0 for prev/next loads, emits direct offset loads/stores at world+0x1c, and uses a bnel skip with a reload in the likely delay slot. The closest C keeps world/head as an address temporary, emits addiu for world+0x1c, uses beql with the store in the likely delay slot, and differs in the following prev/next reload register choices. Tried char-cast code, local prev/next variables, typed-member form, volatile head accesses, sched=2, fixed-register hints, and the permuter; none reached a match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:09:50Z",
+        "src_file": "src/eVolume.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ca1d928d/0005d820__agent_self_reported_failure__src_eVolume.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005d928",
@@ -62262,7 +62304,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0014a3d8"
@@ -88296,7 +88338,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001bbc50"
     ],
@@ -88308,7 +88350,15 @@
       "0x00298c84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5IgcCameraOgcScalarMotionDSetf6KcTimeValue"
+    "mangled_symbol": "__0f5IgcCameraOgcScalarMotionDSetf6KcTimeValue",
+    "src_file": "src/gcCamera_gcScalarMotion.cpp",
+    "symbol_name": "__0f5IgcCameraOgcScalarMotionDSetf6KcTimeValue",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6820397c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T16:09:55Z"
   },
   {
     "address": "0x000fbd30",
@@ -102426,7 +102476,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",

@@ -7,9 +7,16 @@
 
 #include "cOutStream.h"
 
+extern "C" float fabsf(float);
+
 class cInStream {
 public:
     void Read(float &, bool);
+};
+
+class cTimeValue {
+public:
+    int mTime;
 };
 
 struct gcCamera {
@@ -26,6 +33,7 @@ struct gcCamera {
 
         void Write(cOutStream &) const;
         void Read(cInStream &);
+        void Set(float, cTimeValue);
     };
 };
 
@@ -41,4 +49,18 @@ void gcCamera::gcScalarMotion::Read(cInStream &s) {
     s.Read(mF4, true);
     s.Read(mF8, true);
     mLimits.Read(s);
+}
+
+void gcCamera::gcScalarMotion::Set(float value, cTimeValue time) {
+    int ticks = time.mTime;
+    if (ticks == 0) {
+        mF4 = value;
+        mF0 = value;
+        mF8 = 0.0f;
+    } else {
+        float start = mF0;
+        mF4 = value;
+        *(float *)((char *)this + 0x14) =
+            fabsf(value - start) / (*(float *)0x0036C800 * (float)ticks);
+    }
 }
