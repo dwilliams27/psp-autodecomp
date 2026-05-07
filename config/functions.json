@@ -53940,13 +53940,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00069d90"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS"
+    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS",
+    "src_file": "src/eEmbedMultiSphereCollisionHandler.cpp",
+    "symbol_name": "__0fheEmbedMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "40d8487f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T17:30:43Z"
   },
   {
     "address": "0x00069f78",
@@ -122195,7 +122203,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0002db1c",
@@ -122205,7 +122213,15 @@
       "0x000b80c8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fImFrustumISetOrthofNFB"
+    "mangled_symbol": "__0fImFrustumISetOrthofNFB",
+    "src_file": "src/eEmbedMultiSphereCollisionHandler.cpp",
+    "symbol_name": "__0fImFrustumISetOrthofNFB",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "40d8487f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T17:30:43Z"
   },
   {
     "address": "0x001a19cc",
@@ -189174,7 +189190,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x001232d0",
@@ -189194,7 +189210,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00123440",
