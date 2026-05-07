@@ -216869,7 +216869,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -217831,7 +217831,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221113,7 +221113,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221121,7 +221121,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValEntitySoundFrequencyHGetTextPcK"
+    "mangled_symbol": "__0fZgcValEntitySoundFrequencyHGetTextPcK",
+    "src_file": "src/gcValEntitySoundFrequency.cpp",
+    "symbol_name": "__0fZgcValEntitySoundFrequencyHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "188e2479",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T00:29:10Z"
   },
   {
     "address": "0x0033e134",
@@ -224193,14 +224201,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValLobbyFriendInfoHGetTextPcK"
+    "mangled_symbol": "__0fUgcValLobbyFriendInfoHGetTextPcK",
+    "src_file": "src/gcValLobbyFriendInfo.cpp",
+    "symbol_name": "__0fUgcValLobbyFriendInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "188e2479",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T00:29:10Z"
   },
   {
     "address": "0x00348750",

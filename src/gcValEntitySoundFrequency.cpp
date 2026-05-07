@@ -53,6 +53,7 @@ public:
 
 class gcValEntitySoundFrequency : public gcLValue {
 public:
+    void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -69,8 +70,22 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+class cStr {
+public:
+    char _data[256];
+};
+
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+extern "C" char *cStr_ctor(void *, const char *, ...) __asm__("__0oEcStrctPCce");
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 cBase *gcValEntitySoundFrequency::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -176,4 +191,50 @@ const cType *gcValEntitySoundFrequency::GetType(void) const {
             gcValEntitySoundFrequency::New, 0, 0, 0);
     }
     return type_gcValEntitySoundFrequency;
+}
+
+void gcValEntitySoundFrequency::GetText(char *buf) const {
+    cTypeMethod *entityText =
+        (cTypeMethod *)((char *)((gcDesiredObject *)((char *)this + 8))->mType +
+                        0x78);
+    char *entityBase = (char *)this + 8;
+    ((void (*)(void *, char *))entityText->fn)(entityBase + entityText->offset,
+                                               buf);
+
+    const char *fmt = (const char *)0x36F3B0;
+    const char *state;
+    if (*(unsigned char *)((char *)this + 0x38) != 0) {
+        state = (const char *)0x36F3C0;
+    } else if (*(unsigned char *)((char *)this + 0x39) != 0) {
+        state = (const char *)0x36F3C8;
+    } else {
+        state = (const char *)0x36F3D0;
+    }
+
+    cStr text;
+    char *built = cStr_ctor(&text, fmt, state);
+    __asm__ volatile("" : "+r"(built));
+    cStrAppend(buf, built);
+
+    int val = *(int *)((char *)this + 0x34);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36E2E8);
 }

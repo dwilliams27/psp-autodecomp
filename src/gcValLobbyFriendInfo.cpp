@@ -61,6 +61,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
 
@@ -89,6 +90,15 @@ struct ReleaseEntry {
     short pad;
     void (*fn)(void *, int);
 };
+
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 // ── Write(cFile &) const  @ 0x00348030 ──
 void gcValLobbyFriendInfo::Write(cFile &file) const {
@@ -210,4 +220,38 @@ const cType *gcValLobbyFriendInfo::GetType(void) const {
             0, 0, 0x1C5, type_value, gcValLobbyFriendInfo::New, 0, 0, 0);
     }
     return type_gcValLobbyFriendInfo;
+}
+
+// ── GetText(char *) const  @ 0x00348654 ──
+void gcValLobbyFriendInfo::GetText(char *buf) const {
+    const char *empty = (const char *)0x36DAF0;
+
+    if (field_10 == 0x10) {
+        cStrAppend(buf, (const char *)0x36F4C4);
+        cStrAppend(buf, (const char *)0x36DCB8, empty);
+    } else {
+        cStrAppend(buf, (const char *)0x36F4D0);
+
+        int val = field_C._value;
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+
+        cStrAppend(buf, (const char *)0x36E060, empty);
+    }
 }
