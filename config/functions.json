@@ -152435,13 +152435,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fReMultiSphereShapeKAssignCopyPC6FcBase",
+    "src_file": "src/eMultiSphereShape_AssignCopy.cpp",
+    "symbol_name": "__0fReMultiSphereShapeKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b30e3c67",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T16:42:11Z"
   },
   {
     "address": "0x0020936c",
@@ -191856,7 +191864,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -199834,7 +199842,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -199842,7 +199850,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoEvaluationKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcDoEvaluationKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b0cf47a5",
+        "notes": "Implemented gcDoEvaluation::AssignCopy in the requested TU with local class redeclarations, type initialization for D_0009F678/D_000385D4/D_000385D8/D_000385DC, dynamic-cast parent-chain walk, low-bit flag copy at +8, child pointer release/clone logic for +0x0c, cMemPool::GetPoolFromPtr, virtual delete slot +0x50, clone slot +0x10, and both gcExpressionList::operator= calls. It compiles and preserves all previously matched gcDoUISetText/gcValObjectHasCategory functions in the file. The closest build is 700B versus the expected 724B. The remaining mismatch is source-shape/register allocation in the custom pointer assignment block: the target keeps this in s0, copy in s2, other in s1, and this+0x0c in s7 with a longer parent/tag sequence and dead branch tail; my attempts either kept the logic compact or caused worse callee-save allocation drift when forcing named registers.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:39:22Z",
+        "src_file": "src/gcDoUISetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b0cf47a5/002d8458__agent_self_reported_failure__src_gcDoUISetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x002d872c",
@@ -201252,14 +201274,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoLobbyFriendOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcDoLobbyFriendOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b30e3c67",
+        "notes": "Implemented the full lazy type initialization, dynamic-cast gate, gcAction flag copy, scalar field copy, and tagged gcDesiredValue release/clone sequence in canonical C++ inside src/gcDoLobbyFriendOp.cpp. Existing sibling methods in the same file still compare as matches. The closest body compiles to 708B versus the expected 724B; expected includes the two-instruction infinite-branch tail after the normal epilogue, but top-level asm does not extend this function's symbol size in the compiled object.\n\nThe main blocker matches prior failures in this AssignCopy family (gcDoLobbyConfigureGame/gcDoLobbyMailOp/gcValUIListInfo): SNC allocates the destination embedded desired pointer at this+0x10 into s3, shifting type globals to s4-s7, while the original keeps that pointer in s7 and uses s3-s6 for type globals. Tried register binding for s7, sched=1, explicit symbol-size asm, and keeping type-global address locals live before dstDesired. Register binding was ignored; sched=1 shortened the body; type-global pointer locals forced s3-s6/s7 but changed the prologue and branch-likely structure heavily (536-byte mismatch). Permuter cannot run because it cannot locate a size-matched target symbol.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:42:11Z",
+        "src_file": "src/gcDoLobbyFriendOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b30e3c67/002e0710__agent_self_reported_failure__src_gcDoLobbyFriendOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e09e4",
@@ -202113,7 +202149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -209363,7 +209399,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -209574,7 +209610,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -212349,7 +212385,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -212360,7 +212396,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoUISetTextHGetTextPcK"
+    "mangled_symbol": "__0fNgcDoUISetTextHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "b0cf47a5",
+        "notes": "Implemented gcDoUISetText::GetText in canonical C++ with the correct 0x1120 stack frame, widget/text buffers, helper calls, cHandlePairT<gcStringTable,cSubHandleT<gcString>>::GetName, three mode cases, tagged-pointer validity checks, virtual GetText slots at +0x40/+0xD0, and final cStrAppend. Existing matched siblings in the TU still compare cleanly. The first if/else version produced the expected 816B size but had broad register/control-flow drift (notably tagged-pointer tests using different temporaries and positive-mode branch shape). Reworking it as a switch matched the top-level bgtz/slti/bltz/bnezl structure better but now compiles to 800B; missing bytes are mostly branch delay-slot scheduling/lui hoisting around the shared final cStrAppend and case exits. A short permuter attempt failed before search because tools/permuter.py could not isolate this target function in the compiled multi-function .o.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T16:39:22Z",
+        "src_file": "src/gcDoUISetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b0cf47a5/00313eb0__agent_self_reported_failure__src_gcDoUISetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x003141e0",
