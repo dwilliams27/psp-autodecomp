@@ -36713,7 +36713,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000123c",
       "0x001c1484"
@@ -93243,7 +93243,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0010af00",
       "0x0010d1d4"
@@ -93253,7 +93253,15 @@
       "0x002591ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHgcStateHGetNamevK"
+    "mangled_symbol": "__0fHgcStateHGetNamevK",
+    "src_file": "src/gcState.cpp",
+    "symbol_name": "__0fHgcStateHGetNamevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "40ca4c99",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:30:19Z"
   },
   {
     "address": "0x0010afa4",
@@ -150775,13 +150783,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicFluidKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fNeDynamicFluidKAssignCopyPC6FcBase",
+    "src_file": "src/eDynamicFluid_AssignCopy.cpp",
+    "symbol_name": "__0fNeDynamicFluidKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "40ca4c99",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T12:30:19Z"
   },
   {
     "address": "0x002057a4",
@@ -166838,7 +166854,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -172420,7 +172436,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -172430,7 +172446,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcEntityAttackKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcEntityAttackKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "1a0e8fe9",
+        "notes": "Closest C attempt implements the full AssignCopy shape: lazy D_000385DC/D_0009A3F8 type init, vtable +8 dynamic type walk, gcEntityAnimationConfig assignment, byte-order scalar copies, gcEvent assignment, desired-object release/clone logic at +0x6C, and final cBaseArray assignment. Pointer-temporary copy ordering was adjusted to recover the original longer load/store sequence around +0x2C/+0x30/+0x34 and +0x64/+0x68.\n\nThe compiled symbol is 692B versus the expected 696B. Most structure is now very close, but there is still register-allocation drift around the desired-object member: original uses s5 for this+0x6C and s3/s4 for the type globals, while this TU allocates s3/s4/s5 differently. The clone virtual call also uses t0 in this build where the target moves the function pointer through a3. The remaining size delta appears tied to that scheduling/register allocation plus the original trailing self-branch padding after the epilogue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:29:42Z",
+        "src_file": "src/gcDoEntityActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1a0e8fe9/0025ba30__agent_self_reported_failure__src_gcDoEntityActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0025bce8",
@@ -184360,7 +184390,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000015cc",
       "0x001a54fc",
@@ -184380,7 +184410,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -191894,7 +191924,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -191903,7 +191933,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoEntityActivateHGetTextPcK"
+    "mangled_symbol": "__0fSgcDoEntityActivateHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "1a0e8fe9",
+        "notes": "Closest C attempt follows the disassembly control flow: desired-object GetText for the inactive path, cStrCopy plus bitmask expansion through cStr::cStr for the active path, tagged-pointer validation at +0x44, mode filtering for values 0/1/2, optional referenced-object GetText through the +0xD0 slot, and the final cStrAppend suffix. Existing New/GetType/Write methods in the same TU still match.\n\nThe compiled symbol is 628B versus the expected 652B. The main remaining gap is in the bitmask loop: original SNC keeps the separator strings and cStr temp/fmt in saved registers s3/s5/s6/s7/s8 and saves/restores s7/s8, while this source rematerializes the separator constants with local lui/addiu pairs and never allocates s7/s8. Register bindings and empty asm barriers on those locals did not change allocation. A 60s permuter run could not proceed because the tool could not isolate the size-mismatched function in the multi-function object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T12:29:42Z",
+        "src_file": "src/gcDoEntityActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1a0e8fe9/0029f79c__agent_self_reported_failure__src_gcDoEntityActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029fa28",

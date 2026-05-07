@@ -79,6 +79,7 @@ public:
     ~gcState();
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
+    const char *GetName(void) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -93,6 +94,7 @@ public:
 
 extern "C" {
     void *dcastdcast_gcStateptr__constcBaseptr(const cBase *);
+    void *gcStateMachine__GetSubObject(void *, void *, int);
 }
 
 extern cType *D_000385DC;
@@ -209,6 +211,42 @@ void gcState::AssignCopy(const cBase *src) {
 
     ((cBaseArray *)((char *)this + 0x2C))->operator=(
         *(const cBaseArray *)((char *)other + 0x2C));
+}
+
+// ── gcState::GetName(void) const @ 0x0010af00 ──
+const char *gcState::GetName(void) const {
+    int handle = *(int *)((const char *)this + 0x24);
+    void *machine;
+    if (handle == 0) {
+        machine = 0;
+    } else {
+        HandleEntry *entry = (HandleEntry *)D_00038890[handle & 0xFFFF];
+        machine = 0;
+        if (entry != 0) {
+            if (entry->mId == handle) {
+                machine = entry;
+            }
+        }
+    }
+
+    void *sm;
+    __asm__ volatile("move %0, %1" : "=r"(sm) : "r"(machine));
+
+    void *state = 0;
+    if (sm != 0) {
+        const char *handlePtr = (const char *)this + 0x28;
+        int subHandle = *(int *)handlePtr;
+        void *subObject = gcStateMachine__GetSubObject(sm, &subHandle, 0);
+        __asm__ volatile("move %0, %1" : "=r"(state) : "r"(subObject));
+    }
+
+    const char *name;
+    if (state != 0) {
+        name = ((gcState *)state)->GetName();
+    } else {
+        name = (const char *)this + 8;
+    }
+    return name;
 }
 
 // ── gcState::GetType(void) const @ 0x00259108 ──
