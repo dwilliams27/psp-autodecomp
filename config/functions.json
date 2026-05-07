@@ -45347,7 +45347,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -157137,14 +157137,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x000857a8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeRefractionModelMtlKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTeRefractionModelMtlKAssignCopyPC6FcBase",
+    "src_file": "src/eRefractionModelMtl_AssignCopy.cpp",
+    "symbol_name": "__0fTeRefractionModelMtlKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2287c69a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:07:40Z"
   },
   {
     "address": "0x0021a214",
@@ -157440,7 +157448,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00087220"
@@ -208878,14 +208886,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoUIFadeHGetTextPcK"
+    "mangled_symbol": "__0fKgcDoUIFadeHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "2287c69a",
+        "notes": "Closest attempt is a 1-byte mismatch with the correct 568-byte size. The function matches structurally after reconstructing the first handle-name lookup with fixed argument registers ($a0 format, $a2 mode, $a3 separator, $t0 name) and the rest of the child/flag/suffix text building aligns. The remaining byte is the immediate on the branch at the empty-name path: our code emits the branch directly to the shared call setup, while the original branches to the intermediate entry-path branch first. This changes only the branch target immediate; all surrounding instructions, calls, delay slots, and later code are aligned.\n\nTried multiple C restructurings for the entry-present/name-empty block: structured if/else, explicit goto labels, preincrementing entry for the delay slot, struct field loads to force lh/lw offsets, fixed register variables for fmt/sep/entry, duplicated goto blocks to force the shared branch, and a 300s permuter run (12,024 candidates, 5,430 compiled). The permuter found no improvement from the 1-byte baseline. Root cause appears to be an SNC control-flow layout/tail-merge choice for the tiny shared branch block, not register allocation or scheduling elsewhere.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:07:40Z",
+        "src_file": "src/gcDoUIFade_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/2287c69a/0030b288__agent_self_reported_failure__src_gcDoUIFade_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030b4c0",
