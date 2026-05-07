@@ -3,7 +3,11 @@
 # Target: PRX (relocatable ELF), VMA 0x0
 
 WIBO     := extern/wibo
-SNC      := extern/snc/pspsnc.exe
+SNC_DIR  ?= extern/snc
+ifeq ($(USE_READ_PROLOGUE_PSPCOR),1)
+SNC_DIR  := extern/snc-read-prologue
+endif
+SNC      := $(SNC_DIR)/pspsnc.exe
 CC       := $(WIBO) $(SNC)
 AS       := mipsel-linux-gnu-as
 LD       := mipsel-linux-gnu-ld
@@ -44,6 +48,9 @@ all: verify
 clean:
 	rm -rf $(BUILD_DIR)/src $(BUILD_DIR)/asm $(BUILD_DIR)/assets
 	rm -f $(TARGET_ELF) $(TARGET_BIN) $(BUILD_DIR)/EBOOT.map
+
+prepare-read-prologue-compiler:
+	python3 tools/patch_pspcor.py prepare-read-prologue
 
 # Link all objects into ELF
 $(TARGET_ELF): $(ALL_OBJS)
@@ -132,4 +139,4 @@ $(BUILD_DIR)/assets/%.bin.o: assets/%.bin
 # Compare with asm-differ:
 #   python3 extern/asm-differ/diff.py -o -f build/src/bar.cpp.o SYMBOL_NAME
 
-.PHONY: all clean verify
+.PHONY: all clean verify prepare-read-prologue-compiler

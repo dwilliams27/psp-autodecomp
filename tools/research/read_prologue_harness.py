@@ -9,6 +9,7 @@ and writes side-by-side prologue disassembly artifacts.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shlex
 import subprocess
@@ -50,7 +51,10 @@ TRACE_SWEEP_VARIANTS = [
 ]
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WIBO = REPO_ROOT / "extern/wibo"
-SNC = REPO_ROOT / "extern/snc/pspsnc.exe"
+SNC_DIR = Path(os.environ.get("SNC_DIR", REPO_ROOT / "extern/snc"))
+if not SNC_DIR.is_absolute():
+    SNC_DIR = REPO_ROOT / SNC_DIR
+SNC = SNC_DIR / "pspsnc.exe"
 DIRECT_CFLAGS = [
     "-c",
     "-O2",

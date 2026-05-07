@@ -14,6 +14,16 @@ Patch or otherwise control `extern/snc/pspcor.exe` so the compiler emits the
 original game's `Read(cFile &, cMemPool *)` prologue scheduling shape around
 `cReadBlock` construction.
 
+This stays within normal decomp-project constraints only if it is handled as a
+reproducible compiler-compatibility shim:
+
+- never patch object files, linked PRX bytes, or EBOOT bytes;
+- never overwrite the canonical `extern/snc` toolchain in place;
+- generate a separate ignored toolchain copy from a script;
+- select that copy only through an explicit opt-in build flag;
+- keep the stock compiler as the default verification path until the patched
+  variant proves zero regressions on the matched DB.
+
 The target failure cluster is dense enough to justify compiler work:
 
 - `Read(cFile &, cMemPool *)`, excluding `PlatformRead`: 569 total rows.
@@ -292,6 +302,19 @@ Static compiler map:
   and delay-slot filling, but this Read drift is the pre-constructor
   instruction order and callee-save setup.
 
+Opt-in compiler plumbing:
+
+- `tools/patch_pspcor.py` now prepares `extern/snc-read-prologue/` from the
+  stock `extern/snc/` directory and records a manifest next to the copied
+  toolchain. The registered Read-prologue patch set is intentionally empty
+  until the `CG_Emit` patch point is validated.
+- `make prepare-read-prologue-compiler` creates the ignored toolchain copy.
+- `make USE_READ_PROLOGUE_PSPCOR=1 <target>` uses
+  `extern/snc-read-prologue/pspsnc.exe`; `pspsnc.exe` then resolves its child
+  tools from the copied directory, including the copied `pspcor.exe`.
+- The research harness now respects `SNC_DIR=...` for direct compile probes, so
+  stock and patched compilers can be compared from the same harness.
+
 ## Non-Goals
 
 - Do not post-process object files or EBOOT bytes. The project should preserve
@@ -434,3 +457,9 @@ Milestone 4:
   scheduler/LRA to `CG_Emit` at `0x417481`, especially
   `0x4175ed..0x4178de`, where frame/prologue `CGINS` records are created and
   inserted. Paused before Milestone 3 patch design/implementation.
+- 2026-05-07: Vibe check accepted: a separate generated compiler copy is
+  acceptable if it is reproducible, explicit, and never patches output bytes.
+  Added opt-in plumbing with `tools/patch_pspcor.py`,
+  `USE_READ_PROLOGUE_PSPCOR=1`, and `SNC_DIR` support in the Read prologue
+  harness. Current generated copy is still stock; no functional pspcor bytes
+  are patched yet.
