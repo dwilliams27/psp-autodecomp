@@ -56,6 +56,7 @@ class gcDoTableQuery : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     float Evaluate(void) const;
 };
@@ -79,9 +80,17 @@ struct TypeMethod {
     WriteFn fn;
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 void gcAction_gcAction(gcDoTableQuery *, cBase *);
 void gcDesiredObject_gcDesiredObject(void *, cBase *);
 void gcEvent_gcEvent(void *, cBase *, const char *);
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char gcActionvirtualtable[];
 extern char D_00000838[];
@@ -178,4 +187,102 @@ float gcDoTableQuery::Evaluate(void) const {
             *(cBaseArrayT<gcValue *> *)((const char *)this + 0x68));
     }
     return result;
+}
+
+void gcDoTableQuery::GetText(char *buf) const {
+    register const gcDoTableQuery *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char local0[256];
+    char local1[256];
+
+    local0[0] = '\0';
+    local1[0] = '\0';
+
+    cStrAppend(out, (const char *)0x36EF8C);
+
+    char *typeInfo0 = *(char **)((const char *)self + 0x10);
+    GetTextSlot *slot0 = (GetTextSlot *)(typeInfo0 + 0x78);
+    char *sub0 = (char *)self + 0x0C;
+    slot0->fn(sub0 + slot0->offset, out);
+
+    int countOk = 0;
+    int *values = *(int **)((const char *)self + 0x20);
+    if (values != 0) {
+        countOk = values[-1] > 0;
+    }
+
+    if (countOk != 0) {
+        cStrAppend(out, (const char *)0x36EF9C);
+        __asm__ volatile("" ::: "memory");
+
+        register int index __asm__("$18") = 0;
+        register const char *comma __asm__("$19") = (const char *)0x36DAD8;
+        register int offset __asm__("$20") = 0;
+        register const char *none __asm__("$21") = (const char *)0x36DACC;
+        register const char *middle __asm__("$22") = (const char *)0x36EFA4;
+        register const char *close __asm__("$23") = (const char *)0x36EBE4;
+        __asm__ volatile("" : "+r"(offset));
+
+        while (1) {
+            int count = 0;
+            if (*(int **)((const char *)self + 0x20) != 0) {
+                count = (*(int **)((const char *)self + 0x20))[-1];
+            }
+            if (index >= count) {
+                break;
+            }
+
+            int *array = *(int **)((const char *)self + 0x20);
+            int *entry = (int *)((char *)array + offset);
+            if (index > 0) {
+                cStrAppend(out, comma);
+                array = *(int **)((const char *)self + 0x20);
+                entry = (int *)((char *)array + offset);
+            }
+
+            int obj = *entry;
+            if (obj != 0) {
+                char *type = *(char **)(obj + 4);
+                GetTextSlot *slot = (GetTextSlot *)(type + 0xC8);
+                slot->fn((char *)obj + slot->offset, out);
+            } else {
+                cStrCat(out, none);
+            }
+            cStrCat(out, middle);
+
+            int *targets = *(int **)((const char *)self + 0x28);
+            int target = *(int *)((char *)targets + offset);
+            if (target != 0) {
+                char *type = *(char **)(target + 4);
+                GetTextSlot *slot = (GetTextSlot *)(type + 0xC8);
+                slot->fn((char *)target + slot->offset, out);
+            } else {
+                cStrCat(out, none);
+            }
+            cStrCat(out, close);
+
+            index += 1;
+            offset += 4;
+        }
+    }
+
+    int valid = *(int *)((const char *)self + 0x38) == 0;
+    valid &= 0xFF;
+    if (valid == 0) {
+        cStrAppend(out, (const char *)0x36EFA8);
+    }
+
+    valid = *(int *)((const char *)self + 0x54) == 0;
+    valid &= 0xFF;
+    if (valid == 0) {
+        cStrAppend(out, (const char *)0x36EFB4);
+    }
+
+    valid = *(int *)((const char *)self + 0x70) == 0;
+    valid &= 0xFF;
+    if (valid == 0) {
+        cStrAppend(out, (const char *)0x36EFC0);
+    }
+
+    cStrAppend(out, (const char *)0x36DCEC);
 }

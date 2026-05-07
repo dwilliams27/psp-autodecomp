@@ -25,6 +25,12 @@ struct DispatchEntry {
     cType *(*fn)(void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void *fn;
+};
+
 class cType {
 public:
     char pad[0x1C];
@@ -70,8 +76,12 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 };
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 static cType *type_base;
 static cType *type_expression;
@@ -201,4 +211,115 @@ void gcValLobbyScoreboardRowInfo::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+// 0x0034d9cc -- gcValLobbyScoreboardRowInfo::GetText(char *) const
+void gcValLobbyScoreboardRowInfo::GetText(char *buf) const {
+    register const gcValLobbyScoreboardRowInfo *self __asm__("$16") = this;
+    register char *out __asm__("$17") = buf;
+    char local[256];
+
+    cStrAppend(out, (const char *)0x36F530);
+    cStrAppend(out, (const char *)0x36DCB8, (const char *)0x36DAF0);
+
+    register const char *open __asm__("$18") = (const char *)0x36E300;
+    cStrAppend(out, open);
+
+    int tagged = 0;
+    int val = *(int *)((const char *)self + 0x10);
+    int tag = val & 1;
+    register const char *close __asm__("$19") = (const char *)0x36E2E8;
+    if (tag != 0) {
+        tagged = 1;
+    }
+    if (tagged != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *type = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+        ((void (*)(void *, char *))slot->fn)((char *)val + slot->offset, out);
+    } else {
+        cStrCat(out, (const char *)0x36DB24);
+    }
+
+    cStrAppend(out, close);
+
+    int isTwo = *(int *)((const char *)self + 8) == 2;
+    isTwo &= 0xFF;
+    if (isTwo != 0) {
+        cStrAppend(out, open);
+
+        if (*(int *)((const char *)self + 0x0C) == 0) {
+            int obj = *(int *)((const char *)self + 0x14);
+            int owned = 0;
+            if (obj & 1) {
+                owned = 1;
+            }
+            if (owned != 0) {
+                obj = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int objCheck = obj;
+            if (objCheck != 0) {
+                char *type = *(char **)(objCheck + 4);
+                GetTextSlot *slot = (GetTextSlot *)(type + 0xD0);
+                ((void (*)(void *, char *))slot->fn)(
+                    (char *)obj + slot->offset, out);
+            } else {
+                cStrCat(out, (const char *)0x36DB24);
+            }
+        } else {
+            int obj = *(int *)((const char *)self + 0x18);
+            int owned = 0;
+            int objTag = obj & 1;
+            if (objTag != 0) {
+                owned = 1;
+            }
+
+            int useFallback;
+            if (owned == 0) {
+                goto object_not_owned;
+            }
+            useFallback = 1;
+            goto object_fallback_done;
+        object_not_owned:
+            int zero = obj == 0;
+            zero &= 0xFF;
+            useFallback = zero != 0;
+        object_fallback_done:
+
+            if (useFallback != 0) {
+                cStrAppend(out, (const char *)0x36DACC);
+            } else {
+                local[0] = '\0';
+
+                int ownedAgain = 0;
+                if (objTag != 0) {
+                    ownedAgain = 1;
+                }
+
+                char *type;
+                int base = obj;
+                if (ownedAgain != 0) {
+                    base = 0;
+                    type = *(char **)(base + 4);
+                } else {
+                    type = *(char **)(base + 4);
+                }
+
+                GetTextSlot *slot = (GetTextSlot *)(type + 0x40);
+                ((void (*)(void *, char *))slot->fn)(
+                    (char *)base + slot->offset, local);
+                cStrAppend(out, local);
+            }
+        }
+        cStrAppend(out, close);
+    }
 }
