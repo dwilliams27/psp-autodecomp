@@ -157820,14 +157820,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0008b554"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeTwoPassModelMtlKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQeTwoPassModelMtlKAssignCopyPC6FcBase",
+    "src_file": "src/eTwoPassModelMtl_AssignCopy.cpp",
+    "symbol_name": "__0fQeTwoPassModelMtlKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ab9c1626",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:04:23Z"
   },
   {
     "address": "0x0021c55c",
@@ -195471,7 +195479,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -195480,7 +195488,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoEntitySendMessageHGetTextPcK"
+    "mangled_symbol": "__0fVgcDoEntitySendMessageHGetTextPcK",
+    "src_file": "src/gcDoEntitySendMessage_GetText.cpp",
+    "symbol_name": "__0fVgcDoEntitySendMessageHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ab9c1626",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:04:23Z"
   },
   {
     "address": "0x002c1700",
@@ -196429,7 +196445,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -201567,14 +201583,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoNetworkOpHGetTextPcK"
+    "mangled_symbol": "__0fNgcDoNetworkOpHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "1d6df5ab",
+        "notes": "Closest attempt is a split-TU C++ implementation in src/gcDoNetworkOp_GetText.cpp. I tried the direct m2c/control-flow shape, common epilogue instead of early returns, field-member access versus raw offsets, an if-chain and a switch for op validation, plus a 300s tools/permuter.py --save-best run. Existing gcDoNetworkOp.cpp methods were restored and still compare as matched; the split GetText attempt is isolated.\n\nBest result remains 125/432 bytes different. The first major drift is register allocation in the op/valid and desired-value dispatch blocks: the target tends to keep op/value in a1 and the boolean/tag in a0/a2, while the compiler keeps choosing the opposite roles in several blocks. The permuter improved from 146 to 125 bytes but did not find a source ordering that crossed the register-allocation barrier.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:56:42Z",
+        "src_file": "src/gcDoNetworkOp_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1d6df5ab/002e8b48__agent_self_reported_failure__src_gcDoNetworkOp_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e8cf8",
@@ -206372,7 +206402,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -228550,7 +228580,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -228559,7 +228589,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValObjectHasRelationHGetTextPcK"
+    "mangled_symbol": "__0fWgcValObjectHasRelationHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "1d6df5ab",
+        "notes": "Closest attempt is a split-TU C++ implementation in src/gcValObjectHasRelation_GetText.cpp. I first tried adding the method to the existing class TU, but that produced a 293-byte mismatch and a 436-byte emitted symbol; moving it to a split translation unit produced the correct 432-byte size and a 106-byte baseline. A 300s tools/permuter.py --save-best run improved the split source to 15/432 bytes different. The original gcValObjectHasRelation.cpp is restored to its prior matched methods only.\n\nThe remaining 15-byte diff is very localized. The best source matches the dispatch/control-flow structure, but two instruction-order/register-allocation spots remain: near the top the compiler emits li a0,0 before text[0]=0 while the target stores text[0] first, and the gcDesiredEnumerationEntryHelper::GetText call sets up the helper bool in the jal delay slot rather than before the addiu a0,self,0x14. Manual tweaks to declaration/assignment order and a register-bound helper flag made the function regress to ~90-byte mismatches, so the permuter-saved 15-byte attempt is preserved.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T06:56:42Z",
+        "src_file": "src/gcValObjectHasRelation_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1d6df5ab/00355da8__agent_self_reported_failure__src_gcValObjectHasRelation_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x00355f58",
