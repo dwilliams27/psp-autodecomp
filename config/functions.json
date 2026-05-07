@@ -156742,14 +156742,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x00082154"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeOnePassModelMtlKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQeOnePassModelMtlKAssignCopyPC6FcBase",
+    "src_file": "src/eOnePassModelMtl_AssignCopy.cpp",
+    "symbol_name": "__0fQeOnePassModelMtlKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c60c968b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:16:00Z"
   },
   {
     "address": "0x00218920",
@@ -169068,7 +169076,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -176049,7 +176057,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -192234,13 +192242,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcPartialBodyControllerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcPartialBodyControllerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "c60c968b",
+        "notes": "category=REG_ALLOC. The closest source matches size, control flow, calls, immediates, memory offsets, and all but three bytes. The remaining diff is the final word copy at offsets 0x1B8-0x1C0: target uses lw a2,0(a3); addiu a1,s0,0x28; sw a2,0(a1), while the split TU allocates the same operations as lw a1,0(a3); addiu a2,s0,0x28; sw a1,0(a2). This is a pure temporary-register swap in an otherwise identical word-copy chain.\n\nTried direct field copies, pointer-walk copies, explicit loaded temporaries, reordered source/destination pointer declarations, removing the incorrect sched=1 pragma, and a 300s permuter run. The permuter improved 15 differing bytes down to this 3-byte drift and saved the best source. Further local source changes either keep the same a1/a2 swap or perturb previously matched instructions, so this appears to be SNC split-TU register-allocation drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:16:00Z",
+        "src_file": "src/gcPartialBodyController_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/c60c968b/002a5b08__agent_self_reported_failure__src_gcPartialBodyController_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a5d90",
@@ -193901,7 +193923,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -193909,7 +193931,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoEntityForEachHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoEntityForEachHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "7322b2be",
+        "notes": "Implemented a split-TU canonical C++ method for gcDoEntityForEach::GetText because the shared header does not declare GetText and adding a method declaration to include/gcDoEntityForEach.h would risk perturbing matched siblings. The best attempt matches the opening cStrAppend/cStrCat calls, the branch-likely mode dispatch, the mode==2 virtual slot call shape, the cArray count/null-check loop structure, and the final suffix call, but compiles to 504B versus the 528B target.\n\nThe remaining gap is in the list formatting loop. The target keeps three format strings live in s6/s7/s8 and selects them with moves before one cStrAppend call per branch. SNC folds those format strings back into immediate lui/addiu pairs unless the calls are duplicated; forcing the strings live produces s-register saves but changes branch-likely selection and grows the function. A minimal inline-asm register materialization was tried and rejected as it changed register allocation/branch form rather than converging. Likely root cause is local SNC register allocation/code-shape sensitivity around repeated constant varargs format strings.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:13:43Z",
+        "src_file": "src/gcDoEntityForEach_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/7322b2be/002b34f4__agent_self_reported_failure__src_gcDoEntityForEach_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x002b3704",
@@ -194749,7 +194785,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -213869,7 +213905,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0022b99c"
     ],
@@ -213886,6 +213922,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T23:56:57Z"
+      },
+      {
+        "session": "7322b2be",
+        "notes": "Retested the existing gcNPCBipedController::AssignCopy closest attempt and compared it directly against expected/build/func/0031d09c.o. The current source still produces a 151/448 byte mismatch. The prologue, six-word 0x08 copy, byte fields, 0x70..0x90 section, halfword loop, VFPU copy, and scalar tail are mostly in the right overall order; the largest remaining divergence is the 0x28..0x6C fixed-size copy loop.\n\nI tried a staged pointer/value rewrite for the loop to reproduce the target cadence where t1/t2/t0 rotate through source addresses, destination addresses, and loaded values. SNC still selected the simpler repeated t0 load/store sequence. I also tried staging the 0xB0 source pointer before the VFPU copy, which made that tail address setup locally closer but worsened the total byte diff, so the source was restored to the prior closest attempt. This appears to be the same source-shape/register-allocation dead end noted by the prior session rather than a semantic field-order issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:13:43Z",
+        "src_file": "src/gcNPCBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/7322b2be/0031d09c__agent_self_reported_failure__src_gcNPCBipedController.cpp"
       }
     ]
   },
@@ -214080,7 +214128,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0022bd78"
     ],
