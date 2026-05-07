@@ -14750,7 +14750,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053e4",
@@ -14894,7 +14894,21 @@
       "0x0036abbc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcHandleFWriteR6LcWriteBlockK"
+    "mangled_symbol": "__0fHcHandleFWriteR6LcWriteBlockK",
+    "failure_notes": [
+      {
+        "session": "c0b41112",
+        "notes": "Implemented cHandle::Write(cWriteBlock &) const as canonical C++ in src/cHandle.cpp, keeping the existing matched cHandle::Write(cOutStream &) const intact. The source reconstructs the D_00038890 handle validation, type dispatch at vtable+8, short/type/GUID/serial/name writes, cMemPool::GetPoolFromPtr calls, cFile::AddDependency, pool/type/flag checks, conditional bool write, and object write dispatch at vtable+0x28. Manual rewrites tried m2c-style temporaries, explicit goto labels for the writeObject and false-write blocks, bool-vs-int shaping for the emitted cWriteBlock::Write(bool), register hints for a0/a1/a2/a3/t0, call/order changes, and a barrier in the pool flag path.\n\nThe closest saved source is the permuter output in src/cHandle.cpp. It has the correct 664-byte function size, but read-only compare still reports 175/664 bytes different. A 300s permuter run from the size-correct 183-byte baseline generated 11136 candidates, compiled 5166, reported a best score of 168, and saved the best source, but did not match. The remaining diff is broad register/control-flow drift in the post-AddDependency boolean region: the original keeps file/dependency/writeObject/flags in a0/a1/a2/a3/t0 with compact branch-likely checks, while SNC in this TU keeps selecting different caller-saved roles and extra/shifted mask branches. This does not fit the <=8 byte REG_ALLOC or branch-likely unmatchable category.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T19:37:21Z",
+        "src_file": "src/cHandle.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/c0b41112/00009030__agent_self_reported_failure__src_cHandle.cpp"
+      }
+    ]
   },
   {
     "address": "0x000092c8",
@@ -76431,7 +76445,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00000ccc",
       "0x00006f60",
@@ -76444,7 +76458,21 @@
       "0x0024e7c0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEnumerationGAddNewP6SgcEnumerationEntryP6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__"
+    "mangled_symbol": "__0fNgcEnumerationGAddNewP6SgcEnumerationEntryP6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__",
+    "failure_notes": [
+      {
+        "session": "ae415896",
+        "notes": "Implemented gcEnumeration::AddNew in a split translation unit, src/gcEnumeration_AddNew.cpp, to avoid perturbing the already-matched methods in src/gcEnumeration.cpp. The source now matches the prologue/register-save frame exactly after fixing the local class layout to raw offsets: stack frame is 48 bytes with s0/s1/s2/s3/s4/ra saved at the target offsets, and the initial parent-handle lookup plus recursive-call path are structurally close. The best build is 432B versus the target 424B and compare_func reports 163/424 bytes differing. A permuter run could not start because the compiled function size was 432B, so the permuter refused to locate the expected 424B function.\n\nThe remaining blocker is the normal append path register-role allocation. The target computes out+4 into s4 in the first array-count branch delay slot, uses a0 directly for this+0x44 at the SetSize/Set calls, and later uses s3 for the generated sub-index. My closest source still makes SNC keep this+0x44 in s4 across the cBaseArray calls and puts out+4 in s3, then uses s4 again for the sub-index. I tried raw-offset calls, free-function aliases for cBaseArray::SetSize/Set, register hints for s4/s3, a memory barrier between SetSize and Set, and explicit volatile stack temporaries for the handle words. These fixed the frame shape but did not move the key s3/s4 allocation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T19:33:54Z",
+        "src_file": "src/gcEnumeration_AddNew.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ae415896/000d4ba4__agent_self_reported_failure__src_gcEnumeration_AddNew.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d4d4c",
@@ -82243,7 +82271,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -82267,6 +82295,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:28:21Z"
+      },
+      {
+        "session": "ae415896",
+        "notes": "The existing prior attempt remains the closest source. I verified it still compiles to the same 118/476-byte mismatch for gcEntityAnimationConfig::Write(cFile &) const; the already-matched surrounding methods still match, while GetName remains an unrelated pre-existing mismatch in this file. I tried forcing the handle-array loop locals with s2/s3 register bindings and a more direct temp_a0_2 expression, but SNC ignored the hints and emitted byte-identical loop code: it still keeps the array pointer in s2 and uses s3 as the loop count/index starting at 1, instead of the target's a0 base pointer plus s2 index and s3 offset/absolute pointer pattern. A permuter run could not start because tools/permuter.py could not isolate this 476-byte function inside the multi-function object (it found 1300B .text instead).\n\nThe remaining diff is still concentrated in the same two areas noted by the previous session: the handle-array loop skeleton and the tagged-pointer WriteBase logic at field 0x14. The WriteBase branch tree is behaviorally close but has different temporary reuse: current code introduces a3 moves and branches around the early tag-or-null and chained zero-member checks, while the target keeps tighter a1/a2/a3 reuse and different branch-likely placements. I do not see a source-level lever that changes either allocation shape without disrupting the matched setup/trailing calls.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T19:33:54Z",
+        "src_file": "src/gcEntityAnimationConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ae415896/000e9508__agent_self_reported_failure__src_gcEntityAnimationConfig.cpp"
       }
     ]
   },
@@ -199757,7 +199797,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -199769,7 +199809,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoEntitySpawnFWriteR6FcFileK"
+    "mangled_symbol": "__0fPgcDoEntitySpawnFWriteR6FcFileK",
+    "src_file": "src/gcDoEntitySpawn.cpp",
+    "symbol_name": "__0fPgcDoEntitySpawnFWriteR6FcFileK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c0b41112",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T19:37:21Z"
   },
   {
     "address": "0x002cf4f4",
