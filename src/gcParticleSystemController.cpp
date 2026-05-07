@@ -1,6 +1,8 @@
 class cBase;
 class cFile;
 class cType;
+class cName;
+class gcEntity;
 class ePoint;
 
 class cMemPool {
@@ -60,6 +62,7 @@ public:
     ~gcParticleSystemController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    void SetTarget(cHandleT<gcEntity> p, const cName &name);
     void SetTarget(cHandleT<ePoint> p);
     void AssignCopy(const cBase *base);
     const cType *GetType(void) const;
@@ -72,6 +75,17 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+class gcGeomCurveController : public gcSubGeomController {
+public:
+    cHandleT<ePoint> m_target;   // 0x24
+    int m_pad28;                 // 0x28
+    short m_flag;                // 0x2C
+    short m_pad2E;               // 0x2E
+    char m_arr30[8];             // 0x30..0x37
+
+    void SetTarget(cHandleT<gcEntity> p, const cName &name);
 };
 
 // Free-function wrapper declaration so New can call the ctor via an unresolved
@@ -95,6 +109,28 @@ struct gpsc_half3 {
     short c;
 };
 
+struct gcHandleEntry {
+    char pad[0x30];
+    int handle;
+};
+
+struct gcSubObjectSlot {
+    short offset;
+    short pad;
+    int (*fn)(void *, const cName &, int);
+};
+
+struct gcEntitySubObject {
+    int pad;
+    char *classDesc;
+};
+
+union gcPointHandleInit {
+    cHandleT<ePoint> handle;
+    int index;
+};
+
+extern void *D_00038890[];
 extern cType *D_000385DC;
 extern cType *D_0009F64C;
 extern cType *D_0009F66C;
@@ -109,6 +145,88 @@ void gcParticleSystemController::SetTarget(cHandleT<ePoint> p) {
     m_target = p;
     cHandleT<ePoint> *p2 = (cHandleT<ePoint> *)((char *)this + 0x28);
     p2->mIndex = 0;
+}
+
+void gcParticleSystemController::SetTarget(cHandleT<gcEntity> p, const cName &name) {
+    m_flag = 0;
+    cHandleT<gcEntity> *entityTarget = (cHandleT<gcEntity> *)((char *)this + 0x28);
+    *entityTarget = p;
+
+    short subIndex = -1;
+    gcHandleEntry *lookup;
+    gcHandleEntry *entry;
+    if (p.mIndex == 0) {
+        entry = 0;
+    } else {
+        lookup = (gcHandleEntry *)D_00038890[p.mIndex & 0xFFFF];
+        entry = 0;
+        if (lookup != 0 && lookup->handle == p.mIndex) {
+            entry = lookup;
+        }
+    }
+
+    if (entry != 0) {
+        int handle = *(int *)((char *)this + 0x28);
+        void *entity = 0;
+        if (handle != 0) {
+            entity = D_00038890[handle & 0xFFFF];
+        }
+        gcEntitySubObject *subObject = (gcEntitySubObject *)((char *)entity + 0x80);
+        char *classDesc = subObject->classDesc;
+        gcSubObjectSlot *slot = (gcSubObjectSlot *)(classDesc + 0xE0);
+        int result = slot->fn((char *)subObject + slot->offset, name, 0);
+        int signedResult = (short)result;
+        subIndex = (short)signedResult;
+    }
+
+    gcPointHandleInit pointTarget;
+    pointTarget.index = 0;
+    m_pad2E = subIndex;
+    cHandleT<ePoint> *point = (cHandleT<ePoint> *)((char *)this + 0x24);
+    *point = pointTarget.handle;
+}
+
+void gcGeomCurveController::SetTarget(cHandleT<gcEntity> p, const cName &name) {
+    m_flag = 0;
+    cHandleT<gcEntity> *entityTarget = (cHandleT<gcEntity> *)((char *)this + 0x28);
+    *entityTarget = p;
+
+    short subIndex = -1;
+    gcHandleEntry *entry;
+    if (p.mIndex == 0) {
+        entry = 0;
+    } else {
+        gcHandleEntry *lookup = (gcHandleEntry *)D_00038890[p.mIndex & 0xFFFF];
+        entry = 0;
+        if (lookup != 0 && lookup->handle == p.mIndex) {
+            entry = lookup;
+        }
+    }
+
+    if (entry != 0) {
+        int handle = *(int *)((char *)this + 0x28);
+        void *entity = 0;
+        if (handle != 0) {
+            entity = D_00038890[handle & 0xFFFF];
+        }
+        gcEntitySubObject *subObject = (gcEntitySubObject *)((char *)entity + 0x80);
+        char *classDesc = subObject->classDesc;
+        gcSubObjectSlot *slot = (gcSubObjectSlot *)(classDesc + 0xE0);
+        int result = slot->fn((char *)subObject + slot->offset, name, 0);
+        int signedResult = (short)result;
+        subIndex = (short)signedResult;
+    }
+
+    gcPointHandleInit pointTarget;
+    pointTarget.index = 0;
+    m_pad2E = subIndex;
+    cHandleT<ePoint> *point = (cHandleT<ePoint> *)((char *)this + 0x24);
+    *point = pointTarget.handle;
+    char *geom = *(char **)((char *)this + 0xC);
+    if (geom != 0) {
+        geom[0x229] = 0;
+        geom[0x228] = 0;
+    }
 }
 
 void gcParticleSystemController::Reset(cMemPool *pool, bool flag) {

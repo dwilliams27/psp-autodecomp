@@ -32311,11 +32311,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fNeRenderTargetQGetFullTexCoordsP6FmVec4K"
+    "mangled_symbol": "__0fNeRenderTargetQGetFullTexCoordsP6FmVec4K",
+    "failure_notes": [
+      {
+        "session": "94289255",
+        "notes": "Implemented in a split TU per the class-method rule. The closest attempt is same-size (268B) and leaf. It matches the top-level signed-short comparison, zero materialization in the first branch delay slot, surface loads, width/height exponent calculation with bnezl increments, dimension reloads, final float conversion batch, and scalar divs in broad structure. Remaining diff is 90/268 bytes. The main drift starts at the surface null branch: expected has non-likely beqz a0 with lui a2,0x3f80 in the delay slot followed by move a2,a0, while our closest source produces beqzl with lui a0,0x3f80 in the likely delay slot. That one-instruction layout shift causes many downstream byte diffs. Additional remaining drift is the final positive-path VFPU store: expected places sv.q in the jr delay slot, but inline asm emits sv.q before jr with a nop after return; docs/research/snc-struct-vfpu-codegen.md notes inline asm cannot reliably fill return delay slots. Tried helper vs inline exponent calculation, ordinary C float constants vs inline constant materialization, explicit dimension reloads, separated final conversions to delay the divs, and register-asm/empty-asm attempts to force the 1.0f constant through a2. Register constraints did not move the constant to a2, and explicit asm made the schedule worse.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:18:30Z",
+        "src_file": "src/eRenderTarget_GetFullTexCoords.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/94289255/00031814__agent_self_reported_failure__src_eRenderTarget_GetFullTexCoords.cpp"
+      }
+    ]
   },
   {
     "address": "0x00031920",
@@ -49193,11 +49207,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fReStaticPointLightOGetDirectLightP6FmVec3RC6FmVec3TCRC6EmRayTCK"
+    "mangled_symbol": "__0fReStaticPointLightOGetDirectLightP6FmVec3RC6FmVec3TCRC6EmRayTCK",
+    "failure_notes": [
+      {
+        "session": "94289255",
+        "notes": "Closest attempt is a C++ adaptation of the matched eStaticSunLight/eStaticSkyLight GetDirectLight pattern, with the point-light inverse-square attenuation added as 100.0f / ((ray[0x20] * ray[0x20]) * 3.1415927f). The scalar math, constants, color loads, stack frame size, and color stores at 0x10/0x14/0x18(sp) match. The remaining mismatch is 23/224 bytes: expected uses bc1tl with mfc1 a0,$f12 in the branch-likely delay slot for the zero-output path, while our SNC output uses bc1t plus a nop and starts the zero-output asm at the branch target. Tried sched=1 and sched=2, positive-first and zero-first control flow, and splitting the zero-path mfc1 instructions into separate one-instruction asm statements; splitting did not allow SNC/GAS to place the asm into the bc1tl delay slot. A short permuter run could not start because tools/permuter.py could not isolate this method in the multi-function eStaticPointLight.cpp object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:18:30Z",
+        "src_file": "src/eStaticPointLight.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/94289255/0005f07c__agent_self_reported_failure__src_eStaticPointLight.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005f15c",
@@ -58078,7 +58106,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000279dc"
     ],
@@ -58096,7 +58124,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00028140"
     ],
@@ -113030,13 +113058,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x002c79a8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fVgcGeomCurveControllerJSetTarget6IcHandleT76IgcEntity_RC6FcName"
+    "mangled_symbol": "__0fVgcGeomCurveControllerJSetTarget6IcHandleT76IgcEntity_RC6FcName",
+    "src_file": "src/gcParticleSystemController.cpp",
+    "symbol_name": "__0fVgcGeomCurveControllerJSetTarget6IcHandleT76IgcEntity_RC6FcName",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fe522f1e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T00:18:36Z"
   },
   {
     "address": "0x00148504",
@@ -113236,13 +113272,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x002d6724"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fagcParticleSystemControllerJSetTarget6IcHandleT76IgcEntity_RC6FcName"
+    "mangled_symbol": "__0fagcParticleSystemControllerJSetTarget6IcHandleT76IgcEntity_RC6FcName",
+    "failure_notes": [
+      {
+        "session": "fe522f1e",
+        "notes": "Closest source implements the same handle store, D_00038890 validation, sub-object slot dispatch at classdesc+0xE0, sign-extension pattern, and zero point-handle copy. The function is down to a 12-byte mismatch: all bytes after the initial gcEntity handle validation match, including the final stack temporary copy via gcPointHandleInit. The remaining diff is a register-allocation swap in the first lookup block: generated code keeps the validated entry in t0 and the table load in a3, while expected keeps the final entry in a3 and uses t0 for the table value. Tried lookup declarations inside/outside the block, entry pre-initialization, direct entry validation, void* lookup, volatile/stack temporaries, aggregate init, union init, and sched pragma. The variants either regressed the whole block or fixed unrelated final-copy size only. This appears to be a small register-allocation drift specific to this method; the sibling gcGeomCurveController version matches from the same shared structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:18:36Z",
+        "src_file": "src/gcParticleSystemController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/fe522f1e/0014a2c8__agent_self_reported_failure__src_gcParticleSystemController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0014a3bc",
@@ -189013,7 +189063,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00121a90"
@@ -220342,7 +220392,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0"
     ],
