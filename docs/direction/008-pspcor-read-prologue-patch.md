@@ -152,6 +152,10 @@ Useful trace observations:
 Static compiler map:
 
 - `pspcor.exe` image base is `0x400000`; `.text` is `0x401000..0x4ae596`.
+- `tools/research/pspcor_xrefs.py` regenerates the local string/xref index
+  used for this map. Current generated artifacts:
+  `build/research/read_prologue/pspcor_xrefs.json` and
+  `build/research/read_prologue/pspcor_xrefs.md`.
 - `0x41589a` is the CG phase driver. The phase calls visible in local disasm
   are:
   - `CG_expand`: string `0x4b0300`, call `0x41ac63`.
@@ -272,3 +276,7 @@ Milestone 4:
   cleanup, and per-variant `trace_summary.md` files. Static mapping confirmed
   the immediate pspcor targets: phase driver `0x41589a`, scheduler driver
   `0x427418`, LRA driver `0x496bd9`, and emit driver `0x417481`.
+- 2026-05-07: Added `tools/research/pspcor_xrefs.py` to regenerate a
+  string/xref index from `extern/snc/pspcor.exe` using `strings` and `objdump`.
+  The current scheduler/LRA map no longer depends on the missing historical
+  `/tmp/pspcor_string_index.json` artifact.
