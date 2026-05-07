@@ -12,6 +12,15 @@ class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
+class cType {
+public:
+    int _pad[7];
+    const cType *mParent;
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -52,6 +61,7 @@ struct DtorDeleteRecord {
 class gcEntityRelationship : public gcObjectRelationship {
 public:
     ~gcEntityRelationship();
+    void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static gcEntityRelationship *New(cMemPool *, cBase *);
@@ -65,6 +75,27 @@ public:
         fn(block + off, p);
     }
 };
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *, short, void *);
+};
+
+struct CloneEntry {
+    short offset;
+    short pad;
+    unsigned int (*fn)(void *, cMemPool *, unsigned int);
+};
+
+struct TwoWords {
+    unsigned int first;
+    unsigned int second;
+};
+
+extern cType *D_000385DC;
+extern cType *D_0009F3F0;
+extern cType *D_0009F774;
 
 __asm__(".word 0x1000ffff\n");
 __asm__(".word 0x00000000\n");
@@ -156,4 +187,150 @@ gcEntityRelationship *gcEntityRelationship::New(cMemPool *pool, cBase *parent) {
         result = (gcEntityRelationship *)p;
     }
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fUgcEntityRelationshipKAssignCopyPC6FcBase, 0x2a8\n");
+
+// 0x0031a758 -- gcEntityRelationship::AssignCopy(const cBase *)
+void gcEntityRelationship::AssignCopy(const cBase *base) {
+    const gcEntityRelationship *other = 0;
+    void *slot = (char *)this + 0x1C;
+
+    if (base != 0) {
+        if (D_0009F774 == 0) {
+            if (D_0009F3F0 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType(
+                        (const char *)0x36D894, (const char *)0x36D89C,
+                        1, 0, 0, 0, 0, 0);
+                }
+                D_0009F3F0 = cType::InitializeType(
+                    0, 0, 0x131, D_000385DC, 0, 0, 0, 0);
+            }
+            D_0009F774 = cType::InitializeType(
+                0, 0, 0x132, D_0009F3F0,
+                (cBase *(*)(cMemPool *, cBase *))&gcEntityRelationship::New,
+                0, 0, 0);
+        }
+
+        void *classDesc = *(void **)((const char *)base + 4);
+        cType *target = D_0009F774;
+        DispatchEntry *entry = (DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
+        cType *type = fn((char *)base + offset, offset, (void *)fn);
+        int isValid;
+
+        if (target != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
+loop_cast:
+            if (type == target) {
+                isValid = 1;
+            } else {
+                type = (cType *)type->mParent;
+                if (type != 0) {
+                    goto loop_cast;
+                }
+                goto invalid_cast;
+            }
+        } else {
+invalid_cast:
+            isValid = 0;
+        }
+
+cast_done:
+        if (isValid != 0) {
+            other = (const gcEntityRelationship *)base;
+        }
+    }
+
+    *(signed char *)((char *)this + 0x10) =
+        *(const signed char *)((const char *)other + 0x10);
+    const char *src14 = (const char *)other + 0x14;
+    *(signed char *)((char *)this + 0x11) =
+        *(const signed char *)((const char *)other + 0x11);
+    char *dst14 = (char *)this + 0x14;
+    *(unsigned int *)dst14 = *(const unsigned int *)src14;
+    src14 = (const char *)other + 0x18;
+    char *dst18 = (char *)this + 0x18;
+    const char *srcSlot = (const char *)other + 0x1C;
+    *(unsigned int *)dst18 = *(const unsigned int *)src14;
+
+    if (srcSlot != slot) {
+        register unsigned int oldValue __asm__("$6") =
+            *(unsigned int *)((char *)this + 0x1C);
+        int oldOwned = 1;
+        register unsigned int oldTagged __asm__("$4") = oldValue & 1;
+        if (oldTagged != 0) {
+            oldOwned = 0;
+        }
+        if (oldOwned != 0) {
+            register unsigned int oldPtr __asm__("$4") = oldValue;
+            register unsigned int tagCopy __asm__("$7") = oldTagged;
+            register unsigned int releaseValue __asm__("$6");
+            int oldUntagged = 0;
+            if (tagCopy != 0) {
+                oldUntagged = 1;
+            }
+            if (oldUntagged != 0) {
+                releaseValue = oldValue & ~1U;
+                releaseValue = releaseValue | 1;
+            } else {
+                releaseValue = *(unsigned int *)oldValue;
+                releaseValue = releaseValue | 1;
+            }
+            *(unsigned int *)((char *)this + 0x1C) = releaseValue;
+            if (oldPtr != 0) {
+                void *classDesc = *(void **)((char *)oldPtr + 4);
+                DtorDeleteRecord *entry =
+                    (DtorDeleteRecord *)((char *)classDesc + 0x50);
+                short offset = entry->offset;
+                void (*fn)(void *, void *) = entry->fn;
+                fn((char *)oldPtr + offset, (void *)3);
+            }
+        }
+
+        unsigned int newValue = *(const unsigned int *)((const char *)other + 0x1C);
+        int newOwned = 1;
+        unsigned int newTagged = newValue & 1;
+        if (newTagged != 0) {
+            newOwned = 0;
+        }
+        if (newOwned != 0) {
+            void *classDesc = *(void **)((char *)newValue + 4);
+            CloneEntry *entry = (CloneEntry *)((char *)classDesc + 0x10);
+            short offset = entry->offset;
+            char *source = (char *)newValue + offset;
+            cMemPool *pool = cMemPool::GetPoolFromPtr(slot);
+            unsigned int current = *(unsigned int *)((char *)this + 0x1C);
+            int currentUntagged = 0;
+            unsigned int (*fn)(void *, cMemPool *, unsigned int) = entry->fn;
+            if ((current & 1) != 0) {
+                currentUntagged = 1;
+            }
+            unsigned int currentValue;
+            if (currentUntagged != 0) {
+                currentValue = current & ~1U;
+            } else {
+                currentValue = *(unsigned int *)current;
+            }
+            *(unsigned int *)((char *)this + 0x1C) =
+                fn(source, pool, currentValue);
+        }
+    }
+
+    const TwoWords *src20 = (const TwoWords *)((const char *)other + 0x20);
+    TwoWords *dst20 = (TwoWords *)((char *)this + 0x20);
+    unsigned int word20 = src20->first;
+    unsigned int word24 = src20->second;
+    dst20->first = word20;
+    dst20->second = word24;
 }
