@@ -80403,7 +80403,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000062e0",
       "0x00006454",
@@ -167250,7 +167250,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x000e92a0"
@@ -167263,7 +167263,15 @@
         "notes": "Got 296B compiled vs 308B expected (missing ~3 instructions). The InitializeType preamble and final operator= call match. Loop body matches exactly (bnel+lw pattern for walking parent chain). Two specific divergences remain: (1) Register for otherType: original uses a0 throughout (move a0,v0 in bnez delay slot), mine uses a1 (separate move a1,v0). (2) Null-checks for myType and otherType: original emits `bnez s3,check_t; move a0,v0; b end; li a0,0` followed by `beqzl a0,end; li a0,0 (BL delay)`. Mine emits `move a1,v0; beqz s3,end; li a0,0; beqz a1,end; nop` \u2014 merging the s3==0 and a0==0 paths with the same `b end` target and using non-likely branches. Tried: nested if/else chain, early ok=0 init, `if (myType != 0 && otherType != 0)` short-circuit, do-while loop. All produce same register pattern (a1 for otherType). The compiler needs to be convinced to keep the vtable-call-result in a0 and use branch-likely for the second null check. Loop body itself is byte-identical \u2014 only the pre-loop guard code differs."
       }
     ],
-    "mangled_symbol": "__0fXgcEntityAnimationConfigKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcEntityAnimationConfigKAssignCopyPC6FcBase",
+    "src_file": "src/gcEntityAnimationConfig.cpp",
+    "symbol_name": "__0fXgcEntityAnimationConfigKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e5347e8d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:14:06Z"
   },
   {
     "address": "0x00240168",
@@ -167315,7 +167323,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001428"
     ],
@@ -167325,6 +167333,18 @@
       {
         "session": "15fdeab3",
         "notes": "Got 152B compiled vs 172B expected. Two main issues: (1) Register allocation is swapped vs original. Original emits `move a2,a1; lw a1,8(a0)` (saves dest to a2, then loads handle into a1). My compile emits `lw a2,8(a0); move a0,a1` (loads handle directly into a2, moves dest to a0). So in my output a1=entry, a2=handle; in original a1=handle, a2=entry. Same semantics but bytes differ. Tried several variable orderings \u2014 SNC consistently picks direct a2 load. (2) Original emits `lh a1,28(a2); sltiu a1,a1,1; andi a1,a1,0xff; beqz a1` for the mCount==0 test, with `addiu a1,a2,8` in delay slot. This is the sltiu+andi+beqz boolean-materialization pattern. My compile emits `lh a2,28(a1); bnez a2` for the inverted test. Tried `str=entry+8` default + `if (mCount == 0) str = unnamed` structure but still emits bnez. Likely needs specific bool cast pattern (unsigned char materialization) to force sltiu+andi. The lookup logic, the inner entry test, and the final cStrCopy call all look structurally correct \u2014 issue is register/branch-form only."
+      },
+      {
+        "session": "e5347e8d",
+        "notes": "Closest attempt is 172B with 27 differing bytes. The prologue and top-level lookup control flow are now correct (`move a2,a1; lw a1,8(a0)`, zero handle branch with `move a0,a2`, and the resolved entry in a2). The remaining differences are concentrated in two areas: table address setup still uses index/base registers as `sll a3,a2; lui a2; addiu t0,a2; addu a3,a3,t0` instead of expected `lui a3; sll a2,a2; addiu a3; addu a2,a2,a3`, and the mCount test computes the bool in a2/a3 with `addiu a1,a2,8` before the test instead of expected `lh/sltiu/andi` all in a1 with `addiu a1,a2,8` in the `beqz` delay slot.\n\nTried direct semantic code, explicit `out`/`handle` temporaries, direct byte pointer indexing, absolute table address 0x38890, register binding for the table base, inverted inner if/else, explicit gotos, memory barriers after the entry block, and sched=0/sched=1 pragmas. The absolute table form shortened the function to 164B by folding the table offset into the load; sched pragmas significantly worsened the prologue. The project permuter could not run on this multi-function TU (`Could not locate target function in compiled .o`). Root cause appears to be SNC register/scheduling selection for the lookup and boolean-materialization block rather than control-flow semantics.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:14:06Z",
+        "src_file": "src/gcEntityAnimationConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/e5347e8d/00240284__agent_self_reported_failure__src_gcEntityAnimationConfig.cpp"
       }
     ],
     "mangled_symbol": "__0fXgcEntityAnimationConfigHGetNamePcK"
@@ -214031,7 +214051,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0022c274"
     ],

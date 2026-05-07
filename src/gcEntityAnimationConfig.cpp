@@ -154,26 +154,32 @@ extern const char gcAnimName_invalid[];   // 0x36DAC4
 extern const char gcAnimName_none[];      // 0x36DACC
 
 void gcEntityAnimationConfig::GetName(char *dest) const {
-    int handle = mUnk08;
-    NameLookupEntry *entry = 0;
-    if (handle != 0) {
-        NameLookupEntry *e = gcAnimNameTable[handle & 0xFFFF];
-        if (e != 0 && e->mKey == handle) {
-            entry = e;
+    char *out = dest;
+    int handle = *(const int *)((const char *)this + 8);
+    NameLookupEntry *entry;
+    if (handle == 0) {
+        entry = 0;
+    } else {
+        entry = 0;
+        NameLookupEntry *cand = gcAnimNameTable[handle & 0xFFFF];
+        if (cand != 0 && cand->mKey == handle) {
+            entry = cand;
         }
     }
     const char *str;
     if (entry != 0) {
         str = (const char *)entry + 8;
-        if (entry->mCount == 0) {
+        unsigned char is_empty = (entry->mCount == 0) & 0xFF;
+        if (is_empty != 0) {
             str = gcAnimName_unnamed;
         }
+        __asm__ volatile("" ::: "memory");
     } else if (handle != 0) {
         str = gcAnimName_invalid;
     } else {
         str = gcAnimName_none;
     }
-    cStrCopy(dest, str);
+    cStrCopy(out, str);
 }
 
 // ============================================================
@@ -204,23 +210,30 @@ void gcEntityAnimationConfig::AssignCopy(const cBase *other) {
                                                                  0, 0, 0);
         }
         void *vt = ((void **)other)[1];
-        const cType *myType = type_gcEntityAnimationConfig;
+        void *myType = type_gcEntityAnimationConfig;
         VTableSlot *slot = (VTableSlot *)((char *)vt + 8);
         short voff = slot->offset;
-        const cType *(*getType)(void *) = slot->getType;
-        const cType *otherType = getType((char *)other + voff);
+        void *(*getType)(void *) = (void *(*)(void *))slot->getType;
+        void *otherType = getType((char *)other + voff);
+        int ok;
 
-        int ok = 0;
-        if (myType != 0 && otherType != 0) {
-            cTypeNode *t = (cTypeNode *)otherType;
-            do {
-                if (t == (cTypeNode *)myType) {
-                    ok = 1;
-                    break;
-                }
-                t = t->parent;
-            } while (t != 0);
+        if (myType == 0) {
+            ok = 0;
+            goto done_type;
         }
+        if (otherType != 0) {
+        loop_type:
+            if (otherType == myType) {
+                ok = 1;
+                goto done_type;
+            }
+            otherType = *(void **)((char *)otherType + 0x1C);
+            if (otherType != 0) {
+                goto loop_type;
+            }
+        }
+        ok = 0;
+    done_type:
         if (ok) {
             var_s2 = other;
         }
