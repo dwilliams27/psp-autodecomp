@@ -16,8 +16,12 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
-class cMemPool;
 class cInStream;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -53,6 +57,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 class cWriteBlock {
@@ -101,11 +111,39 @@ struct gcTableColumnByte : public gcTableColumn {
     void Get(int row, wchar_t *buf, int bufsize) const;
     void Set(int row, const wchar_t *text, bool flag);
     void Set(int row, float value);
+    void SetSize(int size);
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
     void Write(cFile &file) const;
     void Write(cOutStream &os) const;
     int Read(cFile &file, cMemPool *pool);
+};
+
+class cName {
+public:
+    char _pad[0x14];
+    short mLength;
+};
+
+class gcEntity {
+public:
+    char _pad0[0x30];
+    void *mAttractorObject;
+};
+
+struct EntityNameLookupEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *, const cName &, int);
+};
+
+class gcEntityControllerCommonState {
+public:
+    char _pad[0x124];
+    void *mAttractorObject;
+    int mAttractorIndex;
+
+    void SetAttractor(gcEntity *entity, const cName &name);
 };
 
 float gcTableColumnByte::Get(int row) const {
@@ -137,6 +175,77 @@ void gcTableColumnByte::Set(int row, const wchar_t *text, bool flag) {
 // 0x00271288 — store truncated float as a byte at mValues.mData[row].
 void gcTableColumnByte::Set(int row, float value) {
     mValues.mData[row] = (unsigned char)(int)value;
+}
+
+void gcTableColumnByte::SetSize(int size) {
+    int count = 0;
+    if (mValues.mData != 0) {
+        count = ((int *)mValues.mData)[-1] & 0x3FFFFFFF;
+    }
+
+    if (count != size) {
+        unsigned char *newData;
+        if (size <= 0) {
+            newData = 0;
+        } else {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(&mValues.mData);
+            char *block = ((char **)pool)[9];
+            AllocEntry *entry =
+                (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+            int *raw = (int *)entry->fn(block + entry->offset, size + 4, 1,
+                                        0x36DA98, 0x112);
+            *raw = size;
+            newData = (unsigned char *)(raw + 1);
+        }
+
+        int i = 0;
+        if (newData == 0) {
+            if (size > 0) {
+                return;
+            }
+            __asm__ volatile("" ::: "memory");
+            i = 0;
+        }
+        if (i < size) {
+            do {
+                unsigned char *dst = newData + i;
+                if (dst != 0) {
+                    int value = 0;
+                    if (i < count) {
+                        value = mValues.mData[i];
+                    }
+                    *dst = (unsigned char)value;
+                }
+                i++;
+            } while (i < size);
+        }
+
+        volatile unsigned char *oldData = mValues.mData;
+        int oldCount = 0;
+        if (oldData != 0) {
+            oldCount = ((int *)(unsigned char *)oldData)[-1] & 0x3FFFFFFF;
+        }
+
+        int oldIndex = 0;
+        if (oldIndex < oldCount) {
+            do {
+                oldIndex++;
+            } while (oldIndex < oldCount);
+        }
+
+        unsigned char *oldRaw = (unsigned char *)oldData - 4;
+        if (oldData != 0) {
+            if (oldRaw != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(oldRaw);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *rec =
+                    (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+                rec->fn(block + rec->offset, oldRaw);
+            }
+            mValues.mData = 0;
+        }
+        mValues.mData = newData;
+    }
 }
 
 // 0x00270f64 — pool-allocate a new gcTableColumnByte and inline-construct it.
@@ -204,4 +313,25 @@ int gcTableColumnByte::Read(cFile &file, cMemPool *pool) {
     }
     cReadBlock_Read_cArrayByte(&rb, &mValues);
     return 1;
+}
+
+void gcEntityControllerCommonState::SetAttractor(gcEntity *entity,
+                                                 const cName &name) {
+    void *attractor = 0;
+    if (entity != 0) {
+        attractor = entity->mAttractorObject;
+    }
+    void *volatile attractorSlot = attractor;
+    void *loadedAttractor = attractorSlot;
+    void **dst = &mAttractorObject;
+    *dst = loadedAttractor;
+    mAttractorIndex = -1;
+
+    if (!((name.mLength == 0) & 0xFF)) {
+        char *sub = (char *)entity + 0x80;
+        char *dispatch = ((char **)sub)[1];
+        EntityNameLookupEntry *entry =
+            (EntityNameLookupEntry *)(dispatch + 0xE0);
+        mAttractorIndex = entry->fn(sub + entry->offset, name, 0);
+    }
 }
