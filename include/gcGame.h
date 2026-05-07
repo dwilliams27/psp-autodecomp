@@ -15,6 +15,7 @@ class cMemPool;
 class cType;
 template <class T> class cGUIDT;
 class gcMap;
+class gcLoadingScreen;
 
 class gcGame {
 public:
@@ -30,6 +31,10 @@ public:
     void Reset(cMemPool *, bool);
     void DeleteMap(void);
     int GetMapIndex(const cGUIDT<gcMap> &) const;
+    void SetNextMapToLoadRegionSetIndex(const cGUIDT<gcMap> &,
+                                         const cGUIDT<gcLoadingScreen> &,
+                                         int,
+                                         int);
     static void OnMovieDraw(void *);
     static cBase *New(cMemPool *, cBase *);
 };

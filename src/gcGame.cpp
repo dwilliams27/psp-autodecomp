@@ -1,4 +1,5 @@
 #include "gcGame.h"
+#include "gcMap.h"
 
 class cType {
 public:
@@ -43,6 +44,9 @@ public:
     void DrawDialogs(void) const;
 };
 
+extern "C" int cIRand(void);
+extern cGUIDT<gcMap> D_00099B08[];
+
 void gcGame::NetReplicate(bool) {
 }
 
@@ -74,6 +78,34 @@ void gcGame::OnMovieDraw(void *p) {
     if (p) {
         ((gcCinematicInstanceX *)p)->DrawDialogs();
     }
+}
+
+// 0x00106970 — gcGame::SetNextMapToLoadRegionSetIndex(const cGUIDT<gcMap> &, const cGUIDT<gcLoadingScreen> &, int, int)
+void gcGame::SetNextMapToLoadRegionSetIndex(
+    const cGUIDT<gcMap> &map,
+    const cGUIDT<gcLoadingScreen> &loadingScreen,
+    int regionSetIndex,
+    int regionSet) {
+    *(cGUIDT<gcMap> *)((char *)this + 0x16F0) = map;
+    *(cGUIDT<gcLoadingScreen> *)((char *)this + 0x16F8) = loadingScreen;
+    __asm__ volatile("" ::: "memory");
+    int savedRegionSetIndex = regionSetIndex;
+
+    cGUIDT<gcMap> empty;
+    empty.mA = 0;
+    empty.mB = 0;
+
+    regionSetIndex = 0;
+    cGUIDT<gcMap> *pending = &D_00099B08[regionSetIndex];
+    do {
+        *pending = empty;
+        regionSetIndex += 1;
+        pending += 1;
+    } while (regionSetIndex < 2);
+
+    *(int *)0x37D7EC = savedRegionSetIndex;
+    *(int *)0x37D7F0 = regionSet;
+    *(int *)((char *)this + 0x16EC) = cIRand() | 1;
 }
 
 // 0x001067c8 — gcGame::DeleteMap(void)
@@ -188,32 +220,38 @@ void gcGame::AssignCopy(const cBase *base) {
                 (const char *)0x36D948, (const char *)0x36D950, 1);
         }
 
-        gcGame_ClassDesc *classDesc = *(gcGame_ClassDesc **)((char *)base + 4);
+        void *classDesc = *(void **)((char *)base + 4);
         cType *target = D_0009A300;
-        short offset = classDesc->dispatch.offset;
-        cType *(*fn)(void *, short, void *) = classDesc->dispatch.fn;
+        gcGame_DispatchEntry *entry = (gcGame_DispatchEntry *)((char *)classDesc + 8);
+        short offset = entry->offset;
+        cType *(*fn)(void *, short, void *) = entry->fn;
         cType *type = fn((char *)base + offset, offset, fn);
         int isValid;
 
         if (target != 0) {
-            if (type != 0) {
+            goto have_target;
+        }
+        isValid = 0;
+        goto cast_done;
+
+have_target:
+        if (type != 0) {
 loop_cast:
-                if (type != target) {
-                    type = type->mParent;
-                    if (type != 0) {
-                        goto loop_cast;
-                    }
-                    goto invalid_cast;
-                }
+            if (type == target) {
                 isValid = 1;
-            } else {
-invalid_cast:
-                isValid = 0;
+                goto cast_done;
             }
-        } else {
+            type = type->mParent;
+            if (type != 0) {
+                goto loop_cast;
+            }
             goto invalid_cast;
+        } else {
+invalid_cast:
+            isValid = 0;
         }
 
+cast_done:
         if (isValid != 0) {
             other = (const gcGame *)base;
         }
