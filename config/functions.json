@@ -29899,7 +29899,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0001fb1c",
       "0x0003ee70"
@@ -29908,7 +29908,21 @@
       "0x00044d78"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeGeomRSetGeomFlagsOnOffUiTB"
+    "mangled_symbol": "__0fFeGeomRSetGeomFlagsOnOffUiTB",
+    "failure_notes": [
+      {
+        "session": "b6a4a323",
+        "notes": "Closest attempt compiles to the correct 700-byte size and is down to 14 differing bytes. The body matches the main flag transition, update-list insertion, room/world removal, broadphase bin removal, FPU area test, virtual update call, and final invalidation. The remaining drift is concentrated in the final update-list unlink block after the `(flags & 4)` test: expected uses a branch-likely/null-check sequence and a `bnel` head-update shape that keeps next in `a0`, prev in `a1`, and the static head address in `a2`; the closest C source still makes SNC choose a normal `beqz` for one next-null check and the inverse `beql`/different temp-register sequence around `s_pFirstUpdate`.\n\nTried several restructurings: m2c-style direct field reloads, cached `next`/`prev` locals, duplicated store in explicit `!=`/`else` branches, reversing the was/will comparison, direct vs cached room/world list unlink, and changing the update-list insertion to the matched `if (head != 0) ... else ...` idiom. The insertion and world-list unlink now match; the final unlink block appears to be source-sensitive branch-likely/register allocation drift rather than missing logic. `tools/permuter.py src/eGeom.cpp 0x0002c814 --time 300 --save-best` could not run because its compile command omitted the VFPU matrix/scalar flags required by this TU, so no automated candidates were tested.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:28:50Z",
+        "src_file": "src/eGeom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/b6a4a323/0002c814__agent_self_reported_failure__src_eGeom.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002cad0",
@@ -31313,7 +31327,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00030898",
@@ -51520,14 +51534,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00064714",
       "0x0006479c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fceSweptVolumeCollisionHandlerPSetLocalToWorldRC6EmOCS"
+    "mangled_symbol": "__0fceSweptVolumeCollisionHandlerPSetLocalToWorldRC6EmOCS",
+    "src_file": "src/eGeom.cpp",
+    "symbol_name": "__0fceSweptVolumeCollisionHandlerPSetLocalToWorldRC6EmOCS",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b6a4a323",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T17:28:50Z"
   },
   {
     "address": "0x00064428",
@@ -81249,7 +81271,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ad364",
