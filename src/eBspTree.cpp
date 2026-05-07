@@ -100,20 +100,20 @@ void eBspTree::PlatformRead(cFile &file, cMemPool *pool) {
     return;
 }
 
-#pragma control sched=1
 void eBspTree::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
 
-    const unsigned char *nodes =
-        *(const unsigned char *const *)((const char *)this + 8);
     int nodeCount0 = 0;
-    if (nodes != 0) {
-        nodeCount0 = ((const int *)nodes)[-1] & 0x3FFFFFFF;
+    const unsigned char *nodes0 =
+        *(const unsigned char *const *)((const char *)this + 8);
+    if (nodes0 != 0) {
+        nodeCount0 = ((const int *)nodes0)[-1] & 0x3FFFFFFF;
     }
     wb.Write(nodeCount0);
 
     int nodeCount = 0;
-    nodes = *(const unsigned char *const *)((const char *)this + 8);
+    const unsigned char *nodes =
+        *(const unsigned char *const *)((const char *)this + 8);
     if (nodes != 0) {
         nodeCount = ((const int *)nodes)[-1] & 0x3FFFFFFF;
     }
@@ -131,26 +131,26 @@ void eBspTree::Write(cFile &file) const {
         } while (i < nodeCount);
     }
 
-    const float *planes = *(const float *const *)((const char *)this + 0xC);
     int planeCount0 = 0;
-    if (planes != 0) {
-        planeCount0 = ((const int *)planes)[-1] & 0x3FFFFFFF;
+    const char *planes0 = *(const char *const *)((const char *)this + 0xC);
+    if (planes0 != 0) {
+        planeCount0 = ((const int *)planes0)[-1] & 0x3FFFFFFF;
     }
     wb.Write(planeCount0);
 
     int planeCount = 0;
-    planes = *(const float *const *)((const char *)this + 0xC);
+    const char *planes = *(const char *const *)((const char *)this + 0xC);
     if (planes != 0) {
         planeCount = ((const int *)planes)[-1] & 0x3FFFFFFF;
     }
 
     int j = 0;
     if (j < planeCount) {
-        int offset = 0;
-        const float *plane = (const float *)((const char *)planes + offset);
+        unsigned int offset = 0;
+        const float *plane = (const float *)&planes[offset];
         do {
             wb.Write(3, plane);
-            wb.Write(*(const float *)((const char *)plane + 0xC));
+            wb.Write(plane[3]);
             j++;
             plane = (const float *)((const char *)plane + 0x10);
         } while (j < planeCount);
@@ -158,7 +158,6 @@ void eBspTree::Write(cFile &file) const {
 
     wb.End();
 }
-#pragma control sched=2
 
 int eBspTree::Contains(const eShape *shape, const mOCS &ocs) const {
     bool flags[2];

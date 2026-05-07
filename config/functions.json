@@ -27043,7 +27043,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x0000553c",
@@ -27066,7 +27066,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T03:00:56Z"
       }
-    ]
+    ],
+    "src_file": "src/eBspTree.cpp",
+    "symbol_name": "__0fIeBspTreeFWriteR6FcFileK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "af942761",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:47:07Z"
   },
   {
     "address": "0x00021768",
@@ -118083,14 +118091,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValConsoleInfoHGetTextPcK"
+    "mangled_symbol": "__0fQgcValConsoleInfoHGetTextPcK",
+    "src_file": "src/gcValConsoleInfo_GetText.cpp",
+    "symbol_name": "__0fQgcValConsoleInfoHGetTextPcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "af942761",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:47:07Z"
   },
   {
     "address": "0x0015901c",
@@ -155229,7 +155245,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0007b164"
@@ -190251,7 +190267,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -190260,7 +190276,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoChangeStateHGetTextPcK"
+    "mangled_symbol": "__0fPgcDoChangeStateHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "dc6159f2",
+        "notes": "Closest attempt is a C++ method body using the expected handle-pair GetName call, 256-byte local buffer, cStrAppend/cStrCat calls, tagged-pointer clearing, virtual GetText slot dispatch at type+0xD0, gcDesiredEventParams::GetText, and the final suffix selection. Existing matched methods in the file still compare cleanly. The generated body is 404B versus the expected 416B. The major shape is right, but SNC selects a shorter form in the state-name cStrAppend setup and in the gcDesiredEventParams call path: it keeps this/buf in s1/s0 instead of the expected s0/s1 and omits target moves such as move a2,a1 / move a1,a0 in the string-format setup and move a0,a1 before the event params call. Tried register-variable ordering, explicit register names, tagged-pointer restructuring, memory barriers, sched=1, and a 60s permuter run; the permuter cannot score because the emitted symbol size differs from the target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:41:09Z",
+        "src_file": "src/gcDoChangeState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/dc6159f2/0029bdc4__agent_self_reported_failure__src_gcDoChangeState.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029bf64",
@@ -193485,7 +193515,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -230484,13 +230514,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValTableEntryHGetTextPcK"
+    "mangled_symbol": "__0fPgcValTableEntryHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "dc6159f2",
+        "notes": "Closest attempt is a C++ method body in the requested source file with canonical gcValTableEntry::GetText syntax, the initial type+0x78 GetText dispatch, the two tagged object GetText dispatches through type+0xD0, and the three literal cStrCat separators. Reordering the local register declarations fixed the initial saved-register assignment to s0=this and s1=buf, matching the target prologue. I also tested the same implementation in the canonical src/gcValTableEntry.cpp translation unit and got the same near miss, then removed that exploratory duplicate to avoid a duplicate symbol. The current emitted body is 324B versus expected 328B. The remaining gap is a shorter virtual-dispatch sequence in the first tagged object block: SNC reuses the checked object register instead of preserving it with the target's extra move a2,a1 before loading the type method, so the beqzl span is 0x0b instructions instead of 0x0c. Attempts with base temporaries, register declarations, memory barriers, and a 60s permuter run did not fix it; the permuter cannot run while the symbol size differs.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T05:41:09Z",
+        "src_file": "src/gcDoChangeState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/dc6159f2/0035f92c__agent_self_reported_failure__src_gcDoChangeState.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035fa74",
