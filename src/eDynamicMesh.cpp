@@ -59,29 +59,34 @@ extern "C" void eDynamicMeshVisData___dtor_eDynamicMeshVisData_void(void *, int)
 
 void eDynamicMesh_eDynamicMesh(eDynamicMesh *, cBase *);
 
+#pragma control sched=1
 const cType *eDynamicMesh::GetType(void) const {
     if (D_00046A00 == 0) {
         if (D_000469B8 == 0) {
             if (D_000385E4 == 0) {
                 if (D_000385E0 == 0) {
-                if (D_000385DC == 0) {
-                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
-                                                       (const char *)0x36CD7C,
-                                                       1, 0, 0, 0, 0, 0);
-                }
-                cBase *(*factory)(cMemPool *, cBase *) =
-                    (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
-                __asm__ volatile("" : "+r"(factory));
-                D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
-                                                   factory, 0, 0, 0);
+                    if (D_000385DC == 0) {
+                        const char *name = (const char *)0x36CD74;
+                        const char *desc = (const char *)0x36CD7C;
+                        __asm__ volatile("" : "+r"(name), "+r"(desc));
+                        D_000385DC = cType::InitializeType(name, desc,
+                                                           1, 0, 0, 0, 0, 0);
+                    }
+                    const cType *parentType = D_000385DC;
+                    cBase *(*factory)(cMemPool *, cBase *) =
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58;
+                    __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+                    D_000385E0 = cType::InitializeType(0, 0, 2, parentType,
+                                                       factory, 0, 0, 0);
                 }
                 D_000385E4 = cType::InitializeType(0, 0, 3, D_000385E0,
                                                    0, 0, 0, 0);
             }
+            const cType *parentType = D_000385E4;
             const char *name = (const char *)0x36CE40;
             const char *desc = (const char *)0x36CE48;
-            const cType *parentType = D_000385E4;
-            __asm__ volatile("" : "+r"(parentType), "+r"(name), "+r"(desc));
+            __asm__ volatile("" : "+r"(parentType), "+r"(name),
+                             "+r"(desc));
             D_000469B8 = cType::InitializeType(0, 0, 0xE, parentType,
                                                0, name, desc, 1);
         }
@@ -94,6 +99,7 @@ const cType *eDynamicMesh::GetType(void) const {
     }
     return D_00046A00;
 }
+#pragma control sched=2
 
 // ── HasSkin ──
 
@@ -150,6 +156,9 @@ void eDynamicMesh::AssignCopy(const cBase *base) {
     ((short *)this)[0x62 / 2] = ((short *)other)[0x62 / 2];
     ((short *)this)[0x64 / 2] = ((short *)other)[0x64 / 2];
     ((short *)this)[0x66 / 2] = ((short *)other)[0x66 / 2];
+    eDynamicMesh *dstBarrier = this;
+    eDynamicMesh *srcBarrier = other;
+    __asm__ volatile("" : "+r"(dstBarrier), "+r"(srcBarrier));
     ((cArrayBase<eDynamicMeshNode> *)((char *)this + 0x68))->operator=(*(cArrayBase<eDynamicMeshNode> *)((char *)other + 0x68));
     ((cArrayBase<eDynamicMeshBone> *)((char *)this + 0x6C))->operator=(*(cArrayBase<eDynamicMeshBone> *)((char *)other + 0x6C));
     ((cArrayBase<eDynamicMeshLookAt> *)((char *)this + 0x70))->operator=(*(cArrayBase<eDynamicMeshLookAt> *)((char *)other + 0x70));

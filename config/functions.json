@@ -147473,7 +147473,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00006e7c",
       "0x00009d70",
@@ -147490,7 +147490,15 @@
         "notes": "C source translates faithfully: dcast, cObject::operator=, then field-by-field copy (int at 0x44/0x48; float at 0x4C-0x54; byte at 0x58; shorts at 0x5C-0x66; 4 array operator= calls at 0x68/0x6C/0x70/0x74; int at 0x7C/0x80). At sched=2, 21 bytes differ \u2014 mostly prologue reorder (same sched=1 issue as PlatformFree and New).\n\nManually compiled at sched=1: the prologue and most of the field copies match exactly. A small residual divergence remains at the final two lh/sh pairs (offsets 0x64 and 0x66): the compiler even at sched=1 rotates `addiu a0,s0,104` (argument setup for the cArrayBase<eDynamicMeshNode>::operator= call) into the lh/sh stream, using a1/a2 instead of a0 to avoid conflict with the call setup. The expected keeps all 6 short pairs sequential using a0, then sets up the call. ~5 bytes of diff remain at sched=1.\n\nHypotheses for the last bit: (1) original may have been compiled with a slightly different -Xmopt or -Xxopt; (2) may need a slightly different source restructuring (e.g., making the short copies opaque to the scheduler via a helper function or barrier); (3) the original may have used typed-struct member access rather than pointer casts. Tried __asm__ volatile memory barriers \u2014 did not help. Blocked on the Makefile sched=1 override first; a follow-up agent should add that override, then iterate on the final lh/sh divergence using the permuter tool."
       }
     ],
-    "mangled_symbol": "__0fMeDynamicMeshKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fMeDynamicMeshKAssignCopyPC6FcBase",
+    "src_file": "src/eDynamicMesh.cpp",
+    "symbol_name": "__0fMeDynamicMeshKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "394c15cf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:03:44Z"
   },
   {
     "address": "0x001f3b7c",
@@ -147536,7 +147544,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -147554,7 +147562,15 @@
         "variant": "base",
         "timestamp": "2026-04-29T21:19:05Z"
       }
-    ]
+    ],
+    "src_file": "src/eDynamicMesh.cpp",
+    "symbol_name": "__0fMeDynamicMeshHGetTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "394c15cf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:03:44Z"
   },
   {
     "address": "0x001f3d54",
@@ -192496,7 +192512,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00142c24"
@@ -223274,7 +223290,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0015a350"
