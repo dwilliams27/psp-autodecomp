@@ -45347,7 +45347,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -45369,6 +45369,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T22:32:15Z"
+      },
+      {
+        "session": "2dabe9dd",
+        "notes": "Closest attempt remains a 376B output versus the 388B target. I switched the method to sched=1, which fixes the prologue store ordering, and tried a split writer TU, explicit self/file locals, register-binding declarations, empty-asm barriers around the receiver and second array pointer, and cObject base-call syntax. All variants kept the same collapsed loop structure: the compiler keeps this/file in s1/s0 instead of target s0/s1, uses a0 directly for the second mData pointer, and collapses the target's extra move/copy scaffold around the outer and inner loops.\n\nThe remaining target-only structure includes move s3,s0 in the outer-loop branch delay slot, li/addu setup for s3, move s4,s3 before reading the nested array pointer, move s5,s4 before the second load, and li/addu setup for s6 before the float loop. The local permuter could not run because it rejects the 376B size mismatch before searching. This looks like SNC register-allocation/source-shape drift around nested cArrayBase loops rather than a semantic issue; next retry should focus on forcing the second mData pointer into s0 and preserving explicit table pointer copies without adding stores or real inline asm.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:19:49Z",
+        "src_file": "src/eSurfacePropertyTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/2dabe9dd/00053dcc__agent_self_reported_failure__src_eSurfacePropertyTable.cpp"
       }
     ]
   },
@@ -62206,7 +62218,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -133366,7 +133378,7 @@
     "obj_file": "gcDoReadFile.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -133579,7 +133591,7 @@
     "obj_file": "gcDoRecord.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -157448,14 +157460,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x00087220"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeSilhouetteModelMtlKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTeSilhouetteModelMtlKAssignCopyPC6FcBase",
+    "src_file": "src/eSilhouetteModelMtl_AssignCopy.cpp",
+    "symbol_name": "__0fTeSilhouetteModelMtlKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2dabe9dd",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:19:49Z"
   },
   {
     "address": "0x0021b340",
@@ -196453,13 +196473,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLookAtControllerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcLookAtControllerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "578d0e1c",
+        "notes": "Implemented the full AssignCopy path in canonical C++: lazy type initialization for D_000385DC -> D_0009F5E0 -> D_0009F648, the standard cType parent-chain dynamic cast, and the byte-order field copy tail including the overlapping halfword/word regions and two 2-iteration short-copy loops. The type-init and cast prefix compile to the expected shape; the mismatch is concentrated in the copy tail. Tried direct struct-field copies, raw byte-offset pointer copies, mixed direct/pointer copies to recover the target addiu/lw/sw quartet scheduling, and explicit temporary short locals to make the loop load all three halfwords before storing. Best result is 219/656 bytes different.\n\nThe target tail appears to be compiler-generated assignment code with very specific scheduling: it keeps the selected source object in a0 after cast_done, emits direct loads for offsets 8/12/10/11, then alternates pointer addiu/lw/sw sequences and uses branch-delay source-pointer increments in both short loops. The closest C attempt either compacts the first loads through s2 or expands too many fields through pointer temporaries. A bounded permuter run was attempted, but tools/permuter.py could not isolate this function in the multi-symbol gcLookAtController.cpp object and exited before generating candidates.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:17:07Z",
+        "src_file": "src/gcLookAtController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/578d0e1c/002c6a6c__agent_self_reported_failure__src_gcLookAtController.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c6cfc",
@@ -206410,7 +206444,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -206418,7 +206452,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoStateParentHandlerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcDoStateParentHandlerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "578d0e1c",
+        "notes": "Implemented the handler AssignCopy in C++ with the expected type initialization chain (base/expression/action/gcDoStateParentHandler), standard cType parent walk, cBaseArray assignment, tagged low-bit preservation on this+8, release of the existing child through the vtable slot at classDesc+0x50, and clone/copy of the source child through the slot at classDesc+0x10 using cMemPool::GetPoolFromPtr(this+0x14). The emitted body is structurally close but compiles as a 708-byte symbol while the target is 716 bytes and includes an 8-byte dead branch/nop tail after the return.\n\nThe larger issue is register allocation drift from the original TU context: the target keeps childSlot in s7 and type globals in s3-s6, while this split TU allocates childSlot to s3 and shifts the type globals to s4-s7. A register-binding attempt for childSlot did not move SNC's allocation. Moving childSlot later reduced the symbol to 696B and made the body worse, so the closest attempt keeps childSlot live from the prologue. The remaining differences look like split-TU register allocation plus the trailing symbol-size padding, not a semantic control-flow problem.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:17:07Z",
+        "src_file": "src/gcLookAtController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/578d0e1c/00302638__agent_self_reported_failure__src_gcLookAtController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00302904",
@@ -228181,7 +228229,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001428"

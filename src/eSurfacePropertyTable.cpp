@@ -103,7 +103,7 @@ const cType *eSurfacePropertyTable::GetType(void) const {
     return D_00046A20;
 }
 
-#pragma control sched=2
+#pragma control sched=1
 
 void eSurfacePropertyTable::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
