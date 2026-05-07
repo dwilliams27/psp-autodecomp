@@ -37025,7 +37025,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005690",
       "0x00009030",
@@ -37047,6 +37047,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:09:09Z"
+      },
+      {
+        "session": "f34575f8",
+        "notes": "Closest attempt is a split-TU canonical eRoomAABBTree::Write using typed eRoomTreeNode/cHandle array elements, duplicated count reloads, and typed pointer loops. This reaches the correct 300-byte function size and leaves an 11-byte mismatch isolated to the first node loop: generated code keeps the node base in s4 and uses a0 as the zero offset (`lw s4,0(s0)`, `beqz s4`, `addu s4,s4,a0`), while the original keeps the base in a0 and uses s4 for the zero offset (`lw a0,0(s0)`, `beqz a0`, `addu s4,a0,s4`). The handle count/write block and handle loop match structurally in the closest typed version.\n\nTried raw int pointers, raw char pointers, typed eRoomTreeNode/cHandle pointers with local size padding, offset temporaries, empty asm barriers on offsets/bases, sched=1, and a 300-second permuter run. The permuter compiled 7,045 candidates and found no improvement from the 11-byte baseline. This looks like local register-allocation/branch-likely drift in the node loop rather than a semantic ordering issue, but it is above the <=8-byte REG_ALLOC stop threshold, so it remains ordinary failed with this closest source.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:59:36Z",
+        "src_file": "src/eRoomAABBTree_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f34575f8/0003c8dc__agent_self_reported_failure__src_eRoomAABBTree_Write.cpp"
       }
     ]
   },
@@ -42210,7 +42222,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -145494,7 +145506,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00009d70",
       "0x001cba7c"
@@ -152677,13 +152689,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeTriangleShapeKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOeTriangleShapeKAssignCopyPC6FcBase",
+    "src_file": "src/eTriangleShape_AssignCopy.cpp",
+    "symbol_name": "__0fOeTriangleShapeKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f34575f8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T07:59:36Z"
   },
   {
     "address": "0x0020ac98",
@@ -156706,7 +156726,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00082154"
@@ -170133,7 +170153,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0024a0b4",
@@ -170141,7 +170161,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcProfileKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fJgcProfileKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "0f8daeb7",
+        "notes": "Added a split-TU canonical gcProfile::AssignCopy implementation in src/gcProfile_AssignCopy.cpp to avoid perturbing matched siblings in src/gcProfile.cpp. The type initialization chain, virtual type dispatch, parent-type loop, bulk field copies, two 0x80 halfword loops, four cArrayBase assignment calls, 9-byte loop, and final crc word copy all compile to the target shape. The closest output is 584B versus the 588B target.\n\nThe sole structural blocker in the closest attempt is the cast-result merge: expected emits a beqzl with `move s1,s2` in the likely delay slot, followed by `move s2,s1`, so s1 and s2 are both normalized to null or base before the copy phase. Current SNC emits a plain beqz with `addiu a0,s2,8` in the delay slot and then uses s2 directly as the source pointer. I tried splitting the source into two pointer variables to mirror s1/s2, but that caused a saved-register cascade and a much larger mismatch. The permuter could not run because it rejects the 584B compiled function while the database target is 588B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:58:00Z",
+        "src_file": "src/gcProfile_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/0f8daeb7/0024a5fc__agent_self_reported_failure__src_gcProfile_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0024a848",
@@ -175355,14 +175389,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000123c",
       "0x00001428"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcEntityGeomConfigHGetNamePcK"
+    "mangled_symbol": "__0fSgcEntityGeomConfigHGetNamePcK",
+    "failure_notes": [
+      {
+        "session": "0f8daeb7",
+        "notes": "Implemented gcEntityGeomConfig::GetName(char *) const in canonical C++ with duplicated handle-table lookup for the format and copy paths. Tried direct table indexing, explicit table pointer indexing, default-then-override string selection, and an explicit isZero temporary to influence the inner branch. Existing matched siblings in src/gcEntityGeomConfig.cpp remain matched. Closest source currently compiles to 336B versus the 348B target.\n\nThe remaining mismatch is codegen shape in the string-selection and register-allocation merge. Expected keeps the format string in a2 on the true path, resolves the entry through a3/t0, uses a non-likely beqz with the entry+8 addiu in the delay slot, and then moves the selected string through a1/a3 before cStrFormat. Current source keeps the format in a3, emits bnezl for the isZero branch, and keeps the selected string in a2, requiring a move into the call setup. This resembles the known gcEntitySoundConfig::GetName register-allocation/string-merge issue, but with the extra cStrFormat path.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T07:58:00Z",
+        "src_file": "src/gcEntityGeomConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/0f8daeb7/002674a0__agent_self_reported_failure__src_gcEntityGeomConfig.cpp"
+      }
+    ]
   },
   {
     "address": "0x002675fc",
@@ -192170,7 +192218,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
