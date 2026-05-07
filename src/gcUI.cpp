@@ -61,6 +61,8 @@ public:
     void Write(cOutStream &) const;
     int Read(cFile &, cMemPool *);
     void DeleteSpawned(void);
+    gcUIDialog *GetFocusedDialog(void) const;
+    static int GetActiveSpawnedDialogCount(const gcUIDialog *);
     void RemoveFromDestroyList(gcUIDialog *);
 };
 
@@ -92,6 +94,11 @@ public:
 struct gcUI_DestroySlotScan {
     char pad[0xDC];
     gcUIDialog *slot;
+};
+
+struct gcUI_ActiveSpawnScan {
+    char pad[0x54];
+    void **active;
 };
 
 extern "C" void gcUI_gcFader_ctor(gcUI::gcFader *) asm("__0o5EgcUIHgcFaderctv");
@@ -218,6 +225,64 @@ void gcUI::DeleteSpawned(void) {
         } while (i < *(int *)((char *)this + 0x15C));
     }
     *(int *)((char *)this + 0x15C) = 0;
+}
+
+// ── GetFocusedDialog ──  @ 0x000e0a6c, 136B
+gcUIDialog *gcUI::GetFocusedDialog(void) const {
+    int top = *(int *)((char *)this + 0xD4);
+    if (top >= 0) {
+        int i = top;
+        if (i < 0) {
+            return 0;
+        }
+        gcUIDialog **base = (gcUIDialog **)((char *)this + 0x54);
+        gcUIDialog **slot = base + top;
+        unsigned int focusMask = 0x10000;
+        do {
+            gcUIDialog *dialog = *slot;
+            if (dialog != 0) {
+                int active = 0;
+                int hidden = (unsigned char)((*(unsigned int *)((char *)dialog + 0x50) & focusMask) != 0);
+                if (hidden == 0) {
+                    int blocked = (unsigned char)((*(unsigned int *)((char *)dialog + 0x54) & 0x100) != 0);
+                    if (blocked == 0) {
+                        active = 1;
+                    }
+                }
+                if ((unsigned char)active != 0) {
+                    return dialog;
+                }
+            }
+            i--;
+            slot--;
+        } while (i >= 0);
+    }
+    return 0;
+}
+
+// ── GetActiveSpawnedDialogCount ──  @ 0x000e0b80, 108B
+int gcUI::GetActiveSpawnedDialogCount(const gcUIDialog *dialog) {
+    gcUI *ui = *(gcUI **)0x37D7BC;
+    if (ui == 0) {
+        return 0;
+    }
+    if (dialog == 0) {
+        return 0;
+    }
+    int i = *(int *)((char *)ui + 0xD4);
+    int count = 0;
+    if (i >= 0) {
+        gcUI_ActiveSpawnScan *slot = (gcUI_ActiveSpawnScan *)((char *)ui + i * 4);
+        do {
+            void **active = slot->active;
+            if ((active != 0) && (*active == dialog)) {
+                count++;
+            }
+            i--;
+            slot = (gcUI_ActiveSpawnScan *)((char *)slot - 4);
+        } while (i >= 0);
+    }
+    return count;
 }
 
 // ── RemoveFromDestroyList ──  @ 0x000e177c, 96B

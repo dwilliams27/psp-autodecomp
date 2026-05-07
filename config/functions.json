@@ -58106,13 +58106,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000279dc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "20e54d31",
+        "notes": "category=REG_ALLOC. Implemented the canonical C++ overload calling eCollision::MultiSphereCompound(*shape, *this, a, ocs2, ocs1, info), then negating contact normals with the existing VFPU inline-asm loop. Tried nested hit-path, early return, explicit hit temporary, moving the loop index before/after the helper call, explicit count temporaries, local sched=2 and sched=0 pragmas, register-variable hints, and memory barriers. The best manual/permuter shape has correct stack frame, helper call, control flow, branch delay fill, return blocks, and VFPU op order, but the loop allocator swaps the target's a1 index/a0 contact pointer into a0 index/a1 contact pointer. A 300s permuter run improved the first target from 17 bytes to 6 during search and saved a best source that verifies as an 11/136-byte mismatch under compare_func; the remaining bytes are the a0/a1 register-field drift in li/lw/slt/lv.q/sv.q/addiu instructions.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:33:13Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/20e54d31/000738a8__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00073930",
@@ -58124,13 +58138,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00028140"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6NeCapsuleShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "20e54d31",
+        "notes": "category=REG_ALLOC. Implemented the matching CapsuleCompound variant with the same argument swap and contact-normal negation loop. The same source restructurings used for MultiSphere were applied here, including the post-call index assignment that fills the beqz delay slot and a memory barrier before the helper call to match the initial s0/a3 scheduling. Current compare_func result is an 11/136-byte mismatch with all control flow and immediates matching except the same a0/a1 loop allocation swap. Attempted to start a 300s permuter run for this address, but tools/permuter.py could not disambiguate same-size overloads and selected the Sphere overload as the current symbol, so the run was killed to avoid optimizing the wrong function.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:33:13Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/20e54d31/00073930__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000739b8",
@@ -58142,13 +58170,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000239d0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6OeCylinderShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6OeCylinderShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "2a5f6232",
+        "notes": "Implemented the canonical negate-normal delegate in src/eCompoundShape.cpp: call the collision helper with swapped OCS arguments, then walk eCollisionContactInfo at info+0x20 with 0x40 stride and vneg.t each contact normal. Added local eCylinderShape/eConvexHullShape definitions inheriting eShape so ShapeCompound can accept the cylinder as an eShape, and a local mangled extern for eCollision::ConvexHullCompound because include/eCollision.h lacks that prototype. The file compiles with -Xsched=1 and the helper call/loop semantics are correct.\n\nClosest output is 17/136 bytes off for both overloads. The stable nearest form (`int hit = call; int i = 0; if (hit != 0) ...`) fills the post-call beqz delay slot, but SNC assigns the loop counter/pointer as a0/a1 instead of expected a1/a0 and emits `move a3,a0` before `move s0,t2`; expected saves info first with `move s0,t2`. The direct `if (call != 0) { int i = 0; ... }` form gets the loop registers right but leaves a nop in the beqz delay slot and has a 79-byte diff. Tried declaration-order changes, early-return structure, inside-branch i initialization, fixed register hints, and empty-asm barriers; all either kept the 17-byte allocation drift or regressed to 79/100-byte diffs. The permuter CLI was attempted but is ambiguous for this file because three 136-byte symbols exist and it picked the sphere overload; a direct symbol-specific permuter invocation failed before candidate evaluation due Python multiprocessing from stdin on macOS. Root cause appears to be the known eAll_psp Collide family TU-context/register-allocation sensitivity rather than missing C semantics.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:44:09Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/2a5f6232/000739b8__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00073a40",
@@ -58160,13 +58202,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00028bec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
+    "mangled_symbol": "__0fOeCompoundShapeHCollidePC6QeConvexHullShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
+    "failure_notes": [
+      {
+        "session": "2a5f6232",
+        "notes": "Implemented the canonical negate-normal delegate in src/eCompoundShape.cpp: call the collision helper with swapped OCS arguments, then walk eCollisionContactInfo at info+0x20 with 0x40 stride and vneg.t each contact normal. Added local eCylinderShape/eConvexHullShape definitions inheriting eShape so ShapeCompound can accept the cylinder as an eShape, and a local mangled extern for eCollision::ConvexHullCompound because include/eCollision.h lacks that prototype. The file compiles with -Xsched=1 and the helper call/loop semantics are correct.\n\nClosest output is 17/136 bytes off for both overloads. The stable nearest form (`int hit = call; int i = 0; if (hit != 0) ...`) fills the post-call beqz delay slot, but SNC assigns the loop counter/pointer as a0/a1 instead of expected a1/a0 and emits `move a3,a0` before `move s0,t2`; expected saves info first with `move s0,t2`. The direct `if (call != 0) { int i = 0; ... }` form gets the loop registers right but leaves a nop in the beqz delay slot and has a 79-byte diff. Tried declaration-order changes, early-return structure, inside-branch i initialization, fixed register hints, and empty-asm barriers; all either kept the 17-byte allocation drift or regressed to 79/100-byte diffs. The permuter CLI was attempted but is ambiguous for this file because three 136-byte symbols exist and it picked the sphere overload; a direct symbol-specific permuter invocation failed before candidate evaluation due Python multiprocessing from stdin on macOS. Root cause appears to be the known eAll_psp Collide family TU-context/register-allocation sensitivity rather than missing C semantics.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:44:09Z",
+        "src_file": "src/eCompoundShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/2a5f6232/00073a40__agent_self_reported_failure__src_eCompoundShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x00073ac8",
@@ -79355,7 +79411,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000dc6ac",
@@ -79375,7 +79431,15 @@
       "0x003685c4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEgcUIQGetFocusedDialogvK"
+    "mangled_symbol": "__0fEgcUIQGetFocusedDialogvK",
+    "src_file": "src/gcUI.cpp",
+    "symbol_name": "__0fEgcUIQGetFocusedDialogvK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "888dde20",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:13:19Z"
   },
   {
     "address": "0x000e0af4",
@@ -79387,7 +79451,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000d8ddc",
@@ -79423,13 +79487,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000e0694"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEgcUIbGetActiveSpawnedDialogCountPC6KgcUIDialogT"
+    "mangled_symbol": "__0fEgcUIbGetActiveSpawnedDialogCountPC6KgcUIDialogT",
+    "src_file": "src/gcUI.cpp",
+    "symbol_name": "__0fEgcUIbGetActiveSpawnedDialogCountPC6KgcUIDialogT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "888dde20",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:13:19Z"
   },
   {
     "address": "0x000e0bec",
@@ -182182,7 +182254,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -191005,7 +191077,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -191013,7 +191085,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fjgcDoEntityActivatePartialControllerHGetTextPcK"
+    "mangled_symbol": "__0fjgcDoEntityActivatePartialControllerHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "237053a9",
+        "notes": "Closest attempt is a split-TU canonical C++ method in src/gcDoEntityActivatePartialController_GetText.cpp. It reconstructs the full 292-byte control-flow shape and compares at 26/292 bytes different after the helper-call bool scheduling fix. Existing matched methods in src/gcDoEntityActivatePartialController.cpp still compare cleanly.\n\nTried direct in-class implementation, split TU, several tagged-pointer rewrites, bool/int flag variations, separate objCheck variables, empty asm scheduling barriers, and a 300s permuter pass; the permuter improved the baseline from 41 to 37 bytes before the manual helper-call fix brought it to 26. The remaining diff mirrors gcValEntityVariable::GetText: the target keeps the inner tag flag/check in a1/a2 and uses move a1,a0 plus beqzl, while this TU allocates the flag to s1 and uses beqz a0 with a nearby addiu/lw sequence. Likely root cause is SNC register-allocation/branch-likely drift in the inner object rendering idiom.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:01:15Z",
+        "src_file": "src/gcDoEntityActivatePartialController_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/237053a9/002a13e0__agent_self_reported_failure__src_gcDoEntityActivatePartialController_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a1504",
@@ -196734,7 +196820,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -216869,7 +216955,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -216877,7 +216963,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityConstantHGetTextPcK"
+    "mangled_symbol": "__0fTgcValEntityConstantHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ef146dc2",
+        "notes": "Implemented gcValEntityConstant::GetText in canonical C++ method form using the matched GetText family pattern: entity virtual GetText at type+0x78, 256-byte local buffer, gcDesiredEnumerationEntryHelper::GetText(local,false), tagged-pointer validity checks, optional 0x36DCBC append plus type+0xD0 virtual GetText dispatch, and final cStrAppend(buf,0x36F1E8,local). Fixed the initial size mismatches by using local[0] = *local = '\\0', binding the helper bool as a2, and using the matched bool conversion idiom for the first tagged-pointer validity test. Existing GetType/New/Write siblings remain matched.\n\nClosest attempt is 16/288 bytes different after a 300s permuter run improved the baseline from 20 to 16 bytes by changing the second dispatch check to unsigned. Remaining mismatch is confined to the second tagged-pointer normalization and null dispatch block after cStrAppend(local,0x36DCBC): target keeps obj in a0, uses a1/a2 for flag/tag, then does move a1,a0 and beqzl a1 with the null-case lui in the delay slot. Current SNC output keeps obj in a0 but allocates the flag to s1 and emits beqz a0 plus addiu/lw through a1. Tried register bindings, owner liveness, sched=1, direct slot fn locals, memory barriers, and a narrow inline-asm normalization; register hints had no effect and inline asm disturbed scheduling/prologue too much. Root cause appears to be local register allocation/branch-likely selection in this small block.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:44:10Z",
+        "src_file": "src/gcValEntityConstant.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/003268c4__agent_self_reported_failure__src_gcValEntityConstant.cpp"
+      }
+    ]
   },
   {
     "address": "0x003269e4",
@@ -217831,7 +217931,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -217839,7 +217939,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasAnimationHGetTextPcK"
+    "mangled_symbol": "__0fXgcValEntityHasAnimationHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ef146dc2",
+        "notes": "Implemented gcValEntityHasAnimation::GetText in its canonical class file using the same source shape as gcValEntityConstant, with helper bool true and final format 0x36F28C. The method compiles to the correct 288-byte size and all existing GetType/New/Write siblings remain matched.\n\nClosest attempt is the mirrored 16/288 byte mismatch from gcValEntityConstant. The only material differences from the target are in the second tagged-pointer normalization and type+0xD0 dispatch block: generated code allocates the temporary flag in s1 and uses a regular beqz on a0, while target uses a1/a2 and a beqzl on a copied a1. The 300s permuter was run on the Constant sibling and found only the unsigned-check improvement; that improvement was mirrored here. Same attempted restructurings apply: bool conversion reshaping, memory barrier placement, register bindings, sched=1 probe, explicit fn/off locals, and a narrow inline-asm experiment.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:44:10Z",
+        "src_file": "src/gcValEntityHasAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/0032f100__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x0032f220",
@@ -218256,7 +218370,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -218264,7 +218378,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasTimeSinceHGetTextPcK"
+    "mangled_symbol": "__0fXgcValEntityHasTimeSinceHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "aced64d7",
+        "notes": "Implemented gcValEntityHasTimeSince::GetText in C++ using the matched GetText family pattern: entity text virtual slot at type+0x78, local 256-byte buffer initialized with the duplicated zero store, gcDesiredEnumerationEntryHelper::GetText(local, true), tagged-pointer validity test for field +0x48, optional append of 0x36DCBC plus target object's type+0xD0 text slot, fallback cStrCat(local, 0x36DB24), and final cStrAppend(buf, 0x36F2B4, local). The first 0x94 bytes and final formatting path can be made structurally exact; the closest saved source is 16/288 bytes off.\n\nThe remaining diff is isolated to the second tagged-pointer block after cStrAppend(local, 0x36DCBC). The original keeps the loaded pointer in a0, uses a1 for the tag flag, a2 for the tag bit and later the type slot, emits move a1,a0 followed by beqzl a1 for the null fallback, then loads the type with lw a2,4(a1). The closest C source keeps the pointer in a0 but SNC allocates the flag through s1/a1 and emits beqz a0 plus an addiu/lw sequence for *(check+4). Tried direct if/else, goto form, bool/register bindings for a0/a1/a2, lifetime barriers, one-instruction inline load experiment, and a 300s permuter run (6936 generated, 3485 compiled), which improved 20 bytes to 16 but did not match. This appears to be local register-allocation/branch-likely drift in this block rather than a control-flow misunderstanding.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:57:00Z",
+        "src_file": "src/gcValEntityHasTimeSince.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/00330eac__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp"
+      }
+    ]
   },
   {
     "address": "0x00330fcc",
@@ -219760,7 +219888,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -219768,7 +219896,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fdgcValLookAtControllerVariableHGetTextPcK"
+    "mangled_symbol": "__0fdgcValLookAtControllerVariableHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "55d42875",
+        "notes": "Closest attempt is a direct C++ GetText implementation in src/gcValLookAtControllerVariable.cpp. The entity text call, local 256-byte buffer setup, enumeration helper call, outer tagged-pointer validity check, cStrAppend/cStrCat call sites, final format append, stack frame, and existing Write/GetType siblings all compile with the expected structure. Manual attempts included direct exemplar-style code, explicit helper bool register binding, reusing vs splitting val/objVal temporaries, goto/base variants, unsigned vs signed objCheck, fixed-register attempts for a0/s1, and memory/empty barriers. A 120s permuter pass improved this function from 26 differing bytes to 22 by changing objCheck to unsigned, but did not match.\n\nThe remaining 22-byte diff is localized: the helper call setup has li a2,0 and addiu a0,this+0x3c swapped relative to expected, and the second optional value-text dispatch allocates the object pointer through s1 instead of the original a0/a1/a2 path. That cascades into different register fields and a beqz vs beqzl at the null check, while immediates, offsets, branch topology, stack size, calls, and final append are otherwise aligned. This looks like SNC context-sensitive register allocation/lifetime drift rather than missing high-level logic.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:10:15Z",
+        "src_file": "src/gcValLookAtControllerVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/55d42875/00336f78__agent_self_reported_failure__src_gcValLookAtControllerVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x003370a0",
@@ -219988,7 +220130,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -219996,7 +220138,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableHGetTextPcK"
+    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "55d42875",
+        "notes": "This sibling uses the same reconstructed C++ body as gcValLookAtControllerVariable::GetText and compiles to the same closest shape. After applying the unsigned objCheck improvement found by the permuter on the first function, this function also lands at a 22/296 byte mismatch with matching frame, control-flow outline, call targets, constants, and field offsets. Manual variants tested for the first function were mirrored here because the target disassemblies are byte-identical modulo address.\n\nThe residual diff is the same register-allocation cascade: the original keeps this in s1 and uses a0/a1/a2 for the second tagged object dispatch, while this TU's SNC output reuses s1 for the object value after the cStrAppend call. That changes register encodings through the slot load/jalr sequence and prevents the expected beqzl form at the null check. A permuter pass against the same source/shape for the partial-controller target found no improvement beyond the shared 22-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:10:15Z",
+        "src_file": "src/gcValLookAtControllerVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/55d42875/003384d8__agent_self_reported_failure__src_gcValLookAtControllerVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x00338600",
@@ -221345,7 +221501,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221353,7 +221509,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityTimeSinceHGetTextPcK"
+    "mangled_symbol": "__0fUgcValEntityTimeSinceHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "aced64d7",
+        "notes": "Implemented gcValEntityTimeSince::GetText in the same source file as requested. It is identical to gcValEntityHasTimeSince::GetText except gcDesiredEnumerationEntryHelper::GetText(local, false) and final format string 0x36F3DC. The closest source compiles to the correct 288-byte size and is 16/288 bytes off after mirroring the best unsigned-check variant found by the permuter on the HasTimeSince method.\n\nThe byte diff is the same register-shape issue as 0x00330eac in the second tagged-pointer text block: original uses a0/a1/a2 and beqzl a1 for the null object fallback, while the compiled source routes the tag flag through s1/a1 and emits a non-likely beqz on a0 with a slightly different type-info load sequence. Manual restructurings that fixed the earlier duplicated sltu/lui scheduling did not move this remaining allocation into the original shape; the first method's 300s permuter run found only a partial improvement that applies here too.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T00:57:00Z",
+        "src_file": "src/gcValEntityHasTimeSince.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/0033f480__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033f5a0",
@@ -221569,7 +221739,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -221577,7 +221747,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityVariableHGetTextPcK"
+    "mangled_symbol": "__0fTgcValEntityVariableHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "237053a9",
+        "notes": "Closest attempt is a split-TU canonical C++ method in src/gcValEntityVariable_GetText.cpp. It reconstructs the full control flow and, after forcing the gcDesiredEnumerationEntryHelper bool argument into a pre-call value, compares at 16/288 bytes different. Existing matched siblings in src/gcValEntityVariable.cpp still compare cleanly; the GetText attempt is isolated per the split-TU rule.\n\nTried direct in-class implementation, split TU, tagged-pointer variants with if/else, explicit gotos, bool/int flag shapes, separate objVal/objCheck variables, register-variable hints, empty asm barriers with and without memory clobbers, and a 300s permuter pass. The remaining diff is concentrated in the inner tagged-object rendering path: original uses a1/a2 for the tag flag and a move a1,a0 plus beqzl before loading typeInfo, while SNC keeps choosing s1 for the flag and emits beqz a0 with an addiu/lw typeInfo load sequence. This appears to be register-allocation / branch-likely shape drift rather than missing control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:01:15Z",
+        "src_file": "src/gcValEntityVariable_GetText.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/237053a9/003407ec__agent_self_reported_failure__src_gcValEntityVariable_GetText.cpp"
+      }
+    ]
   },
   {
     "address": "0x0034090c",
@@ -223332,7 +223516,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
