@@ -29,6 +29,11 @@ public:
     void Write(cWriteBlock &) const;
 };
 
+class gcDesiredUIWidgetHelper {
+public:
+    void GetText(char *) const;
+};
+
 class gcExpression {
 public:
     void Write(cFile &) const;
@@ -50,13 +55,31 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct GetTextRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
+struct GetTextSlot {
+    short offset;
+    short _pad;
+    void (*fn)(void *, char *);
+};
+
 class gcDoEntityAssignPath : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     gcDoEntityAssignPath &operator=(const gcDoEntityAssignPath &);
+};
+
+class gcDoUISetTextSprite : public gcAction {
+public:
+    void GetText(char *) const;
 };
 
 struct PoolBlock {
@@ -88,6 +111,9 @@ void gcDesiredEntityHelper_ctor(void *, int, int, int);
 void gcEvent_ctor(void *, cBase *, const char *)
     __asm__("__0oHgcEventctP6FcBasePCc");
 }
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 extern char D_00000338[];
 extern char D_00000518[];
@@ -167,6 +193,37 @@ const cType *gcDoEntityAssignPath::GetType(void) const {
             0, 0, 0x7D, type_action, gcDoEntityAssignPath::New, 0, 0, 0);
     }
     return type_gcDoEntityAssignPath;
+}
+
+void gcDoEntityAssignPath::GetText(char *buf) const {
+    char text[256];
+
+    char *typeInfo0 = *(char **)((const char *)this + 0x14);
+    GetTextRec *rec0 = (GetTextRec *)(typeInfo0 + 0x78);
+    char *base0 = (char *)this + 0x10;
+    rec0->fn(base0 + rec0->offset, buf);
+
+    int flag = (*(int *)((const char *)this + 0x0C) & 8) != 0;
+    flag &= 0xFF;
+    if (flag != 0) {
+        cStrCat(buf, (const char *)0x36E694);
+        return;
+    }
+
+    char *typeInfo1 = *(char **)((const char *)this + 0x40);
+    text[0] = '\0';
+    GetTextRec *rec1 = (GetTextRec *)(typeInfo1 + 0x78);
+    char *base1 = (char *)this + 0x3C;
+    rec1->fn(base1 + rec1->offset, text);
+
+    cStrAppend(buf, (const char *)0x36E6A8, text);
+
+    int empty = *(int *)((const char *)this + 0x60) == 0;
+    empty &= 0xFF;
+    if (empty == 0) {
+        cStrAppend(buf, (const char *)0x36E6B8);
+    }
+    cStrAppend(buf, (const char *)0x36DCEC);
 }
 
 void gcDoEntityAssignPath::AssignCopy(const cBase *other) {
@@ -256,4 +313,41 @@ void gcDoEntityAssignPath::Write(cFile &file) const {
 
     wb.Write(*(const float *)((const char *)this + 0x74));
     wb.End();
+}
+
+void gcDoUISetTextSprite::GetText(char *buf) const {
+    char text[256];
+    text[0] = *text = '\0';
+
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 0x0C))->GetText(text);
+    cStrAppend(buf, (const char *)0x36F108, text);
+
+    int val = *(int *)((const char *)this + 0x18);
+    int owned = 0;
+    if (val & 1) {
+        owned = 1;
+    }
+    if (owned != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrCat(buf, (const char *)0x36DAD8);
+
+    char *typeInfo2 = *(char **)((const char *)this + 0x20);
+    GetTextRec *rec2 = (GetTextRec *)(typeInfo2 + 0x78);
+    char *base2 = (char *)this + 0x1C;
+    rec2->fn(base2 + rec2->offset, buf);
+
+    cStrCat(buf, (const char *)0x36DCEC);
 }
