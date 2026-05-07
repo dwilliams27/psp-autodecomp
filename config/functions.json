@@ -174948,7 +174948,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -175356,7 +175356,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -188749,14 +188749,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcUserStringsKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fNgcUserStringsKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "44e2eee6",
+        "notes": "Closest safe attempt is the matched gcLobby*Strings AssignCopy shape adapted to gcUserStrings, including the trailing sentinel asm so the symbol size is 0x270. It compiles to the right control-flow structure and preserves all sibling matches, but remains 148/624 bytes different. The main diff is saved-register allocation: expected uses s6 for this+8, s3/s4/s5 for the three type globals during lazy init, then reuses s3/s6 in the clone path; SNC in this TU keeps assigning this+8 to s3 and shifts the type globals to s4/s5/s6. Direct-field rewrites moved loads/stores closer in places but worsened the total diff to 206 bytes, and sched=1 changed the symbol size to 620B.\n\nRan the permuter for 300 seconds with --save-best: 8664 candidates generated, 4459 compiled, best improved only to 146 bytes but did so by changing unrelated helper struct layout and the already-matched destructor condition, breaking gcUserStrings::~gcUserStrings. Those collateral edits were reverted. Root cause appears to be context-sensitive SNC callee-save register allocation rather than a semantic source issue; the current source is the closest attempt that keeps existing matched siblings intact.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T09:56:54Z",
+        "src_file": "src/gcUserStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/44e2eee6/00291940__agent_self_reported_failure__src_gcUserStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00291bb0",
@@ -188884,14 +188898,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcUserStringsHGetNamePcK"
+    "mangled_symbol": "__0fNgcUserStringsHGetNamePcK",
+    "src_file": "src/gcUserStrings.cpp",
+    "symbol_name": "__0fNgcUserStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "44e2eee6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:56:54Z"
   },
   {
     "address": "0x00291fd0",
