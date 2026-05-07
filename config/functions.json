@@ -25994,7 +25994,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0001d224",
       "0x0008cedc",
@@ -26005,7 +26005,15 @@
       "0x00091674"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeAudioQSetChannelVolumePC6NeAudioChannelfiPC6EmOCST"
+    "mangled_symbol": "__0fGeAudioQSetChannelVolumePC6NeAudioChannelfiPC6EmOCST",
+    "src_file": "src/eAudio.cpp",
+    "symbol_name": "__0fGeAudioQSetChannelVolumePC6NeAudioChannelfiPC6EmOCST",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6a7ca25d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T15:57:25Z"
   },
   {
     "address": "0x0001f460",
@@ -26017,7 +26025,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001c3874"
     ],
@@ -26025,7 +26033,15 @@
       "0x00091674"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeAudioTSetChannelFrequencyPC6NeAudioChannelfT"
+    "mangled_symbol": "__0fGeAudioTSetChannelFrequencyPC6NeAudioChannelfT",
+    "src_file": "src/eAudio.cpp",
+    "symbol_name": "__0fGeAudioTSetChannelFrequencyPC6NeAudioChannelfT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6a7ca25d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T15:57:25Z"
   },
   {
     "address": "0x0001f530",
@@ -30508,7 +30524,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002d96c",
       "0x001a18e8"
@@ -88280,7 +88296,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
