@@ -274,6 +274,12 @@ Highest-priority compiler/tooling items:
 1. `Read` prologue scheduler divergence.
    - Many `Read(cFile &, cMemPool *)` failures differ only in prologue scheduling.
    - Repeated model retries are low-value until this is fixed.
+   - Current 2026-05-07 inventory: 569 `Read(cFile &, cMemPool *)` rows
+     excluding `PlatformRead`; 53 matched, 187 failed, 329 untried.
+     The 188B failed cluster is 99 rows, with 98/99 notes citing
+     cReadBlock/prologue scheduling.
+   - See `docs/research/failure-corpus-read-20260507.md` for the latest
+     retry/quarantine split.
    - Implement the smaller bnel patch scaffolding first if it accelerates the pspcor patch workflow.
 
 2. Chained mutation and N-way statement permutation.

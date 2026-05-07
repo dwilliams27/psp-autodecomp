@@ -9,7 +9,7 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | # | Item | Category | Status | Est. Matches Unlocked |
 |---|------|----------|--------|----------------------|
 | ML1 | AST-driven permuter mutations | Permuter | **Deprioritized** | ~10-20 (cheaper alternatives first) |
-| ML2 | Binary patch pspcor.exe prologue scheduler | Compiler | Scoping | ~100+ |
+| ML2 | Binary patch pspcor.exe prologue scheduler | Compiler | Scoped | ~100+ |
 | ML3 | Fix template instantiation verification | Tooling | **DONE** | ~355 unblocked |
 | ML4 | Audit for adjacent verification gaps | Tooling | **DONE** | N/A (preventive) |
 | ML5 | Destructor exemplars in agent prompt | Prompt | **DONE** | Prevents ~7/run waste |
@@ -61,9 +61,21 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 
 ## ML2. Binary patch pspcor.exe prologue scheduler
 
-**Status: Researching.** This is the single highest-ROI research investment.
+**Status: Scoped.** Reconfirmed against the 2026-05-06/07 GPT-5.5 failure
+corpus; see `docs/research/failure-corpus-read-20260507.md`. This remains
+the single highest-ROI research investment.
 
-**The problem:** 48 confirmed failures at 188B (all `Read(cFile &, cMemPool *)` in sched=2 zone) plus 46 failed at other sizes — all caused by the same prologue scheduling divergence. The original compiler interleaves `sw s3,32(sp)` and `li s3,1` into the prologue before a `jal cReadBlock::ctor`; our SNC defers both until after. The function body matches perfectly — only the prologue is wrong.
+**Current DB shape (2026-05-07):** `Read(cFile &, cMemPool *)`, excluding
+`PlatformRead`, has 569 total entries: 53 matched, 187 failed, and 329
+untried. The 188B failed cluster is now 99 rows; 98/99 of those failure notes
+cite cReadBlock/prologue scheduling. There are also 21 matched 188B Read rows,
+so the problem is not function size alone. It is the specific prologue
+scheduling shape around `cReadBlock`.
+
+**The problem:** the original compiler interleaves `sw s3,32(sp)` and
+`li s3,1` into the prologue before a `jal cReadBlock::ctor`; our SNC defers
+both until after. For the canonical 188B failure cluster, the function body
+matches perfectly — only the prologue is wrong.
 
 **Concrete divergence** (verified identical across all 48 failing 188B Read functions):
 
@@ -79,7 +91,7 @@ off 48:   li a3, 1 (delay slot)        jal cReadBlock [R_MIPS_26]
 off 52:   li s3, 1                     li a3, 1 (delay slot)
 ```
 
-8 contiguous instructions, same words, different order. One R_MIPS_26 relocation shifts from func offset 44→48. Pattern is mechanically identical across all 48 functions.
+8 contiguous instructions, same words, different order. One R_MIPS_26 relocation shifts from func offset 44→48. The pattern was originally verified across 48 functions and is now the dominant signature in the 99-row 188B failed cluster.
 
 **What's been tried and failed:**
 - All 18 `-Xmopt`/`-Xxopt` flag combinations
