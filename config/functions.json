@@ -176623,7 +176623,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -176911,7 +176911,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -183169,14 +183169,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcLobbyAccountStringsKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fVgcLobbyAccountStringsKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f8348dcc",
+        "notes": "Closest attempt matches the lazy cType initialization/type-cast half and the same-slot branch structure once the desired-value slot is left as an inline this+0x0C expression; the function is the correct 632B including the trailing two-word padding. The remaining diff is 172/632 bytes and is localized to the desired-value release/clone tail: expected keeps the first old desired value in a2/a1/a0 and the source clone path in a0/a1/a2 with current in s6, while SNC keeps selecting a0/a2/a1 and then s1/s3/s4 variants.\n\nTried explicit goto same-slot shaping, moving the function after the destructor to attach padding correctly, removing the slot local to fix s3/s4/s5/s6 allocation in the prologue, register bindings for a0/a1/a2 and s1/s3/s6 temporaries, split declaration/assignment bindings, moving source outside the clone if, and sched=1. The permuter could not run because it could not isolate this method from the compiled multi-function .text. Root cause appears to be stubborn register allocation in the generated desired-value assignment tail rather than control-flow or type-init structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T09:59:31Z",
+        "src_file": "src/gcLobbyAccountStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f8348dcc/0027f8d8__agent_self_reported_failure__src_gcLobbyAccountStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027fb50",
@@ -183304,14 +183318,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcLobbyAccountStringsHGetNamePcK"
+    "mangled_symbol": "__0fVgcLobbyAccountStringsHGetNamePcK",
+    "src_file": "src/gcLobbyAccountStrings.cpp",
+    "symbol_name": "__0fVgcLobbyAccountStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f8348dcc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:59:31Z"
   },
   {
     "address": "0x00280030",
