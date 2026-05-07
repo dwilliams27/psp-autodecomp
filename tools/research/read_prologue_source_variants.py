@@ -56,12 +56,93 @@ int cFactory::Read(cFile &file, cMemPool *pool) {
 """ + READ_TAIL,
     ),
     Variant(
+        "asm_before_ctor_saved_this_pool",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cFactory *self = this;
+    cMemPool *pool_saved = pool;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && self->cObject::Read(file, pool_saved)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+""",
+    ),
+    Variant(
+        "asm_before_ctor_saved_all",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cFactory *self = this;
+    cFile *file_saved = &file;
+    cMemPool *pool_saved = pool;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(*file_saved, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && self->cObject::Read(*file_saved, pool_saved)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+""",
+    ),
+    Variant(
+        "asm_before_ctor_input_this_pool",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result) : "r"(this), "r"(pool));
+    cReadBlock rb(file, 1, true);
+""" + READ_TAIL,
+    ),
+    Variant(
+        "asm_before_ctor_input_all",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result) : "r"(this), "r"(&file), "r"(pool));
+    cReadBlock rb(file, 1, true);
+""" + READ_TAIL,
+    ),
+    Variant(
+        "asm_before_ctor_file_ptr",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cFile *file_saved = &file;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(*file_saved, 1, true);
+""" + READ_TAIL,
+    ),
+    Variant(
         "asm_after_ctor_memory",
         """\
 int cFactory::Read(cFile &file, cMemPool *pool) {
     cReadBlock rb(file, 1, true);
     int result;
     __asm__ volatile("ori %0, $0, 1" : "=r"(result) : : "memory");
+""" + READ_TAIL,
+    ),
+    Variant(
+        "asm_nonvolatile_after_ctor",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__("ori %0, $0, 1" : "=r"(result));
+""" + READ_TAIL,
+    ),
+    Variant(
+        "asm_nonvolatile_before_ctor",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
 """ + READ_TAIL,
     ),
     Variant(
@@ -106,6 +187,26 @@ int cFactory::Read(cFile &file, cMemPool *pool) {
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
 """ + READ_TAIL,
         prefix="#pragma control sched=1\n",
+    ),
+    Variant(
+        "current_asmsched1",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+""" + READ_TAIL,
+        prefix="#pragma control asmsched=1\n",
+    ),
+    Variant(
+        "asm_before_ctor_asmsched1",
+        """\
+int cFactory::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+""" + READ_TAIL,
+        prefix="#pragma control asmsched=1\n",
     ),
     Variant(
         "asm_before_ctor_sched1",

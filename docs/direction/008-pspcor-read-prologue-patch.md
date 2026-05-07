@@ -1,6 +1,6 @@
 # pspcor Read Prologue Patch Project
 
-**Status:** Milestone 2 complete; paused before patch design
+**Status:** Milestone 3 scaffolding in progress; no functional pspcor patch yet
 **Owner:** dwilliams + Codex  
 **Created:** 2026-05-07  
 **Related:** `docs/enhancements-match-lift.md` ML2,
@@ -170,6 +170,24 @@ The best source-level shape remains the current checked-in source. A memory
 clobber on the post-constructor asm is neutral; all other tested source shapes
 move farther from the target.
 
+Additional source controls after the opt-in compiler work did not find a
+cleaner source-only route:
+
+| Variant | Compiled Size | Verification-Masked Diffs |
+|---|---:|---:|
+| `asm_before_ctor_saved_this_pool` | 188 | `36/188` |
+| `asm_before_ctor_saved_all` | 188 | `37/188` |
+| `asm_before_ctor_input_this_pool` | 188 | `34/188` |
+| `asm_before_ctor_input_all` | 188 | `34/188` |
+| `asm_before_ctor_file_ptr` | 188 | `34/188` |
+| `asm_nonvolatile_after_ctor` | 188 | `20/188` |
+| `asm_nonvolatile_before_ctor` | 188 | `34/188` |
+| `current_asmsched1` | 188 | `20/188` |
+| `asm_before_ctor_asmsched1` | 188 | `34/188` |
+
+`#pragma control asmsched=1` is accepted by the compiler but does not change
+this case. Non-volatile asm also behaves like volatile asm here.
+
 Follow-up scheduler tracing on the `asm_before_ctor` variant confirms the
 remaining problem is not just call-vs-asm order. That variant enters and leaves
 `CG_Schedule` with inline asm before `cReadBlock`, and its final code places
@@ -314,6 +332,23 @@ Opt-in compiler plumbing:
   tools from the copied directory, including the copied `pspcor.exe`.
 - The research harness now respects `SNC_DIR=...` for direct compile probes, so
   stock and patched compilers can be compared from the same harness.
+- The patcher now has PE support for adding a new executable section and
+  building `jmp rel32` stubs. This is intentionally not wired to a functional
+  Read-prologue patch yet. It was validated by adding an inert `.patch` section
+  to the copied `extern/snc-read-prologue/pspcor.exe`; wibo/SNC accepted the
+  modified PE and `cFactory::Read` compiled with the same `20/188` masked
+  baseline.
+
+Rejected small byte-patch experiment:
+
+- Lowering the scheduling flags on `MOP_asm`, `MOP_asmstart`, and
+  `MOP_asmend` in the copied compiler did not move the `ori s3,1` before the
+  `cReadBlock` constructor call. Patching all three from `0x111` to `0x1`
+  worsened `cFactory::Read` to `25/188` masked diffs by allowing a later load
+  to slide around the asm block. Patching only `MOP_asm` was neutral; patching
+  only the markers preserved the byte-diff count but put `lw a0,12(sp)` inside
+  the asm marker region. This path is too blunt and should not be registered as
+  a functional patch.
 
 ## Non-Goals
 
@@ -463,3 +498,13 @@ Milestone 4:
   `USE_READ_PROLOGUE_PSPCOR=1`, and `SNC_DIR` support in the Read prologue
   harness. Current generated copy is still stock; no functional pspcor bytes
   are patched yet.
+- 2026-05-07: Extended the source-variant sweep with saved-argument,
+  asm-input, non-volatile asm, and `asmsched` controls. None beat the current
+  checked-in source; the best remains `20/188` masked diffs.
+- 2026-05-07: Tested tiny inline-asm descriptor patches in the ignored copied
+  compiler. The experiment was rejected: marker-flag changes either worsened
+  the prologue or moved unrelated instructions into the asm block.
+- 2026-05-07: Added PE section-extension and `rel32` trampoline helpers to
+  `tools/patch_pspcor.py`. Validated an inert `.patch` section on the copied
+  compiler; the modified PE loads under wibo and preserves the current
+  `cFactory::Read` baseline.

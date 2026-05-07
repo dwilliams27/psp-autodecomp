@@ -30,6 +30,8 @@ class Section:
     virtual_address: int
     raw_size: int
     raw_pointer: int
+    characteristics: int
+    header_offset: int
 
     def contains_va(self, va: int) -> bool:
         size = max(self.virtual_size, self.raw_size)
@@ -45,6 +47,15 @@ class Section:
 @dataclass(frozen=True)
 class PeInfo:
     image_base: int
+    pe_offset: int
+    coff_offset: int
+    optional_offset: int
+    section_table_offset: int
+    section_count: int
+    section_alignment: int
+    file_alignment: int
+    size_of_image: int
+    size_of_code: int
     sections: tuple[Section, ...]
 
     def va_to_file_offset(self, va: int) -> int:
@@ -52,6 +63,12 @@ class PeInfo:
             if section.contains_va(va - self.image_base):
                 return section.va_to_file_offset(self.image_base, va)
         raise ValueError(f"VA 0x{va:08x} is outside mapped sections")
+
+    def section(self, name: str) -> Section:
+        for section in self.sections:
+            if section.name == name:
+                return section
+        raise ValueError(f"section {name!r} not found")
 
 
 @dataclass(frozen=True)
@@ -64,6 +81,91 @@ class BytePatch:
 
 
 READ_PROLOGUE_PATCHES: tuple[BytePatch, ...] = ()
+
+
+def align_up(value: int, alignment: int) -> int:
+    if alignment <= 0:
+        raise ValueError(f"invalid alignment {alignment}")
+    return (value + alignment - 1) // alignment * alignment
+
+
+def rel32_jump(src_va: int, dst_va: int) -> bytes:
+    rel = dst_va - (src_va + 5)
+    if not -(1 << 31) <= rel < (1 << 31):
+        raise ValueError(f"jmp from 0x{src_va:08x} to 0x{dst_va:08x} is out of range")
+    return b"\xe9" + struct.pack("<i", rel)
+
+
+def add_section(
+    exe: Path,
+    name: str,
+    contents: bytes,
+    characteristics: int = 0x60000020,
+) -> int:
+    """Append a PE section and return its VA.
+
+    pspcor.exe has `.rdata` immediately after `.text`, so adding a new section
+    is safer than growing `.text` and shifting existing sections.
+    """
+    if not contents:
+        raise ValueError("cannot add an empty section")
+    raw_name = name.encode("ascii")
+    if len(raw_name) > 8:
+        raise ValueError("PE section names are limited to 8 bytes")
+
+    data = bytearray(exe.read_bytes())
+    pe = read_pe_info(exe)
+    first_raw = min(section.raw_pointer for section in pe.sections if section.raw_pointer)
+    new_header = pe.section_table_offset + pe.section_count * 40
+    if new_header + 40 > first_raw:
+        raise RuntimeError("no room for another PE section header")
+
+    last_va_end = max(
+        section.virtual_address + align_up(
+            max(section.virtual_size, section.raw_size),
+            pe.section_alignment,
+        )
+        for section in pe.sections
+    )
+    new_rva = align_up(last_va_end, pe.section_alignment)
+    new_raw = align_up(len(data), pe.file_alignment)
+    raw_size = align_up(len(contents), pe.file_alignment)
+
+    if len(data) < new_raw:
+        data.extend(b"\0" * (new_raw - len(data)))
+    data.extend(contents)
+    data.extend(b"\0" * (raw_size - len(contents)))
+
+    header = bytearray(40)
+    header[:len(raw_name)] = raw_name
+    struct.pack_into(
+        "<IIIIIIHHI",
+        header,
+        8,
+        len(contents),
+        new_rva,
+        raw_size,
+        new_raw,
+        0,
+        0,
+        0,
+        0,
+        characteristics,
+    )
+    data[new_header:new_header + 40] = header
+
+    struct.pack_into("<H", data, pe.coff_offset + 2, pe.section_count + 1)
+    struct.pack_into(
+        "<I",
+        data,
+        pe.optional_offset + 56,
+        align_up(new_rva + len(contents), pe.section_alignment),
+    )
+    if characteristics & 0x20:
+        struct.pack_into("<I", data, pe.optional_offset + 4, pe.size_of_code + raw_size)
+
+    exe.write_bytes(data)
+    return pe.image_base + new_rva
 
 
 def read_pe_info(exe: Path) -> PeInfo:
@@ -81,7 +183,11 @@ def read_pe_info(exe: Path) -> PeInfo:
     magic = struct.unpack_from("<H", data, optional)[0]
     if magic != 0x10B:
         raise ValueError(f"expected PE32 optional header, got 0x{magic:04x}")
+    size_of_code = struct.unpack_from("<I", data, optional + 4)[0]
     image_base = struct.unpack_from("<I", data, optional + 28)[0]
+    section_alignment = struct.unpack_from("<I", data, optional + 32)[0]
+    file_alignment = struct.unpack_from("<I", data, optional + 36)[0]
+    size_of_image = struct.unpack_from("<I", data, optional + 56)[0]
 
     section_table = optional + optional_size
     sections: list[Section] = []
@@ -94,15 +200,30 @@ def read_pe_info(exe: Path) -> PeInfo:
             data,
             off + 8,
         )
+        characteristics = struct.unpack_from("<I", data, off + 36)[0]
         sections.append(Section(
             name=name,
             virtual_size=virtual_size,
             virtual_address=virtual_address,
             raw_size=raw_size,
             raw_pointer=raw_pointer,
+            characteristics=characteristics,
+            header_offset=off,
         ))
 
-    return PeInfo(image_base=image_base, sections=tuple(sections))
+    return PeInfo(
+        image_base=image_base,
+        pe_offset=pe_off,
+        coff_offset=coff,
+        optional_offset=optional,
+        section_table_offset=section_table,
+        section_count=section_count,
+        section_alignment=section_alignment,
+        file_alignment=file_alignment,
+        size_of_image=size_of_image,
+        size_of_code=size_of_code,
+        sections=tuple(sections),
+    )
 
 
 def copy_toolchain(source_dir: Path, output_dir: Path) -> None:
