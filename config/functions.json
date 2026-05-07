@@ -31327,7 +31327,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00030898",
@@ -31339,7 +31339,21 @@
       "0x000f31a4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeVideoKSetFogInfoPC6HeCameraT"
+    "mangled_symbol": "__0fGeVideoKSetFogInfoPC6HeCameraT",
+    "failure_notes": [
+      {
+        "session": "f901d9e3",
+        "notes": "Closest attempt uses a split eVideo_SetFogInfo.cpp TU with local class redeclarations, volatile stack locals for the color byte shuffle, and float stack stores before the GE command bit packing. It compiles to the right 32-byte frame and preserves much of the control flow, but the symbol is still 396B versus the expected 424B. The current output keeps the fog-enabled value in t0 rather than the original a2, omits the original nonzero-range branch with duplicated lbu delay-slot load, and coalesces several of the redundant byte masks/stores in the color pack sequence.\n\nTried a natural C implementation, explicit stack byte variables, volatile locals, register-shaped flags/enabled variables, and an inline register-shaping attempt. The permuter was attempted with --save-best but refused to start because it could not locate a 424B target-sized function in the compiled object. Root cause appears to be source-shape-sensitive SNC scheduling/register allocation around the bool enable value and the reciprocal/color-pack block, not a semantic misunderstanding of the function.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:53:48Z",
+        "src_file": "src/eVideo_SetFogInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/f901d9e3/0002f960__agent_self_reported_failure__src_eVideo_SetFogInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002fb08",
@@ -31436,7 +31450,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002ff44"
     ],
@@ -31543,7 +31557,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002f4b0"
     ],
@@ -81279,7 +81293,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ad364",
@@ -81292,7 +81306,15 @@
       "0x000e51c8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIDialogOSetNumControlsi"
+    "mangled_symbol": "__0fKgcUIDialogOSetNumControlsi",
+    "src_file": "src/gcUIDialog.cpp",
+    "symbol_name": "__0fKgcUIDialogOSetNumControlsi",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f901d9e3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T17:53:48Z"
   },
   {
     "address": "0x000e54a8",
@@ -105198,7 +105220,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -105234,7 +105256,21 @@
       "0x0036a0d4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDesiredUIWidgetHelperHGetTextPcK"
+    "mangled_symbol": "__0fXgcDesiredUIWidgetHelperHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "fce5fcb0",
+        "notes": "Implemented gcDesiredUIWidgetHelper::GetText(char *) const in the canonical helper TU. The reconstructed behavior matches the disassembly: primary==7 does two D_00038890 handle-table lookups, chooses the widget text among entry+8 / 0x36DAB8 / 0x36DAC4 / 0x36DACC, appends it, resolves an active spawned dialog when flags&0x200, calls gcUIDialog::GetControl through the by-value cSubHandle stack-temp ABI, appends the control text with 0x36DCB8, and falls back to cStrCat(0x36DFA0) when the subhandle is set but unresolved. Existing Write remains matched; the existing Read mismatch is pre-existing cReadBlock scheduler drift.\n\nClosest source uses the corrected entry layout (name +8, count +0x1c, handle +0x30, flags +0x50) and an explicit raw GetControl call to avoid constructor/destructor traffic. It still mismatches broadly (best compare: 300/456 bytes differ) because SNC allocates control/temporary state to s2 and lays out the first lookup with different a0/a1/a2 roles; the target uses only s0/s1/ra and keeps the dialog/control path almost entirely in caller-saved registers with stack spills at sp+0/sp+4/sp+8. Tried struct-layout correction, constructor-free cSubHandle, explicit saved stack slots, register bindings, and inverted control initialization. A 60s permuter attempt could not run because tools/permuter.py could not isolate the target from the multi-function object (found 824B .text, expected 456B).",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:39:21Z",
+        "src_file": "src/gcDesiredUIWidgetHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/fce5fcb0/0012e67c__agent_self_reported_failure__src_gcDesiredUIWidgetHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012e844",
@@ -199277,13 +199313,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoEntitySetSkinHGetTextPcK"
+    "mangled_symbol": "__0fRgcDoEntitySetSkinHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "fce5fcb0",
+        "notes": "Implemented gcDoEntitySetSkin::GetText(char *) const in its class-owned TU despite the prompt's repeated helper path, preserving the project class-method file rule. The body reconstructs the initial desired-entity text dispatch through type+0x78, mode 0/1/2 skin-source rendering, the two required 0x36DAD8 separators, three tagged desired-value/object text expansions through type+0xD0, the optional child suffix block with 0x36EAF0/0x36E48C, and final 0x36DCEC. All pre-existing matched siblings in src/gcDoEntitySetSkin.cpp still compare as MATCH.\n\nClosest source compiles to 912B versus the 932B target. The generated code is structurally close in the prologue, virtual-slot calls, switch/mode branches, and suffix block, but it is 20 bytes short and has register-allocation drift in the tagged-pointer blocks: expected keeps the first two desired values in a1 and materializes extra base copies before dispatch, while this TU keeps choosing a0 and then uses that same register directly. Tried explicit fixed-register declarations, value/base temporaries, and empty asm register barriers; these did not change the emitted size. A 60s permuter attempt could not run because tools/permuter.py could not isolate the target from the multi-function object (found 2388B .text, expected 932B).",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:39:21Z",
+        "src_file": "src/gcDoEntitySetSkin.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/fce5fcb0/002cd3a8__agent_self_reported_failure__src_gcDoEntitySetSkin.cpp"
+      }
+    ]
   },
   {
     "address": "0x002cd74c",
@@ -204419,7 +204469,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -219943,7 +219993,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -219952,7 +220002,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityDirectionHGetTextPcK"
+    "mangled_symbol": "__0fUgcValEntityDirectionHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ab4f6366",
+        "notes": "Implemented a close C++ reconstruction of gcValEntityDirection::GetText(char *) const in src/gcValEntityDirection.cpp. The body follows the disassembly behavior: initial desired-object text dispatch through type+0x78, tagged desired-value text expansion for +0xC8/+0xE4 through type+0xD0, cName formatting via cStr::cStr, the 0xE8 mode dispatch including mode 1/2 entity/camera-target branches, mode 3 text, mode 4 desired-camera text, and final 0x36DCEC suffix only when mode is nonzero. Existing matched gcValEntityDirection methods still compare as MATCH.\n\nClosest build compiles to 916B versus the 980B target. The main remaining diff is not a tiny branch-likely issue: the target saves and uses s4/s5 for formatted buffer pointers and keeps the 0x36xxxx string base in a saved register, while SNC keeps choosing s2/s3 and caller temporaries despite fixed-register declarations and empty asm barriers. I also tried raw cStr buffers with direct constructor calls, placement-new removal, goto-shaped tagged-pointer validity blocks, reloading mode after cStrAppend, and reversing the mode 1/2 fallthrough to match the target branch-likely shape. The function remains size-mismatched with broad register/scheduling drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:49:15Z",
+        "src_file": "src/gcValEntityDirection.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ab4f6366/00329f34__agent_self_reported_failure__src_gcValEntityDirection.cpp"
+      }
+    ]
   },
   {
     "address": "0x0032a308",
@@ -220192,7 +220256,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -220201,7 +220265,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityDistanceHGetTextPcK"
+    "mangled_symbol": "__0fTgcValEntityDistanceHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "ab4f6366",
+        "notes": "Implemented a close C++ reconstruction of gcValEntityDistance::GetText(char *) const in src/gcValEntityDirection.cpp as requested. The body performs the initial desired-object dispatch, formats the first cName/desired-value pair, builds the compare text with cStr::Set based on +0xAC/+0xAD, emits comparison text for +0xA8 cases 0/1/2/4/default, handles +0xA4 mode dispatch for second desired entity/object/constant cases, and appends the final 0x36DCEC suffix. I forced the 0x720 stack frame with raw cStr buffers and no-op memory constraints so the later buffers land at the observed 0x400/0x600 offsets.\n\nClosest build compiles to 1072B versus the 1132B target. The target saves through s5 and has a different early prologue/load schedule; the current source saves only through s3 and keeps the cStr target buffers in s2/s3. I tried explicit register bindings, asm barriers, raw constructor calls, if-chain compare ordering instead of switch, and fallthrough reshaping for the mode 0/1 branches. The remaining mismatch is broad saved-register allocation and branch/scheduling drift, not an isolated <=8-byte compiler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T17:49:15Z",
+        "src_file": "src/gcValEntityDirection.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/ab4f6366/0032d1c4__agent_self_reported_failure__src_gcValEntityDirection.cpp"
+      }
+    ]
   },
   {
     "address": "0x0032d630",
@@ -228020,7 +228098,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"

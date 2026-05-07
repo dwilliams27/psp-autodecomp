@@ -49,6 +49,11 @@ public:
     char _pad[0x18];
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cObject {
 public:
     static int WillBeDeleted(const cBase *, const cMemPool *, unsigned int);
@@ -70,6 +75,15 @@ struct gcUIDialog_AllocRec {
     short _pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+struct gcUIDialog_FreeRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+extern "C" void *memcpy(void *, const void *, unsigned int);
+extern "C" void *memset(void *, int, unsigned int);
 
 cBase *gcUIDialog::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -195,38 +209,6 @@ void gcUIDialog::Close(void) {
     }
 }
 
-void gcUIDialog::Write(cOutStream &out) const {
-    float *var_s2;
-    float *var_s3;
-    int var_s3_2;
-    int var_s4;
-
-    ((cHandleRef *)((char *)this + 0x48))->Write(out);
-    ((cHandleRef *)((char *)this + 0x4C))->Write(out);
-    out.Write(*(unsigned int *)((char *)this + 0x50), 0x20, true);
-    out.Write(*(float *)((char *)this + 0x5C), true);
-    register bool var_s5 asm("s5") = true;
-    __asm__ volatile("" : "+r"(var_s5));
-    var_s4 = 0;
-    var_s3 = (float *)((char *)this + 0x1E8);
-    var_s2 = (float *)((char *)this + 0x1F8);
-    do {
-        out.Write(*var_s3, var_s5);
-        var_s4 += 1;
-        var_s3 += 1;
-    } while (var_s4 < 3);
-    out.Write(*(float *)((char *)this + 0x1F4), true);
-    register bool var_s4_bool asm("s4") = true;
-    __asm__ volatile("" : "+r"(var_s4_bool));
-    var_s3_2 = 0;
-    do {
-        out.Write(*var_s2, var_s4_bool);
-        var_s3_2 += 1;
-        var_s2 += 1;
-    } while (var_s3_2 < 5);
-    ((cTimeValueRef *)((char *)this + 0x20C))->Write(out);
-}
-
 void gcUIDialog::OnFinalClose(void) {
     mpUI->ActualCloseDialog(this);
     *(int *)((char *)this + 0x54) = *(int *)((char *)this + 0x54) & ~0x10;
@@ -335,4 +317,98 @@ void gcUIDialog::ReplaceControl(gcUIWidget *widget) {
         }
         *slot = widget;
     }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fKgcUIDialogOSetNumControlsi, 0x180\n");
+
+void gcUIDialog::SetNumControls(int count) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(this);
+    if (count != *(int *)((char *)this + 0x90)) {
+        void *block = ((void **)pool)[9];
+        int bytes = count * 4;
+        register char *allocEntry asm("a1") = *(char **)((char *)block + 0x1C);
+        register int allocArg3 asm("a3");
+        __asm__ volatile("move %0, $0" : "=r"(allocArg3));
+        allocEntry += 0x28;
+        __asm__ volatile("" : "+r"(allocEntry));
+        short allocOffset = *(short *)allocEntry;
+        void *(*allocFn)(void *, int, int, int, int) =
+            ((gcUIDialog_AllocRec *)allocEntry)->fn;
+        gcUIWidget **newControls =
+            (gcUIWidget **)allocFn((char *)block + allocOffset, bytes, 0, allocArg3, 0);
+        memset(newControls, 0, bytes);
+
+        int oldCount = *(int *)((char *)this + 0x90);
+        void *oldControls = *(void **)((char *)this + 0x94);
+        if (oldCount < count) {
+            memcpy(newControls, oldControls, oldCount * 4);
+        } else {
+            memcpy(newControls, oldControls, bytes);
+            int i = count;
+            if (i < *(int *)((char *)this + 0x90)) {
+                int offset = i * 4;
+                do {
+                    oldControls = *(void **)((char *)this + 0x94);
+                    void *widget = *(void **)((char *)oldControls + offset);
+                    if (widget != 0) {
+                        int *rec = (int *)(*(char **)((char *)widget + 4) + 0x50);
+                        short thunk = *(short *)rec;
+                        ((void (*)(char *, int))rec[1])((char *)widget + thunk, 3);
+                        *(int *)(*(char **)((char *)this + 0x94) + offset) = 0;
+                        oldControls = *(void **)((char *)this + 0x94);
+                    }
+                    oldCount = *(int *)((char *)this + 0x90);
+                    i++;
+                    offset += 4;
+                } while (i < oldCount);
+            }
+        }
+
+        if (*(void **)((char *)this + 0x94) != 0) {
+            cMemPool *oldPool =
+                cMemPool::GetPoolFromPtr(*(void **)((char *)this + 0x94));
+            void *oldBlock = ((void **)oldPool)[9];
+            char *table = *(char **)((char *)oldBlock + 0x1C);
+            gcUIDialog_FreeRec *freeRec = (gcUIDialog_FreeRec *)(table + 0x30);
+            freeRec->fn((char *)oldBlock + freeRec->offset,
+                        *(void **)((char *)this + 0x94));
+            *(int *)((char *)this + 0x94) = 0;
+        }
+        *(gcUIWidget ***)((char *)this + 0x94) = newControls;
+        *(int *)((char *)this + 0x90) = count;
+    }
+}
+
+void gcUIDialog::Write(cOutStream &out) const {
+    float *var_s2;
+    float *var_s3;
+    int var_s3_2;
+    int var_s4;
+
+    ((cHandleRef *)((char *)this + 0x48))->Write(out);
+    ((cHandleRef *)((char *)this + 0x4C))->Write(out);
+    out.Write(*(unsigned int *)((char *)this + 0x50), 0x20, true);
+    out.Write(*(float *)((char *)this + 0x5C), true);
+    register bool var_s5 asm("s5") = true;
+    __asm__ volatile("" : "+r"(var_s5));
+    var_s4 = 0;
+    var_s3 = (float *)((char *)this + 0x1E8);
+    var_s2 = (float *)((char *)this + 0x1F8);
+    do {
+        out.Write(*var_s3, var_s5);
+        var_s4 += 1;
+        var_s3 += 1;
+    } while (var_s4 < 3);
+    out.Write(*(float *)((char *)this + 0x1F4), true);
+    register bool var_s4_bool asm("s4") = true;
+    __asm__ volatile("" : "+r"(var_s4_bool));
+    var_s3_2 = 0;
+    do {
+        out.Write(*var_s2, var_s4_bool);
+        var_s3_2 += 1;
+        var_s2 += 1;
+    } while (var_s3_2 < 5);
+    ((cTimeValueRef *)((char *)this + 0x20C))->Write(out);
 }
