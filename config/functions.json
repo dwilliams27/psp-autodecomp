@@ -31450,7 +31450,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002ff44"
     ],
@@ -31474,7 +31474,21 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeVideoLSetViewportPC6JeViewportT"
+    "mangled_symbol": "__0fGeVideoLSetViewportPC6JeViewportT",
+    "failure_notes": [
+      {
+        "session": "3f3fb71a",
+        "notes": "Closest attempt is 18/448 bytes different after a 300s permuter pass that improved the baseline from 133 bytes to 18 bytes. The remaining diff is localized to FPU/integer scheduling in the viewport command emission: at 0x124 the compiler swaps `cvt.s.w $f14,$f16` with the following integer `or`, and around 0x158 it delays the `p[1]` store until after the first width-bit `srl`. Manual attempts included plain float bitcasts, volatile stack float temporaries, union-backed bitcasts, moving command-list pointer setup before/after the float expressions, interleaving the union stores to mirror m2c, and adding/removing memory barriers; the best source is the permuter-saved union/interleaved version. Likely SNC scheduler/source-order sensitivity around stack-backed float bit extraction rather than control-flow or register-allocation drift. All existing matched sibling eVideo functions in this TU still match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:16:53Z",
+        "src_file": "src/eVideo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/3f3fb71a/0002fd58__agent_self_reported_failure__src_eVideo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002ff18",
@@ -31557,7 +31571,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002f4b0"
     ],
@@ -31572,7 +31586,21 @@
       "0x000fe85c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeVideoJSetCameraRC6HeCameraT"
+    "mangled_symbol": "__0fGeVideoJSetCameraRC6HeCameraT",
+    "failure_notes": [
+      {
+        "session": "3f3fb71a",
+        "notes": "Closest attempt is 23/564 bytes different. The body is structurally correct and the second 0x3F matrix command packet matches; the remaining drift is in the first 0x3D packet. SNC emits `srl` before `lui a3,0x3d00` for the first encoded matrix word, while the original loads the constant first; similarly near the tail word it computes/stores p[9] before the desired reload of `lui a2,0x3d00`. A 300s permuter pass generated 4944 candidates and found no improvement over the 23-byte baseline. Manual attempts included indexed word-array loads to remove pointer addiu noise, temporary constants, register-bound constants, sched=1, and a small inline asm block for the three fixed 0x3D words; only the current closest attempt preserved the already-matching second packet. This appears to be scheduler ordering around constant materialization, not the documented bnel/beql divergence and not a simple callee-save register-allocation case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:16:53Z",
+        "src_file": "src/eVideo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/3f3fb71a/0003007c__agent_self_reported_failure__src_eVideo.cpp"
+      }
+    ]
   },
   {
     "address": "0x000302b0",
@@ -176621,7 +176649,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -176632,7 +176660,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcEntityTemplateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fQgcEntityTemplateKAssignCopyPC6FcBase",
+    "src_file": "src/gcEntityTemplate.cpp",
+    "symbol_name": "__0fQgcEntityTemplateKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "577c6cda",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T18:17:18Z"
   },
   {
     "address": "0x0026882c",
@@ -198204,7 +198240,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -202917,14 +202953,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcDoMouseOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fLgcDoMouseOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "577c6cda",
+        "notes": "Implemented gcDoMouseOp::AssignCopy from the m2c control flow, including the type-initialization/cast prologue, flag low-bit merge, desired-object owned-pointer release/copy path, scalar tail copies, and the original dead branch/nop tail. After fixing the tail placement/size, compare_func reached a real byte comparison but still reports 235/764 bytes different. The prologue shape is notably off: the compiler keeps the desired-object self pointer in s3 and shifts type globals through s4-s7, while the target uses s7 for the self pointer and s3-s6 for the type globals; the owned-pointer branch body also schedules and allocates registers differently.\n\nI ran the project permuter for 300 seconds after manual restructuring. It improved the function from 249 differing bytes to 235 but did not find a match, indicating this source shape has the wrong register-allocation backbone rather than a small local scheduling issue. A likely next retry should put this method in its canonical gcDoMouseOp translation unit or otherwise mirror the existing gcDoMouseOp local class/static declarations more closely before tuning the desired-object copy path.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T18:17:18Z",
+        "src_file": "src/gcEntityTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_103437/577c6cda/002e7518__agent_self_reported_failure__src_gcEntityTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e7814",
@@ -209201,7 +209251,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -235194,7 +235244,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -235335,7 +235385,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8708",
