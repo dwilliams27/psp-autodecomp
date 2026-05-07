@@ -80403,7 +80403,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000062e0",
       "0x00006454",
@@ -80426,7 +80426,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T00:28:50Z"
       }
-    ]
+    ],
+    "src_file": "src/gcUIDialog.cpp",
+    "symbol_name": "__0fKgcUIDialogFWriteR6KcOutStreamK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e4d8b6e8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:20:51Z"
   },
   {
     "address": "0x000e3798",
@@ -182144,7 +182152,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000dd7cc",
@@ -201566,7 +201574,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -214073,7 +214081,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0022c274"
     ],
@@ -214091,7 +214099,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T00:07:41Z"
       }
-    ]
+    ],
+    "src_file": "src/gcProjectileController.cpp",
+    "symbol_name": "__0fWgcProjectileControllerKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e4d8b6e8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T05:20:51Z"
   },
   {
     "address": "0x0031efc0",

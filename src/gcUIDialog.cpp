@@ -199,14 +199,14 @@ void gcUIDialog::Write(cOutStream &out) const {
     float *var_s2;
     float *var_s3;
     int var_s3_2;
-    __asm__ volatile("" ::: "memory");
     int var_s4;
 
     ((cHandleRef *)((char *)this + 0x48))->Write(out);
     ((cHandleRef *)((char *)this + 0x4C))->Write(out);
     out.Write(*(unsigned int *)((char *)this + 0x50), 0x20, true);
     out.Write(*(float *)((char *)this + 0x5C), true);
-    int var_s5 = 1;
+    register bool var_s5 asm("s5") = true;
+    __asm__ volatile("" : "+r"(var_s5));
     var_s4 = 0;
     var_s3 = (float *)((char *)this + 0x1E8);
     var_s2 = (float *)((char *)this + 0x1F8);
@@ -216,10 +216,11 @@ void gcUIDialog::Write(cOutStream &out) const {
         var_s3 += 1;
     } while (var_s4 < 3);
     out.Write(*(float *)((char *)this + 0x1F4), true);
-    var_s4 = 1;
+    register bool var_s4_bool asm("s4") = true;
+    __asm__ volatile("" : "+r"(var_s4_bool));
     var_s3_2 = 0;
     do {
-        out.Write(*var_s2, var_s4);
+        out.Write(*var_s2, var_s4_bool);
         var_s3_2 += 1;
         var_s2 += 1;
     } while (var_s3_2 < 5);

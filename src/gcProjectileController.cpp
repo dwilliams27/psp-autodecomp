@@ -207,9 +207,9 @@ void gcProjectileController::AssignCopy(const cBase *src) {
         dst_words = (int *)((char *)var_a2 + 24);
         src_words_6 = (int *)((char *)var_a1 + 28);
         dst_words[0] = src_words_5[0];
-        dst_words_3 = (int *)((char *)var_a2 + 28);
-        dst_words_3[0] = src_words_6[0];
+        dst_words = (int *)((char *)var_a2 + 28);
         var_a3 += 1;
+        dst_words[0] = src_words_6[0];
         var_a2->unk20 = (int)var_a1->unk20;
         var_a1 = (gcProjectileControllerBlock24 *)((char *)var_a1 + 0x24);
         var_a2 = (gcProjectileControllerBlock24 *)((char *)var_a2 + 0x24);
