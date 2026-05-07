@@ -61,9 +61,18 @@ struct DtorDeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 extern char gcValuevirtualtable[];
 extern char cBaseclassdesc[];
 extern char gcValLobbyGameInfovirtualtable[];
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 class gcValue {
 public:
@@ -83,6 +92,7 @@ public:
     ~gcValLobbyGameInfo();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -144,6 +154,39 @@ void gcValLobbyGameInfo::Write(cFile &file) const {
     wb.Write(mField10);
     ((gcDesiredValue *)((char *)this + 12))->Write(wb);
     wb.End();
+}
+
+// ── gcValLobbyGameInfo::GetText(char *) const @ 0x00349234 ──
+void gcValLobbyGameInfo::GetText(char *buf) const {
+    cStrAppend(buf, (const char *)0x36F4DC);
+
+    int mode = mField8;
+    if (mode == 0) {
+        cStrAppend(buf, (const char *)0x36E058);
+    } else if (mode == 2) {
+        cStrAppend(buf, (const char *)0x36E090);
+    } else {
+        int val = mFieldC;
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, buf);
+        } else {
+            cStrCat(buf, (const char *)0x36DB24);
+        }
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
 }
 
 static cType *type_base;

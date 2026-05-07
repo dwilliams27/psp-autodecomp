@@ -19,6 +19,7 @@ public:
 
 class gcDesiredUIWidgetHelper {
 public:
+    void GetText(char *) const;
     void Write(cWriteBlock &) const;
 };
 
@@ -59,6 +60,12 @@ struct DtorDeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct GetTextSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
 class gcValUIListInfo {
 public:
     int pad0;
@@ -70,6 +77,7 @@ public:
     ~gcValUIListInfo();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    void GetText(char *) const;
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -82,6 +90,9 @@ public:
         fn(block + off, p);
     }
 };
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
 
 static cType *type_base;
 static cType *type_expression;
@@ -150,6 +161,48 @@ void gcValUIListInfo::Write(cFile &file) const {
     wb.Write(mField);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+// -----------------------------------------------------------------------------
+// gcValUIListInfo::GetText(char *) const  @ 0x00363080, 264B
+// -----------------------------------------------------------------------------
+void gcValUIListInfo::GetText(char *buf) const {
+    char local[256];
+    local[0] = *local = '\0';
+    ((const gcDesiredUIWidgetHelper *)((const char *)this + 8))->GetText(local);
+    cStrAppend(buf, (const char *)0x36DF34, local, (const char *)0x36DAF0);
+
+    int flag = 0;
+    int kind = mField;
+    if ((kind == 4) || (kind == 5)) {
+        flag = 1;
+    }
+    int doExtra = flag & 0xFF;
+    if (doExtra != 0) {
+        char valueText[256];
+        valueText[0] = '\0';
+        __asm__ volatile("" ::: "memory");
+        int val = pad18;
+        register char *valueBuf __asm__("$17") = valueText;
+        int tagged = 0;
+        if (val & 1) {
+            tagged = 1;
+        }
+        if (tagged != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int check = val;
+        if (check != 0) {
+            char *typeInfo = *(char **)(check + 4);
+            GetTextSlot *slot = (GetTextSlot *)(typeInfo + 0xD0);
+            slot->fn((char *)val + slot->offset, valueBuf);
+        } else {
+            cStrCat(valueBuf, (const char *)0x36DB24);
+        }
+        cStrAppend(buf, (const char *)0x36DE40, valueBuf);
+    }
 }
 
 const cType *gcValUIListInfo::GetType(void) const {
