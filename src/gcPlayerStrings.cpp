@@ -34,6 +34,11 @@ extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F458;
 extern cType *D_0009F7A4;
+extern void *D_00038890[];
+
+void cStrAppend(char *, const char *, ...);
+void cStrCat(char *, const char *);
+void cStrCopy(char *, const char *);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -44,6 +49,19 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct GetNameSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, char *);
+};
+
+struct HandleEntry {
+    char pad0[0x1C];
+    short nameIndex;
+    char pad1[0x12];
+    int mId;
 };
 
 class gcStringLValue {
@@ -75,8 +93,18 @@ public:
     }
 
     void Write(cFile &) const;
+    void GetName(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+};
+
+class gcNamedSet {
+public:
+    cBase *mOwner;
+    void *mClassDesc;
+    int mName;
+
+    void GetName(char *) const;
 };
 
 // ── Write @ 0x0031e2a8 ──
@@ -102,6 +130,71 @@ cBase *gcPlayerStrings::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── GetName @ 0x0031e5e0 ──
+void gcPlayerStrings::GetName(char *buf) const {
+    cStrAppend(buf, (const char *)0x36EBC4);
+
+    int val = *(int *)((const char *)this + 0x08);
+    int flag = 0;
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int check = val;
+    if (check != 0) {
+        char *typeInfo = *(char **)(check + 4);
+        GetNameSlot *slot = (GetNameSlot *)(typeInfo + 0xD0);
+        slot->fn((char *)val + slot->offset, buf);
+    } else {
+        cStrCat(buf, (const char *)0x36DB24);
+    }
+
+    cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
+}
+
+// ── gcNamedSet::GetName @ 0x00239758 ──
+void gcNamedSet::GetName(char *buf) const {
+    int handle = *(int *)((const char *)this + 0x08);
+    HandleEntry *entry;
+    if (handle == 0) {
+        entry = 0;
+    } else {
+        HandleEntry *candidate = (HandleEntry *)D_00038890[handle & 0xFFFF];
+        entry = 0;
+        if (candidate != 0) {
+            if (candidate->mId == handle) {
+                entry = candidate;
+            }
+        }
+    }
+
+    const char *name;
+    if (entry != 0) {
+        unsigned int unnamed = (entry->nameIndex == 0);
+        unnamed &= 0xFF;
+        if (unnamed) {
+            name = (const char *)0x36DAB8;
+            goto object_done;
+        }
+        name = (const char *)entry + 0x08;
+object_done:
+        __asm__ volatile("" : : "r"(name));
+        goto copy;
+    } else if (handle != 0) {
+        name = (const char *)0x36DAC4;
+    } else {
+        name = (const char *)0x36DACC;
+    }
+
+copy:
+    ((void (*)(char *, const char *, HandleEntry *))cStrCopy)(buf, name, entry);
 }
 
 // ── GetType @ 0x0031e190 ──

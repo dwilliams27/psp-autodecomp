@@ -83896,7 +83896,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001428",
       "0x00007534",
@@ -166212,13 +166212,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001428"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcNamedSetHGetNamePcK"
+    "mangled_symbol": "__0fKgcNamedSetHGetNamePcK",
+    "src_file": "src/gcPlayerStrings.cpp",
+    "symbol_name": "__0fKgcNamedSetHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "951b4193",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T15:44:51Z"
   },
   {
     "address": "0x00239804",
@@ -169212,7 +169220,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00007534",
@@ -184946,7 +184954,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -186749,7 +186757,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -215586,14 +215594,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcPlayerStringsHGetNamePcK"
+    "mangled_symbol": "__0fPgcPlayerStringsHGetNamePcK",
+    "src_file": "src/gcPlayerStrings.cpp",
+    "symbol_name": "__0fPgcPlayerStringsHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "951b4193",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T15:44:51Z"
   },
   {
     "address": "0x0031e698",
