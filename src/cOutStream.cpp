@@ -1,5 +1,74 @@
 #include "cOutStream.h"
 
+void cOutStream::Write(int value, int numBits, bool sign) {
+    if (sign) {
+        if (numBits >= 3) {
+            register int bitPos __asm__("$t0") = mBitPos;
+            int isShort = (value == 0) | (value == 1);
+            unsigned char *base = mData;
+            register int bit __asm__("$a3") = bitPos & 7;
+            int byteIndex = bitPos >> 3;
+            int newBitPos = bitPos + 1;
+            __asm__ volatile("" ::: "memory");
+            unsigned char *ptr = base + byteIndex;
+            unsigned char overflow = mOverflow;
+            register int bitValue __asm__("$t1") = isShort & 0xFF;
+            mBitPos = newBitPos;
+            if (overflow != 0) {
+                overflow = mOverflow;
+            } else {
+                if (mCapacity < ((mBitPos + 7) >> 3)) {
+                    mOverflow = 1;
+                    overflow = mOverflow;
+                }
+            }
+            int canWrite = (unsigned char)(overflow == 0);
+            if (canWrite != 0) {
+                int byte = *ptr;
+                int mask = 1 << bit;
+                bitValue = bitValue != 0;
+                byte = (byte & ~mask) | (bitValue << bit);
+                *ptr = byte;
+            }
+
+            if (isShort != 0) {
+                int value2 = value;
+                int bitValue2 = (value2 == 1);
+                bitValue2 &= 0xFF;
+                int bitPos2 = mBitPos;
+                unsigned char *base2 = mData;
+                register int bit2 __asm__("$a3") = bitPos2 & 7;
+                __asm__ volatile("" ::: "memory");
+                int byteIndex2 = bitPos2 >> 3;
+                int newBitPos2 = bitPos2 + 1;
+                unsigned char overflow2 = mOverflow;
+                bitValue2 &= 0xFF;
+                unsigned char *ptr2 = base2 + byteIndex2;
+                mBitPos = newBitPos2;
+                if (overflow2 != 0) {
+                    overflow2 = mOverflow;
+                } else {
+                    if (mCapacity < ((mBitPos + 7) >> 3)) {
+                        mOverflow = 1;
+                        overflow2 = mOverflow;
+                    }
+                }
+                int canWrite2 = (unsigned char)(overflow2 == 0);
+                if (canWrite2 != 0) {
+                    int byte2 = *ptr2;
+                    int mask2 = 1 << bit2;
+                    int outBit = (bitValue2 != 0);
+                    byte2 = (byte2 & ~mask2) | (outBit << bit2);
+                    *ptr2 = byte2;
+                }
+                return;
+            }
+        }
+    }
+
+    WriteBits(&value, numBits);
+}
+
 void cOutStream::Write(float value, int wholeBits, int fracBits, bool sign) {
     int scale = 1 << fracBits;
     float scaled = value * scale;
