@@ -52460,7 +52460,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9c64"
     ],
@@ -79451,7 +79451,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000d8ddc",
@@ -79475,7 +79475,15 @@
       "0x001605f0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEgcUIWGetActiveSpawnedDialogPC6KgcUIDialogT"
+    "mangled_symbol": "__0fEgcUIWGetActiveSpawnedDialogPC6KgcUIDialogT",
+    "src_file": "src/gcGenericSubscriber.cpp",
+    "symbol_name": "__0fEgcUIWGetActiveSpawnedDialogPC6KgcUIDialogT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f6a79bdb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:18:14Z"
   },
   {
     "address": "0x000e0b80",
@@ -79741,7 +79749,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000e0550"
@@ -182254,11 +182262,19 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fTgcGenericSubscriberIGetIndexPvK"
+    "mangled_symbol": "__0fTgcGenericSubscriberIGetIndexPvK",
+    "src_file": "src/gcGenericSubscriber.cpp",
+    "symbol_name": "__0fTgcGenericSubscriberIGetIndexPvK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f6a79bdb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:18:14Z"
   },
   {
     "address": "0x0027ec4c",

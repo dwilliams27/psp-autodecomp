@@ -1,4 +1,21 @@
-#include "gcGenericSubscriber.h"
+// ODR-WARNING: local class redeclarations keep this TU from changing shared headers.
+class cBase;
+class cFile;
+class cMemPool;
+class cType;
+
+class gcGenericSubscriber {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+    void Attach(void);
+    void Detach(void);
+    int GetItem(int) const;
+    int GetIndex(void *) const;
+    int IsModifiable(void) const;
+    void AssignCopy(const cBase *);
+    void Write(cFile &) const;
+};
 
 class cType {
 public:
@@ -27,6 +44,13 @@ public:
     cSubscriberArray &operator=(const cSubscriberArray &);
 };
 
+class gcUIDialog;
+
+class gcUI {
+public:
+    static gcUIDialog *GetActiveSpawnedDialog(const gcUIDialog *);
+};
+
 gcGenericSubscriber *dcast(const cBase *);
 
 extern char gcGenericSubscribervirtualtable[];
@@ -42,6 +66,11 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct gcUI_ActiveSpawnScan {
+    char pad[0x54];
+    void **active;
 };
 
 extern "C" void cListSubscriber_cListSubscriber(void *, cBase *);
@@ -102,6 +131,62 @@ int gcGenericSubscriber::GetItem(int idx) const {
     if (idx >= count) return result;
     result = arr[idx];
     return result;
+}
+
+int gcGenericSubscriber::GetIndex(void *p) const {
+    float *arr = *(float **)((const char *)this + 0x24);
+    int count = 0;
+    if (arr) {
+        count = ((int *)arr)[-1] & 0x3FFFFFFF;
+    }
+    if (count > 0) {
+        int limit = *(int *)((const char *)this + 0x1C);
+        float value = *(float *)&p;
+        int i = 0;
+        if (i < limit) {
+            do {
+                if (*arr == value) {
+                    return i;
+                }
+                i++;
+                arr++;
+            } while (i < limit);
+        }
+        return -1;
+    }
+    return (int)p - 1;
+}
+
+gcUIDialog *gcUI::GetActiveSpawnedDialog(const gcUIDialog *dialog) {
+    gcUI *ui = *(gcUI **)0x37D7BC;
+    if (ui == 0) {
+        return (gcUIDialog *)dialog;
+    }
+    if (dialog == 0) {
+        return 0;
+    }
+
+    gcUIDialog *active = *(gcUIDialog **)0x37D7C0;
+    if (active != 0) {
+        if (*(gcUIDialog **)active == dialog) {
+            return active;
+        }
+    }
+    int i = *(int *)((char *)ui + 0xD4);
+    if (i >= 0) {
+        gcUI_ActiveSpawnScan *slot = (gcUI_ActiveSpawnScan *)((char *)ui + i * 4);
+        do {
+            active = (gcUIDialog *)slot->active;
+            if (active != 0) {
+                if (*(gcUIDialog **)active == dialog) {
+                    return active;
+                }
+            }
+            i--;
+            slot = (gcUI_ActiveSpawnScan *)((char *)slot - 4);
+        } while (i >= 0);
+    }
+    return (gcUIDialog *)dialog;
 }
 
 void gcGenericSubscriber::AssignCopy(const cBase *base) {
