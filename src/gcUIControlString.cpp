@@ -31,6 +31,7 @@ struct gcDesiredUIWidgetHelper {
     int mField0;
     cHandle mField4;
     cHandle mField8;
+    void GetText(char *) const;
     void Write(cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
@@ -88,6 +89,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    void GetName(char *) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcUIControlString();
@@ -151,6 +153,27 @@ void gcUIControlString::Write(cFile &file) const {
     wb.Write(mField14);
     wb.Write(mField18);
     wb.End();
+}
+
+extern "C" int cStrFormat(char *, const char *, ...);
+extern "C" int cStrAppend(char *, const char *, ...);
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcUIControlString::GetName(char *) const  @ 0x00290094, 116B
+// ─────────────────────────────────────────────────────────────────────────
+void gcUIControlString::GetName(char *dst) const {
+    union {
+        char text[0x100];
+        char first;
+    } buf;
+
+    buf.first = 0;
+    buf.text[0] = 0;
+    mHelper.GetText(buf.text);
+    cStrFormat(dst, (const char *)0x36E370, buf.text);
+    if (mField14 == 1) {
+        cStrAppend(dst, (const char *)0x36E378, mField18);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -113,7 +113,7 @@ void gcDoEntityFindAttachedBase::Write(cFile &file) const {
         char *entry = (char *)data;
         do {
             ((cHandle *)entry)->Write(wb);
-            wb.Write(*(unsigned int *)(entry + 4));
+            wb.Write(((unsigned int *)entry)[1]);
             i++;
             entry += 8;
         } while (i < size);

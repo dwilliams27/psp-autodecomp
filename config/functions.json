@@ -90133,7 +90133,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -90144,7 +90144,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsFWriteR6FcFileK"
+    "mangled_symbol": "__0fOgcGameSettingsFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "da30aead",
+        "notes": "Implemented Write(cFile &) const with the expected cWriteBlock(file, 8), the three serialized array counts at offsets 0x54/0x5C/0x68, base-array writes at 0x08/0x10/0x1C/0x24, explicit cHandle writes for both cArrayBase<cHandleT<gcTableTemplate>> arrays, the constant 2 handle-pair section at 0x44, and the final 0x70/0x78 handle-plus-uint writes before End(). Manual attempts included scalar count temporaries, explicit masked count recomputation, register-bound iterators for the cHandle loops, and an s4-bound handle-pair iterator to recover the target prologue save/restore.\n\nThe closest source compiles to 584B versus the 596B target. The missing bytes are concentrated around register allocation/lifetime for the two table handle loops and the handle-pair loop: the target keeps the later pair iterator in s4 and uses s3/s1/s2 roles in the table loops, while this TU keeps assigning different saved registers and elides some redundant setup. The permuter could not run because the compiled symbol size differs from the 596B target, so this remains a source-level register allocation/scheduling blocker rather than an unknown control-flow issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:49:57Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/da30aead/00101b94__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00101de8",
@@ -110562,14 +110576,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoConsoleOpHGetTextPcK"
+    "mangled_symbol": "__0fNgcDoConsoleOpHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "f9889745",
+        "notes": "Added gcDoConsoleOp::GetText in the existing class TU using the provided control flow and matched GetTextSlot/cStrAppend/cStrCat patterns. Existing gcDoConsoleOp constructor, AssignCopy, GetType, and Write still match. The new method is very close at 856B versus the 868B target; the main remaining local drift is the first tagged-object nulling branch, where SNC emits a compact bnezl/li sequence instead of the target's beqz+nop followed by a redundant branch with li in the delay slot.\n\nMoving the op19 register initialization earlier recovered the target s2 setup in the first mField10 branch delay slot. Adding/removing memory barriers and explicit goto labels around the first nulling branch changed size but did not produce the exact redundant branch. A short permuter run was attempted, but tools/permuter.py failed before searching because it could not locate the 868B target inside the compiled multi-function gcDoConsoleOp.cpp object.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:47:06Z",
+        "src_file": "src/gcDoConsoleOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f9889745/0013de00__agent_self_reported_failure__src_gcDoConsoleOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013e164",
@@ -112191,7 +112219,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -112216,6 +112244,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T22:56:08Z"
+      },
+      {
+        "session": "1c034bda",
+        "notes": "Closest source is the canonical gcAll write-body shape in src/gcDoEntityFindAttachedBase.cpp: cWriteBlock(file, 2), gcAction::Write(file), two dynamic type-dispatch writes at offsets 0x10/0x48, integer writes at 0x0C/0x3C/0x40/0x44, tagged array count at 0x60, then (cHandle, unsigned int) entries. I improved the prior 116-byte mismatch to 76 bytes by changing the loop field write from *(unsigned int *)(entry + 4) to ((unsigned int *)entry)[1], which removed the extra addiu and matched the target's direct lw 4(reg) loop shape.\n\nThe remaining 76-byte diff is register-allocation drift across the whole body: target saves this in s0 and file in s1, then reuses s0 for the array size, s1 for the index, and s2 for the entry pointer; SNC in this smaller TU keeps this in s1 and file in s0, then uses s2 for the index and s1 for the entry pointer. I tried member-call and gcAction_Write forms, explicit self/out locals, register bindings, a temporary split-TU, char-pointer/raw-offset variants, and one 300s permuter pass on the single-function split source. The permuter generated 10344 candidates, compiled 4633, and found zero improvement from the 76-byte baseline. Root cause appears to be context-sensitive SNC callee-save allocation, not logic or instruction selection.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T09:01:30Z",
+        "src_file": "src/gcDoEntityFindAttachedBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/1c034bda/00143d2c__agent_self_reported_failure__src_gcDoEntityFindAttachedBase.cpp"
       }
     ]
   },
@@ -170453,7 +170493,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00006e7c",
       "0x00007534",
@@ -170465,7 +170505,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcGameSettingsKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcGameSettingsKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "da30aead",
+        "notes": "Implemented the standard gcGameSettings AssignCopy dynamic-cast/lazy-type-init pattern and the full byte-order field copy sequence, including cBaseArray assignments, cArrayBase<cHandleT<gcTableTemplate>>, profile/save-header arrays, bool/byte-array assignments, the two-word handle pair loop at 0x44, and tail word copies through 0x84. Manual restructuring fixed the initial 576B size mismatch to the correct 624B; a 5-minute permuter run over 9,072 candidates improved the best variant from 18 differing bytes to 12 differing bytes and saved that best source.\n\nRemaining diff is a small register/scheduling mismatch, not missing behavior: the target uses s1 as the source base through the middle copies and t1 for the second word store in the 0x44 loop, while SNC keeps selecting equivalent alternate registers in this TU. The final size is exact and all calls/field offsets match the target order; likely root cause is SNC register-allocation drift/context sensitivity.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:49:57Z",
+        "src_file": "src/gcGameSettings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/da30aead/0024be50__agent_self_reported_failure__src_gcGameSettings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0024c0c0",
@@ -180927,14 +180981,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDesiredUIWidgetKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcDesiredUIWidgetKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f9889745",
+        "notes": "Added a canonical gcDesiredUIWidget::AssignCopy implementation with the RTTI chain and inlined desired-object assignment path. The type-initialization and runtime-cast section compiles very close to target, but register allocation drifts: the compiler keeps this+8 in s3 instead of the target s6, shifting D_0009F4B0/D_0009F3F4/D_000385DC globals into s4/s5/s6 instead of s3/s4/s5. Fixed register locals with $s6/$22 did not take effect under this compiler.\n\nThe closest attempt is 628B versus the 656B target. Remaining drift is in the self-assignment branch shape (compiler emits beql-to-skip instead of target bnel-to-body plus explicit branch), the tagged-pointer release/copy blocks, and tail word copies. Several goto and temporary-splitting restructures improved the source from 600B to 628B but did not recover the target branch layout or padding loop at the end.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T08:47:06Z",
+        "src_file": "src/gcDesiredUIWidget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/f9889745/0027a148__agent_self_reported_failure__src_gcDesiredUIWidget.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027a3d8",
@@ -188105,7 +188173,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000011c0",
       "0x0000123c",
@@ -188113,7 +188181,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcUIControlStringHGetNamePcK"
+    "mangled_symbol": "__0fRgcUIControlStringHGetNamePcK",
+    "src_file": "src/gcUIControlString.cpp",
+    "symbol_name": "__0fRgcUIControlStringHGetNamePcK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1c034bda",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T09:01:30Z"
   },
   {
     "address": "0x00290108",
@@ -192536,7 +192612,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -195066,7 +195142,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -208116,7 +208192,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -226683,7 +226759,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
