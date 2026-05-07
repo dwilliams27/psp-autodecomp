@@ -89873,7 +89873,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001314",
       "0x000062e0",
@@ -89890,7 +89890,21 @@
       "0x00101aa8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcProfileFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0fJgcProfileFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "a35f8d39",
+        "notes": "Implemented gcProfile::Write(cOutStream &) const in a split TU with a local class redeclaration to avoid disturbing existing matched siblings in src/gcProfile.cpp. The function writes the two wchar_t profile strings, four eAudio group volumes, the global float at 0x37D2EC, the controller-enabled bit, variables at +0x220, strings at +0x224, and game-settings tables at gcGameSettings::Get()+0x18. The build is the correct 640B, but compare_func still reports 171/640 differing bytes after the permuter-saved best.\n\nThe mismatch is mostly register allocation and scheduling. The target uses s2 as the first string pointer, s3/s4/s5 across the string loops, then a very specific a1/a2/a3/t0/t1 layout for the inlined cOutStream bit write. My source compiles to the right call order and loop structure but prefers s4/s2/s3 in the first loops and uses a different bit-write register assignment, including an lb+andi shape for the controller flag instead of the target lbu path. I tried direct source, split-TU isolation, explicit local register hints for self/out/string counters, and a 120s permuter run (3840 generated, 2600 compiled), which improved 188 differing bytes to 171 but did not converge.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:55:21Z",
+        "src_file": "src/gcProfile_Write_cOutStream.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/a35f8d39/001006b4__agent_self_reported_failure__src_gcProfile_Write_cOutStream.cpp"
+      }
+    ]
   },
   {
     "address": "0x00100934",
@@ -91542,7 +91556,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00000ccc"
     ],
@@ -91554,7 +91568,21 @@
       "0x002dcce8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGameQSetNextMapToLoadRC6GcGUIDT76FgcMap_RC6GcGUIDT76PgcLoadingScreen_PC6GcGUIDT76IgcRegion_Ui"
+    "mangled_symbol": "__0fGgcGameQSetNextMapToLoadRC6GcGUIDT76FgcMap_RC6GcGUIDT76PgcLoadingScreen_PC6GcGUIDT76IgcRegion_Ui",
+    "failure_notes": [
+      {
+        "session": "62cbe1d0",
+        "notes": "Closest attempt is a split-TU canonical gcGame::SetNextMapToLoad with a local gcGame redeclaration, map/loading GUID copies to this+0x16F0/0x16F8, a two-entry copy from regions into D_00099B08 with stack-zero fallback for null regions, and token fallback to cIRand() | 1. The best manual source was 50 differing bytes; a 300s tools/permuter.py run generated 9168 candidates and reported a best of 40 differing bytes, but the saved source recompares locally as 48/180 bytes different after the final manual preservation of the closest readable variant.\n\nThe remaining mismatch is concentrated in the two-iteration copy loop. The target keeps D_00099B08 in a1, the loop count in a2, and the current source pointer in a0, then uses a beqzl null-region branch with zeroing in the delay slot followed by a short unconditional branch for the non-null pointer selection. Local source variants either invert this to bnezl with a load in the delay slot or allocate D/count/current across a2/a1/a0 differently. I tried typed cGUIDT copies, raw int/char pointer copies, offset-zero induction variables, reordered declarations, explicit temporaries, register hints, sched=1, and testing the body in src/gcGame.cpp with a temporary header declaration; none produced the target loop shape without worsening other bytes. This looks like a source-shape/register-allocation cliff around the nullable source selection, not a semantic uncertainty.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:12:11Z",
+        "src_file": "src/gcGame_SetNextMapToLoad.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/62cbe1d0/001068bc__agent_self_reported_failure__src_gcGame_SetNextMapToLoad.cpp"
+      }
+    ]
   },
   {
     "address": "0x00106970",
@@ -103729,13 +103757,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00006f60"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcTableColumnStringTableHSetSizei"
+    "mangled_symbol": "__0fYgcTableColumnStringTableHSetSizei",
+    "failure_notes": [
+      {
+        "session": "fe099b83",
+        "notes": "Closest source is gcTableColumnStringTable::SetSize(int) using the same cHandle-style D_00038890 validation pattern and forwarding to ((cBaseArray *)(resolved + 0x44))->SetSize(size). I tried inverted handle tests, initialized and uninitialized resolved variables, raw address and extern-symbol table lookup forms, pointer vs int resolved temporaries, an inline cHandle::GetObject helper, fixed-register hints with empty asm constraints, sched=1 pragmas, and a 120s tools/permuter.py run; the permuter compiled 1507 candidates and found no improvement from the 9-byte baseline.\n\nThe remaining diff is a small argument-register allocation swap in validation. The generated prologue, branch structure, call site, stack frame, and delay-slot shape match the target, but the closest build uses a3 for the validated result and a2 for the candidate pointer, while the target uses a2 for the validated result and a3 for the candidate pointer. The mismatch appears to be SNC context-sensitive register allocation rather than control-flow or scheduling; matching may require restoring the original preceding Read(cFile &, cMemPool *) TU context or a broader context/regalloc workaround.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:08:31Z",
+        "src_file": "src/gcTableColumnStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/fe099b83/0012b190__agent_self_reported_failure__src_gcTableColumnStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012b1fc",
@@ -108440,7 +108482,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -120528,7 +120570,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368"
@@ -134481,13 +134523,27 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKcConfigPSPKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKcConfigPSPKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "32a7466b",
+        "notes": "Closest attempt adds canonical cConfigPSP::AssignCopy in src/cConfigPSP.cpp, not gcDesiredSkin.cpp, to satisfy the class-method file rule. The function is now the correct 660B size and the lazy type init/dynamic-cast prelude matches structurally; the copy body uses explicit byte/word loops for offsets 0x08, 0x108, 0x208, 0x214, 0x244, 0x294, 0x2B4, and 0x2B8. compare_func reports 139/660 differing bytes. The remaining diffs are mostly register allocation and commutative addu operand-order drift in the copy loops (for example index+base where the target has base+index), plus loop-counter register choices in the 0x214 and nested 0x244 loops. The permuter could not run on this TU because it failed to locate the target function in the compiled object after the extra linkonce operator-delete symbol.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:44:08Z",
+        "src_file": "src/cConfigPSP.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/32a7466b/001c6964__agent_self_reported_failure__src_cConfigPSP.cpp"
+      }
+    ]
   },
   {
     "address": "0x001c6bf8",
@@ -141913,13 +141969,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeConfigPSPKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKeConfigPSPKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "38c26255",
+        "notes": "Implemented canonical eConfigPSP::AssignCopy in src/eConfigPSP.cpp with the standard lazy cType initialization/dynamic-cast loop and an explicit target-order field copy for offsets 0x08 through 0x90. The existing sibling methods in the TU still compare as MATCH. The closest source is the permuter-saved variant: correct 660B size, but compare_func reports 116/660 differing bytes. The main diff is broad callee-save register allocation drift: the target keeps this in s0, base in s1, and other in s2, while local source variants keep swapping this/base or make other occupy s0. There are also scheduling/order differences in the InitializeType argument setup around name/desc and factory values.\n\nTried the exemplar-style source, explicit register bindings, an explicit self/srcBase lifetime split, sched=1 around the method, and a 300s permuter run. sched=1 changed the function size to 652B, register bindings were not honored in the desired way, and the permuter improved only from 119 to 116 differing bytes after 4035 compiled candidates. Root cause appears to be context-sensitive SNC register allocation for this larger AssignCopy shape, not a semantic reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:55:01Z",
+        "src_file": "src/eConfigPSP.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/38c26255/001df5b8__agent_self_reported_failure__src_eConfigPSP.cpp"
+      }
+    ]
   },
   {
     "address": "0x001df84c",
@@ -151860,7 +151930,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00208938"
@@ -179042,13 +179112,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d6dec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcTableColumnStringTableDSetiPCwb"
+    "mangled_symbol": "__0fYgcTableColumnStringTableDSetiPCwb",
+    "failure_notes": [
+      {
+        "session": "fe099b83",
+        "notes": "Closest source is a normal C++ gcTableColumnStringTable::Set(int, const wchar_t *, bool) body using the cHandle-style D_00038890 validation pattern, followed by the original redundant second table lookup before gcStringTable::Set(row, text). I tried raw 0x38890 table casts, extern D_00038890 indexing, explicit byte-addressing, pointer vs int resolved temporaries, initialized vs per-branch resolved assignment, moving the method to original address order after GetType, local register bindings, sched=1 pragmas, and a 120s tools/permuter.py run; the permuter compiled 1131 candidates and found no improvement from the 12-byte baseline.\n\nThe remaining diff is register allocation in the first handle validation only. Control flow, size, flag guard, redundant second lookup, call, stack frame, and scheduling match. The target keeps the candidate pointer in t0 and the validated nonzero result in a3; the closest build keeps candidate in a3 and result in t0 for the same instructions, then checks t0 instead of a3. This looks like context-sensitive SNC argument/temp register allocation drift, likely influenced by missing original-neighbor functions in the TU rather than a source-level structural issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T11:08:31Z",
+        "src_file": "src/gcTableColumnStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/fe099b83/002722dc__agent_self_reported_failure__src_gcTableColumnStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x00272380",
@@ -181525,14 +181609,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDesiredSkinKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fNgcDesiredSkinKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "32a7466b",
+        "notes": "Closest attempt adds canonical gcDesiredSkin::AssignCopy with the standard lazy cType initialization/dynamic-cast prelude and a manual reconstruction of the desired-object smart-pointer assignment plus cHandle field copy. The prelude is structurally correct, but the compiled symbol is 612B versus the 636B target. The compiler allocates this+8 into s3 instead of the original s6, shifts the type-init globals through s4/s5/s6 instead of s3/s4/s5, emits a beql skip before the final handle copy, and folds the tagged-pointer old-value/or-with-1 paths that the target keeps split.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:44:08Z",
+        "src_file": "src/gcDesiredSkin.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/32a7466b/0027b738__agent_self_reported_failure__src_gcDesiredSkin.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027b9b4",
@@ -213798,14 +213896,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fcgcEntityTemplateRelationshipKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fcgcEntityTemplateRelationshipKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "38c26255",
+        "notes": "Implemented canonical gcEntityTemplateRelationship::AssignCopy in src/gcEntityTemplateRelationship.cpp with the gcAll-style lazy type-init/dynamic-cast prefix, byte/word copies at 0x10-0x18 and 0x20-0x24, and a reconstruction of the owned/tagged pointer replacement at offset 0x1C using the destructor slot at vtable+0x50, cMemPool::GetPoolFromPtr, and the copy slot at vtable+0x10. Existing destructor/New/GetType/Write methods in the TU still compare as MATCH.\n\nThe current compiled symbol is 640B versus the 680B target. The target includes the two-word infinite-loop pad at the end of the symbol and allocates the long-lived destination handle into s6 while the local TU allocates it into s3, shifting the type-init globals through s4/s5/s6 instead of s3/s4/s5. A register binding attempt for the handle and an out-of-function size/pad directive did not affect the emitted function size/register assignment. This looks like the same context-dependent register allocation plus original symbol-boundary padding issue seen in related gcDesired*/relationship AssignCopy functions.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:55:01Z",
+        "src_file": "src/gcEntityTemplateRelationship.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/38c26255/0031aec4__agent_self_reported_failure__src_gcEntityTemplateRelationship.cpp"
+      }
+    ]
   },
   {
     "address": "0x0031b16c",
@@ -230598,7 +230710,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -230606,7 +230718,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcValSaveGameHGetTextPcK"
+    "mangled_symbol": "__0fNgcValSaveGameHGetTextPcK",
+    "failure_notes": [
+      {
+        "session": "a35f8d39",
+        "notes": "Implemented gcValSaveGame::GetText(char *) const in canonical C++ with the decoded control flow: initial 0x36F74C append, 19-entry switch predicate, two tagged desired-value text expansions through slot +0xD0, relation-name local buffer through slot +0x40 or cStrCopy(0x36DACC), and final cStrAppend(0x36EF10, 0x36DAF0). Existing matched siblings in src/gcValSaveGame.cpp still compare as MATCH. The closest build is 680B versus the 684B target; the early switch and desired-value dispatches are structurally close, but the compiler still differs in a small switch true-label shape and the tagged relation boolean branch shape.\n\nTried switch case grouping, duplicate true blocks with a memory barrier, explicit goto labels, moving suffix/tagged declarations, binding desired values to $a1, and adding a separate base temporary for the virtual dispatch. The separate base temporary recovers the target +0xD0 dispatch register pattern (`move a2,a1`, load slot into a0/t0), but nearby scheduler choices still keep the function four bytes short. A 60s permuter attempt could not run because tools/permuter.py cannot isolate this target from the multi-function object (`Found 1844B .text but expected 684B function`). Root cause appears to be SNC switch/scheduler shaping rather than misunderstood logic.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T10:55:21Z",
+        "src_file": "src/gcValSaveGame.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_235212/a35f8d39/0035ac10__agent_self_reported_failure__src_gcValSaveGame.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035aebc",
@@ -232633,14 +232759,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUIEnabledDSetf"
+    "mangled_symbol": "__0fOgcValUIEnabledDSetf",
+    "src_file": "src/gcValUIEnabled.cpp",
+    "symbol_name": "__0fOgcValUIEnabledDSetf",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "62cbe1d0",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T11:12:11Z"
   },
   {
     "address": "0x003624e0",
@@ -234584,7 +234718,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc"

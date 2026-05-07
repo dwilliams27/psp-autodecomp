@@ -15,6 +15,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcUIWidget;
 
 class cWriteBlock {
 public:
@@ -47,6 +48,7 @@ struct gcDesiredUIWidgetHelper {
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
     void GetText(char *) const;
+    gcUIWidget *GetWidget(const cType *, bool) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -88,6 +90,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void GetText(char *) const;
+    void Set(float);
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
@@ -119,10 +122,18 @@ struct AllocEntry {
 };
 
 static cType *type_base asm("D_000385DC");
+static cType *type_named asm("D_000385E0");
 static cType *type_expression asm("D_000385D8");
 static cType *type_value asm("D_0009F3E8");
 static cType *type_variable asm("D_0009F3EC");
 static cType *type_gcValUIEnabled asm("D_0009F8F8");
+static cType *type_gcUIWidget asm("D_0009990C");
+
+struct gcValUIEnabled_VSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, unsigned char);
+};
 
 // ── gcValUIEnabled::GetType(void) const @ 0x00361fe8 ──
 const cType *gcValUIEnabled::GetType(void) const {
@@ -196,6 +207,40 @@ void gcValUIEnabled::GetText(char *buf) const {
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->GetText(local);
     cStrCat(buf, local);
     cStrCat(buf, gcValUIEnabled_str2);
+}
+
+// ── gcValUIEnabled::Set(float) @ 0x003623a4 ──
+void gcValUIEnabled::Set(float value) {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 8);
+
+    if (type_gcUIWidget == 0) {
+        if (type_named == 0) {
+            if (type_base == 0) {
+                type_base = cType::InitializeType((const char *)0x36D894,
+                                                  (const char *)0x36D89C,
+                                                  1, 0, 0, 0, 0, 0);
+            }
+            type_named = cType::InitializeType(
+                0, 0, 2, type_base,
+                (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+        }
+        type_gcUIWidget = cType::InitializeType(0, 0, 0x84, type_named,
+                                                0, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(type_gcUIWidget, true);
+    if (widget != 0) {
+        gcValUIEnabled_VSlot *slot =
+            (gcValUIEnabled_VSlot *)(*(char **)((char *)widget + 4) + 0xC8);
+        short offset = slot->offset;
+        void *adjusted = (char *)widget + offset;
+        int enabled = 0;
+        if (value != 0.0f) {
+            enabled = 1;
+        }
+        slot->fn(adjusted, (unsigned char)enabled);
+    }
 }
 
 // ── gcValUIEnabled::~gcValUIEnabled(void) @ 0x003625b0 ──
