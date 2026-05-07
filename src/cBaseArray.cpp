@@ -60,6 +60,17 @@ struct cBaseArray_ResetEntry {
     void (*func)(void *, cMemPool *, int);
 };
 
+struct cBaseArray_DeleteEntry {
+    short offset;
+    short _pad;
+    void (*func)(void *, void *);
+};
+
+struct cBaseArray_PoolBlock {
+    char _pad[0x1c];
+    char *allocTable;
+};
+
 cBaseArray &cBaseArray::operator=(const cBaseArray &other) {
     RemoveAll();
 
@@ -90,6 +101,70 @@ cBaseArray &cBaseArray::operator=(const cBaseArray &other) {
     }
 
     return *this;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0fKcBaseArrayHSetSizei, 0x15c\n");
+
+void cBaseArray::SetSize(int size) {
+    int count = 0;
+    if (mData != 0) {
+        count = mData[-1];
+    }
+
+    if (count != size) {
+        cBase **newData = (cBase **)Allocate(size);
+
+        int copyIndex = 0;
+        if (copyIndex < size) {
+            register int offset asm("a3") = 0;
+            register cBase **dst asm("t0") = newData;
+            __asm__ volatile("" : "+r"(offset), "+r"(dst));
+            do {
+                register int value asm("a2") = 0;
+                if (copyIndex < count) {
+                    value = *(int *)((char *)mData + offset);
+                }
+                *dst = (cBase *)value;
+                copyIndex += 1;
+                dst += 1;
+                offset += 4;
+            } while (copyIndex < size);
+        }
+
+        int index = size;
+        if (index < count) {
+            int offset = index * 4;
+            do {
+                cBase *item = *(cBase **)((char *)mData + offset);
+                if (item != 0) {
+                    char *type = *(char **)((char *)item + 4);
+                    cBaseArray_SetEntry *entry =
+                        (cBaseArray_SetEntry *)(type + 0x50);
+                    cBaseArray_SetFn fn = entry->func;
+                    short adjust = entry->offset;
+                    fn((char *)item + adjust, 3, (void *)fn, adjust);
+                    *(cBase **)((char *)mData + offset) = 0;
+                }
+                index += 1;
+                offset += 4;
+            } while (index < count);
+        }
+
+        int *oldData = mData - 1;
+        if (mData != 0) {
+            if (oldData != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(oldData);
+                char *block = ((char **)pool)[9];
+                cBaseArray_DeleteEntry *entry =
+                    (cBaseArray_DeleteEntry *)(((cBaseArray_PoolBlock *)block)->allocTable + 0x30);
+                entry->func(block + entry->offset, oldData);
+            }
+            mData = 0;
+        }
+        mData = (int *)newData;
+    }
 }
 
 __asm__(".word 0x1000ffff\n");

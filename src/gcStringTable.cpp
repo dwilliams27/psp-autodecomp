@@ -28,7 +28,14 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
-class gcString;
+class gcString {
+public:
+    char _pad[0x20];
+    int mSubHandle;
+
+    gcString(cBase *);
+    void Set(const wchar_t *);
+};
 
 template <class T>
 class cHandleT {
@@ -96,6 +103,12 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
+struct gcStringTable_SetEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *, short);
+};
+
 class gcStringTable : public cObject {
 public:
     char _pad[0x44];     // cObject internals (mField28 halfword lives at 0x28)
@@ -109,6 +122,7 @@ public:
     gcString *GetSubObject(cSubHandleT<gcString>, int) const;
     cHandlePairT<gcStringTable, cSubHandleT<gcString> > GetStringHandle(int) const;
     int IsValid(cSubHandleT<gcString>, int) const;
+    void Set(int, const wchar_t *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -126,6 +140,10 @@ extern cType *D_000385E4;
 extern cType *D_00099904;
 
 extern "C" void gcStringTable_construct(void *self, cBase *parent);
+extern int cStrLength(const wchar_t *);
+extern int cIRand(void);
+
+inline void *operator new(unsigned int, void *p) { return p; }
 
 // ── gcStringTable::Write @ 0x000d6b98 ──
 void gcStringTable::Write(cFile &file) const {
@@ -168,6 +186,45 @@ gcStringTable::~gcStringTable() {
     void *arr = (char *)this + 0x44;
     if (arr != 0) {
         ((cBaseArray *)arr)->RemoveAll();
+    }
+}
+
+// ── gcStringTable::Set(int, const wchar_t *) @ 0x000d6dec ──
+void gcStringTable::Set(int index, const wchar_t *text) {
+    int len = cStrLength(text);
+    int offset = index * 4;
+    gcString *old = *(gcString **)((char *)mArray.mData + offset);
+
+    if (len == 0) {
+        if (old != 0) {
+            char *type = *(char **)((char *)old + 4);
+            gcStringTable_SetEntry *entry =
+                (gcStringTable_SetEntry *)(type + 0x50);
+            entry->fn((char *)old + entry->offset, 3, (void *)entry->fn,
+                      entry->offset);
+            *(gcString **)((char *)mArray.mData + offset) = 0;
+        }
+    } else {
+        if (old != 0) {
+            old->Set(text);
+            return;
+        }
+
+        gcString *string = 0;
+        cMemPool *pool = cMemPool::GetPoolFromPtr(this);
+        void *block = ((void **)pool)[9];
+        AllocEntry *entry =
+            (AllocEntry *)(((PoolBlock *)block)->allocTable + 0x28);
+        gcString *allocated =
+            (gcString *)entry->fn((char *)block + entry->offset,
+                                  0x24, 4, 0, 0);
+        if (allocated != 0) {
+            new (allocated) gcString((cBase *)this);
+            string = allocated;
+        }
+        string->Set(text);
+        string->mSubHandle = (((cIRand() & 0x7fff) | 1) << 16) | index;
+        *(gcString **)((char *)mArray.mData + offset) = string;
     }
 }
 
