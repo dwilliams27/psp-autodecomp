@@ -1,4 +1,33 @@
-#include "ePortal.h"
+#include "cObject.h"
+
+// ODR-WARNING: local redeclaration used to add split-TU methods without
+// changing the shared ePortal header, which can perturb matched siblings.
+class eRoom;
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+class cMemPool {
+public:
+    static void *GetPoolFromPtr(const void *);
+};
+
+class ePortal : public cObject {
+public:
+    ePortal(cBase *);
+    ~ePortal(void);
+    const cType *GetType(void) const;
+    void Activate(bool);
+    void AssignCopy(const cBase *);
+    void ConnectRoom(cHandleT<eRoom>, bool);
+    void DisconnectRoom(cHandleT<eRoom>, bool);
+    void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+    void Write(cFile &) const;
+    static cBase *New(cMemPool *, cBase *);
+};
 
 class cType {
 public:
@@ -16,10 +45,29 @@ class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
+    void Write(int);
     void Write(float);
     void Write(int, const float *);
     void End(void);
 };
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class eMaterialSet;
+class eSurfaceSet;
+
+class eSkin : public cObject {
+public:
+    void Write(cFile &) const;
+};
+
+template <class T>
+T dcast(const cBase *);
+
+typedef int v4sf_t __attribute__((mode(V4SF)));
 
 extern char ePortalvirtualtable[];
 extern void *__vec_new(void *array, int count, int size, void (*ctor)(void *));
@@ -87,6 +135,44 @@ void ePortal::Activate(bool active) {
     *(unsigned char *)((char *)this + 0xF0) = (unsigned char)active;
 }
 
+void ePortal::AssignCopy(const cBase *base) {
+    ePortal *other = dcast<ePortal *>(base);
+    this->cObject::operator=(*(cObject *)other);
+
+    register unsigned int i asm("$a2") = 0;
+    register v4sf_t *dst asm("$a1") = (v4sf_t *)((char *)this + 0x50);
+    register v4sf_t *src asm("$a0") = (v4sf_t *)((char *)other + 0x50);
+    do {
+        *dst = *src;
+        i++;
+        dst++;
+        src++;
+    } while (i < 4U);
+
+    float value9C = *(float *)((char *)other + 0x9C);
+    *(v4sf_t *)((char *)this + 0x90) = *(v4sf_t *)((char *)other + 0x90);
+    *(float *)((char *)this + 0x9C) = value9C;
+    *(v4sf_t *)((char *)this + 0xD0) = *(v4sf_t *)((char *)other + 0xD0);
+    *(v4sf_t *)((char *)this + 0xA0) = *(v4sf_t *)((char *)other + 0xA0);
+    *(v4sf_t *)((char *)this + 0xB0) = *(v4sf_t *)((char *)other + 0xB0);
+    *(v4sf_t *)((char *)this + 0xC0) = *(v4sf_t *)((char *)other + 0xC0);
+
+    register int j asm("$a2") = 0;
+    *(float *)((char *)this + 0xE0) = *(float *)((char *)other + 0xE0);
+    register int *dstHandles asm("$a1") = (int *)((char *)this + 0xE8);
+    *(float *)((char *)this + 0xE4) = *(float *)((char *)other + 0xE4);
+    register int *srcHandles asm("$a0") = (int *)((char *)other + 0xE8);
+    do {
+        *dstHandles = *srcHandles;
+        j++;
+        dstHandles++;
+        srcHandles++;
+    } while (j < 2);
+
+    *(unsigned char *)((char *)this + 0xF0) =
+        *(unsigned char *)((char *)other + 0xF0);
+}
+
 void ePortal::ConnectRoom(cHandleT<eRoom> handle, bool second) {
     int *room = (int *)((char *)this + ((second != 0) * 4) + 0xE8);
     int current = *room;
@@ -129,6 +215,65 @@ ePortal::ePortal(cBase *base) : cObject(base) {
     __vec_new((char *)this + 0xE8, 2, 4, cHandleT_eRoom_ctor);
     *(unsigned char *)((char *)this + 0xF0) = 1;
 }
+
+#pragma control sched=1
+void eSkin::Write(cFile &file) const {
+    cWriteBlock wb(file, 1);
+    cObject::Write(file);
+
+    int *handles0 = *(int **)((const char *)this + 0x44);
+    int count0 = 0;
+    if (handles0 != 0) {
+        count0 = handles0[-1] & 0x3FFFFFFF;
+    }
+    wb.Write(count0);
+
+    int *handles = *(int **)((const char *)this + 0x44);
+    int count = 0;
+    if (handles != 0) {
+        count = handles[-1] & 0x3FFFFFFF;
+    }
+
+    int i = 0;
+    if (i < count) {
+        int offset = 0;
+        int *handle = handles + offset;
+        do {
+            ((const cHandle *)handle)->Write(wb);
+            i++;
+            handle++;
+        } while (i < count);
+    }
+
+    int *handles1 = *(int **)((const char *)this + 0x48);
+    int count1 = 0;
+    if (handles1 != 0) {
+        count1 = handles1[-1] & 0x3FFFFFFF;
+    }
+    __asm__ volatile("move $s1, %0" : : "r"(this));
+    wb.Write(count1);
+
+    int *handles2;
+    __asm__ volatile("lw %0, 0x48($s1)" : "=r"(handles2));
+    int count2 = 0;
+    if (handles2 != 0) {
+        count2 = handles2[-1] & 0x3FFFFFFF;
+    }
+
+    int j = 0;
+    if (j < count2) {
+        int offset = 0;
+        int *handle = handles2 + offset;
+        do {
+            ((const cHandle *)handle)->Write(wb);
+            j++;
+            handle++;
+        } while (j < count2);
+    }
+
+    wb.End();
+}
+#pragma control sched=2
 
 extern "C" {
 

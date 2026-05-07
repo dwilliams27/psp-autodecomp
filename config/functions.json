@@ -42222,7 +42222,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -42244,7 +42244,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T03:09:09Z"
       }
-    ]
+    ],
+    "src_file": "src/ePortal.cpp",
+    "symbol_name": "__0fFeSkinFWriteR6FcFileK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "43ffbdaf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:04:10Z"
   },
   {
     "address": "0x0004be04",
@@ -145506,7 +145514,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00009d70",
       "0x001cba7c"
@@ -145519,7 +145527,15 @@
         "notes": "Not attempted \u2014 same constraint. ePortal::AssignCopy(const cBase*), 216 bytes. Structure: dcast src to ePortal*, call cObject::operator=(this, src, 0), then do a 4-iteration loop copying 16 bytes via lv.q/sv.q starting at this+0x50 (total 64B at +0x50-0x8F), then scalar copy of float at +0x9C, then individual lv.q/sv.q at +0x90, +0xD0, +0xA0, +0xB0, +0xC0 (unusual order due to SNC scheduling), then float copies at +0xE0 and +0xE4, then 2-iteration loop copying 4-byte ints starting at +0xE8, then byte at +0xF0. Uses native VFPU types per docs/research/snc-struct-vfpu-codegen.md \u2014 declare v4sf_t arrays in the struct layout rather than inline asm. The reorder of the C1xx block stores (90,D0,A0,B0,C0) is scheduler-driven \u2014 may need __asm__ volatile memory barriers between specific stores."
       }
     ],
-    "mangled_symbol": "__0fHePortalKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fHePortalKAssignCopyPC6FcBase",
+    "src_file": "src/ePortal.cpp",
+    "symbol_name": "__0fHePortalKAssignCopyPC6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "43ffbdaf",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T08:04:10Z"
   },
   {
     "address": "0x001eb9f4",
@@ -193885,7 +193901,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -213853,7 +213869,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0022b99c"
     ],
