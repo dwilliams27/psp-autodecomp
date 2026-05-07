@@ -52460,13 +52460,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeSphereShapeTGetCollisionHandlerRC6MmCollideInfoK"
+    "mangled_symbol": "__0fMeSphereShapeTGetCollisionHandlerRC6MmCollideInfoK",
+    "src_file": "src/gcUI.cpp",
+    "symbol_name": "__0fMeSphereShapeTGetCollisionHandlerRC6MmCollideInfoK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6c77ae2f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-07T01:32:53Z"
   },
   {
     "address": "0x00067d88",
@@ -52478,7 +52486,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9c64"
     ],
@@ -66432,7 +66440,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -79749,13 +79757,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000e0550"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEgcUIRGetMouseAvailablev"
+    "mangled_symbol": "__0fEgcUIRGetMouseAvailablev",
+    "failure_notes": [
+      {
+        "session": "6c77ae2f",
+        "notes": "Closest saved source compiles to the correct 164B size but compare_func reports 48/164 bytes differ after a 300s permuter run improved the baseline from 53. Manual attempts included direct constants vs base+offset addressing for the 0x45338 checks, signed vs unsigned byte pointers, goto-shaped bool masking to reproduce the two andi patterns, sched=1 A/B, declaration/lifetime reshaping for pointer/count/available, and SNC register-variable hints for a1/a2/a3. The remaining diff is dominated by stable loop register allocation: current code keeps the mouse pointer in a3, loop count in a2, and available flag in a1, while the target uses a1 for the pointer, a3 for the loop count, and a2 for the available flag. That register rotation also changes the mask and loop-test instructions even though the branch topology is close. The permuter generated 7,584 candidates, compiled 4,627, and found only one improvement to this 48-byte best.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:32:53Z",
+        "src_file": "src/gcUI.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/6c77ae2f/000e1cec__agent_self_reported_failure__src_gcUI.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e1d90",
@@ -91332,7 +91354,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f76f4",
@@ -96111,13 +96133,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00110a30"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityUGetInitialControllervK"
+    "mangled_symbol": "__0fIgcEntityUGetInitialControllervK",
+    "failure_notes": [
+      {
+        "session": "ab3d346d",
+        "notes": "Implemented the real split-TU C++ body: cArray pointer at this+0x1E0 with arr[-1] count, initial signed controller byte at this+0x60, direct indexed return when valid, fallback handle at this+0x44 resolved through global table 0x38890 and validated against candidate+0x30, then fallback signed byte at candidate+0x74. Manual variants tried included signed-char vs int index, explicit if/else sign-extension forms, precomputed nextIndex forms, branch-local fallback assignment, handle-table address-lowering variants, sched=1, fixed-register hints, and a pointer-temp index load.\n\nCurrent best is correct size (184B) but 27/184 bytes differ. The handle-table path and bottom control-flow shape now match closely, including the duplicated shift/sign-extension block, but SNC allocates the index/count registers opposite the target: current uses a3 for index and a1 for count, while target uses a1 for index and a3 for count. That swap cascades through the initial bounds checks and final fallback bounds checks. The permuter could not run on earlier 176B/180B variants because it refuses size mismatches; once the source reached 184B the remaining diff looked like register-allocation/source-shape drift rather than an obvious branch-likely issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:28:12Z",
+        "src_file": "src/gcEntity_GetInitialController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/ab3d346d/00115b54__agent_self_reported_failure__src_gcEntity_GetInitialController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00115c0c",
@@ -96646,7 +96682,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00117e44",
@@ -96654,7 +96690,21 @@
       "0x0032c730"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityNGetVecToPointRC6FcNameRC6FmVec3P6FmVec3K"
+    "mangled_symbol": "__0fIgcEntityNGetVecToPointRC6FcNameRC6FmVec3P6FmVec3K",
+    "failure_notes": [
+      {
+        "session": "ab3d346d",
+        "notes": "Implemented the real split-TU C++ body with local gcEntity redeclaration, dispatch entries at dynamic-model classdesc offsets 0xE0/0xE8, a 64-byte scratch area passed as sp, and the VFPU subtract/store sequence loading point from the incoming mVec3 and scratch+0x30. Tried canonical 3-arg function pointer casts, varargs dispatch entries that preserve the function pointer in a3, volatile dispatch load, declaration reordering, sched=1, and hard register hints; sched=1 did not help and register hints were ignored by SNC. The current closest source is the permuter-saved best.\n\nCurrent best is correct size (140B) but 36/140 bytes differ. The second dynamic call and VFPU tail are structurally right; the remaining diff is concentrated in prologue/call-setup scheduling and register allocation. Target delays some s-register saves and uses s0=point, s1=entry+0xE8, s2=out, with dispatch initially in t0; current best saves all callee registers up front, uses s0=out and s2=point, and keeps some offset loads in a2 rather than t0. A 300s permuter run generated 10,536 candidates / 4,160 compiled and improved 45 -> 36 bytes, then stalled.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-07T01:28:12Z",
+        "src_file": "src/gcEntity_GetVecToPoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260506_155600/ab3d346d/00117db8__agent_self_reported_failure__src_gcEntity_GetVecToPoint.cpp"
+      }
+    ]
   },
   {
     "address": "0x00117e44",
@@ -106404,7 +106454,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x001323a4"

@@ -11,6 +11,13 @@ class cType;
 class cBase;
 class cOutStream;
 class gcUIDialog;
+class mCollideInfo;
+
+typedef unsigned int SceULong128 __attribute__((mode(TI)));
+
+extern int eSphereShape_collision_handler_guard asm("D_0000B0A8");
+extern struct eSphereShape_CollisionHandlerStorage
+    eSphereShape_collision_handler_storage asm("D_0000B0B8");
 
 extern "C" void *memset(void *, int, unsigned int);
 
@@ -61,9 +68,41 @@ public:
     void Write(cOutStream &) const;
     int Read(cFile &, cMemPool *);
     void DeleteSpawned(void);
+    void GetMouseAvailable(void);
     gcUIDialog *GetFocusedDialog(void) const;
     static int GetActiveSpawnedDialogCount(const gcUIDialog *);
     void RemoveFromDestroyList(gcUIDialog *);
+};
+
+class eSphereShape {
+public:
+    char _pad[0x74];
+    float mRadius;
+
+    int GetCollisionHandler(const mCollideInfo &) const;
+};
+
+struct eSphereShape_CollisionHandlerStorage {
+    char pad00[0x30];
+    int field30;
+    char pad34[0x8];
+    void *vtable;
+    char pad40[0xF0];
+    char array130[0x4820];
+    union {
+        SceULong128 sphere;
+        struct {
+            char pad[0xC];
+            float radius;
+        };
+    } world;
+    union {
+        SceULong128 sphere;
+        struct {
+            char pad[0xC];
+            float radius;
+        };
+    } local;
 };
 
 class cOutStream {
@@ -100,6 +139,8 @@ struct gcUI_ActiveSpawnScan {
     char pad[0x54];
     void **active;
 };
+
+extern "C" void *__vec_new(void *, int, int, void *);
 
 extern "C" void gcUI_gcFader_ctor(gcUI::gcFader *) asm("__0o5EgcUIHgcFaderctv");
 
@@ -227,6 +268,45 @@ void gcUI::DeleteSpawned(void) {
     *(int *)((char *)this + 0x15C) = 0;
 }
 
+// ── GetMouseAvailable ──  @ 0x000e1cec, 164B
+void gcUI::GetMouseAvailable(void) {
+    *(unsigned int *)((char *)this + 0x50) &= 0x7FFFFFFF;
+    __asm__ volatile("" ::: "memory");
+
+    register unsigned char *p __asm__("a1") = (unsigned char *)0x45338;
+    if (*(unsigned char *)(p + 0x7C) != 0) {
+        if (*(unsigned char *)(p + 0x7F) == 0) {
+            *(unsigned int *)((char *)this + 0x50) |= 0x80000000;
+            return;
+        }
+    }
+
+    register int available __asm__("a2");
+    register int masked __asm__("a2");
+    register int i __asm__("a3") = 0;
+    p = (unsigned char *)0x41118;
+    do {
+        available = 0;
+        if (*(unsigned char *)(p + 0x814) != 0) {
+            masked = available & 0xFF;
+            if (*(unsigned char *)(p + 0x821) != 0) {
+                available = 1;
+                goto mouse_available_done;
+            }
+        } else {
+mouse_available_done:
+            masked = available & 0xFF;
+        }
+
+        i++;
+        if (masked != 0) {
+            *(unsigned int *)((char *)this + 0x50) |= 0x80000000;
+            return;
+        }
+        p += 0x844;
+    } while (i < 4);
+}
+
 // ── GetFocusedDialog ──  @ 0x000e0a6c, 136B
 gcUIDialog *gcUI::GetFocusedDialog(void) const {
     int top = *(int *)((char *)this + 0xD4);
@@ -341,6 +421,53 @@ const cType *gcUI::GetType(void) const {
     }
     return type_gcUI;
 }
+
+// ── eSphereShape::GetCollisionHandler ──  @ 0x00067cdc, 172B
+#pragma control sched=1
+int eSphereShape::GetCollisionHandler(const mCollideInfo &info) const {
+    eSphereShape_CollisionHandlerStorage *handler =
+        &eSphereShape_collision_handler_storage;
+
+    if (eSphereShape_collision_handler_guard == 0) {
+        eSphereShape_collision_handler_guard = 1;
+        handler->field30 = 0;
+        handler->vtable = (void *)0x382CE0;
+        char *array = handler->array130;
+        __asm__ volatile("" : "+r"(array));
+        void *ctor = (void *)0x201BC8;
+        __asm__ volatile("" : "+r"(ctor));
+        __vec_new(array, 0x80, 0x90, ctor);
+        handler->vtable = (void *)0x382D08;
+    }
+
+    float radius = mRadius;
+    volatile SceULong128 sphere;
+    __asm__ volatile(
+        "lv.q C120, 0(%0)\n"
+        "sv.q C120, 0($sp)\n"
+        :
+        : "r"(&info)
+        : "memory"
+    );
+    *(volatile float *)((char *)&sphere + 0xC) = radius;
+    __asm__ volatile(
+        "lv.q C120, 0($sp)\n"
+        "sv.q C120, 0x4950(%0)\n"
+        :
+        : "r"(handler)
+        : "memory"
+    );
+    handler->world.radius = radius;
+    __asm__ volatile(
+        "sv.q C120, 0x4960(%0)\n"
+        :
+        : "r"(handler)
+        : "memory"
+    );
+    handler->local.radius = radius;
+    return (int)handler;
+}
+#pragma control sched=2
 
 // ── Destructor ──  @ 0x000e04bc, 100B
 extern "C" {
