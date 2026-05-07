@@ -163,6 +163,12 @@ Useful trace observations:
 - `-tr3`, `-tr11`, and `-tt26` produced no stdout for this case.
 - `-tt10,1` and `-tt10,511` show OPT phase progress and counts, but not enough
   instruction-order detail to explain the final prologue drift.
+- A focused `-tt<N>,1` scan found additional useful pass-level traces:
+  - `-tt14,1`: GRA summary.
+  - `-tt15,1`: CG expansion/lowering trace.
+  - `-tt20,1`: local register allocation trace.
+  - `-tt25,1`: CFG dump.
+  Trace kinds `31+` are rejected by this compiler as illegal trace passes.
 - `-keeptemp` preserves final `.s` output. That confirms the bad ordering is
   present before assembly: `cFactory::Read` emits the constructor call before
   the inline asm `ori $19,$0,1`, while the original needs the `li s3,1` before
@@ -236,8 +242,8 @@ Milestone 4:
      `cFactory::Read` at `0x0000ab98`.
 
 2. Collect trace outputs.
-   - Use `-keeptemp`, `-tr<N>`, `-tt10,<mask>`, and `-tt26,<mask>` on the
-     minimal source pair.
+   - Use `-keeptemp`, `-tr<N>`, `-tt10,<mask>`, `-tt14,1`, `-tt15,1`,
+     `-tt20,1`, `-tt25,1`, and `-tt26,<mask>` on the minimal source pair.
    - Compare `sched=1` and `sched=2` output for the failed exemplar.
    - Identify the last trace point before the bad ordering appears.
 
@@ -304,3 +310,8 @@ Milestone 4:
   the repeatable source-shape sweep for `cFactory::Read`. The current source
   and the current source plus an asm memory clobber tie for best at `20/188`
   masked diffs; every other tested source shape is worse or changes size.
+- 2026-05-07: Scanned `-tt<N>,1` trace kinds and added the useful deep probes
+  to the harness trace sweep: `-tt14,1` for GRA, `-tt15,1` for CG expansion,
+  `-tt20,1` for local register allocation, and `-tt25,1` for CFG dumps. This
+  keeps Milestone 2 focused on scheduler/LRA evidence before any pspcor binary
+  patch is designed.

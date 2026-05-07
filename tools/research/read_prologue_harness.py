@@ -37,6 +37,10 @@ TRACE_SWEEP_VARIANTS = [
     ("trace-tr11", ["-keeptemp", "-tr11"]),
     ("trace-tt10-1", ["-keeptemp", "-tt10,1"]),
     ("trace-tt10-511", ["-keeptemp", "-tt10,511"]),
+    ("trace-tt14-1", ["-keeptemp", "-tt14,1"]),
+    ("trace-tt15-1", ["-keeptemp", "-tt15,1"]),
+    ("trace-tt20-1", ["-keeptemp", "-tt20,1"]),
+    ("trace-tt25-1", ["-keeptemp", "-tt25,1"]),
     ("trace-tt26-1", ["-keeptemp", "-tt26,1"]),
     ("trace-tt26-511", ["-keeptemp", "-tt26,511"]),
     ("sched1-direct", ["-Xsched=1"]),
@@ -296,6 +300,10 @@ def _write_trace_summary(case_dir: Path, func: dict, sym_name: str | None) -> No
         ("inline asm machine op", "OP_MACHINE"),
         ("inline asm text", ".i4.asm.gnu"),
         ("optimizer entry", "Entrypoint:"),
+        ("GRA summary", "<gra>"),
+        ("CG expansion", "<cgex>"),
+        ("LRA block", "Local Register Allocation for BB:"),
+        ("CFG dump", "CONTROL FLOW GRAPH"),
     ]
     for label, needle in markers:
         if not needle:
