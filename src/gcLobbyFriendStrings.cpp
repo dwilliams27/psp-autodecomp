@@ -12,6 +12,7 @@ public:
 };
 
 class cFile;
+class cFileHandle;
 
 class cMemPool {
 public:
@@ -33,13 +34,27 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class gcStringValue : public cBase {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -94,6 +109,7 @@ public:
     ~gcLobbyFriendStrings();
     void AssignCopy(const cBase *);
     void GetName(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static gcLobbyFriendStrings *New(cMemPool *, cBase *);
@@ -111,6 +127,8 @@ public:
 extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F4F0;
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
@@ -141,6 +159,20 @@ void gcLobbyFriendStrings::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 8))->Write(wb);
     wb.Write(this->mField);
     wb.End();
+}
+
+// ── gcLobbyFriendStrings::Read(cFile &, cMemPool *)  @ 0x00280c7c, 220B ──
+int gcLobbyFriendStrings::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcStringValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((gcDesiredValue *)((char *)this + 8))->Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x0C, 4);
+    return result;
 }
 
 // ── gcLobbyFriendStrings::GetName(char *) const @ 0x00280e70, 184B ──
@@ -345,4 +377,26 @@ copy_desired:
     }
 done:
     mField = finalField;
+}
+
+class gcLobbyMailStrings : public gcStringValue {
+public:
+    int _b8;
+    int mField;
+
+    int Read(cFile &, cMemPool *);
+};
+
+// ── gcLobbyMailStrings::Read(cFile &, cMemPool *)  @ 0x0028225c, 220B ──
+int gcLobbyMailStrings::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcStringValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((gcDesiredValue *)((char *)this + 8))->Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x0C, 4);
+    return result;
 }

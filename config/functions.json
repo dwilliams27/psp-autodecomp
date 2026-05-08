@@ -29652,7 +29652,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -29676,6 +29676,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:56:39Z"
+      },
+      {
+        "session": "15749b43",
+        "notes": "Added the canonical `eMaterial::Read(cFile &, cMemPool *)` body to `src/eMaterial.cpp`. The current attempt is 31/208 bytes different while all existing eMaterial siblings still match. From the version check onward the body shape is aligned: it checks rb._data[3] against 1, calls `cObject::Read`, uses the expected `bnezl`, rewinds with `cFile_SetCurrentPos` on failure, reads 4 bytes into `this+0x44` on success with `addiu a1,s2,68` before `lw a0,0(a0)`, destroys the cReadBlock, and returns `s3`.\n\nThe remaining diff is confined to the cReadBlock prologue/saved-register scheduling region. I tried the straight exemplar pattern, then forced the success-path destination/handle order with a small asm barrier, and tested `#pragma control sched=1` around the method; sched=1 plus the destination/handle barrier is the closest result. This is the documented cReadBlock prologue scheduler divergence rather than a missing behavioral reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T15:42:32Z",
+        "src_file": "src/eMaterial.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/15749b43/0002bfa4__agent_self_reported_failure__src_eMaterial.cpp"
       }
     ]
   },
@@ -185728,7 +185740,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -185739,7 +185751,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcLobbyFriendStringsEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUgcLobbyFriendStringsEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcLobbyFriendStrings.cpp",
+    "symbol_name": "__0fUgcLobbyFriendStringsEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "7cd16764",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:44:24Z"
   },
   {
     "address": "0x00280d58",
@@ -186197,7 +186217,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -186208,7 +186228,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyMailStringsEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSgcLobbyMailStringsEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcLobbyFriendStrings.cpp",
+    "symbol_name": "__0fSgcLobbyMailStringsEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "7cd16764",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:44:24Z"
   },
   {
     "address": "0x00282338",
@@ -186651,7 +186679,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -186871,7 +186899,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -196632,7 +196660,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -196646,6 +196674,18 @@
       {
         "session": "15cbab69",
         "notes": "Read: 70/200 bytes differ. The structure, control flow, function call sequence, and stack layout all match exactly. The specific divergence is a single-instruction compiler register-allocation decision at offset 0x3c that cascades through the remaining ~130 bytes due to instruction shift. Expected emits: `li a1,1` + `bne a0,a1` (fresh materialization for the compare) and `move v0,s3` at the success return (reuses s3=ok). Our SNC emits: `bne a0,s3` (CSEs constant 1 from s3 into the compare) and `li s0,1` + `move v0,s0` at the success return (allocates fresh register because s3 appears 'dead' to its liveness analysis after the compare). Same total instruction count (50), different allocation.\n\nApproaches tested (8 variants): (1) `int ok=1; ok for ctor+compare+return` \u2014 51 insns (204 B). (2) `int ok=1; literals everywhere, return 1` \u2014 49 insns (196 B, Xxopt=4/5 also gives 196). (3) `int rv=1; ctor=1; compare=1; return rv` \u2014 SNC folds rv, 48 insns. (4) `volatile int rv=1` \u2014 causes stack spill, massively worse. (5) goto-based fail label \u2014 reverses block order (fail in middle instead of bottom). (6) `int ok=1; ok for ctor and return, 1 for compare` \u2014 SNC folds ok completely, 47 insns. (7) `int ok=1; literal for ctor, ok for compare and return` \u2014 CURRENT (200B, closest). (8) intermediate `int tag = rb._data[3]` temporary \u2014 same output as (7).\n\nFlag matrix: tested all 36 combinations of Xsched={0,1,2} \u00d7 Xmopt={0,1,2} \u00d7 Xxopt={0,1,2,3,4,5}. Xsched=2/Xxopt=0..3 gives the 200-byte size with our current source, but every combination produces the same `bne a0,s3` / `li s0,1` pattern \u2014 no flag combination reproduces the fresh `li a1,1` at the compare.\n\nPermuter: ran 240s, 4 workers, 1643 candidates compiled, 4752 generated. Best diff remained at 70 bytes throughout \u2014 zero improvements. The mutation space cannot bridge this register-allocation gap from C source.\n\nRoot cause: SNC's register allocator/CSE logic differs subtly from the original build. When a callee-saved register already holds a constant needed at a later comparison, our SNC reuses it (CSE); the original chose to re-materialize the constant in an arg register for that single use, keeping the callee-saved register's value 'fresh' for a later return. No source transformation I could find forces this behavior at the expected call site while keeping the rest of the 200-byte structure intact.\n\nNext agent: if you find a way to reproduce the `li a1,1 ; bne a0,a1` pattern at the compare (while keeping `li s3,1` early and `move v0,s3` at success return), the function will match immediately. Otherwise this may be a compiler-version divergence (analogous to the documented bnel divergence) and could justify a new decisions/ entry. It does NOT meet the strict unmatchable_bnel criteria (diff >10 bytes, not bnel-related)."
+      },
+      {
+        "session": "15749b43",
+        "notes": "Closest attempt compiles to the correct 200-byte size with 41/200 bytes differing. I improved the prior 70-byte miss by materializing a separate compare constant via inline asm, which preserves the expected success return `move v0,s3` and avoids the prior extra `li s0,1` on the success path. The remaining mismatch is now dominated by scheduler/register allocation drift in the prologue and compare setup: our compiler emits the saved-register/move sequence in a different order and uses `li a0,1; lw a1,12(sp); bne a1,a0` where expected has `lw a0,12(sp); li a1,1; bne a0,a1`.\n\nTried the original `int ok = 1` form, fixed `$19` ok with separate asm compare constant, non-fixed ok with asm compare input, and an explicit `$5` compare constant plus liveness barrier. Non-fixed forms either collapsed to 188 bytes or reintroduced the success-path constant reload; the fixed `$19` form is the best local minimum. This looks like the same cReadBlock/prologue and register-allocation source-level blocker documented for this Read family, with no clean C lever found to force the exact `a0/a1` compare while keeping the expected prologue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T15:42:32Z",
+        "src_file": "src/gcDoEntityForEachAttached_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/15749b43/002b41fc__agent_self_reported_failure__src_gcDoEntityForEachAttached_Read.cpp"
       }
     ],
     "mangled_symbol": "__0fZgcDoEntityForEachAttachedEReadR6FcFileP6IcMemPool"
