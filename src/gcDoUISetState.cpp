@@ -1,7 +1,31 @@
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cBase;
 class cMemPool;
 class cType;
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int pos;
+    int _data[3];
+
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
 
 class cType {
 public:
@@ -24,17 +48,25 @@ public:
 class gcAction {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcDesiredUIWidgetHelper {
 public:
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
+    void Read(cReadBlock &);
 };
 
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+};
+
+class gcDesiredEntityHelper {
+public:
+    void Read(cReadBlock &);
 };
 
 struct PoolBlock {
@@ -84,12 +116,19 @@ struct TypeMethod {
     WriteFn fn;
 };
 
+struct ReadSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 class gcDoUISetState : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoUISetState &operator=(const gcDoUISetState &);
 };
@@ -227,6 +266,35 @@ void gcDoUISetState::Write(cFile &file) const {
     wb.End();
 }
 
+int gcDoUISetState::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[1] != 1 || gcAction::Read(file, pool) == 0) {
+        rb.file->SetCurrentPos(rb.pos);
+        return 0;
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x0C))->Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb.file, (char *)this + 0x18, 4);
+    ((gcDesiredValue *)((char *)this + 0x1C))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x20))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x24))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x28))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x2C))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x30))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x34))->Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb.file, (char *)this + 0x38, 4);
+    {
+        register char *typeInfo __asm__("$5") = *(char **)((char *)this + 0x40);
+        register void *base __asm__("$4") = (char *)this + 0x3C;
+        ReadSlot *slot = (ReadSlot *)(typeInfo + 0x30);
+        short off = slot->offset;
+        cFile *f = rb.file;
+        slot->fn((char *)base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+    return result;
+}
+
 void gcDoUISetState::GetText(char *buf) const {
     char local[256];
     local[0] = *local = '\0';
@@ -295,4 +363,26 @@ void gcDoUISetTextSprite::AssignCopy(const cBase *other) {
         }
     }
     *this = *(const gcDoUISetTextSprite *)copy;
+}
+
+class gcObjectRelationship {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class gcEntityRelationship : public gcObjectRelationship {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+int gcEntityRelationship::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[1] != 1 || gcObjectRelationship::Read(file, pool) == 0) {
+        rb.file->SetCurrentPos(rb.pos);
+        return 0;
+    }
+    ((gcDesiredEntityHelper *)((char *)this + 0x20))->Read(rb);
+    return result;
 }
