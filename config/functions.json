@@ -116368,7 +116368,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -116389,7 +116389,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T11:07:32Z"
       }
-    ]
+    ],
+    "src_file": "src/gcPCBipedControllerTemplate.cpp",
+    "symbol_name": "__0fbgcPCBipedControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f645498e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:29:09Z"
   },
   {
     "address": "0x00152588",
@@ -117219,7 +117227,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -117240,7 +117248,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T11:06:31Z"
       }
-    ]
+    ],
+    "src_file": "src/gcGeomTrailController.cpp",
+    "symbol_name": "__0fVgcGeomTrailControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f645498e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:29:09Z"
   },
   {
     "address": "0x0015487c",
@@ -118737,7 +118753,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -118920,7 +118936,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",

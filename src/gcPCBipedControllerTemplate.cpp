@@ -30,6 +30,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cBaseArray {
 public:
     int _count;
@@ -41,6 +50,7 @@ public:
 class gcBipedControllerTemplate {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern "C" {
@@ -67,6 +77,7 @@ public:
     ~gcPCBipedControllerTemplate();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
@@ -102,6 +113,19 @@ void gcPCBipedControllerTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcBipedControllerTemplate *)this)->Write(file);
     wb.End();
+}
+
+// ── gcPCBipedControllerTemplate::Read(cFile &, cMemPool *) @ 0x001524cc ──
+int gcPCBipedControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((gcBipedControllerTemplate *)this)->gcBipedControllerTemplate::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── gcPCBipedControllerTemplate::AssignCopy(const cBase *) @ 0x00319fdc ──

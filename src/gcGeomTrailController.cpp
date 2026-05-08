@@ -9,6 +9,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -34,6 +43,7 @@ public:
     gcSubGeomController(cBase *);
     ~gcSubGeomController();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern char gcGeomTrailControllerclassdesc[];
@@ -43,6 +53,7 @@ public:
     gcGeomTrailController(cBase *);
     ~gcGeomTrailController();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -58,6 +69,19 @@ void gcGeomTrailController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcSubGeomController *)this)->Write(file);
     wb.End();
+}
+
+// ── gcGeomTrailController::Read(cFile &, cMemPool *) @ 0x001547c0 ──
+int gcGeomTrailController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((gcSubGeomController *)this)->gcSubGeomController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── gcGeomTrailController::~gcGeomTrailController(void) @ 0x001548b0 ──
