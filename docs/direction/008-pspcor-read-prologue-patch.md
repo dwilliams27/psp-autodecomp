@@ -1,6 +1,6 @@
 # pspcor Read Prologue Patch Project
 
-**Status:** Milestone 3 target validated; no functional pspcor patch yet
+**Status:** Functional opt-in pspcor hook validated on exemplars and matched DB
 **Owner:** dwilliams + Codex  
 **Created:** 2026-05-07  
 **Related:** `docs/enhancements-match-lift.md` ML2,
@@ -323,21 +323,21 @@ Static compiler map:
 Opt-in compiler plumbing:
 
 - `tools/patch_pspcor.py` now prepares `extern/snc-read-prologue/` from the
-  stock `extern/snc/` directory and records a manifest next to the copied
-  toolchain. The registered Read-prologue patch set is intentionally empty
-  until the functional `CG_Emit` list-transform hook is validated.
-- `make prepare-read-prologue-compiler` creates the ignored toolchain copy.
+  stock `extern/snc/` directory, installs the Read-prologue transform when
+  requested, and records a manifest next to the copied toolchain.
+- `make prepare-read-prologue-compiler` creates the ignored toolchain copy with
+  the transform hook installed.
 - `make USE_READ_PROLOGUE_PSPCOR=1 <target>` uses
   `extern/snc-read-prologue/pspsnc.exe`; `pspsnc.exe` then resolves its child
   tools from the copied directory, including the copied `pspcor.exe`.
 - The research harness now respects `SNC_DIR=...` for direct compile probes, so
   stock and patched compilers can be compared from the same harness.
-- The patcher now has PE support for adding a new executable section and
+- The patcher has PE support for adding a new executable section and
   building `jmp rel32` stubs. This is intentionally not wired to a functional
-  Read-prologue patch yet. It was validated by adding an inert `.patch` section
-  to the copied `extern/snc-read-prologue/pspcor.exe`; wibo/SNC accepted the
-  modified PE and `cFactory::Read` compiled with the same `20/188` masked
-  baseline.
+  patch on the stock compiler path. It was first validated by adding an inert
+  `.patch` section to the copied `extern/snc-read-prologue/pspcor.exe`;
+  wibo/SNC accepted the modified PE and `cFactory::Read` compiled with the same
+  `20/188` masked baseline.
 - The patcher also has a behavior-preserving CG_Emit trampoline validation
   hook:
 
@@ -352,6 +352,39 @@ python3 tools/patch_pspcor.py prepare-read-prologue --noop-cgemit-hook
   both baselines:
   - `cFactory::Read`: `20/188` verification-masked byte diffs.
   - `eDynamicFluid::Read`: `0/188` verification-masked byte diffs.
+
+Functional transform hook:
+
+- `--read-prologue-transform-hook` adds a `.rpread` section and hooks the call
+  at `0x00418351`. This point runs after `0x004169ca` has merged the generated
+  prologue into the current basic block and before `0x004181a7` emits assembly
+  text.
+- The hook first calls the original `0x004169ca`, then matches one exact
+  final-list shape for the high-value hybrid `Read` family. It uses
+  `0x00416d72(node, 2)` for the compiler's own instruction string and `strcmp`
+  for comparisons.
+- The matcher intentionally keys on the compiler's internal late-list strings,
+  not the final `.s` text. At this point stack allocation is not in the BB list,
+  and inline asm is visible as marker/noop nodes such as `#asm{`,
+  `#nop <- $19,$0,$`, and `#}asm`.
+- When the exact shape is found, the hook rewires the doubly-linked instruction
+  list only in that block:
+  - move `sw $19,32($sp)` immediately after `sw $17,24($sp)`;
+  - move the inline asm marker group immediately after `or $17,$5,$0`;
+  - leave `sw $31,36($sp)` immediately before the `cReadBlock` constructor
+    `jal`.
+- The hook also has an explicit debugging mode,
+  `--debug-read-prologue-strings`, which emits comment-only `#RPHOOK:` lines
+  into kept assembly to inspect the late-list strings. That mode is not used by
+  the normal Make target.
+
+Validation results for the functional hook:
+
+| Check | Result |
+|---|---:|
+| `cFactory::Read` failed exemplar `0x0000ab98` | `0/188` masked diffs |
+| `eDynamicFluid::Read` matched exemplar `0x0005dccc` | `0/188` masked diffs |
+| Full matched DB under `USE_READ_PROLOGUE_PSPCOR=1` | `4444/4444` verified |
 
 Rejected small byte-patch experiment:
 
@@ -413,10 +446,14 @@ Milestone 3:
 
 - A patched or controlled compiler variant makes one failed 188B Read row match
   without breaking the matched 188B exemplar.
+  Complete: `cFactory::Read` now masks cleanly at `0/188`, and
+  `eDynamicFluid::Read` remains clean.
 
 Milestone 4:
 
 - Validate against the full matched DB and a selected 188B failed cluster.
+  Matched-DB validation is complete for the opt-in compiler path:
+  `4444/4444` verified. The selected failed-cluster validation is still next.
 
 ## Implementation Plan
 
@@ -441,18 +478,17 @@ Milestone 4:
    - Use string/function indexes if available; regenerate them if stale.
    - Current focus is `CG_Emit` at `0x417481`, not the scheduler driver.
 
-4. Design patch strategy.
-   - Stop here for user review before making binary changes.
-   - Prefer a narrow heuristic patch or option switch if the responsible
-     decision is local.
-   - If a trampoline is required, reuse the PE-section-extension strategy from
-     ADR-011.
-   - Store output as `extern/snc/pspcor.read-prologue.exe` or similar, never as
-     an in-place overwrite.
+4. Design and implement patch strategy.
+   - Implemented as a narrow final-list transform hook in a generated compiler
+     copy, not an object/EBOOT post-processor.
+   - Reuses the PE-section-extension strategy from ADR-011.
+   - Stores output under ignored `extern/snc-read-prologue/`; never overwrite
+     `extern/snc`.
 
-5. Add build integration only after a successful one-function validation.
-   - Add an explicit opt-in Makefile variable.
-   - Keep full verification against unpatched compiler as default.
+5. Add build integration after successful one-function validation.
+   - Done: `make prepare-read-prologue-compiler` creates the patched copy.
+   - Done: `USE_READ_PROLOGUE_PSPCOR=1` explicitly selects the patched copy.
+   - Stock compiler remains the default path.
 
 ## Risks
 
@@ -554,3 +590,21 @@ Milestone 4:
   validation hook. The copied compiler loads and runs through wibo with the
   hook installed, and direct-compile checks preserve the current failed and
   matched exemplar baselines.
+- 2026-05-07: Added the functional Read-prologue final-list transform hook in
+  `tools/patch_pspcor.py`. The hook runs from a new `.rpread` section at the
+  late `0x00418351` BB-emission call site, after generated prologue nodes are
+  merged and before assembly text is emitted.
+- 2026-05-07: Used `--debug-read-prologue-strings` to confirm the compiler's
+  late-list strings differ from final `.s` text: stack allocation is outside
+  the BB list, and the inline asm body is represented by `#asm{`/`#nop`/`#}asm`
+  marker strings before final expansion.
+- 2026-05-07: Updated the transform matcher to the actual late-list shape and
+  validated `cFactory::Read` at `0x0000ab98`: the opt-in patched compiler now
+  produces `0/188` verification-masked byte diffs.
+- 2026-05-07: Regression-checked the matched exemplar
+  `eDynamicFluid::Read` at `0x0005dccc`; it remains `0/188` masked diffs under
+  the opt-in patched compiler.
+- 2026-05-07: Ran the full matched-DB regression with
+  `USE_READ_PROLOGUE_PSPCOR=1 python3 tools/verify_matches.py`. Result:
+  `4444/4444` byte-exact verified, with zero problems, compile failures, or
+  tooling errors.

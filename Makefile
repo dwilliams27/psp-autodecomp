@@ -50,7 +50,7 @@ clean:
 	rm -f $(TARGET_ELF) $(TARGET_BIN) $(BUILD_DIR)/EBOOT.map
 
 prepare-read-prologue-compiler:
-	python3 tools/patch_pspcor.py prepare-read-prologue
+	python3 tools/patch_pspcor.py prepare-read-prologue --read-prologue-transform-hook
 
 # Link all objects into ELF
 $(TARGET_ELF): $(ALL_OBJS)
