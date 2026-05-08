@@ -22,6 +22,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 extern "C" void *__vec_new(void *arr, int count, int size, void (*ctor)(void *));
 
 struct DeleteRecord {
@@ -38,6 +47,7 @@ public:
     ~gcSubGeomController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    int Read(cFile &file, cMemPool *pool);
 };
 
 class gcGeomCurveController : public gcSubGeomController {
@@ -52,6 +62,7 @@ public:
     ~gcGeomCurveController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    int Read(cFile &file, cMemPool *pool);
     void SetTarget(cHandleT<ePoint> p);
     void AssignCopy(const cBase *base);
     static gcGeomCurveController *New(cMemPool *pool, cBase *parent);
@@ -108,6 +119,17 @@ void gcGeomCurveController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcSubGeomController::Write(file);
     wb.End();
+}
+
+int gcGeomCurveController::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcSubGeomController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 gcGeomCurveController::gcGeomCurveController(cBase *parent) : gcSubGeomController(parent) {

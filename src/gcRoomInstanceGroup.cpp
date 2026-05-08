@@ -16,6 +16,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 struct DeleteRecord {
     short offset;
     short pad;
@@ -47,6 +56,7 @@ public:
 
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cNamed {
@@ -62,6 +72,7 @@ public:
 class gcRoomInstanceGroup : public cGroup {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     bool IsManagedTypeExternal() const;
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
@@ -250,6 +261,20 @@ void gcRoomInstanceGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ============================================================
+// 0x000d2c6c — Read(cFile &, cMemPool *)
+// ============================================================
+int gcRoomInstanceGroup::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ============================================================
