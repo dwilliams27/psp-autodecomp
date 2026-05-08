@@ -1,5 +1,6 @@
 class cBase;
 class cFile;
+class cReadBlock;
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -30,9 +31,19 @@ public:
 class cBaseArray {
 public:
     void RemoveAll(void);
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     cBaseArray &operator=(const cBaseArray &);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 class cObject {
 public:
@@ -49,6 +60,7 @@ class eVirtualTexture : public cObject {
 public:
     eVirtualTexture(cBase *);
     ~eVirtualTexture();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -61,6 +73,7 @@ public:
     eFilteredTexture(cBase *);
     ~eFilteredTexture();
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static eFilteredTexture *New(cMemPool *, cBase *);
@@ -123,6 +136,63 @@ void eFilteredTexture::Write(cFile &file) const {
     eVirtualTexture::Write(file);
     ((const cBaseArray *)((char *)this + 0x50))->Write(wb);
     wb.End();
+}
+
+// ── eFilteredTexture::Read @ 0x00081040 ──
+int eFilteredTexture::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1) goto fail;
+    if (this->eVirtualTexture::Read(file, pool)) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    ((cBaseArray *)((char *)this + 0x50))->Read(rb);
+
+    int handle = *(int *)((char *)this + 0x4C);
+    void *resolved;
+    if (handle != 0) goto lookup_nonzero;
+    resolved = 0;
+    goto after_lookup;
+
+lookup_nonzero:
+    {
+        void **table = (void **)0x38890;
+        void **slot = &table[handle & 0xFFFF];
+        register void *candidate __asm__("$a2") = *slot;
+        register void *resolvedReg __asm__("$a1");
+        __asm__ volatile("" : "+r"(slot), "+r"(candidate));
+        resolvedReg = 0;
+        if (candidate != 0 && *(int *)((char *)candidate + 0x30) == handle) {
+            resolvedReg = candidate;
+        }
+        resolved = resolvedReg;
+    }
+
+after_lookup:
+    if (resolved != 0) {
+        void *entry = 0;
+        if (handle != 0) {
+            void **table = (void **)0x38890;
+            entry = *(void **)((char *)table + ((handle & 0xFFFF) << 2));
+        }
+        *(short *)((char *)this + 0x48) =
+            *(short *)((char *)entry + 0x48);
+        __asm__ volatile("" ::: "memory");
+
+        entry = 0;
+        if (handle != 0) {
+            void **table = (void **)0x38890;
+            entry = *(void **)((char *)table + ((handle & 0xFFFF) << 2));
+        }
+        *(short *)((char *)this + 0x4A) =
+            *(short *)((char *)entry + 0x4A);
+    }
+    return result;
 }
 
 const cType *eFilteredTexture::GetType(void) const {

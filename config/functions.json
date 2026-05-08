@@ -60945,7 +60945,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -60955,7 +60955,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0faeBodyWorldConstraintConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0faeBodyWorldConstraintConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eBodyWorldConstraintConfig.cpp",
+    "symbol_name": "__0faeBodyWorldConstraintConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fe636fee",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:36:24Z"
   },
   {
     "address": "0x000760cc",
@@ -61050,7 +61058,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -65608,7 +65616,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -65618,7 +65626,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeFilteredTextureEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQeFilteredTextureEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "fe636fee",
+        "notes": "category=REG_ALLOC. Closest attempt is a 7-byte mismatch after matching the control flow, handle-table validity check, repeated table lookups, halfword copies, cReadBlock failure path, and destructor return paths. The remaining first diff is the saved-register role assignment near the prologue: target keeps file in s1 and the constant success result in s3, while SNC for this TU keeps file in s3 and result in s1; corresponding uses differ at the parent Read call and final return only. Body instructions, calls, offsets, branch structure, and immediates otherwise match.\n\nTried multiple manual restructurings: exemplar-style fail/success layout, direct vs table-variable handle lookup, goto vs nested-if validity checks, repeated lookup shaping for the two halfword copies, split-TU experiment, register-local attempts for the handle candidate/resolved values, and memory barriers. Ran one 300s permuter pass with --save-best; it improved from 21 to 15 bytes, and a final manual register-local tweak reduced it to 7 bytes. This matches the documented SNC context-dependent saved-register allocation drift, so I stopped per snc-register-allocation.md.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:36:24Z",
+        "src_file": "src/eFilteredTexture.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/fe636fee/00081040__agent_self_reported_failure__src_eFilteredTexture.cpp"
+      }
+    ]
   },
   {
     "address": "0x000811a0",
@@ -69369,7 +69391,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -69502,7 +69524,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -83469,7 +83491,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -83478,7 +83500,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcAnimationEventsEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fRgcAnimationEventsEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5dec13de",
+        "notes": "Implemented gcAnimationEvents::Read as a C++ method using cReadBlock RAII and dynamic read dispatch records at type+0x30 for the four gcEvent fields. The generated body matches the expected disassembly from immediately after the cReadBlock constructor through the epilogue; existing sibling methods in src/gcAnimationEvents.cpp still compare as matched. The closest attempt differs by 24/364 bytes, all in the cReadBlock constructor prologue/register-save scheduling region before the first rb._data load. I tried both post-constructor result-register initialization and pre-constructor inline initialization; the latter keeps the body aligned and is the checked-in closest source. This is the known ML2 cReadBlock prologue scheduler divergence documented in docs/research/failure-corpus-read-20260507.md, not a behavioral reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:32:45Z",
+        "src_file": "src/gcAnimationEvents.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/5dec13de/000e90b0__agent_self_reported_failure__src_gcAnimationEvents.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e921c",
@@ -86481,7 +86517,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -86491,7 +86527,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcConfigurationEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcConfigurationEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5dec13de",
+        "notes": "Implemented gcConfiguration::Read in the canonical class file, not src/gcAnimationEvents.cpp, because the repo's class-method rule forbids putting a class method in another class's translation unit. The method uses cObject::Read, four cReadBlock::ReadBase calls for fields 0x44/0x48/0x4c/0x50, and the type dispatch entry at vtable+0x38. The generated body is byte-identical after the cReadBlock constructor setup, and all existing gcConfiguration sibling methods still compare as matched. The closest attempt differs by exactly 20/364 bytes in the cReadBlock prologue scheduling window. I also tried moving the result-register initialization before constructing cReadBlock, but that worsened save/move ordering to 34 differing bytes, so I reverted to the 20-byte near match. This is the documented compiler-level cReadBlock prologue blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:32:45Z",
+        "src_file": "src/gcConfiguration.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/5dec13de/000f036c__agent_self_reported_failure__src_gcConfiguration.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f04d8",
@@ -94987,7 +95037,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",

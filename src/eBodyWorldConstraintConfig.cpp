@@ -7,6 +7,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class cFileHandle;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
@@ -42,8 +43,23 @@ public:
     char _pad[0x08];
     ePhysicsConstraintConfig(cBase *);
     ~ePhysicsConstraintConfig();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 struct BodyConstraintNameData {
     int data[6];
@@ -84,6 +100,7 @@ public:
     ~eBodyWorldConstraintConfig();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 
     static cBase *New(cMemPool *, cBase *);
@@ -101,6 +118,65 @@ public:
 };
 
 template <class T> T *dcast(const cBase *);
+
+#pragma control sched=1
+
+// eBodyWorldConstraintConfig::Read(cFile &, cMemPool *) @ 0x00075f6c
+int eBodyWorldConstraintConfig::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1) goto fail;
+    if (((ePhysicsConstraintConfig *)this)->Read(file, pool)) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    {
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mVec20, 0x0C);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mFloat50, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mVec30, 0x0C);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mVec40, 0x0C);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &mInt54, 4);
+    }
+    {
+        char tmp;
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &tmp, 1);
+        mBool58 = tmp != 0;
+    }
+    {
+        char tmp;
+        cFileHandle *h = *(cFileHandle **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, &tmp, 1);
+        mBool59 = tmp != 0;
+    }
+    return result;
+}
+
+#pragma control sched=2
 
 #pragma control sched=1
 
