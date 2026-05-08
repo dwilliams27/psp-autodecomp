@@ -90,6 +90,7 @@ OUTCOME_AGENT_FAIL = "agent_fail"
 OUTCOME_SYSTEM_ERROR = "system_error"
 OUTCOME_PREP_ERROR = "prep_error"
 STATUS_UNMATCHABLE_SYMBOL_MANGLING = "unmatchable_symbol_mangling"
+TARGETED_RETRY_STATUSES = frozenset({"untried", "failed"})
 
 
 def unmatchable_reason(func):
@@ -437,6 +438,7 @@ class WorkContext:
     worktree: Optional[str] = None
     identity: str = ""
     queue_kind: str = "disjoint"
+    previous_statuses: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -758,14 +760,30 @@ def set_batch_status(functions, batch, status, addr_index=None):
             target["match_status"] = status
 
 
-def revert_in_progress(functions, batch, addr_index=None):
-    """Revert in_progress functions back to untried."""
+def mark_batch_in_progress(functions, batch, addr_index=None):
+    """Set a batch in_progress and return its prior statuses by address."""
+    if addr_index is None:
+        addr_index = build_addr_map(functions)
+    previous = {}
+    for func in batch:
+        target = addr_index.get(func["address"])
+        if target:
+            previous[func["address"]] = target.get("match_status", "untried")
+            target["match_status"] = "in_progress"
+    return previous
+
+
+def restore_previous_statuses(functions, batch, previous_statuses, addr_index=None):
+    """Restore in_progress rows to their pre-session status."""
     if addr_index is None:
         addr_index = build_addr_map(functions)
     for func in batch:
         target = addr_index.get(func["address"])
-        if target and target["match_status"] == "in_progress":
-            target["match_status"] = "untried"
+        if target and target.get("match_status") == "in_progress":
+            target["match_status"] = previous_statuses.get(
+                func["address"],
+                "untried",
+            )
 
 
 def load_targets_file(path):
@@ -1290,10 +1308,11 @@ def snapshot_and_revert_dirty_sources(ctx, reason, failure_note=None):
 
 def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
                              excluded_classes=None, allowed_addrs=None,
-                             check_status=True, class_to_header=None):
+                             check_status=True, class_to_header=None,
+                             eligible_statuses=None):
     """Select the next batch from a specific targets list.
 
-    Only picks targets that are untried in the database.
+    Only picks targets whose current database status is eligible.
     Priority order matches the targets file order (critical first).
     Warns about target addresses not found in the database.
     `excluded_classes` filters out functions whose class is currently
@@ -1310,6 +1329,7 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
     the schedule's `shootout_done` is the per-identity authority.
     """
     excluded_classes = excluded_classes or set()
+    eligible_statuses = set(eligible_statuses or ("untried",))
     candidates = []
     for t in targets:
         addr = t["address"]
@@ -1317,7 +1337,7 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
         if not func:
             log(f"  WARNING: target {addr} ({t.get('name', '?')}) not in database — skipping")
             continue
-        if check_status and func["match_status"] != "untried":
+        if check_status and func["match_status"] not in eligible_statuses:
             continue
         if is_known_unmatchable(func):
             continue
@@ -3240,15 +3260,16 @@ def main():
 
     # Phase 3 schedule build. The candidate pool we hand to the
     # schedule is the args-filtered untried slice for general-mode
-    # runs, or the untried subset of the targets list for targeted
-    # runs. Stratified assignment is computed once at run start —
+    # runs, or the eligible subset of the targets list for targeted
+    # runs. Targeted retry lists intentionally include failed rows.
+    # Stratified assignment is computed once at run start —
     # not re-balanced as the run progresses (per direction-003 §risks
     # "rate-limit imbalance: weight metrics by attempts attempted").
     if targets_list:
         target_addrs = {t["address"] for t in targets_list}
         candidate_pool = [f for f in functions
                           if f["address"] in target_addrs
-                          and f["match_status"] == "untried"]
+                          and f["match_status"] in TARGETED_RETRY_STATUSES]
     else:
         candidate_pool = filter_functions(
             functions,
@@ -3330,6 +3351,7 @@ def main():
     # first (which would empty claude's queue while codex's stays
     # full).
     main_pick_rotation = [0]
+    main_attempted_addrs: set = set()
 
     counters = {
         "total_attempted": 0,
@@ -3408,7 +3430,7 @@ def main():
                 continue
             if time.time() < backend_health[ident]["next_pick_time"]:
                 continue
-            allowed = schedule.disjoint_addrs_for(ident)
+            allowed = set(schedule.disjoint_addrs_for(ident)) - main_attempted_addrs
             if not allowed:
                 continue
             if targets_list:
@@ -3417,6 +3439,7 @@ def main():
                     batch_size=args.batch_size,
                     excluded_classes=held_classes,
                     allowed_addrs=allowed,
+                    eligible_statuses=TARGETED_RETRY_STATUSES,
                     class_to_header=class_header_map,
                 )
             else:
@@ -3484,7 +3507,9 @@ def main():
                 classes = compute_batch_classes(batch, class_header_map)
                 assert not (classes & held_classes)
                 held_classes.update(classes)
-                set_batch_status(functions, batch, "in_progress", addr_index)
+                previous_statuses = mark_batch_in_progress(
+                    functions, batch, addr_index)
+                main_attempted_addrs.update(f["address"] for f in batch)
                 save_db(functions)
                 identity = picked_ident
                 queue_kind = "disjoint"
@@ -3550,6 +3575,7 @@ def main():
             worktree=slot.worktree,
             identity=identity,
             queue_kind=queue_kind,
+            previous_statuses=previous_statuses if queue_kind == "disjoint" else {},
         )
 
         def peer_query(my_ctx=ctx):
@@ -3662,7 +3688,7 @@ def main():
         target=commit_worker, name="orch-commit", daemon=False)
     commit_thread.start()
 
-    def _abort(outcome, kind, log_msg, event):
+    def _abort(outcome, ctx, kind, log_msg, event):
         """Shared error-path: log, emit event, revert in_progress,
         record per-function attempts.jsonl rows, return kind.
 
@@ -3670,8 +3696,7 @@ def main():
         the OUTCOME_* constants are the canonical strings.
 
         Shootout abort path (outcome.queue_kind == "shootout"): the
-        main DB was never flipped, so revert_in_progress is a no-op
-        on the actual rows. We still drop the schedule's
+        main DB was never flipped. We still drop the schedule's
         `shootout_done` membership so the function returns to the
         per-identity queue for retry.
         """
@@ -3679,7 +3704,10 @@ def main():
         log_event(log_path, event)
         with db_lock:
             if outcome.queue_kind == "disjoint":
-                revert_in_progress(functions, outcome.batch, addr_index)
+                restore_previous_statuses(
+                    functions, outcome.batch, ctx.previous_statuses, addr_index)
+                main_attempted_addrs.difference_update(
+                    f["address"] for f in outcome.batch)
                 save_db(functions)
             else:
                 schedule.unmark_shootout_attempted(
@@ -3703,7 +3731,7 @@ def main():
         functions_addrs = [f["address"] for f in batch]
 
         if outcome.prep_error:
-            return _abort(outcome, OUTCOME_PREP_ERROR,
+            return _abort(outcome, ctx, OUTCOME_PREP_ERROR,
                 f"Session {session_id} PREP ERROR: {outcome.prep_error}",
                 {"event": "prep_error",
                  "session_id": session_id, "variant": variant,
@@ -3712,7 +3740,7 @@ def main():
                  "error": outcome.prep_error})
 
         if outcome.refused:
-            return _abort(outcome, OUTCOME_REFUSAL,
+            return _abort(outcome, ctx, OUTCOME_REFUSAL,
                 f"Session {session_id} REFUSED ({outcome.session_duration:.0f}s): "
                 f"agent refused mid-session ({outcome.refusal_reason})",
                 {"event": "session_error",
@@ -3736,7 +3764,7 @@ def main():
                 f"; retry in {retry_after/60:.1f}m"
                 if retry_after is not None else ""
             )
-            return _abort(outcome, OUTCOME_RATE_LIMIT,
+            return _abort(outcome, ctx, OUTCOME_RATE_LIMIT,
                 f"Session {session_id} RATE LIMITED ({outcome.session_duration:.0f}s): "
                 f"{(outcome.rate_limit_reason or '')[:180]}{retry_msg}",
                 {"event": "session_error",
@@ -3753,7 +3781,7 @@ def main():
                  "retry_after_s": retry_after})
 
         if not outcome.success and outcome.error_msg is not None:
-            return _abort(outcome, OUTCOME_AGENT_FAIL,
+            return _abort(outcome, ctx, OUTCOME_AGENT_FAIL,
                 f"Session {session_id} FAILED ({outcome.session_duration:.0f}s): "
                 f"{outcome.error_msg}",
                 {"event": "session_error",
@@ -3766,7 +3794,7 @@ def main():
                  "kind": "other"})
 
         if outcome.system_error:
-            return _abort(outcome, OUTCOME_SYSTEM_ERROR,
+            return _abort(outcome, ctx, OUTCOME_SYSTEM_ERROR,
                 f"Session {session_id} SYSTEM ERROR: {outcome.system_error}",
                 {"event": "system_error",
                  "session_id": session_id, "variant": variant,
@@ -3917,7 +3945,7 @@ def main():
                         and not in_flight):
                     if not _has_backoff_waiting():
                         done_picking = True
-                        log("No more untried functions matching criteria. Done.")
+                        log("No more eligible functions matching criteria. Done.")
 
             if not in_flight:
                 if done_picking or deadline_hit or limit_hit or all_backends_dead:
@@ -3974,7 +4002,11 @@ def main():
                     })
                     with db_lock:
                         if ctx.queue_kind == "disjoint":
-                            revert_in_progress(functions, ctx.batch, addr_index)
+                            restore_previous_statuses(
+                                functions, ctx.batch,
+                                ctx.previous_statuses, addr_index)
+                            main_attempted_addrs.difference_update(
+                                f["address"] for f in ctx.batch)
                             save_db(functions)
                         else:
                             schedule.unmark_shootout_attempted(
@@ -4058,11 +4090,17 @@ def main():
             with db_lock:
                 reset_count = 0
                 for ctx in interrupted_contexts:
-                    for func in ctx.batch:
-                        target = addr_index.get(func["address"])
-                        if target and target.get("match_status") == "in_progress":
-                            target["match_status"] = "untried"
-                            reset_count += 1
+                    if ctx.queue_kind == "disjoint":
+                        before = [
+                            f for f in ctx.batch
+                            if addr_index.get(f["address"], {}).get("match_status") == "in_progress"
+                        ]
+                        restore_previous_statuses(
+                            functions, ctx.batch,
+                            ctx.previous_statuses, addr_index)
+                        main_attempted_addrs.difference_update(
+                            f["address"] for f in ctx.batch)
+                        reset_count += len(before)
                     counters["total_attempted"] -= len(ctx.batch)
                     if ctx.queue_kind == "shootout":
                         schedule.unmark_shootout_attempted(
@@ -4071,7 +4109,7 @@ def main():
                 if reset_count:
                     save_db(functions)
                     log(f"  Reset {reset_count} in-progress function(s) "
-                        f"to untried.")
+                        f"to their prior status.")
             for ctx in interrupted_contexts:
                 try:
                     ledger, out_of_scope = partition_dirty_paths(
