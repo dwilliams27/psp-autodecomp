@@ -4,8 +4,30 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
+};
 
 class cWriteBlock {
 public:
@@ -19,6 +41,7 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -33,6 +56,7 @@ public:
     void *mVTable;
     unsigned int mNext;
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -51,6 +75,7 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoEntitySetSkin &operator=(const gcDoEntitySetSkin &);
 };
@@ -65,6 +90,11 @@ public:
     gcDoSwitch(cBase *);
 };
 
+class gcDoStatsTrackingOp : public gcAction {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -75,6 +105,12 @@ struct WriteRec {
     short offset;
     short _pad;
     void (*fn)(void *, cFile *);
+};
+
+struct ReadRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 struct cTypeNode {
@@ -96,6 +132,9 @@ extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcExpressionList_gcExpressionList(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char D_00000338[];
 extern char gcDoEntitySetSkinvirtualtable[];
@@ -256,6 +295,57 @@ void gcDoEntitySetSkin::AssignCopy(const cBase *other) {
     *this = *(const gcDoEntitySetSkin *)copy;
 }
 
+int gcDoEntitySetSkin::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 7, true);
+    if ((unsigned int)rb[3] >= 8 || (unsigned int)rb[3] < 6 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *typeInfo0 = *(char **)((char *)this + 0x10);
+    char *base0 = (char *)this + 0x0C;
+    ReadRec *rec0 = (ReadRec *)(typeInfo0 + 0x30);
+    short off0 = rec0->offset;
+    cFile *f0 = *(cFile **)&rb[0];
+    rec0->fn(base0 + off0, f0, cMemPool::GetPoolFromPtr(base0));
+
+    ((gcDesiredValue *)((char *)this + 0x3C))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x80))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x84))->Read(*(cReadBlock *)rb);
+
+    char *typeInfo1 = *(char **)((char *)this + 0x44);
+    char *base1 = (char *)this + 0x40;
+    ReadRec *rec1 = (ReadRec *)(typeInfo1 + 0x30);
+    short off1 = rec1->offset;
+    cFile *f1 = *(cFile **)&rb[0];
+    rec1->fn(base1 + off1, f1, cMemPool::GetPoolFromPtr(base1));
+
+    if ((unsigned int)rb[3] >= 7) {
+        char *base2 = (char *)this + 0x6C;
+        char *typeInfo2 = ((char **)base2)[1];
+        ReadRec *rec2 = (ReadRec *)(typeInfo2 + 0x30);
+        short off2 = rec2->offset;
+        cFile *f2 = *(cFile **)&rb[0];
+        rec2->fn(base2 + off2, f2, cMemPool::GetPoolFromPtr(base2));
+    } else {
+        *(int *)((char *)this + 0x78) = 7;
+        char *base2 = (char *)this + 0x7C;
+        *(int *)((char *)this + 0x7C) = 0;
+        ((cHandle *)base2)->Read(*(cReadBlock *)rb,
+                                 cMemPool::GetPoolFromPtr(base2));
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x38, 4);
+    ((gcDesiredValue *)((char *)this + 0x88))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
 void gcDoEntitySetSkin::Write(cFile &file) const {
     cWriteBlock wb(file, 7);
     gcAction::Write(file);
@@ -285,4 +375,103 @@ void gcDoEntitySetSkin::Write(cFile &file) const {
     wb.Write(*(const int *)((const char *)this + 0x38));
     ((const gcDesiredValue *)((const char *)this + 0x88))->Write(wb);
     wb.End();
+}
+
+int gcDoStatsTrackingOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x18);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done0;
+    }
+    outValue = value;
+out_done0:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x18),
+                                 (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    int value2 = *(int *)((char *)this + 0x1C);
+    int tag2 = value2 & 1;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x18) = newValue;
+
+    int sp18;
+    int flag3 = 0;
+    if (tag2 != 0) {
+        flag3 = 1;
+    }
+
+    int outValue2;
+    if (flag3 != 0) {
+        outValue2 = 0;
+        goto out_done1;
+    }
+    outValue2 = value2;
+out_done1:
+    sp18 = outValue2;
+
+    int flag4 = 0;
+    if (tag2 != 0) {
+        flag4 = 1;
+    }
+
+    int base2;
+    if (flag4 != 0) {
+        base2 = value2 & ~1;
+    } else {
+        base2 = *(int *)value2;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x1C),
+                                 (cBase *)base2, *(cBase **)&sp18);
+
+    int newValue2;
+    if (sp18 == 0) {
+        newValue2 = base2 | 1;
+    } else {
+        newValue2 = sp18;
+    }
+    *(int *)((char *)this + 0x1C) = newValue2;
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
