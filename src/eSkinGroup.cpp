@@ -1,9 +1,13 @@
 // IsManagedTypeExternal / VisitReferences / AssignCopy trampolines + Write/New/dtor.
 
 class cBase;
-class cFile;
 class cMemPool;
 class cType;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 
 class cType {
 public:
@@ -38,6 +42,11 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -48,6 +57,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eSkinGroup : public cGroup {
@@ -55,6 +65,7 @@ public:
     eSkinGroup(cBase *);
     ~eSkinGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
@@ -71,6 +82,12 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+// ODR-WARNING: local redeclaration for the split-TU eStaticLightGroup::Read.
+class eStaticLightGroup : public cGroup {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 class eSurfacePropertyTableGroup {
@@ -124,6 +141,9 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 void eSkinGroup::AssignCopy(const cBase *base) {
     eSkinGroup *src = dcast<eSkinGroup>(base);
     mFlag = src->mFlag;
@@ -152,6 +172,40 @@ void eSkinGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eSkinGroup::Read(cFile &, cMemPool *) @ 0x000181FC ──
+int eSkinGroup::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb;
+    int result;
+    __0oKcReadBlockctR6FcFileUib(&rb, file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    __0oKcReadBlockdtv(&rb, 2);
+    return 0;
+succ:
+    __0oKcReadBlockdtv(&rb, 2);
+    return result;
+}
+
+// ── eStaticLightGroup::Read(cFile &, cMemPool *) @ 0x000187C0 ──
+int eStaticLightGroup::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb;
+    int result;
+    __0oKcReadBlockctR6FcFileUib(&rb, file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    __0oKcReadBlockdtv(&rb, 2);
+    return 0;
+succ:
+    __0oKcReadBlockdtv(&rb, 2);
+    return result;
 }
 
 // ── eSkinGroup::New(cMemPool *, cBase *) static @ 0x001DD744 ──
