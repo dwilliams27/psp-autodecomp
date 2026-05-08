@@ -6,8 +6,17 @@
 //   0x0035f188 gcValTableEntry::New(cMemPool *, cBase *) static 200B
 
 class cBase;
-class cFile;
-class cMemPool;
+class cFileHandle;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -31,11 +40,28 @@ public:
 class gcStringLValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
 };
 
 struct DispatchEntry {
@@ -45,11 +71,18 @@ struct DispatchEntry {
 };
 
 typedef void (*DesiredWriteFn)(cBase *, cFile *);
+typedef void (*DesiredReadFn)(void *, cFile *, cMemPool *);
 
 struct DesiredWriteSlot {
     short mOffset;
     short _pad;
     DesiredWriteFn mFn;
+};
+
+struct DesiredReadSlot {
+    short mOffset;
+    short _pad;
+    DesiredReadFn mRead;
 };
 
 struct GetNameSlot {
@@ -81,6 +114,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetName(char *) const;
 };
 
@@ -99,6 +133,8 @@ extern cType *D_0009F458;
 extern cType *D_0009F574;
 
 void cStrCat(char *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 cBase *gcTableString::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -222,6 +258,39 @@ void gcTableString::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 0x1C))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x20))->Write(wb);
     wb.End();
+}
+
+int gcTableString::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+
+    if ((unsigned int)rb[3] >= 3 || (unsigned int)rb[3] < 1 ||
+        gcStringLValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    if ((unsigned int)rb[3] >= 2) {
+        char *desired = (char *)this + 0x08;
+        char *type = ((char **)desired)[1];
+        __asm__ volatile("" ::: "memory");
+        cFile *f = *(cFile **)&rb[0];
+        DesiredReadSlot *slot = (DesiredReadSlot *)(type + 0x30);
+        slot->mRead(desired + slot->mOffset, f,
+                    cMemPool::GetPoolFromPtr(desired));
+    } else {
+        *(int *)((char *)this + 0x14) = 7;
+        *(int *)((char *)this + 0x18) = 0;
+        cHandle *handle = (cHandle *)((char *)this + 0x18);
+        handle->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle));
+    }
+
+    ((gcDesiredValue *)((char *)this + 0x1C))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x20))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcTableString::GetName(char *buf) const {
