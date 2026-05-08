@@ -1,5 +1,17 @@
 #include "cBase.h"
 
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -20,13 +32,24 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
+};
+
+class cReadBlock {
+public:
 };
 
 struct WriteRec {
     short offset;
     short pad;
     void (*fn)(void *, cFile *);
+};
+
+struct ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 struct PoolBlock {
@@ -69,6 +92,11 @@ extern "C" {
 void gcAction_ctor_cBase(void *, cBase *);
 void gcDesiredObject_ctor_cBase(void *, cBase *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+int gcAction_Read(gcAction *, cFile &, cMemPool *)
+    asm("__0fIgcActionEReadR6FcFileP6IcMemPool");
+void cFile_SetCurrentPos(void *, unsigned int);
+void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+void __0oKcReadBlockdtv(void *, int);
 }
 
 extern char D_000002A58[];
@@ -83,6 +111,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoEntityPlayAnimation &operator=(const gcDoEntityPlayAnimation &);
 };
@@ -254,6 +283,47 @@ void gcDoEntityPlayAnimation::Write(cFile &file) const {
 
     ((const gcDesiredValue *)((const char *)this + 0x68))->Write(wb);
     wb.End();
+}
+
+int gcDoEntityPlayAnimation::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+    if ((unsigned int)rb[3] != 5 ||
+        gcAction_Read((gcAction *)this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *typeInfo0 = *(char **)((char *)this + 0x10);
+    char *base0 = (char *)this + 0x0C;
+    ReadRec *rec0 = (ReadRec *)(typeInfo0 + 0x30);
+    short off0 = rec0->offset;
+    cFile *f0 = *(cFile **)&rb[0];
+    rec0->fn(base0 + off0, f0, cMemPool::GetPoolFromPtr(base0));
+
+    char *typeInfo1 = *(char **)((char *)this + 0x40);
+    char *base1 = (char *)this + 0x3C;
+    ReadRec *rec1 = (ReadRec *)(typeInfo1 + 0x30);
+    short off1 = rec1->offset;
+    cFile *f1 = *(cFile **)&rb[0];
+    rec1->fn(base1 + off1, f1, cMemPool::GetPoolFromPtr(base1));
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x38, 4);
+
+    char *typeInfo2 = *(char **)((char *)this + 0x58);
+    char *base2 = (char *)this + 0x54;
+    ReadRec *rec2 = (ReadRec *)(typeInfo2 + 0x30);
+    short off2 = rec2->offset;
+    cFile *f2 = *(cFile **)&rb[0];
+    rec2->fn(base2 + off2, f2, cMemPool::GetPoolFromPtr(base2));
+
+    ((gcDesiredValue *)((char *)this + 0x68))->Read(*(cReadBlock *)rb);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoEntityPlayAnimation::GetText(char *buf) const {
