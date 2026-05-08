@@ -31,6 +31,7 @@ SANDBOX_USER="autodecomp"
 DRY_RUN=false
 ALLOW_DRIFT=false
 STOCK_COMPILER=false
+SUDO_KEEPALIVE_PID=""
 ORCH_ARGS=()
 for arg in "$@"; do
     case "$arg" in
@@ -96,13 +97,24 @@ run_tree_compile_preflight() {
         TREE_CMD+="USE_STOCK_PSPCOR=1 "
     fi
     TREE_CMD+="python3 -c 'import sys; sys.path.insert(0, \"tools\"); from orchestrator import verify_tree_compiles; verify_tree_compiles()'"
-    if ! sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -lc "$TREE_CMD"; then
+    if ! sudo -n --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" bash -lc "$TREE_CMD"; then
         echo ""
         echo "Pre-flight tree compile failed. Refusing to start overnight run."
         exit 1
     fi
     echo "Pre-flight: OK — all src files compile."
     echo ""
+}
+
+start_sudo_keepalive() {
+    sudo -v
+    (
+        while true; do
+            sudo -n true 2>/dev/null || exit
+            sleep 60
+        done
+    ) &
+    SUDO_KEEPALIVE_PID=$!
 }
 
 if [[ "$DRY_RUN" == "true" ]]; then
@@ -149,6 +161,8 @@ if ! sudo pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
 fi
 echo "PF sandbox active."
 
+start_sudo_keepalive
+
 # Cleanup: disable PF on exit (Ctrl-C, crash, normal exit).
 cleanup() {
     echo ""
@@ -159,14 +173,18 @@ cleanup() {
     else
         echo "PF sandbox rules flushed."
     fi
+    if [[ -n "${SUDO_KEEPALIVE_PID:-}" ]]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+        wait "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+    fi
 }
 trap cleanup EXIT
 
 # Unlock the autodecomp keychain (created with empty password) so Claude can auth
 echo "Unlocking keychain..."
-sudo -i -u "$SANDBOX_USER" security unlock-keychain -p "" /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
+sudo -n -i -u "$SANDBOX_USER" security unlock-keychain -p "" /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
 # Prevent auto-lock during the overnight run
-sudo -i -u "$SANDBOX_USER" security set-keychain-settings /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
+sudo -n -i -u "$SANDBOX_USER" security set-keychain-settings /Users/$SANDBOX_USER/Library/Keychains/login.keychain-db 2>&1 || true
 
 # Ensure build/src/ exists and is writable by both users.
 # If an agent nukes build/src/ mid-run and recreates it as autodecomp,
@@ -195,5 +213,5 @@ ORCH_CMD+="python3 $(printf '%q' "$REPO_DIR/tools/orchestrator.py")"
 for arg in "${ORCH_ARGS[@]}"; do
     ORCH_CMD+=" $(printf '%q' "$arg")"
 done
-sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" \
+sudo -n --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" \
     bash -lc "$ORCH_CMD"
