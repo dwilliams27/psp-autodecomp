@@ -38669,7 +38669,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -38693,7 +38693,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T10:58:01Z"
       }
-    ]
+    ],
+    "src_file": "src/eStaticGeom.cpp",
+    "symbol_name": "__0fLeStaticGeomEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c973be8e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:39:41Z"
   },
   {
     "address": "0x00040e30",
@@ -38735,7 +38743,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -38758,7 +38766,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T04:49:28Z"
       }
-    ]
+    ],
+    "src_file": "src/eGeomTemplate.cpp",
+    "symbol_name": "__0fNeGeomTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c973be8e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:39:41Z"
   },
   {
     "address": "0x00040f38",
@@ -38821,7 +38837,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -98732,7 +98748,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
