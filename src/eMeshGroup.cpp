@@ -38,6 +38,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -48,6 +55,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eMeshGroup : public cGroup {
@@ -55,6 +63,7 @@ public:
     eMeshGroup(cBase *);
     ~eMeshGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
@@ -112,6 +121,8 @@ extern cType *D_00040C94;
 extern cType *D_00040E24;
 extern cType *D_000469B8;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 void eMeshGroup::AssignCopy(const cBase *base) {
     eMeshGroup *src = dcast<eMeshGroup>(base);
     mFlag = src->mFlag;
@@ -123,6 +134,20 @@ void eMeshGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eMeshGroup::Read(cFile &, cMemPool *) @ 0x000148A4 ──
+int eMeshGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto success;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eMeshGroup::~eMeshGroup(void) @ 0x001DC0E8 ──

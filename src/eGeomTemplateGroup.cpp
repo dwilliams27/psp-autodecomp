@@ -36,6 +36,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -54,6 +61,7 @@ public:
     eGeomTemplateGroup(cBase *);
     ~eGeomTemplateGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -86,11 +94,27 @@ extern cType *D_00040C94;
 extern cType *D_00040E28;
 extern cType *D_000469A8;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── eGeomTemplateGroup::Write(cFile &) const @ 0x00014E0C ──
 void eGeomTemplateGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eGeomTemplateGroup::Read(cFile &, cMemPool *) @ 0x00014E58 ──
+int eGeomTemplateGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto success;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eGeomTemplateGroup::New(cMemPool *, cBase *) static @ 0x001DC19C ──
