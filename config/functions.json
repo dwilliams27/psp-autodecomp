@@ -74414,7 +74414,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -75743,7 +75743,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -75762,7 +75762,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T07:46:19Z"
       }
-    ]
+    ],
+    "src_file": "src/gcEntityCustomAttackGroup.cpp",
+    "symbol_name": "__0fZgcEntityCustomAttackGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1375758c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:10:15Z"
   },
   {
     "address": "0x000d2764",
@@ -76070,7 +76078,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -76088,6 +76096,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-26T23:39:24Z"
+      },
+      {
+        "session": "1375758c",
+        "notes": "Verifier demoted claimed match: byte mismatch; src=src/gcTableTemplateGroup.cpp; reason=byte_mismatch",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T03:10:15Z",
+        "src_file": "src/gcTableTemplateGroup.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260507_214359/1375758c/000d3230__byte_mismatch__src_gcTableTemplateGroup.cpp"
       }
     ]
   },
@@ -76232,7 +76252,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
