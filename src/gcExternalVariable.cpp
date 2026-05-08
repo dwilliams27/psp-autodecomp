@@ -130,8 +130,8 @@ void gcExternalVariable::Write(cFile &file) const {
 // gcExternalVariable::Read(cFile &, cMemPool *) @ 0x0012f620
 int gcExternalVariable::Read(cFile &file, cMemPool *pool) {
     int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     if ((unsigned int)rb._data[3] == 1 && ((cObject *)this)->Read(file, pool)) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
     return 0;
