@@ -107,20 +107,6 @@ void gcValCameraFollowEntity3rdVariable::Set(float) {
 }
 
 // -----------------------------------------------------------------------------
-// Function: gcValCameraFollowEntity3rdVariable::Read(cFile &, cMemPool *)
-// -----------------------------------------------------------------------------
-int gcValCameraFollowEntity3rdVariable::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
-    cReadBlock rb(file, 2, true);
-    if (rb._data[3] != 2) goto fail;
-    if (gcLValue_Read(this, file, pool) == 0) goto fail;
-    return result;
-fail:
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
-    return 0;
-}
-
-// -----------------------------------------------------------------------------
 // Function: gcValCameraFollowEntity3rdVariable::GetType(void) const
 // -----------------------------------------------------------------------------
 static cType *gcValCFE3V_type_base;

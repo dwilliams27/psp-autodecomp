@@ -29,6 +29,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cMemPool_helper {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -44,6 +61,7 @@ class cHandle {
 public:
     int mIndex;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -68,6 +86,7 @@ public:
     eStaticLight(cBase *);
     ~eStaticLight();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eStaticSunLight : public eStaticLight {
@@ -76,6 +95,7 @@ public:
     ~eStaticSunLight();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     void GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const;
@@ -100,6 +120,7 @@ extern cType *D_00046B30;
 extern cType *D_00046B40;
 
 extern "C" void eStaticSunLight_eStaticSunLight(eStaticSunLight *, cBase *);
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ============================================================
 // 0x0005f9f4 — eStaticSunLight::Write(cFile &) const
@@ -114,6 +135,33 @@ void eStaticSunLight::Write(cFile &file) const {
     wb.Write(*(float *)((char *)this + 0x94));
     ((const cHandle *)((char *)this + 0x98))->Write(wb);
     wb.End();
+}
+
+int eStaticSunLight::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2 && eStaticLight::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x90, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x94, 4);
+    }
+    *(int *)((char *)this + 0x98) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x98);
+        __asm__ volatile("" ::: "memory");
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    return result;
 }
 
 eStaticSunLight::eStaticSunLight(cBase *parent) : eStaticLight(parent) {

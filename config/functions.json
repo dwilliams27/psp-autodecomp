@@ -50362,7 +50362,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -50374,7 +50374,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeStaticSunLightEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPeStaticSunLightEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eStaticSunLight.cpp",
+    "symbol_name": "__0fPeStaticSunLightEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "12fd5220",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:40:39Z"
   },
   {
     "address": "0x0005fb68",
@@ -219602,7 +219610,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -219615,6 +219623,18 @@
       {
         "session": "b099535c",
         "notes": "Got function to correct structure but SIZE MISMATCH: my 176B vs expected 188B. Three instruction difference (12 bytes). All functional bytes match the expected flow (cReadBlock ctor, bne rb._data[3] != 2 fail, call gcLValue::Read, branch on result, SetCurrentPos on fail, ~cReadBlock, return 1/0). The difference is purely register allocation: expected compiler allocates s3 to hold the constant 1 across all three function calls and saves/restores s3 (sw s3,32(sp) + li s3,1 at prologue; two lw s3,32(sp) at exit paths; move v0,s3 on success return) \u2014 that's the 3 extra instructions. My compiler optimizes this by materializing 'li s0,1' just before the success-path ~cReadBlock call (reusing s0 since pool is dead there) and 'move v0,s0' on return. Branch direction also flipped: expected uses bnez v0,success (branch on success, fall-through to fail cleanup); mine uses beqz v0,fail (branch to fail, fall-through on success). Tried 5 restructurings: (1) goto fail pattern like gcDoReturn::Read [176B], (2) passing result as the bool arg to cReadBlock ctor [176B], (3) nested if-if structure [176B], (4) if (cond && cond) return result; fail; return 0; [176-180B], (5) int ok=0; if(..)ok=..; if(ok)return result [184B \u2014 closest, but different register alloc]. Permuter couldn't run because the file has multiple functions (expects one). The pattern matches gcLoadingScreen::Read exactly (which DOES match). The only structural difference may be that gcLoadingScreen has code on the success path AFTER the gcLValue call (ReadGroups, handle.Read, field write), which keeps more registers live and may force s3 for the constant. For this simpler Read with nothing on the success path, the SNC -O2 optimizer chose a shorter codegen. Suggest: extract Read to its own .cpp file and run permuter; or try adding a dummy side-effect in success path (e.g., self-assign a field) that's then 'undone' by DCE \u2014 unlikely to work. Best remaining path: permuter on isolated file. This is a canonical SNC register-allocation divergence case."
+      },
+      {
+        "session": "12fd5220",
+        "notes": "category=CREADBLOCK_PROLOGUE_SCHED. I moved gcValCameraFollowEntity3rdVariable::Read into a split translation unit so the permuter/source could act on a single method instead of the larger already-matched class file. The split version now has the correct 188B size, keeps the result constant in s3, uses the expected bnez success shape, and the entire body from the cReadBlock version check through both destructor/return paths matches the expected instruction sequence.\n\nThe remaining mismatch is confined to the prologue scheduling/order around the cReadBlock constructor setup: expected interleaves sw/move for s0/s2/s1/s3 and delays the ra save, while local SNC emits the same saves/moves/constants in a different order. I tried default sched=2, explicit sched=1, and a fixed $19 result register; sched=1 made the prologue less close and default sched=2 left only the prologue-order blocker. This matches the known cReadBlock prologue scheduler divergence called out in the task guidance.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:40:39Z",
+        "src_file": "src/gcValCameraFollowEntity3rdVariable_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/12fd5220/00322254__agent_self_reported_failure__src_gcValCameraFollowEntity3rdVariable_Read.cpp"
       }
     ],
     "mangled_symbol": "__0figcValCameraFollowEntity3rdVariableEReadR6FcFileP6IcMemPool"
@@ -223584,7 +223604,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -237549,7 +237569,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
