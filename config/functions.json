@@ -66516,7 +66516,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -66526,7 +66526,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeReflectionTextureEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeReflectionTextureEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eReflectionTexture.cpp",
+    "symbol_name": "__0fSeReflectionTextureEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3f2714b3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:08:07Z"
   },
   {
     "address": "0x00084e50",
@@ -111814,6 +111822,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T09:12:40Z"
+      },
+      {
+        "session": "3f2714b3",
+        "notes": "Closest source remains the existing canonical gcCreatureControllerTemplate::Read implementation in src/gcCreatureControllerTemplate.cpp. It compiles to a 21/188 byte mismatch: the body, branch structure, destructor calls, cFile::SetCurrentPos path, and success return path match, but SNC emits `li s3, 0x1` immediately after the cReadBlock constructor call instead of in the expected prologue slot between `move s1, a1` and `move a0, sp`.\n\nI tested a new non-volatile inline-asm producer before constructing cReadBlock, which did move `li s3, 0x1` before the constructor but worsened the prologue to a 34-byte mismatch by changing the save/move interleaving. A non-volatile producer after cReadBlock returned to the same 21-byte mismatch as the restored volatile version. This is the documented cReadBlock prologue scheduler/LRA blocker rather than a missing C control-flow reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:08:07Z",
+        "src_file": "src/gcCreatureControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/3f2714b3/0013c978__agent_self_reported_failure__src_gcCreatureControllerTemplate.cpp"
       }
     ]
   },
@@ -118356,7 +118376,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -118377,6 +118397,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T11:46:22Z"
+      },
+      {
+        "session": "3e695a46",
+        "notes": "Added canonical C++ gcNPCFlyingControllerTemplate::Read in the class's own source file: cReadBlock(file, 2, true), version check for rb._pad[1] == 2, parent gcFlyingControllerTemplate::Read(file, pool), rewind on failure, success cFileSystem::Read(*(void **)rb.file, this+0x50, 4), destructor, and return of the pinned $19 result. All existing methods in src/gcNPCFlyingControllerTemplate.cpp still compare as matches.\n\nThe compare is the same known 21/208 near-match described by the prior session. The generated body from the tag load through the success cFileSystem::Read, destructor calls, and epilogues matches the target structure; the remaining bytes are localized to the cReadBlock constructor prologue scheduling. Expected stores s3 before move s1, hoists li s3,1 before the constructor call, and orders the setup as in the original binary, while the current compiler emits move s1/a0/a2 first, saves s3/ra immediately before the jal, and emits li s3,1 after the constructor. Prior notes already covered nested/combined if shapes, result initialization before/after cReadBlock, flag probes, and a 300s permuter run with zero improvement, so I did not repeat those searches.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:04:49Z",
+        "src_file": "src/gcNPCFlyingControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/3e695a46/00155084__agent_self_reported_failure__src_gcNPCFlyingControllerTemplate.cpp"
       }
     ]
   },
@@ -204812,7 +204844,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -220690,7 +220722,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -222665,7 +222697,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -222676,7 +222708,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasConstantsEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fXgcValEntityHasConstantsEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "3e695a46",
+        "notes": "Implemented canonical C++ gcValEntityHasConstants::Read in src/gcValEntityHasConstants.cpp: cReadBlock(file, 1, true), version check, gcValue::Read parent call, rewind on failure, desired-entity read dispatch through mType + 0x30, zero and Read of the cHandle at this+0x34 using cMemPool_GetPoolFromPtr. The generated success/failure body matches the target instruction-for-instruction after changing the handle clear to store through this+0x34 before forming the handle pointer.\n\nThe remaining mismatch is 22/280 bytes and is localized to the cReadBlock constructor prologue/result-register scheduling. Expected saves s3 before moving s1, hoists li s3,1 before the constructor call, and then calls cReadBlock; this SNC build emits move s1/a0/a2 first, saves s3/s4/ra immediately before the jal, and materializes li s3,1 after the constructor. Moving the result asm before cReadBlock worsened the diff to 35/280, so the best attempt is the canonical after-constructor result init. This matches the known Read/cReadBlock prologue scheduler divergence, not a body/control-flow issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:04:49Z",
+        "src_file": "src/gcValEntityHasConstants.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/3e695a46/0032fc10__agent_self_reported_failure__src_gcValEntityHasConstants.cpp"
+      }
+    ]
   },
   {
     "address": "0x0032fd28",

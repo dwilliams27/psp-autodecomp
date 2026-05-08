@@ -41,6 +41,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 struct AllocRec {
     short offset;
     short pad;
@@ -67,6 +81,7 @@ public:
     eVirtualTexture(cBase *);
     ~eVirtualTexture();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eReflectionTexture : public eVirtualTexture {
@@ -75,6 +90,7 @@ public:
     ~eReflectionTexture();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
@@ -124,6 +140,35 @@ void eReflectionTexture::Write(cFile &file) const {
     wb.Write(*(const float *)((const char *)this + 0x60));
     wb.Write(*(const unsigned int *)((const char *)this + 0x64));
     wb.End();
+}
+
+// ── eReflectionTexture::Read(cFile &, cMemPool *) @ 0x00084d38 ──
+int eReflectionTexture::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] < 3 &&
+        (unsigned int)rb._data[3] >= 1 &&
+        this->eVirtualTexture::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x50, 12);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x60, 4);
+    }
+    if ((unsigned int)rb._data[3] >= 2) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x64, 4);
+    }
+    return result;
 }
 
 // ── eReflectionTexture::~eReflectionTexture(void) @ 0x00084eb8 ──
