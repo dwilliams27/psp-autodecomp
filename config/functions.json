@@ -77100,7 +77100,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -77116,7 +77116,15 @@
         "session": "84f1832c",
         "notes": "Stuck at 21/232 bytes mismatch after permuter ran 11,760 candidates over 360s with zero further improvement. The mismatch is *entirely* in the prologue scheduling around offsets 0x18-0x34: same instructions (sw s1, sw s3, move s1=a1, li s3=1, move a0=sp, li a2=1, sw ra=36, jal cReadBlock, li a3=1) are emitted in a different order than the expected code. Expected interleaves saves with moves: sw s0 / sw s2 / move s0 / move s2 / sw s1 / sw s3 / move s1 / li s3,1 / move a0,sp / li a2,1 / sw ra / jal. Compiled groups them: sw s0 / sw s2 / move s0 / move s2 / sw s1 / move s1 / move a0,sp / li a2,1 / sw s3 / sw ra / jal / li a3 / li s3.\n\nThe entire body after the prologue (the gcNamedSet::Read call, the SetCurrentPos branch, the cArray<bool>::Read call, the vtable[0x38] virtual dispatch, the cReadBlock dtor calls, the epilogue with `move v0,s3`) is byte-exact identical including delay slots. Tried: (1) `__asm__(\"li %0,1\" : \"=r\"(result))` placed before vs after cReadBlock construction (after = best, 21B vs 34B), (2) `volatile int result = 1` (165B diff \u2014 too many spills), (3) restructuring the `||` short-circuit as goto (117B \u2014 broke control flow), (4) `((cFile *)rb._data[0])->SetCurrentPos(...)` instead of `file.SetCurrentPos(...)` (saved 6B), (5) permuter with --time 360 across all mutation strategies.\n\nRoot cause: SNC's instruction scheduler chooses a different prologue arrangement based on register live-range analysis we cannot influence from C source. Likely the same underlying bug as the still-unmatched gcEntityAttackSet::Read at 0x0010fad0, which has byte-identical expected output (modulo reloc targets) and the same source pattern. Solving one will likely solve both. NOT a bnel divergence \u2014 instructions are not branch-likely. Worth retrying when (a) a new permuter mutation is added that targets register hint annotations, or (b) someone investigates whether `-Xsched=1` or alternate compile flags are needed for this specific function."
       }
-    ]
+    ],
+    "src_file": "src/gcBoolSet.cpp",
+    "symbol_name": "__0fJgcBoolSetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d9360b7d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:08:30Z"
   },
   {
     "address": "0x000d50ac",
@@ -90290,7 +90298,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -90306,7 +90314,15 @@
         "session": "f07955d0",
         "notes": "Stuck at 20/232 byte diff after >900s of permuter (~12,500 candidates compiled across two runs, no improvement past 20). All 20 differing bytes are in the function PROLOGUE scheduling. Body matches (cReadBlock ctor \u2192 check rb._data[3]==1 \u2192 gcNamedSet::Read \u2192 branch on v0 \u2192 fail path: SetCurrentPos+~cReadBlock\u2192return 0 / success path: cArray<float>::Read+vtable[0x38] dispatch+~cReadBlock\u2192return 1). Register allocation is identical (s0=pool, s1=file ref, s2=this, s3=1). The ENCODING for `li s3,0x1` is correct (0x34130001 = ori, not 0x24130001 = addiu) thanks to inline `__asm__ volatile (\"ori %0,$0,1\" : \"=r\"(result));`. The remaining mismatch is purely instruction scheduling: expected interleaves prologue stores/moves as [sw s0,sw s2,move s0,move s2,sw s1,sw s3,move s1,li s3,move a0,li a2,sw ra,jal,li a3]. Mine emits [sw s0,sw s2,move s0,move s2,sw s1,move s1,move a0,li a2,sw s3,sw ra,jal,li a3,li s3]. SNC's scheduler decides differently where to place the s3 save/init relative to the cReadBlock ctor call \u2014 appears to need s3 init BEFORE the call (live across) but my source pattern (inline asm AFTER ctor) makes it init AFTER. Tried: inline asm BEFORE ctor (worse, 34B), reordering condition operands (worse, 166B), volatile/non-volatile, ori vs li mnemonics. Permuter found the current local minimum but cannot bridge the scheduling gap. Same exact pattern fails identically in matched-sibling src/gcBoolSet.cpp::Read (21/232 differ) \u2014 this is a recurring SNC prologue-scheduling artefact specific to the Read shape across the gc*Set family (gcBoolSet/gcFloatSet/gcStringSet all share it). Root cause hypothesis: the original source likely uses a particular construct (maybe `bool ok = true;` or a stateful local) that biases SNC to schedule the s3 init EARLIER, or possibly the original was compiled with a different -Xsched/-Xmopt combination just for this TU. Next agent: try (1) declaring result as `bool ok = true;` with `return ok ? 1 : 0;`, (2) reading rb._data[3] into a local before the if, (3) writing the `return rval;` path differently so s3 has a different live-range, (4) testing -Xsched=1 build for this single function. Do NOT classify as unmatchable_bnel \u2014 diff is >10 bytes and contains zero bnel/beql instructions."
       }
-    ]
+    ],
+    "src_file": "src/gcFloatSet.cpp",
+    "symbol_name": "__0fKgcFloatSetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d9360b7d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:08:30Z"
   },
   {
     "address": "0x000feb24",
@@ -116975,7 +116991,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -213906,7 +213922,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",

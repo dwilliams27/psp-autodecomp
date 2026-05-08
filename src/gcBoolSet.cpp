@@ -180,7 +180,7 @@ const cType *gcBoolSet::GetType(void) const {
 int gcBoolSet::Read(cFile &file, cMemPool *pool) {
     int result;
     cReadBlock rb(file, 1, true);
-    __asm__("li %0,1" : "=r"(result));
+    __asm__ volatile ("ori %0,$0,1" : "=r"(result));
     if (rb._data[3] != 1 || gcNamedSet::Read(file, pool) == 0) {
         ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
         return 0;
