@@ -7,8 +7,15 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -60,12 +67,14 @@ public:
     void *mVTable;       // 0x04
     unsigned int mNext;  // 0x08
     gcAction(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 class gcDesiredValue {
 public:
     unsigned int mValue;  // 0x00, 4 bytes total
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -79,12 +88,16 @@ public:
     const cType *GetType(void) const;
     ~gcDoPhysicsOp(void);
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 extern char gcDoPhysicsOpvirtualtable[];   // @ 0x43B8
 void *cMemPool_GetPoolFromPtr(const void *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 
@@ -116,6 +129,22 @@ void gcDoPhysicsOp::Write(cFile &file) const {
     wb.Write((int)mFieldC);
     mDesired.Write(wb);
     wb.End();
+}
+
+// -- gcDoPhysicsOp::Read @ 0x002ec644 --
+int gcDoPhysicsOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcAction *)this)->gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0xC, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcDoPhysicsOp::New @ 0x002ec434 ──
