@@ -150,13 +150,13 @@ void gcDoBreak::Write(cFile &file) const {
 
 // 0x0029454c, 188B
 int gcDoBreak::Read(cFile &file, cMemPool *pool) {
-    register int ok = 1;
-    int one = 1;
+    register int ok __asm__("$19");
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != one || !gcAction::Read(file, pool)) {
-        ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
-        return 0;
-    }
+    __asm__ volatile("ori %0, $0, 1" : "=r"(ok));
+    if ((unsigned int)rb._data[3] == 1 && this->gcAction::Read(file, pool)) goto success;
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+success:
     return ok;
 }
 

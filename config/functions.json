@@ -112718,7 +112718,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -116253,7 +116253,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -183103,7 +183103,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -183122,7 +183122,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T23:31:45Z"
       }
-    ]
+    ],
+    "src_file": "src/gcEventString.cpp",
+    "symbol_name": "__0fNgcEventStringEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2c65a5bc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:25:05Z"
   },
   {
     "address": "0x0027be88",
@@ -191239,7 +191247,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -191254,7 +191262,15 @@
         "session": "5b830c69",
         "notes": "Reconstructed the method as canonical C++ using cReadBlock rb(file, 1, true), gcAction::Read(file, pool), reset via cFile::SetCurrentPos, and RAII destruction. I tried success-first and failure-first control flow, plain locals, register locals, separate self/file/pool temporaries, a dedicated register result, volatile result storage, and a no-op asm liveness barrier. The best result is a 188-byte function with 66 bytes differing; the prologue and RAII setup match, but SNC compares rb._data[3] against s3 instead of loading 1 into a1, fills the gcAction::Read success branch delay slot with li s0,1 instead of move a0,sp, and returns via s0 instead of s3. Using literal 1 fixes the compare register but collapses the function to 176 bytes by dropping s3 entirely.\n\nThis looks like the known cReadBlock RAII li-hoisting/success-return scheduling problem documented in docs/research_todos.md and the overnight postmortem: equivalent source tends to schedule the result constant into the wrong branch delay slot or eliminate the extra saved register. The likely root cause is an original source idiom or compiler-version scheduling heuristic that keeps the result value live in s3 while still materializing a separate literal 1 in a1 for the block-version compare."
       }
-    ]
+    ],
+    "src_file": "src/gcDoBreak.cpp",
+    "symbol_name": "__0fJgcDoBreakEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2c65a5bc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:25:05Z"
   },
   {
     "address": "0x00294608",
