@@ -3201,7 +3201,7 @@ def main():
     # Pre-flight green-build gate — don't sink 8 hours of Claude tokens
     # into sessions whose target classes inherit broken source. See
     # enhancements #8.
-    if not args.dry_run:
+    if not args.dry_run and os.environ.get("SKIP_TREE_PREFLIGHT") != "1":
         log("Pre-flight: verifying the tree compiles cleanly...")
         try:
             verify_tree_compiles()
