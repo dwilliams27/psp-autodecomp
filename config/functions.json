@@ -39073,7 +39073,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -39084,7 +39084,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeStaticModelEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMeStaticModelEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b6adf65a",
+        "notes": "Closest attempt is the sched=1 split TU and matches the function body layout, including the version range checks, four 0xC reads, the branch-likely optional 0x98 read, fail block placement, destructor calls, and return paths. The remaining 31-byte mismatch is isolated to the entry/cReadBlock prologue before the constructor call: the original interleaves saves and argument moves as sw s0, sw s2, move s0, move s2, sw s1, sw s3, move s1, while this split TU emits the normal clustered save/move schedule.\n\nTried default transition-zone scheduling, an explicit sched=1 variant, dependency-only empty asm constraints, explicit gotos for the optional field, and a canonical eStaticModel.cpp TU test. The canonical TU test still had only the prologue mismatch for Read and perturbed already matched sibling code, so it was backed out. This appears to be the documented cReadBlock prologue scheduler/context blocker rather than a remaining body-structure issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:31:19Z",
+        "src_file": "src/eStaticModel_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/b6adf65a/00041b94__agent_self_reported_failure__src_eStaticModel_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00041ce4",
@@ -67354,7 +67368,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -67368,7 +67382,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeSilhouetteModelMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTeSilhouetteModelMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSilhouetteModelMtl_Read.cpp",
+    "symbol_name": "__0fTeSilhouetteModelMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b6adf65a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:31:19Z"
   },
   {
     "address": "0x00086f34",
@@ -67851,7 +67873,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -68065,7 +68087,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
