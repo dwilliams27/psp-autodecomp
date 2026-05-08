@@ -29143,7 +29143,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -29175,6 +29175,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:06:55Z"
+      },
+      {
+        "session": "af164108",
+        "notes": "Implemented eShape::Read(cFile &, cMemPool *) in a dedicated split TU with a minimal local eShape declaration, cReadBlock at sp, result forced live in s1 via inline asm, cName::Read at this+0x54, and the six cFileSystem::Read calls at offsets +0x6C, +0x70, +0x40, +0x10, +0x20, and +0x30. compare_func reports 14/268 bytes differing; objdump shows the body is byte-identical after constructor setup.\n\nThe remaining difference is exactly the known cReadBlock prologue scheduler divergence: our compiler emits sw ra,28(sp) at function offset 0x10 before li s1/move a0/li a2, while expected delays sw ra,28(sp) until offset 0x1c immediately before the jal to cReadBlock::cReadBlock. Prior attempts already tried plain result initialization, register binding, and sched=1; this split-TU attempt reproduced the same prologue-only mismatch, so the root cause is the documented compiler scheduler issue rather than source structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:24:09Z",
+        "src_file": "src/eShape_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/af164108/0002b820__agent_self_reported_failure__src_eShape_Read.cpp"
       }
     ]
   },
@@ -104044,7 +104056,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104067,7 +104079,15 @@
       "0x00291d80"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcStringValueEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcStringValueEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcStringValue.cpp",
+    "symbol_name": "__0fNgcStringValueEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "af164108",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:24:09Z"
   },
   {
     "address": "0x00128d0c",
@@ -115637,7 +115657,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -116482,7 +116502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",

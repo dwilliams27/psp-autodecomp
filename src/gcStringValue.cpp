@@ -1,4 +1,9 @@
 class cFile;
+class cMemPool;
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcStringTable;
 class gcString;
@@ -36,6 +41,7 @@ extern "C" {
 class gcStringValue {
 public:
     void Get(cHandlePairT<gcStringTable, cSubHandleT<gcString> > *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -68,6 +74,19 @@ void gcStringValue::Get(cHandlePairT<gcStringTable, cSubHandleT<gcString> > *out
 void gcStringValue::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.End();
+}
+
+int gcStringValue::Read(cFile &file, cMemPool *) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcTableColumn::Write(cFile &file) const {
