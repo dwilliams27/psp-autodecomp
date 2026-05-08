@@ -23,12 +23,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class gcStateHandlerBase {
 public:
     gcStateHandlerBase(cBase *);
     ~gcStateHandlerBase();
     static cBase *New(cMemPool *, cBase *);
     gcStateHandlerBase &operator=(const gcStateHandlerBase &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -72,7 +82,18 @@ public:
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *other);
+    int Read(cFile &file, cMemPool *pool);
     void Write(cFile &file) const;
+};
+
+class gcBipedController {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class gcPCBipedController : public gcBipedController {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 extern char gcStateHandlervirtualtable[];
@@ -109,6 +130,32 @@ void gcStateHandler::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     ((const gcStateHandlerBase *)this)->Write(file);
     wb.End();
+}
+
+// 0x0010a97c, 188B
+int gcStateHandler::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((gcStateHandlerBase *)this)->gcStateHandlerBase::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+// 0x001527a0, 188B
+int gcPCBipedController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((gcBipedController *)this)->gcBipedController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // 0x002582cc, 228B
