@@ -8,6 +8,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 class gcUITextControl;
@@ -22,6 +23,20 @@ public:
     void End(void);
 };
 
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cHandle {
 public:
     int mId;
@@ -35,6 +50,7 @@ struct gcDesiredUIWidgetHelper {
     void GetText(char *) const;
     gcUITextControl *GetWidget(const cType *, bool) const;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -72,6 +88,7 @@ public:
 class gcStringLValue : public gcStringValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcUIControl {
@@ -111,6 +128,7 @@ public:
     void Set(const wchar_t *) const;
     void Set(const gcStringValue *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcUIControlString();
 
@@ -173,6 +191,23 @@ void gcUIControlString::Write(cFile &file) const {
     wb.Write(mField14);
     wb.Write(mField18);
     wb.End();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcUIControlString::Read(cFile &, cMemPool *)  @ 0x0028f658, 240B
+// ─────────────────────────────────────────────────────────────────────────
+int gcUIControlString::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 2 && this->gcStringLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mHelper.Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], &mField14, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], &mField18, 4);
+    return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

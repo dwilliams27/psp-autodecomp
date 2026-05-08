@@ -63380,7 +63380,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -65805,7 +65805,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -68347,7 +68347,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -68360,7 +68360,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZeStandardWeatherEffectMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZeStandardWeatherEffectMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eStandardWeatherEffectMtl_Read.cpp",
+    "symbol_name": "__0fZeStandardWeatherEffectMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f1f464c8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:40:21Z"
   },
   {
     "address": "0x0008a3b8",
@@ -190659,7 +190667,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -190670,7 +190678,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcUIControlStringEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fRgcUIControlStringEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "f1f464c8",
+        "notes": "The reconstructed body matches the target after the cReadBlock constructor setup: parent gcStringLValue::Read, helper Read at +0x08, two cFileSystem::Read calls into +0x14/+0x18, destructor, and return path all line up. Existing matched siblings in src/gcUIControlString.cpp still compare cleanly after adding the method declarations and Read body.\n\nThe remaining 21-byte diff is confined to the known cReadBlock prologue scheduler window before/around the constructor call. I tried a split TU, fixed the local base layout so offsets matched, bound the result to $s3, and then moved the method into the existing gcUIControlString.cpp context; both closest attempts keep the same body and differ only in the save/move/li scheduling before the first cReadBlock constructor call. This matches the documented Read/cReadBlock prologue blocker and likely needs the compiler scheduler patch rather than more source reshaping.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:40:21Z",
+        "src_file": "src/gcUIControlString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/f1f464c8/0028f658__agent_self_reported_failure__src_gcUIControlString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028f748",
