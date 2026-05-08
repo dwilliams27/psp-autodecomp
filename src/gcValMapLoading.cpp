@@ -1,8 +1,10 @@
 #include "cBase.h"
 
 class cFile;
+class cFileHandle;
 class cMemPool;
 class gcValMapLoading;
+class cReadBlock;
 class cType;
 
 class cWriteBlock {
@@ -12,6 +14,11 @@ public:
     void Write(int);
     void Write(bool);
     void End(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
 };
 
 extern char gcValMapLoadingvirtualtable[];
@@ -27,6 +34,10 @@ template <class T> T *dcast(const cBase *);
 void gcValue_Write(const gcValMapLoading *, cFile &);
 void *cMemPool_GetPoolFromPtr(void *);
 void cStrAppend(char *, const char *, ...);
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -57,6 +68,12 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class gcValue {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 class cType {
@@ -107,6 +124,24 @@ void gcValMapLoading::Write(cFile &file) const {
     wb.Write(this->mField);
     wb.Write(this->mFlag);
     wb.End();
+}
+
+int gcValMapLoading::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    char flag;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcValue *)this)->gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 8, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], &flag, 1);
+    *((unsigned char *)this + 0x0C) = flag != 0;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // -----------------------------------------------------------------------------

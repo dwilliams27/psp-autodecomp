@@ -9,6 +9,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -28,9 +29,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class gcDesiredValue {
 public:
     unsigned int mField0;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -47,6 +61,7 @@ public:
     unsigned int mNext;       // 0x08
 
     gcAction(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -86,6 +101,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoPlayerAssignController &operator=(const gcDoPlayerAssignController &);
 };
@@ -98,6 +114,9 @@ struct GetTextSlot {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
@@ -208,6 +227,26 @@ void gcDoPlayerAssignController::Write(cFile &file) const {
     mDesired1.Write(wb);
     mDesired2.Write(wb);
     wb.End();
+}
+
+int gcDoPlayerAssignController::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+    if ((unsigned int)rb[3] == 5 &&
+        ((gcAction *)this)->gcAction::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    {
+        cFileHandle *h = *(cFileHandle **)rb[0];
+        cFileSystem::Read(h, (char *)this + 0x0C, 4);
+    }
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoPlayerAssignController::GetText(char *buf) const {
