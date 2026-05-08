@@ -94909,7 +94909,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -94925,7 +94925,15 @@
         "session": "0ef3e132",
         "notes": "Implemented the cReadBlock guarded read, failure seek-back, cBaseArray::Read, and the vtable callback at slot +0x38. Fixing cReadBlock to a 20-byte local object aligned the callee-save area with the target, but the clean C++ version is still 220B instead of 232B because SNC does not keep the success return value in s3.\n\nA forced s3 experiment with a one-instruction inline asm made the function 232B and structurally closer, but still differed in about 40 bytes because the prologue/save order and early li scheduling shifted relative to the target. I removed that experiment from the final source. The next retry should search for a pure C++ way to make the constant success result live in s3 from before the cReadBlock constructor through the success epilogue while preserving the target save order: s0, s2, moves, s1, s3, li s3, then the constructor call."
       }
-    ]
+    ],
+    "src_file": "src/gcEntityAnimationConfigSet.cpp",
+    "symbol_name": "__0fagcEntityAnimationConfigSetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d39782ad",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:42:13Z"
   },
   {
     "address": "0x0010e3b0",
@@ -95547,7 +95555,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -107359,7 +107367,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -229858,7 +229866,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -229878,7 +229886,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T19:14:44Z"
       }
-    ]
+    ],
+    "src_file": "src/gcValLobbySessionStatus.cpp",
+    "symbol_name": "__0fXgcValLobbySessionStatusEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d39782ad",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:42:13Z"
   },
   {
     "address": "0x0034e7c4",

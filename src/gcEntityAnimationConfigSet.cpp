@@ -11,6 +11,7 @@ class cFile {
 public:
     void SetCurrentPos(unsigned int);
 };
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -259,10 +260,11 @@ const cType *gcEntityAnimationConfigSet::GetType(void) const {
 // 0x0010e2c8 — Read(cFile &, cMemPool *)
 // ============================================================
 int gcEntityAnimationConfigSet::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    register int result __asm__("$19");
     cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     if (rb._data[3] != 1 || gcNamedSet::Read(file, pool) == 0) {
-        file.SetCurrentPos(rb._data[1]);
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
         return 0;
     }
     mArray.Read(&rb);
