@@ -330,6 +330,9 @@ Opt-in compiler plumbing:
 - `make USE_READ_PROLOGUE_PSPCOR=1 <target>` uses
   `extern/snc-read-prologue/pspsnc.exe`; `pspsnc.exe` then resolves its child
   tools from the copied directory, including the copied `pspcor.exe`.
+- `tools/run_overnight.sh --read-prologue-compiler ...` prepares the patched
+  compiler, runs the pre-flight verifier under `USE_READ_PROLOGUE_PSPCOR=1`,
+  and carries that environment into the sandboxed orchestrator command.
 - The research harness now respects `SNC_DIR=...` for direct compile probes, so
   stock and patched compilers can be compared from the same harness.
 - The patcher has PE support for adding a new executable section and
@@ -488,6 +491,8 @@ Milestone 4:
 5. Add build integration after successful one-function validation.
    - Done: `make prepare-read-prologue-compiler` creates the patched copy.
    - Done: `USE_READ_PROLOGUE_PSPCOR=1` explicitly selects the patched copy.
+   - Done: `tools/run_overnight.sh --read-prologue-compiler` carries the
+     opt-in through pre-flight verification and the sandboxed orchestrator.
    - Stock compiler remains the default path.
 
 ## Risks
@@ -608,3 +613,6 @@ Milestone 4:
   `USE_READ_PROLOGUE_PSPCOR=1 python3 tools/verify_matches.py`. Result:
   `4444/4444` byte-exact verified, with zero problems, compile failures, or
   tooling errors.
+- 2026-05-07: Added `tools/run_overnight.sh --read-prologue-compiler` so
+  targeted matching runs can explicitly opt into the patched compiler without
+  relying on caller environment leaking through sudo/login-shell boundaries.

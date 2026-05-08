@@ -15,6 +15,8 @@
 #   ./tools/run_overnight.sh --hours 8 --backend claude,codex --paired-reserve 50
 #                                                             # Mode C: 50 functions reserved for shootout
 #   ./tools/run_overnight.sh --allow-drift --hours 8          # loud override for known DB byte drift
+#   ./tools/run_overnight.sh --read-prologue-compiler --hours 8
+#                                                             # opt into the generated pspcor Read-prologue compiler
 #
 # Auth: --backend claude uses the autodecomp user's Keychain (unlocked below).
 #       --backend codex uses the autodecomp user's ~/.codex/auth.json
@@ -29,6 +31,7 @@ SANDBOX_USER="autodecomp"
 # Check wrapper-only flags before passing the rest to the orchestrator.
 DRY_RUN=false
 ALLOW_DRIFT=false
+READ_PROLOGUE_COMPILER=false
 ORCH_ARGS=()
 for arg in "$@"; do
     case "$arg" in
@@ -38,6 +41,9 @@ for arg in "$@"; do
             ;;
         --allow-drift)
             ALLOW_DRIFT=true
+            ;;
+        --read-prologue-compiler)
+            READ_PROLOGUE_COMPILER=true
             ;;
         *)
             ORCH_ARGS+=("$arg")
@@ -50,6 +56,12 @@ done
 cd "$REPO_DIR"
 mkdir -p "$REPO_DIR/build/src"
 chmod a+rwx "$REPO_DIR/build/src" 2>/dev/null || true
+if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
+    echo "Pre-flight: preparing opt-in Read-prologue compiler..."
+    make prepare-read-prologue-compiler
+    export USE_READ_PROLOGUE_PSPCOR=1
+    echo ""
+fi
 if [[ "$ALLOW_DRIFT" == "true" ]]; then
     echo "WARNING: --allow-drift set; skipping verify_matches pre-flight."
     echo "This run may inherit already-broken matched DB entries."
@@ -92,6 +104,9 @@ fi
 echo "=== Overnight Matching Run ==="
 echo "Repo: $REPO_DIR"
 echo "User: $SANDBOX_USER"
+if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
+    echo "Compiler: extern/snc-read-prologue (opt-in)"
+fi
 echo "Args: ${ORCH_ARGS[*]}"
 echo ""
 
@@ -142,7 +157,11 @@ echo ""
 # Embed shell-quoted absolute paths directly in the command string. On macOS,
 # `sudo -i ... bash -c script arg...` does not reliably preserve positional
 # args after the login-shell boundary, so do not depend on `$1` for REPO_DIR.
-ORCH_CMD="umask 0002 && cd $(printf '%q' "$REPO_DIR") && python3 $(printf '%q' "$REPO_DIR/tools/orchestrator.py")"
+ORCH_CMD="umask 0002 && cd $(printf '%q' "$REPO_DIR") && "
+if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
+    ORCH_CMD+="USE_READ_PROLOGUE_PSPCOR=1 "
+fi
+ORCH_CMD+="python3 $(printf '%q' "$REPO_DIR/tools/orchestrator.py")"
 for arg in "${ORCH_ARGS[@]}"; do
     ORCH_CMD+=" $(printf '%q' "$arg")"
 done
