@@ -34,6 +34,18 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -44,11 +56,13 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eRoomSetGroup : public cGroup {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -92,6 +106,20 @@ void eRoomSetGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eRoomSetGroup::Read(cFile &, cMemPool *) @ 0x0001B00C ──
+int eRoomSetGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eRoomSetGroup::New(cMemPool *, cBase *) static @ 0x001DEA84 ──
