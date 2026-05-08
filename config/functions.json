@@ -16252,7 +16252,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -21017,7 +21017,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -21163,7 +21163,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -21327,7 +21327,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -95444,7 +95444,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -95465,7 +95465,15 @@
         "session": "98228c12",
         "notes": "Implemented the normal cReadBlock RAII shape with cNamed::Read and cFile::SetCurrentPos. The generated code is semantically right but 176 bytes instead of the expected 188 bytes: SNC keeps the result value in s0 after the cNamed::Read call, while expected uses s3, saving/restoring s3 and hoisting li s3,1 into the prologue before the cReadBlock constructor. I tried a fixed register declaration for the result and an empty asm clobber to force s3, but SNC still reused s0 or only changed unrelated prologue ordering.\n\nThis matches the repo-documented cReadBlock Read hoisting issue in docs/research_todos.md and the postmortem: expected has li s3,1 early so the success branch delay slot can stage the cReadBlock destructor call, while our compiler shape puts li s0,1 in the bnez delay slot. A follow-up should focus specifically on making pool stay live across the success destructor or discovering the original Read macro/RAII idiom that forces a distinct result register."
       }
-    ]
+    ],
+    "src_file": "src/gcEntityController.cpp",
+    "symbol_name": "__0fSgcEntityControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "103ff218",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T02:46:16Z"
   },
   {
     "address": "0x001108c0",
@@ -113237,7 +113245,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -113258,7 +113266,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T09:55:34Z"
       }
-    ]
+    ],
+    "src_file": "src/gcLookAtController.cpp",
+    "symbol_name": "__0fSgcLookAtControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "103ff218",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T02:46:16Z"
   },
   {
     "address": "0x001470a4",
