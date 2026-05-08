@@ -16,11 +16,19 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cBaseArray {
 public:
     int mCount;
     cBase *mOwner;
     cBaseArray &operator=(const cBaseArray &);
+    void SetSize(int);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -46,6 +54,8 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+inline void *operator new(unsigned int, void *p) { return p; }
+
 // Inheritance chain (single-inheritance ABI: derived-this == base-this).
 class ePhysicsControllerTemplate {
 public:
@@ -58,6 +68,7 @@ public:
     char _pad[0x8];
     eSimulatedControllerTemplate(cBase *);
     ~eSimulatedControllerTemplate();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -72,6 +83,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -115,6 +127,11 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class eRigidBodyControllerConfig {
+public:
+    eRigidBodyControllerConfig(cBase *);
+};
+
 extern cType *D_000385DC;
 extern cType *D_000469D8;
 extern cType *D_000469F4;
@@ -122,6 +139,7 @@ extern cType *D_00046BD4;
 extern cType *D_00046C08;
 extern cType *D_00046C04;
 extern cType *D_00046C10;
+void cFile_SetCurrentPos(void *, unsigned int);
 
 // ── eRigidBodyControllerTemplate::eRigidBodyControllerTemplate(cBase *) @ 0x00077288 ──
 eRigidBodyControllerTemplate::eRigidBodyControllerTemplate(cBase *b)
@@ -152,6 +170,48 @@ void eRigidBodyControllerTemplate::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
     ((const eSimulatedControllerTemplate *)this)->Write(file);
     wb.End();
+}
+#pragma control sched=2
+
+// ── eRigidBodyControllerTemplate::Read(cFile &, cMemPool *) @ 0x00077144 ──
+#pragma control sched=1
+int eRigidBodyControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    unsigned int version = (unsigned int)rb._data[3];
+
+    if (version >= 3 || version < 1) goto fail;
+    if (version == 1) goto read_v1;
+    goto read_parent;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read_v1:
+    ((cBaseArray *)((char *)this + 8))->SetSize(1);
+    {
+        eRigidBodyControllerConfig *created = 0;
+        __asm__ volatile("" ::: "memory");
+        void *block = ((void **)pool)[9];
+        char *allocTable = *(char **)((char *)block + 0x1C);
+        AllocRecord *rec = (AllocRecord *)(allocTable + 0x28);
+        short off = rec->offset;
+        void *base = (char *)block + off;
+        __asm__ volatile("" ::: "memory");
+        eRigidBodyControllerConfig *obj =
+            (eRigidBodyControllerConfig *)rec->fn(base, 0x60, 0x10, 0, 0);
+        if (obj != 0) {
+            obj = new (obj) eRigidBodyControllerConfig((cBase *)this);
+            created = obj;
+        }
+        **(eRigidBodyControllerConfig ***)((char *)this + 8) = created;
+    }
+
+read_parent:
+    ((eSimulatedControllerTemplate *)this)->Read(file, pool);
+    return result;
 }
 #pragma control sched=2
 

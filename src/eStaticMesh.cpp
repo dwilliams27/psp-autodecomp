@@ -46,6 +46,7 @@ public:
 class eMesh {
 public:
     ~eMesh();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -54,6 +55,7 @@ public:
     int _data[5];
     cReadBlock(cFile &, unsigned int, bool);
     ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 class cMemBlockSuspend {
@@ -100,6 +102,7 @@ public:
     void Free(void);
     const cType *GetType(void) const;
     void PlatformRead(cFile &, cMemPool *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -238,7 +241,15 @@ const cType *eStaticMesh::GetType(void) const {
 class eStaticMeshVisLOD {
 public:
     char _pad[0x14];
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
+};
+
+template <class T>
+class cArray {
+public:
+    T *mData;
+    void Read(cReadBlock &);
 };
 
 void eStaticMesh::Write(cFile &file) const {
@@ -276,6 +287,43 @@ void eStaticMesh::Write(cFile &file) const {
     wb.WriteBase(*(cBase *const *)((char *)this + 0x64));
     wb.End();
 }
+
+// ── eStaticMesh::Read(cFile &, cMemPool *) @ 0x00044628 ──
+#pragma control sched=1
+int eStaticMesh::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 6, true);
+    unsigned int version = (unsigned int)rb._data[3];
+
+    if (version >= 7 || version < 4) goto fail;
+    if (((eMesh *)this)->Read(file, pool) == 0) goto fail;
+
+    Free();
+    ((cArray<eStaticMeshVisLOD> *)((char *)this + 0x5C))->Read(rb);
+    if ((unsigned int)rb._data[3] >= 5) goto read_base;
+    goto platform_read;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read_base:
+    {
+        cMemBlockSuspend suspend(pool);
+        cBase *base = *(cBase **)((char *)this + 0x64);
+        rb.ReadBase(pool, (cBase *)this, base);
+        *(cBase **)((char *)this + 0x64) = base;
+    }
+
+platform_read:
+    PlatformRead(file, pool);
+    if ((unsigned int)rb._data[3] < 5) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    }
+    return result;
+}
+#pragma control sched=2
 
 // ── eStaticMesh::PlatformRead(cFile &, cMemPool *) @ 0x00044790 ──
 void eStaticMesh::PlatformRead(cFile &file, cMemPool *pool) {
