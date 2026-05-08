@@ -1,10 +1,30 @@
 #pragma control sched=1
 
 #include "cBase.h"
-#include "cMemPool.h"
 #include "cObject.h"
 
 class cFile;
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cNamed {
 public:
     static cBase *New(cMemPool *, cBase *);
@@ -37,6 +57,7 @@ class cHandle {
 public:
     int mIndex;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 template <class T>
@@ -50,12 +71,14 @@ class cArrayBase {
 public:
     void *mData;
     cArrayBase &operator=(const cArrayBase &);
+    void Read(cReadBlock &);
 };
 
 class eMaterial;
 class eDynamicGeomTemplate {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct WordCopy {
@@ -68,6 +91,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -259,6 +283,56 @@ void eShadowTemplate::Write(cFile &file) const {
     wb.Write(*(const float *)((const char *)this + 0x5C));
     wb.Write(*(const float *)((const char *)this + 0x60));
     wb.End();
+}
+
+int eShadowTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 5, true);
+    if ((unsigned int)rb._data[3] != 5) goto fail;
+    if (((eDynamicGeomTemplate *)this)->Read(file, pool)) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    {
+        char flag;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x48) = flag != 0;
+    }
+    *(int *)((char *)this + 0x4C) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x4C);
+        cMemPool *handlePool = cMemPool::GetPoolFromPtr(h);
+        h->Read(rb, handlePool);
+    }
+    *(int *)((char *)this + 0x50) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x50);
+        cMemPool *handlePool = cMemPool::GetPoolFromPtr(h);
+        h->Read(rb, handlePool);
+    }
+    ((cArrayBase<cHandleT<eMaterial> > *)((char *)this + 0x54))->Read(rb);
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x58, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x5C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x60, 4);
+    }
+    return result;
 }
 
 #pragma control sched=2

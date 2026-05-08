@@ -2,8 +2,10 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+class cWriteBlock;
 
 class cType {
 public:
@@ -34,12 +36,33 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cObject {
 public:
     char _pad[0x44];
     cObject(cBase *);
     ~cObject();
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -49,6 +72,7 @@ public:
     ~eRoomEnvironment();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -86,11 +110,6 @@ public:
     void End(void);
 };
 
-class cHandle {
-public:
-    void Write(cWriteBlock &) const;
-};
-
 struct CopyWord {
     int value;
     CopyWord &operator=(const CopyWord &rhs) { value = rhs.value; return *this; }
@@ -110,6 +129,62 @@ void eRoomEnvironment::Write(cFile &file) const {
     wb.Write(*(const bool *)((const char *)this + 0x5C));
     wb.Write(*(const int *)((const char *)this + 0x44));
     wb.End();
+}
+
+// eRoomEnvironment::Read(cFile &, cMemPool *) @ 0x0005c6e8
+int eRoomEnvironment::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] != 2) goto fail;
+    if (((cObject *)this)->Read(file, pool)) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    {
+        char flag;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x48) = flag != 0;
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x4C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x50, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x54, 4);
+    }
+    *(int *)((char *)this + 0x58) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x58);
+        cMemPool *handlePool = cMemPool::GetPoolFromPtr(h);
+        h->Read(rb, handlePool);
+    }
+    {
+        char flag;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x5C) = flag != 0;
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x44, 4);
+    }
+    return result;
 }
 
 // eRoomEnvironment::eRoomEnvironment(cBase *) @ 0x0005c854
