@@ -7,6 +7,16 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class cFileHandle;
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cNamed {
 public:
@@ -32,10 +42,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cHandle {
 public:
     int mIndex;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class cObject {
@@ -49,6 +67,17 @@ public:
 class eDynamicGeomTemplate {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class gcDesiredEnumerationEntryHelper {
+public:
+    void ReadHandle(cReadBlock &, unsigned int);
+};
+
+class gcDesiredValue {
+public:
+    void Read(cReadBlock &);
 };
 
 class eGeomCurve {
@@ -104,6 +133,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -117,6 +147,11 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(target, p);
     }
+};
+
+class gcDesiredEnumerationEntry {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 extern char eGeomTemplatevirtualtable[];
@@ -301,6 +336,111 @@ void eGeomCurveTemplate::Write(cFile &file) const {
     wb.End();
 }
 #pragma control sched=2
+
+// eGeomCurveTemplate::Read(cFile &, cMemPool *) @ 0x00077d1c
+#pragma control sched=1
+int eGeomCurveTemplate::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+
+    if ((unsigned int)rb[3] >= 4) goto fail;
+    if ((unsigned int)rb[3] < 1) goto fail;
+    if (((eDynamicGeomTemplate *)this)->Read(file, pool)) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+success:
+    *(int *)((char *)this + 0x48) = 0;
+    __asm__ volatile("" ::: "memory");
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x48);
+        h->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(h));
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x4C, 4);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x50, 4);
+    }
+    {
+        char flag;
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x54) = flag != 0;
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x5C, 4);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x60, 4);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x64, 4);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x68, 4);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x6C, 4);
+    }
+
+    if ((unsigned int)rb[3] >= 2) {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x58, 4);
+    } else {
+        if (*(unsigned char *)((char *)this + 0x54) != 0) {
+            *(float *)((char *)this + 0x58) =
+                (float)*(int *)((char *)this + 0x4C);
+        }
+    }
+
+    if ((unsigned int)rb[3] >= 3) {
+        char flag;
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x70) = flag != 0;
+        h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x74, 4);
+        h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x78, 4);
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+#pragma control sched=2
+
+// gcDesiredEnumerationEntry::Read(cFile &, cMemPool *) @ 0x0010eb18
+int gcDesiredEnumerationEntry::Read(cFile &file, cMemPool *) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+
+    if ((unsigned int)rb[3] >= 6) goto fail;
+    if ((unsigned int)rb[3] >= 3) goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+success:
+    ((gcDesiredEnumerationEntryHelper *)((char *)this + 8))->ReadHandle(*(cReadBlock *)rb, 5);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
 
 // eGeomCurveTemplate::~eGeomCurveTemplate(void) @ 0x00210ae8
 #pragma control sched=1

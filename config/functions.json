@@ -49187,7 +49187,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -61965,7 +61965,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -61977,7 +61977,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeGeomCurveTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeGeomCurveTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "277378b4",
+        "notes": "Implemented the full Read body with explicit cReadBlock construction/destruction, parent eDynamicGeomTemplate::Read gating, handle read at +0x48, scalar reads through +0x78, v1 fallback for +0x58, and v3 gated tail fields. The best source compiles with the same control flow, calls, stack frame, branch-likely parent failure shape, and field offsets, while all previously matched eGeomCurveTemplate methods remain matched. compare_func reports 180/556 bytes different; inspection shows the dominant issue is a callee-save register allocation permutation across the function (compiled keeps pool/file/this/result in s0/s1/s2/s3, while expected uses this/result/pool/file in s0/s1/s2/s3 and later reuses the expected pool register for the handle pointer). I tried automatic cReadBlock, explicit int rb[5], fail/success physical block reordering, cFileSystem::Read return-type adjustment, declaration reordering, and hard register-variable attempts with asm(\"sN\"). Hard register attempts made the permutation worse. A bounded permuter run was attempted but the tool could not locate the target in this multi-function compiled object, so no permuter result was available. Root cause is likely SNC context-dependent register allocation drift from compiling this reconstructed single/class TU instead of the original large eAll TU, plus a small v1 fallback scheduling difference after the converted float store.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:10:40Z",
+        "src_file": "src/eGeomCurveTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/277378b4/00077d1c__agent_self_reported_failure__src_eGeomCurveTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00077f48",
@@ -96013,7 +96027,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -96023,7 +96037,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcDesiredEnumerationEntryEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcDesiredEnumerationEntryEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eGeomCurveTemplate.cpp",
+    "symbol_name": "__0fZgcDesiredEnumerationEntryEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "277378b4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:10:40Z"
   },
   {
     "address": "0x0010ebc4",
@@ -104461,7 +104483,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
