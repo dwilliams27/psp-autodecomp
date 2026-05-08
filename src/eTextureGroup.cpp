@@ -44,12 +44,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cGroup {
 public:
     char _pad[8];
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eTextureGroup : public cGroup {
@@ -64,6 +72,7 @@ public:
     const char *GetDataDirectory(void) const;
     const char *GetFileExtension(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
     void AssignCopy(const class cBase *);
@@ -141,6 +150,8 @@ extern cType *D_00040C94;
 extern cType *D_00040E18;
 extern cType *D_00040FE8;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 void eTextureGroup::AssignCopy(const cBase *base) {
     eTextureGroup *src = dcast<eTextureGroup>(base);
     mFlag = src->mFlag;
@@ -156,6 +167,18 @@ void eTextureGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eTextureGroup::Read(cFile &, cMemPool *) @ 0x00013778 ──
+int eTextureGroup::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── eTextureGroup::New(cMemPool *, cBase *) static @ 0x001DB7FC ──
