@@ -39,6 +39,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cObject {
 public:
     char _pad[0x44];
@@ -46,6 +53,7 @@ public:
     ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcEvent {
@@ -69,6 +77,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -85,6 +94,7 @@ extern "C" void gcFunction__gcFunction_cBaseptr(void *self, cBase *parent);
 extern "C" void gcEvent_ctor(void *, cBase *, const char *)
     __asm__("__0oHgcEventctP6FcBasePCc");
 extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern char gcFunctionvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
@@ -123,6 +133,27 @@ void gcFunction::Write(cFile &file) const {
     slot->fn((cBase *)((char *)base + slot->offset), wb.file);
 
     wb.End();
+}
+
+// ── gcFunction::Read(cFile &, cMemPool *) @ 0x0012F814 ──
+int gcFunction::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        this->cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    char *base = (char *)this + 0x44;
+    char *mType = *(char **)((char *)this + 0x48);
+    TypeMethod *slot = (TypeMethod *)(mType + 0x30);
+    typedef void (*ReadFn)(void *, void *, void *);
+    ((ReadFn)slot->fn)(base + slot->offset,
+                       *(void **)&rb._data[0],
+                       cMemPool::GetPoolFromPtr(base));
+    return result;
 }
 
 // ── gcFunction::New(cMemPool *, cBase *) static @ 0x0027D154 ──

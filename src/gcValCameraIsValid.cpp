@@ -162,18 +162,22 @@ cBase *gcValCameraIsValid::New(cMemPool *pool, cBase *parent) {
 // 0x0032320c (236B) - Read
 // =============================================================================
 int gcValCameraIsValid::Read(cFile &file, cMemPool *pool) {
+    int result;
     cReadBlock rb(file, 1, true);
-    if (rb._pad[1] != 1 || ((gcValue *)this)->Read(file, pool) == 0) {
-        cFile_SetCurrentPos(rb.file, rb._pos);
-        return 0;
-    }
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._pad[1] == 1 &&
+        ((gcValue *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(rb.file, rb._pos);
+    return 0;
+
+success:
     char *sub = (char *)this + 8;
     char *mType = *(char **)((char *)this + 12);
     const cTypeMethod *e = (const cTypeMethod *)(mType + 0x30);
     cFile *f = rb.file;
     typedef void (*ReadFn)(void *, cFile *, void *);
     ((ReadFn)e->fn)(sub + e->offset, f, cMemPool_GetPoolFromPtr(sub));
-    return 1;
+    return result;
 }
 
 static cType *type_base;
