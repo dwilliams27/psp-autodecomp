@@ -13516,7 +13516,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -13543,7 +13543,15 @@
         "src_file": "src/cListSubscriber.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/0b6f7fc1/0000770c__agent_self_reported_failure__src_cListSubscriber.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cListSubscriber.cpp",
+    "symbol_name": "__0fPcListSubscriberEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "eb538870",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:18:17Z"
   },
   {
     "address": "0x00007784",
@@ -33665,7 +33673,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -33687,7 +33695,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T16:06:53Z"
       }
-    ]
+    ],
+    "src_file": "src/eParticleSystemMtl.cpp",
+    "symbol_name": "__0fSeParticleSystemMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "eb538870",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:18:17Z"
   },
   {
     "address": "0x00034130",
@@ -57550,7 +57566,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104705,7 +104721,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
