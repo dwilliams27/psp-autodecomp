@@ -1,6 +1,6 @@
 # pspcor Read Prologue Patch Project
 
-**Status:** Milestone 3 scaffolding in progress; no functional pspcor patch yet
+**Status:** Milestone 3 target validated; no functional pspcor patch yet
 **Owner:** dwilliams + Codex  
 **Created:** 2026-05-07  
 **Related:** `docs/enhancements-match-lift.md` ML2,
@@ -325,7 +325,7 @@ Opt-in compiler plumbing:
 - `tools/patch_pspcor.py` now prepares `extern/snc-read-prologue/` from the
   stock `extern/snc/` directory and records a manifest next to the copied
   toolchain. The registered Read-prologue patch set is intentionally empty
-  until the `CG_Emit` patch point is validated.
+  until the functional `CG_Emit` list-transform hook is validated.
 - `make prepare-read-prologue-compiler` creates the ignored toolchain copy.
 - `make USE_READ_PROLOGUE_PSPCOR=1 <target>` uses
   `extern/snc-read-prologue/pspsnc.exe`; `pspsnc.exe` then resolves its child
@@ -338,6 +338,20 @@ Opt-in compiler plumbing:
   to the copied `extern/snc-read-prologue/pspcor.exe`; wibo/SNC accepted the
   modified PE and `cFactory::Read` compiled with the same `20/188` masked
   baseline.
+- The patcher also has a behavior-preserving CG_Emit trampoline validation
+  hook:
+
+```sh
+python3 tools/patch_pspcor.py prepare-read-prologue --noop-cgemit-hook
+```
+
+  That hook overwrites `0x004175ed` with a jump to a new `.rphook` section,
+  executes the original `push ebx; call 0x00416170`, and jumps back to
+  `0x004175f3`. It validates that executable-section trampolines run under
+  wibo without changing generated code. Current direct-compile checks preserve
+  both baselines:
+  - `cFactory::Read`: `20/188` verification-masked byte diffs.
+  - `eDynamicFluid::Read`: `0/188` verification-masked byte diffs.
 
 Rejected small byte-patch experiment:
 
@@ -349,6 +363,29 @@ Rejected small byte-patch experiment:
   only the markers preserved the byte-diff count but put `lw a0,12(sp)` inside
   the asm marker region. This path is too blunt and should not be registered as
   a functional patch.
+
+Validated final-list transform target:
+
+- `tools/research/read_prologue_asm_transform.py` now prototypes the exact
+  final assembly reorder needed for `cFactory::Read`. It rewrites only this
+  emitted prologue window:
+  - move `sw s3,32(sp)` from after constructor argument setup to immediately
+    after `sw s1,24(sp)`;
+  - move the inline asm block that emits `ori s3,$0,1` from after the
+    `cReadBlock` constructor call to immediately after `move s1,a1`;
+  - keep `sw ra,36(sp)` immediately before the constructor `jal`.
+- Reassembling that transformed `.s` validates the target exactly:
+
+```sh
+python3 tools/research/read_prologue_asm_transform.py \
+  build/research/read_prologue/0000ab98/trace-tt19-all/SNC89607_0.s \
+  --addr 0x0000ab98
+```
+
+Current result: `0/188` verification-masked byte diffs for
+`cFactory::Read`. This does not ship a workaround; it proves the future
+`pspcor.exe` hook only needs to reproduce a narrow final instruction-list
+reorder, not change register selection or rebuild the whole scheduler.
 
 ## Non-Goals
 
@@ -508,3 +545,12 @@ Milestone 4:
   `tools/patch_pspcor.py`. Validated an inert `.patch` section on the copied
   compiler; the modified PE loads under wibo and preserves the current
   `cFactory::Read` baseline.
+- 2026-05-07: Added `tools/research/read_prologue_asm_transform.py` and
+  validated the exact final-list transform target. Reassembling the transformed
+  `cFactory::Read` assembly produces `0/188` verification-masked byte diffs,
+  so the remaining work is implementing that transform inside the copied
+  `pspcor.exe` rather than searching for broader source or flag recipes.
+- 2026-05-07: Extended `tools/patch_pspcor.py` with a no-op CG_Emit trampoline
+  validation hook. The copied compiler loads and runs through wibo with the
+  hook installed, and direct-compile checks preserve the current failed and
+  matched exemplar baselines.

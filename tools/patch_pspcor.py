@@ -96,6 +96,24 @@ def rel32_jump(src_va: int, dst_va: int) -> bytes:
     return b"\xe9" + struct.pack("<i", rel)
 
 
+def rel32_call(src_va: int, dst_va: int) -> bytes:
+    rel = dst_va - (src_va + 5)
+    if not -(1 << 31) <= rel < (1 << 31):
+        raise ValueError(f"call from 0x{src_va:08x} to 0x{dst_va:08x} is out of range")
+    return b"\xe8" + struct.pack("<i", rel)
+
+
+def next_section_va(pe: PeInfo) -> int:
+    last_va_end = max(
+        section.virtual_address + align_up(
+            max(section.virtual_size, section.raw_size),
+            pe.section_alignment,
+        )
+        for section in pe.sections
+    )
+    return pe.image_base + align_up(last_va_end, pe.section_alignment)
+
+
 def add_section(
     exe: Path,
     name: str,
@@ -120,14 +138,7 @@ def add_section(
     if new_header + 40 > first_raw:
         raise RuntimeError("no room for another PE section header")
 
-    last_va_end = max(
-        section.virtual_address + align_up(
-            max(section.virtual_size, section.raw_size),
-            pe.section_alignment,
-        )
-        for section in pe.sections
-    )
-    new_rva = align_up(last_va_end, pe.section_alignment)
+    new_rva = next_section_va(pe) - pe.image_base
     new_raw = align_up(len(data), pe.file_alignment)
     raw_size = align_up(len(contents), pe.file_alignment)
 
@@ -238,30 +249,73 @@ def copy_toolchain(source_dir: Path, output_dir: Path) -> None:
 
 
 def apply_patch(exe: Path, pe: PeInfo, patch: BytePatch) -> None:
+    replace_bytes(exe, pe, patch.va, patch.before, patch.after, patch.name)
+
+
+def replace_bytes(exe: Path, pe: PeInfo, va: int, before: bytes, after: bytes,
+                  name: str) -> None:
     data = bytearray(exe.read_bytes())
-    off = pe.va_to_file_offset(patch.va)
-    actual = bytes(data[off:off + len(patch.before)])
-    if actual == patch.after:
+    off = pe.va_to_file_offset(va)
+    actual = bytes(data[off:off + len(before)])
+    if actual == after:
         return
-    if actual != patch.before:
+    if actual != before:
         raise RuntimeError(
-            f"{patch.name}: expected {patch.before.hex()} at VA 0x{patch.va:08x}, "
+            f"{name}: expected {before.hex()} at VA 0x{va:08x}, "
             f"found {actual.hex()}"
         )
-    data[off:off + len(patch.after)] = patch.after
+    data[off:off + len(after)] = after
     exe.write_bytes(data)
 
 
+def install_cgemit_noop_hook(exe: Path) -> dict:
+    """Install a behavior-preserving trampoline at the CG_Emit prologue window."""
+    pe = read_pe_info(exe)
+    hook_va = 0x004175ed
+    resume_va = 0x004175f3
+    original = bytes.fromhex("53 e8 7d eb ff ff")
+    stub_va = next_section_va(pe)
+    stub = (
+        b"\x53"
+        + rel32_call(stub_va + 1, 0x00416170)
+        + rel32_jump(stub_va + 6, resume_va)
+    )
+    actual_stub_va = add_section(exe, ".rphook", stub)
+    if actual_stub_va != stub_va:
+        raise RuntimeError(
+            f"computed stub VA 0x{stub_va:08x}, got 0x{actual_stub_va:08x}"
+        )
+    pe = read_pe_info(exe)
+    replace_bytes(
+        exe,
+        pe,
+        hook_va,
+        original,
+        rel32_jump(hook_va, stub_va) + b"\x90",
+        "cgemit-noop-hook",
+    )
+    return {
+        "name": "cgemit-noop-hook",
+        "hook_va": f"0x{hook_va:08x}",
+        "stub_va": f"0x{stub_va:08x}",
+        "resume_va": f"0x{resume_va:08x}",
+        "note": "Behavior-preserving CG_Emit trampoline validation hook.",
+    }
+
+
 def prepare_read_prologue(source_dir: Path, output_dir: Path,
-                          apply_functional_patch: bool) -> dict:
+                          apply_functional_patch: bool,
+                          install_noop_hook: bool) -> dict:
     copy_toolchain(source_dir, output_dir)
     exe = output_dir / PSPCOR
     pe = read_pe_info(exe)
 
     applied: list[dict] = []
+    functional_count = 0
     if apply_functional_patch:
         for patch in READ_PROLOGUE_PATCHES:
             apply_patch(exe, pe, patch)
+            functional_count += 1
             applied.append({
                 "name": patch.name,
                 "va": f"0x{patch.va:08x}",
@@ -269,6 +323,8 @@ def prepare_read_prologue(source_dir: Path, output_dir: Path,
                 "after": patch.after.hex(),
                 "note": patch.note,
             })
+    if install_noop_hook:
+        applied.append(install_cgemit_noop_hook(exe))
 
     manifest = {
         "source_dir": str(source_dir),
@@ -278,7 +334,9 @@ def prepare_read_prologue(source_dir: Path, output_dir: Path,
         "patches_applied": applied,
         "status": (
             "functional patches applied"
-            if applied else
+            if functional_count else
+            "validation hook applied; no functional Read-prologue patch registered yet"
+            if install_noop_hook else
             "stock copy; no Read-prologue patch registered yet"
         ),
     }
@@ -303,10 +361,13 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 
 def cmd_prepare_read_prologue(args: argparse.Namespace) -> int:
+    if args.stock_copy and args.noop_cgemit_hook:
+        raise SystemExit("--stock-copy and --noop-cgemit-hook are mutually exclusive")
     manifest = prepare_read_prologue(
         Path(args.source_dir),
         Path(args.output_dir),
         apply_functional_patch=not args.stock_copy,
+        install_noop_hook=args.noop_cgemit_hook,
     )
     print(f"Prepared: {manifest['output_dir']}")
     print(f"Status: {manifest['status']}")
@@ -332,6 +393,11 @@ def main() -> int:
         "--stock-copy",
         action="store_true",
         help="Only copy the toolchain; do not apply registered patches.",
+    )
+    prep.add_argument(
+        "--noop-cgemit-hook",
+        action="store_true",
+        help="Install a behavior-preserving CG_Emit trampoline for validation.",
     )
     prep.set_defaults(func=cmd_prepare_read_prologue)
 
