@@ -38,6 +38,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -89,6 +103,7 @@ public:
     gcPartialEntityControllerTemplate(cBase *);
     ~gcPartialEntityControllerTemplate();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcLookAtControllerTemplate : public gcPartialEntityControllerTemplate {
@@ -98,6 +113,7 @@ public:
     gcLookAtControllerTemplate(cBase *);
     ~gcLookAtControllerTemplate();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -121,6 +137,23 @@ void gcLookAtControllerTemplate::Write(cFile &file) const {
     gcPartialEntityControllerTemplate::Write(file);
     wb.Write(mField14);
     wb.End();
+}
+
+// ── gcLookAtControllerTemplate::Read(cFile &, cMemPool *) @ 0x00146D30 ──
+int gcLookAtControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        gcPartialEntityControllerTemplate::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x14, 1);
+    }
+    return result;
 }
 
 // ── gcLookAtControllerTemplate::AssignCopy(const cBase *) @ 0x002C68B4 ──
