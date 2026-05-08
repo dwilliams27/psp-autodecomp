@@ -8,9 +8,25 @@
 // The constructor (0x0012fb0c, 40B) is matched in cXML_cNode_cNodecXML.cpp.
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class cWriteBlock {
 public:
@@ -23,11 +39,13 @@ public:
 class gcValue {
 public:
     char _pad[8];
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -39,6 +57,7 @@ public:
     gcValUserStatus(cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
@@ -100,6 +119,23 @@ void gcValUserStatus::Write(cFile &file) const {
     wb.Write(mPad8);
     ((gcDesiredValue *)((char *)this + 12))->Write(wb);
     wb.End();
+}
+
+// ── gcValUserStatus::Read @ 0x0012fa30 ──
+int gcValUserStatus::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 8, 4);
+    }
+    ((gcDesiredValue *)((char *)this + 12))->Read(rb);
+    return result;
 }
 
 // ── gcValUserStatus::New @ 0x0027d634 ──

@@ -95567,7 +95567,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -95583,7 +95583,15 @@
         "session": "42f34560",
         "notes": "Implemented the cReadBlock reader: construct cReadBlock(file, 1, true), require version 1 and gcNamedSet::Read success, rewind on failure, read mArray, then dispatch the vtable slot at +0x38 before returning success. Plain C++ compiled to the known shortened 220-byte form, missing the target's saved s3 result constant. Using inline asm `li %0,1` for the result forces the correct 232-byte size and s3 live return, but leaves 40/232 bytes different because the asm changes prologue scheduling: the compiler saves/moves s1 and s2 in a different order and materializes s3 later than the target.\n\nThe closest remaining diff is concentrated in scheduling/register allocation, not control flow or call targets. The target wants `li s3,1` hoisted into the prologue while still preserving the original save/move order; plain C++ optimizes the constant away until the success epilogue, while asm forces s3 but acts like a scheduling constraint."
       }
-    ]
+    ],
+    "src_file": "src/gcEntityAttackSet.cpp",
+    "symbol_name": "__0fRgcEntityAttackSetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f0b95eae",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:45:26Z"
   },
   {
     "address": "0x0010fbb8",
@@ -107379,7 +107387,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -107390,7 +107398,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValUserStatusEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcValUserStatusEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValUserStatus.cpp",
+    "symbol_name": "__0fPgcValUserStatusEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f0b95eae",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:45:26Z"
   },
   {
     "address": "0x0012fb0c",
@@ -205294,7 +205310,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -214966,7 +214982,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
