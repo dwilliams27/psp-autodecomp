@@ -103876,7 +103876,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -103888,7 +103888,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredCustomAttackEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fVgcDesiredCustomAttackEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDesiredCustomAttack.cpp",
+    "symbol_name": "__0fVgcDesiredCustomAttackEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "896c1c91",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:16:50Z"
   },
   {
     "address": "0x00125acc",
@@ -105304,7 +105312,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105316,7 +105324,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDesiredPathEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcDesiredPathEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDesiredCustomAttack.cpp",
+    "symbol_name": "__0fNgcDesiredPathEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "896c1c91",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:16:50Z"
   },
   {
     "address": "0x001297bc",
@@ -105356,7 +105372,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105408,7 +105424,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105460,7 +105476,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105512,7 +105528,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -232229,7 +232245,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -232242,7 +232258,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcValLobbyScoreboardInfoEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fYgcValLobbyScoreboardInfoEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "bb16f920",
+        "notes": "Implemented gcValLobbyScoreboardInfo::Read in canonical C++ in src/gcValLobbyScoreboardInfo.cpp using the same cReadBlock/gcValue/desired-value/read-base patterns as the matched Read exemplars. The field reads and four gcDesiredValue::Read calls line up, and the nullable cBase pointer decode is represented in C with the two stack out-params at sp+0x14 and sp+0x18. I tried straight exemplar style, literal m2c-style temporaries, empty true branches, gotos, memory barriers, and fixed $19 return constants.\n\nThe closest attempt still does not match. Part of the diff is the known cReadBlock prologue scheduling issue: our compiler places the `li s3, 1` after the cReadBlock constructor when written in the usual matched-source style, while the target has it before the constructor. The remaining body problem is branch-likely selection in the two ReadBase pointer-update blocks: SNC collapses `if (out == 0) out = base | 1` to `beqzl` in our build, while the target uses the longer `bnez`/`b` shape with useful delay slots. Adding barriers/gotos can recover size but creates extra stores/duplicate blocks rather than the target single-store shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:15:26Z",
+        "src_file": "src/gcValLobbyScoreboardInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/bb16f920/0034b384__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0034b598",
@@ -235558,7 +235588,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -235569,7 +235599,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcValRandomNumberEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fRgcValRandomNumberEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "bb16f920",
+        "notes": "Implemented gcValRandomNumber::Read in the requested TU. The body matches the disassembly structure: version check, gcValue::Read, field8 read, 1-byte bool read to sp+0x14, `sltu` bool normalization/store to this+0x14, then desired-value reads at +0x0C and +0x10. The remaining compare is 20 differing bytes out of 264.\n\nThis appears to be the documented cReadBlock prologue scheduler blocker. With `register int result __asm__(\"$19\"); cReadBlock rb(...); asm(\"ori ...\")`, the function has the correct size, saved $s3 return path, body, and epilogue, but our compiler schedules `li s3, 1` immediately after the cReadBlock constructor call. The target schedules that `li` before setting up/calling the constructor. Moving the asm before the constructor changes the prologue save/move order and still does not match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:15:26Z",
+        "src_file": "src/gcValLobbyScoreboardInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/bb16f920/00357f78__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x00358080",
