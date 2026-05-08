@@ -1,6 +1,22 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -11,10 +27,19 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
 class gcDesiredValue {
 public:
     int mOwner;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class cType {
@@ -34,6 +59,7 @@ public:
     void *mVTable;
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -61,6 +87,8 @@ struct GetNameSlot {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char cBaseclassdesc[];
 extern char gcStatsTrackingStringsvirtualtable[];
@@ -80,6 +108,7 @@ public:
     void AssignCopy(const cBase *);
     void GetName(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
 };
 
@@ -123,6 +152,63 @@ void gcStatsTrackingStrings::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+int gcStatsTrackingStrings::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+
+    if (rb[3] != 1 || gcStringLValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x10);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x10);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x10) = newValue;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 const cType *gcStatsTrackingStrings::GetType(void) const {
