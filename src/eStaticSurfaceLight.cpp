@@ -1,5 +1,3 @@
-#include "eStaticLight.h"
-
 class cFile;
 class cMemPool;
 class cBase;
@@ -56,12 +54,35 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class eStaticLight {
+public:
+    eStaticLight(cBase *);
+    ~eStaticLight();
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
 class eStaticSurfaceLight : public eStaticLight {
 public:
     eStaticSurfaceLight(cBase *);
     ~eStaticSurfaceLight();
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 
@@ -85,6 +106,11 @@ public:
 class eDynamicModelLookAtTemplate {
 public:
     void AssignCopy(const cBase *);
+};
+
+class eSound {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -121,6 +147,23 @@ void eStaticSurfaceLight::Write(cFile &file) const {
     wb.End();
 }
 
+// eStaticSurfaceLight::Read(cFile &, cMemPool *) — 0x0005ffb0
+int eStaticSurfaceLight::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && this->eStaticLight::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x90, 8);
+    }
+    return result;
+}
+
 // eStaticSurfaceLight::~eStaticSurfaceLight(void) — 0x000600c4
 eStaticSurfaceLight::~eStaticSurfaceLight() {
     *(void **)((char *)this + 4) = eStaticSurfaceLightvirtualtable;
@@ -149,6 +192,20 @@ void eStaticSurfaceLight::AssignCopy(const cBase *src) {
     *(float *)((char *)this + 0x94) =
         *(const float *)((const char *)other + 0x94);
 }
+
+#pragma control sched=2
+// eSound::Read(cFile &, cMemPool *) — 0x000211d8
+int eSound::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if (rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    return result;
+}
+#pragma control sched=1
 
 // eStaticSurfaceLight::New(cMemPool *, cBase *) static — 0x00206af0
 cBase *eStaticSurfaceLight::New(cMemPool *pool, cBase *parent) {

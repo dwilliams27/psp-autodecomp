@@ -27194,7 +27194,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -27211,6 +27211,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-26T23:18:15Z"
+      },
+      {
+        "session": "3221e66c",
+        "notes": "Closest attempt is the standard RAII cReadBlock wrapper with an inline-asm `ori` to keep result=1 in s0 across the destructor. The generated body matches the expected version check, failure seek, destructor calls, returns, and branch flavor, but compare_func still reports 14/120 bytes different. The only meaningful mismatch is the prologue schedule: generated order is `sw s0; sw ra; li s0,1; move a0,sp; li a2,1; jal`, while expected is `sw s0; li s0,1; move a0,sp; li a2,1; sw ra; jal`.\n\nTried a real C `int result = 1`, explicit sched=2, explicit constructor/destructor calls through the cReadBlock mangled helpers, and register-binding result to s0. Those variants either moved `li s0,1` into the version-check branch delay slot or worsened the constructor prologue to 18+ differing bytes. This appears to be the documented cReadBlock prologue scheduler blocker rather than a source-level control-flow issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:34:18Z",
+        "src_file": "src/eStaticSurfaceLight.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/3221e66c/000211d8__agent_self_reported_failure__src_eStaticSurfaceLight.cpp"
       }
     ]
   },
@@ -50517,7 +50529,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -50539,7 +50551,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T11:30:04Z"
       }
-    ]
+    ],
+    "src_file": "src/eStaticSurfaceLight.cpp",
+    "symbol_name": "__0fTeStaticSurfaceLightEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3221e66c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:34:18Z"
   },
   {
     "address": "0x00060080",
@@ -68311,7 +68331,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -190623,7 +190643,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
