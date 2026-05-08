@@ -28,6 +28,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class gcEvent {
 public:
     gcEvent(cBase *, const char *);
@@ -49,6 +61,7 @@ static inline void CopyStateFunctionNamedBlob(const StateFunctionNamedBlob *src,
 class cNamed {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -75,11 +88,18 @@ struct ParamWriteVtableEntry {
     void (*fn)(void *self, cFile *file);
 };
 
+struct ParamReadVtableEntry {
+    short adj;
+    short pad;
+    void (*fn)(void *self, void *file, cMemPool *pool);
+};
+
 class gcStateFunction : public cNamed {
 public:
     gcStateFunction(cBase *);
     ~gcStateFunction();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -101,6 +121,8 @@ extern "C" {
     void gcEvent__gcEvent_cBaseptr_constcharptr(void *, cBase *, const char *);
     void gcEvent___dtor_gcEvent_void(void *, int);
 }
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char gcStateFunctionvirtualtable[];
 extern char cBaseclassdesc[];
@@ -134,6 +156,27 @@ void gcStateFunction::Write(cFile &file) const {
     void *adjThis = subThis + entry->adj;
     entry->fn(adjThis, wb.mFile);
     wb.End();
+}
+
+// ── gcStateFunction::Read(cFile &, cMemPool *) @ 0x001097b4 ──
+int gcStateFunction::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || cNamed::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x3C, 4);
+    char *base = (char *)this + 0x20;
+    char *mType = *(char **)((char *)this + 0x24);
+    ParamReadVtableEntry *entry = (ParamReadVtableEntry *)(mType + 0x30);
+    typedef void (*ReadFn)(void *, void *, cMemPool *);
+    ((ReadFn)entry->fn)(base + entry->adj,
+                        *(void **)&rb._data[0],
+                        cMemPool::GetPoolFromPtr(base));
+    return result;
 }
 
 // ── gcStateFunction::New(cMemPool *, cBase *) static @ 0x00256830 ──
