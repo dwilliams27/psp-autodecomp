@@ -30378,7 +30378,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -103627,7 +103627,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -111317,7 +111317,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -111339,7 +111339,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T09:23:18Z"
       }
-    ]
+    ],
+    "src_file": "src/gcCreatureController.cpp",
+    "symbol_name": "__0fUgcCreatureControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "7f7bf8a5",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:39:30Z"
   },
   {
     "address": "0x0013cb70",
@@ -116886,7 +116894,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -116907,7 +116915,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T10:37:31Z"
       }
-    ]
+    ],
+    "src_file": "src/gcFlyingControllerTemplate.cpp",
+    "symbol_name": "__0fagcFlyingControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "7f7bf8a5",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:39:30Z"
   },
   {
     "address": "0x00153d78",
