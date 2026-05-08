@@ -4,6 +4,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -31,6 +36,7 @@ public:
     float Evaluate(void) const;
     void GetText(char *) const;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -45,9 +51,17 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 void cStrAppend(char *, const char *, ...);
 extern "C" void gcAction_gcAction(void *, cBase *);
 void gcAction_Write(const gcDoPlayerWarp *, cFile &);
+int gcAction_Read(void *, cFile &, cMemPool *);
 gcDoPlayerWarp *dcast(const cBase *);
 extern char gcDoPlayerWarpvirtualtable[];
 
@@ -122,4 +136,15 @@ void gcDoPlayerWarp::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcAction_Write(this, file);
     wb.End();
+}
+
+int gcDoPlayerWarp::Read(cFile &file, cMemPool *pool) {
+    register int ok __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(ok));
+    if ((unsigned int)rb._data[3] == 1 && gcAction_Read(this, file, pool)) goto success;
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+success:
+    return ok;
 }
