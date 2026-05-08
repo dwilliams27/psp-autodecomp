@@ -18,6 +18,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -46,6 +62,7 @@ public:
 class eDynamicGeomTemplate {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eDynamicFluid {
@@ -80,6 +97,7 @@ public:
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -205,6 +223,46 @@ void eDynamicFluidTemplate::Write(cFile &file) const {
     wb.Write(*(const float *)((const char *)this + 0x54));
     wb.Write(*(const float *)((const char *)this + 0x58));
     wb.End();
+}
+#pragma control sched=2
+
+// ── eDynamicFluidTemplate::Read(cFile &, cMemPool *) @ 0x0005d9dc ──
+#pragma control sched=1
+int eDynamicFluidTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._pad[1] == 1 &&
+        ((eDynamicGeomTemplate *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(rb.file, rb.pos);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x48, 4);
+    }
+    {
+        void *h = *(void **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x50, 4);
+    }
+    {
+        void *h = *(void **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x4C, 4);
+    }
+    {
+        void *h = *(void **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x54, 4);
+    }
+    {
+        void *h = *(void **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x58, 4);
+    }
+    return result;
 }
 #pragma control sched=2
 
