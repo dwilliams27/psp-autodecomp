@@ -12,6 +12,7 @@ class cFile {
 public:
     void SetCurrentPos(unsigned int);
 };
+void cFile_SetCurrentPos(void *, unsigned int);
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -120,12 +121,13 @@ void gcEntityGroup::Write(cFile &file) const {
 // 0x000cf2c4 — Read(cFile &, cMemPool *)
 // ============================================================
 int gcEntityGroup::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    int result;
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1 || cGroup::Read(file, pool) == 0) {
-        ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
-        return 0;
-    }
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
     return result;
 }
 

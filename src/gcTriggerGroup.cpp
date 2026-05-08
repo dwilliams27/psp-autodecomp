@@ -276,17 +276,6 @@ void gcTriggerGroup::Write(cFile &file) const {
 }
 
 // ── gcTriggerGroup::Read(cFile &, cMemPool *) @ 0x000CFE4C ──
-// Unmatched: 20-byte prologue scheduling diff. The expected output
-// interleaves register saves (sw s0/s1/s2/s3/ra) with arg-setup moves and
-// places `li s3,1` BEFORE the jal to cReadBlock. Our SNC issues the saves
-// in a contiguous block and defers `li s3,1` to AFTER the jal (since s3 is
-// callee-saved and unused until the success epilogue). Tested: original
-// asm-first ordering (34B diff), permuter for 5min/5369 candidates
-// (improved from 34→20 but plateaued), `__asm__ volatile("":"+r"):::"memory"`
-// anchor (back to 34B), pragma sched=0 (127B diff), pragma sched=1 (31B
-// diff), register asm("$s3")=1 (size 176B — constant-folded). Same
-// pattern affects every gcXxxGroup::Read in the codebase (gcEntityGroup,
-// gcEntityTemplateGroup, gcConstantGroup, etc — none matched).
 int gcTriggerGroup::Read(cFile &file, cMemPool *pool) {
     int result;
     cReadBlock rb(file, 1, true);
