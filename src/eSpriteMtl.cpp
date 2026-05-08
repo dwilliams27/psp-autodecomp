@@ -10,6 +10,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+struct cFileHandle;
 
 class cWriteBlock {
 public:
@@ -17,6 +18,18 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void Write(unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
 };
 
 class cMemPool {
@@ -49,6 +62,7 @@ public:
     eMaterial(cBase *);
     ~eMaterial(void);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eSpriteMtl : public eMaterial {
@@ -60,6 +74,7 @@ public:
     ~eSpriteMtl(void);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -76,6 +91,8 @@ extern cType *D_000385E4;
 extern cType *D_00040FEC;
 extern cType *D_00041038;
 
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── eSpriteMtl::Write @ 0x00031944 ──
 void eSpriteMtl::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
@@ -84,6 +101,24 @@ void eSpriteMtl::Write(cFile &file) const {
     wb.Write(mField60);
     wb.End();
 }
+
+#pragma control sched=1
+
+// ── eSpriteMtl::Read @ 0x000319A8 ──
+int eSpriteMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2 && eMaterial::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x5C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x60, 4);
+    return result;
+}
+
+#pragma control sched=2
 
 // ── eSpriteMtl::eSpriteMtl @ 0x00031A8C ──
 eSpriteMtl::eSpriteMtl(cBase *parent) : eMaterial(parent) {
