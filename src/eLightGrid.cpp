@@ -87,8 +87,10 @@ eLightGrid::eLightGrid(cBase *parent) {
 void cFile_SetCurrentPos(void *, unsigned int);
 
 // --- Read ---
+#pragma control sched=1
 int eLightGrid::Read(cFile &file, cMemPool *) {
-    int result = 1;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 2, true);
     if ((unsigned int)rb._data[3] != 2) {
         cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
@@ -98,6 +100,7 @@ int eLightGrid::Read(cFile &file, cMemPool *) {
     mSamples.Read(rb);
     return result;
 }
+#pragma control sched=2
 
 // --- AssignCopy ---
 #pragma control sched=1

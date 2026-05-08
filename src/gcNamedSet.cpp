@@ -1,8 +1,21 @@
 class cBase;
+class cFile;
 
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class cType {
@@ -25,6 +38,7 @@ public:
     cBase *mOwner;
     void *mClassDesc;
 
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     ~gcNamedSet();
 
@@ -44,6 +58,27 @@ public:
 
 extern cType *D_000385DC;
 extern cType *D_000998F4;
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
+int gcNamedSet::Read(cFile &file, cMemPool *) {
+    cHandle *name;
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if ((unsigned int)rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    name = (cHandle *)((char *)this + 8);
+    *(int *)((char *)this + 8) = 0;
+    name->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(name));
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
 
 gcNamedSet::~gcNamedSet() {
     mClassDesc = (void *)0x37E6A8;
