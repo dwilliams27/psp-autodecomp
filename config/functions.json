@@ -68845,7 +68845,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -68859,7 +68859,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeTwoPassModelMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQeTwoPassModelMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eTwoPassModelMtl_Read.cpp",
+    "symbol_name": "__0fQeTwoPassModelMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2f14ef22",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:28:35Z"
   },
   {
     "address": "0x0008b258",
@@ -116500,7 +116508,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -116512,7 +116520,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoSetValueEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMgcDoSetValueEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2f14ef22",
+        "notes": "Closest attempt is a split TU with the expected cReadBlock construction, failure block placement, cFileSystem::Read, and both cReadBlock::ReadBase calls. The initial Read/version gate and mid-function fail return line up with the target, but SNC emits a 452B symbol versus the expected 464B. The remaining delta is in the tagged-pointer fallback stores after each ReadBase: this compiler uses compact beqzl/ori conditional assignments, while the original uses longer branch-over-assignment sequences (bnez plus separate branch/ori, including scheduling the next tag mask in a delay slot for the first store). I tried explicit goto label layouts, if/else forms, moving the second tag mask before and after the first store, sched=1, and memory-barrier variants. The barrier variants reached 464B but duplicated stores and produced a much worse 178-byte mismatch. The permuter could not run because it requires the compiled symbol size to equal the 464B target. Root cause appears to be source-level branch-likely/codegen divergence in the tagged pointer reconstruction, not the known cReadBlock prologue divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:28:35Z",
+        "src_file": "src/gcDoSetValue_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/2f14ef22/0014f48c__agent_self_reported_failure__src_gcDoSetValue_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0014f65c",
@@ -116977,7 +116999,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -210412,7 +210434,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
