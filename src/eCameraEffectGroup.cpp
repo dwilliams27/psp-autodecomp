@@ -34,6 +34,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -44,6 +51,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eCameraEffectGroup : public cGroup {
@@ -51,6 +59,7 @@ public:
     eCameraEffectGroup(cBase *);
     ~eCameraEffectGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -88,11 +97,27 @@ extern cType *D_00040C94;
 extern cType *D_00040E5C;
 extern cType *D_00041008;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── eCameraEffectGroup::Write(cFile &) const @ 0x000198B0 ──
 void eCameraEffectGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eCameraEffectGroup::Read(cFile &, cMemPool *) @ 0x000198FC ──
+int eCameraEffectGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eCameraEffectGroup::New(cMemPool *, cBase *) static @ 0x001DE0E4 ──

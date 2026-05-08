@@ -38,6 +38,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -48,6 +55,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eSkyGroup : public cGroup {
@@ -55,6 +63,7 @@ public:
     eSkyGroup(cBase *);
     ~eSkyGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -87,11 +96,27 @@ extern cType *D_00040C94;
 extern cType *D_00040E60;
 extern cType *D_00046B18;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── eSkyGroup::Write(cFile &) const @ 0x00019e74 ──
 void eSkyGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eSkyGroup::Read(cFile &, cMemPool *) @ 0x00019EC0 ──
+int eSkyGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eSkyGroup::New(cMemPool *, cBase *) static @ 0x001de34c ──
