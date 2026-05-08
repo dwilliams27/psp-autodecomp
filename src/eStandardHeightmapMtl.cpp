@@ -1,6 +1,35 @@
-#include "eStandardHeightmapMtl.h"
-#include "eStandardParticleSystemMtl.h"
 #include "eStandardWeatherEffectMtl.h"
+
+// ODR-WARNING: local class redeclarations keep this TU's method set isolated
+// from matched sibling TUs. Do not move these declarations into headers unless
+// auditing codegen for every existing eStandard*Mtl method that includes them.
+class eStandardHeightmapMtl {
+public:
+    eStandardHeightmapMtl(cBase *);
+    const cType *GetType(void) const;
+    void CreateData(void);
+    void PlatformFree(void);
+    void Unapply(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void PlatformRead(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static eStandardHeightmapMtl *New(cMemPool *, cBase *);
+};
+
+class eStandardParticleSystemMtl {
+public:
+    eStandardParticleSystemMtl(cBase *);
+    const cType *GetType(void) const;
+    void CreateData(void);
+    void PlatformFree(void);
+    void PlatformRead(cFile &, cMemPool *);
+    void Unapply(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void AssignCopy(const cBase *);
+    static eStandardParticleSystemMtl *New(cMemPool *, cBase *);
+};
 
 class cType {
 public:
@@ -39,6 +68,17 @@ void eStandardWeatherEffectMtl::PlatformFree(void) {
 class eHeightmapMtl {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class eParticleSystemMtl {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cWriteBlock {
@@ -65,6 +105,7 @@ public:
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
@@ -177,6 +218,46 @@ void eStandardHeightmapMtl::Write(cFile &file) const {
     h->Write(wb);
 
     wb.End();
+}
+
+// ── Read ──
+
+int eStandardHeightmapMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2 && ((eHeightmapMtl *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    *(int *)((char *)this + 0x48) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x48);
+        __asm__ volatile("" ::: "memory");
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    PlatformRead(file, pool);
+    CreateData();
+    return result;
+}
+
+int eStandardParticleSystemMtl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eParticleSystemMtl *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    *(int *)((char *)this + 0x48) = 0;
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x48);
+        __asm__ volatile("" ::: "memory");
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    PlatformRead(file, pool);
+    CreateData();
+    return result;
 }
 
 // ── PlatformRead ──
