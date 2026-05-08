@@ -13,7 +13,11 @@ typedef int v4sf_t __attribute__((mode(V4SF)));
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+class cReadBlock;
 class cType;
 
 // dcast<T>(const cBase *) — linker-resolved per-type template instantiation
@@ -63,9 +67,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class eSkyGeomTemplate {
@@ -76,6 +93,7 @@ public:
     ~eSkyGeomTemplate();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -95,6 +113,7 @@ public:
 extern const char eSkyGeomTemplate_base_name[];
 extern const char eSkyGeomTemplate_base_desc[];
 extern char eSkyGeomTemplateclassdesc[];
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 static cType *type_base;
 static cType *type_eSkyGeomTemplate;
@@ -218,6 +237,35 @@ void eSkyGeomTemplate::Write(cFile &file) const {
     wb.Write(*(const float *)((const char *)this + 0x24));
     wb.Write(*(const float *)((const char *)this + 0x28));
     wb.End();
+}
+#pragma control sched=2
+
+// ── Read ──  @ 0x0005ca84
+#pragma control sched=1
+int eSkyGeomTemplate::Read(cFile &file, cMemPool *) {
+    register int result __asm__("$17");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    *(int *)((char *)this + 0x08) = 0;
+    __asm__ volatile("" ::: "memory");
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x08);
+        handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    }
+    {
+        char value;
+        cFileSystem::Read(*(void **)rb._data[0], &value, 1);
+        *(unsigned char *)((char *)this + 0x0C) = value != 0;
+    }
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x10, 0x0C);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x20, 4);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x24, 4);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x28, 4);
+    return result;
 }
 #pragma control sched=2
 

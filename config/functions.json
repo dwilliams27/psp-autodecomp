@@ -49187,7 +49187,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -49198,7 +49198,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeSkyGeomTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQeSkyGeomTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSkyGeomTemplate.cpp",
+    "symbol_name": "__0fQeSkyGeomTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1e596896",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:15:40Z"
   },
   {
     "address": "0x0005cba8",
@@ -51796,7 +51804,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -65705,7 +65713,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -104483,7 +104491,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -104495,7 +104503,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDesiredEnumerationEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUgcDesiredEnumerationEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDesiredEnumeration.cpp",
+    "symbol_name": "__0fUgcDesiredEnumerationEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1e596896",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:15:40Z"
   },
   {
     "address": "0x001286d8",
@@ -221202,7 +221218,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -238112,7 +238128,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -238123,7 +238139,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValUIPositionEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcValUIPositionEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "77012fa5",
+        "notes": "Implemented gcValUIPosition::Read with the expected cReadBlock(file, 2, true) flow: check rb._data[3] == 2, call gcLValue::Read, rewind via cFile_SetCurrentPos on failure, then read the gcDesiredUIWidgetHelper and the trailing int/bool/float fields. The initial body had a scheduling mismatch around the final cFileSystem::Read; introducing a saved rb file pointer before the bool normalization fixed the body so the post-constructor code matches instruction-for-instruction.\n\nThe remaining mismatch is 21/272 bytes and is confined to the cReadBlock constructor/prologue schedule. I also tried a normal initialized return local and an explicit $19 register binding; the first shrank the function to 260B and the second worsened allocation/prologue shape. This is the documented cReadBlock prologue scheduler divergence, not a semantic body issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:11:05Z",
+        "src_file": "src/gcValUIPosition.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/77012fa5/00363f94__agent_self_reported_failure__src_gcValUIPosition.cpp"
+      }
+    ]
   },
   {
     "address": "0x003640a4",
@@ -238359,7 +238389,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -238370,7 +238400,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcValUISizeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLgcValUISizeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "77012fa5",
+        "notes": "Implemented gcValUISize::Read in the same TU because the target requested src/gcValUIPosition.cpp. The disassembly is identical to gcValUIPosition::Read aside from the symbol, and the C++ body uses the same cReadBlock, gcLValue::Read, gcDesiredUIWidgetHelper::Read, and three cFileSystem::Read calls. The saved rb file pointer is required to match the final read scheduling after the temporary bool byte is normalized.\n\nThe closest attempt mismatches 21/272 bytes, same as gcValUIPosition::Read, with the function body matching after the cReadBlock constructor setup. The remaining bytes are the known cReadBlock prologue scheduler divergence; alternate return-value initialization and register-binding attempts either changed size or worsened the prologue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:11:05Z",
+        "src_file": "src/gcValUIPosition.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/77012fa5/0036554c__agent_self_reported_failure__src_gcValUIPosition.cpp"
+      }
+    ]
   },
   {
     "address": "0x0036565c",
@@ -238619,7 +238663,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",

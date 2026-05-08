@@ -4,6 +4,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cObject;
+class cReadBlock;
 class cType;
 
 class cWriteBlock {
@@ -19,6 +20,7 @@ class cHandle {
 public:
     int mId;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class gcDesiredObject {
@@ -28,7 +30,25 @@ public:
     unsigned int mNext;
 
     gcDesiredObject(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cType {
@@ -51,6 +71,9 @@ public:
 };
 
 extern "C" void cStrCat(char *, const char *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class gcEnumeration {
 public:
@@ -84,6 +107,7 @@ public:
 
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
@@ -93,6 +117,29 @@ public:
 
 cObject *gcDesiredEnumeration::GetObject(bool b) const {
     return Get(b);
+}
+
+int gcDesiredEnumeration::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int inner[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcDesiredObject *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    __0oKcReadBlockctR6FcFileUib(inner, *(cFile *)rb[0], 3, true);
+    cFileSystem::Read(*(void **)inner[0], (char *)this + 0x0C, 4);
+    *(int *)((char *)this + 0x10) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x10);
+        handle->Read(*(cReadBlock *)inner, cMemPool::GetPoolFromPtr(handle));
+    }
+    __0oKcReadBlockdtv(inner, 2);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 cBase *gcDesiredEnumeration::New(cMemPool *pool, cBase *parent) {
