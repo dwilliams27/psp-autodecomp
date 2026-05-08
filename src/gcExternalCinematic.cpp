@@ -42,6 +42,7 @@ public:
     cObject(cBase *);
     ~cObject();
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     char _cObjectPad[0x44];
 };
@@ -70,6 +71,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void Reset(cMemPool *, bool);
 
@@ -90,6 +92,20 @@ public:
 private:
     void *mFile;
     unsigned int mPos;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class gcCinematic {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 struct AllocRec {
@@ -154,6 +170,19 @@ void gcExternalCinematic::Write(cFile &file) const {
     func(cin + adj, file);
 
     wb.End();
+}
+
+// ── gcExternalCinematic::Read(cFile &, cMemPool *) @ 0x000ead4c ──
+int gcExternalCinematic::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] != 1 || !this->cObject::Read(file, pool)) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((gcCinematic *)((char *)this + 0x44))->Read(file, pool);
+    return result;
 }
 
 void gcExternalCinematic::AssignCopy(const cBase *src) {

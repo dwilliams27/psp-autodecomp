@@ -33,6 +33,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class gcUIWidget {
 public:
     bool IsUpdateEmpty(bool, bool) const;
@@ -48,6 +62,7 @@ public:
     gcUITextControl(cBase *);
     ~gcUITextControl();
     static cBase *New(cMemPool *, cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -88,6 +103,7 @@ public:
 
     const cType *GetType(void) const;
     bool IsUpdateEmpty(bool, bool) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     ~gcUIMarqueeControl();
 
@@ -203,6 +219,21 @@ void gcUIMarqueeControl::Write(cFile &file) const {
     wb.Write(*(int *)((char *)this + 0x114));
     wb.Write(*(int *)((char *)this + 0x11C));
     wb.End();
+}
+
+// ── gcUIMarqueeControl::Read(cFile &, cMemPool *) @ 0x0013be60 ──
+int gcUIMarqueeControl::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcUITextControl::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x110, 4);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x114, 4);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x11C, 4);
+    return result;
 }
 
 // ── gcUIMarqueeControl::~gcUIMarqueeControl(void) @ 0x0013bfb0 ──
