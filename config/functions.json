@@ -33350,7 +33350,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -33365,7 +33365,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeStandardSpriteMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeStandardSpriteMtlEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "a541feb4",
+        "notes": "Closest source is in a split TU because the existing eStandardSpriteMtl header does not declare Read. The function body matches byte-for-byte after switching this method back to default sched=2, using an ok register barrier to get the parent-read branch shape, ordering the extended read/default/fail blocks like the target, and using a local base pointer plus a register-bound basePtr to match the ReadBase setup. compare_func.py reports 36/484 bytes differ.\n\nThe remaining diff is confined to the cReadBlock constructor prologue before the first jal. Target order is the hybrid save/move schedule: sw s0, sw s2, move s0, move s2, sw s1, sw s3, move s1, li s3, move a0, li a2, sw s4, sw ra. SNC emits sw s0, sw s1, sw s2, move s0, move s1, move s2, sw s3, sw s4, sw ra, then li/move/li. I tested sched=1 and sched=2 source shapes plus a 120s permuter run (best improved from 73 to 53 before manual cleanup to 36), but source-level shaping did not move this prologue into the target order. This appears to be the known cReadBlock prologue scheduler divergence rather than a body reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T19:58:56Z",
+        "src_file": "src/eStandardSpriteMtl_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/a541feb4/00032020__agent_self_reported_failure__src_eStandardSpriteMtl_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00032204",
@@ -51382,7 +51396,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -62300,7 +62314,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -62312,7 +62326,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeGeomTrailTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeGeomTrailTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eGeomTrailTemplate.cpp",
+    "symbol_name": "__0fSeGeomTrailTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a541feb4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T19:58:56Z"
   },
   {
     "address": "0x000791c4",
@@ -101808,7 +101830,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -101821,7 +101843,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcVoiceOverEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLgcVoiceOverEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b1516396",
+        "notes": "Implemented gcVoiceOver::Read in src/gcDoFunction.cpp with the full high-level flow: cReadBlock version range 3..4, eSoundData::Read, cHandle::Read at this+0x68, raw cFileSystem::Read into this+0x6C, D_00038890 handle-table validation against candidate+0x30, the dead false-flag field-masking branch, version<4 cHandle::SkipRead, and the legacy 4-byte read into a stack local. The closest saved source compiles to the correct 408B size, but compare_func reports MISMATCH: 116/408 bytes differ.\n\nThe major blocker is source-shape/register allocation after the handle read. Keeping the validation path alive requires an empty inline asm output for falseFlag; initializing it lets SNC fold the whole handle-table block and shrinks the function to about 304B. I tried register-binding self/pool/file/result to s1/s0/s3/s2, binding handleValue/candidate to a3/a2, direct this+0x68 stores, and caching/reloading the version near the lookup. Some variants made the prologue closer, but the best byte score remained the current unbound form. The diff is broader than the documented pure 20-byte cReadBlock prologue issue: lookup registers, branch-likely choices, and delay-slot fills all drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T19:47:38Z",
+        "src_file": "src/gcDoFunction.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/b1516396/00121228__agent_self_reported_failure__src_gcDoFunction.cpp"
+      }
+    ]
   },
   {
     "address": "0x001213c0",
@@ -194278,7 +194314,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -203086,7 +203122,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -203100,7 +203136,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoFunctionEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMgcDoFunctionEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b1516396",
+        "notes": "Implemented gcDoFunction::Read as canonical C++ in src/gcDoFunction.cpp using the matched cReadBlock Read-method pattern: version gate 2, parent gcAction::Read, cHandle::Read at this+0x0C, cBaseArray::Read at this+0x10, tagged cBase pointer reconstruction at this+0x18, cReadBlock::ReadBase, and cBaseArray::SetSize(4). The closest saved source compiles and preserves the existing matched GetChild/GetType siblings, but compare_func reports MISMATCH: 39/380 bytes differ.\n\nThe remaining diff is the known cReadBlock prologue scheduler/register ordering plus local tagged-pointer branch shaping. The body is very close through the handle read and array read; the compiler emits branch-likely stores for the out pointer setup where the target keeps the selected value in a1 and stores after the join, and the constructor prologue places the result li/save ordering differently. I tried result placement before/after the cReadBlock constructor, pointer-vs-int out temporaries, an extra ref/out copy like gcDoEvaluation::Read, and memory barriers around the retag store; those either did not improve or worsened the diff.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T19:47:38Z",
+        "src_file": "src/gcDoFunction.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/b1516396/002d934c__agent_self_reported_failure__src_gcDoFunction.cpp"
+      }
+    ]
   },
   {
     "address": "0x002d94c8",
