@@ -18,13 +18,31 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+};
+
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cName {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -45,6 +63,12 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 struct cTypeNode {
     char pad[0x1C];
     cTypeNode *parent;
@@ -63,8 +87,13 @@ extern char D_00000338[];
 
 extern "C" {
 void gcAction_ctor_cBase(void *, cBase *);
+int gcAction_Read(void *, cFile &, cMemPool *)
+    __asm__("__0fIgcActionEReadR6FcFileP6IcMemPool");
 void gcDesiredObject_ctor_cBase(void *, cBase *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+void cFile_SetCurrentPos(void *, unsigned int);
+void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+void __0oKcReadBlockdtv(void *, int);
 }
 
 class gcDoEntityAttach : public gcAction {
@@ -72,6 +101,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoEntityAttach &operator=(const gcDoEntityAttach &);
 };
@@ -239,4 +269,42 @@ void gcDoEntityAttach::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 0x80))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x84))->Write(wb);
     wb.End();
+}
+
+int gcDoEntityAttach::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+    if (rb[3] != 5 || gcAction_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+
+    {
+        char *base = (char *)this + 0x10;
+        char *typeInfo = *(char **)((char *)this + 0x14);
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = *(cFile **)&rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    {
+        char *base = (char *)this + 0x3C;
+        char *typeInfo = *(char **)((char *)this + 0x40);
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = *(cFile **)&rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    ((cName *)((char *)this + 0x68))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x80))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x84))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

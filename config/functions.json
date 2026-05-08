@@ -50186,7 +50186,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -51716,7 +51716,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -196562,7 +196562,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -196575,7 +196575,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoEntityAttachEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcDoEntityAttachEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntityAttach.cpp",
+    "symbol_name": "__0fQgcDoEntityAttachEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e0c754c8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:50:55Z"
   },
   {
     "address": "0x002a4108",
@@ -237389,7 +237397,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -237401,7 +237409,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValTableEntryEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcValTableEntryEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "e0c754c8",
+        "notes": "Closest source is a canonical gcValTableEntry::Read method in src/gcValTableEntry.cpp. It reconstructs the tag range check, gcLValue::Read parent call, version >=2 desired-object read path, version 1 cHandle::Read fallback, and both gcDesiredValue::Read calls. Manual variants tried cReadBlock RAII, explicit rb[5] constructor/destructor calls, positive and negative tag tests, goto-shaped fail/old-version labels, register-bound locals for the desired-object slot, volatile store for the handle reset, and memory barriers around the slot load. A 300s permuter run generated 11,304 candidates, compiled 4,350, and improved the baseline from 40 to 28 differing bytes but did not match.\n\nThe saved 28-byte near miss has the correct size and all sibling methods still match. Remaining differences are localized to cReadBlock prologue/result scheduling and two small body codegen choices: target schedules sw s3/move s1/li s3 before the constructor call, while the compiler keeps li s3 after the constructor; target loads the desired-object type via 4(a0) and clears the handle via 24(s2), while nearby source shapes that force those instructions cause larger branch-layout drift. This looks like the documented cReadBlock Read scheduler/register-allocation blocker rather than a semantic mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:50:55Z",
+        "src_file": "src/gcValTableEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/e0c754c8/0035f428__agent_self_reported_failure__src_gcValTableEntry.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035f580",

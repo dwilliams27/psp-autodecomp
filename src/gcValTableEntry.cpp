@@ -1,8 +1,27 @@
 class cBase;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
 
 class gcStringLValue {};
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -32,15 +51,39 @@ struct DispatchEntry {
     cType *(*fn)(void *, short, void *);
 };
 
+struct ReadEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
+};
+
+class gcDesiredValue {
+public:
+    void Read(cReadBlock &);
+};
+
+class gcLValue : public gcStringLValue {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
 class gcValTableEntry : public gcStringLValue {
 public:
     gcValTableEntry &operator=(const gcValTableEntry &);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern char D_00000838[];
 extern char D_0000A198[];
 
@@ -158,4 +201,34 @@ fail:
     }
 
     operator=(*other);
+}
+
+int gcValTableEntry::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 2, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._pad[1] >= 3 || (unsigned int)rb._pad[1] < 1 ||
+        ((gcLValue *)this)->Read(file, pool) == 0) {
+        rb.file->SetCurrentPos(rb._pos);
+        return 0;
+    }
+
+    if ((unsigned int)rb._pad[1] >= 2) {
+        char *base = (char *)this + 8;
+        __asm__ volatile("" ::: "memory");
+        char *typeInfo = *(char **)((char *)this + 12);
+        cFile *f = rb.file;
+        ReadEntry *entry = (ReadEntry *)(typeInfo + 0x30);
+        short offset = entry->offset;
+        entry->fn(base + offset, f, cMemPool::GetPoolFromPtr(base));
+    } else {
+        *(int *)((char *)this + 0x14) = 7;
+        char *handle = (char *)this + 0x18;
+        *(int *)handle = 0;
+        ((cHandle *)handle)->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    }
+
+    ((gcDesiredValue *)((char *)this + 0x1C))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x20))->Read(rb);
+    return result;
 }
