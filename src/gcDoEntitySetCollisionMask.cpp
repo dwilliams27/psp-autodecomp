@@ -6,8 +6,20 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -39,6 +51,7 @@ public:
     void *mVTable;
     unsigned int mNext;
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -51,11 +64,18 @@ public:
 };
 
 typedef void (*gcDoEntitySetCollisionMaskWriteFn)(cBase *, cFile *);
+typedef void (*gcDoEntitySetCollisionMaskReadFn)(void *, cFile *, cMemPool *);
 
 struct gcDoEntitySetCollisionMaskWriteSlot {
     short mOffset;
     short mPad;
     gcDoEntitySetCollisionMaskWriteFn mWrite;
+};
+
+struct gcDoEntitySetCollisionMaskReadSlot {
+    short mOffset;
+    short mPad;
+    gcDoEntitySetCollisionMaskReadFn mRead;
 };
 
 struct gcDoEntitySetCollisionMaskTypeInfo {
@@ -78,8 +98,13 @@ class gcDoEntitySetCollisionMask : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 static cType *type_base;
 static cType *type_expression;
@@ -183,4 +208,39 @@ void gcDoEntitySetCollisionMask::Write(cFile &file) const {
     slot1->mWrite((cBase *)((char *)entity1 + slot1->mOffset), wb.mFile);
 
     wb.End();
+}
+
+int gcDoEntitySetCollisionMask::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 7, true);
+    if ((unsigned int)rb[3] != 7 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+
+    char *desired0 = (char *)this + 0x14;
+    char *type0 = *(char **)((char *)this + 0x18);
+    gcDoEntitySetCollisionMaskReadSlot *slot0 =
+        (gcDoEntitySetCollisionMaskReadSlot *)(type0 + 0x30);
+    cFile *f = *(cFile **)&rb[0];
+    slot0->mRead(desired0 + slot0->mOffset, f,
+                 cMemPool::GetPoolFromPtr(desired0));
+
+    char *desired1 = (char *)this + 0x40;
+    char *type1 = *(char **)((char *)this + 0x44);
+    gcDoEntitySetCollisionMaskReadSlot *slot1 =
+        (gcDoEntitySetCollisionMaskReadSlot *)(type1 + 0x30);
+    f = *(cFile **)&rb[0];
+    slot1->mRead(desired1 + slot1->mOffset, f,
+                 cMemPool::GetPoolFromPtr(desired1));
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

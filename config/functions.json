@@ -96811,7 +96811,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -96829,7 +96829,21 @@
       "0x001581ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcEntityControllerTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fagcEntityControllerTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "db581918",
+        "notes": "Implemented gcEntityControllerTemplate::Read in the canonical class file. The closest source emits the expected body: version 6 cReadBlock, cBaseArray::Read at +0x08/+0x1C, two zeroed cHandle::Read calls over +0x10/+0x14 with cMemPool::GetPoolFromPtr, and cFileSystem::Read blocks at +0x30, +0x40, and +0x48. I added a zero-offset expression so the loop setup matches the original li a0,0/addu delay-slot sequence. compare_func reports 30/308 differing bytes; the remaining diff is confined to the cReadBlock prologue scheduler ordering before and immediately after the constructor call. Tried the simpler loop form, register-bound zero offset, moving the result constant before the constructor, and sched=1; all were worse or shifted registers. This appears to be the same source-level-unfixable cReadBlock prologue scheduler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:27:47Z",
+        "src_file": "src/gcEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/db581918/0010fd0c__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010fe40",
@@ -191736,7 +191750,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -201179,7 +201193,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -201190,7 +201204,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcDoEntitySetCollisionMaskEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fagcDoEntitySetCollisionMaskEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntitySetCollisionMask.cpp",
+    "symbol_name": "__0fagcDoEntitySetCollisionMaskEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "026bb48b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:31:11Z"
   },
   {
     "address": "0x002c5c20",
@@ -202180,7 +202202,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -202192,7 +202214,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntitySetPrimaryController.cpp",
+    "symbol_name": "__0fegcDoEntitySetPrimaryControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "026bb48b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:31:11Z"
   },
   {
     "address": "0x002cad28",
@@ -210602,7 +210632,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -230024,7 +230054,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -230036,7 +230066,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValGameSettingEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcValGameSettingEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "db581918",
+        "notes": "Implemented gcValGameSetting::Read using the same cReadBlock RAII pattern as the matched gcValEntity* Read exemplars: version 3 block, gcLValue::Read, gcDesiredValue::Read at +0x0C, raw reads at +0x08/+0x28, and dynamic cTypeMethod read dispatch for the entry at +0x10. The generated body from the branch through both destructor/return paths is byte-identical to expected; compare_func reports 28/300 differing bytes, all in the cReadBlock constructor prologue scheduling/register-save order around the initial li s3,1 and saved-register setup. Tried moving the result constant before the cReadBlock constructor and trying sched=1, both made the mismatch worse. This is the known cReadBlock prologue scheduler divergence documented in the session notes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:27:47Z",
+        "src_file": "src/gcValGameSetting.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/db581918/00344adc__agent_self_reported_failure__src_gcValGameSetting.cpp"
+      }
+    ]
   },
   {
     "address": "0x00344c08",
