@@ -8,6 +8,8 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
+class cReadBlock;
 class cType;
 
 class cMemPool {
@@ -23,13 +25,20 @@ public:
     void End(void);
 };
 
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cHandle {
 public:
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredObject {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -42,6 +51,9 @@ public:
 };
 
 void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char gcDesiredObjectT_gcDesiredSprite_gcDesiredSpriteHelper_eSprite_virtualtable[];
 extern char gcDesiredSpritevirtualtable[];
@@ -71,6 +83,7 @@ struct DtorDeleteRecord {
 class gcDesiredSprite {
 public:
     ~gcDesiredSprite();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -122,6 +135,30 @@ void gcDesiredSprite::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 16))->Write(wb2);
     wb2.End();
     wb.End();
+}
+
+// 0x00129b64 - gcDesiredSprite::Read(cFile &, cMemPool *)
+int gcDesiredSprite::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int inner[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcDesiredObject *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    __0oKcReadBlockctR6FcFileUib(inner, *(cFile *)rb[0], 3, true);
+    cFileSystem::Read(*(cFileHandle **)inner[0], (char *)this + 0x0C, 4);
+    *(int *)((char *)this + 0x10) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x10);
+        handle->Read(*(cReadBlock *)inner, cMemPool::GetPoolFromPtr(handle));
+    }
+    __0oKcReadBlockdtv(inner, 2);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 cBase *gcDesiredSprite::New(cMemPool *pool, cBase *parent) {
