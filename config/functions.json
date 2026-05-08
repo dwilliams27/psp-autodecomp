@@ -107590,7 +107590,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -107610,7 +107610,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T01:28:20Z"
       }
-    ]
+    ],
+    "src_file": "src/gcVariable.cpp",
+    "symbol_name": "__0fKgcVariableEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f9fa6eae",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:58:08Z"
   },
   {
     "address": "0x001304e0",
@@ -124097,7 +124105,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -184324,7 +184332,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -184344,7 +184352,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T00:00:42Z"
       }
-    ]
+    ],
+    "src_file": "src/gcGameStrings.cpp",
+    "symbol_name": "__0fNgcGameStringsEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f9fa6eae",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:58:08Z"
   },
   {
     "address": "0x0027dd34",
@@ -228264,7 +228280,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
