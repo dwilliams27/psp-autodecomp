@@ -1,7 +1,9 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cObject;
+class cReadBlock;
 class cType;
 class gcEnumeration;
 class gcEnumerationEntry;
@@ -23,7 +25,23 @@ public:
 
 class cHandle {
 public:
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 class cNamed {
@@ -39,6 +57,7 @@ public:
 
 class gcDesiredObject {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -71,6 +90,7 @@ public:
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
     int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     gcDesiredEntityTemplate &operator=(const gcDesiredEntityTemplate &);
@@ -79,8 +99,67 @@ public:
     const cType *GetDesiredType(void) const;
 };
 
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 cObject *gcDesiredEntityTemplate::GetObject(bool b) const {
     return Get(b);
+}
+
+int gcDesiredEntityTemplate::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    int inner[5];
+    cBase *readBase;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcDesiredObject *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    __0oKcReadBlockctR6FcFileUib(inner, *(cFile *)rb[0], 3, true);
+    cFileSystem::Read(*(cFileHandle **)inner[0], (char *)this + 0x0C, 4);
+    *(int *)((char *)this + 0x10) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x10);
+        handle->Read(*(cReadBlock *)inner, cMemPool::GetPoolFromPtr(handle));
+    }
+    __0oKcReadBlockdtv(inner, 2);
+
+    int value = *(int *)((char *)this + 0x14);
+    int tagged = value & 1;
+    int flag = 0;
+    if (tagged != 0) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        readBase = 0;
+    } else {
+        readBase = (cBase *)value;
+    }
+
+    int flag2 = 0;
+    if (tagged != 0) {
+        flag2 = 1;
+    }
+    if (flag2 != 0) {
+        value &= -2;
+    } else {
+        value = *(int *)value;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x14),
+                                 (cBase *)value, readBase);
+    cBase *finalBase = readBase;
+    if (finalBase == 0) {
+        finalBase = (cBase *)(value | 1);
+    }
+    *(cBase **)((char *)this + 0x14) = finalBase;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDesiredEntityTemplate::Write(cFile &file) const {
