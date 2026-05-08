@@ -9,7 +9,14 @@
 
 class cMemPool;
 class cFile;
+class cFileHandle;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class gcDoLobbyMailOp {
 public:
@@ -18,6 +25,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     ~gcDoLobbyMailOp(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -39,6 +47,7 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -76,6 +85,9 @@ void gcAction_Write(const gcDoLobbyMailOp *, cFile &);
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyMailOpvirtualtable[];
 extern const char gcDoLobbyMailOp_base_name[] asm("D_0036D894");
@@ -144,6 +156,23 @@ void gcDoLobbyMailOp::Write(cFile &file) const {
     wb.Write(*(int *)((char *)this + 0x10));
     ((gcDesiredValue *)((char *)this + 0x14))->Write(wb);
     wb.End();
+}
+
+// ── gcDoLobbyMailOp::Read(cFile &, cMemPool *) @ 0x002e18e8 ──
+int gcDoLobbyMailOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcAction *)this)->gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0xC, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcDoLobbyMailOp::GetText(char *) const @ 0x002e1b6c ──

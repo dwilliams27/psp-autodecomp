@@ -10,7 +10,24 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 template <class T> T *dcast(const cBase *);
 
@@ -38,6 +55,7 @@ public:
 class gcDesiredValue {
 public:
     int _value;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -49,6 +67,7 @@ public:
 
 class gcValue : public gcExpression {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -62,6 +81,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static void operator delete(void *);
 };
@@ -143,6 +163,23 @@ void gcValLobbyUserInfo::Write(cFile &file) const {
     wb.Write(field_10);
     field_C.Write(wb);
     wb.End();
+}
+
+// ── Read(cFile &, cMemPool *)  @ 0x0034f124 ──
+int gcValLobbyUserInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcValue *)this)->gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 8, 4);
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── New(cMemPool *, cBase *) static  @ 0x0034ef08 ──
