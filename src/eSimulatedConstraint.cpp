@@ -53,13 +53,15 @@ eSimulatedConstraint::eSimulatedConstraint(cBase *parent) {
     vtable = eSimulatedConstraintclassdesc;
 }
 
+#pragma control sched=1
 void eSimulatedConstraint::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     wb.End();
 }
 
 int eSimulatedConstraint::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
     if ((unsigned int)rb._data[3] == 1) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
@@ -67,6 +69,7 @@ int eSimulatedConstraint::Read(cFile &file, cMemPool *pool) {
 success:
     return result;
 }
+#pragma control sched=2
 
 #pragma control sched=1
 const cType *eSimulatedConstraint::GetType(void) const {

@@ -29143,7 +29143,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -50082,7 +50082,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -50102,7 +50102,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T14:57:22Z"
       }
-    ]
+    ],
+    "src_file": "src/eStaticSkyLight_Read.cpp",
+    "symbol_name": "__0fPeStaticSkyLightEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "85709664",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:20:12Z"
   },
   {
     "address": "0x0005f2cc",
@@ -55148,7 +55156,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -55164,7 +55172,15 @@
         "notes": "eSimulatedConstraint::Read \u2014 structural code is correct: `int result=1; cReadBlock rb(file,1,true); if (rb._data[3]==1) goto success; cFile_SetCurrentPos(*(void**)&rb._data[0], rb._data[1]); return 0; success: return result;` All 30 instructions present and correct (same insn content). Only diff is scheduler placement: expected puts `li s0,0x1` at offset 0xc (right after sw s0/sw ra, before cReadBlock args are marshalled) AND places `move a0,sp` in the beq delay slot (harmless fall-through, useful for success path's jal ~cReadBlock). My sched=2 output places `li s0,1` in the beq delay slot and a standalone `move a0,sp` in the success path. The expected compilation evidently performed a non-obvious scheduling trick where the beq delay slot acts as dtor setup for the taken branch.\n\nTried: (a) original `if (!=1) err; return result;` form; (b) goto success form; (c) early `if (==1) return 1;` form; (d) `__asm__ volatile(\"\":::\"memory\")` barrier after `int result=1;` (reduced diffs from 67 to 58, got prologue to match); (e) `__asm__ volatile(\"\":\"+r\"(result));` to force materialization \u2014 no change. Also confirmed sched=1 (manual compile to /tmp) gets prologue right but still mis-places `li s0,1` in the beq delay slot (21 insn diffs). Makefile is not allowed to be modified per agent norms.\n\nRoot cause: SNC scheduler is hoisting `li s0,0x1` to an earlier pipeline bubble in the expected compile but chooses to fill the beq delay slot with it in our compile. No source form produced the expected hoist with available flags. This class is in the transition zone 0x040000-0x06e000 per CLAUDE.md; the sched flag may need to be 1 for this class, but sched=1 alone did not match (prologue matched but body still diverges). Suggest human investigate whether this file needs a specific compiler flag (possibly `-Xsched=1` combined with `-Xmopt` or `-Xxopt` variant not yet explored) or whether the expected source used a different cReadBlock idiom (e.g. manual ctor/dtor rather than RAII). Similar pattern failure reported for ePhysicsConstraintConfig::Read and ePhysicsMotorConfig::Read (both also listed F)."
       }
     ],
-    "mangled_symbol": "__0fUeSimulatedConstraintEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUeSimulatedConstraintEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSimulatedConstraint.cpp",
+    "symbol_name": "__0fUeSimulatedConstraintEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "85709664",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:20:12Z"
   },
   {
     "address": "0x0006b2a0",
@@ -104006,7 +104022,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
