@@ -249,7 +249,10 @@ void gcTableColumnFloat::Write(cOutStream &os) const {
 
 int gcTableColumnFloat::Read(cFile &file, cMemPool *pool) {
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1 || gcTableColumn::Read(file, pool) == 0) {
+    unsigned int version = (unsigned int)rb._data[3];
+    register unsigned int expected __asm__("a1");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(expected));
+    if (version != expected || gcTableColumn::Read(file, pool) == 0) {
         cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
         return 0;
     }
