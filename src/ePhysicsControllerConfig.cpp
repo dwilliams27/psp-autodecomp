@@ -11,6 +11,7 @@
 // same name/desc strings 0x36CD74 / 0x36CD7C).
 
 class cBase;
+class cFile;
 class cMemPool;
 
 class cType {
@@ -24,9 +25,24 @@ public:
 extern cType *D_000385DC;
 extern cType *D_000469E8;
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cName {
+public:
+    void Read(cReadBlock &);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class ePhysicsControllerConfig {
 public:
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
 };
 
 #pragma control sched=1
@@ -41,5 +57,19 @@ const cType *ePhysicsControllerConfig::GetType(void) const {
         D_000469E8 = cType::InitializeType(0, 0, 0x23D, D_000385DC, 0, 0, 0, 0);
     }
     return D_000469E8;
+}
+#pragma control sched=2
+
+#pragma control sched=1
+int ePhysicsControllerConfig::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((cName *)((char *)this + 8))->Read(rb);
+    return result;
 }
 #pragma control sched=2

@@ -42552,7 +42552,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -42571,7 +42571,15 @@
         "notes": "Best 144B vs expected 148B, ~4 bytes short in prologue. SNC reuses s1 for both the return value (result=1) AND the comparison constant (rb._data[3]==1) instead of emitting separate 'li s1, 1' (prologue) and 'li a1, 1' (compare). Tried: goto success, if/else, explicit early returns, passing result as cReadBlock ctor arg (produced 148B but wrong move a2,s1 vs expected li a2,1), and __asm__ volatile('':'+r'(result)) memory barrier (erased by optimizer, regressed to 136B/79 diffs). Compiled with #pragma control sched=1. Needs either a different SNC flag combination or a source pattern that forces the compiler to treat the return value and compare constant as independent live ranges."
       }
     ],
-    "mangled_symbol": "__0fYePhysicsControllerConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fYePhysicsControllerConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/ePhysicsControllerConfig.cpp",
+    "symbol_name": "__0fYePhysicsControllerConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ef55febd",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:11:40Z"
   },
   {
     "address": "0x0004b520",
@@ -42650,7 +42658,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -42667,7 +42675,15 @@
         "notes": "Read. Function compiles to 136 bytes vs target 148 bytes with default sched=2 (-Xxopt=4 default). Target saves s0/s1/ra (3 callee-saved regs) and pre-loads s1=0x1 before the cReadBlock ctor call, then uses 'li a1,1; beq a0,a1,label' for the version compare. Mine saves only s0/ra, defers `li s1,1` to after the ctor, and re-uses s1 in `beq a0,s1,label` (CSE eliminates the redundant li). ROOT CAUSE: This file needs a Makefile override `$(BUILD_DIR)/src/ePhysicsConstraintConfig.cpp.o: CFLAGS += -Xxopt=5` similar to gcLoadingScreen_Read.cpp. With -Xxopt=5 the function saves s1 and pre-loads `li s1,0x1` before ctor, reaching 144 bytes (still 4 bytes short \u2014 the CSE of the two `li 1` values still happens and produces `beq a0,s1` instead of `li a1,1; beq a0,a1`). A subsequent pass with -Xxopt=5 applied in the Makefile AND permuter run may fix the CSE remaining divergence. Verified: #pragma control xopt=5 is rejected by SNC mid-compilation (`Control xopt can not be changed in back-end. Ignored`), so command-line flag is the only option. I tried: goto/label vs if-else structure, (unsigned int) cast on version, both produce identical output \u2014 the CSE is invariant to these. Tried -Xsched=1, -Xmopt=0, -Xxopt=1/2/3/4 \u2014 none match; only -Xxopt=5 (sched=1 or 2) brings the codegen within 4 bytes. Other 4 functions in this file all match with sched=2 default AND with -Xxopt=5, so the Makefile override is safe. Needs human to add the CFLAGS override and then re-run."
       }
     ],
-    "mangled_symbol": "__0fYePhysicsConstraintConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fYePhysicsConstraintConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/ePhysicsConstraintConfig.cpp",
+    "symbol_name": "__0fYePhysicsConstraintConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ef55febd",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:11:40Z"
   },
   {
     "address": "0x0004b698",
@@ -66460,7 +66476,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -66822,7 +66838,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",

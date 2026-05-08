@@ -92,8 +92,10 @@ void ePhysicsConstraintConfig::Write(cFile &file) const {
 
 // ── Read ──
 
+#pragma control sched=1
 int ePhysicsConstraintConfig::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
     if ((unsigned int)rb._data[3] == 1) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
@@ -102,6 +104,7 @@ success:
     ((cName *)((char *)this + 8))->Read(rb);
     return result;
 }
+#pragma control sched=2
 
 // ── Destructor ──
 
