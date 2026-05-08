@@ -1,7 +1,9 @@
 #include "cBase.h"
 
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
 
 class cMemPool {
@@ -22,6 +24,18 @@ public:
                                  unsigned int);
 };
 
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -35,15 +49,23 @@ struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+};
+
+class cHandle {
+public:
+    int mId;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class gcDoUISetOrigin : public gcAction {
 public:
     ~gcDoUISetOrigin();
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
@@ -58,11 +80,27 @@ public:
     }
 };
 
+class eCameraEffectLayer {
+public:
+    cBase *mOwner;
+    void *mClassDesc;
+    bool mField8;
+    char _pad[3];
+    int mFieldC;
+    cHandle mField10;
+
+    int Read(cFile &, cMemPool *);
+};
+
 void cStrAppend(char *, const char *, ...);
 void gcAction_Write(const gcDoUISetOrigin *, cFile &);
 gcDoUISetOrigin *dcast(const cBase *);
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(void *, int);
+extern "C" int __0fIgcActionEReadR6FcFileP6IcMemPool(void *, cFile &, cMemPool *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char gcDoUISetOriginvirtualtable[];
 extern const char gcDoUISetOrigin_fmt[];
@@ -155,6 +193,48 @@ void gcDoUISetOrigin::Write(cFile &file) const {
     wb.Write(*(int *)((char *)this + 0x18));
     wb.Write(*(bool *)((char *)this + 0x1C));
     wb.End();
+}
+
+// 0x0030fecc, 252B
+int gcDoUISetOrigin::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || __0fIgcActionEReadR6FcFileP6IcMemPool(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x18, 4);
+    {
+        char flag;
+        cFileSystem::Read(*(cFileHandle **)rb[0], &flag, 1);
+        *(unsigned char *)((char *)this + 0x1C) = (flag != 0);
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// 0x0002d044, 260B
+int eCameraEffectLayer::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$17");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 4, true);
+    if ((unsigned int)rb._data[3] < 5 && (unsigned int)rb._data[3] >= 3) {
+        cFileSystem::Read(*(cFileHandle **)rb._data[0], &mFieldC, 4);
+        register cHandle *h __asm__("$18") = &mField10;
+        mField10.mId = 0;
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+        char flag;
+        if ((unsigned int)rb._data[3] < 4 && ((void)rb._data[0], 1)) goto done;
+        cFileSystem::Read(*(cFileHandle **)rb._data[0], &flag, 1);
+        mField8 = (flag != 0);
+done:
+        return result;
+    }
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
 }
 
 // 0x00310110, 80B

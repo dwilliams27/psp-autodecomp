@@ -30607,7 +30607,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -30618,7 +30618,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeCameraEffectLayerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeCameraEffectLayerEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "cc6f48fb",
+        "notes": "Closest attempt is a 256-byte eCameraEffectLayer::Read with the correct semantic body: cReadBlock(file, 4, true), accepts versions 3 and 4, reads mFieldC, zeroes and reads mField10 with cMemPool::GetPoolFromPtr, conditionally reads the version >=4 bool into mField8, and restores file position on failure. Register pressure was corrected to keep this in s0, result in s1, and handle in s2; sched=1 was tested and rejected because it worsened the prologue order. Field-member syntax and raw-offset syntax produced the same codegen.\n\nThe remaining blocker is the optional version>=4 branch. Target has `sltiu a0, version, 4; beqzl a0, read_flag; lw a0, 0(sp); b done; move a0, sp`, while SNC emits the shorter `bnez a0, done; move a0, sp` shape, making the symbol 256B instead of 260B. I tried direct if/else, inverted goto, OR/AND short-circuit forms, a forced field layout, stock vs read-prologue compiler, and attempted the permuter; the permuter failed to run because it could not isolate this target inside the multi-symbol `src/gcDoUISetOrigin.cpp` object. This looks like a branch-likely selection divergence rather than a missing operation in the body.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T19:36:49Z",
+        "src_file": "src/gcDoUISetOrigin.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/cc6f48fb/0002d044__agent_self_reported_failure__src_gcDoUISetOrigin.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002d148",
@@ -39952,7 +39966,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -61458,7 +61472,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -214830,7 +214844,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -214841,7 +214855,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUISetOriginEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcDoUISetOriginEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoUISetOrigin.cpp",
+    "symbol_name": "__0fPgcDoUISetOriginEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cc6f48fb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T19:36:49Z"
   },
   {
     "address": "0x0030ffc8",
