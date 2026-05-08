@@ -3,6 +3,7 @@
 //
 // Functions:
 //   0x0030f438 gcDoUISetFont::Write(cFile &) const   100B
+//   0x0030f49c gcDoUISetFont::Read(cFile &, cMemPool *) 232B
 //   0x0030fba8 gcDoUISetFont::~gcDoUISetFont(void)   124B  (deleting destructor auto-gen)
 
 class cBase;
@@ -23,6 +24,13 @@ public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 class cMemPool {
@@ -47,18 +55,21 @@ public:
 
     gcAction(cBase *);
     ~gcAction();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 class cHandle {
 public:
     int mIndex;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredUIWidgetHelper {
 public:
     char _pad[12];   // 3 ints
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
 };
@@ -73,6 +84,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -90,6 +102,8 @@ void gcDesiredUIWidgetHelper_ctor(void *, int);
 gcDoUISetFont *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
 extern void *D_00038890[];
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -180,6 +194,21 @@ void gcDoUISetFont::Write(cFile &file) const {
     mWidget.Write(wb);
     mHandle.Write(wb);
     wb.End();
+}
+
+// -- gcDoUISetFont::Read(cFile &, cMemPool *) @ 0x0030f49c --
+int gcDoUISetFont::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    mWidget.Read(rb);
+    mHandle.mIndex = 0;
+    mHandle.Read(rb, cMemPool::GetPoolFromPtr(&mHandle));
+    return result;
 }
 
 // -- gcDoUISetFont::GetText(char *) const @ 0x0030f788 --

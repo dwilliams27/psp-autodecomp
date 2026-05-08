@@ -2,6 +2,7 @@
 //
 // Functions matched here:
 //   gcTableColumnStringTable::Write(cFile &) const            @ 0x0012b05c (gcAll_psp.obj)
+//   gcTableColumnStringTable::Read(cFile &, cMemPool *)       @ 0x0012b0b4 (gcAll_psp.obj)
 //   gcTableColumnStringTable::New(cMemPool *, cBase *) static  @ 0x00272178 (gcAll_psp.obj)
 //   gcTableColumnStringTable::GetType(void) const             @ 0x00272200 (gcAll_psp.obj)
 //   gcTableColumnStringTable::IsValid(void) const             @ 0x002727dc (gcAll_psp.obj)
@@ -15,7 +16,10 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -24,9 +28,17 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cHandle {
 public:
     int mIndex;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -39,6 +51,8 @@ public:
 
 extern char gcTableColumnclassdesc[];            // 0x37e6a8
 extern char gcTableColumnStringTableclassdesc[]; // 0x389cf0
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 extern const char gcTableColumnStringTable_base_name[];
 extern const char gcTableColumnStringTable_base_desc[];
@@ -69,6 +83,7 @@ struct gcTableColumn {
     void *mOwner;
     void *mClassDesc;
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -84,6 +99,7 @@ struct gcTableColumnStringTable : public gcTableColumn {
 
     ~gcTableColumnStringTable();
 
+    int Read(cFile &file, cMemPool *pool);
     void Write(cFile &file) const;
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
@@ -111,6 +127,20 @@ void gcTableColumnStringTable::Write(cFile &file) const {
     gcTableColumn::Write(file);
     mHandle.Write(wb);
     wb.End();
+}
+
+// 0x0012b0b4 — Read table-column header and string-table handle.
+int gcTableColumnStringTable::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcTableColumn::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    mHandle.mIndex = 0;
+    mHandle.Read(rb, cMemPool::GetPoolFromPtr(&mHandle));
+    return result;
 }
 
 // 0x00272178 — pool-allocate a new gcTableColumnStringTable and inline-construct.
