@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare opt-in patched SNC toolchain copies.
+"""Prepare patched SNC toolchain copies.
 
 This tool never modifies `extern/snc` in place. It copies the SNC directory to
 an ignored sibling directory and applies pspcor.exe byte patches there. The
@@ -794,7 +794,7 @@ def cmd_prepare_read_prologue(args: argparse.Namespace) -> int:
     )
     print(f"Prepared: {manifest['output_dir']}")
     print(f"Status: {manifest['status']}")
-    print("Use with: make USE_READ_PROLOGUE_PSPCOR=1 <target>")
+    print("Use with: make <target> (or USE_STOCK_PSPCOR=1 for stock)")
     return 0
 
 

@@ -3,9 +3,12 @@
 # Target: PRX (relocatable ELF), VMA 0x0
 
 WIBO     := extern/wibo
-SNC_DIR  ?= extern/snc
-ifeq ($(USE_READ_PROLOGUE_PSPCOR),1)
+ifeq ($(origin SNC_DIR), undefined)
+ifeq ($(USE_STOCK_PSPCOR),1)
+SNC_DIR  := extern/snc
+else
 SNC_DIR  := extern/snc-read-prologue
+endif
 endif
 SNC      := $(SNC_DIR)/pspsnc.exe
 CC       := $(WIBO) $(SNC)
@@ -23,6 +26,13 @@ SHA1        := 952cbd11eb99fe986662e83d2d3512d207f9b979
 BUILD_DIR   := build
 TARGET_ELF  := $(BUILD_DIR)/EBOOT.elf
 TARGET_BIN  := $(BUILD_DIR)/EBOOT.bin
+
+READ_PROLOGUE_MANIFEST := extern/snc-read-prologue/pspcor-read-prologue-manifest.json
+ifeq ($(SNC_DIR),extern/snc-read-prologue)
+ENSURE_SNC_COMPILER = @test -f $(READ_PROLOGUE_MANIFEST) || python3 tools/patch_pspcor.py prepare-read-prologue --read-prologue-transform-hook
+else
+ENSURE_SNC_COMPILER = @true
+endif
 
 # Collect source files
 _ALL_SRCS  := $(shell find src \( -name '*.c' -o -name '*.cpp' \) 2>/dev/null)
@@ -110,11 +120,13 @@ $(BUILD_DIR)/src/gcUIWidget_InsertIntoDialog.cpp.o: CFLAGS := -c -O2 -G0 -Xsched
 
 # C → .o via SNC
 $(BUILD_DIR)/src/%.c.o: src/%.c
+	$(ENSURE_SNC_COMPILER)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $<
 
 # C++ → .o via SNC
 $(BUILD_DIR)/src/%.cpp.o: src/%.cpp
+	$(ENSURE_SNC_COMPILER)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $<
 

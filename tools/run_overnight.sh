@@ -15,8 +15,7 @@
 #   ./tools/run_overnight.sh --hours 8 --backend claude,codex --paired-reserve 50
 #                                                             # Mode C: 50 functions reserved for shootout
 #   ./tools/run_overnight.sh --allow-drift --hours 8          # loud override for known DB byte drift
-#   ./tools/run_overnight.sh --read-prologue-compiler --hours 8
-#                                                             # opt into the generated pspcor Read-prologue compiler
+#   ./tools/run_overnight.sh --stock-compiler --hours 8       # bypass the default generated pspcor compiler
 #
 # Auth: --backend claude uses the autodecomp user's Keychain (unlocked below).
 #       --backend codex uses the autodecomp user's ~/.codex/auth.json
@@ -31,7 +30,7 @@ SANDBOX_USER="autodecomp"
 # Check wrapper-only flags before passing the rest to the orchestrator.
 DRY_RUN=false
 ALLOW_DRIFT=false
-READ_PROLOGUE_COMPILER=false
+STOCK_COMPILER=false
 ORCH_ARGS=()
 for arg in "$@"; do
     case "$arg" in
@@ -42,8 +41,11 @@ for arg in "$@"; do
         --allow-drift)
             ALLOW_DRIFT=true
             ;;
+        --stock-compiler)
+            STOCK_COMPILER=true
+            ;;
         --read-prologue-compiler)
-            READ_PROLOGUE_COMPILER=true
+            # Backward-compatible no-op: Read-prologue pspcor is now default.
             ;;
         *)
             ORCH_ARGS+=("$arg")
@@ -56,10 +58,13 @@ done
 cd "$REPO_DIR"
 mkdir -p "$REPO_DIR/build/src"
 chmod a+rwx "$REPO_DIR/build/src" 2>/dev/null || true
-if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
-    echo "Pre-flight: preparing opt-in Read-prologue compiler..."
+unset SNC_DIR
+if [[ "$STOCK_COMPILER" == "true" ]]; then
+    export USE_STOCK_PSPCOR=1
+else
+    unset USE_STOCK_PSPCOR
+    echo "Pre-flight: preparing default Read-prologue compiler..."
     make prepare-read-prologue-compiler
-    export USE_READ_PROLOGUE_PSPCOR=1
     echo ""
 fi
 if [[ "$ALLOW_DRIFT" == "true" ]]; then
@@ -104,8 +109,10 @@ fi
 echo "=== Overnight Matching Run ==="
 echo "Repo: $REPO_DIR"
 echo "User: $SANDBOX_USER"
-if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
-    echo "Compiler: extern/snc-read-prologue (opt-in)"
+if [[ "$STOCK_COMPILER" == "true" ]]; then
+    echo "Compiler: extern/snc (stock override)"
+else
+    echo "Compiler: extern/snc-read-prologue (default)"
 fi
 echo "Args: ${ORCH_ARGS[*]}"
 echo ""
@@ -158,8 +165,8 @@ echo ""
 # `sudo -i ... bash -c script arg...` does not reliably preserve positional
 # args after the login-shell boundary, so do not depend on `$1` for REPO_DIR.
 ORCH_CMD="umask 0002 && cd $(printf '%q' "$REPO_DIR") && "
-if [[ "$READ_PROLOGUE_COMPILER" == "true" ]]; then
-    ORCH_CMD+="USE_READ_PROLOGUE_PSPCOR=1 "
+if [[ "$STOCK_COMPILER" == "true" ]]; then
+    ORCH_CMD+="USE_STOCK_PSPCOR=1 "
 fi
 ORCH_CMD+="python3 $(printf '%q' "$REPO_DIR/tools/orchestrator.py")"
 for arg in "${ORCH_ARGS[@]}"; do

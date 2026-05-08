@@ -1,6 +1,6 @@
 # pspcor Read Prologue Patch Project
 
-**Status:** Functional opt-in pspcor hook validated on exemplars and matched DB
+**Status:** Functional pspcor hook validated and promoted to default compiler
 **Owner:** dwilliams + Codex  
 **Created:** 2026-05-07  
 **Related:** `docs/enhancements-match-lift.md` ML2,
@@ -20,9 +20,8 @@ reproducible compiler-compatibility shim:
 - never patch object files, linked PRX bytes, or EBOOT bytes;
 - never overwrite the canonical `extern/snc` toolchain in place;
 - generate a separate ignored toolchain copy from a script;
-- select that copy only through an explicit opt-in build flag;
-- keep the stock compiler as the default verification path until the patched
-  variant proves zero regressions on the matched DB.
+- use that generated copy only after full matched-DB regression is clean;
+- keep an explicit stock-compiler escape hatch for debugging and rollback.
 
 The target failure cluster is dense enough to justify compiler work:
 
@@ -320,19 +319,21 @@ Static compiler map:
   and delay-slot filling, but this Read drift is the pre-constructor
   instruction order and callee-save setup.
 
-Opt-in compiler plumbing:
+Default compiler plumbing:
 
 - `tools/patch_pspcor.py` now prepares `extern/snc-read-prologue/` from the
   stock `extern/snc/` directory, installs the Read-prologue transform when
   requested, and records a manifest next to the copied toolchain.
 - `make prepare-read-prologue-compiler` creates the ignored toolchain copy with
   the transform hook installed.
-- `make USE_READ_PROLOGUE_PSPCOR=1 <target>` uses
-  `extern/snc-read-prologue/pspsnc.exe`; `pspsnc.exe` then resolves its child
-  tools from the copied directory, including the copied `pspcor.exe`.
-- `tools/run_overnight.sh --read-prologue-compiler ...` prepares the patched
-  compiler, runs the pre-flight verifier under `USE_READ_PROLOGUE_PSPCOR=1`,
-  and carries that environment into the sandboxed orchestrator command.
+- Plain `make <target>` now uses `extern/snc-read-prologue/pspsnc.exe` by
+  default. `pspsnc.exe` resolves its child tools from the copied directory,
+  including the copied `pspcor.exe`.
+- `make USE_STOCK_PSPCOR=1 <target>` bypasses the generated compiler and uses
+  the original `extern/snc` toolchain.
+- `tools/run_overnight.sh ...` prepares the default patched compiler before
+  pre-flight verification and sandbox startup. `--stock-compiler` bypasses it
+  for explicit rollback/debug runs.
 - The research harness now respects `SNC_DIR=...` for direct compile probes, so
   stock and patched compilers can be compared from the same harness.
 - The patcher has PE support for adding a new executable section and
@@ -387,7 +388,19 @@ Validation results for the functional hook:
 |---|---:|
 | `cFactory::Read` failed exemplar `0x0000ab98` | `0/188` masked diffs |
 | `eDynamicFluid::Read` matched exemplar `0x0005dccc` | `0/188` masked diffs |
-| Full matched DB under `USE_READ_PROLOGUE_PSPCOR=1` | `4444/4444` verified |
+| Full matched DB under patched compiler | `4444/4444` verified |
+| Full matched DB under `USE_STOCK_PSPCOR=1` | `4444/4444` verified |
+
+Unlocked matching target list:
+
+- `config/targets_read_prologue_hybrid_20260507.json` contains the 93 failed
+  188B `Read(cFile &, cMemPool *)` rows whose original prologue prefix exactly
+  matches the cFactory hybrid shape validated by this hook.
+- Object split: 59 `gcAll_psp.obj`, 32 `eAll_psp.obj`, 2 `cAll_psp.obj`.
+- Not included yet: the three `li a2,2` hybrid rows, the one `li a2,3` hybrid
+  row, and `gcEvent::Read`'s smaller-stack variant. Those require either
+  source validation or a slightly broader hook matcher before they should be
+  treated as unlocked.
 
 Rejected small byte-patch experiment:
 
@@ -455,8 +468,9 @@ Milestone 3:
 Milestone 4:
 
 - Validate against the full matched DB and a selected 188B failed cluster.
-  Matched-DB validation is complete for the opt-in compiler path:
-  `4444/4444` verified. The selected failed-cluster validation is still next.
+  Matched-DB validation is complete for both the default patched compiler and
+  the stock escape-hatch path: `4444/4444` verified on each. The selected
+  failed-cluster validation is still next.
 
 ## Implementation Plan
 
@@ -490,10 +504,11 @@ Milestone 4:
 
 5. Add build integration after successful one-function validation.
    - Done: `make prepare-read-prologue-compiler` creates the patched copy.
-   - Done: `USE_READ_PROLOGUE_PSPCOR=1` explicitly selects the patched copy.
-   - Done: `tools/run_overnight.sh --read-prologue-compiler` carries the
-     opt-in through pre-flight verification and the sandboxed orchestrator.
-   - Stock compiler remains the default path.
+   - Done: plain `make` uses the patched copy by default.
+   - Done: `USE_STOCK_PSPCOR=1` explicitly selects the stock compiler.
+   - Done: `tools/run_overnight.sh` prepares the patched compiler by default
+     and `--stock-compiler` carries the stock escape hatch through pre-flight
+     verification and the sandboxed orchestrator.
 
 ## Risks
 
@@ -616,3 +631,10 @@ Milestone 4:
 - 2026-05-07: Added `tools/run_overnight.sh --read-prologue-compiler` so
   targeted matching runs can explicitly opt into the patched compiler without
   relying on caller environment leaking through sudo/login-shell boundaries.
+- 2026-05-07: Promoted the generated Read-prologue compiler to the default
+  Makefile and overnight-run compiler path. Added `USE_STOCK_PSPCOR=1` and
+  `tools/run_overnight.sh --stock-compiler` as the explicit rollback/debug
+  path.
+- 2026-05-07: Generated
+  `config/targets_read_prologue_hybrid_20260507.json` for the 93 failed 188B
+  hybrid Read rows directly unlocked by the default compiler hook.
