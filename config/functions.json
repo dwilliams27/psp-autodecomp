@@ -73899,7 +73899,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -73918,7 +73918,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T06:50:19Z"
       }
-    ]
+    ],
+    "src_file": "src/gcStringTableGroup.cpp",
+    "symbol_name": "__0fSgcStringTableGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b270776b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:06:32Z"
   },
   {
     "address": "0x000ce7f8",
@@ -74063,7 +74071,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -74082,7 +74090,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T06:59:03Z"
       }
-    ]
+    ],
+    "src_file": "src/gcUIDialogGroup.cpp",
+    "symbol_name": "__0fPgcUIDialogGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b270776b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:06:32Z"
   },
   {
     "address": "0x000cedbc",
@@ -74881,7 +74897,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -75045,7 +75061,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
