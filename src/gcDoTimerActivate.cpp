@@ -6,11 +6,18 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
+class cReadBlock;
 class cType;
 
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
 };
 
 class cType {
@@ -30,6 +37,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class gcExpression {
 public:
     void Write(cFile &) const;
@@ -41,11 +55,13 @@ public:
     void         *mVTable;      // 0x04
     unsigned int  mNext;        // 0x08
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 typedef void (*TimerWriteFn)(cBase *, cFile *);
 typedef void (*TimerTextFn)(void *, char *);
+typedef void (*TimerReadFn)(void *, cFile *, cMemPool *);
 
 struct TimerWriteSlot {
     short        mOffset;     // +0
@@ -57,6 +73,12 @@ struct TimerTextSlot {
     short       mOffset;     // +0
     short       _pad;        // +2
     TimerTextFn mFn;         // +4
+};
+
+struct TimerReadSlot {
+    short       mOffset;     // +0
+    short       _pad;        // +2
+    TimerReadFn mFn;         // +4
 };
 
 struct TimerTypeInfoWrite {
@@ -82,6 +104,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     ~gcDoTimerActivate(void);
     static void operator delete(void *);
@@ -91,6 +114,8 @@ extern "C" {
     void gcAction_gcAction(gcDoTimerActivate *, cBase *);
     void gcAction___dtor_gcAction_void(void *, int);
     void gcDesiredObject_gcDesiredObject(void *, void *);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
 }
 
 extern char gcDoTimerActivatevirtualtable[];
@@ -101,6 +126,7 @@ extern const char gcDoTimerActivate_base_name[] asm("D_0036D894");
 extern const char gcDoTimerActivate_base_desc[] asm("D_0036D89C");
 
 void cStrAppend(char *, const char *, ...);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
@@ -188,6 +214,35 @@ void gcDoTimerActivate::Write(cFile &file) const {
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.Write(*(const bool *)((char *)this + 0x21));
     wb.End();
+}
+
+// 0x00307f20 - gcDoTimerActivate::Read(cFile &, cMemPool *)
+int gcDoTimerActivate::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    char active;
+    char paused;
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if ((unsigned int)rb[3] != 1 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *desired = (char *)this + 0x0C;
+    char *type = *(char **)((char *)this + 0x10);
+    TimerReadSlot *slot = (TimerReadSlot *)(type + 0x30);
+    cFile *f = *(cFile **)&rb[0];
+    slot->mFn(desired + slot->mOffset, f, cMemPool::GetPoolFromPtr(desired));
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], &active, 1);
+    f = *(cFile **)&rb[0];
+    *(char *)((char *)this + 0x20) = active != 0;
+    cFileSystem::Read(*(cFileHandle **)f, &paused, 1);
+    *(char *)((char *)this + 0x21) = paused != 0;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x003080d0 - gcDoTimerActivate::GetText(char *) const

@@ -2,9 +2,23 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
 class eMaterial;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
 
 class cNamed {
 public:
@@ -32,6 +46,7 @@ public:
 
 class eDynamicGeomTemplate {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -58,7 +73,15 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
+template <class T>
+class cArray {
+public:
+    void Read(cReadBlock &);
+};
+
 template <class T> T *dcast(const cBase *);
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct AllocRec {
     short offset;
@@ -87,6 +110,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -145,6 +169,50 @@ cBase *eProjectorTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+#pragma control sched=2
+
+// -- eProjectorTemplate::Read(cFile &, cMemPool *) @ 0x0007d044 --
+#pragma control sched=1
+int eProjectorTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((eDynamicGeomTemplate *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    ((cArray<cHandleT<eMaterial> > *)((char *)this + 0x48))->Read(rb);
+    {
+        char flag;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, &flag, 1);
+        *(unsigned char *)((char *)this + 0x4C) = flag != 0;
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x50, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x5C, 8);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x54, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x58, 4);
+    }
+    return result;
 }
 #pragma control sched=2
 
