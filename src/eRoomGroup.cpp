@@ -1,5 +1,8 @@
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
 
