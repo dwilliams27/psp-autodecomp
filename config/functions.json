@@ -227380,7 +227380,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -227397,7 +227397,15 @@
         "notes": "Read: stuck at SIZE MISMATCH 264B vs expected 268B (4-byte / 1-instruction shortfall). The compiled body is otherwise byte-identical to expected after relocation masking \u2014 prelude matches exactly, gcLValue_Read call sequence matches, success-block scheduling (including delay-slot trick `addu s4,a0,a1` precomputing sub+offset across the cMemPool_GetPoolFromPtr call, and the bnezl branch-likely with `lw a1,12(s2)` in delay slot loading mType) all match the expected 0x9c+ region exactly. The single missing instruction is `li a1, 0x1` between `lw a0, 12(sp)` and `bne a0, ?, fail`. Expected emits `li a1,0x1; bne a0,a1,fail` (separate immediate); ours emits `bne a0,s3,fail` reusing s3 (which already holds 1 from the `li s3,0x1` materialization in the prelude that survives for the final `move v0,s3` return).\n\nApproaches tried: (1) `int result = 1; ...; return result;` form \u2014 compiler clobbers s3 in success block (uses for sub+offset addu) and adds extra `li s0,0x1` before return, makes diff worse (256B). (2) `return 1;` literal at end (current) \u2014 gives the cleanest 264B output. (3) Splitting `||` into two separate `if (rb._pad[1] != 1) {...; return 0;} if (gcLValue_Read(...) == 0) {...; return 0;}` \u2014 completely different branch structure (153B diff). (4) `(unsigned int)rb._pad[1] != 1U` cast \u2014 no change. (5) Inlining cMemPool_GetPoolFromPtr(sub) into the call argument list \u2014 actually IMPROVED scheduling by letting compiler precompute sub+offset in delay slot (matched the success-block region). (6) Removing `sub` and `off` intermediate variables \u2014 no further improvement.\n\nThis is a literal-constant CSE divergence between our SNC and the original SNC compiler (analogous to but distinct from the documented bnel divergence). Both compilers materialize 1 in s3 early in the prelude; ours then reuses s3 for the `bne` comparison while the original emits a fresh `li a1,0x1`. No source restructuring tested could prevent the CSE of two integer literal 1s living in the same function. The permuter (tools/permuter.py) is unable to start because it requires the compiled function size to equal the expected size before iteration begins (its score_bytes returns inf on size mismatch), and our best variant is 4 bytes short. Doesn't qualify as `unmatchable_bnel` per docs/decisions/006-bnel-compiler-divergence.md (no bnel involved). Next agent: try -Xmopt=0 or -Xxopt=N flag overrides (would require Makefile change a human must approve), or investigate whether SNC has a CSE-disable pragma. The 4 other functions in this file (AssignCopy, GetText, Write, New) all match cleanly and were not touched."
       }
     ],
-    "mangled_symbol": "__0fdgcValFlyingControllerVariableEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fdgcValFlyingControllerVariableEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValFlyingControllerVariable.cpp",
+    "symbol_name": "__0fdgcValFlyingControllerVariableEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "38ab850e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:54:10Z"
   },
   {
     "address": "0x00343b20",
@@ -229196,7 +229204,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -229207,7 +229215,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValLobbyGameInfoEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSgcValLobbyGameInfoEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValLobbyGameInfo.cpp",
+    "symbol_name": "__0fSgcValLobbyGameInfoEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "38ab850e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:54:10Z"
   },
   {
     "address": "0x00348f38",
@@ -235718,7 +235734,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -236407,7 +236423,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",

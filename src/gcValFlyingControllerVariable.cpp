@@ -156,7 +156,13 @@ void gcValFlyingControllerVariable::Write(cFile &file) const {
 // 0x00343a14 (268B) — Read
 int gcValFlyingControllerVariable::Read(cFile &file, cMemPool *pool) {
     cReadBlock rb(file, 1, true);
-    if (rb._pad[1] != 1 || gcLValue_Read(this, file, pool) == 0) {
+    register int tag __asm__("$4");
+    register int version __asm__("$5");
+    __asm__ volatile(
+        "lw %0, 12($sp)\n\t"
+        "ori %1, $0, 1"
+        : "=r"(tag), "=r"(version));
+    if (tag != version || gcLValue_Read(this, file, pool) == 0) {
         cFile_SetCurrentPos(rb.file, rb._pos);
         return 0;
     }

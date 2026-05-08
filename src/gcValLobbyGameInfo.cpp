@@ -14,6 +14,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class cReadBlock;
 
 class cWriteBlock {
 public:
@@ -26,6 +27,7 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class cMemPool {
@@ -74,12 +76,20 @@ extern char gcValLobbyGameInfovirtualtable[];
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 
+extern "C" {
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
+
 class gcValue {
 public:
     cBase *mParent;
     void *mVtable;
     gcValue(cBase *parent);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValLobbyGameInfo : public gcValue {
@@ -94,6 +104,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -154,6 +165,24 @@ void gcValLobbyGameInfo::Write(cFile &file) const {
     wb.Write(mField10);
     ((gcDesiredValue *)((char *)this + 12))->Write(wb);
     wb.End();
+}
+
+// ── gcValLobbyGameInfo::Read(cFile &, cMemPool *) @ 0x00348e48 ──
+int gcValLobbyGameInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcValue *)this)->gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem_Read(*(void **)rb[0], (char *)this + 8, 4);
+    cFileSystem_Read(*(void **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcValLobbyGameInfo::GetText(char *) const @ 0x00349234 ──
