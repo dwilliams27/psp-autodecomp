@@ -1,9 +1,13 @@
 class cBase;
-class cFile;
 class cMemPool;
 class cType;
 
 template <class T> T *dcast(const cBase *);
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 
 class cType {
 public:
@@ -36,6 +40,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -45,6 +56,7 @@ public:
     int mField;             // 0x0C
     cGroup(cBase *);
     ~cGroup();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -57,6 +69,7 @@ public:
     const char *GetDataDirectory(void) const;
     const char *GetFileExtension(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static bool IsManagedTypeExternalStatic();
     bool IsManagedTypeExternal() const;
@@ -143,6 +156,20 @@ void eSurfacePropertyTableGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eSurfacePropertyTableGroup::Read(cFile &, cMemPool *) @ 0x0001BB94 ──
+int eSurfacePropertyTableGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eSurfacePropertyTableGroup::New(cMemPool *, cBase *) static @ 0x001DEF54 ──

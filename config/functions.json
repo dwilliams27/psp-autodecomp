@@ -24968,7 +24968,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -24989,7 +24989,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T10:58:08Z"
       }
-    ]
+    ],
+    "src_file": "src/eSurfacePropertyTableGroup.cpp",
+    "symbol_name": "__0faeSurfacePropertyTableGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cf28f2dc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:03:16Z"
   },
   {
     "address": "0x0001bc50",
@@ -39831,7 +39839,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -39857,7 +39865,15 @@
         "session": "bbb2c47b",
         "notes": "eDynamicGeom::Read(cFile &, cMemPool *) \u2014 20/188 bytes differ (NOT bnel; pure prologue scheduling divergence). The function is a textbook cReadBlock-versioned reader: stack-allocate cReadBlock(file, 1, true), check rb._data[3]==1, call eGeom::Read, on failure call cFile_SetCurrentPos+rb dtor and return 0; on success return 1. Logic, args, all jal targets, and epilogue match exactly. The ENTIRE diff is in the prologue: expected hoists `li s3,0x1` and `sw s3,32(sp)` BEFORE the jal to cReadBlock_ctor (filling pipeline slots in the prologue), so the constant 1 used for `return result` is materialized into s3 alongside the other callee-saved register stores. Mine emits `li s3,0x1` AFTER the jal because the `__asm__ volatile(\"ori %0,$0,1\" : \"=r\"(result))` placement creates a scheduling barrier. Tried: (1) volatile asm BEFORE cReadBlock ctor \u2014 34B diff (worse, asm fence forces ori ordering before stack saves). (2) volatile asm AFTER ctor \u2014 20B diff (current). (3) Plain `int result = 1;` no asm \u2014 176B SIZE mismatch (compiler reused s0 for result after pool dies, eliminating the s3 save/load pair entirely). (4) Pass result to ctor `cReadBlock(file, result, true)` \u2014 90B diff (CSE'd both `1`s, broke flow). (5) Non-volatile asm \u2014 34B diff. (6) `register int result __asm__(\"s3\")` binding \u2014 34B diff (forces alloc but breaks scheduling). (7) Permuter ran 180s / 4872 candidates / 2427 compiled \u2014 zero improvements from baseline of 20. Root cause: SNC's pre-jal scheduler aggressively hoists `li`/`sw` constants into the prologue when the value lives across a call site. Inline asm with output operands is a hard scheduling barrier in SNC; volatile makes it absolute. There is no way to express \"materialize 1 into a callee-saved reg early in the prologue\" in C source without either using an asm barrier (which inhibits the very hoisting we want) or letting the compiler optimize the constant away. This is a fundamental scheduler-vs-asm-barrier mismatch, not bnel divergence \u2014 does NOT qualify for unmatchable_bnel classification (diff > 8 bytes, no branch-form differences). Next agent could try: (a) a different inline-asm formulation that's transparent to the scheduler (perhaps a hand-crafted single-instruction asm without inputs/outputs and a clobber on s3); (b) -Xsched=1 to see if a less aggressive scheduler matches; (c) writing the function with goto-style flow that exposes `result` liveness across the cReadBlock_ctor call without using inline asm at all."
       }
-    ]
+    ],
+    "src_file": "src/eDynamicGeom.cpp",
+    "symbol_name": "__0fMeDynamicGeomEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cf28f2dc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:03:16Z"
   },
   {
     "address": "0x00044c44",
@@ -73183,7 +73199,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -73345,7 +73361,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
