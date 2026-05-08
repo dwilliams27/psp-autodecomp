@@ -9,7 +9,15 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class cWriteBlock {
 public:
@@ -18,6 +26,13 @@ public:
     void Write(int);
     void Write(float);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 class cObject {
@@ -29,6 +44,7 @@ public:
 class eDynamicGeomTemplate {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cHandle {
@@ -52,6 +68,12 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
+template <class T>
+class cArray {
+public:
+    void Read(cReadBlock &);
+};
+
 template <class T> T *dcast(const cBase *);
 
 struct AllocRec {
@@ -66,6 +88,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -147,6 +170,25 @@ void eDynamicLightTemplate::Write(cFile &file) const {
 
     wb.Write(*(const float *)((const char *)this + 0x4C));
     wb.End();
+}
+#pragma control sched=2
+
+// -- eDynamicLightTemplate::Read(cFile &, cMemPool *) @ 0x0007752C --
+#pragma control sched=1
+int eDynamicLightTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && ((eDynamicGeomTemplate *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((cArray<cHandleT<eMaterial> > *)((char *)this + 0x48))->Read(rb);
+    void *fileObj = *(void **)&rb._data[0];
+    void *handle = *(void **)fileObj;
+    __asm__ volatile("" : "+r"(handle));
+    cFileSystem::Read(handle, (char *)this + 0x4C, 4);
+    return result;
 }
 #pragma control sched=2
 
