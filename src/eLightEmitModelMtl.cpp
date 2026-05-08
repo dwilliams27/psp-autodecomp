@@ -8,6 +8,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -19,6 +20,20 @@ public:
     void Write(float);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 class cMemPool {
 public:
@@ -46,6 +61,7 @@ public:
     ~eOnePassModelMtl(void);
     eOnePassModelMtl &operator=(const eOnePassModelMtl &);
     void CreateData(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -57,6 +73,7 @@ public:
     eLightEmitModelMtl(cBase *);
     ~eLightEmitModelMtl(void);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -113,6 +130,25 @@ void eLightEmitModelMtl::Write(cFile &file) const {
     wb.Write(mField80);
     wb.Write(mField84);
     wb.End();
+}
+
+// ── eLightEmitModelMtl::Read @ 0x00082d0c ──
+int eLightEmitModelMtl::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 3, true);
+    if ((unsigned int)rb._data[3] == 3 && eOnePassModelMtl::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    void *h = *(void **)rb._data[0];
+    __asm__ volatile("" : "+r"(h));
+    cFileSystem::Read((cFileHandle *)h, &mField80, 4);
+    h = *(void **)rb._data[0];
+    __asm__ volatile("" : "+r"(h));
+    cFileSystem::Read((cFileHandle *)h, &mField84, 4);
+    eOnePassModelMtl::CreateData();
+    return result;
 }
 
 // ── eLightEmitModelMtl::~eLightEmitModelMtl @ 0x00082e48 ──

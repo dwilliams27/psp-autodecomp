@@ -7,6 +7,7 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cBase;
 class cType;
@@ -19,10 +20,27 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 class gcDesiredValue {
 public:
     int mValue;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     gcDesiredValue &operator=(const gcDesiredValue &);
 };
 
@@ -120,6 +138,7 @@ class gcStringLValue : public gcStringValue {
 public:
     gcStringLValue(cBase *parent) : gcStringValue(parent) {}
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcLobbyGameStrings : public gcStringLValue {
@@ -136,6 +155,7 @@ public:
     }
     ~gcLobbyGameStrings();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     void GetName(char *) const;
     void Set(const wchar_t *) const;
@@ -231,6 +251,23 @@ void gcLobbyGameStrings::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 12))->Write(wb);
     wb.Write(mField10);
     wb.End();
+}
+
+// ── gcLobbyGameStrings::Read(cFile &, cMemPool *) @ 0x00281620, 240B ──
+int gcLobbyGameStrings::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if ((unsigned int)rb[3] == 3 && this->gcStringLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], &mField08, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], &mField10, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcLobbyGameStrings::AssignCopy(const cBase *base) {
