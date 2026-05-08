@@ -11,7 +11,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cWriteBlock {
@@ -21,13 +24,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cHandle {
 public:
+    int mIndex;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class gcValue {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -44,12 +57,14 @@ public:
     char _pad0[8];          // 0x00 — cBase parent + vtable
     cHandle mHandle;        // 0x08
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
 extern "C" {
     void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
 }
 
 extern char gcValConstantvirtualtable[];
@@ -106,6 +121,21 @@ void gcValConstant::Write(cFile &file) const {
     ((const gcValue *)this)->Write(file);
     this->mHandle.Write(wb);
     wb.End();
+}
+
+// ── Read @ 0x0032558c ──────────────────────────────────────────────────
+int gcValConstant::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mHandle.mIndex = 0;
+    cHandle *handle = &mHandle;
+    handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    return result;
 }
 
 // ── New @ 0x00325394 ───────────────────────────────────────────────────

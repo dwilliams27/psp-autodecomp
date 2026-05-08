@@ -40,10 +40,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class cHandle {
 public:
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 #pragma control sched=1
 
@@ -52,6 +62,7 @@ public:
     char _pad[0x4C];
     eTexture(cBase *);
     ~eTexture();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -62,6 +73,7 @@ public:
     eVirtualTexture(cBase *);
     ~eVirtualTexture();
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -89,6 +101,22 @@ void eVirtualTexture::Write(cFile &file) const {
     eTexture::Write(file);
     ((const cHandle *)&mHandle4C)->Write(wb);
     wb.End();
+}
+
+// -- eVirtualTexture::Read @ 0x00060534 --
+int eVirtualTexture::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && eTexture::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mHandle4C = 0;
+    __asm__ volatile("" ::: "memory");
+    cHandle *handle = (cHandle *)&mHandle4C;
+    handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    return result;
 }
 
 // ── eVirtualTexture::eVirtualTexture @ 0x00060610 ──
