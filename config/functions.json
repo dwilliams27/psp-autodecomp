@@ -54405,7 +54405,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -54416,7 +54416,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNeCapsuleShapeEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eCapsuleShape_Read.cpp",
+    "symbol_name": "__0fNeCapsuleShapeEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ea6c91d6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:24:22Z"
   },
   {
     "address": "0x0006a0d8",
@@ -56352,7 +56360,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -56363,7 +56371,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeBoxShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fJeBoxShapeEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eBoxShape_Read.cpp",
+    "symbol_name": "__0fJeBoxShapeEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ea6c91d6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:24:22Z"
   },
   {
     "address": "0x0006d4b4",
@@ -83288,7 +83304,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -110875,7 +110891,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
