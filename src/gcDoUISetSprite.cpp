@@ -3,7 +3,11 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cFileHandle;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cType {
@@ -23,9 +27,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class gcDesiredUIWidgetHelper {
 public:
     void GetText(char *) const;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -36,6 +53,7 @@ public:
 
 class gcAction {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -58,6 +76,7 @@ struct AllocEntry {
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern "C" void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char gcDoUISetSpritevirtualtable[];
 extern char D_000006F8[];
@@ -69,8 +88,15 @@ class gcDoUISetSprite {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     void Write(cFile &) const;
+};
+
+struct ReadSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 class gcDoUISetTextSprite {
@@ -164,6 +190,28 @@ void gcDoUISetSprite::Write(cFile &file) const {
     slot->fn((char *)base + slot->offset, wb._file);
 
     wb.End();
+}
+
+// 0x003107c4 - gcDoUISetSprite::Read(cFile &, cMemPool *)
+int gcDoUISetSprite::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && ((gcAction *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x0C))->Read(rb);
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x18, 4);
+    {
+        register char *typeInfo __asm__("$5") = *(char **)((char *)this + 0x20);
+        register void *base __asm__("$4") = (char *)this + 0x1C;
+        ReadSlot *slot = (ReadSlot *)(typeInfo + 0x30);
+        short off = slot->offset;
+        cFile *f = *(cFile **)&rb._data[0];
+        slot->fn((char *)base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+    return result;
 }
 
 // 0x00310ac0 - gcDoUISetSprite::GetText(char *) const
