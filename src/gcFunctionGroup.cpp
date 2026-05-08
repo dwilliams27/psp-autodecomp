@@ -289,20 +289,8 @@ void gcFunctionGroup::Write(cFile &file) const {
     wb.End();
 }
 
-// ── gcFunctionGroup::Read(cFile &, cMemPool *) @ 0x000cd5f0 ──
-// Same shape as eWeatherEffect::Read / gcStaticInstanceGroup::Read.
-#pragma control sched=1
-int gcFunctionGroup::Read(cFile &file, cMemPool *pool) {
-    int result;
-    cReadBlock rb(file, 1, true);
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
-    cFile_SetCurrentPos_Group(*(void **)&rb._data[0], rb._data[1]);
-    return 0;
-success:
-    return result;
-}
-#pragma control sched=2
+// gcFunctionGroup::Read lives in src/gcStaticInstanceGroup.cpp; that TU
+// reproduces the original gcAll_psp cReadBlock prologue scheduling.
 
 // ── gcFunctionGroup::~gcFunctionGroup(void) @ 0x00236138 ──
 // Canonical C++ destructor; SNC ABI auto-generates the (this != 0) guard,

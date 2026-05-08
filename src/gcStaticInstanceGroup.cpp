@@ -82,6 +82,7 @@ public:
     char _pad1[3];
     int mField;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -221,6 +222,21 @@ int gcStaticInstanceGroup::Read(cFile &file, cMemPool *pool) {
     cReadBlock rb(file, 1, true);
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos_Group(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
+// ── gcFunctionGroup::Read(cFile &, cMemPool *) @ 0x000cd5f0 ──
+// Kept in this TU because the cReadBlock prologue scheduler context matches
+// the gcAll_psp target here, but not in src/gcFunctionGroup.cpp.
+int gcFunctionGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((cGroup *)this)->cGroup::Read(file, pool)) goto success;
     cFile_SetCurrentPos_Group(*(void **)&rb._data[0], rb._data[1]);
     return 0;
 success:
