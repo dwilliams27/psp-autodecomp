@@ -14,6 +14,18 @@ struct CopyWord {
     int value;
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -45,7 +57,14 @@ class eTextureFilter {
 public:
     eTextureFilter(cBase *);
     ~eTextureFilter();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class cHandle {
+public:
+    int mId;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class eWaterFilter : public eTextureFilter {
@@ -53,6 +72,7 @@ public:
     eWaterFilter(cBase *);
     ~eWaterFilter();
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -68,6 +88,7 @@ public:
     }
 };
 
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern char eWaterFiltervirtualtable[];
 
 static cType *type_cBase;
@@ -89,6 +110,55 @@ eWaterFilter::eWaterFilter(cBase *parent) : eTextureFilter(parent) {
 // ── 0x0008c7f4 — ~eWaterFilter(void) ──
 eWaterFilter::~eWaterFilter() {
     *(void **)((char *)this + 4) = eWaterFiltervirtualtable;
+}
+
+// ── 0x0008c628 — Read(cFile &, cMemPool *) ──
+int eWaterFilter::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 4, true);
+    unsigned int version = (unsigned int)rb._data[3];
+    if (version >= 5 || version < 1) goto fail;
+    if (!eTextureFilter::Read(file, pool)) goto fail;
+    *(int *)((char *)this + 0x10) = 0;
+    __asm__ volatile("" ::: "memory");
+    goto read_handles;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read_handles:
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x10);
+        cMemPool *handlePool = cMemPool::GetPoolFromPtr(h);
+        h->Read(rb, handlePool);
+    }
+    *(int *)((char *)this + 0x14) = 0;
+    __asm__ volatile("" ::: "memory");
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x14);
+        cMemPool *handlePool = cMemPool::GetPoolFromPtr(h);
+        h->Read(rb, handlePool);
+    }
+    version = (unsigned int)rb._data[3];
+    if (version >= 2) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x18, 4);
+        version = (unsigned int)rb._data[3];
+    }
+    if (version >= 3) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x1C, 4);
+        version = (unsigned int)rb._data[3];
+    }
+    if (version >= 4) {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x20, 4);
+    }
+    return result;
 }
 
 // ── 0x0021d1d0 — AssignCopy(const cBase *) ──
