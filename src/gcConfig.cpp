@@ -7,7 +7,9 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
 
 class cMemPool {
@@ -32,6 +34,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class gcDesiredValue {
+public:
+    void Read(cReadBlock &);
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -48,6 +64,27 @@ struct DispatchEntry {
     short offset;
     short _pad;
     cType *(*fn)(void *, short, void *);
+};
+
+struct ConfigReadEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cMemPool *, bool);
+};
+
+struct DesiredReadEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
+class gcExpression {
+public:
+};
+
+class gcAction : public gcExpression {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 class gcConfig {
@@ -88,6 +125,7 @@ public:
 
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void CalcPresetSizes(void);
     const cType *GetType(void) const;
@@ -111,6 +149,44 @@ extern void *gcConfig__s_pInstance__0037D84C;
 
 extern "C" {
     void gcConfig__gcConfig_cBaseptr(void *self, cBase *parent);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
+}
+
+// ── gcConfig::Read(cFile &, cMemPool *) @ 0x000efddc ──
+int gcConfig::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x18, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x1C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x20, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x28, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x3C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x50, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x64, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x68, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x6C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x70, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x74, 4);
+
+    ConfigReadEntry *slot =
+        (ConfigReadEntry *)(*(char **)((char *)this + 4) + 0x38);
+    slot->fn((char *)this + slot->offset, pool, false);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcConfig::Write(cFile &) const @ 0x000efd00 ──
@@ -315,4 +391,64 @@ gcConfig::~gcConfig() {
     *(void **)((char *)this + 4) = gcConfigvirtualtable;
     gcConfig__s_pInstance__0037D84C = 0;
     *(void **)((char *)this + 4) = cBaseclassdesc;
+}
+
+// ODR-WARNING: split TU local redeclaration for one method. Do not add this
+// method to the shared header; header churn can perturb matched siblings.
+class gcDoEntityPartialBodyAttack : public gcAction {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+// ── gcDoEntityPartialBodyAttack::Read(cFile &, cMemPool *) @ 0x002b8ba4 ──
+int gcDoEntityPartialBodyAttack::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 4, true);
+    if ((unsigned int)rb[3] >= 5 || (unsigned int)rb[3] < 3 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *typeInfo0 = *(char **)((char *)this + 0x10);
+    char *base0 = (char *)this + 0x0C;
+    DesiredReadEntry *rec0 = (DesiredReadEntry *)(typeInfo0 + 0x30);
+    short off0 = rec0->offset;
+    cFile *f0 = *(cFile **)&rb[0];
+    rec0->fn(base0 + off0, f0, cMemPool::GetPoolFromPtr(base0));
+
+    ((gcDesiredValue *)((char *)this + 0x68))->Read(*(cReadBlock *)rb);
+
+    char *typeInfo1 = *(char **)((char *)this + 0x40);
+    char *base1 = (char *)this + 0x3C;
+    DesiredReadEntry *rec1 = (DesiredReadEntry *)(typeInfo1 + 0x30);
+    short off1 = rec1->offset;
+    cFile *f1 = *(cFile **)&rb[0];
+    rec1->fn(base1 + off1, f1, cMemPool::GetPoolFromPtr(base1));
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x6C, 4);
+
+    char *typeInfo2 = *(char **)((char *)this + 0x74);
+    char *base2 = (char *)this + 0x70;
+    DesiredReadEntry *rec2 = (DesiredReadEntry *)(typeInfo2 + 0x30);
+    short off2 = rec2->offset;
+    cFile *f2 = *(cFile **)&rb[0];
+    rec2->fn(base2 + off2, f2, cMemPool::GetPoolFromPtr(base2));
+
+    if ((unsigned int)rb[3] >= 4) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x38, 4);
+
+        char *typeInfo3 = *(char **)((char *)this + 0x58);
+        char *base3 = (char *)this + 0x54;
+        DesiredReadEntry *rec3 = (DesiredReadEntry *)(typeInfo3 + 0x30);
+        short off3 = rec3->offset;
+        cFile *f3 = *(cFile **)&rb[0];
+        rec3->fn(base3 + off3, f3, cMemPool::GetPoolFromPtr(base3));
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

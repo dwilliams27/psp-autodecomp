@@ -38694,7 +38694,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -38704,7 +38704,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fHePortalEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fHePortalEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "98d65c25",
+        "notes": "Added a canonical ePortal::Read(cFile &, cMemPool *) implementation in src/ePortal.cpp using cReadBlock RAII, the cObject::Read base call, fail-path cFile_SetCurrentPos, and the full sequence of cFileSystem::Read calls for offsets 0x50..0xE4/0xE0. Tried both fail-last and exemplar-style fail-middle control flow, do/while and explicit label loop shapes, version/base-call branch inversions, array-index and pointer-increment loop forms, and a sched=1 A/B pass for the transition-zone hint. The closest source is 412B versus the expected 416B.\n\nThe remaining diff is the known cReadBlock Read-method scheduler/regalloc pattern plus a deleted zero-offset setup in the first 4-iteration vector read loop. The original has the interleaved prologue saves/moves and emits an otherwise redundant offset register before the loop; SNC in this TU keeps collapsing that setup or swapping the pointer/index registers. sched=1 made the prologue worse, so this should stay as a cReadBlock/source-scheduler blocker rather than an unmatchable branch-likely case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:51:38Z",
+        "src_file": "src/ePortal.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/98d65c25/000403c4__agent_self_reported_failure__src_ePortal.cpp"
+      }
+    ]
   },
   {
     "address": "0x00040564",
@@ -47801,7 +47815,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -64858,7 +64872,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -86403,7 +86417,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -86412,7 +86426,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fIgcConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcConfig.cpp",
+    "symbol_name": "__0fIgcConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "aeb9b315",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:56:01Z"
   },
   {
     "address": "0x000effa8",
@@ -102366,7 +102388,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -102380,7 +102402,21 @@
       "0x001223a4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcUIControlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLgcUIControlEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "98d65c25",
+        "notes": "Added gcUIControl::Read(cFile &, cMemPool *) in the canonical class file src/gcUIControl.cpp with local cReadBlock/cFileSystem/cHandle declarations. The implementation matches the recovered behavior: accepts versions 7 and 8, delegates to gcUIWidget::Read, reads 0xB0, conditionally reads legacy opacity as a byte scaled by 0.003921569f into 0x80, reads 0xC0/0xC4, then reads a count and deserializes that many handles at 0xB4. Tried fail-last versus fail-middle layout, moving count/opacity declarations to hit stack offsets 0x14/0x18, register-binding the file handle, and pointer versus indexed handle loops.\n\nThe closest attempt has the correct 416B size but still differs in 158 bytes, concentrated in the known cReadBlock prologue scheduling and register allocation around the post-0xB0 file handle (ours uses s2 where the original reloads into s3), plus nearby branch-delay choices. The indexed handle loop recovered the original redundant zero-offset setup at 0xB4, but the earlier handle-register choice remains source-resistant. This looks like the documented Read/cReadBlock prologue and register-context blocker, not a semantic reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:51:38Z",
+        "src_file": "src/gcUIControl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/98d65c25/00121bb0__agent_self_reported_failure__src_gcUIControl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00121d50",
@@ -198894,7 +198930,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -198906,7 +198942,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fbgcDoEntityPartialBodyAttackEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fbgcDoEntityPartialBodyAttackEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcConfig.cpp",
+    "symbol_name": "__0fbgcDoEntityPartialBodyAttackEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "aeb9b315",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:56:01Z"
   },
   {
     "address": "0x002b8d80",
