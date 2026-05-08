@@ -124105,7 +124105,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -124127,7 +124127,15 @@
         "variant": "base",
         "timestamp": "2026-04-29T17:20:29Z"
       }
-    ]
+    ],
+    "src_file": "src/nwConfigPSP.cpp",
+    "symbol_name": "__0fLnwConfigPSPEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "718d3cc5",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:59:36Z"
   },
   {
     "address": "0x001a5144",
@@ -228280,7 +228288,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -228300,7 +228308,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T18:34:22Z"
       }
-    ]
+    ],
+    "src_file": "src/gcValLobbyConnectionStatus.cpp",
+    "symbol_name": "__0fagcValLobbyConnectionStatusEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "718d3cc5",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:59:36Z"
   },
   {
     "address": "0x00347bf4",
@@ -230245,7 +230261,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -231054,7 +231070,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",

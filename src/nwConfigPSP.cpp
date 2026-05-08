@@ -283,9 +283,9 @@ nwConfigPSP::~nwConfigPSP() {
 
 // ── nwConfigPSP::Read(cFile &, cMemPool *) @ 0x001a5060 ──
 int nwConfigPSP::Read(cFile &file, cMemPool *pool) {
-    int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    register int result __asm__("$19");
     cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     if ((unsigned int)rb._data[3] == 1 && nwConfigBase::Read(file, pool)) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
     return 0;
@@ -295,9 +295,9 @@ success:
         cFileSystem::Read((cFileHandle *)h, (char *)this + 0x60, 0x20);
     }
     {
+        char *buf = (char *)this + 0x80;
         void *h = *(void **)rb._data[0];
-        __asm__ volatile("" ::: "memory");
-        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x80, 0x40);
+        cFileSystem::Read((cFileHandle *)h, buf, 0x40);
     }
     return result;
 }
