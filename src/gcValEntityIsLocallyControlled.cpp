@@ -3,7 +3,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 template <class T> T *dcast(const cBase *);
 
@@ -15,6 +18,22 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct cTypeMethod {
     short offset;
@@ -51,6 +70,7 @@ public:
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcEntity {
@@ -64,6 +84,7 @@ public:
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     float Evaluate(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -169,6 +190,25 @@ void gcValEntityIsLocallyControlled::Write(cFile &file) const {
     wb.End();
 }
 
+// ── gcValEntityIsLocallyControlled::Read(cFile &, cMemPool *) @ 0x00334D1C (236B) ──
+int gcValEntityIsLocallyControlled::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._pad[1] == 1 && ((gcValue *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(rb.file, rb._pos);
+    return 0;
+success:
+    {
+        char *mType = *(char **)((char *)this + 12);
+        char *base = (char *)this + 8;
+        cTypeMethod *e = (cTypeMethod *)(mType + 0x30);
+        typedef void (*ReadFn)(void *, cFile *, cMemPool *);
+        ((ReadFn)e->fn)(base + e->offset, rb.file, cMemPool::GetPoolFromPtr(base));
+    }
+    return result;
+}
+
 // ── gcValEntityIsLocallyControlled::Evaluate(void) const @ 0x00334E08 (80B) ──
 float gcValEntityIsLocallyControlled::Evaluate(void) const {
     gcEntity *entity = ((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
@@ -183,6 +223,47 @@ void gcValEntityIsLocallyControlled::GetText(char *buf) const {
     typedef void (*TextFn)(void *, char *);
     ((TextFn)e->fn)(base + e->offset, buf);
     cStrCat(buf, gcValEntityIsLocallyControlled_text);
+}
+
+// ── gcDoUISetTextColor::Read(cFile &, cMemPool *) @ 0x0031504C (240B) ──
+class gcExpression {
+public:
+    void Write(cFile &) const;
+};
+
+class gcAction : public gcExpression {
+public:
+    char _pad[12];
+    int Read(cFile &, cMemPool *);
+};
+
+class gcDesiredUIWidgetHelper {
+public:
+    char _pad[12];
+    void Read(cReadBlock &);
+};
+
+class gcDoUISetTextColor : public gcAction {
+public:
+    gcDesiredUIWidgetHelper mWidget;
+    int mTextColorInt;
+    unsigned int mTextColorUint;
+
+    int Read(cFile &, cMemPool *);
+};
+
+int gcDoUISetTextColor::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._pad[1] != 1 || gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+    mWidget.Read(rb);
+    cFileSystem::Read(*(void **)rb.file, &mTextColorInt, 4);
+    cFileSystem::Read(*(void **)rb.file, &mTextColorUint, 4);
+    return result;
 }
 
 // ── gcValStringIndex::AssignCopy(const cBase *) @ 0x0035E880 ──
