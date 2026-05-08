@@ -107,9 +107,9 @@ void eMaterialSet::Write(cFile &file) const {
 
 // ── eMaterialSet::Read(cFile &, cMemPool *) @ 0x0002C3D0 ──
 int eMaterialSet::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
     int result;
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 1, true);
     if ((unsigned int)rb._data[3] == 1 && cObject::Read(file, pool)) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
     return 0;

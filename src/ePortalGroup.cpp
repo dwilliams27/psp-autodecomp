@@ -49,6 +49,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -59,6 +66,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class ePortalGroup : public cGroup {
@@ -66,6 +74,7 @@ public:
     ePortalGroup(cBase *);
     ~ePortalGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
     const char *GetFileExtension(void) const;
@@ -90,11 +99,25 @@ extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_000469A0;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── ePortalGroup::Write(cFile &) const @ 0x0001A9FC ──
 void ePortalGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── ePortalGroup::Read(cFile &, cMemPool *) @ 0x0001AA48 ──
+int ePortalGroup::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── ePortalGroup::New(cMemPool *, cBase *) static @ 0x001DE81C ──

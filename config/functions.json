@@ -24480,7 +24480,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -24511,7 +24511,15 @@
         "variant": "base",
         "timestamp": "2026-05-08T06:17:03Z"
       }
-    ]
+    ],
+    "src_file": "src/ePortalGroup.cpp",
+    "symbol_name": "__0fMePortalGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "496f5450",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:16:32Z"
   },
   {
     "address": "0x0001ab04",
@@ -29967,7 +29975,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -29992,7 +30000,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T11:18:12Z"
       }
-    ]
+    ],
+    "src_file": "src/eMaterialSet.cpp",
+    "symbol_name": "__0fMeMaterialSetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "496f5450",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:16:32Z"
   },
   {
     "address": "0x0002c498",
@@ -64559,7 +64575,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -77168,7 +77184,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
