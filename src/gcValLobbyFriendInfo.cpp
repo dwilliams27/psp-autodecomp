@@ -10,6 +10,7 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cReadBlock;
 class cType;
 
 template <class T> T *dcast(const cBase *);
@@ -38,6 +39,7 @@ public:
 class gcDesiredValue {
 public:
     int _value;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -49,6 +51,7 @@ public:
 
 class gcValue : public gcExpression {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -62,7 +65,32 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
+class cNamed {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class cBaseArray {
+public:
+    void Read(cReadBlock &);
+};
+
+class gcRegionSetGroup : public cNamed {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 extern char cBaseclassdesc[];                          // @ 0x37E6A8
@@ -99,6 +127,40 @@ struct GetTextSlot {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+
+// ── Read(cFile &, cMemPool *)  @ 0x003480a0 ──
+int gcValLobbyFriendInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || ((gcValue *)this)->gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 8, 4);
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ── gcRegionSetGroup::Read(cFile &, cMemPool *)  @ 0x000ef9c4 ──
+int gcRegionSetGroup::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || cNamed::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((cBaseArray *)((char *)this + 0x20))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
 
 // ── Write(cFile &) const  @ 0x00348030 ──
 void gcValLobbyFriendInfo::Write(cFile &file) const {
