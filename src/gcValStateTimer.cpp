@@ -57,6 +57,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 // ──────────────────────────────────────────────────────────────────────────
 // cBase header subset. We model it as an explicit base so SNC emits the
 // parent ctor's mClassdesc store before the derived ctor overwrites it.
@@ -81,6 +88,7 @@ public:
     float Evaluate(void) const;
     void  Set(float);
     void  Write(cFile &) const;
+    int   Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     // Inlined into the deleting-destructor variant of ~gcValStateTimer.
@@ -105,6 +113,8 @@ inline void *operator new(unsigned, void *p) { return p; }
 extern gcValStateTimer *dcast(const cBase *);
 extern void cStrCat(char *, const char *);
 extern void gcLValue_Write(const gcValStateTimer *, cFile &);
+extern int gcLValue_Read(gcValStateTimer *, cFile &, cMemPool *);
+extern void cFile_SetCurrentPos(void *, unsigned int);
 
 static cType *type_base;
 static cType *type_expression;
@@ -171,6 +181,20 @@ void gcValStateTimer::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcLValue_Write(this, file);
     wb.End();
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// gcValStateTimer::Read(cFile &, cMemPool *)  @ 0x0035ba30, 188B
+// ──────────────────────────────────────────────────────────────────────────
+int gcValStateTimer::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcLValue_Read(this, file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
