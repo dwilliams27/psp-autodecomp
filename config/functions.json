@@ -15510,7 +15510,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -15566,7 +15566,21 @@
       "0x0013c3ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcObjectEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fHcObjectEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "4af666e2",
+        "notes": "Added a split TU with a local cObject redeclaration for cObject::Read, keeping the method as canonical C++ syntax without editing include/cObject.h. The reconstructed body matches the expected control flow: version range checks, cNamed::Read call, fail-path SetCurrentPos/destructor/return 0, optional 2-byte flags read and mask/or into this+0x28, file byte 5 dirty-bit set, destructor, and return 1. Manual variants tried positive vs fail-first control flow, direct rb._data use vs a tag local, volatile rb data, an explicit cNamed ABI-label call, sched pragmas, register hints, and a temporary same-TU/header experiment; the same cReadBlock-adjacent scheduling pattern remained.\n\nA 120s permuter run generated 4728 candidates and compiled 2224, improving the mismatch from 26 to 21 bytes and saving the best source. The remaining diff is in the cReadBlock prologue/early result materialization: expected saves s3 and materializes li s3,1 before the constructor and has the constructor call one instruction later, while the best current source emits the cReadBlock call before li s3,1. The rest of the function is aligned, so this also appears to be the known cReadBlock prologue scheduler blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:06:37Z",
+        "src_file": "src/cObject_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/4af666e2/00009b8c__agent_self_reported_failure__src_cObject_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00009cb0",
@@ -42538,7 +42552,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -42636,7 +42650,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -42728,7 +42742,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -42745,7 +42759,15 @@
         "notes": "Read function is extremely similar in structure to ePhysicsConstraintConfig::Read (which also fails to match with the same 76/136 byte diff pattern). The expected code has 32-byte stack with 3 saved registers (s0=this, s1=result=1, ra) and 144 bytes. Expected schedules prologue tightly: sw s0,20; sw s1,24; sw ra,28; move s0,a0; li s1,1; then cReadBlock args. Uses a fresh `li a1,1` for the comparison (not reusing s1), and `move v0,s1` for the success return.\n\nOur SNC compilation consistently picks ONE of two bad patterns: (a) with `int result=1; ... return result;` and separate returns, the compiler allocates only s0 and reuses it (li s0,1 right before return), producing 76/136 diff; (b) with `return 1` inline, compiler allocates s1 but loads it AFTER cReadBlock and reuses it for both compare and return, producing 85/144 diff. Attempts tried: goto-success with result=1, if-else both directions, explicit result=0 in fail path, merged single-return with result=0/1 in branches, changing cReadBlock 3rd arg from bool to int, -Xmopt=0 and -Xxopt=0 flags (also -Xsched=1). None produced the expected 4-distinct-`li 1` pattern with s1 loaded before cReadBlock.\n\nRoot cause is likely that the original SNC pass makes a different register allocation / scheduling decision for this tiny function. The 32-byte stack, 3 saved registers, 4 separate `li X, 1` loads, and loading s1 BEFORE cReadBlock are a signature that our flags can't reproduce. This may need a compiler flag we haven't identified, or it may be an SNC version difference. A future attempt might try: volatile tricks on result, register hints, or bisecting more flag combinations. The ePhysicsConstraintConfig sister class fails identically, confirming this is a systemic pattern, not a source-level C++ issue."
       }
     ],
-    "mangled_symbol": "__0fTePhysicsMotorConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTePhysicsMotorConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/ePhysicsMotorConfig.cpp",
+    "symbol_name": "__0fTePhysicsMotorConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a46d62a3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:10:48Z"
   },
   {
     "address": "0x0004b810",
@@ -53918,7 +53940,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -53929,7 +53951,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fReMultiSphereShapeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "4e0beac4",
+        "notes": "Implemented a closest C++ eMultiSphereShape::Read(cFile &, cMemPool *) attempt in the requested src/gcDoWhile.cpp with a split-TU local eMultiSphereShape redeclaration. The source uses cReadBlock(file, 1, true), eShape_Read, two cFileSystem::Read calls for radius/halfLength, min-axis recompute, a VFPU normalization sequence for the sphere-axis endpoints, sphere-count clamp, and a loop writing the generated sphere centers/radii. I tested both sched modes; sched=1 is closer (251/576 byte diff) than sched=2 (275/576). I also forced the original 0x90-byte frame with a scratch reserve, corrected rb back to sp+0, matched the save offsets, added the radius spill at sp+0x40, made the symbol size exactly 576B, and added an explicit zero-offset setup for the loop pointer.\n\nThe remaining mismatch is broad rather than a small prologue-only issue. The prologue still has the same Read-result constant scheduling drift (li s1 after the cReadBlock constructor instead of before setup), and the VFPU/FPU region diverges in register allocation and scheduling: zero/negated half-length land in different FPU registers, the diameter/dist add operand order differs, the count-store branch cluster is not the same, and the generated loop setup still does not match the target's a1/a2 lifetime exactly. This likely needs either a stronger source model using native vector temporaries instead of several inline VFPU operations, or deeper register-allocation tuning; the current attempt is size-correct but not close enough for a permuter-style last mile.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:06:45Z",
+        "src_file": "src/gcDoWhile.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/4e0beac4/00068934__agent_self_reported_failure__src_gcDoWhile.cpp"
+      }
+    ]
   },
   {
     "address": "0x00068b74",
@@ -85043,7 +85079,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00002450",
       "0x000047a0",
@@ -85066,6 +85102,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:06:55Z"
+      },
+      {
+        "session": "8a9d94c4",
+        "notes": "Implemented gcStreamedCinematicConfig::Read as canonical C++ in the class-owned source. The first local attempt read bool bytes directly into the object fields and produced a 41/268 byte diff because it removed the expected stack temporaries. Switching to char locals after cReadBlock restored the expected rb-at-sp layout and stack bytes at sp+0x14/sp+0x15. The function body now matches the target sequence: version check, cGUID::Read at +0x08, zero/read cHandle at +0x18 via cMemPool_GetPoolFromPtr, read/normalize bool at +0x1C, cGUID::Read at +0x10, read/normalize bool at +0x1D, and destructor/return.\n\nThe remaining compare_func result is 16/268 bytes differing, all in the prologue before cReadBlock::cReadBlock. Generated code saves s2 and ra before loading result/setup registers, while expected delays those saves until after li s1/move a0/li a2. This is the documented cReadBlock prologue scheduler divergence; docs/research/failure-corpus-read-20260507.md and docs/sessions/2026-05-03.md classify it as a compiler-level ML2 blocker requiring pspcor scheduler/LRA patching rather than source restructuring.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:51:48Z",
+        "src_file": "src/gcStreamedCinematicConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/8a9d94c4/000eda4c__agent_self_reported_failure__src_gcStreamedCinematicConfig.cpp"
       }
     ]
   },
@@ -85746,6 +85794,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:12:09Z"
+      },
+      {
+        "session": "1b3000be",
+        "notes": "category=cReadBlock_PROLOGUE. Kept gcRegionSet::Read in canonical src/gcRegionSet.cpp. The useful improvement this session was changing the version check/count initialization from a live register variable to literal 2, which made the target body appear: li a0,2; bne a1,a0 with lw s2,0(sp) in the delay slot, sw a0,0x14(sp), use s2 as the saved rb file pointer for the first file read and fail-call delay slot, exact cGUID::Read loop shape including the zero-offset addu, and exact 268B function size. compare_func now reports 22/268 bytes differ.\n\nTried the existing version-register attempt, the literal-2 guard/count rewrite, and a natural int result=1 variant. The natural result form regressed to 256B by dropping the s3 result save and materializing 1 in s0. The closest restored form has all body code aligned with target; the remaining bytes are the cReadBlock prologue schedule only. Target orders sw s3/li s3,1 before setting up the cReadBlock call and saves s1/s2/ra afterward; current emits the same saves/li but groups s1/s2/s3/ra before li s3. This matches the documented Read/cReadBlock prologue scheduler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:57:10Z",
+        "src_file": "src/gcRegionSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/1b3000be/000ef860__agent_self_reported_failure__src_gcRegionSet.cpp"
       }
     ]
   },
@@ -95731,7 +95791,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -95750,6 +95810,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-27T22:38:17Z"
+      },
+      {
+        "session": "8a7f3dbb",
+        "notes": "Current source still produces the known 14/200 byte mismatch for gcEntityAttackHelper::Read. compare_func shows every sibling in src/gcEntityAttackHelper.cpp matches, and this Read body matches except for the cReadBlock constructor prologue scheduling: SNC emits sw ra after li/move setup in the original, while our build stores ra early before li s1/move a0/li a2. Prior session already tried multiple source forms and a 180s permuter with no improvement; I reverified the mismatch and left the closest C body in place.\n\nRoot cause appears to be the documented cReadBlock prologue scheduler divergence, not C logic. The failure is consistent with docs/research/failure-corpus-read-20260507.md and the supplied prior notes: meaningful body code, cleanup paths, cName::Read, cFileSystem::Read calls, bool normalization, and epilogue all line up.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:50:06Z",
+        "src_file": "src/gcEntityAttackHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/8a7f3dbb/0010ee10__agent_self_reported_failure__src_gcEntityAttackHelper.cpp"
       }
     ]
   },
@@ -99563,7 +99635,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -99585,7 +99657,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T15:06:35Z"
       }
-    ]
+    ],
+    "src_file": "src/gcObjectRelationship.cpp",
+    "symbol_name": "__0fUgcObjectRelationshipEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a46d62a3",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:10:48Z"
   },
   {
     "address": "0x0011b578",
@@ -110367,6 +110447,18 @@
         "timestamp": "2026-05-04T05:34:18Z",
         "src_file": "src/gcUIButton.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/cac8207d/001396d8__agent_self_reported_failure__src_gcUIButton.cpp"
+      },
+      {
+        "session": "c00d0ca2",
+        "notes": "category=REG_ALLOC. The best retained source is the prior compact canonical C++ implementation in src/gcUIButton.cpp: cReadBlock(file, 1, true), version check, gcUITextControl::Read, count read via cFileSystem_Read, and a loop zeroing each handle then calling cHandle::Read with cMemPool_GetPoolFromPtr(&handles[i]). It remains size-exact at 292B but differs by 135 bytes. The mismatch is dominated by context-sensitive callee-save allocation: current code puts the success return constant in s0 and the object pointer in s1, while the target uses s1 for the result and s0 for this/handle pointer; the loop then cascades into different s-register roles.\n\nTried a different approach from the previous session: moving result materialization before cReadBlock and pinning it to s1, pinning a self alias to s0, copying the address-taken count into a non-address-taken local to keep it in a register, and wrapping the method with sched=1. These either left the 135-byte baseline unchanged or worsened it by adding/spilling registers. A single permitted permuter run for 300s generated 11,304 candidates, compiled 3,642, and found zero improvement over the 135-byte baseline. Root cause appears to be SNC translation-unit/context register-allocation drift rather than source structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:58:42Z",
+        "src_file": "src/gcUIButton.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/c00d0ca2/001396d8__agent_self_reported_failure__src_gcUIButton.cpp"
       }
     ]
   },
@@ -113511,6 +113603,18 @@
         "timestamp": "2026-05-04T12:02:49Z",
         "src_file": "src/gcBipedControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/00140fdc__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp"
+      },
+      {
+        "session": "1b3000be",
+        "notes": "category=cReadBlock_PROLOGUE. Added canonical gcBipedControllerTemplate::Read in src/gcBipedControllerTemplate.cpp with the body matching the target control flow: version range guards, branch-likely fail from gcCreatureControllerTemplate::Read, branch-likely optional byte read for version >= 2, double-deref cFileSystem_Read handle load, bool normalization store at +0x50, and separate failure/success destructor epilogues. The closest form uses register result in $19 with an inline ori after cReadBlock construction; compare_func reports 21/252 bytes differ.\n\nTried natural int result=1, register result with inline ori after the cReadBlock ctor, inline ori before the ctor, register initializer syntax, and a sched=1 pragma probe. The natural/initializer versions shrink to 240B by using s0 for the success constant. The before-ctor inline asm keeps 252B but perturbs argument save/move ordering, and sched=1 worsens the byte diff. The closest 252B output differs only in the cReadBlock prologue/result-materialization schedule: target saves s3 and emits li s3,1 before the ctor call, while current saves s3 near the ra save and emits li s3,1 immediately after the ctor. The post-ctor body bytes and branch shape match, so this is the known Read/cReadBlock prologue scheduler blocker rather than a semantic source issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:57:10Z",
+        "src_file": "src/gcBipedControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/1b3000be/00140fdc__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp"
       }
     ]
   },
@@ -116501,7 +116605,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -116512,7 +116616,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoSwitchCaseEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcDoSwitchCaseEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "8a7f3dbb",
+        "notes": "Added gcDoSwitchCase::Read as a canonical C++ method with local class declarations and a C body matching the m2c control flow: cReadBlock(file, 1, true), discriminator/action guard, gcExpressionList::Read at this+0x14, then a three-iteration ReadBase loop over the child array at this+0x0C. The valid closest source is 28/312 bytes off. The loop body, failure path, destructor calls, return path, and all call sites match; the difference is in the cReadBlock constructor prologue/result setup. Expected saves s2 before s3, moves file into s3, loads s2=1 before constructor setup, and places sw ra late. The closest valid build stores/moves s3 earlier, delays sw s2, and emits li s2 after the constructor call.\n\nTried result as register-bound s2, plain int result, moving the result asm before cReadBlock, passing result as the constructor type id, explicit register bindings for this/file/pool/result, sched=1, and a 300s permuter pass. The permuter found a 20-byte candidate only by changing the cReadBlock constructor declaration from unsigned int to int, which emits the wrong external symbol (__0oKcReadBlockctR6FcFileib instead of __0oKcReadBlockctR6FcFileUib) and regresses gcEntityAttackHelper::Read to 132/200 bytes, so that candidate was rejected. This should be treated as the same cReadBlock prologue scheduler blocker rather than a body-logic issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:50:06Z",
+        "src_file": "src/gcEntityAttackHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/8a7f3dbb/0014fd88__agent_self_reported_failure__src_gcEntityAttackHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0014fec0",
@@ -117032,7 +117150,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -117044,7 +117162,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcDoWhileEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fJgcDoWhileEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "4e0beac4",
+        "notes": "Implemented gcDoWhile::Read(cFile &, cMemPool *) as canonical C++ in src/gcDoWhile.cpp using cReadBlock(file, 1, true), gcAction_Read, cFile::SetCurrentPos on failure, the tagged child-pointer ReadBase pattern with cMemPool::GetPoolFromPtr(this+0x0C), null fallback to parent|1, and gcExpressionList::Read at +0x10. The body is byte-aligned after the cReadBlock constructor path; the tricky post-ReadBase null fallback now emits the target bnez/nop/b/ori/store sequence.\n\ncompare_func reports 20/336 bytes different. Objdump shows the mismatch is confined to the known cReadBlock prologue scheduler window: target saves s3 and materializes li s3,1 before setting up the constructor call, while local SNC emits move s1/a0/a2 setup before sw s3/sw ra and places li s3,1 after the constructor jal. Variants tried included compact fallback, inverted fallback, explicit goto with barrier, branch-body barrier, and the gcDoEvaluation-style barrier form; the last is the closest and leaves only the documented Read(cFile &, cMemPool *) prologue blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:06:45Z",
+        "src_file": "src/gcDoWhile.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/4e0beac4/00151fe0__agent_self_reported_failure__src_gcDoWhile.cpp"
+      }
+    ]
   },
   {
     "address": "0x00152130",
@@ -120124,7 +120256,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -204799,7 +204931,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -212637,7 +212769,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -212659,6 +212791,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:12:13Z"
+      },
+      {
+        "session": "8a9d94c4",
+        "notes": "Implemented gcDoUIEffect::Read as canonical C++ in src/gcDoUIEffect.cpp. The first body used a single structured if block and compiled to 264B because SNC placed the success destructor/return before the failure cleanup block. Rewriting the condition with an explicit goto success forced the target 268B block layout: version range check 2 <= version < 4, gcAction::Read, gcDesiredUIWidgetHelper::Read at +0x0C, mandatory cFileSystem::Read to +0x1C, optional cFileSystem::Read to +0x18 for version >= 3, and destructor/return. I also retried moving the result constant load before cReadBlock construction; that worsened the diff to 34/268, so the source was restored to the 21/268 closest version.\n\nThe remaining diff is the known cReadBlock prologue scheduler blocker. The generated body matches after the constructor setup, but SNC schedules the s3 save and li s3,1 differently from expected: expected saves s3 and loads result before the constructor call, while the local compiler delays the result load until after the call in the closest source shape. This matches the prior failure note and the project ML2 documentation; further source-level restructuring is unlikely to improve it without regressing the matched body.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:51:48Z",
+        "src_file": "src/gcDoUIEffect.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/8a9d94c4/0030a33c__agent_self_reported_failure__src_gcDoUIEffect.cpp"
       }
     ]
   },
@@ -216591,6 +216735,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:19:42Z"
+      },
+      {
+        "session": "c00d0ca2",
+        "notes": "category=CREADBLOCK_PROLOGUE. Current canonical C++ body compiles to the correct 268-byte function shape and matches the target after the cReadBlock constructor setup: version check, gcAction::Read, bnezl success path, failure rewind/destructor/zero return, 1-byte cFileSystem::Read, bool normalization/store at +0x20, cMemPool::GetPoolFromPtr, virtual desired-object read dispatch, destructor, and success return through s3 all align. The remaining 34 differing bytes are confined to the initial saved-register/move/li scheduling before the cReadBlock constructor.\n\nPrior attempts had already tried fixed-register result materialization, goto-shaped control flow, local alias ordering, sched=1, and barriers. Given the project session notes identify this exact cReadBlock Read prologue as a compiler-level scheduler divergence, I did not spend additional retries on source perturbations that would only risk matched siblings.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:58:42Z",
+        "src_file": "src/gcDoPortalActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/c00d0ca2/00319894__agent_self_reported_failure__src_gcDoPortalActivate.cpp"
       }
     ]
   },
@@ -222037,6 +222193,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T12:28:39Z"
+      },
+      {
+        "session": "4af666e2",
+        "notes": "The existing closest source was rechecked against the target and still produces a 13/268 byte mismatch. I also tested the cReadBlock declaration-order perturbation that helped cObject::Read's prologue, but it produced the same 13-byte result here and was reverted. The successful path, failure path, virtual read dispatch, cMemPool_GetPoolFromPtr call, cFileSystem_Read tail, destructor calls, returns, and all sibling functions in the TU compare as expected; the remaining differences are confined to the cReadBlock prologue/early version setup.\n\nI did not repeat the already documented 120s permuter/manual variants for this function. The root cause still appears to be the known cReadBlock prologue scheduler divergence: current SNC saves/materializes the version/result registers in a different order around the cReadBlock constructor, while the body is otherwise aligned.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:06:37Z",
+        "src_file": "src/gcValEntityControllerVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/4af666e2/00327408__agent_self_reported_failure__src_gcValEntityControllerVariable.cpp"
       }
     ]
   },

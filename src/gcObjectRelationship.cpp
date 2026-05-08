@@ -16,6 +16,9 @@ public:
     ~cReadBlock(void);
 };
 
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 namespace cMemPool_ns {
@@ -63,12 +66,13 @@ void gcObjectRelationship::Write(cFile &file) const {
 
 // 0x0011b4a8, 208B
 int gcObjectRelationship::Read(cFile &file, cMemPool *pool) {
-    int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 2, true);
-    cFile *f = *(cFile **)&rb._data[0];
-    if ((unsigned int)rb._data[3] != 2) {
-        cFile_SetCurrentPos(f, rb._data[1]);
+    register int result __asm__("$18") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    cFile *f = *(cFile **)&rb[0];
+    if ((unsigned int)rb[3] != 2) {
+        cFile_SetCurrentPos(f, rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
     char *vt = *(char **)((char *)this + 0xC);
@@ -77,6 +81,7 @@ int gcObjectRelationship::Read(cFile &file, cMemPool *pool) {
     char *target = base + e->adj;
     cMemPool *pool2 = cMemPool_ns::GetPoolFromPtr(base);
     e->fn(target, f, pool2);
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 
