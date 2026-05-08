@@ -1,6 +1,7 @@
 // gcValLobbyStatus — decompiled from gcAll_psp.obj
 // Methods in this file:
 //   0x0034eaa0  Write(cFile &) const
+//   0x0034eb04  Read(cFile &, cMemPool *)
 //   0x0034ed50  ~gcValLobbyStatus(void)
 //
 // Class layout (16 bytes, alloc size 0x10):
@@ -11,6 +12,7 @@
 
 class cBase;
 class cFile;
+struct cFileHandle;
 
 class cMemPool {
 public:
@@ -46,10 +48,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
+};
+
 class gcValue {
 public:
     cBase *mParent;
     void *mVtable;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -62,6 +77,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     ~gcValLobbyStatus();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -76,6 +92,7 @@ public:
 };
 
 extern char gcValLobbyStatusvirtualtable[];
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 void cStrAppend(char *, const char *, ...);
 
 static cType *type_base asm("D_000385DC");
@@ -134,6 +151,20 @@ void gcValLobbyStatus::Write(cFile &file) const {
     wb.Write(this->f8);
     wb.Write(this->fC);
     wb.End();
+}
+
+// ── gcValLobbyStatus::Read(cFile &, cMemPool *) @ 0x0034eb04 ──
+int gcValLobbyStatus::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 8, 4);
+    cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 12, 4);
+    return result;
 }
 
 // -- gcValLobbyStatus::GetText(char *) const @ 0x0015af44 --
