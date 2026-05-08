@@ -1,5 +1,6 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -26,9 +27,22 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cNamed {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -36,11 +50,13 @@ class cHandle {
 public:
     int mId;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void RemoveAll(void);
     cBaseArray &operator=(const cBaseArray &);
 };
@@ -78,6 +94,7 @@ public:
     gcState(cBase *);
     ~gcState();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const char *GetName(void) const;
     const cType *GetType(void) const;
@@ -95,6 +112,7 @@ public:
 extern "C" {
     void *dcastdcast_gcStateptr__constcBaseptr(const cBase *);
     void *gcStateMachine__GetSubObject(void *, void *, int);
+    void cFile_SetCurrentPos(void *, unsigned int);
 }
 
 extern cType *D_000385DC;
@@ -159,6 +177,63 @@ void gcState::Write(cFile &file) const {
     wb.Write(mField28);
     mField2C.Write(wb);
     wb.End();
+}
+
+// ── gcState::Read(cFile &, cMemPool *) @ 0x0010ace4 ──
+int gcState::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+
+    if (rb._data[3] != 1)
+        goto fail;
+    if (((cNamed *)this)->Read(file, pool) != 0)
+        goto success;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+success:
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x20, 4);
+    *(int *)((char *)this + 0x24) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x24);
+        handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    }
+    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x28, 4);
+
+    {
+        int handle = *(int *)((char *)this + 0x24);
+        void *entry;
+        void *lookup;
+        if (handle == 0) {
+            entry = 0;
+        } else {
+            lookup = D_00038890[handle & 0xFFFF];
+            entry = 0;
+            if (lookup != 0) {
+                if (((HandleEntry *)lookup)->mId == handle) {
+                    entry = lookup;
+                }
+            }
+        }
+        __asm__ volatile("" : "+r"(entry));
+
+        if (entry != 0) {
+            int valid;
+            __asm__ volatile("andi %0, $0, 0xff" : "=r"(valid));
+            if (valid != 0) {
+                unsigned int flags = *(unsigned int *)((char *)this + 0x28);
+                flags &= 0x8000FFFF;
+                flags |= 0x00010000;
+                *(unsigned int *)((char *)this + 0x28) = flags;
+            }
+        }
+    }
+
+    ((cBaseArray *)((char *)this + 0x2C))->Read(rb);
+    return result;
 }
 
 // ── gcState::New(cMemPool *, cBase *) static @ 0x0025908c ──

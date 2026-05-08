@@ -61058,7 +61058,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -61068,7 +61068,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeSimpleMotorConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSeSimpleMotorConfigEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eSimpleMotorConfig.cpp",
+    "symbol_name": "__0fSeSimpleMotorConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "12abf811",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:47:44Z"
   },
   {
     "address": "0x0007640c",
@@ -95053,7 +95061,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -95066,7 +95074,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fHgcStateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fHgcStateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "12abf811",
+        "notes": "Closest attempt is a full-size 388B C++ implementation in src/gcState.cpp. The body behavior and control flow are reconstructed: cReadBlock version check, cNamed::Read base call, field reads at 0x20/0x28, cHandle::Read for 0x24, the handle table probe against D_00038890, the deliberately false flag update block, and cBaseArray::Read at 0x2C. Manual restructurings tested included fail-label placement before the success body, preserving the otherwise dead handle-table probe with an asm barrier, moving the result initialization before/after cReadBlock construction, direct this/file/pool usage versus local register-like temporaries, and alternate entry/lookup initialization order.\n\nThe best source is still 30 bytes different after a 300s permuter run (10,056 candidates generated, 5,081 compiled, zero improvement). Remaining differences are register/scheduler shape: the cReadBlock prologue saves/moves are ordered differently when result initialization is placed after construction, while placing it before construction worsens the diff; the handle-table probe also keeps the loaded entry in a1 instead of the expected a0/a1 pairing. This looks like the known cReadBlock prologue scheduling/register-allocation blocker rather than missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:47:44Z",
+        "src_file": "src/gcState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/12abf811/0010ace4__agent_self_reported_failure__src_gcState.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010ae68",
@@ -106023,7 +106045,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -195863,7 +195885,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
