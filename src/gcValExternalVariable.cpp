@@ -9,7 +9,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class gcValPointValue {
@@ -22,6 +25,21 @@ public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
+struct cTypeMethod {
+    short offset;
+    short pad;
+    void *fn;
 };
 
 class cType {
@@ -51,6 +69,7 @@ public:
 class cHandle {
 public:
     int mIndex;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -59,6 +78,7 @@ public:
     cBase *mParent;       // 0x0
     void *mVtable;        // 0x4
     gcLValue(cBase *parent);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -69,6 +89,7 @@ public:
     ~gcValExternalVariable();
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -80,6 +101,18 @@ public:
         void *(*fn)(void *, int, int, int, int) = rec->fn;
         ((void (*)(void *, void *))fn)(base, p);
     }
+};
+
+class gcValue {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+// ODR-WARNING: split-TU method addition for gcValEnumerationEntry. Keep this
+// local redeclaration minimal so existing matched siblings do not drift.
+class gcValEnumerationEntry : public gcValue {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 extern char gcLValuevirtualtable[];
@@ -113,6 +146,45 @@ inline gcValExternalVariable::gcValExternalVariable(cBase *parent) : gcLValue(pa
 }
 
 inline void *operator new(unsigned, void *p) { return p; }
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValExternalVariable::Read(cFile &, cMemPool *)  @ 0x00343104, 220B
+// ─────────────────────────────────────────────────────────────────────────
+int gcValExternalVariable::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mHandle.mIndex = 0;
+    cHandle *handle = &mHandle;
+    handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValEnumerationEntry::Read(cFile &, cMemPool *)  @ 0x00342184, 236B
+// ─────────────────────────────────────────────────────────────────────────
+int gcValEnumerationEntry::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        char *mType = *(char **)((char *)this + 12);
+        char *base = (char *)this + 8;
+        cTypeMethod *e = (cTypeMethod *)(mType + 48);
+        typedef void (*ReadFn)(void *, cFile *, cMemPool *);
+        ((ReadFn)e->fn)(base + e->offset, *(cFile **)&rb._data[0],
+                        cMemPool::GetPoolFromPtr(base));
+    }
+    return result;
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // gcValExternalVariable::Write(cFile &) const  @ 0x003430ac, 88B
