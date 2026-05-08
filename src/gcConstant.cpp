@@ -207,12 +207,12 @@ const cType *gcConstant::GetType(void) const {
 }
 
 // ── gcConstant::Read(cFile &, cMemPool *) @ 0x00124e4c ──
-// The early-stashed `s3 = 1` for the success-path return value comes from the
-// SNC scheduler; an inline-asm `ori` forces the same scheduling here.
+// The inline `ori` pins the success-path return value in the same register
+// schedule SNC used for this cReadBlock RAII pattern.
 int gcConstant::Read(cFile &file, cMemPool *pool) {
     int result;
-    __asm__ ("ori %0,$0,1" : "=r"(result));
     cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0,$0,1" : "=r"(result));
     if (rb._data[3] != 1 || cObject::Read(file, pool) == 0) {
         ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
         return 0;
