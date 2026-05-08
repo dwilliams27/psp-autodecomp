@@ -13,6 +13,16 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -39,6 +49,7 @@ public:
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -55,6 +66,7 @@ struct AllocEntry {
 class gcValEntityIsAttacking : public gcValue {
 public:
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -63,6 +75,12 @@ public:
 void cStrCat(char *, const char *);
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
+
+extern "C" {
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
 
 void gcValEntityIsAttacking::GetText(char *buf) const {
     const cTypeMethod *entityText =
@@ -95,6 +113,36 @@ void gcValEntityIsAttacking::Write(cFile &file) const {
 
     wb.Write(*(const int *)((const char *)this + 0x4C));
     wb.End();
+}
+
+int gcValEntityIsAttacking::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (tag != version || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+
+    char *entity = (char *)this + 8;
+    char *entityType = *(char **)((char *)this + 12);
+    const cTypeMethod *entityRead = (const cTypeMethod *)(entityType + 0x30);
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)entityRead->fn)(entity + entityRead->offset, f,
+                             cMemPool_GetPoolFromPtr(entity));
+
+    char *attacking = (char *)this + 0x34;
+    char *attackingType = *(char **)((char *)this + 0x38);
+    const cTypeMethod *attackingRead =
+        (const cTypeMethod *)(attackingType + 0x30);
+    f = rb.file;
+    ((ReadFn)attackingRead->fn)(attacking + attackingRead->offset, f,
+                                cMemPool_GetPoolFromPtr(attacking));
+
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 0x4C, 4);
+    return 1;
 }
 
 static cType *type_base;

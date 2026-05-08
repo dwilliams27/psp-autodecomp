@@ -32959,7 +32959,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -76797,7 +76797,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -76818,6 +76818,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T11:51:28Z"
+      },
+      {
+        "session": "fdfe1b6a",
+        "notes": "Added gcEnumerationEntry::Read in the class file with the expected behavior: version-2 cReadBlock, cNamed::Read parent call, rewind on failure, 4-byte read to this+0x24, 1-byte read to this+0x20, cReadBlock destructor, and return 1 through the pinned $19 result register. I tried the canonical RAII cReadBlock form, moving result initialization before the constructor, a local sched=1 pragma around the method, and the current explicit stack-buffer constructor/destructor-call form.\n\nThe best compare remains 21/228 bytes different. The failure is localized to the cReadBlock constructor prologue scheduling: the original saves s3 and materializes li s3,1 before the constructor call, while this compiler schedules s3 save/ra save immediately before jal and emits li s3,1 after the constructor. Moving the li earlier and changing scheduler control both worsened the diff; the success/failure body and destructor/epilogue structure match the target shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:08:40Z",
+        "src_file": "src/gcEnumerationEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/fdfe1b6a/000d3dd0__agent_self_reported_failure__src_gcEnumerationEntry.cpp"
       }
     ]
   },
@@ -94312,7 +94324,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -199324,7 +199336,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -204844,7 +204856,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -204856,7 +204868,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcDoMouseOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLgcDoMouseOpEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "bd764c68",
+        "notes": "Implemented gcDoMouseOp::Read(cFile &, cMemPool *) in its canonical class translation unit, src/gcDoMouseOp.cpp. The closest source uses cReadBlock(file, 2, true), accepts versions 1 and 2, calls gcAction::Read, reads mode/flags from the underlying file handle, zeros and reads the cHandle at +0x14 with cMemPool_GetPoolFromPtr, and for version >=2 dispatches the desired-object read slot at type+0x30 for the subobject at +0x18. Keeping the version tag as a short-lived pre-call temporary was necessary; otherwise SNC saved it in s4 and produced a much larger mismatch.\n\nThe final compare is 21/340 bytes different and the disassembly body matches the provided target from the first post-constructor tag load through all cleanup/return paths. The remaining bytes are the same cReadBlock prologue scheduler divergence as gcValCinematicInfo::Read: save/move/li ordering around the constructor differs, while the actual method body is byte-identical. Moving the $19 result initialization before cReadBlock worsened to 34/340, and sched=1 worsened to 26/340, so this should be treated as the known Read(cFile &, cMemPool *) prologue blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:12:16Z",
+        "src_file": "src/gcDoMouseOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/bd764c68/002e7a84__agent_self_reported_failure__src_gcDoMouseOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e7bd8",
@@ -220722,7 +220748,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -220733,7 +220759,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValCinematicInfoEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSgcValCinematicInfoEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "bd764c68",
+        "notes": "Implemented the canonical gcValCinematicInfo::Read(cFile &, cMemPool *) body in src/gcValCinematicInfo.cpp using cReadBlock(file, 2, true), the tag range check for versions 1 and 2, gcValue::Read, version-2 field reads at offsets 8/0x0C/0x10, and automatic cReadBlock cleanup. The body, failure path, success path, branch-likely shape, and all sibling methods compare correctly; compare_func.py is down to 21/264 differing bytes.\n\nThe remaining mismatch is isolated to the known cReadBlock prologue scheduler divergence. Generated code saves/moves s1 and sets up a0/a2 before saving s3 and emits li s3,1 immediately after the cReadBlock constructor call; the target saves s3 earlier and schedules li s3,1 before the constructor setup. Tried moving the result initialization before cReadBlock and adding sched=1 around the method; both worsened the diff (34/264 and 26/264 respectively), so this is the documented source-level blocker rather than a body mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:12:16Z",
+        "src_file": "src/gcValCinematicInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/bd764c68/00323d38__agent_self_reported_failure__src_gcValCinematicInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x00323e40",
@@ -223592,7 +223632,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -223603,7 +223643,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValEntityIsAttackingEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fWgcValEntityIsAttackingEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValEntityIsAttacking.cpp",
+    "symbol_name": "__0fWgcValEntityIsAttackingEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "65b40908",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:12:22Z"
   },
   {
     "address": "0x00333424",
@@ -224703,7 +224751,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -225182,7 +225230,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -225194,7 +225242,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityPathDistanceEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fXgcValEntityPathDistanceEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValEntityPathDistance.cpp",
+    "symbol_name": "__0fXgcValEntityPathDistanceEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "65b40908",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T17:12:22Z"
   },
   {
     "address": "0x0033a34c",
@@ -231483,7 +231539,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -231504,6 +231560,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T11:55:06Z"
+      },
+      {
+        "session": "fdfe1b6a",
+        "notes": "Added gcValMemCardStatus::Read in the class file with the expected behavior: version-2 cReadBlock, gcValue::Read parent call, rewind on failure, two cFileSystem::Read calls into offsets 8 and 12, cReadBlock destructor, and return 1 through the pinned $19 result register. I tried the canonical RAII cReadBlock form, moving result initialization before the constructor, a local sched=1 pragma around the method, and the current explicit stack-buffer constructor/destructor-call form.\n\nThe best compare remains 21/228 bytes different. The generated body after the cReadBlock constructor has the same branch-likely success path, rewind path, reads, destructor calls, and epilogues as the target. The remaining mismatch is the documented cReadBlock prologue scheduler divergence: original code hoists the s3 save/result initialization before the constructor call, but the available compiler schedules those operations after/around the call with no source-level variant tested here improving it.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T17:08:40Z",
+        "src_file": "src/gcValMemCardStatus.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/fdfe1b6a/00350210__agent_self_reported_failure__src_gcValMemCardStatus.cpp"
       }
     ]
   },

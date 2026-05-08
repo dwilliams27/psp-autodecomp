@@ -17,6 +17,16 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 struct cTypeMethod {
     short offset;
     short pad;
@@ -43,16 +53,19 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValEntityPathDistance : public gcValue {
 public:
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -81,6 +94,12 @@ void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
 extern "C" void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
 void cStrAppend(char *, const char *, ...);
+
+extern "C" {
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
 
 cBase *gcValEntityPathDistance::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -206,6 +225,31 @@ void gcValEntityPathDistance::Write(cFile &file) const {
     wb.Write(*(const int *)((const char *)this + 0x3C));
     ((const gcDesiredValue *)((const char *)this + 0x40))->Write(wb);
     wb.End();
+}
+
+int gcValEntityPathDistance::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (tag != version || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+
+    char *entity = (char *)this + 8;
+    char *entityType = *(char **)((char *)this + 12);
+    const cTypeMethod *entityRead = (const cTypeMethod *)(entityType + 0x30);
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)entityRead->fn)(entity + entityRead->offset, f,
+                             cMemPool_GetPoolFromPtr(entity));
+
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 0x34, 4);
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 0x38, 4);
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 0x3C, 4);
+    ((gcDesiredValue *)((char *)this + 0x40))->Read(rb);
+    return 1;
 }
 
 void gcValEntityPathDistance::GetText(char *buf) const {
