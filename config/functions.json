@@ -106097,7 +106097,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -106110,7 +106110,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcTableColumnStringBufferEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcTableColumnStringBufferEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5e7ee0f1",
+        "notes": "Closest C++ attempt compiles to the right 440-byte size but remains at 41 differing bytes. The prologue, version check, base gcTableColumn::Read call, SetSize temporary setup, old-buffer count loop, old-buffer delete callback, failure path, destructor path, and return shape are all structurally aligned. The remaining byte differences are localized to instruction scheduling/register shape in the two cFileSystem::Read setup sequences and the final cArray<wchar_t>::Read loop cursor: expected keeps the file pointer load before the destination addiu in one place and uses an a0/s2 zero-plus-base cursor pattern for the loop, while SNC from this source settles on nearby but non-identical register scheduling. A 300-second permuter run generated 11088 candidates, compiled 4842, and found no improvement over the 41-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T21:02:32Z",
+        "src_file": "src/gcTableColumnStringBuffer_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/5e7ee0f1/0012b324__agent_self_reported_failure__src_gcTableColumnStringBuffer_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012b4dc",
@@ -118451,7 +118465,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -195937,7 +195951,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -195950,7 +195964,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ffgcDoEntityApplyRigidBodyImpulseEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0ffgcDoEntityApplyRigidBodyImpulseEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcTableColumnStringBuffer_Read.cpp",
+    "symbol_name": "__0ffgcDoEntityApplyRigidBodyImpulseEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "5e7ee0f1",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T21:02:32Z"
   },
   {
     "address": "0x002a22f8",
@@ -213242,7 +213264,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
