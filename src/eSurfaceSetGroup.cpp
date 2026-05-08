@@ -29,11 +29,23 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End();
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
 };
 
 class cGroup {
@@ -46,6 +58,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eSurfaceSetGroup : public cGroup {
@@ -58,6 +71,7 @@ public:
     const char *GetFileExtension(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static bool IsManagedTypeExternalStatic();
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -157,6 +171,20 @@ void eSurfaceSetGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eSurfaceSetGroup::Read(cFile &, cMemPool *) @ 0x00016AEC ──
+int eSurfaceSetGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eSurfaceSetGroup::New(cMemPool *, cBase *) static @ 0x001DCDA4 ──
