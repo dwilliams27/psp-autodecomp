@@ -1,6 +1,18 @@
 #include "cBase.h"
 
 class cFile;
+class cFileHandle;
+class cReadBlock;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -22,6 +34,7 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -47,6 +60,12 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct ReadRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 struct TextRec {
     short offset;
     short _pad;
@@ -70,6 +89,7 @@ public:
     void AssignCopy(const cBase *);
     gcDoCameraLookFromPoint &operator=(const gcDoCameraLookFromPoint &);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -81,6 +101,9 @@ extern "C" void gcDesiredCamera_gcDesiredCamera(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char D_00000338[];
 extern char D_000005B8[];
@@ -258,6 +281,83 @@ void gcDoCameraLookFromPoint::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+int gcDoCameraLookFromPoint::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int inner[5];
+    char flag;
+    int ok;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        goto fail_outer;
+    }
+
+    __0oKcReadBlockctR6FcFileUib(inner, file, 1, true);
+    if (inner[3] != 1) {
+        goto fail_inner;
+    }
+    if (((gcAction *)this)->Read(file, pool) != 0) {
+        goto read_inner;
+    }
+
+fail_inner:
+    cFile_SetCurrentPos(*(void **)&inner[0], inner[1]);
+    __0oKcReadBlockdtv(inner, 2);
+    ok = 0;
+    goto after_inner;
+
+read_inner:
+    {
+        char *typeInfo0 = *(char **)((char *)this + 0x10);
+        char *base0 = (char *)this + 0x0C;
+        ReadRec *rec0 = (ReadRec *)(typeInfo0 + 0x30);
+        short off0 = rec0->offset;
+        cFile *f0 = *(cFile **)&inner[0];
+        rec0->fn(base0 + off0, f0, cMemPool::GetPoolFromPtr(base0));
+    }
+
+    ((gcDesiredValue *)((char *)this + 0x44))->Read(*(cReadBlock *)inner);
+
+    cFileSystem::Read(*(cFileHandle **)inner[0], &flag, 1);
+    *(unsigned char *)((char *)this + 0x48) = flag != 0;
+
+    __0oKcReadBlockdtv(inner, 2);
+    ok = 1;
+
+after_inner:
+    if (ok != 0) {
+        goto read_outer;
+    }
+
+fail_outer:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+read_outer:
+    {
+        char *typeInfo1 = *(char **)((char *)this + 0x50);
+        char *base1 = (char *)this + 0x4C;
+        ReadRec *rec1 = (ReadRec *)(typeInfo1 + 0x30);
+        short off1 = rec1->offset;
+        cFile *f1 = *(cFile **)&rb[0];
+        rec1->fn(base1 + off1, f1, cMemPool::GetPoolFromPtr(base1));
+    }
+
+    {
+        char *typeInfo2 = *(char **)((char *)this + 0x64);
+        char *base2 = (char *)this + 0x60;
+        ReadRec *rec2 = (ReadRec *)(typeInfo2 + 0x30);
+        short off2 = rec2->offset;
+        cFile *f2 = *(cFile **)&rb[0];
+        rec2->fn(base2 + off2, f2, cMemPool::GetPoolFromPtr(base2));
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoCameraLookFromPoint::GetText(char *buf) const {
