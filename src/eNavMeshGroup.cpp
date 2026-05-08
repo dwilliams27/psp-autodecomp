@@ -90,6 +90,11 @@ public:
     }
 };
 
+class eLensFlareGroup : public cGroup {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
 extern char eNavMeshGroupvirtualtable[];
 extern char cGroupvirtualtable[];
 extern char cBasevirtualtable[];
@@ -257,6 +262,17 @@ const char *eNavMeshGroup::GetDataDirectory() const {
             (const char *)0x36CE94, (const char *)0x36CEA0, 4);
     }
     return (const char *)((int *)D_00046A30)[5];
+}
+
+int eLensFlareGroup::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 eNavMeshGroup::~eNavMeshGroup() {
