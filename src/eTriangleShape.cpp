@@ -1,6 +1,7 @@
 // eTriangleShape.cpp - decompiled from eAll_psp.obj
 
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 class mOCS;
@@ -19,8 +20,19 @@ public:
     const cType *GetType(void) const;
     void GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const;
     void GetInertialTensor(float, mVec3 *) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+int eShape_Read(void *, cFile &, cMemPool *);
 
 static cType *type_cBase;
 static cType *type_eShape;
@@ -49,6 +61,17 @@ const cType *eTriangleShape::GetType(void) const {
             cType::InitializeType(0, 0, 0x2D5, parentType, factory, 0, 0, 0);
     }
     return type_eTriangleShape;
+}
+
+int eTriangleShape::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] == 1 && eShape_Read(this, file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 void eTriangleShape::GetInertialTensor(float mass, mVec3 *out) const {

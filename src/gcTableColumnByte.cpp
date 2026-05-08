@@ -307,7 +307,10 @@ void gcTableColumnByte::Write(cOutStream &os) const {
 // 0x0012acd4 — Read from cFile via cReadBlock; delegates byte-array read to template.
 int gcTableColumnByte::Read(cFile &file, cMemPool *pool) {
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1 || gcTableColumn::Read(file, pool) == 0) {
+    register int blockVersion __asm__("$a0") = rb._data[3];
+    register int version __asm__("$a1");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (blockVersion != version || gcTableColumn::Read(file, pool) == 0) {
         cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
         return 0;
     }

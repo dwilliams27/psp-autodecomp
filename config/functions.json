@@ -57566,7 +57566,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -57585,7 +57585,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T20:22:06Z"
       }
-    ]
+    ],
+    "src_file": "src/eTriangleShape.cpp",
+    "symbol_name": "__0fOeTriangleShapeEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8c2ac154",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:24:09Z"
   },
   {
     "address": "0x0006fca4",
@@ -84430,7 +84438,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104680,7 +104688,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104737,7 +104745,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104753,7 +104761,15 @@
         "session": "b6865a45",
         "notes": "The best pure C++ form is structurally correct and matches all control flow except the original reloads the block version constant for the compare as `li a1,1; bne a0,a1`, while SNC for the current source reuses the already-live `s3 == 1` and emits `bne a0,s3`. With `return 1` rather than a live result local, the success epilogue matches (`move v0,s3`) but the symbol is 196 bytes instead of the target 200 because that separate `li a1,1` is absent.\n\nTried a direct short-circuit condition, nested ifs, signed/unsigned comparisons, char/int version locals, register-bound locals, empty asm register barriers, and a small inline-asm load experiment. The inline-asm variants either still optimized to the same C compare or disrupted register allocation substantially; forcing the exact branch would require hand-writing the condition/control flow in asm, which I avoided under the project rule against assembly bypasses. Root cause appears to be last-mile SNC register/CSE behavior around the literal 1 used by the constructor bool, version check, and success return."
       }
-    ]
+    ],
+    "src_file": "src/gcTableColumnByte.cpp",
+    "symbol_name": "__0fRgcTableColumnByteEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8c2ac154",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:24:09Z"
   },
   {
     "address": "0x0012ad9c",
