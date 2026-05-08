@@ -7,12 +7,23 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 class cType;
 class cObject;
+class cReadBlock;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cWriteBlock {
 public:
@@ -26,6 +37,7 @@ public:
 class cHandle {
 public:
     int mHandle;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -50,6 +62,7 @@ extern "C" void gcDesiredObjectHelper_GetDesiredObject_Type(
 
 class gcObjectRelationship {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -83,6 +96,7 @@ public:
     ~gcEntityTemplateRelationship();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Set(cObject *) const;
     void Write(cFile &) const;
 
@@ -193,6 +207,29 @@ void gcEntityTemplateRelationship::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x24))->Write(inner);
     inner.End();
     wb.End();
+}
+
+int gcEntityTemplateRelationship::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int inner[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || gcObjectRelationship::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    __0oKcReadBlockctR6FcFileUib(inner, *(cFile *)rb[0], 3, true);
+    cFileSystem::Read(*(cFileHandle **)inner[0], (char *)this + 0x20, 4);
+    *(int *)((char *)this + 0x24) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x24);
+        handle->Read(*(cReadBlock *)inner, cMemPool::GetPoolFromPtr(handle));
+    }
+    __0oKcReadBlockdtv(inner, 2);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcEntityTemplateRelationship::Set(cObject *) const {
