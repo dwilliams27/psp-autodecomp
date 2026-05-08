@@ -17,14 +17,30 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileHandle;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class gcDesiredUIWidgetHelper {
 public:
     void GetText(char *) const;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -41,7 +57,16 @@ extern char gcValUIListInfoDerivedvtable[];
 extern char cBaseclassdesc[];
 
 void gcValue_Write(const gcValUIListInfo *, cFile &);
+int gcValue_Read(gcValUIListInfo *, cFile &, cMemPool *);
+void cFile_SetCurrentPos(void *, unsigned int);
 void gcDesiredUIWidgetHelper_gcDesiredUIWidgetHelper(void *, int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
+class gcStringValue {
+public:
+    int Read(cFile &, cMemPool *);
+};
 
 struct PoolBlock {
     char pad[0x1C];
@@ -78,6 +103,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -89,6 +115,11 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+class gcLobbyAccountStrings : public gcStringValue {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 void cStrAppend(char *, const char *, ...);
@@ -161,6 +192,44 @@ void gcValUIListInfo::Write(cFile &file) const {
     wb.Write(mField);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+// -----------------------------------------------------------------------------
+// gcValUIListInfo::Read(cFile &, cMemPool *)  @ 0x00362b10, 232B
+// -----------------------------------------------------------------------------
+int gcValUIListInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && gcValue_Read(this, file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x14, 4);
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// gcLobbyAccountStrings::Read(cFile &, cMemPool *)  @ 0x0027fd34, 240B
+// -----------------------------------------------------------------------------
+int gcLobbyAccountStrings::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && this->gcStringValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 8, 4);
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x10, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // -----------------------------------------------------------------------------
