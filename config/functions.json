@@ -104764,7 +104764,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -185407,7 +185407,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -185439,7 +185439,15 @@
         "src_file": "src/gcLobbyConfigStrings.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/650bf8ca/002805dc__agent_self_reported_failure__src_gcLobbyConfigStrings.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcLobbyConfigStrings.cpp",
+    "symbol_name": "__0fUgcLobbyConfigStringsEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "10deb2af",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:30:37Z"
   },
   {
     "address": "0x002806ac",
@@ -212951,7 +212959,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -227550,7 +227558,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -227570,7 +227578,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T06:07:00Z"
       }
-    ]
+    ],
+    "src_file": "src/gcValHeadset.cpp",
+    "symbol_name": "__0fMgcValHeadsetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "10deb2af",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:30:37Z"
   },
   {
     "address": "0x003471cc",
