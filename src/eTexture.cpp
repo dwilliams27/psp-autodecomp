@@ -7,6 +7,7 @@ class cType;
 class cObject {
 public:
     cObject(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -35,6 +36,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
@@ -44,6 +57,7 @@ class eTexture : public cObject {
 public:
     eTexture(cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -82,6 +96,8 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00040FE8;
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 eTexture::eTexture(cBase *parent) : cObject(parent) {
     *(void **)((char *)this + 4) = (void *)0x37FD48;
@@ -125,6 +141,49 @@ void eTexture::Write(cFile &file) const {
     wb.Write(*(const short *)((const char *)this + 0x4A));
     wb.End();
 }
+
+#pragma control sched=2
+int eTexture::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *p = (char *)this + 0x44;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, p, 1);
+    }
+    {
+        void *p = (char *)this + 0x45;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, p, 1);
+    }
+    {
+        void *p = (char *)this + 0x46;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, p, 1);
+    }
+    {
+        void *p = (char *)this + 0x48;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, p, 2);
+    }
+    {
+        void *p = (char *)this + 0x4A;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, p, 2);
+    }
+    return result;
+}
+#pragma control sched=2
 
 #pragma control sched=1
 void eWaterFilter::Write(cFile &file) const {

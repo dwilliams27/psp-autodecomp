@@ -23,11 +23,24 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cObject {
 public:
     cObject(cBase *);
     ~cObject(void);
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -70,6 +83,7 @@ public:
     ~ePoint(void);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -86,6 +100,8 @@ extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00046A4C;
 
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // ── ePoint::Write(cFile &) const @ 0x0005c13c ──
 #pragma control sched=1
 void ePoint::Write(cFile &file) const {
@@ -97,6 +113,45 @@ void ePoint::Write(cFile &file) const {
     wb.Write(3, (const float *)((const char *)this + 0x70));
     wb.Write(*(const unsigned int *)((const char *)this + 0x90));
     wb.End();
+}
+#pragma control sched=2
+
+// ── ePoint::Read(cFile &, cMemPool *) @ 0x0005c1d4 ──
+#pragma control sched=1
+int ePoint::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x80, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x50, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x60, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x70, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x90, 4);
+    }
+    return result;
 }
 #pragma control sched=2
 
