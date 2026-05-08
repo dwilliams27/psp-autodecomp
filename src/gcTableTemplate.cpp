@@ -31,13 +31,22 @@ public:
 class cHandle {
 public:
     int mIndex;
+    void Read(class cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class cBaseArray {
 public:
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
     cBaseArray &operator=(const cBaseArray &);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 template <class T>
@@ -45,6 +54,13 @@ class cArrayBase {
 public:
     T *mData;
     cArrayBase &operator=(const cArrayBase &);
+};
+
+template <class T>
+class cArray {
+public:
+    T *mData;
+    void Read(cReadBlock &);
 };
 
 class gcEnumeration {
@@ -60,6 +76,7 @@ public:
     void AssignCopy(const cBase *);
     void Reset(cMemPool *, bool);
     static cBase *New(cMemPool *, cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void Write(cOutStream &) const;
 };
@@ -68,6 +85,11 @@ gcTableTemplate *dcast(const cBase *);
 
 void gcTableTemplate_gcTableTemplate(gcTableTemplate *, cBase *);
 void cObject_Write(const gcTableTemplate *, cFile &);
+extern "C" int cObject_Read(cObject *, cFile &, cMemPool *)
+    asm("__0fHcObjectEReadR6FcFileP6IcMemPool");
+extern "C" void *cMemPool_GetPoolFromPtr(const void *)
+    asm("__0fP8cMemPoolLGetPoolFromPtrPCvT");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 void cBaseArray_SetSize(void *, int);
 
@@ -92,6 +114,12 @@ struct TypeDispatchEntry {
     short offset;
     short pad;
     void (*fn)(void *, cOutStream &);
+};
+
+struct TypeReadEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cMemPool *, bool);
 };
 
 struct TypedObject {
@@ -171,6 +199,29 @@ cBase *gcTableTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+int gcTableTemplate::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || cObject_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    *(int *)((char *)this + 0x44) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x44);
+        handle->Read(rb, (cMemPool *)cMemPool_GetPoolFromPtr(handle));
+    }
+    ((cBaseArray *)((char *)this + 0x48))->Read(rb);
+    ((cArray<int> *)((char *)this + 0x50))->Read(rb);
+    {
+        TypeReadEntry *slot = (TypeReadEntry *)(*(char **)((char *)this + 4) + 0x38);
+        slot->fn((char *)this + slot->offset, pool, false);
+    }
+    return result;
 }
 
 const cType *gcTableTemplate::GetType(void) const {

@@ -1,5 +1,23 @@
 class cBase;
+class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class gcDesiredValue {
+public:
+    void Read(cReadBlock &);
+};
 
 class cType {
 public:
@@ -23,13 +41,26 @@ public:
     gcProfileString &operator=(const gcProfileString &);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
+};
+
+struct TypeReadEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 extern cType *D_000385DC;
 extern cType *D_0009F454;
 extern cType *D_0009F458;
 extern cType *D_0009F558;
+
+extern "C" int gcStringLValue_Read(void *, cFile &, cMemPool *)
+    asm("__0fOgcStringLValueEReadR6FcFileP6IcMemPool");
+extern "C" void *cMemPool_GetPoolFromPtr(const void *)
+    asm("__0fP8cMemPoolLGetPoolFromPtrPCvT");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 void gcProfileString::AssignCopy(const cBase *base) {
     const gcProfileString *other = 0;
@@ -113,4 +144,26 @@ const cType *gcProfileString::GetType(void) const {
                                            0, 0, 0);
     }
     return D_0009F558;
+}
+
+int gcProfileString::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcStringLValue_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    ((gcDesiredValue *)((char *)this + 8))->Read(rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 0x0C, 4);
+    {
+        char *typeInfo = *(char **)((char *)this + 0x14);
+        char *base = (char *)this + 0x10;
+        TypeReadEntry *slot = (TypeReadEntry *)(typeInfo + 0x30);
+        slot->fn(base + slot->offset,
+                 *(cFile **)&rb._data[0],
+                 (cMemPool *)cMemPool_GetPoolFromPtr(base));
+    }
+    return result;
 }
