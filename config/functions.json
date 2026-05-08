@@ -74897,7 +74897,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -74916,7 +74916,15 @@
         "variant": "base",
         "timestamp": "2026-04-26T23:28:10Z"
       }
-    ]
+    ],
+    "src_file": "src/gcStateMachineGroup.cpp",
+    "symbol_name": "__0fTgcStateMachineGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "20e9fdb7",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:07:53Z"
   },
   {
     "address": "0x000d0a90",
@@ -75061,7 +75069,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -75080,7 +75088,15 @@
         "variant": "base",
         "timestamp": "2026-04-28T20:58:30Z"
       }
-    ]
+    ],
+    "src_file": "src/gcTimerGroup.cpp",
+    "symbol_name": "__0fMgcTimerGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "20e9fdb7",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:07:53Z"
   },
   {
     "address": "0x000d1054",
@@ -75385,7 +75401,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -75547,7 +75563,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
