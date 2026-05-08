@@ -1,6 +1,8 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
 
 inline void *operator new(unsigned int, void *p) { return p; }
@@ -29,6 +31,15 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+};
+
 struct AllocRec {
     short offset;
     short _pad;
@@ -45,6 +56,7 @@ class cConfigBase {
 public:
     cConfigBase(cBase *);
     ~cConfigBase();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -55,6 +67,7 @@ public:
     ~cConfigPSP();
 
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -74,6 +87,9 @@ extern cType *D_00038888;
 extern cType *D_0003888C;
 
 void cStrCopy(char *, const char *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 // cConfigPSP::New(cMemPool *, cBase *) static @ 0x001c6bf8
 cBase *cConfigPSP::New(cMemPool *pool, cBase *parent) {
@@ -108,6 +124,55 @@ void cConfigPSP::Write(cFile &file) const {
     wb.Write(*(const int *)((const char *)this + 0x2B4));
     wb.Write(false);
     wb.End();
+}
+
+// cConfigPSP::Read(cFile &, cMemPool *) @ 0x00008870
+int cConfigPSP::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int count;
+    int width;
+    char enabled;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if ((unsigned int)rb[3] >= 4 || (unsigned int)rb[3] < 1 ||
+        ((cConfigBase *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], &count, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], &width, 4);
+
+    int i = 0;
+    char *name = (char *)this + 0x244;
+    if (i < count) {
+        do {
+            if (width > 0) {
+                cFileSystem::Read(*(cFileHandle **)rb[0], name, width);
+            }
+            i += 1;
+            name += 10;
+        } while (i < count);
+    }
+
+    if (count > 0) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x294,
+                          count << 2);
+    }
+
+    if ((unsigned int)rb[3] >= 2) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x2B4, 4);
+    }
+
+    if ((unsigned int)rb[3] >= 3) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], &enabled, 1);
+        *(unsigned char *)((char *)this + 0x2B8) = enabled != 0;
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // cConfigPSP::cConfigPSP(cBase *) @ 0x00008a28

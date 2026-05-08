@@ -14319,7 +14319,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -14329,7 +14329,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKcConfigPSPEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKcConfigPSPEReadR6FcFileP6IcMemPool",
+    "src_file": "src/cConfigPSP.cpp",
+    "symbol_name": "__0fKcConfigPSPEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d7c477ef",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T21:58:29Z"
   },
   {
     "address": "0x00008a28",
@@ -86891,7 +86899,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -113321,7 +113329,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -113335,7 +113343,21 @@
       "0x00146d30"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fhgcPartialEntityControllerTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fhgcPartialEntityControllerTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "d9db77e7",
+        "notes": "Implemented gcPartialEntityControllerTemplate::Read in its canonical class file. The closest source uses a version-2 cReadBlock, zeroes and reads the two cHandle members through cMemPool::GetPoolFromPtr, reads mIndex at +0x0C, performs the 0x38890 handle-table lookup with key validation at +0x30, conditionally ORs bit 0x10000 into mIndex when the resolved object has flag 0x04 at +0x4C, then destroys the read block and returns s1. Existing matched constructor/destructor/GetName/Write/GetType siblings in src/gcPartialEntityControllerTemplate.cpp still compare as MATCH.\n\nClosest compare is 115/388 bytes different. The prologue has the same cReadBlock scheduler drift seen in this Read family, but the body also retains source-shape differences in the handle-table branch region: SNC emits an extra unconditional branch after the successful key comparison, uses commuted addu operands for the table address, and chooses beqzl with the final handle zero-store in the delay slot where the target uses non-likely beqz with addiu s2,s0,16 in the delay slot. Tried nested-if, goto, inverted flag, explicit slot register, canonical-file placement, and reset-on-failed-candidate variants. The local permuter was attempted for 180s with --save-best but failed before searching because it could not isolate the 388-byte target function from the multi-function .o.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T21:55:57Z",
+        "src_file": "src/gcPartialEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/d9db77e7/0013e388__agent_self_reported_failure__src_gcPartialEntityControllerTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013e50c",
@@ -194317,7 +194339,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -196786,7 +196808,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -196798,7 +196820,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoEntityAttackEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcDoEntityAttackEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntityAttack.cpp",
+    "symbol_name": "__0fQgcDoEntityAttackEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d7c477ef",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T21:58:29Z"
   },
   {
     "address": "0x002a6584",
@@ -197992,7 +198022,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -201492,7 +201522,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -201504,7 +201534,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fcgcDoEntitySetGeomCurveTargetEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fcgcDoEntitySetGeomCurveTargetEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "223bc925",
+        "notes": "Implemented gcDoEntitySetGeomCurveTarget::Read in the class canonical TU, using raw cReadBlock storage plus the matched ReadRec dispatch pattern for fields at 0x0C, 0x40, and 0x54, cFileSystem reads at 0x38/0x3C, and cName::Read at 0x80. Existing constructor/New/GetType/Write/GetText siblings still compare as MATCH. The emitted function is the correct 396B size, and after the cReadBlock constructor call the body matches the target instruction-for-instruction through the failure path, all virtual read dispatches, scalar reads, cName read, destructor, and return.\n\nThe only remaining mismatch is the first prologue block before the cReadBlock constructor: saved-register and argument move scheduling differs from the original gcAll_psp.obj order, while all actual operations and stack slots are equivalent. This is the same known cReadBlock Read prologue scheduler divergence; the source body has no remaining mismatch to tune.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T21:55:01Z",
+        "src_file": "src/gcDoEntitySetGeomCurveTarget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/223bc925/002c781c__agent_self_reported_failure__src_gcDoEntitySetGeomCurveTarget.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c79a8",
@@ -203152,7 +203196,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -227429,7 +227473,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -227442,7 +227486,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValEntityScreenValueEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fWgcValEntityScreenValueEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "d9db77e7",
+        "notes": "Implemented gcValEntityScreenValue::Read in canonical C++ using the gcAll Read pattern: version-4 cReadBlock, gcValue::Read parent call, two desired-object virtual reads through type+0x30, cName::Read at +0x34, two cFileSystem::Read calls at +0x84/+0x88, and three gcDesiredValue::Read calls. After forcing the return value into s3, the adjusted virtual-call pointer moved into s4 and the entire body after the cReadBlock constructor matches the target instruction-for-instruction; existing matched siblings in src/gcValEntityScreenValue.cpp still compare as MATCH.\n\nClosest compare is 36/384 bytes different. The remaining difference is isolated to the known cReadBlock prologue save/move scheduling divergence: expected interleaves sw s0/sw s2, moves for s0/s2, sw s1/sw s3, move s1, li s3, then call setup and sw s4/sw ra; our SNC emits the same saved registers and body but orders the saves/moves differently before the constructor. Per the Read-method guidance and current research notes, this is a compiler-level prologue blocker rather than a source-body mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T21:55:57Z",
+        "src_file": "src/gcValEntityScreenValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/d9db77e7/0033bf60__agent_self_reported_failure__src_gcValEntityScreenValue.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033c0e0",
@@ -232257,7 +232315,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -232270,7 +232328,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fbgcValLobbyScoreboardRowInfoEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fbgcValLobbyScoreboardRowInfoEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "223bc925",
+        "notes": "Implemented gcValLobbyScoreboardRowInfo::Read with the standard cReadBlock RAII pattern and tagged-base ReadBase reconstruction. Existing sibling functions still compare as MATCH. The generated Read function is the correct 388B size and the body from the first tag check onward matches the target instruction-for-instruction, including the failure path, cFileSystem reads, gcDesiredValue reads, tagged pointer handling, GetPoolFromPtr delay slot, ReadBase call, final store, destructor, and return.\n\nThe remaining mismatch is confined to the cReadBlock prologue scheduling/register-save order before the constructor call: target saves/moves s0/s2/s1/s3/ra in the original order, while the available compiler schedules the same prologue operations differently. This is the known cReadBlock Read prologue divergence documented in the session notes; no body-level source leverage remains.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T21:55:01Z",
+        "src_file": "src/gcValLobbyScoreboardRowInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/223bc925/0034d524__agent_self_reported_failure__src_gcValLobbyScoreboardRowInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0034d6a8",
