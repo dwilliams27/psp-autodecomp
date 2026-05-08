@@ -23,12 +23,36 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
+};
+
+class cName {
+public:
+    void Read(cReadBlock &);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
                                  cBase *(*)(cMemPool *, cBase *), const char *,
                                  const char *, unsigned int);
 };
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 struct AllocRec {
     short offset;
@@ -70,6 +94,7 @@ public:
     }
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     void UpdateLocalToWorld(void);
     const cType *GetType(void) const;
@@ -185,6 +210,58 @@ void eVolume::Write(cFile &file) const {
     wb.Write(3, (const float *)((const char *)this + 0x40));
     wb.Write(3, (const float *)((const char *)this + 0x50));
     wb.End();
+}
+#pragma control sched=2
+
+// ============================================================
+// eVolume::Read(cFile &, cMemPool *) @ 0x0005D544
+// ============================================================
+
+#pragma control sched=1
+int eVolume::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 1, true);
+    if ((unsigned int)rb._data[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 8, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x0C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x10, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x60, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x30, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x40, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x50, 0x0C);
+    }
+    return result;
 }
 #pragma control sched=2
 
@@ -323,4 +400,47 @@ void gcValEntityIsActive::AssignCopy(const cBase *base) {
     gcValEntityIsActive *other = dcast<gcValEntityIsActive>(base);
     gcDesiredEntity &srcDesired = *(gcDesiredEntity *)((char *)other + 8);
     ((gcDesiredEntity *)((char *)this + 8))->operator=(srcDesired);
+}
+
+// ============================================================
+// gcEntityGeomConfig::Read(cFile &, cMemPool *) @ 0x00125B50
+// ============================================================
+
+class gcEntityGeomConfig {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+int gcEntityGeomConfig::Read(cFile &file, cMemPool *) {
+    register int result __asm__("$17");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    char *handleBase = (char *)this + 8;
+    if ((unsigned int)rb._data[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    *(int *)((char *)this + 8) = 0;
+    ((cHandle *)handleBase)->Read(rb, cMemPool::GetPoolFromPtr(handleBase));
+    ((cName *)((char *)this + 0x0C))->Read(rb);
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x24, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x30, 0x0C);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x40, 0x0C);
+    }
+    {
+        char temp;
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, &temp, 1);
+        *(unsigned char *)((char *)this + 0x50) = temp != 0;
+    }
+    return result;
 }
