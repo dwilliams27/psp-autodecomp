@@ -123,12 +123,13 @@ void gcTableTemplateGroup::Write(cFile &file) const {
 // 0x000d3230 — Read(cFile &, cMemPool *)
 // ============================================================
 int gcTableTemplateGroup::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1 || cGroup::Read(file, pool) == 0) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && cGroup::Read(file, pool)) goto success;
         ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
         return 0;
-    }
+success:
     return result;
 }
 

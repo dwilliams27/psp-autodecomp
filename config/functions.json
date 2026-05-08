@@ -45342,7 +45342,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -45353,7 +45353,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeHeightmapEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKeHeightmapEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eHeightmap_Read.cpp",
+    "symbol_name": "__0fKeHeightmapEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6a7bbb72",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:25:46Z"
   },
   {
     "address": "0x000528cc",
@@ -76200,7 +76208,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -76231,7 +76239,15 @@
         "src_file": "src/gcTableTemplateGroup.cpp",
         "snapshot": "logs/failure_snapshots/match_20260507_214359/1375758c/000d3230__byte_mismatch__src_gcTableTemplateGroup.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcTableTemplateGroup.cpp",
+    "symbol_name": "__0fUgcTableTemplateGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6a7bbb72",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T15:25:46Z"
   },
   {
     "address": "0x000d32ec",
@@ -104915,7 +104931,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -106321,7 +106337,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
