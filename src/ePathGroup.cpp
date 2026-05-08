@@ -22,6 +22,11 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -34,6 +39,13 @@ public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
     void End();
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
 };
 
 class cGroup {
@@ -64,6 +76,7 @@ public:
     ePathGroup(cBase *);
     ~ePathGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -148,6 +161,20 @@ void ePathGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── ePathGroup::Read(cFile &, cMemPool *) @ 0x000142E0 ──
+int ePathGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── ePathGroup::New(cMemPool *, cBase *) static @ 0x001DBCCC ──
