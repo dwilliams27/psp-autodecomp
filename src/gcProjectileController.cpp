@@ -38,6 +38,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cNamed {
 public:
     static cBase *New(cMemPool *, cBase *);
@@ -51,6 +60,7 @@ public:
     gcEntityController(cBase *);
     ~gcEntityController();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcProjectileController : public gcEntityController {
@@ -60,6 +70,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static gcProjectileController *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -112,6 +123,18 @@ void gcProjectileController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcEntityController::Write(file);
     wb.End();
+}
+
+// ── gcProjectileController::Read(cFile &, cMemPool *) @ 0x00155cec ──
+int gcProjectileController::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && this->gcEntityController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── gcProjectileController::~gcProjectileController(void) @ 0x0031f168 ──
