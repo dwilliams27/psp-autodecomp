@@ -6,7 +6,14 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -26,6 +33,7 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -41,6 +49,7 @@ public:
     void         *mVTable;      // 0x04
     unsigned int  mNext;        // 0x08
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -58,6 +67,10 @@ struct AllocEntry {
 extern "C" {
     void cStrAppend(char *, const char *, ...);
     void cStrCat(char *, const char *);
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
     void gcAction_gcAction(void *, cBase *);
     void gcDesiredObject_gcDesiredObject(void *, cBase *);
     void gcDesiredEntityHelper_ctor(void *, int, int, int)
@@ -72,6 +85,7 @@ extern char gcDoPlayerSetEntityvirtualtable[];
 // Type-info slot layout used for the "GetText" / "Write" sub-object dispatch.
 typedef void (*EntityWriteFn)(cBase *, cFile *);
 typedef void (*EntityGetTextFn)(cBase *, char *);
+typedef void (*EntityReadFn)(cBase *, cFileHandle *, cMemPool *);
 
 struct EntityWriteSlot {
     short          mOffset;     // +0
@@ -85,9 +99,20 @@ struct EntityGetTextSlot {
     EntityGetTextFn  mFn;
 };
 
+struct EntityReadSlot {
+    short        mOffset;
+    short        _pad;
+    EntityReadFn mFn;
+};
+
 struct EntityTypeInfoWrite {
     char            _pad[0x28];
     EntityWriteSlot mSlot;       // +0x28
+};
+
+struct EntityTypeInfoRead {
+    char           _pad[0x30];
+    EntityReadSlot mSlot;        // +0x30
 };
 
 struct EntityTypeInfoGetText {
@@ -107,6 +132,7 @@ public:
     // 0x0C: gcDesiredValue
     // 0x10: embedded entity base
     // 0x14: pointer to type info
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -186,6 +212,29 @@ void gcDoPlayerSetEntity::Write(cFile &file) const {
     slot->mFn((cBase *)((char *)embedded + slot->mOffset), wb._file);
 
     wb.End();
+}
+
+// ── gcDoPlayerSetEntity::Read @ 0x002F1D78 ──
+int gcDoPlayerSetEntity::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcAction *)this)->gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+
+    EntityTypeInfoRead *ti = *(EntityTypeInfoRead **)((char *)this + 0x14);
+    EntityReadSlot *slot = &ti->mSlot;
+    cBase *embedded = (cBase *)((char *)this + 0x10);
+    slot->mFn((cBase *)((char *)embedded + slot->mOffset),
+              (cFileHandle *)rb[0],
+              (cMemPool *)cMemPool_GetPoolFromPtr(embedded));
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcDoPlayerSetEntity::GetText @ 0x002F1FBC ──

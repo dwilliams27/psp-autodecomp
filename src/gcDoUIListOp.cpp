@@ -4,8 +4,15 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -31,6 +38,7 @@ public:
 class gcAction : public gcExpression {
 public:
     gcAction(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -38,6 +46,7 @@ void gcAction_ctor(gcAction *, cBase *);
 
 class gcDesiredUIWidgetHelper {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
 };
@@ -46,6 +55,7 @@ void gcDesiredUIWidgetHelper_ctor(gcDesiredUIWidgetHelper *, int);
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -54,6 +64,7 @@ public:
     ~gcDoUIListOp();
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -65,6 +76,9 @@ extern char gcDoUIListOpvirtualtable[]; // 0x5A78
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 void gcAction___dtor_gcAction_void(void *, int);
 
 static cType *type_action asm("D_000385D4");
@@ -131,6 +145,25 @@ void gcDoUIListOp::Write(cFile &file) const {
     ((const gcDesiredValue *)((const char *)this + 24))->Write(wb);
     wb.Write(*(const int *)((const char *)this + 28));
     wb.End();
+}
+
+// ============================================================
+// 0x0030d094 — Read(cFile &, cMemPool *), 232B
+// ============================================================
+int gcDoUIListOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcAction *)this)->gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x1C, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ============================================================
