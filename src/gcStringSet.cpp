@@ -1,5 +1,11 @@
-class cFile;
-class cMemPool;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class gcStringTable;
 class gcString;
 
@@ -35,6 +41,19 @@ public:
     cArrayBase &operator=(const cArrayBase &);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+template <class T>
+class cArray : public cArrayBase<T> {
+public:
+    void Read(cReadBlock &);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -65,6 +84,7 @@ public:
 class gcNamedSet : public cBase {
 public:
     gcNamedSetName mName;   // offset 8
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -82,7 +102,26 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+};
+
+class gcValue {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+// ODR-WARNING: split-TU method addition for gcValPointValue. Keep this
+// local redeclaration minimal so existing matched siblings do not drift.
+class gcValPointValue : public gcValue {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+struct cTypeMethod {
+    short offset;
+    short pad;
+    void *fn;
 };
 
 gcStringSet *dcast(const cBase *);
@@ -108,6 +147,14 @@ struct AllocEntry {
     short pad;
     void *(*fn)(void *, int, int, int, int);
 };
+
+struct VTableSlotVoid {
+    short offset;
+    short pad;
+    void (*fn)(void *, cMemPool *, int);
+};
+
+extern "C" void cFileSystem_Read(void *, void *, unsigned int);
 
 // ============================================================
 // gcStringSet::AssignCopy(const cBase *)
@@ -178,4 +225,44 @@ const cType *gcStringSet::GetType(void) const {
         type_gcStringSet = cType::InitializeType(0, 0, 0x1ED, type_named, gcStringSet::New, 0, 0, 0);
     }
     return type_gcStringSet;
+}
+
+// ============================================================
+// gcStringSet::Read(cFile &, cMemPool *)
+// ============================================================
+int gcStringSet::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcNamedSet::Read(file, pool) == 0) {
+        ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+        return 0;
+    }
+    ((cArray<cHandlePairT<gcStringTable, cSubHandleT<gcString> > > *)&mArray)->Read(rb);
+    void *vt = _vtable;
+    VTableSlotVoid *slot = (VTableSlotVoid *)((char *)vt + 0x38);
+    slot->fn((char *)this + slot->offset, pool, 0);
+    return result;
+}
+
+// ============================================================
+// gcValPointValue::Read(cFile &, cMemPool *)
+// ============================================================
+int gcValPointValue::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+        return 0;
+    }
+    cFileSystem_Read(*(void **)rb._data[0], (char *)this + 8, 4);
+    cFileSystem_Read(*(void **)rb._data[0], (char *)this + 12, 4);
+    char *base = (char *)this + 16;
+    char *mType = *(char **)((char *)this + 20);
+    cTypeMethod *slot = (cTypeMethod *)(mType + 0x30);
+    cFile *f = (cFile *)rb._data[0];
+    typedef void (*ReadFn)(void *, cFile *, cMemPool *);
+    ((ReadFn)slot->fn)(base + slot->offset, f, cMemPool::GetPoolFromPtr(base));
+    return result;
 }
