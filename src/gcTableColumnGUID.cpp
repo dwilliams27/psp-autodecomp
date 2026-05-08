@@ -2,6 +2,7 @@ class cBase;
 class cFile;
 class cInStream;
 class cMemPool;
+class cReadBlock;
 class cWriteBlock;
 
 struct cGUID {
@@ -40,11 +41,28 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
+template <class T>
+class cArray {
+public:
+    T *mData;
+    void Read(cReadBlock &);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 struct gcTableColumn {
     void *mOwner;
     void *mClassDesc;
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern cType *D_000385DC;
@@ -61,6 +79,7 @@ struct gcTableColumnGUID : public gcTableColumn {
     static cBase *New(cMemPool *pool, cBase *parent);
     const cType *GetType(void) const;
     void Write(cFile &file) const;
+    int Read(cFile &file, cMemPool *pool);
 };
 
 struct PoolBlock {
@@ -171,4 +190,18 @@ void gcTableColumnGUID::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+// 0x0012b814, 200B
+int gcTableColumnGUID::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    unsigned int version = (unsigned int)rb._data[3];
+    register unsigned int expected __asm__("a1");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(expected));
+    if (version != expected || gcTableColumn::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    ((cArray<cGUID> *)&mValues)->Read(rb);
+    return 1;
 }
