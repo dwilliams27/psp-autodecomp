@@ -42515,7 +42515,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -42524,7 +42524,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fbeDynamicModelLookAtTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fbeDynamicModelLookAtTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eDynamicModelLookAtTemplate.cpp",
+    "symbol_name": "__0fbeDynamicModelLookAtTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "bff2dd8f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T19:31:52Z"
   },
   {
     "address": "0x0004b3a4",
@@ -49377,7 +49385,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -103474,7 +103482,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -213823,7 +213831,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -213834,7 +213842,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoUISetFocusEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcDoUISetFocusEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "bff2dd8f",
+        "notes": "Implemented gcDoUISetFocus::Read in canonical C++ using the same cReadBlock/gcAction/gcDesiredUIWidgetHelper pattern as the matched gcDoUISetSprite and gcDoUISetTextSprite exemplars. The compiled body matches the target instruction-for-instruction after the cReadBlock constructor, including the version range checks, gcAction::Read call, helper read, optional bool read for version >= 3, destructor paths, and return value handling.\n\nThe remaining mismatch is the known cReadBlock prologue scheduler divergence: 21/260 bytes differ only in the initial save/register-setup/li scheduling around the constructor call. I also tried moving the forced result initialization before the cReadBlock construction, but that worsened the diff to 34 bytes by perturbing the same prologue region. This appears to be the documented source-level blocker rather than a body reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T19:31:52Z",
+        "src_file": "src/gcDoUISetFocus.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/bff2dd8f/0030c794__agent_self_reported_failure__src_gcDoUISetFocus.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030c898",

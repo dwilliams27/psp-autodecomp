@@ -1,6 +1,7 @@
 #include "cBase.h"
 
 class cFile;
+class cFileHandle;
 class cMemPool;
 
 class cMemPool {
@@ -16,10 +17,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 struct gcDesiredUIWidgetHelper {
     int _a;
     int _b;
     int _c;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -44,6 +58,7 @@ public:
     ~gcDoUISetFocus();
     void GetText(char *) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -60,6 +75,7 @@ public:
 };
 
 void cStrAppend(char *, const char *, ...);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 void gcAction_Write(const gcDoUISetFocus *, cFile &);
 gcDoUISetFocus *dcast(const cBase *);
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
@@ -115,6 +131,26 @@ void gcDoUISetFocus::Write(cFile &file) const {
     ((gcDesiredUIWidgetHelper *)((char *)this + 0xC))->Write(wb);
     wb.Write(*(bool *)((char *)this + 0x18));
     wb.End();
+}
+
+// 0x0030c794, 260B
+int gcDoUISetFocus::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 3, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] < 4 &&
+        (unsigned int)rb._data[3] >= 2 &&
+        ((gcAction *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x0C))->Read(rb);
+    if ((unsigned int)rb._data[3] >= 3) {
+        char flag;
+        cFileSystem::Read(*(cFileHandle **)rb._data[0], &flag, 1);
+        *(unsigned char *)((char *)this + 0x18) = flag != 0;
+    }
+    return result;
 }
 
 // 0x0030c508, 120B

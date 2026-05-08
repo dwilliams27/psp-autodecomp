@@ -60,6 +60,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 // Constructor invoked from ::New via safe-name wrapper. The actual symbol is
 // the canonical C++ ctor defined below; the relocation is target-name-agnostic
 // for byte-level compare.
@@ -82,6 +96,7 @@ public:
     ~eDynamicModelLookAtTemplate();
     void GetName(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -143,6 +158,48 @@ void eDynamicModelLookAtTemplate::Write(cFile &file) const {
     wb.Write(*(const float *)((const char *)this + 0x18));
     wb.Write(*(const float *)((const char *)this + 0x1C));
     wb.End();
+}
+
+// ── eDynamicModelLookAtTemplate::Read(cFile &, cMemPool *)  @ 0x0004b29c, 264B ──
+int eDynamicModelLookAtTemplate::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+    {
+        char flag;
+        cFileSystem::Read(*(void **)rb._data[0], &flag, 1);
+        *(unsigned char *)((char *)this + 8) = flag != 0;
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x0C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x10, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x14, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x18, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" ::: "memory");
+        cFileSystem::Read(h, (char *)this + 0x1C, 4);
+    }
+    return result;
 }
 
 // ── eDynamicModelLookAtTemplate::New(cMemPool *, cBase *) static  @ 0x001f0ec4, 124B ──
