@@ -118753,7 +118753,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -118772,7 +118772,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T11:41:29Z"
       }
-    ]
+    ],
+    "src_file": "src/gcSimpleControllerTemplate.cpp",
+    "symbol_name": "__0fagcSimpleControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "57cb7c59",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:30:17Z"
   },
   {
     "address": "0x00157e04",
@@ -118936,7 +118944,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -118955,7 +118963,15 @@
         "variant": "base",
         "timestamp": "2026-04-27T11:48:15Z"
       }
-    ]
+    ],
+    "src_file": "src/gcStationaryControllerTemplate.cpp",
+    "symbol_name": "__0fegcStationaryControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "57cb7c59",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:30:17Z"
   },
   {
     "address": "0x001582a8",
@@ -119037,7 +119053,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -206273,7 +206289,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
