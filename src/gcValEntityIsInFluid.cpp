@@ -26,6 +26,15 @@ public:
 
 class cReadBlock;
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, int, bool);
+    ~cReadBlock(void);
+};
+
 class cName {
 public:
     void Read(cReadBlock &);
@@ -73,6 +82,7 @@ public:
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValEntityIsInFluid : public gcValue {
@@ -81,12 +91,18 @@ public:
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
 };
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
 void cStrCat(char *, const char *);
+
+extern "C" {
+    void *cMemPool_GetPoolFromPtr(const void *);
+    void cFile_SetCurrentPos(void *, unsigned int);
+}
 
 extern char cBaseclassdesc[];
 extern char D_00000338[];
@@ -195,6 +211,27 @@ void gcValEntityIsInFluid::Write(cFile &file) const {
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     ((const cName *)((const char *)this + 0x34))->Write(wb);
     wb.End();
+}
+
+// 0x0033424c (260B) — Read
+int gcValEntityIsInFluid::Read(cFile &file, cMemPool *pool) {
+    cReadBlock rb(file, 1, true);
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(version));
+    if (tag != version || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+    char *sub = (char *)this + 8;
+    char *mType = *(char **)((char *)this + 12);
+    const cTypeMethod *e = (const cTypeMethod *)(mType + 48);
+    register char *target __asm__("$20") = sub + e->offset;
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)e->fn)(target, f, cMemPool_GetPoolFromPtr(sub));
+    ((cName *)((char *)this + 0x34))->Read(rb);
+    return 1;
 }
 
 // 0x003344f0 (108B) — GetText

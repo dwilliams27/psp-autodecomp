@@ -25,6 +25,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    unsigned int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -41,6 +55,7 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
@@ -78,6 +93,7 @@ public:
     cBase *mParent;
     void *mVtable;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValUIVar : public gcLValue {
@@ -89,6 +105,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     ~gcValUIVar();
@@ -150,6 +167,20 @@ void gcValUIVar::Write(cFile &file) const {
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Write(wb);
     wb.Write(mField14);
     wb.End();
+}
+
+// ── gcValUIVar::Read @ 0x003684e8 ──
+int gcValUIVar::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 2 && gcLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(rb);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 20, 4);
+    return result;
 }
 
 // ── gcValUIVar::GetText @ 0x003699c0 ──

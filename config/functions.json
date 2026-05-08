@@ -191385,7 +191385,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -223620,7 +223620,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -223631,7 +223631,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityIsInFluidEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUgcValEntityIsInFluidEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValEntityIsInFluid.cpp",
+    "symbol_name": "__0fUgcValEntityIsInFluidEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "7cf604e4",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:44:59Z"
   },
   {
     "address": "0x00334350",
@@ -235829,7 +235837,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -237585,7 +237593,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -237596,7 +237604,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcValUIVarEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKgcValUIVarEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "7cf604e4",
+        "notes": "Implemented gcValUIVar::Read in canonical C++ syntax using the matched gcValUIEnabled/gcValUIOpacity UI-helper pattern: cReadBlock(file, 2, true), gcLValue::Read, gcDesiredUIWidgetHelper::Read, then cFileSystem::Read into this+0x14. The generated body matches the target control flow and call sequence; compare_func reports 21/220 bytes differing. Objdump shows the drift is confined to the known cReadBlock prologue/constructor scheduling cluster: SNC emits move s1/move a0/li a2/sw s3/sw ra before the constructor and materializes li s3,1 after the jal, while target wants sw s3 before move s1 and li s3,1 before setting up the constructor call. Changing the constructor declaration to int reproduced the non-UI exemplar scheduling but caused a much larger 127-byte mismatch and wrong saved-register shape, so the closest valid attempt keeps the real unsigned cReadBlock signature. This is the documented cReadBlock prologue blocker, not a remaining behavioral reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:44:59Z",
+        "src_file": "src/gcValUIVar.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/7cf604e4/003684e8__agent_self_reported_failure__src_gcValUIVar.cpp"
+      }
+    ]
   },
   {
     "address": "0x003685c4",
