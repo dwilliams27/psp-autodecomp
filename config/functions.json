@@ -111189,7 +111189,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -111200,7 +111200,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcUIGeomTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcUIGeomTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "90ae3f56",
+        "notes": "Closest source is the canonical C++ gcUIGeomTemplate::Read implementation in src/gcUIGeomTemplate.cpp. The function compiles at the correct 352B size and the body matches from the rb._data[3] check through both returns, including the three cFileSystem::Read calls, the event file-read vtable dispatch, and the final type +0x38 pool/bool dispatch. compare_func reports 24/352 bytes different.\n\nThe remaining difference is the known cReadBlock RAII prologue scheduler divergence: original saves s3 and initializes result (li s3,1) before the cReadBlock constructor call, while current SNC schedules move s1/move a0/li a2 first, saves s3 later, and emits li s3,1 after the constructor. Tried the exemplar shape, explicit $s3 register binding, moving the inline asm before cReadBlock, sched=1, and plain C initialization of result; the alternatives were worse (40-41 byte diff or size mismatch). Root cause appears to be the documented cReadBlock prologue scheduling blocker, not the reconstructed body.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:48:50Z",
+        "src_file": "src/gcUIGeomTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/90ae3f56/0013bb04__agent_self_reported_failure__src_gcUIGeomTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013bc64",
@@ -111554,7 +111568,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -111565,7 +111579,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcRoomInstanceEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcRoomInstanceEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "90ae3f56",
+        "notes": "Closest source is the canonical C++ gcRoomInstance::Read implementation in src/gcUIGeomTemplate.cpp. The function compiles at the correct 404B size and the body matches after the cReadBlock setup: cObject::Read, both zeroed cHandle reads through cMemPool::GetPoolFromPtr, both file-read vtable dispatches at +0x4C/+0x68, and the final type +0x38 pool/bool dispatch are in the expected order. compare_func reports 24/404 bytes different.\n\nThe diff has the same prologue-only pattern as gcUIGeomTemplate::Read: original interleaves sw s3, move s1, li s3,1 before the cReadBlock constructor, but current SNC places move s1/move a0/li a2 before saving s3 and emits li s3,1 after the constructor. Tried explicit $s3 result binding, asm-before-constructor, sched=1, and plain C result initialization; all regressed. This should be treated as the known cReadBlock prologue scheduler divergence rather than a body reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:48:50Z",
+        "src_file": "src/gcUIGeomTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/90ae3f56/0013c3ec__agent_self_reported_failure__src_gcUIGeomTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013c580",
@@ -185609,7 +185637,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -191385,7 +191413,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -191396,7 +191424,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcUserStringsEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcUserStringsEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "1ff2f697",
+        "notes": "Added a split-TU canonical C++ implementation of gcUserStrings::Read using the matched gcLobbyFriendStrings/gcLobbyMailStrings shape, with block id 2, gcStringValue::Read, gcDesiredValue::Read at this+8, and cFileSystem::Read into this+0x0c. Tried the plain int result form, an explicit $19/s3 result binding, and a local sched=1 pragma; sched=1 worsened the diff to 26/220, while the plain/bound forms stayed at 21/220.\n\nThe object disassembly confirms the body and call sequence match the target from offset 0x38 onward, including the desired-value read and file read sequence. The only mismatch is the same cReadBlock prologue scheduling issue: target interleaves sw s3 and li s3,1 before the constructor call, while the compiler defers sw s3 and li s3 past the argument setup/constructor. This appears to be the documented Read/cReadBlock compiler-level blocker rather than a class-specific source issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:48:50Z",
+        "src_file": "src/gcUserStrings_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/1ff2f697/00291d80__agent_self_reported_failure__src_gcUserStrings_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00291e5c",
@@ -203063,7 +203105,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -203074,7 +203116,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoLobbyConfigureGameEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fWgcDoLobbyConfigureGameEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoLobbyConfigureGame.cpp",
+    "symbol_name": "__0fWgcDoLobbyConfigureGameEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "db0f15c2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:51:21Z"
   },
   {
     "address": "0x002dff80",
@@ -227322,7 +227372,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -229138,7 +229188,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -231956,7 +232006,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -231967,7 +232017,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcValNetworkStateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fRgcValNetworkStateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoLobbyConfigureGame.cpp",
+    "symbol_name": "__0fRgcValNetworkStateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "db0f15c2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:51:21Z"
   },
   {
     "address": "0x0035309c",
@@ -235837,7 +235895,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -235856,6 +235914,18 @@
         "model": "claude-opus-4-7",
         "variant": "base",
         "timestamp": "2026-04-28T09:40:54Z"
+      },
+      {
+        "session": "1ff2f697",
+        "notes": "Kept the prior best C shape for gcValUIEnabled::Read and tried a different result-lifetime pressure point by binding the result variable directly to $19/s3 before the cReadBlock construction. This preserved all sibling matches but did not improve compare_func: the function remains 21/200 bytes different.\n\nThe generated body matches the target after the cReadBlock constructor. The remaining diff is the known cReadBlock prologue scheduler divergence: expected saves s3 at prologue offset 0x18 and emits li s3,1 before move a0,sp, while this SNC build emits move s1/move a0/li a2 first, then saves s3/ra and only loads s3 after the constructor jal. This is the same systemic blocker recorded in prior attempts and in the session research notes; no body-level source mismatch was found.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:48:50Z",
+        "src_file": "src/gcValUIEnabled.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/1ff2f697/00362194__agent_self_reported_failure__src_gcValUIEnabled.cpp"
       }
     ]
   },
@@ -236104,7 +236174,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",

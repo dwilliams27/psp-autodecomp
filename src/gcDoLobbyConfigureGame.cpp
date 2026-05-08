@@ -9,7 +9,14 @@
 
 class cMemPool;
 class cFile;
+class cFileHandle;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class gcDoLobbyConfigureGame {
 public:
@@ -17,7 +24,18 @@ public:
     static void operator delete(void *);
     const cType *GetType(void) const;
     ~gcDoLobbyConfigureGame(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class gcValue : public gcExpression {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class gcValNetworkState : public gcValue {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 class cType {
@@ -38,6 +56,7 @@ public:
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -67,6 +86,9 @@ struct DtorSlot {
 void gcAction_gcAction(gcDoLobbyConfigureGame *, cBase *);
 void gcAction_Write(const gcDoLobbyConfigureGame *, cFile &);
 void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyConfigureGamevirtualtable[];
 
@@ -131,6 +153,38 @@ void gcDoLobbyConfigureGame::Write(cFile &file) const {
     wb.Write(*(unsigned int *)((char *)this + 0x0C));
     ((gcDesiredValue *)((char *)this + 0x10))->Write(wb);
     wb.End();
+}
+
+// ── gcDoLobbyConfigureGame::Read(cFile &, cMemPool *) @ 0x002dfea4 ──
+int gcDoLobbyConfigureGame::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcAction *)this)->gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0xC, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ── gcValNetworkState::Read(cFile &, cMemPool *) @ 0x00352fc0 ──
+int gcValNetworkState::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 8, 4);
+    ((gcDesiredValue *)((char *)this + 0xC))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // Original object keeps this dead branch tail inside the destructor symbol.
