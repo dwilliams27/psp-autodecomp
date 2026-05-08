@@ -22,6 +22,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -44,6 +58,7 @@ public:
     ePhysicsControllerTemplate(cBase *);
     ~ePhysicsControllerTemplate();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eBipedControllerTemplate : public ePhysicsControllerTemplate {
@@ -55,6 +70,7 @@ public:
     eBipedControllerTemplate(cBase *);
     ~eBipedControllerTemplate();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -79,6 +95,26 @@ void eBipedControllerTemplate::Write(cFile &file) const {
     wb.Write(mField30);
     wb.Write(mField2C);
     wb.End();
+}
+
+// ── eBipedControllerTemplate::Read @ 0x000628bc ──
+int eBipedControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 4, true);
+    if ((unsigned int)rb._data[3] < 5 &&
+        (unsigned int)rb._data[3] >= 3 &&
+        ePhysicsControllerTemplate::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    void *h = *(void **)rb._data[0];
+    __asm__ volatile("" : "+r"(h));
+    cFileSystem::Read(h, &mField30, 4);
+    h = *(void **)rb._data[0];
+    __asm__ volatile("" : "+r"(h));
+    cFileSystem::Read(h, &mField2C, 4);
+    return result;
 }
 
 // ── eBipedControllerTemplate::~eBipedControllerTemplate @ 0x000629f4 ──

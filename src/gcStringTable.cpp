@@ -69,6 +69,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 class cBaseArray {
 public:
     void *mData;   // +0
@@ -76,6 +90,7 @@ public:
     cBaseArray &operator=(const cBaseArray &);
     void RemoveAll(void);
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class cObject {
@@ -84,6 +99,7 @@ public:
     ~cObject();
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -122,6 +138,7 @@ public:
     gcString *GetSubObject(cSubHandleT<gcString>, int) const;
     cHandlePairT<gcStringTable, cSubHandleT<gcString> > GetStringHandle(int) const;
     int IsValid(cSubHandleT<gcString>, int) const;
+    int Read(cFile &, cMemPool *);
     void Set(int, const wchar_t *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -152,6 +169,30 @@ void gcStringTable::Write(cFile &file) const {
     mArray.Write(wb);
     wb.Write(mFlag);
     wb.End();
+}
+
+// ── gcStringTable::Read(cFile &, cMemPool *) @ 0x000d6bfc ──
+int gcStringTable::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] >= 3 || (unsigned int)rb._data[3] < 1)
+        goto fail;
+    if (cObject::Read(file, pool) == 0)
+        goto fail;
+    mArray.Read(rb);
+    if ((unsigned int)rb._data[3] >= 2)
+        goto read_flag;
+    goto success;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+read_flag:
+    char flag;
+    cFileSystem::Read(*(void **)rb._data[0], &flag, 1);
+    mFlag = flag != 0;
+success:
+    return result;
 }
 
 // ── gcStringTable::New(cMemPool *, cBase *) static @ 0x0023b3e4 ──
