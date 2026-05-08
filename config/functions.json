@@ -51396,7 +51396,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -51408,7 +51408,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWeWeatherEffectTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fWeWeatherEffectTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eWeatherEffectTemplate_Read.cpp",
+    "symbol_name": "__0fWeWeatherEffectTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6735b2db",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T20:07:11Z"
   },
   {
     "address": "0x00061384",
@@ -61957,7 +61965,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -62566,7 +62574,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -62578,7 +62586,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReGeomWakeTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fReGeomWakeTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "83cf10f9",
+        "notes": "session added method declarations to include/*.h; use the split-TU pattern instead",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:02:12Z",
+        "src_file": "src/eGeomWakeTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/83cf10f9/00079b6c__header_class_modification__src_eGeomWakeTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00079d30",
@@ -95991,7 +96013,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -120822,7 +120844,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -120835,7 +120857,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValConsoleInfoEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcValConsoleInfoEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "83cf10f9",
+        "notes": "Closest attempt is checked in at 27/440 differing bytes after a 5-minute permuter run improved the manual 45-byte near miss. The body structure matches: cReadBlock construction, tag range checks, gcValue::Read fallback, field reads, gcDesiredValue::Read, tagged pointer split, cMemPool::GetPoolFromPtr, cReadBlock::ReadBase, final kind clamp, and destructor/return paths all line up in size and control flow.\n\nThe remaining differences are localized to scheduling/register allocation around the cReadBlock prologue/result initialization and the post-ReadBase tagged-pointer finalization. Manual variants tried: result initialized before vs after rb construction, short-lived vs carried block tag, direct rb._data reloads, goto-shaped tag<2 path, if/else vs conditional assignment for sp14 fallback, register bindings for newVal/tag2/fix, and memory barriers. The best source still differs because SNC chooses a slightly different order/register assignment for the result literal and the store/sltiu pair after ReadBase; no source variant or the permuter found the exact original.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:02:12Z",
+        "src_file": "src/gcValConsoleInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/83cf10f9/00158c84__agent_self_reported_failure__src_gcValConsoleInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x00158e3c",
@@ -194314,7 +194350,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -194330,7 +194366,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoChangeStateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcDoChangeStateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "6735b2db",
+        "notes": "Closest attempt is in src/gcDoChangeState_Read.cpp. The source reconstructs the full body: cReadBlock version check, gcAction::Read, cHandle read, handle-table validation through D_00048890, gcDesiredValue::Read, cBaseArray::Read, tagged-pointer cReadBlock::ReadBase path, bool read, SetSize(4), and both destructor return paths. The current object is 544B versus the 548B target; the remaining known bad area is the post-ReadBase tagged-pointer finalization where SNC chooses a compact beqzl/ori sequence instead of the original bnez+nop / b+ori shape, plus the usual cReadBlock Read prologue scheduling/register drift.\n\nTried moving result initialization before/after rb construction, explicit success/fail gotos, register binding the handle-table candidate, keeping the table result live into the gcDesiredValue call, introducing a desired-value temporary, preloading rb._data[0] before the store, and memory-barrier variants around the tagged fallback. Barriers can force 548B but introduce a worse duplicate branch sequence and large byte drift, so the checked-in closest attempt keeps the cleaner 544B near miss. Root cause appears to be source-resistant SNC branch-likely/scheduling selection in this Read pattern rather than missing high-level behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T20:07:11Z",
+        "src_file": "src/gcDoChangeState_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/6735b2db/0029b848__agent_self_reported_failure__src_gcDoChangeState_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029ba6c",
@@ -238040,7 +238090,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -238287,7 +238337,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
