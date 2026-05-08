@@ -280,12 +280,11 @@ int gcExternalCinematicGroup::Read(cFile &file, cMemPool *pool) {
     int result;
     cReadBlock rb(file, 1, true);
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    if ((unsigned int)rb._data[3] != 1) goto fail;
-    if (!this->cGroup::Read(file, pool)) goto fail;
-    return result;
-fail:
+    if ((unsigned int)rb._data[3] == 1 && this->cGroup::Read(file, pool)) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
     return 0;
+success:
+    return result;
 }
 
 // ── gcExternalCinematicGroup::~gcExternalCinematicGroup(void) @ 0x00238a20 ──
