@@ -170,6 +170,28 @@ cBase *cLanguageSubscriber::New(cMemPool *pool, cBase *parent) {
     return (cBase *)result;
 }
 
+class gcSubGeomController {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class gcParticleSystemController : public gcSubGeomController {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+// ── gcParticleSystemController::Read(cFile &, cMemPool *) @ 0x0014a0f4, 188B ──
+int gcParticleSystemController::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcSubGeomController::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Function 3: eFontGroup::IsManagedTypeExternal(void) const @ 0x001dd40c
 // ─────────────────────────────────────────────────────────────────────────
@@ -223,12 +245,10 @@ cLanguageSubscriber::~cLanguageSubscriber() {
 // cLanguageSubscriber::Read(cFile &, cMemPool *)  @ 0x001c74b0, 188B
 // ─────────────────────────────────────────────────────────────────────────
 int cLanguageSubscriber::Read(cFile &file, cMemPool *pool) {
-    int result;
+    register int result __asm__("$19");
     cReadBlock rb(file, 1, true);
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    if ((unsigned int)rb._data[3] != 1) goto fail;
-    if (this->cListSubscriber::Read(file, pool)) goto success;
-fail:
+    if ((unsigned int)rb._data[3] == 1 && this->cListSubscriber::Read(file, pool)) goto success;
     cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
     return 0;
 success:
