@@ -28,14 +28,30 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 class cBaseArray {
 public:
     void RemoveAll(void);
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -45,6 +61,7 @@ public:
     void GetText(char *) const;
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *);
     ~gcDoSetEventObjectArray(void);
@@ -148,6 +165,27 @@ void gcDoSetEventObjectArray::Write(cFile &file) const {
     ((cBaseArray *)((char *)this + 16))->Write(wb);
     ((gcDesiredValue *)((char *)this + 24))->Write(wb);
     wb.End();
+}
+
+// ----------------------------------------------------------------
+// gcDoSetEventObjectArray::Read(cFile &, cMemPool *) @ 0x002fdd0c
+// ----------------------------------------------------------------
+int gcDoSetEventObjectArray::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((gcAction *)this)->gcAction::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 0x0C, 4);
+    }
+    ((cBaseArray *)((char *)this + 0x10))->Read(rb);
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(rb);
+    return result;
 }
 
 // ----------------------------------------------------------------

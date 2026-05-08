@@ -16,7 +16,10 @@
 
 class cFile;
 class cBase;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
@@ -28,6 +31,17 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct cTypeMethod {
     short offset;
@@ -60,6 +74,7 @@ class gcDesiredEntity : public gcDesiredObject {
 
 class gcValue {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -68,6 +83,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
 };
 
@@ -160,6 +176,25 @@ void gcValEntityIsActive::Write(cFile &file) const {
     typedef void (*WriteFn)(void *, cFile *);
     ((WriteFn)e->fn)(base + e->offset, wb.file);
     wb.End();
+}
+
+// 0x0033267c (236B) — Read
+int gcValEntityIsActive::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._pad[1] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(rb.file, rb._pos);
+    return 0;
+success:
+    {
+        char *mType = *(char **)((char *)this + 12);
+        char *base = (char *)this + 8;
+        cTypeMethod *e = (cTypeMethod *)(mType + 0x30);
+        typedef void (*ReadFn)(void *, cFile *, cMemPool *);
+        ((ReadFn)e->fn)(base + e->offset, rb.file, cMemPool::GetPoolFromPtr(base));
+    }
+    return result;
 }
 
 // 0x003327d0 (80B) — GetText
