@@ -2,7 +2,10 @@
 // (offset 8) and an int field (offset 12) from a downcast source object.
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cType;
 
 template <class T> T *dcast(const cBase *);
@@ -38,6 +41,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -48,6 +58,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cNamed {
@@ -60,6 +71,7 @@ public:
     eMaterialSetGroup(cBase *);
     ~eMaterialSetGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
@@ -129,6 +141,20 @@ void eMaterialSetGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eMaterialSetGroup::Read(cFile &, cMemPool *) @ 0x0001540c ──
+int eMaterialSetGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eMaterialSetGroup::~eMaterialSetGroup(void) @ 0x001DC5B8 ──
