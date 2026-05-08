@@ -65,6 +65,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -82,6 +94,7 @@ class gcDesiredValue {
 public:
     int mValue;
 
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -89,11 +102,13 @@ class gcValue {
 public:
     cBase *mParent;
     void *mVtable;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcValLobbyMailInfo : public gcValue {
 public:
@@ -105,6 +120,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 
     static void operator delete(void *p) {
@@ -341,6 +357,23 @@ void gcValLobbyMailInfo::Write(cFile &file) const {
     wb.Write(this->mFieldC);
     ((gcDesiredValue *)((char *)this + 8))->Write(wb);
     wb.End();
+}
+
+// ── gcValLobbyMailInfo::Read(cFile &, cMemPool *) @ 0x0034a1a4 ──
+int gcValLobbyMailInfo::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read(h, (char *)this + 12, 4);
+    }
+    ((gcDesiredValue *)((char *)this + 8))->Read(rb);
+    return result;
 }
 
 // ── gcValLobbyMailInfo::GetText(char *) const @ 0x0034a588 ──

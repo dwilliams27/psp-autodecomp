@@ -9,7 +9,10 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cType {
@@ -26,6 +29,15 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -46,6 +58,7 @@ public:
 class cHandle {
 public:
     int mIndex;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -54,6 +67,7 @@ public:
     cBase *mParent;       // 0x0
     void *mVtable;        // 0x4
     gcLValue(cBase *parent);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -64,6 +78,7 @@ public:
     ~gcValVariable();
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
@@ -134,6 +149,23 @@ void gcValVariable::Write(cFile &file) const {
     gcLValue::Write(file);
     mHandle.Write(wb);
     wb.End();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// gcValVariable::Read(cFile &, cMemPool *)  @ 0x0036ac14, 220B
+// ─────────────────────────────────────────────────────────────────────────
+int gcValVariable::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && gcLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    mHandle.mIndex = 0;
+    cHandle *handle = &mHandle;
+    handle->Read(rb, cMemPool::GetPoolFromPtr(handle));
+    return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
