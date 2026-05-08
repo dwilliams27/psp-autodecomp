@@ -207,8 +207,8 @@ void gcDoEntityFindAttached::Write(cFile &file) const {
 // ── Read @ 0x002b0b58 ──────────────────────────────────────────────────
 int gcDoEntityFindAttached::Read(cFile &file, cMemPool *pool) {
     register int result __asm__("$19");
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
     if (rb._data[3] != 1) goto fail;
     if (gcDoEntityFindAttachedBase::Read(file, pool) != 0) goto success;
 fail:
