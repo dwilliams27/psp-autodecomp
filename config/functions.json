@@ -24472,7 +24472,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "matched",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -24492,16 +24492,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T10:55:15Z"
+      },
+      {
+        "session": "87465367",
+        "notes": "Verifier cleanup after match_20260507_214359: session promoted this as matched, but src/ePortalGroup.cpp did not emit __0fMePortalGroupEReadR6FcFileP6IcMemPool. Demoted back to failed.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T06:17:03Z"
       }
-    ],
-    "src_file": "src/ePortalGroup.cpp",
-    "symbol_name": "__0fMePortalGroupEReadR6FcFileP6IcMemPool",
-    "matched_by_backend": "codex",
-    "matched_by_session_id": "87465367",
-    "matched_by_model": "gpt-5.5",
-    "matched_by_effort": "high",
-    "matched_by_identity": "codex/gpt-5.5/high",
-    "matched_at": "2026-05-08T03:00:29Z"
+    ]
   },
   {
     "address": "0x0001ab04",
