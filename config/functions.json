@@ -30055,7 +30055,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -40482,7 +40482,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -64591,7 +64591,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -64616,7 +64616,15 @@
         "src_file": "src/eBumpOffsetMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/f977a451/000807dc__post_revert_compile_failed__src_eBumpOffsetMap.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eDynamicLightHeightmapMtl_Read.cpp",
+    "symbol_name": "__0fZeDynamicLightHeightmapMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3e2c84fa",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:18:35Z"
   },
   {
     "address": "0x000808b0",
@@ -77200,7 +77208,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -77217,7 +77225,15 @@
         "notes": "gcExpression::Read(cFile&, cMemPool*) \u2014 120B function. Got down to 44/120 bytes differ with permuter (originally 67/120). Core structure is correct: cReadBlock rb(file, 1, true); if (rb._data[3] != 1) { ((cFile*)rb._data[0])->SetCurrentPos(rb._data[1]); return 0; } return 1; with cReadBlock having _data[5] and ctor(cFile&, uint, bool). The REMAINING diff is instruction scheduling: the expected code hoists 'li s0, 1' (for return value) to the PROLOGUE (between sw s0 and move a0,sp), so the beq delay slot can be filled with 'move a0, sp' (prep for success-path ~cReadBlock call). My SNC compile puts 'li s0, 1' in the beq delay slot instead, and uses different orderings for sw s0 / sw ra / li a2. Tried: result=1 at top, result=1 after ctor, goto-fail pattern, swap if/else (success first), using same variable for compare and return (forces 'move a2, s0' and 'beq a0, s0' which is wrong register for comparison), asm volatile barriers on result, various variable type combinations. None produced the hoisted prologue scheduling. The pattern DOES work in gcLoadingScreen::Read (which has many more saved s-regs and a larger frame) \u2014 suggesting SNC hoists integer literal init to prologue more aggressively when register pressure is higher. With only s0 saved in a minimal frame, SNC prefers to fill the beq delay slot with the init rather than hoist it. Likely needs either a structural trick to increase register pressure, or this is a genuinely hard match that may need permuter with a different base structure."
       }
     ],
-    "mangled_symbol": "__0fMgcExpressionEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMgcExpressionEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcExpression.cpp",
+    "symbol_name": "__0fMgcExpressionEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3e2c84fa",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:18:35Z"
   },
   {
     "address": "0x000d514c",

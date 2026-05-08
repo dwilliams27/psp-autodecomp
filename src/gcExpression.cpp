@@ -17,6 +17,10 @@ public:
     ~cReadBlock(void);
 };
 
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+
 typedef const void *(*gcExprVFn)(const void *);
 struct gcExprVEntry {
     short adj;
@@ -138,11 +142,14 @@ void gcExpression::Write(cFile &file) const {
 
 int gcExpression::Read(cFile &file, cMemPool *) {
     int result = 1;
-    cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        ((cFile *)rb._data[0])->SetCurrentPos(rb._data[1]);
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 
