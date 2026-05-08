@@ -9,7 +9,14 @@
 
 class cMemPool;
 class cFile;
+class cFileHandle;
+class cReadBlock;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 struct PoolDeleteSlot {
     short offset;
@@ -24,6 +31,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     ~gcDoLobbyUserOp(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -50,8 +58,16 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -68,9 +84,13 @@ struct AllocEntry {
 
 void gcAction_gcAction(gcDoLobbyUserOp *, cBase *);
 void gcAction_Write(const gcDoLobbyUserOp *, cFile &);
+int gcAction_Read(void *, cFile &, cMemPool *) asm("__0fIgcActionEReadR6FcFileP6IcMemPool");
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLobbyUserOpvirtualtable[];
 
@@ -207,6 +227,28 @@ void gcDoLobbyUserOp::Write(cFile &file) const {
     ((gcDesiredValue *)((char *)this + 0x14))->Write(wb);
     wb.Write(*(bool *)((char *)this + 0x18));
     wb.End();
+}
+
+// 0x002e6408 — Read(cFile &, cMemPool *)
+int gcDoLobbyUserOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || gcAction_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    {
+        char flag;
+        cFileSystem::Read(*(cFileHandle **)rb[0], &flag, 1);
+        *(unsigned char *)((char *)this + 0x18) = (flag != 0);
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x002e6c64 — GetType(void) const

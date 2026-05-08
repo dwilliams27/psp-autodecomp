@@ -9,8 +9,25 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+class cMemPoolNS;
+class cReadBlock;
 class cType;
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -32,6 +49,7 @@ public:
 class cHandle {
 public:
     int mId;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -73,6 +91,7 @@ public:
 
     eLensFlareSprite(cBase *);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -82,6 +101,9 @@ template <class T> T *dcast(const cBase *);
 
 extern cType *D_000385DC;
 extern cType *D_000468C8;
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 // ── 0x0003bbc8 — eLensFlareSprite(cBase *), 68B ──
 eLensFlareSprite::eLensFlareSprite(cBase *parent) {
@@ -143,6 +165,30 @@ void eLensFlareSprite::Write(cFile &file) const {
     wb.Write(mField18);
     wb.Write(mField1C);
     wb.End();
+}
+
+// ── 0x0003bab4 — Read(cFile &, cMemPool *), 276B ──
+int eLensFlareSprite::Read(cFile &file, cMemPool *) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 8, 4);
+    {
+        mFieldC.mId = 0;
+        cHandle *handle = (cHandle *)((char *)this + 0x0C);
+        handle->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle));
+    }
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x10, 4);
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x14, 4);
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x18, 4);
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x1C, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── 0x001e83d8 — New(cMemPool *, cBase *) static, 124B ──
