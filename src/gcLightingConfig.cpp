@@ -6,7 +6,9 @@
 //   gcLightingConfig::~gcLightingConfig(void)      @ 0x00246a20  (gcAll_psp.obj)
 
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
 class cBase;
 
@@ -32,6 +34,41 @@ public:
                                  const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cReadBlock {
+public:
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class gcAction {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+class cName {
+public:
+    void Read(cReadBlock &);
+};
+
+class gcDesiredValue {
+public:
+    void Read(cReadBlock &);
+};
+
+struct gcLC_ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 struct gcLC_PoolBlock {
@@ -60,6 +97,7 @@ class gcLightingConfig {
 public:
     ~gcLightingConfig();
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -74,6 +112,15 @@ public:
         rec->fn(block + rec->offset, p);
     }
 };
+
+class gcDoEntitySubGeomOp {
+public:
+    int Read(cFile &, cMemPool *);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 template <class T> T *dcast(const cBase *);
 
@@ -104,6 +151,116 @@ void gcLightingConfig::Write(cFile &file) const {
     wb.Write(*(float *)((char *)this + 0x1C));
     wb.Write(*(unsigned int *)((char *)this + 0x20));
     wb.End();
+}
+
+// 0x000f0c2c - gcLightingConfig::Read(cFile &, cMemPool *)
+int gcLightingConfig::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    int legacy;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+
+    int version = rb[3];
+    int inRange = (unsigned int)version < 6;
+    if (inRange == 0) {
+        goto fail;
+    }
+    int tooLow = (unsigned int)version < 1;
+    if (tooLow != 0) {
+        goto fail;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+
+    int before3 = (unsigned int)rb[3] < 3;
+    int before2;
+    if (before3 == 0) {
+        goto read_new_field;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], &legacy, 4);
+    version = rb[3];
+    before2 = (unsigned int)version < 2;
+    goto after_new_field;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+read_new_field:
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    version = rb[3];
+    before2 = (unsigned int)version < 2;
+
+after_new_field:
+
+    if (before2 == 0) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x14, 4);
+        if (rb[3] == 4) {
+            *(float *)((char *)this + 0x14) = 2.0f;
+        }
+    }
+
+    int before5 = (unsigned int)rb[3] < 5;
+    if (before5 == 0) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x18, 4);
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x1C, 4);
+
+    if ((unsigned int)rb[3] >= 4) {
+        cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x20, 4);
+    }
+
+    *(float *)((char *)this + 0x1C) = 1.0f;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// 0x002d6588 - gcDoEntitySubGeomOp::Read(cFile &, cMemPool *)
+int gcDoEntitySubGeomOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *typeInfo0 = *(char **)((char *)this + 0x14);
+    char *base0 = (char *)this + 0x10;
+    gcLC_ReadRec *rec0 = (gcLC_ReadRec *)(typeInfo0 + 0x30);
+    short off0 = rec0->offset;
+    cFile *f0 = *(cFile **)&rb[0];
+    rec0->fn(base0 + off0, f0, cMemPool::GetPoolFromPtr(base0));
+
+    ((gcDesiredValue *)((char *)this + 0x3C))->Read(*(cReadBlock *)rb);
+
+    char *typeInfo1 = *(char **)((char *)this + 0x70);
+    char *base1 = (char *)this + 0x6C;
+    gcLC_ReadRec *rec1 = (gcLC_ReadRec *)(typeInfo1 + 0x30);
+    short off1 = rec1->offset;
+    cFile *f1 = *(cFile **)&rb[0];
+    rec1->fn(base1 + off1, f1, cMemPool::GetPoolFromPtr(base1));
+
+    char *typeInfo2 = *(char **)((char *)this + 0x44);
+    char *base2 = (char *)this + 0x40;
+    gcLC_ReadRec *rec2 = (gcLC_ReadRec *)(typeInfo2 + 0x30);
+    short off2 = rec2->offset;
+    cFile *f2 = *(cFile **)&rb[0];
+    rec2->fn(base2 + off2, f2, cMemPool::GetPoolFromPtr(base2));
+
+    ((cName *)((char *)this + 0x80))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x98))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x9C))->Read(*(cReadBlock *)rb);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x002468bc - gcLightingConfig::New(cMemPool *, cBase *) static

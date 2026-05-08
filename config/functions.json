@@ -86899,7 +86899,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -86910,7 +86910,21 @@
       "0x00164f48"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcLightingConfigEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcLightingConfigEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "31bf0cc2",
+        "notes": "Implemented the full version-gated gcLightingConfig::Read body in C++ using the cReadBlock pattern and verified that the accepted versions, legacy throwaway read, defaulted 2.0f/1.0f fields, and all cFileSystem::Read calls line up semantically. The closest build is the checked-in attempt: compare_func reports 103/400 bytes differing. The mismatch is not the known 20-byte cReadBlock prologue issue; the prologue and most reads are aligned, but the compiler chooses different temp registers and branch-likely scheduling around the version < 2 gate. In particular the original keeps the version in a1, computes the gate in a2, and uses a normal bnez with the version < 5 compare in the delay slot, while this source tends to use a0 for the gate and emits bnezl with a reload in the delay slot.\n\nTried negative early returns, positive nested control flow, explicit gotos to place the shared failure block before the version >= 3 read path, precomputing the version < 5 flag, keeping the read-block file word live across the branch, and GCC-style register variable nudges for a0/a1/a2. Those either worsened the diff or preserved the same branch-likely/register allocation pattern. The project permuter was also attempted for 300 seconds but failed immediately because it could not isolate this function in the multi-function object (it saw the full 1512B .text instead of the 400B function). Root cause appears to be SNC local scheduling/register allocation leverage around this small gate, not missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T22:02:27Z",
+        "src_file": "src/gcLightingConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/31bf0cc2/000f0c2c__agent_self_reported_failure__src_gcLightingConfig.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f0dbc",
@@ -202493,7 +202507,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -203196,7 +203210,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -203209,7 +203223,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoEntitySubGeomOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTgcDoEntitySubGeomOpEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcLightingConfig.cpp",
+    "symbol_name": "__0fTgcDoEntitySubGeomOpEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "31bf0cc2",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T22:02:27Z"
   },
   {
     "address": "0x002d6724",
@@ -212124,7 +212146,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
