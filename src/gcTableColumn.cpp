@@ -34,6 +34,8 @@ public:
 
 extern "C" {
     void cFile_SetCurrentPos(void *, unsigned int);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
 }
 
 struct gcTableColumn {
@@ -84,11 +86,14 @@ void gcTableColumn::GetName(char *dst) const {
 // ============================================================
 int gcTableColumn::Read(cFile &file, cMemPool *) {
     int result = 1;
-    cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

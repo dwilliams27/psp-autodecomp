@@ -75,6 +75,8 @@ void cFile_SetCurrentPos(void *, unsigned int);
 void cObject___dtor_cObject_void(void *, int);
 void gcCinematic___dtor_gcCinematic_void(void *, int);
 int gcCinematic_Read(void *, cFile &, cMemPool *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class gcStreamedCinematic {
 public:
@@ -320,21 +322,24 @@ const cType *gcStreamedCinematic::GetType(void) const {
 // ──────────────────────────────────────────────────────
 int gcStreamedCinematic::Read(cFile &file, cMemPool *pool) {
     int result = 1;
-    cReadBlock rb(file, 2, true);
-    if ((unsigned int)rb._data[3] >= 3 || (unsigned int)rb._data[3] < 1)
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] >= 3 || (unsigned int)rb[3] < 1)
         goto fail;
     if (!((cFactory *)this)->Read(file, pool))
         goto fail;
-    if ((unsigned int)rb._data[3] >= 2)
+    if ((unsigned int)rb[3] >= 2)
         goto do_groups;
     goto after_groups;
 fail:
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
     return 0;
 do_groups:
-    ((cFactory *)this)->ReadGroups(rb, pool);
+    ((cFactory *)this)->ReadGroups(*(cReadBlock *)rb, pool);
 after_groups:
     gcCinematic_Read((char *)this + 0x4C, file, pool);
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

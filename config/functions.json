@@ -27194,7 +27194,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -30055,7 +30055,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -30073,6 +30073,18 @@
       {
         "session": "12b88dc3",
         "notes": "Size matches (120B) but instruction scheduling differs: 67/120 bytes (all shifted by one position). Root cause: SNC places `li s0,1` (initializing result=1) INTO the `beq` delay slot instead of hoisting it to the prologue. Expected has: `addiu sp; sw s0,20; li s0,1; move a0,sp; li a2,1; sw ra,24; jal cReadBlock; li a3,1`. Mine has: `addiu sp; move a0,sp; li a2,1; sw s0,20; sw ra,24; jal; li a3,1; ...` with `li s0,1` appearing at offset 0x50 (inside the branch delay slot) instead of offset 0x08.\n\nTried: (1) `int result=1; cReadBlock; if (_d[3]==1) goto success; ... return 0; success: return result;` (the gcStringValue_Read pattern that itself is [F] failed in the repo), (2) removed goto using `if (==1) return 1; ...; return 0` \u2014 produced 116B (size mismatch, branch sense inverted with bne+s0), (3) explicit `result=0` on fail path (changes `move v0,zero` to `move v0,s0` \u2014 wrong). The core scheduling choice of where to place `li s0,1` appears compiler-internal and not source-driven.\n\nNext agent: try permuter (must move Read to its own file without v4sf_t/v16sf_t types since permuter uses base CFLAGS without -Xvfpumatrix=1 -Xvfpuscalar=8). Or investigate whether a different -Xflag combination (e.g. -Xmopt=0) changes the scheduler's decision."
+      },
+      {
+        "session": "ad0515ad",
+        "notes": "Closest source uses a one-instruction inline `ori` to seed `result` before constructing `cReadBlock`, with normal C++ RAII control flow for the success/failure paths. This improves the prior 67/120 byte mismatch to 14/120; the body matches, and the remaining difference is only in the prologue schedule. Compiled output emits `sw s0,20(sp); sw ra,24(sp); li s0,1; move a0,sp; li a2,1; jal`, while target emits `sw s0,20(sp); li s0,1; move a0,sp; li a2,1; sw ra,24(sp); jal`.\n\nTried plain `int result=1`, direct compare, unsigned/version locals, `register s0`, empty asm input/output constraints, `#pragma control sched=1`, and command-line probes with `-Xsched=1`, `-Xmopt=0`, and stock pspcor. The compiler-generated `li` shapes either defer `li s0,1` into the branch delay slot or CSE the constant through `s0`; the inline `ori` fixes the body/constants but forces the `ra` spill too early. This appears to be the 120-byte one-save variant of the known cReadBlock Read prologue scheduler divergence; the current pspcor read-prologue hook targets the larger cFactory-style multi-save pattern and does not rewrite this case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:24:27Z",
+        "src_file": "src/eGeom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/ad0515ad/0002c4c0__agent_self_reported_failure__src_eGeom.cpp"
       }
     ],
     "mangled_symbol": "__0fFeGeomEReadR6FcFileP6IcMemPool"
@@ -39061,7 +39073,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -40482,7 +40494,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -40510,6 +40522,18 @@
         "timestamp": "2026-05-04T04:31:30Z",
         "src_file": "src/ePhysicsController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/4755084f/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
+      },
+      {
+        "session": "ad0515ad",
+        "notes": "Closest source is the same direct `cReadBlock` RAII shape as eGeom, with the local `cReadBlock` constructor declaration corrected to `unsigned int` and an inline `ori` seeding `result`. This improves the prior 44/120 byte mismatch to 14/120. The function body matches; the remaining mismatch is the same prologue-only order: compiled output saves `ra` before `li s0,1`, while target saves `ra` after `move a0,sp` and `li a2,1`.\n\nTried the prior goto/source shape, direct compare without a separate `version` local, unsigned compare, inline result seed, and changing the local `cReadBlock` declaration from `int` to `unsigned int`. The unsigned declaration was important: with `int`, the inline seed caused an extra `s1` save and a 79/120 mismatch; with `unsigned int`, it reduces to the same 14-byte prologue-only blocker as eGeom. Root cause appears compiler scheduling for the small one-save cReadBlock Read prologue, not source control flow or transition-zone sched mode.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T16:24:27Z",
+        "src_file": "src/ePhysicsController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/ad0515ad/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
       }
     ],
     "mangled_symbol": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool"
@@ -50479,7 +50503,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -67330,7 +67354,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -84438,7 +84462,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -84455,7 +84479,15 @@
         "session": "a97e99b5",
         "notes": "The remaining mismatch is the known cReadBlock Read return-register allocation issue. The best pure C form uses the same explicit fail/do_groups/after_groups control flow as nearby matched Read functions and produces the correct branch structure, but SNC keeps the success return constant in s0 after gcCinematic_Read, emitting a 240-byte function instead of the expected 252-byte body with s3 saved, initialized to 1 in the prologue, restored in both epilogues, and returned on the success path.\n\nTried direct version local vs stack reloads, explicit goto structure, passing the result local to the cReadBlock constructor, a named cinematic subobject local, changing the local cReadBlock third-parameter prototype to int, and register/empty-asm hints for s3. The explicit inline ori to s3 reached 252 bytes but perturbed the prologue save/move order, so it was not a match and was removed. Root cause appears to be the systemic cReadBlock RAII li-hoisting/register-allocation pattern documented in docs/research_todos.md."
       }
-    ]
+    ],
+    "src_file": "src/gcStreamedCinematic.cpp",
+    "symbol_name": "__0fTgcStreamedCinematicEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b4ebd651",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:28:36Z"
   },
   {
     "address": "0x000ed148",
@@ -104688,7 +104720,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -104709,7 +104741,15 @@
         "notes": "gcTableColumn::Read(cFile &, cMemPool *) \u2014 44/120 bytes differ with standard source pattern `int result = 1; cReadBlock rb(file, 1, true); if (rb._data[3] != 1) { cFile_SetCurrentPos(...); return 0; } return result;`. Our compiler reuses s0 (which holds result=1, a callee-saved register preserving the return value across dtor) for the `!= 1` compare, producing `beq a0, s0, success` with `li s0, 1` in the delay slot. Expected code loads a fresh `li a1, 0x1` into a caller-saved register for the compare (`beq a0, a1, success`) and uses `move a0, sp` in the beq delay slot (prep for dtor `this` pointer, shared between success and fail paths).\n\nTried: (1) inverted if-else (`if (_data[3] == 1) return result; else fail`) \u2014 41/120 diff, compiler put success path first. (2) `int result = rb._data[3]` then `if (result != 1)` \u2014 47/120 diff, compiler allocated s0+s1 instead of single s0, adding prologue/epilogue bytes. (3) `return 1;` directly without `int result` \u2014 116B (4 bytes SHORT of expected 120B): produces identical instructions to expected EXCEPT missing the `li a1, 0x1` \u2014 compiler compares directly `beq a0, s0` because s0=1 is live. Got `move a0, sp` in delay slot correctly matching expected. This suggests the real issue: SNC's constant-propagation tracks s0=1 across the ctor jal (correctly \u2014 s0 is callee-saved) and reuses it for the compare. Expected compiler either didn't track this or had a heuristic to prefer caller-saved regs for scratch compares. (4) Tried -Xsched=1 \u2014 identical codegen, not the issue.\n\nThis is the SAME pattern as gcPartialEntityController::Read(cFile &, cMemPool *) at 0x0013e6f0, gcStringValue::Read (0x00128c94), and others \u2014 all also marked failed for this exact reason. Root cause: SNC codegen divergence in constant rematerialization for branch compares when a callee-saved register already holds the compared constant. No source-level workaround found. A fix likely requires permuter targeting this specific scheduling pattern, or compiler-flag investigation for constant rematerialization heuristics. Permuter couldn't run here because the file has multiple functions and permuter requires single-function .o. Suggest extracting to isolated .cpp for permuter run or accepting this as a broad pattern needing cross-function analysis."
       }
     ],
-    "mangled_symbol": "__0fNgcTableColumnEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcTableColumnEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcTableColumn.cpp",
+    "symbol_name": "__0fNgcTableColumnEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b4ebd651",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T16:28:36Z"
   },
   {
     "address": "0x0012ac3c",
