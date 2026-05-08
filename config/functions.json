@@ -30484,7 +30484,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -30499,7 +30499,15 @@
         "notes": "Semantically correct but 20/188 bytes differ due to prologue/epilogue scheduling divergence. The function is: `int result = 1; cReadBlock rb(file, 1, true); if (rb._data[3] == 1 && eGeom::Read(file, pool)) goto success; cFile_SetCurrentPos(rb._data[0], rb._data[1]); return 0; success: return result;` The expected codegen allocates s3 as a callee-saved register to hold the constant 1 (requires extra sw/lw around it), and interleaves saves with arg-moves in a very specific order: `sw s0; sw s2; move s0,a2; move s2,a0; sw s1; sw s3; move s1,a1; li s3,1; move a0,sp; li a2,1; sw ra,36; jal ctor`. SNC with a naive `int result = 1;` declaration coalesces result into s0 after pool dies, saving 3 instructions (the result is 176B vs expected 188B). To force the s3 allocation I used `__asm__ volatile(\"ori %0, $0, 1\" : \"=r\"(result));` \u2014 this correctly produces 188B with s3 as the result holder, but the prologue scheduling still doesn't match (the compiler emits all sw first, then all move, rather than the interleaved pattern). Permuter ran 5 minutes total (120s + 180s) and improved from 34 to 20 bytes but is stuck there. Tried: (1) inner `if` split vs combined `&&`, (2) register-keyword binding `register int result __asm__(\"$19\") = 1;` (SNC ignores), (3) #pragma control sched=1 (reduced diff from 34 to 31), (4) ori vs addiu inline asm, (5) asm placement before/after cReadBlock. The remaining 20-byte diff is pure scheduler reordering of prologue instructions \u2014 not bnel, not a reg-alloc issue I can force via source. May need a specific -Xxopt/-Xmopt flag combo, or the source idiom used by the original might involve a helper method we haven't identified. Address 0x0002d194 is firmly in the sched=2 region (below 0x06e000)."
       }
     ],
-    "mangled_symbol": "__0fReCameraEffectGeomEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fReCameraEffectGeomEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eCameraEffectGeom.cpp",
+    "symbol_name": "__0fReCameraEffectGeomEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ee425b40",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:33:08Z"
   },
   {
     "address": "0x0002d250",
@@ -33368,7 +33376,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -33387,7 +33395,15 @@
         "variant": "base",
         "timestamp": "2026-04-26T22:54:49Z"
       }
-    ]
+    ],
+    "src_file": "src/eDecalSystem.cpp",
+    "symbol_name": "__0fMeDecalSystemEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ee425b40",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T03:33:08Z"
   },
   {
     "address": "0x00033048",
@@ -93840,7 +93856,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -116479,7 +116495,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
