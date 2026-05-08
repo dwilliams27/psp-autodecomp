@@ -16,6 +16,18 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -37,6 +49,7 @@ class eTextureFilter {
 public:
     eTextureFilter(cBase *);
     ~eTextureFilter();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -55,6 +68,7 @@ public:
     eBlurFilter(cBase *);
     ~eBlurFilter();
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -71,6 +85,7 @@ public:
     }
 };
 
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern char eBlurFiltervirtualtable[];
 
 static cType *type_cBase;
@@ -166,6 +181,32 @@ void eBlurFilter::Write(cFile &file) const {
     wb.Write(*(float *)((char *)this + 0x14));
     wb.Write(*(unsigned int *)((char *)this + 0x18));
     wb.End();
+}
+
+int eBlurFilter::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 3, true);
+    if ((unsigned int)rb._data[3] == 3 && eTextureFilter::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x10, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x14, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x18, 4);
+    }
+    return result;
 }
 
 eBlurFilter::~eBlurFilter() {

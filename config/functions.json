@@ -62804,7 +62804,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -62822,7 +62822,15 @@
         "notes": "eTextureMap::Read is 97.7% matched (6/264 bytes differ, 258 bytes identical). The function logic, control flow, and most instruction scheduling are correct. The remaining 6-byte difference is two swapped instructions at the start of the success path: the compiled code emits 'addiu a1, sp, 20' (compute &temp) before 'lw a0, 0(a0)' (dereference handle), while the expected binary has them in reverse order. This swap is a side effect of using inline asm ('__asm__ volatile(\"ori %0, $0, 1\" : \"=r\"(result))') to force the s3 register allocation. Without this asm trick, SNC's register allocator reuses s0 for the return value instead of allocating s3, producing a 12-byte size difference. The original binary was compiled as part of eAll_psp.cpp (a unity build) where interprocedural context likely influenced register allocation. The asm constraint forces correct s3 usage but subtly changes the scheduler's dependency analysis for the first cFileSystem::Read call. Attempts included: goto-based control flow, nested-if structure, memory barriers, register variable syntax, clobber-based approaches, and multiple compiler flag combinations (-Xsched=0/1, -Xmopt, -Xxopt, -O1 through -O5). None produced s3 allocation without the asm constraint."
       }
     ],
-    "mangled_symbol": "__0fLeTextureMapEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLeTextureMapEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eTextureMap_Read.cpp",
+    "symbol_name": "__0fLeTextureMapEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "63a59585",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:57:07Z"
   },
   {
     "address": "0x0007af6c",
@@ -64545,7 +64553,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -64555,7 +64563,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLeBlurFilterEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLeBlurFilterEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eBlurFilter.cpp",
+    "symbol_name": "__0fLeBlurFilterEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "63a59585",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:57:07Z"
   },
   {
     "address": "0x0007fd78",
@@ -67192,7 +67208,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -227870,7 +227886,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
