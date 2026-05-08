@@ -22916,7 +22916,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -22937,7 +22937,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T10:49:54Z"
       }
-    ]
+    ],
+    "src_file": "src/eFontGroup.cpp",
+    "symbol_name": "__0fKeFontGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2b42b10e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T02:54:47Z"
   },
   {
     "address": "0x00017730",
@@ -23082,7 +23090,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -23103,7 +23111,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T10:49:54Z"
       }
-    ]
+    ],
+    "src_file": "src/ePointGroup.cpp",
+    "symbol_name": "__0fLePointGroupEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2b42b10e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T02:54:47Z"
   },
   {
     "address": "0x00017cf4",
@@ -23577,7 +23593,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -23739,7 +23755,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",

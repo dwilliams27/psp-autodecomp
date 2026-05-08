@@ -2,7 +2,10 @@
 // engine resource pattern, identical Write/New/dtor codegen shape).
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
 
@@ -39,6 +42,13 @@ public:
     void End();
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock();
+};
+
 class cGroup {
 public:
     cBase *m_parent;        // 0x00
@@ -49,6 +59,7 @@ public:
     cGroup(cBase *);
     ~cGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cNamed {
@@ -66,6 +77,7 @@ public:
     eFontGroup(cBase *);
     ~eFontGroup();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     const cType *GetManagedType(void) const;
     const char *GetDataDirectory(void) const;
@@ -98,6 +110,20 @@ void eFontGroup::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     cGroup::Write(file);
     wb.End();
+}
+
+// ── eFontGroup::Read(cFile &, cMemPool *) @ 0x00017674 ──
+int eFontGroup::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1) goto fail;
+    if (cGroup::Read(file, pool)) goto succ;
+fail:
+    ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eFontGroup::New(cMemPool *, cBase *) static @ 0x001DD274 ──
