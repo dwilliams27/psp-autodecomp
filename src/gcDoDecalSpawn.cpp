@@ -1,8 +1,20 @@
 #include "cBase.h"
 
 class cFile;
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -23,11 +35,13 @@ public:
 
 class cHandle {
 public:
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -43,8 +57,14 @@ public:
     static void operator delete(void *);
     const cType *GetType(void) const;
     ~gcDoDecalSpawn(void);
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     void Write(cFile &) const;
+};
+
+class gcDoSaveGameOp {
+public:
+    int Read(cFile &, cMemPool *);
 };
 
 class gcDoEntityApplyRigidBodyImpulse {
@@ -80,6 +100,11 @@ void gcAction_gcAction(gcDoDecalSpawn *, cBase *);
 void gcAction_Write(const gcDoDecalSpawn *, cFile &);
 void *cMemPool_GetPoolFromPtr(const void *);
 void cStrCat(char *, const char *);
+extern "C" int gcAction_Read(void *, cFile &, cMemPool *)
+    asm("__0fIgcActionEReadR6FcFileP6IcMemPool");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoDecalSpawnvirtualtable[];
 extern cType *D_000385D4;
@@ -145,6 +170,54 @@ void gcDoDecalSpawn::Write(cFile &file) const {
     ((const cHandle *)((const char *)this + 0x14))->Write(wb);
     ((const gcDesiredValue *)((const char *)this + 0x18))->Write(wb);
     wb.End();
+}
+
+int gcDoDecalSpawn::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    char active;
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if (rb[3] != 3 || gcAction_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], &active, 1);
+    cFile *f = *(cFile **)&rb[0];
+    *(char *)((char *)this + 0x10) = active != 0;
+    cFileSystem::Read(*(cFileHandle **)f, (char *)this + 0x0C, 4);
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x14);
+        *(int *)((char *)this + 0x14) = 0;
+        handle->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle));
+    }
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+int gcDoSaveGameOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 6, true);
+    if ((unsigned int)rb[3] >= 7U ||
+        (unsigned int)rb[3] < 5U ||
+        gcAction_Read(this, file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    if ((unsigned int)rb[3] >= 6U) {
+        ((gcDesiredValue *)((char *)this + 0x1C))->Read(*(cReadBlock *)rb);
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoDecalSpawn::GetText(char *buf) const {
