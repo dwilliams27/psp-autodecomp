@@ -13,6 +13,7 @@ public:
     void Attach(void);
     void Detach(void);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcGameSettings {
@@ -38,9 +39,17 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 extern char gcProfileSubscribervirtualtable[];   // 0x37E6A8
 extern char gcSaveGameSubscribervirtualtable[];
 void *cMemPool_GetPoolFromPtr(void *);
+void cFile_SetCurrentPos(void *, unsigned int);
 
 extern const char gcProfileSubscriber_cBase_name[];
 extern const char gcProfileSubscriber_cBase_desc[];
@@ -70,6 +79,7 @@ public:
     void Attach(void);
     void Detach(void);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     int GetIndex(void *) const;
     int GetItem(int) const;
     void AssignCopy(const cBase *);
@@ -138,6 +148,19 @@ void gcProfileSubscriber::Write(cFile &file) const {
     wb.End();
 }
 
+// ── gcProfileSubscriber::Read(cFile &, cMemPool *) @ 0x00287ABC ──
+int gcProfileSubscriber::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((cListSubscriber *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
+}
+
 // ── gcProfileSubscriber::GetItem(int) const @ 0x00287C20 ──
 int gcProfileSubscriber::GetItem(int idx) const {
     void *p = gcGameSettings::Get();
@@ -187,6 +210,7 @@ class gcSaveGameSubscriber {
 public:
     static cBase *New(cMemPool *, cBase *);
     void Detach(void);
+    int Read(cFile &, cMemPool *);
     int GetIndex(void *) const;
 };
 
@@ -211,6 +235,19 @@ void gcSaveGameSubscriber::Detach(void) {
     gcGameSettings::Get()->Unsubscribe(
         (gcGameSettings::gcSubscription)0, (cListSubscriber *)this);
     ((cListSubscriber *)this)->Detach();
+}
+
+// ── gcSaveGameSubscriber::Read(cFile &, cMemPool *) @ 0x00288548 ──
+int gcSaveGameSubscriber::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 &&
+        ((cListSubscriber *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    return result;
 }
 
 // ── gcValEntityVelocity::AssignCopy(const cBase *) @ 0x00341018 ──
