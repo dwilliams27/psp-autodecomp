@@ -51760,7 +51760,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -66476,7 +66476,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -66490,7 +66490,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeReflectionModelMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTeReflectionModelMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eReflectionModelMtl_Read.cpp",
+    "symbol_name": "__0fTeReflectionModelMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "07a7c362",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:18:17Z"
   },
   {
     "address": "0x00084324",
@@ -66838,7 +66846,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -66852,7 +66860,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeRefractionModelMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTeRefractionModelMtlEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eRefractionModelMtl_Read.cpp",
+    "symbol_name": "__0fTeRefractionModelMtlEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "07a7c362",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-08T18:18:17Z"
   },
   {
     "address": "0x00085498",
@@ -68805,7 +68821,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -78452,7 +78468,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -116446,7 +116462,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -120272,7 +120288,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -120283,7 +120299,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcValBinaryOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcValBinaryOpEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "454e4383",
+        "notes": "Implemented gcValBinaryOp::Read in a split TU with local class redeclarations to avoid changing shared headers. The function compiles to the correct 324-byte size and the core behavior matches the disassembly: cReadBlock construction, tag/version check, gcValue::Read, scalar op read at this+8, two ReadBase child reads from the array at this+0x0C, destructor, and return via the saved success constant. Tried plain C locals, binding the success constant to $s2 with inline asm, sched=1, C-assignment/empty-asm binding, and child-reference loop variants.\n\nClosest attempt is 46/324 bytes different. Diff offsets are concentrated in the cReadBlock prologue/save scheduling window (0x0C-0x3B) plus the loop-entry scheduling immediately after cFileSystem_Read (zeroing offset vs materializing sp+0x14). The body after the loop enters has the expected register roles and instruction sequence. This is the known Read/cReadBlock prologue scheduler divergence; further source changes started causing register-role drift rather than improving the match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:18:10Z",
+        "src_file": "src/gcValBinaryOp_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/454e4383/001585ac__agent_self_reported_failure__src_gcValBinaryOp_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x001586f0",
@@ -204947,7 +204977,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -204959,7 +204989,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fHgcDoLogEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fHgcDoLogEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "454e4383",
+        "notes": "Implemented gcDoLog::Read in a split TU with local class redeclarations and an explicit external declaration for cReadBlock::Read<cArray<char> > using the database mangled symbol. The function compiles to the correct 332-byte size and matches the intended control flow: cReadBlock construction, tag/version check, gcAction::Read, cArray<char> read for this+0x10, scalar read at this+0x0C, three ReadBase child reads from the array at this+0x14, destructor, and return via the saved success constant. Tried the same source variants as gcValBinaryOp::Read: plain locals, $s2 result binding, sched=1, C-assignment/empty-asm binding, and child-reference loop variants.\n\nClosest attempt is 46/332 bytes different. The remaining differences mirror gcValBinaryOp::Read: cReadBlock prologue/save scheduling at 0x0C-0x3B and the small loop-entry scheduling difference after cFileSystem_Read. The body logic and calls are otherwise aligned, including the template read call and three-child ReadBase loop. This should be treated as the known cReadBlock Read-prologue compiler blocker rather than a missing source reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-08T18:18:10Z",
+        "src_file": "src/gcDoLog_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_101832/454e4383/002e6e5c__agent_self_reported_failure__src_gcDoLog_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x002e6fa8",
