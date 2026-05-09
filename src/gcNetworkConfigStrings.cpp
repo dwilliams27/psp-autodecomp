@@ -7,6 +7,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -34,16 +35,34 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 extern char gcNetworkConfigStringsvirtualtable[];
 extern char cBaseclassdesc[];
 
 class gcStringValue : public cBase {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -85,6 +104,7 @@ public:
     ~gcNetworkConfigStrings();
     void AssignCopy(const cBase *);
     void GetName(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static gcNetworkConfigStrings *New(cMemPool *, cBase *);
 
@@ -105,6 +125,22 @@ extern cType *D_0009F554;
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+
+// 0x00285fb8 — Read(cFile &, cMemPool *)
+int gcNetworkConfigStrings::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 10, true);
+    if (rb[3] != 10 || gcStringValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 8))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
 
 // 0x00285f54 — Write(cFile &) const
 void gcNetworkConfigStrings::Write(cFile &file) const {

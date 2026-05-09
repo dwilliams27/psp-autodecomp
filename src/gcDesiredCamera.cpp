@@ -4,7 +4,11 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
-class cMemPool;
+class cFileHandle;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class cWriteBlock {
@@ -14,6 +18,22 @@ public:
     void Write(int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cType {
 public:
@@ -27,6 +47,7 @@ class gcDesiredCamera {
 public:
     gcDesiredCamera(cBase *);
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
@@ -51,6 +72,12 @@ struct WriteRec {
     short offset;
     short _pad;
     void (*fn)(void *, cFile *);
+};
+
+struct ReadRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFileHandle *, cMemPool *);
 };
 
 extern cType *D_000385DC;
@@ -84,6 +111,31 @@ void gcDesiredCamera::Write(cFile &file) const {
     rec->fn((char *)base + off, *(cFile **)&wb);
 
     wb.End();
+}
+
+// 0x001214f0 - gcDesiredCamera::Read(cFile &, cMemPool *)
+int gcDesiredCamera::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 8, 4);
+    char *typeInfo = *(char **)((char *)this + 0x10);
+    char *base = (char *)this + 0x0C;
+    ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+    short offset = rec->offset;
+    cFileHandle *handle = *(cFileHandle **)&rb[0];
+    char *adjusted = base + offset;
+    cMemPool *childPool = cMemPool::GetPoolFromPtr(base);
+    void (*fn)(void *, cFileHandle *, cMemPool *) = rec->fn;
+    fn(adjusted, handle, childPool);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x00262AC4 - gcDesiredCamera::New(cMemPool *, cBase *) static

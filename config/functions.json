@@ -102658,7 +102658,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -102682,7 +102682,15 @@
         "src_file": "src/gcDesiredCamera.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/d15c643d/001214f0__agent_self_reported_failure__src_gcDesiredCamera.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredCamera.cpp",
+    "symbol_name": "__0fPgcDesiredCameraEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "82a2e628",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T01:54:29Z"
   },
   {
     "address": "0x001215d0",
@@ -104302,7 +104310,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -190553,7 +190561,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -190578,7 +190586,15 @@
         "src_file": "src/gcNetworkConfigStrings.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/567475ce/00285fb8__agent_self_reported_failure__src_gcNetworkConfigStrings.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcNetworkConfigStrings.cpp",
+    "symbol_name": "__0fWgcNetworkConfigStringsEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "82a2e628",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T01:54:29Z"
   },
   {
     "address": "0x00286094",
@@ -215579,7 +215595,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
