@@ -181,6 +181,7 @@ The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1
 - The orchestrator has per-function placement metadata and unions allowed paths per target, including mixed class/free-function batches, actual declaring headers, split-TU prefixes, DB provenance, and prior-attempt source files.
 - Prompt function blocks now show each target's canonical write path, related allowed paths, declaration headers, and split-TU pattern.
 - `permuter.py` now targets the DB mangled symbol by default, fails closed on ambiguous same-size symbols, uses `byte_match.symbols_with_bytes_and_relocs()` for symbol bytes/relocs, has a last-mile suitability gate, and only overwrites source on exact matches unless `--save-improved` is explicit.
+- `tools/generate_matching_prep.py` now emits current quarantine summaries and focused target files, including high-yield untried rows, failed near-misses, cReadBlock research rows, and tagged-pointer branch-shape research rows. Use this instead of rerunning stale drained target files.
 
 Remaining work in this section should avoid re-adding those as TODOs.
 
@@ -219,6 +220,13 @@ Remaining prevention ideas:
 
 - **Periodic full-build audit.** `tools/verify_matches.py` already re-compiles all matched src as part of the audit. Run it as a cron (or every N sessions) and alert on any new compile failure. Closes cases 2, 3 retroactively.
 
+- **Verifier progress reporting.** `tools/verify_matches.py` can run long
+  enough that a silent terminal feels hung. Consider adding coarse progress
+  updates such as 25% / 50% / 75% or "N/M matched entries checked" while
+  preserving the current all-or-nothing verification semantics. This should be
+  cosmetic only: no early success claims, no skipped rows, and no concurrency or
+  caching unless it is proven not to hide compile or byte-match failures.
+
 - **Header-change reachability check.** When an agent writes `include/*.h`, the orchestrator could re-compile every src file that `#include`s that header. Catches case 3 at the moment of damage. Most expensive (could be 30-100 src files per header touch); defer until cheaper options prove insufficient.
 
 - **Session-level src-file locking.** If session A is currently working on `cFile.cpp`, session B (potentially modifying headers `cFile` depends on) can't run concurrently. Prevents one class of race. Low value solo; only worthwhile as part of a broader concurrency model.
@@ -248,6 +256,8 @@ Action: the next time Claude hits a limit, save the surrounding `logs/match_*.js
 ## 11. pspcor allocator/scheduler register-allocation research
 
 The TU-context register-allocation pass in `docs/direction/006-tu-context-regalloc-research.md` built an exact-symbol harness and tested generated context seeds across shape `Collide`, cFactory/gcViewport saved-register drift, and value/GetText handle-lookup drift. Result: simple source-side seeds, pressure prefixes, sched variants, and `-Xgprreserve` sweeps did not improve the known best diffs. The original-context pass in `docs/direction/007-original-shape-context-reconstruction.md` then changed emitted shape symbol order while preserving matched guards, but still did not move the repeated shape `Collide` allocator drift.
+
+The separate Read-prologue compiler work in `docs/direction/008-pspcor-read-prologue-patch.md` is partially landed and defaulted. It fixed the 188B hybrid family plus exact unsigned larger-frame cases. Do not fold the remaining signed/larger-frame cReadBlock work into generic regalloc unless the exact emit-list transform path stops explaining the diffs.
 
 Those negative results make a deeper compiler-internals project worth tracking if we decide to keep pushing these families.
 

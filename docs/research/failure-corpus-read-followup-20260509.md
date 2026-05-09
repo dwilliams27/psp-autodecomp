@@ -12,6 +12,13 @@ The run matched 69 more functions and drained the target file. The remaining
 compiler-shape, branch-shape, source-placement, and large reconstruction
 problems.
 
+2026-05-09 update: subsequent focused compiler-hook work matched
+`eLensFlare::Read` and `gcTimer::Read`, reducing this family to 164 remaining
+`Read(cFile &, cMemPool *)` failures outside `PlatformRead`. The safe hook
+addition was deliberately narrow (`li a2,3` and `sw ra,40(sp)` for the
+unsigned constructor). A broader signed-constructor transform was tested and
+rejected after it worsened `gcValEntityConstant::Read`.
+
 ## Run Result
 
 | Metric | Value |
@@ -207,12 +214,11 @@ Recommendation: make `compare_func.py` read-only by default and require
 
 1. Implement the tooling fixes above, especially allowed-paths-per-target and
    permuter symbol isolation.
-2. Continue compiler/scheduler work for cReadBlock prologue near-misses. This
-   could unlock roughly 60 strong failures and 17KB+ of code without more
-   semantic reconstruction.
+2. Continue compiler/scheduler work for cReadBlock prologue near-misses, but
+   keep signed-constructor and larger-frame shapes separated from the already
+   validated unsigned hook.
 3. Start a small branch-pattern research project around tagged-pointer /
    nullable-pointer repair codegen. Use `gcDoUISendMessage`,
    `gcValLobbyScoreboardInfo`, and `gcDoSetValue` as the first exemplars.
 4. For matching runs, move away from this drained Read target file. Build a new
    target list from non-Read near-misses or a different high-similarity family.
-

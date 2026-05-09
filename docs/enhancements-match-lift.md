@@ -9,7 +9,7 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 | # | Item | Category | Status | Est. Matches Unlocked |
 |---|------|----------|--------|----------------------|
 | ML1 | AST-driven permuter mutations | Permuter | **Deprioritized** | ~10-20 (cheaper alternatives first) |
-| ML2 | Binary patch pspcor.exe prologue scheduler | Compiler | Scoped | ~100+ |
+| ML2 | Binary patch pspcor.exe prologue scheduler | Compiler | Partially landed | ~100+ |
 | ML3 | Fix template instantiation verification | Tooling | **DONE** | ~355 unblocked |
 | ML4 | Audit for adjacent verification gaps | Tooling | **DONE** | N/A (preventive) |
 | ML5 | Destructor exemplars in agent prompt | Prompt | **DONE** | Prevents ~7/run waste |
@@ -61,16 +61,18 @@ Post-analysis of overnight runs 20260426-015829, 20260426-215603, 20260427-10452
 
 ## ML2. Binary patch pspcor.exe prologue scheduler
 
-**Status: Scoped.** Reconfirmed against the 2026-05-06/07 GPT-5.5 failure
-corpus; see `docs/research/failure-corpus-read-20260507.md`. This remains
-the single highest-ROI research investment.
+**Status: Partially landed.** The default generated compiler now includes the
+validated Read-prologue transform hook; see
+`docs/direction/008-pspcor-read-prologue-patch.md`. The 188B
+`Read(cFile &, cMemPool *)` family is drained, and follow-up exact unsigned
+larger-frame cases have started landing. Remaining work is the signed
+constructor / larger-frame scheduler shape, not the original 188B cluster.
 
-**Current DB shape (2026-05-07):** `Read(cFile &, cMemPool *)`, excluding
-`PlatformRead`, has 569 total entries: 53 matched, 187 failed, and 329
-untried. The 188B failed cluster is now 99 rows; 98/99 of those failure notes
-cite cReadBlock/prologue scheduling. There are also 21 matched 188B Read rows,
-so the problem is not function size alone. It is the specific prologue
-scheduling shape around `cReadBlock`.
+**Current DB shape (2026-05-09):** `Read(cFile &, cMemPool *)`, excluding
+`PlatformRead`, has 569 total entries: 405 matched and 164 failed. The 188B
+family is 120/120 matched. The remaining cReadBlock failures are larger-frame,
+signed-constructor, branch-shape, register-allocation, or large reconstruction
+work.
 
 **The problem:** the original compiler interleaves `sw s3,32(sp)` and
 `li s3,1` into the prologue before a `jal cReadBlock::ctor`; our SNC defers
@@ -104,16 +106,25 @@ off 52:   li s3, 1                     li a3, 1 (delay slot)
 
 **Post-compilation rewriter considered and rejected:** Violates build-pipeline-integrity norm (see CLAUDE.md). The correct fix is patching the compiler.
 
-**Approach:** Patch pspcor.exe's instruction scheduler. Same methodology as decision 011 (bnel patch) and `docs/decisions/010-compiler-internals-experiments.md`. The prologue scheduling likely lives in CG_sched or CG_LRA — NOT in the del_slot cluster (which handles delay-slot filling, a separate concern).
+**Approach:** Patch the generated compiler copy, not object/output bytes. The
+first successful hook is a narrow late-list transform in `pspcor.exe`'s emit
+path. It accepts only exact validated instruction strings, has a stock compiler
+escape hatch, and must stay gated by full matched-DB verification.
 
-**Research needed:**
-1. Use SNC's `-tr<N>` debug tracing to dump IR after each pass — identify which pass introduces the ordering divergence
-2. Compile a minimal test function with sched=1 vs sched=2, compare `-tr` output to find the diverging pass
-3. Map CG_sched at `0x41589a` — find the instruction priority/scheduling function
-4. Find the specific heuristic that controls "interleave saves with moves" vs "group saves then moves"
-5. Design a patch that changes the heuristic to match the original compiler
+**Research still needed:**
+1. Continue from the exact unsigned larger-frame expansion, using failed
+   representatives from `config/targets_read_cblock_research_20260509.json`.
+2. Keep signed `cReadBlock(cFile &, int, bool)` rows separate until a transform
+   is proven not to regress rows like `gcValEntityConstant::Read`.
+3. Map whether the remaining drift is still an emit-list transform or needs
+   deeper allocator/scheduler work around `CG_Emit`, `CG_LRA`, and `gra`.
+4. Promote only exact matchers that improve multiple representatives and pass a
+   full matched-DB regression.
 
-**Shares infrastructure with ML13:** Both patches need `tools/patch_pspcor.py` scaffolding and PE section extension. Implement ML13 first (design is complete) so the scaffolding is ready.
+**Shares infrastructure with ML13:** Both patches use the
+`tools/patch_pspcor.py` PE-section/trampoline scaffolding. The Read-prologue
+work has already validated that scaffolding under wibo, so ML13 can reuse it
+later if the bnel class becomes worth landing.
 
 **Files:** `docs/decisions/010-compiler-internals-experiments.md`, `docs/decisions/011-bnel-compiler-patch-design.md` (for methodology)
 

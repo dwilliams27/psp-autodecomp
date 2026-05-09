@@ -23,6 +23,7 @@ public:
     cObject(cBase *);
     ~cObject(void);
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -34,6 +35,13 @@ public:
     void Write(int);
     void Write(unsigned int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 class gcEvent {
@@ -72,6 +80,7 @@ public:
     ~gcTimer(void);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -85,12 +94,16 @@ public:
 };
 
 typedef void (*WriteFn)(cBase *, cFile *);
+typedef void (*ReadFn)(void *, cFile *, void *);
 
 struct TypeMethod {
     short offset;
     short _pad;
     WriteFn fn;
 };
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void cFileSystem_Read(void *, void *, unsigned int);
 
 cBase *gcTimer::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -191,4 +204,42 @@ void gcTimer::Write(cFile &file) const {
     slot3->fn((cBase *)((char *)base3 + slot3->offset), wb._file);
 
     wb.End();
+}
+
+int gcTimer::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || ((cObject *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    cFileSystem_Read(*(void **)rb._data[0], (char *)this + 0xB4, 4);
+    cFileSystem_Read(*(void **)rb._data[0], (char *)this + 0xBC, 4);
+
+    char *base0 = (char *)this + 0x44;
+    TypeMethod *slot0 = (TypeMethod *)(*(char **)((char *)this + 0x48) + 0x30);
+    ((ReadFn)slot0->fn)(base0 + slot0->offset,
+                        (cFile *)rb._data[0],
+                        cMemPool::GetPoolFromPtr(base0));
+
+    char *base1 = (char *)this + 0x60;
+    TypeMethod *slot1 = (TypeMethod *)(*(char **)((char *)this + 0x64) + 0x30);
+    ((ReadFn)slot1->fn)(base1 + slot1->offset,
+                        (cFile *)rb._data[0],
+                        cMemPool::GetPoolFromPtr(base1));
+
+    char *base2 = (char *)this + 0x7C;
+    TypeMethod *slot2 = (TypeMethod *)(*(char **)((char *)this + 0x80) + 0x30);
+    ((ReadFn)slot2->fn)(base2 + slot2->offset,
+                        (cFile *)rb._data[0],
+                        cMemPool::GetPoolFromPtr(base2));
+
+    char *base3 = (char *)this + 0x98;
+    TypeMethod *slot3 = (TypeMethod *)(*(char **)((char *)this + 0x9C) + 0x30);
+    ((ReadFn)slot3->fn)(base3 + slot3->offset,
+                        (cFile *)rb._data[0],
+                        cMemPool::GetPoolFromPtr(base3));
+    return result;
 }

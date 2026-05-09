@@ -26,7 +26,7 @@ reproducible compiler-compatibility shim:
 The target family was dense enough to justify compiler work:
 
 - `Read(cFile &, cMemPool *)`, excluding `PlatformRead`: 569 total rows.
-- Current status as of 2026-05-09: 403 matched, 166 failed.
+- Current status as of 2026-05-09: 405 matched, 164 failed.
 - 188B `Read` rows: 120 total, 120 matched.
 - The original failure cluster had 99 failed 188B rows, and 98/99 cited
   cReadBlock/prologue scheduling.
@@ -375,9 +375,14 @@ Functional transform hook:
   - move the inline asm marker group immediately after `or $17,$5,$0`;
   - leave `sw $31,36($sp)` immediately before the `cReadBlock` constructor
     `jal`.
-- The default matcher accepts exact `or $6,$0,1` and `or $6,$0,2` cReadBlock
-  version nodes. It restores the search cursor and retries by exact string
-  rather than wildcarding arbitrary `$6` constants.
+- The default matcher accepts exact `or $6,$0,1`, `or $6,$0,2`, and
+  `or $6,$0,3` cReadBlock version nodes. It restores the search cursor and
+  retries by exact string rather than wildcarding arbitrary `$6` constants.
+- The default matcher accepts exact `sw $31,36($sp)` and `sw $31,40($sp)`
+  return-address save nodes for the unsigned `cReadBlock(cFile &, unsigned int,
+  bool)` constructor shape. This intentionally stays narrow: it does not match
+  arbitrary frame sizes or the signed `cReadBlock(cFile &, int, bool)`
+  constructor.
 - A separate exact matcher covers the one validated smaller-stack version-2
   shape used by `gcEvent::Read`. It keys on `sw $31,28($sp)` and
   `#nop <- $17,$0,$`, moves that asm group after `sw $17,24($sp)`, then moves
@@ -395,7 +400,9 @@ Validation results for the functional hook:
 | `eDynamicFluid::Read` matched exemplar `0x0005dccc` | `0/188` masked diffs |
 | Hybrid version-2 rows `0x000210f4`, `0x0013c978`, `0x00322254` | `0/188` masked diffs |
 | Smaller-stack version-2 row `0x000d6034` | `0/188` masked diffs |
-| Full matched DB under patched compiler | `4794/4794` verified |
+| Larger-frame unsigned rows `0x0003be10`, `0x0012c294` | `0/220`, `0/432` masked diffs |
+| Signed-constructor broadening experiment `0x003265e0` | rejected: worsened to `32/296` masked diffs |
+| Full matched DB under patched compiler | `4796/4796` verified |
 | Stock compiler escape hatch before hook-dependent rows were promoted | `4444/4444` verified |
 
 Unlocked matching target list:
@@ -407,6 +414,14 @@ Unlocked matching target list:
 - Follow-up expansion on 2026-05-09 matched the three `li a2,2` hybrid rows
   and `gcEvent::Read`'s smaller-stack variant. The lone `li a2,3` row was
   already matched by source shape before this expansion.
+- A second 2026-05-09 expansion added only the exact safe pieces needed for two
+  larger-frame unsigned-constructor rows: `li a2,3` and `sw ra,40(sp)`.
+  That let `eLensFlare::Read` and `gcTimer::Read` match after adding their
+  source bodies.
+- A broader signed-constructor matcher was tested and rejected. It helped some
+  local shapes, but worsened `gcValEntityConstant::Read`, so signed
+  `cReadBlock(cFile &, int, bool)` rows remain research targets rather than
+  default compiler behavior.
 
 Rejected small byte-patch experiment:
 
@@ -474,9 +489,10 @@ Milestone 3:
 Milestone 4:
 
 - Validate against the full matched DB and a selected 188B failed cluster.
-  Matched-DB validation is complete for both the default patched compiler and
-  the stock escape-hatch path: `4444/4444` verified on each. The selected
-  failed-cluster validation is still next.
+  Matched-DB validation is complete for the default patched compiler:
+  `4796/4796` verified after the larger-frame safe expansion. The stock
+  escape-hatch path was validated before hook-dependent rows were promoted:
+  `4444/4444` verified.
 
 ## Implementation Plan
 
@@ -650,3 +666,10 @@ Milestone 4:
   `gcValCameraFollowEntity3rdVariable::Read`, and `gcEvent::Read` to matched.
   The 188B `Read(cFile &, cMemPool *)` family is now 120/120 matched, and the
   full matched DB verifies cleanly under the patched compiler at 4794/4794.
+- 2026-05-09: Tested a broader larger-frame/signed-constructor transform. Kept
+  only the exact safe unsigned-constructor expansion (`li a2,3` and
+  `sw ra,40(sp)`) after the signed-constructor path worsened
+  `gcValEntityConstant::Read`.
+- 2026-05-09: Promoted `eLensFlare::Read` and `gcTimer::Read` to matched under
+  the safe expansion. The full matched DB verifies cleanly under the patched
+  compiler at 4796/4796.

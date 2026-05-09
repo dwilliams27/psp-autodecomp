@@ -37788,7 +37788,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -37825,7 +37825,9 @@
         "src_file": "src/eLensFlare.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3e302832/0003be10__agent_self_reported_failure__src_eLensFlare.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eLensFlare.cpp",
+    "symbol_name": "__0fKeLensFlareEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0003beec",
@@ -107981,7 +107983,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -108018,7 +108020,9 @@
         "src_file": "src/gcTimer.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3ffd6144/0012c294__agent_self_reported_failure__src_gcTimer.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcTimer.cpp",
+    "symbol_name": "__0fHgcTimerEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0012c444",

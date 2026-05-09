@@ -25,10 +25,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cBaseArray {
 public:
     cBaseArray &operator=(const cBaseArray &);
     void RemoveAll(void);
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -38,6 +51,7 @@ public:
     cObject(cBase *);
     ~cObject();
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -71,6 +85,7 @@ public:
     ~eLensFlare();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -87,6 +102,7 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_000468CC;
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 struct AllocRec {
     short offset;
@@ -117,6 +133,20 @@ void eLensFlare::Write(cFile &file) const {
     ((const cBaseArray *)((char *)this + 0x44))->Write(wb);
     wb.Write(mField4C);
     wb.End();
+}
+
+// ── eLensFlare::Read @ 0x0003be10 ──
+int eLensFlare::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 3, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 3 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((cBaseArray *)((char *)this + 0x44))->Read(rb);
+    cFileSystem::Read(*(void **)rb._data[0], (char *)this + 0x4C, 4);
+    return result;
 }
 
 // ── eLensFlare::eLensFlare @ 0x0003beec ──
