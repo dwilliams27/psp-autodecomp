@@ -2,8 +2,19 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -25,6 +36,7 @@ public:
 
 class cHandle {
 public:
+    void Read(class cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
@@ -32,18 +44,29 @@ class gcDesiredUIWidgetHelper {
 public:
     char _pad[12];
     gcDesiredUIWidgetHelper(int);
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 class gcAction {
 public:
     char _pad[12];
     gcAction(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -58,6 +81,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoUISetText &operator=(const gcDoUISetText &);
 };
@@ -71,9 +95,13 @@ extern char cBaseclassdesc[];
 extern char gcValuevirtualtable[];
 extern char gcDoUISetTextvirtualtable[];
 extern char gcValObjectHasCategoryvirtualtable[];
+extern void *D_00038890[];
 
 void gcAction__gcAction_cBaseptr__0012F4C8(void *, cBase *);
 void gcDesiredUIWidgetHelper_ctor(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 struct PoolBlock {
     char pad[0x1C];
@@ -246,6 +274,135 @@ void gcDoUISetText::Write(cFile &file) const {
 
     wb.Write(*(int *)((const char *)this + 0x34));
     wb.End();
+}
+
+int gcDoUISetText::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 6, true);
+    if (rb[3] != 6 || ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    ((gcDesiredUIWidgetHelper *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+
+    char *handleObj = (char *)this + 0x20;
+    *(int *)handleObj = 0;
+    ((cHandle *)handleObj)->Read(*(cReadBlock *)rb,
+                                 cMemPool::GetPoolFromPtr(handleObj));
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x24, 4);
+
+    int sp14;
+    int value0 = *(int *)((char *)this + 0x28);
+    int handle = *(int *)((char *)this + 0x20);
+    register void *candidate __asm__("$6") = 0;
+    if (handle != 0) {
+        register void *entry __asm__("$5") = D_00038890[handle & 0xFFFF];
+        if (entry != 0 && *(int *)((char *)entry + 0x30) == handle) {
+            candidate = entry;
+        }
+    }
+    int tag0 = value0 & 1;
+    register int deadFlag __asm__("$4") = 0;
+    if (candidate != 0) {
+        deadFlag = 0;
+        __asm__ volatile("andi %0, $0, 0xff" : "=r"(deadFlag));
+        if (deadFlag != 0) {
+            int tmp = *(int *)((char *)this + 0x24);
+            *(int *)((char *)this + 0x24) = (tmp & 0x8000FFFF) | 0x10000;
+            deadFlag = 0;
+        }
+    }
+
+    int flag0 = deadFlag;
+    if (tag0 != 0) {
+        flag0 = 1;
+    }
+
+    int out0;
+    if (flag0 != 0) {
+        out0 = 0;
+        goto out_done0;
+    }
+    out0 = value0;
+out_done0:
+    sp14 = out0;
+
+    int flag0b = 0;
+    if (tag0 != 0) {
+        flag0b = 1;
+    }
+
+    int base0;
+    if (flag0b != 0) {
+        base0 = value0 & ~1;
+    } else {
+        base0 = *(int *)value0;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x28),
+                                 (cBase *)base0, *(cBase **)&sp14);
+
+    int new0;
+    if (sp14 != 0) {
+        new0 = sp14;
+    } else {
+        new0 = base0 | 1;
+    }
+    *(int *)((char *)this + 0x28) = new0;
+
+    ((gcDesiredValue *)((char *)this + 0x30))->Read(*(cReadBlock *)rb);
+
+    int sp18;
+    int value1 = *(int *)((char *)this + 0x2C);
+    int tag1 = value1 & 1;
+    int flag1 = 0;
+    if (tag1 != 0) {
+        flag1 = 1;
+    }
+
+    int out1;
+    if (flag1 != 0) {
+        out1 = 0;
+        goto out_done1;
+    }
+    out1 = value1;
+out_done1:
+    sp18 = out1;
+
+    int flag1b = 0;
+    if (tag1 != 0) {
+        flag1b = 1;
+    }
+
+    int base1;
+    if (flag1b != 0) {
+        base1 = value1 & ~1;
+    } else {
+        base1 = *(int *)value1;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x2C),
+                                 (cBase *)base1, *(cBase **)&sp18);
+
+    int new1;
+    if (sp18 == 0) {
+        new1 = base1 | 1;
+    } else {
+        new1 = sp18;
+    }
+    *(int *)((char *)this + 0x2C) = new1;
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x34, 4);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // -- gcValObjectHasCategory::New(cMemPool *, cBase *) static @ 0x00354890 --
