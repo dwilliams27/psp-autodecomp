@@ -1,7 +1,10 @@
 #include "cBase.h"
 
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -10,6 +13,16 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void Write(int);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 struct cTypeMethod {
@@ -32,6 +45,7 @@ public:
 class gcLValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcDesiredObject {
@@ -42,6 +56,7 @@ public:
 
 class gcValLookAtControllerVariable : public gcLValue {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -49,6 +64,11 @@ public:
 
 extern const char gcValLookAtControllerVariable_base_name[];
 extern const char gcValLookAtControllerVariable_base_desc[];
+
+extern "C" {
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+}
 
 void gcValLookAtControllerVariable::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
@@ -69,6 +89,41 @@ void gcValLookAtControllerVariable::Write(cFile &file) const {
 
     wb.Write(*(const int *)((const char *)this + 76));
     wb.End();
+}
+
+int gcValLookAtControllerVariable::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    int tag = rb._pad[1];
+    int version;
+    __asm__ volatile("ori %0, $0, 2" : "=r"(version));
+    if (tag != version || gcLValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(rb.file, rb._pos);
+        return 0;
+    }
+
+    char *entity = (char *)this + 8;
+    char *entityType = *(char **)((char *)this + 12);
+    const cTypeMethod *entityRead = (const cTypeMethod *)(entityType + 0x30);
+    cFile *f = rb.file;
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    register char *entityTarget __asm__("$20") =
+        entity + entityRead->offset;
+    ((ReadFn)entityRead->fn)(entityTarget, f, cMemPool::GetPoolFromPtr(entity));
+
+    char *controller = (char *)this + 0x34;
+    char *controllerType = *(char **)((char *)this + 0x38);
+    const cTypeMethod *controllerRead =
+        (const cTypeMethod *)(controllerType + 0x30);
+    f = rb.file;
+    register char *controllerTarget __asm__("$20") =
+        controller + controllerRead->offset;
+    ((ReadFn)controllerRead->fn)(controllerTarget, f,
+                                 cMemPool::GetPoolFromPtr(controller));
+
+    cFileSystem_Read(*(void **)rb.file, (char *)this + 0x4C, 4);
+    return result;
 }
 
 static cType *type_base;
