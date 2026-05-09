@@ -1,7 +1,23 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -26,12 +42,14 @@ public:
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void Read(class cReadBlock &);
 };
 
 class gcEntityAttack {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -52,10 +70,28 @@ struct WriteEntry {
     void (*fn)(void *, cFile *);
 };
 
-class gcEntityAnimationConfig;
+struct ReadEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class gcEntityAnimationConfig {
+public:
+    int Read(cFile &, cMemPool *);
+};
 
 void gcEntityAnimationConfig_ctor(gcEntityAnimationConfig *, cBase *);
 void gcEvent_gcEvent(void *, cBase *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char cBaseclassdesc[];
 extern char gcEntityAttackvirtualtable[];
@@ -150,4 +186,58 @@ void gcEntityAttack::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+int gcEntityAttack::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 6, true);
+    if ((unsigned int)rb[3] >= 7 || (unsigned int)rb[3] < 5) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    ((gcEntityAnimationConfig *)((char *)this + 0x08))->Read(file, pool);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x2C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x30, 4);
+    ((cBaseArray *)((char *)this + 0x70))->Read(*(cReadBlock *)rb);
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x3C);
+        char *base = (char *)this + 0x38;
+        ReadEntry *rec = (ReadEntry *)(typeInfo + 0x30);
+        short off = rec->offset;
+        char *target = base + off;
+        cFile *f = *(cFile **)&rb[0];
+        cMemPool *childPool = cMemPool::GetPoolFromPtr(base);
+        rec->fn(target, f, childPool);
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x34, 4);
+
+    if ((unsigned int)rb[3] >= 6) {
+        char sp14;
+        cFileSystem::Read(*(cFileHandle **)rb[0], &sp14, 1);
+        cFile *f1 = *(cFile **)&rb[0];
+        *(unsigned char *)((char *)this + 0x54) = sp14 != 0;
+
+        char sp15;
+        cFileSystem::Read(*(cFileHandle **)f1, &sp15, 1);
+        *(unsigned char *)((char *)this + 0x55) = sp15 != 0;
+
+        char *typeInfo = *(char **)((char *)this + 0x5C);
+        char *base = (char *)this + 0x58;
+        ReadEntry *rec = (ReadEntry *)(typeInfo + 0x30);
+        short off = rec->offset;
+        char *target = base + off;
+        __asm__ volatile("" ::: "memory");
+        cFile *f = *(cFile **)&rb[0];
+        cMemPool *childPool = cMemPool::GetPoolFromPtr(base);
+        rec->fn(target, f, childPool);
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
