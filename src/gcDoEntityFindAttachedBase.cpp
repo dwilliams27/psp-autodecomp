@@ -2,8 +2,35 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+class cReadBlock;
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cType {
 public:
@@ -33,6 +60,7 @@ class gcExpression {
 class gcAction : public gcExpression {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct WriteRec {
@@ -41,9 +69,44 @@ struct WriteRec {
     void (*fn)(void *, int);
 };
 
+struct ReadRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
+class gcEnumeration;
+class gcEnumerationEntry;
+
+template <class T>
+class cSubHandleT {
+public:
+    int mIndex;
+};
+
+template <class T>
+class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T, class U>
+class cHandlePairT {
+public:
+    cHandleT<T> mHandle;
+    U mSubHandle;
+};
+
+template <class T>
+class cArray {
+public:
+    void Read(cReadBlock &);
+};
+
 class gcDoEntityFindAttachedBase : public gcAction {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
 };
 
@@ -120,4 +183,45 @@ void gcDoEntityFindAttachedBase::Write(cFile &file) const {
     }
 
     wb.End();
+}
+
+// 0x00143e6c - gcDoEntityFindAttachedBase::Read(cFile &, cMemPool *)
+int gcDoEntityFindAttachedBase::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || gcAction::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos((unsigned int)rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x14);
+        char *base = (char *)this + 0x10;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = (cFile *)rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x3C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x40, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x44, 4);
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x4C);
+        char *base = (char *)this + 0x48;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = (cFile *)rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    ((cArray<cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > > *)((char *)this + 0x60))
+        ->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

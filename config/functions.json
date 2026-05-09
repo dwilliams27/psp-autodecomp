@@ -25299,7 +25299,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -25310,7 +25310,21 @@
       "0x0001cbf8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLeConfigBaseEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLeConfigBaseEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5fabeb63",
+        "notes": "Closest attempt reconstructs the full Read body in C++ with the expected cReadBlock version gates, serialized field reads, legacy resolution-table path, and final vtable slot dispatch. The prologue, stack size, callee-save set, fail path, branch structure, and final dispatch match, but compare_func remains at 73/984 bytes different. The remaining differences are scheduler/local-codegen drift around the bool temporary read/store sequences and legacy resolution-table address calculation: the original reloads rb[0] through a different temporary register and schedules the next Read arguments differently, while this TU emits equivalent calls with different delay-slot placement and a different immediate-addressing shape for the table loads.\n\nTried manual source reshaping for stack slots (forcing resolution at sp+0x14 and chars at sp+0x18..0x1b), block-vs-top-level bool temporaries, explicit rb[0] temporaries for post-bool reads, and sched=1 A/B. sched=1 regressed to 123 bytes different. A 120s permuter run compiled 2171 candidates and found zero improvement from the 73-byte baseline. Root cause appears to be SNC scheduler/context sensitivity in this large cReadBlock Read body rather than missing control flow.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:00:51Z",
+        "src_file": "src/eConfigBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/5fabeb63/0001c290__agent_self_reported_failure__src_eConfigBase.cpp"
+      }
+    ]
   },
   {
     "address": "0x0001c668",
@@ -38795,7 +38809,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -59559,7 +59573,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -59570,7 +59584,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeCompoundShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOeCompoundShapeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "6666f9b7",
+        "notes": "Implemented a split-TU canonical C++ attempt for eCompoundShape::Read so existing matched siblings in src/eCompoundShape.cpp are not perturbed. The current source is size-exact at 668B and follows the full control flow: cReadBlock version check, eShape_Read, cBaseArray::Read at +0x80, subshape loop updating +0x74/+0x50, lazy D_00038578 identity setup guarded by D_000385B8, vtable call at +0xC8, VFPU center/extent math into +0x90/+0xA0, ComputeMinAxis, and destructor. compare_func still reports 440/668 bytes differing.\n\nThe remaining diff is structural VFPU/register allocation rather than a small cReadBlock prologue issue. Key mismatches: the loop uses different temporaries and FPU compare shape, the global identity setup uses pointer-based inline VFPU stores instead of the original t0/t1/t2 absolute-address pattern, and the final box math uses different address registers. A normal C identity construction was also tried; it produced a 628B size mismatch because SNC scalarized the local identity and added an extra stack region. One permuter run was attempted but the tool could not locate the target in the compiled .o (reported 680B .text vs expected 668B), so no permutation result was available.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:00:58Z",
+        "src_file": "src/eCompoundShape_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/6666f9b7/00072b38__agent_self_reported_failure__src_eCompoundShape_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00072dd4",
@@ -79925,7 +79953,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -84699,7 +84727,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -96354,7 +96382,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -116141,7 +116169,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -116156,7 +116184,15 @@
       "0x002b41fc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcDoEntityFindAttachedBaseEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fagcDoEntityFindAttachedBaseEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntityFindAttachedBase.cpp",
+    "symbol_name": "__0fagcDoEntityFindAttachedBaseEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6666f9b7",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T05:00:58Z"
   },
   {
     "address": "0x00143ff0",
@@ -187806,7 +187842,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -187817,7 +187853,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcGenericSubscriberEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fTgcGenericSubscriberEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5fabeb63",
+        "notes": "Closest attempt is a split-TU C++ implementation of the cListSubscriber Read gate plus the cArray-style resize/copy/free path for the subscriber float array. It preserves the allocation record call with file/line constants 0x36DA98 and 0x112, copies old values with zero fill, and deletes the old raw buffer through the pool delete record. The closest compiled output is structurally similar but 584 bytes instead of the expected 604 bytes, with a 48-byte stack frame instead of the original 64-byte frame and different callee-save/FPU register allocation; the original keeps zero in f20 and uses s5 for the new array pointer.\n\nTried split-TU isolation to avoid perturbing existing gcGenericSubscriber.cpp siblings, a forced rb/count stack-layout/register attempt, and sched=1 A/B. The forced register/stack version made the diff much worse (391/604 bytes), and the permuter could not run because the compiled symbol size is 584B while the target is 604B. Root cause is source-shape/register allocation around the resize loop and FPU zero temporary, not a last-mile byte scheduling issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:00:51Z",
+        "src_file": "src/gcGenericSubscriber_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/5fabeb63/0027e934__agent_self_reported_failure__src_gcGenericSubscriber_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027eb90",
