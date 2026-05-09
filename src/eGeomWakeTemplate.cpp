@@ -6,6 +6,7 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -22,6 +23,18 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
 };
 
 class cObject {
@@ -47,11 +60,13 @@ public:
 class cHandle {
 public:
     int mHandle;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class eDynamicGeomTemplate {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -81,6 +96,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 
@@ -103,6 +119,8 @@ extern cType *D_000385E4;
 extern cType *D_000469A8;
 extern cType *D_000469E0;
 extern cType *D_00046C30;
+
+void cFile_SetCurrentPos(void *, unsigned int);
 
 static cType *type_cBase;
 static cType *type_eGeom;
@@ -245,6 +263,79 @@ const cType *eGeomWakeTemplate::GetType(void) const {
                                            0, 0, 0);
     }
     return D_00046C30;
+}
+
+// -- eGeomWakeTemplate::Read(cFile &, cMemPool *) @ 0x00079b6c --
+#pragma control sched=1
+int eGeomWakeTemplate::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$17");
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+
+    if ((unsigned int)rb._data[3] >= 3) goto fail;
+    if ((unsigned int)rb._data[3] < 1) goto fail;
+    if (((eDynamicGeomTemplate *)this)->Read(file, pool) == 0) goto fail;
+
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x48, 4);
+    }
+    *(int *)((char *)this + 0x4C) = 0;
+    __asm__ volatile("" ::: "memory");
+    {
+        cHandle *h = (cHandle *)((char *)this + 0x4C);
+        h->Read(rb, cMemPool::GetPoolFromPtr(h));
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x50, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x54, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x58, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x5C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x60, 4);
+    }
+    void *tailH;
+    register unsigned int version __asm__("$4") = rb._data[3];
+    register unsigned int oldVersion __asm__("$5");
+    __asm__ volatile("sltiu %0, %1, 2" : "=r"(oldVersion) : "r"(version));
+    tailH = *(void **)rb._data[0];
+    if (oldVersion == 0) goto read64;
+    goto read68;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+
+read64:
+    cFileSystem::Read((cFileHandle *)tailH, (char *)this + 0x64, 4);
+    tailH = *(void **)rb._data[0];
+
+read68:
+    cFileSystem::Read((cFileHandle *)tailH, (char *)this + 0x68, 4);
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x6C, 4);
+    }
+    {
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x70, 4);
+    }
+    return result;
 }
 
 // ── eGeomWakeTemplate::Write(cFile &) const @ 0x00079a9c ──
