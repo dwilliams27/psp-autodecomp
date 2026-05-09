@@ -3,6 +3,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -22,10 +23,23 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cGUID {
 public:
     int m0;
     int m4;
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -39,10 +53,14 @@ public:
 class cHandle {
 public:
     int m_val;
+    void Read(cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 void *cMemPool_GetPoolFromPtr(void *);
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class gcStreamedCinematic {
 public:
@@ -75,6 +93,7 @@ class gcStreamedCinematicConfig {
 public:
     gcStreamedCinematicConfig(cBase *);
     ~gcStreamedCinematicConfig();
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -117,6 +136,36 @@ void gcStreamedCinematicConfig::Write(cFile &file) const {
     ((cGUID *)((char *)this + 0x10))->Write(wb);
     wb.Write(*(bool *)((char *)this + 0x1D));
     wb.End();
+}
+
+// ── Read ──
+
+int gcStreamedCinematicConfig::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    char enabled;
+    char loop;
+
+    if (rb[3] != 3) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    ((cGUID *)((char *)this + 0x08))->Read(*(cReadBlock *)rb);
+    *(int *)((char *)this + 0x18) = 0;
+    {
+        cHandle *handle = (cHandle *)((char *)this + 0x18);
+        handle->Read(*(cReadBlock *)rb, (cMemPool *)cMemPool_GetPoolFromPtr(handle));
+    }
+    cFileSystem::Read(*(cFileHandle **)rb[0], &enabled, 1);
+    *(unsigned char *)((char *)this + 0x1C) = (enabled != 0);
+    ((cGUID *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read(*(cFileHandle **)rb[0], &loop, 1);
+    *(unsigned char *)((char *)this + 0x1D) = (loop != 0);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── AssignCopy ──
