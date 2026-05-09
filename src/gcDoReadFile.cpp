@@ -6,8 +6,24 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -18,10 +34,19 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
 class gcDesiredValue {
 public:
     unsigned int mField0;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class gcExpression {
@@ -43,6 +68,7 @@ public:
 
     gcAction(cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cType {
@@ -84,6 +110,8 @@ struct GetTextSlot {
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char gcDoReadFilevirtualtable[];
 
@@ -99,6 +127,7 @@ public:
     void GetText(char *) const;
     gcDoReadFile &operator=(const gcDoReadFile &);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 static cType *type_gcDoReadFile asm("D_000385D0");
@@ -217,6 +246,63 @@ void gcDoReadFile::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+int gcDoReadFile::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+
+    if (rb[3] != 1 || gcAction::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x14);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x14);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x14) = newValue;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoReadFile::GetText(char *buf) const {
