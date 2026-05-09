@@ -36026,7 +36026,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -36041,7 +36041,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeFontEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fFeFontEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2615fb49",
+        "notes": "Implemented eFont::Read in a split TU with the validated version checks, cObject::Read failure path, old-version single material-handle resize path, new-version cArray<cHandleT<eMaterial>>::Read path, scalar field reads, kerning table selection, and final virtual read slot dispatch. The closest build compiles but remains 546/792 bytes different. The version >=8 path is structurally close near the top, but the old-version inline resize/allocation path for the material array differs heavily in register allocation and scheduling.\n\nThe root issue appears to be the handwritten reconstruction of cArray<cHandleT<eMaterial>> resizing: the original inlines allocation through the pool alloc table, copies one element/default, destroys the old allocation, stores the new data pointer, then reads the cHandle. The current C gets the same high-level operations but not the same s3/s4/s5 allocation state or branch layout. A future retry should first match the 0x394bc-0x395f8 old-material-array block in isolation, using matched cArrayBase::SetSize or constructor/destructor exemplars from eAll_psp if available.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:21:12Z",
+        "src_file": "src/eFont_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2615fb49/000393f8__agent_self_reported_failure__src_eFont_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00039710",
@@ -38809,7 +38823,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -38822,7 +38836,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeRoomSetEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fIeRoomSetEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2fc23a1c",
+        "notes": "Implemented a split-TU canonical C++ eRoomSet::Read with the version gate, cObject::Read fail path, eRoomAABBTree::Read, version >=2 cArray<cHandleT<ePortal>>::Read path, and the legacy version-1 portal deduplication/reallocation logic reconstructed from m2c and disassembly. The initial placement-new cReadBlock version produced 857 differing bytes; switching to a normal cReadBlock local recovered the expected constructor shape but still left 844/1028 bytes different.\n\nThe remaining mismatch is broad structural drift, not a cReadBlock prologue-only issue. The original uses a 4160-byte frame and saves s0-s6/ra with result in s1, pool in s3, unique count in s2, scratch base at sp+0x18, and mask/table values in specific temporaries. The closest C attempt still compiles to a different frame size/register plan, hoists the version >=2 path differently, and lays out the nested room/portal dedupe loops with different loop-carried registers. This likely needs a more specialized array/reallocation source pattern or original-TU context; the current split-TU C is a readable closest attempt but not near last-mile.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:12:56Z",
+        "src_file": "src/eRoomSet_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2fc23a1c/0003fa04__agent_self_reported_failure__src_eRoomSet_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003fe08",
@@ -49788,7 +49816,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -58863,7 +58891,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -58880,7 +58908,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQeConvexHullShapeEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "24e9c2d4",
+        "notes": "Implemented a canonical C++ eConvexHullShape::Read body in src/eConvexHullShape.cpp using the matched cReadBlock/SetSize/read-loop patterns, explicit pool allocation/free table accesses, ePolyFace/ePolyEdge Read calls, and VFPU inline asm only for the vertex radius calculation. The closest compile has the correct 144-byte stack frame and matching saved-register layout, but still size-mismatches at 1064B vs the expected 1076B. Early control flow and local stack offsets are close; remaining drift is in scheduling/register choices around the three mVec3 array loops, allocation/read loops, and especially the final VFPU max-radius loop where inline asm cannot naturally place bc1fl delay-slot code the same way as the original compiler output. This does not appear to be the known cReadBlock 20-byte prologue-only blocker because the body still differs and the function size is short by 12 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:30:00Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/24e9c2d4/000703a0__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000707d4",
@@ -79363,7 +79405,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -79953,7 +79995,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -79969,7 +80011,21 @@
       "0x0015d588"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIWidgetEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKgcUIWidgetEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "1f909afb",
+        "notes": "Implemented gcUIWidget::Read in canonical C++ syntax with local cReadBlock/cFileSystem/cHandle declarations and the expected high-level control flow: version gate 5..7, cNamed::Read fallback, four cHandle reads, legacy short-to-float conversion path, versioned 0x7C/0x80 reads, and cBaseArray::Read. Tried direct RAII cReadBlock, moving the block to sp+0, moving the fixed return register initialization before construction, and several local-register/branch-shape constraints for the handle loop.\n\nClosest build is 892B vs expected 912B. This is not a clean cReadBlock-prologue-only blocker: the loop body still allocates the handle table/mask/zero flag to the wrong saved registers, does not reserve s8 like the original, and resolves the candidate pointer through different registers/branch targets. The known cReadBlock prologue scheduling issue is present, but the body also needs register-allocation control beyond the source rewrites tried here.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:07:48Z",
+        "src_file": "src/gcUIWidget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/1f909afb/000d7d6c__agent_self_reported_failure__src_gcUIWidget.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d80fc",
@@ -84727,7 +84783,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -84743,7 +84799,21 @@
       "0x000ed04c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcCinematicEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fLgcCinematicEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "1f909afb",
+        "notes": "Implemented gcCinematic::Read in src/gcUIWidget.cpp with a local gcCinematic class redeclaration, matching the expected calls and data flow: cObject::Read, cBaseArray::Read at 0x44, three byte booleans, two cHandle reads with flag fixup checks, and the type-info read callback at this+0x60/type+0x30. Tried direct RAII cReadBlock, corrected stack placement to sp+0, moved the result setup before the cReadBlock constructor, forced and relaxed candidate/id registers, and reshaped the first handle2 branch to recover the duplicated delay-slot assignment.\n\nClosest build is 664B vs expected 668B, with remaining mismatches concentrated in the prologue/register allocation and handle resolution blocks. The original keeps file/pool/result in s1/s2/s3 and uses a0/a1/a2 in a specific candidate lookup pattern; the closest source drifts to alternate saved registers and puts the resolved pointer in a different register. This is adjacent to the known cReadBlock scheduler problem, but it is not the prologue-only 20-byte case, so I am leaving it failed with the closest C attempt.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:07:48Z",
+        "src_file": "src/gcUIWidget.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/1f909afb/000ea5ec__agent_self_reported_failure__src_gcUIWidget.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ea888",
@@ -86533,7 +86603,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -86555,7 +86625,21 @@
       "0x00164f48"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcRegionBaseEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMgcRegionBaseEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2bcc370a",
+        "notes": "Implemented a complete canonical gcRegionBase::Read in src/gcRegionBase.cpp with raw cReadBlock constructor/destructor calls, cFactory::Read/ReadGroups, legacy SkipBase handling, cHandle::Read at +0x54/+0x58, D_00038890 handle-table validation, cBaseArray Read/SetSize, legacy config-group allocation, cName::Set, virtual initialization, and nested cBaseArray::Read. The closest source is size-correct at 796 bytes and has the target cReadBlock prologue/epilogue shape; compare_func reports 62/796 bytes different.\n\nManual variants tried included placement-new vs raw cReadBlock construction, volatile stack locals to recover sp+0x18/sp+0x1c stores, direct vs slot-indirect cBaseArray element updates, m2c-style handle validation with a materialized boolean, pointer-based handle copy to recover addiu/lw and addiu/sw addressing, explicit register variables, and a small inline addiu to force the source handle address. The remaining mismatch is not the 20-byte cReadBlock prologue blocker; it is broad register/branch-shape drift in the D_00038890 validation and legacy config-group allocation path, especially s3/s4 role selection and a1/a2 boolean/candidate roles.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:21:36Z",
+        "src_file": "src/gcRegionBase.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2bcc370a/000ee134__agent_self_reported_failure__src_gcRegionBase.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ee450",
@@ -95580,7 +95664,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -96382,7 +96466,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -96398,7 +96482,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcStateMachineEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOgcStateMachineEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2fc23a1c",
+        "notes": "Implemented a split-TU canonical C++ gcStateMachine::Read with local class redeclarations, preserving the existing matched gcStateMachine.cpp compile context. The first placement-new cReadBlock version produced a 96-byte stack frame and 745 byte mismatches; switching to a normal cReadBlock local recovered the expected 80-byte frame and dropped the diff to 345 bytes. A targeted local/register rewrite for the state-present byte and handle-table lookup reduced this to 320 bytes, and a 60s permuter run over 1052 compiled candidates saved a best variant at 303 differing bytes.\n\nThe closest attempt has the high-level control flow and calls in place, including version gate 3..4, cObject::Read fail path, state array sizing, per-state allocation/ctor, cHandle reads, handle-table validation, final handle reads, cBaseArray reads, and BuildVTable. Remaining differences are not the known 20-byte cReadBlock prologue-only blocker: the loop still allocates key values to different saved registers and stack slots than the original. In particular the original keeps the handle table in s8 and the zero flag in s7 with the present byte at sp+0x19; the closest source still spills/assigns those roles differently and drifts through the state creation and handle-resolution blocks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:12:56Z",
+        "src_file": "src/gcStateMachine_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2fc23a1c/0010c83c__agent_self_reported_failure__src_gcStateMachine_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010cc30",
@@ -105031,7 +105129,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -105050,7 +105148,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcEntityTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcEntityTemplateEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2615fb49",
+        "notes": "Reconstructed the full Read body in C++ using the matched cReadBlock/read-array patterns and isolated it in a split TU to avoid perturbing already matched gcEntityTemplate.cpp siblings. The straight-line field reads, cHandle/cBaseArray/cName reads, SetSize call, virtual post-read dispatch, and CalcInstanceSize call are represented; the closest build compiles but remains 185/760 bytes different. The first half is close, but the temporary cArray<cHandle> cleanup after SetSize is very sensitive: SNC wants the local at sp+0x14, count at sp+0x18, a duplicated zero store before SetSize, and a particular s3/a0/a1/a2 loop/delete sequence. I tried local reordering, register binding for s3/s4/s5, explicit offset setup for the final array loop, and one inline store to force the duplicate zero store.\n\nThe remaining mismatch is not just the known 20-byte cReadBlock prologue issue; it is mostly the inlined temporary-array cleanup and branch/register choices around the SetSize destructor path, plus small downstream branch target shifts. A future retry should focus narrowly on reproducing the 0x1264e4-0x1265bc cleanup block, possibly by finding another matched cArray<T> SetSize-with-default temporary pattern rather than continuing broad Read-body rewrites.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:21:12Z",
+        "src_file": "src/gcEntityTemplate_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2615fb49/00126358__agent_self_reported_failure__src_gcEntityTemplate_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x00126650",
@@ -114306,7 +114418,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -114320,7 +114432,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoConsoleOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcDoConsoleOpEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "24e9c2d4",
+        "notes": "Added gcDoConsoleOp::Read to the canonical src/gcDoConsoleOp.cpp with the modern-version path, tagged-pointer ReadBase pattern, legacy console-size conversion, gcValNumber construction, and replacement/release logic. The modern read path is structurally close through the two ReadBase calls, but the closest compile size-mismatches at 1124B vs the expected 1180B. The largest drift is in the legacy version <6 conversion block: SNC emits a specific equality-chain switch and uses s6/s5 then s1/s3 register pairs for allocation/assignment/release, while the source keeps collapsing the switch/release logic and produces shorter branch structure. I tried both if/else and switch forms; both compiled to the same shorter shape. This is not a pure cReadBlock prologue divergence; the body is still short by 56 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:30:00Z",
+        "src_file": "src/gcDoConsoleOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/24e9c2d4/0013d8f4__agent_self_reported_failure__src_gcDoConsoleOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013dd90",
@@ -121231,7 +121357,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -121242,7 +121368,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fegcProjectileControllerTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fegcProjectileControllerTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcProjectileControllerTemplate.cpp",
+    "symbol_name": "__0fegcProjectileControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "55cb2cea",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T05:37:54Z"
   },
   {
     "address": "0x00155b1c",
@@ -123315,7 +123449,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -123332,7 +123466,21 @@
       "0x0013081c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIWidgetGroupEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcUIWidgetGroupEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "2bcc370a",
+        "notes": "Implemented a split-TU canonical gcUIWidgetGroup::Read in src/gcUIWidgetGroup_Read.cpp because the public gcUIWidgetGroup header does not declare Read. The source reconstructs the version 8..10 cReadBlock gate, parent gcUIWidget::Read call, flags read/fixup at +0xb0, SetDimensions, cell-count calculation from +0xc0/+0xc4 array prefixes, the nested ReadBase loop with deletion of inactive widgets and InsertInDrawOrder/ReplaceControl for active widgets, sprite handle-array Read at +0xc8, legacy alpha conversion, legacy/current offset reads at +0xb4/+0xb8, final +0xcc read, and raw cReadBlock destruction. It compiles cleanly but compare_func reports a size mismatch: target 996 bytes, current symbol 964 bytes.\n\nManual variants tried included straightforward structured loops, volatile cellCount to force a stack spill, block-scoped vs hoisted widget temporaries, and a parallel float conversion rewrite for the two legacy short fields. The closest attempt still differs in core stack/register layout: the target keeps this/pool in s6/s5, uses s8/s4/s7 with stack temporaries at sp+0x2c/sp+0x30 and the total at sp+0x34, while the current compile keeps this/pool in s0/s1 or s0/s2 and places the ReadBase temporaries around sp+0x20/sp+0x24. This is broad register-allocation and stack-layout drift rather than a pure cReadBlock prologue-only near miss.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:21:36Z",
+        "src_file": "src/gcUIWidgetGroup_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/2bcc370a/0015d588__agent_self_reported_failure__src_gcUIWidgetGroup_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0015d96c",
@@ -123798,7 +123946,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -200443,7 +200591,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -200456,7 +200604,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoEntityMoveToPointEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fVgcDoEntityMoveToPointEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5901eb0b",
+        "notes": "Implemented gcDoEntityMoveToPoint::Read as a canonical C++ method with explicit ReadRec dispatches for offsets 0x0C, 0x38, 0x4C, the six initial gcDesiredValue reads, scalar reads at 0xD8/0xE4, cName read at 0xE8, bool read at 0x104, version>=6 extra reads, old-version 0xE4 flag compatibility, and version>=7 final ReadRec dispatch. Restructuring the failure label to sit between the version>=6 block and old-version block reduced the mismatch to 6/712 bytes; all calls and overall size are correct.\n\nThe remaining mismatch is local to the one-byte bool read/version-load sequence around offsets 0x194-0x19c: expected loads the signed byte from sp+0x14, then loads rb[3], then performs `sltu` and stores the bool; the compiler prefers loading rb[3] before the byte load in the closest stable source. Variants with a separate bool temporary or register bindings made the layout much worse. A targeted permuter run for 120s generated 3744 candidates, compiled 1919, and found no improvement over the 6-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:32:05Z",
+        "src_file": "src/gcValUITextParam.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/5901eb0b/002b4b38__agent_self_reported_failure__src_gcValUITextParam.cpp"
+      }
+    ]
   },
   {
     "address": "0x002b4e00",
@@ -225728,7 +225890,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -225741,7 +225903,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityDirectionEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUgcValEntityDirectionEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValEntityDirection.cpp",
+    "symbol_name": "__0fUgcValEntityDirectionEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "55cb2cea",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T05:37:54Z"
   },
   {
     "address": "0x00328ee0",
@@ -242033,7 +242203,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -242046,7 +242216,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValUITextParamEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcValUITextParamEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "5901eb0b",
+        "notes": "Implemented gcValUITextParam::Read with the cReadBlock version gate, gcLValue parent read, gcDesiredUIWidgetHelper read, version>=3 gcDesiredValue read, and the old-format integer-to-gcValNumber compatibility path. The existing matched sibling methods in src/gcValUITextParam.cpp continued to match after the edit. The closest attempt compiles cleanly but is 588B versus the expected 616B. The top-level prologue and failure epilogue match; the remaining size loss is in the old tagged-pointer cleanup paths, where SNC in the original preserves redundant flag recomputation/moves and separate tagged `| 1` branches. I tried explicit gotos, duplicated branch-local OR expressions, empty asm register barriers, and register-bound temporaries, but SNC still collapses parts of the cleanup and emits the shorter form.\n\nThis does not look like the known 20-byte cReadBlock prologue divergence: the prologue is matching. The likely root cause is source-shape/register-allocation sensitivity in the gcDesiredValue tagged self-pointer compatibility code, specifically around preserving value/tag in a2/a0/a3 for destructor dispatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T05:32:05Z",
+        "src_file": "src/gcValUITextParam.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/5901eb0b/003676ac__agent_self_reported_failure__src_gcValUITextParam.cpp"
+      }
+    ]
   },
   {
     "address": "0x00367914",

@@ -7,8 +7,19 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+};
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -55,6 +66,7 @@ struct DispatchEntry {
 class gcEntityControllerTemplate {
 public:
     gcEntityControllerTemplate(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     char _pad[0x50];
 };
@@ -72,6 +84,7 @@ public:
     char _pad6D[3];
 
     gcProjectileControllerTemplate(cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -79,9 +92,15 @@ public:
 };
 
 extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_000385E4;
 extern cType *D_0009A400;
+extern cType *D_0009F448;
 extern cType *D_0009F7A8;
 extern char gcProjectileControllerTemplatevirtualtable[];
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 // ── gcProjectileControllerTemplate::Write(cFile &) const @ 0x00155734 ──
 void gcProjectileControllerTemplate::Write(cFile &file) const {
@@ -96,6 +115,99 @@ void gcProjectileControllerTemplate::Write(cFile &file) const {
     wb.Write(m64);
     wb.Write(m6C);
     wb.End();
+}
+
+#pragma control sched=2
+int gcProjectileControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 0xC, true);
+    if ((unsigned int)rb[3] >= 0xD || (unsigned int)rb[3] < 0xA ||
+        this->gcEntityControllerTemplate::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    register unsigned int *m68p __asm__("$18") =
+        (unsigned int *)((char *)this + 0x68);
+    cFileSystem::Read(*(cFileHandle **)rb[0], m68p, 4);
+    if ((unsigned int)rb[3] < 0xC) {
+        register char *parent __asm__("$19") = *(char **)this;
+        register char *entity __asm__("$20") = 0;
+        if (parent != 0) {
+            if (D_0009F448 == 0) {
+                if (D_000385E4 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894,
+                                (const char *)0x36D89C, 1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58,
+                            0, 0, 0);
+                    }
+                    D_000385E4 = cType::InitializeType(
+                        0, 0, 3, D_000385E0, 0, 0, 0, 0);
+                }
+                D_0009F448 = cType::InitializeType(
+                    0, 0, 0x8E, D_000385E4,
+                    (cBase *(*)(cMemPool *, cBase *))0x26882C,
+                    (const char *)0x36D9B8, (const char *)0x36D9C8, 5);
+            }
+
+            char *classDesc = (char *)((void **)parent)[1];
+            cType *wanted = D_0009F448;
+            DispatchEntry *entry = (DispatchEntry *)(classDesc + 8);
+            short off = entry->offset;
+            cType *(*fn)(void *, short, void *) = entry->fn;
+            cType *type = fn(parent + off, off, (void *)fn);
+            int ok;
+
+            if (wanted == 0) {
+                ok = 0;
+            } else if (type != 0) {
+            loop:
+                if (type == wanted) {
+                    ok = 1;
+                } else {
+                    type = (cType *)type->mParent;
+                    if (type != 0) {
+                        goto loop;
+                    }
+                    goto fail;
+                }
+            } else {
+            fail:
+                ok = 0;
+            }
+
+            if (ok != 0) {
+                entity = parent;
+            }
+        }
+
+        *m68p = *(unsigned int *)(entity + 0xCC);
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x50, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x54, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x58, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x5C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x60, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x64, 4);
+
+    if ((unsigned int)rb[3] >= 0xB) {
+        char sp14;
+        cFileSystem::Read(*(cFileHandle **)rb[0], &sp14, 1);
+        *(unsigned char *)((char *)this + 0x6C) = sp14 != 0;
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcProjectileControllerTemplate::gcProjectileControllerTemplate(cBase *) @ 0x00155B1C ──
