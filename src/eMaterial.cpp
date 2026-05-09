@@ -10,6 +10,7 @@ class cObject {
 public:
     cObject(cBase *);
     ~cObject(void);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -20,6 +21,20 @@ public:
     void Write(int);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *handle, void *buf, unsigned int size);
+};
+
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 class cMemPool {
 public:
@@ -61,6 +76,7 @@ public:
     eMaterial(cBase *);
     ~eMaterial(void);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void PlatformFree(void);
 
@@ -83,6 +99,24 @@ void eMaterial::Write(cFile &file) const {
     cObject::Write(file);
     wb.Write(mField44);
     wb.End();
+}
+
+// ── eMaterial::Read @ 0x0002BFA4 ──
+int eMaterial::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if ((unsigned int)rb._data[3] == 1 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    {
+        void *dst = (char *)this + 0x44;
+        void *h = *(void **)rb._data[0];
+        __asm__ volatile("" : "+r"(dst), "+r"(h));
+        cFileSystem::Read(h, dst, 4);
+    }
+    return result;
 }
 
 // ── eMaterial::eMaterial @ 0x0002C074 ──

@@ -19,9 +19,10 @@ public:
 };
 
 int gcDoEntityForEachAttached::Read(cFile &file, cMemPool *pool) {
-    int ok = 1;
+    register int ok __asm__("$19");
     cReadBlock rb(file, 1, true);
-    if (rb._data[3] != ok || !gcDoEntityFindAttachedBase::Read(file, pool)) {
+    __asm__ volatile("ori %0, $0, 1" : "=r"(ok));
+    if ((unsigned int)rb._data[3] != 1 || !gcDoEntityFindAttachedBase::Read(file, pool)) {
         ((cFile *)rb._data[0])->SetCurrentPos((unsigned int)rb._data[1]);
         return 0;
     }

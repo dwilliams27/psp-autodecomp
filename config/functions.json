@@ -27294,7 +27294,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -29828,7 +29828,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -29865,7 +29865,15 @@
         "src_file": "src/eMaterial.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/15749b43/0002bfa4__agent_self_reported_failure__src_eMaterial.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eMaterial.cpp",
+    "symbol_name": "__0fJeMaterialEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4944d1c6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:03:48Z"
   },
   {
     "address": "0x0002c074",
@@ -30237,6 +30245,18 @@
         "timestamp": "2026-05-08T16:24:27Z",
         "src_file": "src/eGeom.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ad0515ad/0002c4c0__agent_self_reported_failure__src_eGeom.cpp"
+      },
+      {
+        "session": "ec45590d",
+        "notes": "Closest source keeps the normal class-method RAII cReadBlock shape but seeds the success return with a one-instruction inline `ori`, reducing the current source from a 67/120 byte mismatch to 14/120. The emitted body matches the target instruction-for-instruction after the constructor call setup; the only remaining difference is prologue scheduling. Current output is `addiu sp,-32; sw s0,20(sp); sw ra,24(sp); li s0,1; move a0,sp; li a2,1; jal; li a3,1`, while the target is `addiu sp,-32; sw s0,20(sp); li s0,1; move a0,sp; li a2,1; sw ra,24(sp); jal; li a3,1`.\n\nThis session also tried an explicit stack-buffer representation with direct ctor/dtor calls (`__0oKcReadBlockctR6FcFileUib` / `__0oKcReadBlockdtv`) and a local `#pragma control sched=1`; both produced the same 14/120 mismatch and did not move the `ra` spill. This is the small one-save cReadBlock Read prologue scheduler divergence documented in the session/research notes, not a control-flow or C++ RAII cleanup issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:03:05Z",
+        "src_file": "src/eGeom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ec45590d/0002c4c0__agent_self_reported_failure__src_eGeom.cpp"
       }
     ],
     "mangled_symbol": "__0fFeGeomEReadR6FcFileP6IcMemPool"
@@ -39355,7 +39375,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -40844,6 +40864,18 @@
         "timestamp": "2026-05-08T16:24:27Z",
         "src_file": "src/ePhysicsController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ad0515ad/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
+      },
+      {
+        "session": "ec45590d",
+        "notes": "Closest source uses the unsigned cReadBlock constructor declaration plus the same inline `ori` result seed as eGeom. That reduces the current source from a 44/120 byte mismatch to 14/120, with the function body matching after the ctor setup. The remaining byte diff is the same prologue-only ordering: compiled output spills `ra` before `li s0,1`, while target delays `sw ra,24(sp)` until after `move a0,sp` and `li a2,1`.\n\nI also simplified the compare expression back to a direct unsigned check of `rb._data[3]`, which preserves the 14/120 closest codegen. Prior recorded attempts already exhausted plain constants, volatile locals, alternate branch shapes, sched=1, and a permuter run; this result confirms ePhysicsController::Read is blocked by the same small cReadBlock prologue scheduler issue rather than by transition-zone sched mode or source-level constant CSE.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:03:05Z",
+        "src_file": "src/ePhysicsController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ec45590d/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
       }
     ],
     "mangled_symbol": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool"
@@ -192319,7 +192351,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -198756,7 +198788,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -198784,7 +198816,15 @@
         "snapshot": "logs/failure_snapshots/match_20260508_101832/15749b43/002b41fc__agent_self_reported_failure__src_gcDoEntityForEachAttached_Read.cpp"
       }
     ],
-    "mangled_symbol": "__0fZgcDoEntityForEachAttachedEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcDoEntityForEachAttachedEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntityForEachAttached_Read.cpp",
+    "symbol_name": "__0fZgcDoEntityForEachAttachedEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4944d1c6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:03:48Z"
   },
   {
     "address": "0x002b42c4",
@@ -221788,7 +221828,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
