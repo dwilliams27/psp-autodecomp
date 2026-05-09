@@ -1,7 +1,22 @@
 #include "cBase.h"
 
 class cFile;
-class cMemPool;
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -10,6 +25,13 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void Write(bool);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 struct cTypeMethod {
@@ -38,6 +60,7 @@ public:
 class gcValue {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -55,6 +78,7 @@ class gcValHasPartialController : public gcValue {
 public:
     void GetText(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -87,6 +111,9 @@ void gcDesiredObject_ctor(void *, void *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
+                                              bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 void gcValHasPartialController::GetText(char *buf) const {
     const gcValHasPartialController *self = this;
@@ -226,6 +253,41 @@ void gcValHasPartialController::Write(cFile &file) const {
 
     wb.Write(*(const bool *)((const char *)this + 0x4C));
     wb.End();
+}
+
+int gcValHasPartialController::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+
+    if (rb[3] != 2 || gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *entity = (char *)this + 8;
+    char *entityType = *(char **)((char *)this + 12);
+    const cTypeMethod *entityRead = (const cTypeMethod *)(entityType + 0x30);
+    cFile *f = *(cFile **)&rb[0];
+    typedef void (*ReadFn)(void *, cFile *, void *);
+    ((ReadFn)entityRead->fn)(entity + entityRead->offset, f,
+                             cMemPool::GetPoolFromPtr(entity));
+
+    char *controller = (char *)this + 0x34;
+    char *controllerType = *(char **)((char *)this + 0x38);
+    const cTypeMethod *controllerRead =
+        (const cTypeMethod *)(controllerType + 0x30);
+    f = *(cFile **)&rb[0];
+    ((ReadFn)controllerRead->fn)(controller + controllerRead->offset, f,
+                                 cMemPool::GetPoolFromPtr(controller));
+
+    char sp14;
+    cFileSystem::Read(*(cFileHandle **)rb[0], &sp14, 1);
+    *(bool *)((char *)this + 0x4C) = sp14 != 0;
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 static cType *type_base;

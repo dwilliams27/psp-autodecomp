@@ -30631,7 +30631,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -30649,7 +30649,21 @@
       "0x00082f28"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeGeomMtlEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fIeGeomMtlEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b884c458",
+        "notes": "Body is matched; remaining mismatch is the documented cReadBlock prologue scheduler divergence. Initial C++ matched the control flow but had extra scheduling swaps around cFileSystem::Read argument setup; rewriting those byte reads with a void** file-handle pointer and separate dst temporary fixed the body. compare_func.py now reports 31/324 differing bytes, all in the opening save/move/jal setup before the cReadBlock constructor: our object saves s1/s2/s3/ra before the argument moves, while the target interleaves sw s2, move s0/s2, sw s1/s3, move s1, then sw ra in the jal delay setup region.\n\nTried the matched Read-method idiom with sched=1, explicit result initialized by inline ori, early fail branch shape, direct rb._data version checks, direct cFile_SetCurrentPos, and C++ RAII destructor emission. Existing sibling matches in src/eGeomMtl.cpp remain stable. This is the known Read(cFile &, cMemPool *) cReadBlock prologue blocker, not a body/control-flow mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T04:31:31Z",
+        "src_file": "src/eGeomMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/b884c458/0002cd4c__agent_self_reported_failure__src_eGeomMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002ce90",
@@ -40133,7 +40147,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -61640,7 +61654,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -84385,7 +84399,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -84396,7 +84410,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcEntityCustomAnimationEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fXgcEntityCustomAnimationEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "b884c458",
+        "notes": "Body is matched; remaining mismatch is only the cReadBlock prologue scheduler divergence. The emitted code from the version check through ReadBase, tagged pointer reconstruction, destructor, and returns is instruction-for-instruction identical to the target. compare_func.py reports 31/324 differing bytes due to the same opening save/move ordering: our object groups callee-save stores before moving a2/a1/a0 into s2/s1/s0, while the target interleaves stores and moves and delays the ra store until just before the cReadBlock constructor call.\n\nUsed the gcStatsTrackingStrings-style tagged-base ReadBase pattern, with sched=1 scoped only to this Read method so existing Write/GetType/New matches stay stable. This matches the prompt's cReadBlock prologue warning exactly; further local source churn is unlikely to fix it without perturbing already matched sibling functions.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T04:31:31Z",
+        "src_file": "src/gcEntityCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/b884c458/000e9908__agent_self_reported_failure__src_gcEntityCustomAnimation.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e9a4c",
@@ -97082,7 +97110,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -104423,7 +104451,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -104434,7 +104462,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcEntityCustomAttackEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fUgcEntityCustomAttackEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcEntityCustomAttack.cpp",
+    "symbol_name": "__0fUgcEntityCustomAttackEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ddf622ac",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T04:36:29Z"
   },
   {
     "address": "0x00125528",
@@ -189466,7 +189502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -232085,7 +232121,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -232096,7 +232132,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValHasPartialControllerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcValHasPartialControllerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValHasPartialController.cpp",
+    "symbol_name": "__0fZgcValHasPartialControllerEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ddf622ac",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T04:36:29Z"
   },
   {
     "address": "0x00346464",

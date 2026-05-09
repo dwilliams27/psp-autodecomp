@@ -5,9 +5,19 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cReadBlock {
+public:
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 class cType {
@@ -30,6 +40,7 @@ public:
     cObject(cBase *);
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -66,9 +77,14 @@ public:
     gcEntityCustomAttack(cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
+                                              bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern cType *D_000385DC;
 extern cType *D_000385E0;
@@ -91,6 +107,60 @@ void gcEntityCustomAttack::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+int gcEntityCustomAttack::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+
+    if (rb[3] != 1 || cObject::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x44);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x44);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x44) = newValue;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 cBase *gcEntityCustomAttack::New(cMemPool *pool, cBase *parent) {
