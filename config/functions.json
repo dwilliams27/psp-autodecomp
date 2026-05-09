@@ -97355,7 +97355,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -108699,7 +108699,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -111512,7 +111512,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -111539,6 +111539,18 @@
         "timestamp": "2026-05-08T22:12:59Z",
         "src_file": "src/gcStaticInstance.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ba33497a/00136f68__agent_self_reported_failure__src_gcStaticInstance.cpp"
+      },
+      {
+        "session": "b600063a",
+        "notes": "Implemented gcStaticInstance::Read in canonical C++ with cReadBlock setup, cObject::Read gating, cHandle::Read, CreateBase, 0x38890 template-handle validation, optional eGeom::SetTemplate plus virtual read dispatch, legacy version reads, bool normalization, and final classdesc+0x38 initialization. Compared to the prior failed snapshot, using extern-C SetTemplate and an explicit absolute handle table reduced the mismatch from the recorded 223 bytes to 23/508 bytes.\n\nThe remaining diff is localized to the template-handle validation and skip-template branch shape. The target uses addu operand order a1+a2, no extra branch before assigning templ, and a beqzl into the file-read path; SNC keeps emitting an extra branch around the templ assignment plus a normal beqz. I tried pre-initialized vs late-initialized templ, explicit gotos, absolute pointer arithmetic, direct table indexing, inline result initialization, and a volatile handle reload; the volatile form regressed badly. This looks like branch-shape/scheduler drift rather than missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:27:03Z",
+        "src_file": "src/gcStaticInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/b600063a/00136f68__agent_self_reported_failure__src_gcStaticInstance.cpp"
       }
     ]
   },
@@ -111730,7 +111742,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -111753,6 +111765,18 @@
         "timestamp": "2026-05-08T22:12:59Z",
         "src_file": "src/gcSurface.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ba33497a/00137dd0__agent_self_reported_failure__src_gcSurface.cpp"
+      },
+      {
+        "session": "b600063a",
+        "notes": "Implemented gcSurface::Read as canonical C++ using the same RAII cReadBlock shape as the prior best snapshot, with eSurface::Read version gating and the five gcEvent read-dispatch calls at classdesc+0x30. I also tried a manual extern-C cReadBlock constructor/destructor form and register-bound this/file/pool/result variables to force the target saved-register roles, but SNC ignored the intended bindings and introduced a worse register permutation plus an extra saved register.\n\nThe best current source is back to the known 36-byte mismatch. The generated body matches the target control flow and dispatch sequence after the cReadBlock setup; the remaining diff is the cReadBlock constructor prologue/saved-register scheduling pattern documented as the ML2 compiler-level blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:27:03Z",
+        "src_file": "src/gcSurface.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/b600063a/00137dd0__agent_self_reported_failure__src_gcSurface.cpp"
       }
     ]
   },
@@ -113734,7 +113758,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -231450,7 +231474,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -233765,7 +233789,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -233791,6 +233815,18 @@
         "timestamp": "2026-05-08T22:15:26Z",
         "src_file": "src/gcValLobbyScoreboardInfo.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/bb16f920/0034b384__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp"
+      },
+      {
+        "session": "d5cf6f68",
+        "notes": "Implemented gcValLobbyScoreboardInfo::Read in canonical C++ in src/gcValLobbyScoreboardInfo.cpp using the cReadBlock/gcValue/gcDesiredValue/ReadBase pattern from matched Read exemplars. The prologue, version/read failure path, two cFileSystem::Read calls, four gcDesiredValue::Read calls, destructor paths, and sibling functions compile cleanly; the closest body emits 528B versus the 532B target. I tried straight exemplar style, m2c-style temporaries, preloading the second nullable-base field before the first store, goto-shaped nonzero paths, empty true branches, and an empty memory barrier variant. The barrier variant reached 532B but did so by duplicating the final store, which is not the target shape.\n\nThe remaining blocker is the same branch-likely selection described by the prior attempt: after each ReadBase call, our SNC collapses the nullable pointer repair to beqzl/beqzl-style conditional assignment, while the target uses longer bnez/b shapes with useful delay slots (first block also schedules the next field tag calculation in the bnez delay slot). A bounded permuter pass was attempted, but tools/permuter.py refused to start because the current compiled symbol is 528B while the database target is 532B. This looks like source-level leverage is exhausted unless a new way is found to defeat SNC's conditional-assignment branch-likely optimization without introducing duplicate stores.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:28:19Z",
+        "src_file": "src/gcValLobbyScoreboardInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/d5cf6f68/0034b384__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp"
       }
     ]
   },
@@ -237144,7 +237180,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -237169,7 +237205,15 @@
         "src_file": "src/gcValLobbyScoreboardInfo.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/bb16f920/00357f78__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValLobbyScoreboardInfo.cpp",
+    "symbol_name": "__0fRgcValRandomNumberEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d5cf6f68",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:28:19Z"
   },
   {
     "address": "0x00358080",

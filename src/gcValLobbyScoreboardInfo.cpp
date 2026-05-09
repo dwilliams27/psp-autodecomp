@@ -2,6 +2,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -28,6 +29,21 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -38,9 +54,19 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class gcValue {
@@ -49,6 +75,7 @@ public:
     void *mVtable;
 
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValLobbyScoreboardInfo : public gcValue {
@@ -67,10 +94,23 @@ public:
     void AssignCopy(const cBase *);
     void GetText(char *) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class gcValRandomNumber : public gcValue {
+public:
+    int mField8;
+    int mDesiredC;
+    int mDesired10;
+    char pad14;
+
+    int Read(cFile &, cMemPool *);
 };
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 static cType *type_base;
 static cType *type_expression;
@@ -169,6 +209,128 @@ void gcValLobbyScoreboardInfo::Write(cFile &file) const {
     }
     wb.WriteBase(ptr1);
     wb.End();
+}
+
+// 0x0034b384 -- gcValLobbyScoreboardInfo::Read(cFile &, cMemPool *)
+int gcValLobbyScoreboardInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+
+    if (rb[3] != 1 || gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x1C))->Read(*(cReadBlock *)rb);
+
+    int sp14;
+    int sp18;
+    int value = *(int *)((char *)this + 0x20);
+    int firstTag = value & 1;
+    int firstFlag = 0;
+    if (firstTag != 0) {
+        firstFlag = 1;
+    }
+
+    int outValue;
+    if (firstFlag != 0) {
+        outValue = 0;
+        goto first_out_done;
+    }
+    outValue = value;
+first_out_done:
+    sp14 = outValue;
+
+    int firstFlag2 = 0;
+    if (firstTag != 0) {
+        firstFlag2 = 1;
+    }
+
+    int base;
+    if (firstFlag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x20);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int value2 = *(int *)((char *)this + 0x24);
+    int newValue = sp14;
+    if (newValue != 0) {
+    } else {
+        newValue = base | 1;
+    }
+    int secondTag = value2 & 1;
+    *(int *)((char *)this + 0x20) = newValue;
+
+    int secondFlag = 0;
+    if (secondTag != 0) {
+        secondFlag = 1;
+    }
+
+    if (secondFlag != 0) {
+        outValue = 0;
+        goto second_out_done;
+    }
+    outValue = value2;
+second_out_done:
+    sp18 = outValue;
+
+    int secondFlag2 = 0;
+    if (secondTag != 0) {
+        secondFlag2 = 1;
+    }
+
+    if (secondFlag2 != 0) {
+        base = value2 & ~1;
+    } else {
+        base = *(int *)value2;
+    }
+
+    childPool = cMemPool::GetPoolFromPtr((char *)this + 0x24);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp18);
+
+    int newValue2 = sp18;
+    if (newValue2 != 0) {
+    } else {
+        newValue2 = base | 1;
+    }
+    *(int *)((char *)this + 0x24) = newValue2;
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// 0x00357f78 -- gcValRandomNumber::Read(cFile &, cMemPool *)
+int gcValRandomNumber::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    char sp14;
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1 || gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], &sp14, 1);
+    *(char *)((char *)this + 0x14) = sp14 != 0;
+    ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x0034bc6c -- gcValLobbyScoreboardInfo::GetText(char *) const
