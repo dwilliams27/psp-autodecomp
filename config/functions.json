@@ -37652,7 +37652,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -37676,6 +37676,18 @@
         "timestamp": "2026-05-08T18:51:05Z",
         "src_file": "src/gcDoEntitySendMessage.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/71f01e36/0003be10__agent_self_reported_failure__src_gcDoEntitySendMessage.cpp"
+      },
+      {
+        "session": "3e302832",
+        "notes": "Implemented eLensFlare::Read(cFile &, cMemPool *) as a canonical C++ method in src/eLensFlare.cpp. The body matches the target structure: cReadBlock(file, 3, true), version 3 check, cObject::Read, failure rewind through cFile_SetCurrentPos, cBaseArray::Read at +0x44, cFileSystem::Read of +0x4C, destructor, return 1. With the best source left in the file (result inline asm after cReadBlock construction), compare_func reports 21/220 bytes different.\n\nThe remaining diff is confined to the cReadBlock constructor prologue/save scheduling window. From the version load onward the compiled instruction sequence aligns with the expected target. Tried result initialization before construction, result initialization after construction, plain int result = 1, sched=1 around the method, and explicit register-bound saved this/file/pool/result locals. The post-constructor result inline asm is closest; the others either worsened the prologue ordering or changed the function size. This is still the documented cReadBlock prologue scheduler divergence, specifically the version-3 hybrid shape where the original wants li s3,1 before the constructor call but the current compiler emits it immediately after the call.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T01:25:37Z",
+        "src_file": "src/eLensFlare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/3e302832/0003be10__agent_self_reported_failure__src_eLensFlare.cpp"
       }
     ]
   },
@@ -45703,7 +45715,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -45733,6 +45745,18 @@
         "timestamp": "2026-05-08T18:47:29Z",
         "src_file": "src/eHeightmapTemplate_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/15d33fca/00051ca0__agent_self_reported_failure__src_eHeightmapTemplate_Read.cpp"
+      },
+      {
+        "session": "ba26f583",
+        "notes": "Started from the prior split-TU attempt, then changed the method to the nearby int rb[5] + manual cReadBlock constructor/destructor pattern instead of an automatic cReadBlock object. That removed the prior extra saved register and fixed the local stack layout to rb at sp+4, colRef at sp+0x18, and parentUser at sp+0. The current source emits the correct stack size, saved-register count, version range gate, parent Read call, cName/cFileSystem reads, cHandle Read, cArray<eHeightmapTile>::Read, version>=6 ReadBase block, CreateColData fallback, PlatformRead call, and both destructor paths. It now compiles to a 572-byte symbol versus the expected 576 bytes.\n\nThe blocker is still context-sensitive register allocation/scheduling, but the symptom shifted: the current TU assigns pool/file/this/result/rbp/handle as s0/s1/s2/s3/s4/s5, while the original wants this/file/pool/rbp/result/handle as s0/s1/s2/s3/s4/s5. I tried sched=1 and sched=2, a hard-register version for self/file/pool/rbp/result, normal self/pool locals, declaration-order changes for rbp/result, and the manual rb array form. Hard-register and normal self-local variants regressed badly by introducing s6 and larger branch-shape changes. A 60s permuter attempt could not start because the best current symbol is 572B while the DB function is 576B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T01:22:50Z",
+        "src_file": "src/eHeightmapTemplate_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ba26f583/00051ca0__agent_self_reported_failure__src_eHeightmapTemplate_Read.cpp"
       }
     ]
   },
@@ -67732,7 +67756,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -83792,7 +83816,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -83815,6 +83839,18 @@
         "timestamp": "2026-05-08T18:53:15Z",
         "src_file": "src/gcAnimationEvent.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/866aebb1/000e8e8c__agent_self_reported_failure__src_gcAnimationEvent.cpp"
+      },
+      {
+        "session": "3e302832",
+        "notes": "Implemented gcAnimationEvent::Read(cFile &, cMemPool *) as a canonical C++ method in the requested src/eLensFlare.cpp file, with a minimal local gcAnimationEvent declaration and EventReadSlot helper. The body now matches the target sequence after the cReadBlock prologue: version 1 check with SetCurrentPos failure path, cFileSystem::Read into +0x08, event vtable slot +0x30, offset-adjusted target, raw rb[0] passed as the read file argument, cMemPool::GetPoolFromPtr(event), virtual Read call, destructor, and return 1. compare_func reports 20/224 bytes different.\n\nTried the initial m2c-shaped tail, corrected the virtual call to pass raw rb[0] instead of *rb[0], delayed/advanced the event function slot load, moved result initialization before and after cReadBlock construction, and tested sched=1 around the method. The best source left in the file initializes result before constructing cReadBlock and uses the snapshot-proven EventReadSlot tail. The remaining bytes are only in the save/move/cReadBlock constructor setup window: the original interleaves li s1, move a0, li a2 before saving s2/s3/ra, while the current compiler groups the saves before constructor setup. This is the documented cReadBlock prologue scheduler blocker; the functional body is aligned.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T01:25:37Z",
+        "src_file": "src/eLensFlare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/3e302832/000e8e8c__agent_self_reported_failure__src_eLensFlare.cpp"
       }
     ]
   },
@@ -100624,7 +100660,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -100667,7 +100703,15 @@
         "src_file": "src/gcDesiredObject.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/b0e526a9/0011b5dc__agent_self_reported_failure__src_gcDesiredObject.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDesiredObject.cpp",
+    "symbol_name": "__0fPgcDesiredObjectEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4255defd",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T01:27:32Z"
   },
   {
     "address": "0x0011b6f4",
@@ -112066,7 +112110,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -114317,6 +114361,18 @@
         "timestamp": "2026-05-08T18:53:15Z",
         "src_file": "src/gcPartialBodyControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/866aebb1/0013fc58__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp"
+      },
+      {
+        "session": "4255defd",
+        "notes": "The existing canonical C++ method remains the closest reconstruction: cReadBlock(file, 3, true), version check against 3, parent gcPartialEntityControllerTemplate::Read, cBaseArray::Read, 2-byte cFileSystem::Read at this+0x1c, second cBaseArray::Read, implicit cReadBlock destructor exits. Live objdump shows the body is byte-identical after the constructor call; the only meaningful ordering difference is in the cReadBlock setup cluster, where the target emits li s3,1 before saving ra and before the constructor jal, while SNC schedules the same li s3,1 immediately after the jal in this split TU.\n\nI tested the one remaining low-risk variant by binding the result to s3 and initializing it before constructing cReadBlock. That worsened the mismatch from 21/232 bytes to 34/232 bytes, so it was reverted. This matches the documented Read(cFile &, cMemPool *) cReadBlock prologue scheduler divergence and appears source-unfixable in the current build setup.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T01:27:32Z",
+        "src_file": "src/gcPartialBodyControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/4255defd/0013fc58__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp"
       }
     ]
   },
@@ -122480,7 +122536,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -212656,7 +212712,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -212682,6 +212738,18 @@
         "timestamp": "2026-05-08T18:47:29Z",
         "src_file": "src/gcDoStateParentHandler_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/15d33fca/00302b48__agent_self_reported_failure__src_gcDoStateParentHandler_Read.cpp"
+      },
+      {
+        "session": "ba26f583",
+        "notes": "Restored and verified the closest split-TU implementation for gcDoStateParentHandler::Read. compare_func reports 26/348 bytes different; objdump shows the entire body matches the target after the cReadBlock constructor call, including the tagged pointer ReadBase sequence, cBaseArray::SetSize(4), destructor calls, return values, stack offsets, and call order.\n\nThe remaining difference is confined to the known cReadBlock prologue/setup scheduling divergence: this TU saves s1/s3/ra and materializes result around the constructor call in the compiler's standard order, while the original interleaves s2 move, s0 move, s1/s3 saves, li s3=1, and sw ra before jal. sched=1 is still closest; sched=2 was already tried in the prior session and does not make this body-only match better.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T01:22:50Z",
+        "src_file": "src/gcDoStateParentHandler_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ba26f583/00302b48__agent_self_reported_failure__src_gcDoStateParentHandler_Read.cpp"
       }
     ]
   },
@@ -229880,7 +229948,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",

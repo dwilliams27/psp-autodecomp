@@ -25,12 +25,24 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int, const cType *,
                                  cBase *(*)(cMemPool *, cBase *),
                                  const char *, const char *, unsigned int);
 };
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern cType *D_000385DC;   // shared cBase root type cache
 extern cType *D_0009F3F4;   // gcDesiredObject type cache
@@ -74,6 +86,7 @@ public:
 
     ~gcDesiredObject(void);
     static void operator delete(void *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     void GetName(char *) const;
@@ -117,6 +130,55 @@ gcDesiredObject::~gcDesiredObject(void) {
         }
     }
     *(char **)((char *)this + 4) = cBaseclassdesc;
+}
+
+// ── gcDesiredObject::Read @ 0x0011b5dc ──
+int gcDesiredObject::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    int val = mField8;
+    int tag = val & 1;
+
+    int flag1 = 0;
+    if (tag != 0) flag1 = 1;
+
+    cBase *outVal;
+    if (flag1 != 0) {
+        outVal = 0;
+    } else {
+        outVal = (cBase *)val;
+    }
+    __asm__ volatile("" : "+r"(outVal));
+    cBase *sp14 = outVal;
+
+    int flag2 = 0;
+    if (tag != 0) flag2 = 1;
+
+    int base;
+    if (flag2 != 0) {
+        base = val & ~1;
+    } else {
+        base = *(int *)val;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr(&mField8), (cBase *)base, sp14);
+
+    int newVal;
+    if (sp14 == 0) {
+        newVal = base | 1;
+    } else {
+        newVal = (int)sp14;
+    }
+    mField8 = newVal;
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcDesiredObject::Write @ 0x0011b578 ──
