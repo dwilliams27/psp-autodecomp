@@ -1,7 +1,7 @@
 # Direction 005 — Register-Allocation Drift Guards
 
 **Date:** 2026-05-06
-**Status:** Plan — implementation assigned to a separate agent
+**Status:** Mostly implemented — guards landed; remaining work is audit/reclassification and deeper compiler research
 **Related:** ADR-012 (SNC context-dependent register allocation), ADR-006 (bnel divergence), `docs/postmortems/2026-05-05-overnight-dense.md`
 
 ## Background
@@ -33,6 +33,13 @@ Two of the 5 broken entries (`gcPartialBodyControllerTemplate::Write` matched 20
 Two separate sessions in tonight's run (499f07ac and 7a34804a) independently spent ~2 hours each attempting `cFactory::MarkForClean` and `CleanGroups`, producing identical 7-byte register-swap diffs and identical permuter results (180s, zero improvement). The pattern is documented in ADR-012 but the prompt doesn't prevent agents from spending compute on it. Only 7 / 21 sessions (33%) read any research doc.
 
 ## Five layered guards (prioritized by ROI)
+
+**Implementation status (2026-05-09):** Guard 1, Guard 2, Guard 3,
+Guard 4, and the strict verifier portion of Guard 5 are implemented in
+the orchestrator, wrapper scripts, prompts, and `byte_match.py`. The
+remaining Guard 5 work is source/signature cleanup for already-known
+symbol-drift rows and continued classification of truly unmatchable
+mangling divergences.
 
 ### Guard 1 — Sibling regression check in the orchestrator
 
@@ -124,7 +131,7 @@ Two separate sessions in tonight's run (499f07ac and 7a34804a) independently spe
 
 ## Execution order
 
-A separate agent will pick up implementation. Suggested order, with each step independently shippable:
+Original implementation order, now retained as historical context:
 
 1. **Guard 2** (pre-flight verify) — half day, biggest immediate value, no surface area
 2. **Guard 1** (sibling regression check) — 1 day, prevents the 3 most-recent regressions from happening again
@@ -132,7 +139,8 @@ A separate agent will pick up implementation. Suggested order, with each step in
 4. **Guard 3** (split-TU prompt) — half day, requires Guard 1 to be useful (catches header edits agents would otherwise sneak through)
 5. **Guard 5** (symbol-name strictness + audit) — 1.5 days, requires care because it may reclassify many existing entries
 
-Total estimate: ~4.5 days for one agent.
+Original estimate was ~4.5 days for one agent; this is no longer a
+forward-looking estimate.
 
 ## Out of scope
 

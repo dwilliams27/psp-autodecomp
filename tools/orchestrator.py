@@ -433,6 +433,7 @@ class WorkContext:
     functions: list
     exact_paths: set
     sibling_prefixes: tuple
+    class_to_header: dict = field(default_factory=dict)
     sibling_guard_funcs: list = field(default_factory=list)
     peer_query: object = None
     worktree: Optional[str] = None
@@ -951,11 +952,103 @@ def _src_to_o_path(src_file, worktree=None):
     return o_rel
 
 
+def _normalize_repo_path(path):
+    """Return a repo-relative `src/...` / `include/...` path when possible."""
+    if not path:
+        return None
+    norm = str(path).strip().replace("\\", "/").lstrip("./")
+    for prefix in ("src/", "include/"):
+        marker = f"/{prefix}"
+        if norm.startswith(prefix):
+            return norm
+        if marker in norm:
+            return prefix + norm.split(marker, 1)[1]
+    return norm
+
+
+def _is_src_source(path):
+    return bool(path and path.startswith("src/")
+                and path.endswith((".c", ".cpp")))
+
+
+def _is_header(path):
+    return bool(path and path.startswith("include/") and path.endswith(".h"))
+
+
+def _prior_attempt_source_files(func):
+    """Source paths from prior failed attempts, newest first, de-duped."""
+    seen = set()
+    out = []
+    for note in reversed(func.get("failure_notes", []) or []):
+        src = _normalize_repo_path(note.get("src_file"))
+        if _is_src_source(src) and src not in seen:
+            seen.add(src)
+            out.append(src)
+    return out
+
+
+def placement_for_function(func, class_to_header=None):
+    """Canonical write-placement metadata for one DB function.
+
+    The preferred source remains class/free-function based unless the DB
+    already has a top-level `src_file` provenance entry. Prior failure-note
+    source files are exposed as allowed/related paths, but they do not silently
+    override the canonical target; that prevents one bad retry from teaching
+    future agents to write class methods into another class's TU.
+    """
+    cls = func.get("class_name") or ""
+    if cls:
+        safe_cls = _safe_class_filename(cls)
+        default_source = f"src/{safe_cls}.cpp"
+        default_header = f"include/{safe_cls}.h"
+        sibling_prefix = f"src/{safe_cls}_"
+    else:
+        default_source = "src/free_functions.c"
+        default_header = None
+        sibling_prefix = None
+
+    db_source = _normalize_repo_path(func.get("src_file"))
+    preferred_source = db_source if _is_src_source(db_source) else default_source
+
+    sources = []
+    for src in [preferred_source, default_source, *_prior_attempt_source_files(func)]:
+        if _is_src_source(src) and src not in sources:
+            sources.append(src)
+
+    headers = []
+    for hdr in [default_header,
+                _normalize_repo_path((class_to_header or {}).get(cls)) if cls else None]:
+        if _is_header(hdr) and hdr not in headers:
+            headers.append(hdr)
+
+    return {
+        "class_name": cls,
+        "source_file": preferred_source,
+        "default_source_file": default_source,
+        "source_files": sources,
+        "header_files": headers,
+        "sibling_prefix": sibling_prefix,
+    }
+
+
+def determine_source_files(batch, class_to_header=None):
+    """Return `{address: preferred source file}` for a batch."""
+    return {
+        f["address"]: placement_for_function(
+            f, class_to_header=class_to_header)["source_file"]
+        for f in batch
+    }
+
+
 def compute_allowed_paths(batch, class_to_header=None):
     """Per-session file ledger: paths the agent is allowed to modify.
 
-    Conventional set: `{src/<Class>.cpp, include/<Class>.h,
-    src/<Class>_*.cpp}` for each class in the batch.
+    Conventional set per class method: `{src/<Class>.cpp,
+    include/<Class>.h, src/<Class>_*.cpp}`. Free functions use
+    `src/free_functions.c`. Existing DB provenance (`src_file`) and prior
+    attempt source files are also allowed for the specific target that
+    introduced them, so retries can work from closest-attempt files without
+    tripping the session ledger.
 
     Phase-3 expansion via `class_to_header` (built once per run by
     `scan_class_headers`): if a class's body actually lives in a
@@ -972,24 +1065,14 @@ def compute_allowed_paths(batch, class_to_header=None):
     at pick time, so files the agent creates mid-session are still
     in scope.
     """
-    classes = {f.get("class_name") for f in batch}
-    classes.discard(None)
-    classes.discard("")
-    if not classes:
-        return ({"src/free_functions.c"}, ())
     exact = set()
     prefixes = []
-    for cls in classes:
-        cs = _safe_class_filename(cls)
-        exact.add(f"src/{cs}.cpp")
-        exact.add(f"include/{cs}.h")
-        prefixes.append(f"src/{cs}_")
-        # Add the actual declaring header (could be the same as
-        # include/<Class>.h, in which case the set absorbs it).
-        if class_to_header:
-            actual = class_to_header.get(cls)
-            if actual:
-                exact.add(actual)
+    for func in batch:
+        placement = placement_for_function(func, class_to_header=class_to_header)
+        exact.update(placement["source_files"])
+        exact.update(placement["header_files"])
+        if placement["sibling_prefix"]:
+            prefixes.append(placement["sibling_prefix"])
     return (exact, tuple(prefixes))
 
 
@@ -1714,10 +1797,7 @@ def get_method_exemplar(functions, func):
 
 
 def determine_source_file(batch):
-    first = batch[0]
-    if first["class_name"]:
-        return f"src/{_safe_class_filename(first['class_name'])}.cpp"
-    return "src/free_functions.c"
+    return placement_for_function(batch[0])["source_file"]
 
 
 def get_sched_hint(func):
@@ -1742,12 +1822,13 @@ def get_sched_hint(func):
     return None
 
 
-def build_prompt(batch, functions, session_id, variant):
+def build_prompt(batch, functions, session_id, variant, class_to_header=None):
     """Dispatch to a named prompt variant under tools/prompt_variants/.
     Returns (prompt_text, warnings_list). `variant` is required.
     """
     module = importlib.import_module(f"prompt_variants.{variant}")
-    return module.build_prompt(batch, functions, session_id)
+    return module.build_prompt(
+        batch, functions, session_id, class_to_header=class_to_header)
 
 
 def parse_session_results(session_id, batch, log_path, variant, backend_name):
@@ -1915,7 +1996,8 @@ def run_one_session(ctx):
         return outcome
 
     prompt, prompt_warnings = build_prompt(
-        batch, ctx.functions, session_id, variant=variant)
+        batch, ctx.functions, session_id, variant=variant,
+        class_to_header=ctx.class_to_header)
     for w in prompt_warnings:
         log(f"  {w['type'].upper()}: {w['name']} — {w['error']}")
         log_event(log_path, {
@@ -3558,6 +3640,8 @@ def main():
                 for f in batch
             ],
             "sibling_guard_count": len(sibling_guard_funcs),
+            "allowed_paths": sorted(exact_paths),
+            "allowed_sibling_prefixes": sorted(sibling_prefixes),
         })
 
         ctx = WorkContext(
@@ -3571,6 +3655,7 @@ def main():
             functions=functions,
             exact_paths=exact_paths,
             sibling_prefixes=sibling_prefixes,
+            class_to_header=class_header_map,
             sibling_guard_funcs=sibling_guard_funcs,
             worktree=slot.worktree,
             identity=identity,

@@ -205,7 +205,8 @@ def main():
             orchestrator.reject_extern_c_class_methods = lambda funcs, m, **kw: []
 
             orchestrator.build_prompt = (
-                lambda batch, functions, session_id, variant: ("prompt", []))
+                lambda batch, functions, session_id, variant,
+                class_to_header=None: ("prompt", []))
 
             real_run_one_session = orchestrator.run_one_session
 

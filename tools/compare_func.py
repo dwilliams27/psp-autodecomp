@@ -11,6 +11,7 @@ same-size DB candidate.
 Usage:
     python3 tools/compare_func.py src/eWorld.cpp
     python3 tools/compare_func.py src/eWorld.cpp --symbol __0fGeWorldJLockWorldbK
+    python3 tools/compare_func.py src/eWorld.cpp --update-db
     python3 tools/compare_func.py --batch src/
 """
 
@@ -130,13 +131,20 @@ def compare_file(src_path, symbol_filter=None, functions=None, eboot_data=None,
     return results
 
 
-def main():
+def build_arg_parser():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("source", nargs="?", help="Source file to compile and compare")
     parser.add_argument("--symbol", help="Compare only this symbol")
     parser.add_argument("--batch", action="store_true", help="Compare all source files in directory")
-    parser.add_argument("--update-db", action="store_true", default=True,
-                        help="Update match status in functions.json (default: true)")
+    parser.add_argument("--update-db", action="store_true", default=False,
+                        help="Update match status in functions.json (default: report only)")
+    parser.add_argument("--no-update-db", action="store_false", dest="update_db",
+                        help="Report only; accepted for explicit read-only invocations")
+    return parser
+
+
+def main():
+    parser = build_arg_parser()
 
     args = parser.parse_args()
 

@@ -5,7 +5,7 @@ Changes go in new variant files (e.g., tier12.py) so both can run side-by-side.
 """
 
 from common import build_addr_map
-from orchestrator import determine_source_file
+from orchestrator import determine_source_files, placement_for_function
 
 from prompt_variants._common import (
     CLAUDE_MD_CONTENT,
@@ -18,9 +18,9 @@ from prompt_variants._common import (
 SESSION_RESULTS_DIR = "logs/session_results"
 
 
-def build_prompt(batch, functions, session_id):
+def build_prompt(batch, functions, session_id, class_to_header=None):
     """Build prompt for Claude. Returns (prompt_text, warnings_list)."""
-    source_file = determine_source_file(batch)
+    source_files = determine_source_files(batch, class_to_header=class_to_header)
     class_name = batch[0].get("class_name")
     addr_map = build_addr_map(functions)
     warnings = []
@@ -77,7 +77,7 @@ def build_prompt(batch, functions, session_id):
         "rarely perfect.\n"
         "3. Write C/C++ source to the specified file.\n"
         "4. Compile: make build/src/<file>.o\n"
-        "5. Compare: python3 tools/compare_func.py src/<file>.cpp\n"
+        "5. Compare: python3 tools/compare_func.py src/<file>.cpp --no-update-db\n"
         "6. If MATCH: great, move to next function.\n"
         "7. If MISMATCH: this is where the real work begins. Analyze the "
         "byte diff:\n"
@@ -122,9 +122,12 @@ def build_prompt(batch, functions, session_id):
 
     func_num = 0
     for func in batch:
+        placement = placement_for_function(func, class_to_header=class_to_header)
+        source_file = source_files[func["address"]]
         parts, ok = render_function_block(
             func, func_num + 1, addr_map, source_file, warnings,
             all_functions=functions,
+            placement=placement,
         )
         if ok:
             func_num += 1

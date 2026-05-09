@@ -280,7 +280,8 @@ def main():
             # running an agent; the fake run_session writes results
             # directly).
             orchestrator.build_prompt = (
-                lambda batch, functions, session_id, variant: ("prompt", []))
+                lambda batch, functions, session_id, variant,
+                class_to_header=None: ("prompt", []))
 
             # Track concurrent class sets for invariant 2.
             observed_classes = {}

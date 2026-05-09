@@ -112,8 +112,9 @@ to several matched addresses; reverting one row strands the others.
 ### 3. Symbol-name mismatches between stored DB symbol and authoritative .sym
 
 **Found:** 2026-04-24 while fixing the AMBIGUOUS-overload bug.
-**Status:** active. 33 mismatches remain (down from 80 in original
-bug) — 19 benign (naming-style only) and **14 concerning** (the
+**Status:** active for existing rows; verifier mitigation landed
+2026-05-09. 33 mismatches remain (down from 80 in original bug) —
+19 benign (naming-style only) and **14 concerning** (the
 mangled symbol's parameter type sequence differs, indicating the
 reconstructed source has the wrong signature even though the bytes
 match).
@@ -173,10 +174,9 @@ for f in db:
 - Audit the 14 concerning rows. For each, work out the correct
   signature from the .sym demangling and rewrite the source. Verify
   it still compiles to identical bytes.
-- Long-term: tighten the verifier's gate to require exact
-  `mangled_symbol` equality on `.cpp` reconstructions where both the
-  DB and .sym carry one (currently exact-mangled is only used as an
-  AMBIGUOUS-overload tie-breaker).
+- The verifier gate now requires exact DB-authoritative `mangled_symbol`
+  equality where present. Remaining work is the 14-row source/signature
+  cleanup, not another verifier tightening pass.
 
 ---
 

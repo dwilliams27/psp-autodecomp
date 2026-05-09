@@ -15,6 +15,7 @@ from orchestrator import (
     get_matched_neighbors,
     get_method_exemplars,
     get_method_template_guidance,
+    placement_for_function,
     get_sched_hint,
 )
 
@@ -84,6 +85,7 @@ def render_context_blocks(batch, functions, class_name,
 
 def render_function_block(func, func_num, addr_map, source_file, warnings,
                           all_functions=None,
+                          placement=None,
                           prior_notes_guidance=None,
                           m2c_unavailable_note="// m2c unavailable — see orchestrator log"):
     """Emit one == FUNCTION N: ... == block.
@@ -168,5 +170,31 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
 
     parts.append(f"\nDisassembly:\n{disasm}\n\n")
     parts.append(f"m2c output:\n{m2c}\n\n")
+
+    placement = placement or placement_for_function(func)
+    parts.append("PLACEMENT:\n")
+    parts.append(f"  Canonical write target: {source_file}\n")
+    if placement.get("class_name"):
+        parts.append(f"  Owning class: {placement['class_name']}\n")
+    headers = placement.get("header_files") or []
+    if headers:
+        parts.append(f"  Declaration header(s): {', '.join(headers)}\n")
+    related_sources = [
+        p for p in placement.get("source_files", [])
+        if p != source_file
+    ]
+    if related_sources:
+        parts.append(
+            f"  Related allowed source(s): {', '.join(related_sources)}\n"
+        )
+    if placement.get("sibling_prefix"):
+        parts.append(
+            f"  Split-TU source pattern allowed: {placement['sibling_prefix']}*.cpp\n"
+        )
+    parts.append(
+        "Use the canonical target unless a related source already contains "
+        "the closest attempt or the matching local class redeclaration.\n"
+    )
+
     parts.append(f"Write to: {source_file}\n\n")
     return parts, True

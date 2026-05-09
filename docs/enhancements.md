@@ -176,20 +176,22 @@ Index matched (successfully decompiled) functions by the bigrams and trigrams of
 
 The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1a106e1`) consolidated the three match-checking tools onto a single `tools/byte_match.check_byte_match`. A few items were flagged during that work but deferred so we could get back to matching. None are blocking, all are worth closing before the next major refactor:
 
+**Status 2026-05-09:** tooling hardening pass landed the high-risk operational pieces:
+- `compare_func.py` is read-only by default; `--update-db` is now explicit, with `--no-update-db` accepted for agent prompts.
+- The orchestrator has per-function placement metadata and unions allowed paths per target, including mixed class/free-function batches, actual declaring headers, split-TU prefixes, DB provenance, and prior-attempt source files.
+- Prompt function blocks now show each target's canonical write path, related allowed paths, declaration headers, and split-TU pattern.
+- `permuter.py` now targets the DB mangled symbol by default, fails closed on ambiguous same-size symbols, uses `byte_match.symbols_with_bytes_and_relocs()` for symbol bytes/relocs, has a last-mile suitability gate, and only overwrites source on exact matches unless `--save-improved` is explicit.
+
+Remaining work in this section should avoid re-adding those as TODOs.
+
 - **`record_match_provenance()` helper.** Both `tools/orchestrator.py` (post-verify) and `tools/compare_func.py` (`update_matched`) write `src_file` + `symbol_name` onto the DB entry, but each can write a different path shape (`src/foo.cpp` from the orchestrator via session_results; whatever the agent typed from compare_func's CLI). `tools/verify_matches.py` tolerates both via `os.path.exists`, but a single helper in `byte_match.py` that normalizes (e.g., always repo-relative, always `src/...`) would eliminate the latent drift. Small diff — 20 lines plus two call-site updates.
 
-- **Migrate `tools/permuter.py` off its own compile/nm/objcopy helpers.** Per the pre-commit-review, permuter has its own `compile_source` (via direct WIBO+SNC call, not `make`), its own `extract_text_section` / `get_symbol_bytes` / `score_bytes`. Semantically similar to `byte_match`'s helpers but bypasses `make` for throughput. Two options: (a) add a `compile_src(..., bypass_make=True)` variant in `byte_match` that drops into the raw compiler call permuter needs; (b) keep permuter separate but share the post-compile nm/objcopy/compare helpers. Either way drops ~100 lines of permuter and gives it the same relocation-masking + reason-code semantics as the main path.
-
-- **Harden permuter targeting, telemetry, and invocation gates.** Follow-up from the 2026-05-06 GPT-5.5 high targeted run. The permuter remains useful for small scheduling/barrier/declaration-order wins, but recent runs show low yield on known SNC register-allocation/context drift families and a few tool-level hazards:
-  - **Status 2026-05-07:** implemented on side branch `tooling/permuter-hardening` at commit `6b1b168` (`Harden permuter targeting and telemetry`). Pending work is to merge that branch into main and run a real-asset smoke in the primary worktree, because the side worktree intentionally lacks `extern/` and extracted EBOOT assets.
-  - Pass the exact DB symbol/mangled name into `run_search()` and fail closed when multiple same-sized symbols exist. Today multi-function objects can fall back to "first symbol with target size", which produced ambiguous scoring on same-sized 140B `Collide` wrappers.
-  - Add a baseline parity check against `compare_func.py` semantics before searching. If the permuter baseline does not match the agent's known diff, stop with a wrong-symbol/wrong-flags diagnostic instead of exploring a misleading search space.
-  - Make source overwrites safer: prefer `--save-to`, or make `--save-best` overwrite only on exact match unless an explicit force flag is provided. Non-match saved candidates can perturb already-matched siblings in shared `.cpp` files.
+- **Permuter telemetry and extended flag controls.** Follow-up from the 2026-05-06 GPT-5.5 high targeted run. The permuter remains useful for small scheduling/barrier/declaration-order wins, but recent runs show low yield on known SNC register-allocation/context drift families. The 2026-05-09 hardening pass fixed exact-symbol targeting, fail-closed ambiguity, shared symbol-byte extraction, last-mile gating, and safe source overwrites. Remaining:
+  - Add a baseline parity check against `compare_func.py` command output before searching. The current symbol/size gate catches the common wrong-symbol cases, but an explicit diff-parity check would make wrong flags and stale source even louder.
   - Emit structured JSON telemetry per invocation: target addr/name/symbol, flags, baseline, best, generated, compiled, compile failures, SNC timeouts, exact/improved/no-improve status, best mutation chain/seed when available. This lets postmortems measure value without grep heuristics.
   - Add better compile-context controls: explicit arbitrary `--cflag`, stronger `--sched` handling, and optional `-Xgprreserve` / `-Xfprreserve` sweeps for register/FPU allocator cases.
   - Gate orchestrator/prompt usage: run a short smoke pass first, extend to a full 300s pass only if it improves, and skip/limit known no-yield `REG_ALLOC` families after one documented no-improvement pass. For pure callee-save register renames, follow `docs/research/snc-register-allocation.md`: one pass max, record `category=REG_ALLOC`, then move on.
   - Record family-level no-yield evidence from failure notes/logs so targets like `cFactory` s-register swaps, `gcViewport` update siblings, and shape `Collide` context drift do not consume repeated 300s runs across agents.
-  Do not schedule this as new implementation work until the side branch is merged or explicitly superseded.
 
 - **`record_match_provenance()` inverse — backfill older DB entries from `logs/session_results/*.json`.** The migration (`tools/migrations/backfill_match_schema.py`) runs successfully today but flipped 11 entries to `failed` for lack of any session_results record (these are pre-session-results matches). Those might still be recoverable by scanning `asm/` or splat output. Low priority.
 
@@ -205,17 +207,15 @@ The 2026-04-21 verification-pipeline cleanup (commits `59c5b41` / `cfee3dd` / `1
 
 On 2026-04-21 we discovered 10 src files committed into the repo in a broken-compile state, ~23 DB entries left stranded with bogus provenance, and a verification pipeline that had been silently masking the damage for weeks. Root-cause analysis surfaced three distinct ways this drift gets in:
 
+**Status 2026-05-09:** commit-time compile checks, pre-session green-build gate, sibling-regression verification, header method-addition rejection, and wrapper `verify_matches.py` pre-flight are implemented. The remaining ideas below are periodic audit / reachability hardening, not the original critical path.
+
 1. **Per-function verify ≠ per-file verify.** Today's `git_commit_batch` commits whole src files, but `check_byte_match` only verifies the specific functions the session claimed. An agent that correctly decompiles `cFile::AddDependency` and simultaneously breaks `cFile::Close` gets both committed — only the former went through byte verification.
 
 2. **Header drift invalidates downstream src silently.** Session A matches `cFile.cpp` against a header that has `cFileSystem::Read`. Session B later trims that header without touching `cFile.cpp`. No agent ever sees the mismatch because no one recompiles `cFile.cpp` after the header edit.
 
 3. **Header changes commit separately from dependent src.** Agents sometimes modify `include/*.h` during matching without the orchestrator's commit flow treating the header edits as part of the match. Downstream breakage is invisible until someone tries the next session on an affected class.
 
-Prevention ideas, any of which close a subset of the drift:
-
-- **`git_commit_batch` should compile every src file it's about to commit, end-to-end, not just the files it claims matches in.** A single `make build/src/<f>.o` per touched src before staging. On failure, don't commit — emit a loud error event and leave the session's work unstaged for operator review. Cost: ~30s per session. Closes case 1.
-
-- **Pre-session build check: refuse to start a session if the current tree doesn't fully compile.** The orchestrator could keep a `last_known_green` commit sha and compare against it before picking a batch. If any file in the current tree fails to compile, block new sessions until it's fixed (or auto-revert to `last_known_green`). Closes cases 1, 2, 3 prospectively.
+Remaining prevention ideas:
 
 - **Periodic full-build audit.** `tools/verify_matches.py` already re-compiles all matched src as part of the audit. Run it as a cron (or every N sessions) and alert on any new compile failure. Closes cases 2, 3 retroactively.
 
@@ -223,7 +223,7 @@ Prevention ideas, any of which close a subset of the drift:
 
 - **Session-level src-file locking.** If session A is currently working on `cFile.cpp`, session B (potentially modifying headers `cFile` depends on) can't run concurrently. Prevents one class of race. Low value solo; only worthwhile as part of a broader concurrency model.
 
-Recommend: ship the first two (commit-time compile check + pre-session green-build gate) together — they close the most common drift paths for ~1-2 hours of work. Ship the periodic audit as a cron once the others are in so we have a safety net for anything the gates missed.
+Recommendation now: leave the periodic full-build audit and header-change reachability check as the next incremental hardening if drift reappears. The original commit-time/pre-session gates are already live.
 
 ## 9. Retire `SYSTEM_PROMPT_APPEND` once upstream safety classifier stabilizes
 

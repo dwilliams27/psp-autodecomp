@@ -291,9 +291,9 @@ reviewed.
 
 ## Side Track: Permuter Hardening
 
-A separate worktree branch, `tooling/permuter-hardening`, was used for the
-permuter fixes so it would not collide with this research branch. It produced
-commit `6b1b168` (`Harden permuter targeting and telemetry`) and left that
-worktree clean. The real permuter smoke in that worktree could not fully score
-because the side worktree does not have `extern/` or extracted EBOOT assets, but
-the command now fails closed with structured telemetry instead of a traceback.
+Superseded by the 2026-05-09 tooling hardening pass on main. `permuter.py`
+now targets DB mangled symbols by default, fails closed on ambiguous same-size
+symbols, uses shared `byte_match` symbol-byte/reloc extraction, skips
+non-last-mile baselines, and only overwrites source on exact matches unless
+`--save-improved` is explicit. Structured JSON telemetry remains future work in
+`docs/enhancements.md`.

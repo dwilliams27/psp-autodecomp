@@ -289,7 +289,8 @@ def test_phase3_end_to_end():
             # test env, so short-circuit to "no failures".
             orchestrator._collect_compile_failures = lambda paths, **kw: []
             orchestrator.build_prompt = (
-                lambda batch, functions, session_id, variant: ("prompt", []))
+                lambda batch, functions, session_id, variant,
+                class_to_header=None: ("prompt", []))
 
             # Choose the matchers per-identity — claude wins on
             # addresses 0x1000, 0x1100, 0x1200 (eAlpha + eBeta partial);

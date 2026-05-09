@@ -9,6 +9,7 @@ or register allocation.
 Usage:
     python3 tools/permuter.py src/eTextureMap.cpp 0x0007ae64 --time 600
     python3 tools/permuter.py src/eTextureMap.cpp 0x0007ae64 --workers 8 --save-best
+    python3 tools/permuter.py src/eTextureMap.cpp 0x0007ae64 --symbol __0f...
     python3 tools/permuter.py src/eTextureMap.cpp eTextureMap::Read --time 300
 
 See docs/decisions/005-snc-permuter.md for design rationale.
@@ -25,11 +26,9 @@ import tempfile
 import time
 
 from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
-                    OBJCOPY, NM,
                     load_db, find_function,
-                    get_text_relocations, get_all_code_relocations,
                     mask_relocation_bytes)
-from byte_match import extract_section, nm_symbols
+from byte_match import extract_section, symbols_with_bytes_and_relocs
 from mutations import mutate
 
 
@@ -48,6 +47,10 @@ FLAG_VARIANTS = [
     ["-Xsched=2", "-Xmopt=0"],
     ["-Xsched=1", "-Xmopt=0"],
 ]
+
+
+class SymbolSelectionError(RuntimeError):
+    """Raised when a compiled object cannot be mapped to one target symbol."""
 
 
 # ---------------------------------------------------------------------------
@@ -90,90 +93,69 @@ def extract_text_bytes(o_path):
     return data or None
 
 
-def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=False):
-    """Extract the target function's bytes from the compiled .o.
+def select_symbol_bytes(symbols, target_size, target_symbol=None):
+    """Select exactly one symbol from `symbols_with_bytes_and_relocs()` output.
 
-    If .text is exactly target_size, returns all of it (fast path).
-    Otherwise uses nm to find the right symbol.
-    Also checks W (weak) symbols in .gnu.linkonce.t.* sections for template
-    instantiations.
-
-    Returns (func_bytes, relocations) or (None, None).
+    Prefer an explicit DB-authoritative symbol. If none is available, fall
+    back only when exactly one emitted symbol has the requested size. Ambiguous
+    size matches fail closed; choosing the first same-size symbol poisons the
+    permuter's score and wastes the whole run.
     """
-    if text_bytes is None:
-        return None, None
-
-    # Fast path: single function, size matches
-    if len(text_bytes) == target_size:
-        relocs = get_text_relocations(o_path)
-        return text_bytes, relocs
-
-    # Multi-function .o — find the right symbol via nm
-    all_nm = nm_symbols(o_path)
-    t_symbols = sorted([(a, n) for a, typ, n in all_nm if typ == "T"])
-    w_symbols = [(a, n) for a, typ, n in all_nm if typ == "W"]
-
-    text_size = len(text_bytes)
-    layout = []
-    for j, (off, name) in enumerate(t_symbols):
-        next_off = t_symbols[j + 1][0] if j + 1 < len(t_symbols) else text_size
-        size = next_off - off
-        layout.append((off, size, name))
-
-    # Also add W symbols from their individual linkonce sections
-    w_section_cache = {}
-    for _addr, name in w_symbols:
-        section = f".gnu.linkonce.t.{name}"
-        sec_bytes = extract_section(o_path, section)
-        if sec_bytes:
-            w_section_cache[name] = sec_bytes
-            layout.append((0, len(sec_bytes), name))
-
-    # Find target by symbol name or by size
-    match = None
     if target_symbol:
-        for off, size, name in layout:
-            if name == target_symbol:
-                match = (off, size, name)
-                break
-    if match is None:
-        size_matches = [(off, sz, n) for off, sz, n in layout if sz == target_size]
-        if len(size_matches) == 1:
-            match = size_matches[0]
-        elif len(size_matches) > 1:
-            if warn:
-                print(f"WARNING: {len(size_matches)} symbols of size {target_size} in {o_path}; "
-                      f"picking {size_matches[0][2]}. Use --symbol to disambiguate.",
-                      file=sys.stderr)
-            match = size_matches[0]
-    if match is None:
-        return None, None
-
-    sym_off, sym_size, matched_name = match
-
-    # Check if this is a W (weak/linkonce) symbol
-    is_weak = any(n == matched_name for _, n in w_symbols)
-
-    if is_weak:
-        # For W symbols, reuse cached bytes from layout-building pass
-        func_bytes = w_section_cache.get(matched_name)
-        if func_bytes is None:
-            raise RuntimeError(
-                f"W symbol {matched_name!r} was in layout but not in cache for {o_path}"
+        entry = symbols.get(target_symbol)
+        if entry is None:
+            candidates = ", ".join(sorted(symbols)[:8]) or "<none>"
+            raise SymbolSelectionError(
+                f"target symbol {target_symbol!r} not found; "
+                f"available symbols: {candidates}"
             )
-        # Get relocations from the linkonce relocation section
-        section = f".gnu.linkonce.t.{matched_name}"
-        all_code_relocs = get_all_code_relocations(o_path)
-        rel_section = f".rel.{section}"
-        func_relocs = all_code_relocs.get(rel_section, [])
-    else:
-        func_bytes = text_bytes[sym_off:sym_off + sym_size]
-        # Adjust relocations to be function-relative
-        all_relocs = get_text_relocations(o_path)
-        func_relocs = [(off - sym_off, rtype) for off, rtype in all_relocs
-                       if sym_off <= off < sym_off + sym_size]
+        return target_symbol, entry
 
-    return func_bytes, func_relocs
+    size_matches = [
+        (name, entry) for name, entry in sorted(symbols.items())
+        if len(entry[0]) == target_size
+    ]
+    if len(size_matches) == 1:
+        return size_matches[0]
+    if len(size_matches) > 1:
+        candidates = ", ".join(name for name, _entry in size_matches[:8])
+        raise SymbolSelectionError(
+            f"ambiguous target: {len(size_matches)} symbols are "
+            f"{target_size}B ({candidates}); pass --symbol"
+        )
+
+    if not symbols:
+        raise SymbolSelectionError("no text symbols found")
+    candidates = ", ".join(
+        f"{name}({len(entry[0])}B)" for name, entry in sorted(symbols.items())[:8]
+    )
+    raise SymbolSelectionError(
+        f"no symbol of size {target_size}B; available symbols: {candidates}"
+    )
+
+
+def locate_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None):
+    """Return (symbol_name, func_bytes, relocations) for the target function."""
+    symbols = symbols_with_bytes_and_relocs(o_path)
+    if symbols:
+        name, (func_bytes, _sym_off, relocs) = select_symbol_bytes(
+            symbols, target_size, target_symbol=target_symbol)
+        return name, func_bytes, relocs
+
+    # Last-resort compatibility for stripped single-function objects. Normal
+    # SNC objects should have symbols, so do not use this when the caller asked
+    # for a specific symbol.
+    if text_bytes is not None and not target_symbol and len(text_bytes) == target_size:
+        return "<raw .text>", text_bytes, []
+
+    raise SymbolSelectionError("could not isolate target function")
+
+
+def get_symbol_bytes(o_path, text_bytes, target_size, target_symbol=None, warn=False):
+    """Compatibility wrapper returning (func_bytes, relocations)."""
+    _name, func_bytes, relocs = locate_symbol_bytes(
+        o_path, text_bytes, target_size, target_symbol=target_symbol)
+    return func_bytes, relocs
 
 
 def score_bytes(compiled_bytes, expected_bytes, relocations):
@@ -192,6 +174,25 @@ def score_bytes(compiled_bytes, expected_bytes, relocations):
         expected_masked = expected_bytes
 
     return sum(1 for a, b in zip(compiled_masked, expected_masked) if a != b)
+
+
+def permuter_suitability_reason(func_size, symbol_size, baseline_diff):
+    """Return skip reason when the target is not a last-mile permuter case."""
+    if symbol_size != func_size:
+        delta = abs(symbol_size - func_size)
+        return (
+            f"symbol size {symbol_size}B does not match DB size "
+            f"{func_size}B (delta {delta}B)"
+        )
+    if baseline_diff == float("inf"):
+        return "baseline could not be scored"
+    max_reasonable_diff = max(128, int(func_size * 0.20))
+    if baseline_diff > max_reasonable_diff:
+        return (
+            f"baseline diff {baseline_diff}B exceeds last-mile gate "
+            f"{max_reasonable_diff}B"
+        )
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -226,9 +227,12 @@ def _worker_eval(args):
             return float("inf"), source, "compile_fail"
 
         text_bytes = extract_text_bytes(o_path)
-        func_bytes, relocs = get_symbol_bytes(
-            o_path, text_bytes, _w_func_size, _w_target_sym
-        )
+        try:
+            func_bytes, relocs = get_symbol_bytes(
+                o_path, text_bytes, _w_func_size, _w_target_sym
+            )
+        except SymbolSelectionError:
+            return float("inf"), source, "symbol_fail"
 
         sc = score_bytes(func_bytes, _w_expected, relocs)
         return sc, source, "ok"
@@ -268,7 +272,7 @@ def generate_candidates(source, batch_size, cflags, suffix, flag_mutate_chance=0
 
 def run_search(source, func_addr, func_size, cflags, eboot_data,
                target_symbol=None, time_limit=300, num_workers=None,
-               save_best_path=None):
+               save_best_path=None, save_improved=False, no_gate=False):
     """Run the permuter search loop.
 
     Returns (best_score, best_source, stats_dict).
@@ -297,14 +301,9 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                 f"Check that objcopy supports the .o format."
             )
 
-        func_bytes, relocs = get_symbol_bytes(
-            orig_o_path, text_bytes, func_size, target_symbol, warn=True
+        selected_symbol, func_bytes, relocs = locate_symbol_bytes(
+            orig_o_path, text_bytes, func_size, target_symbol
         )
-        if func_bytes is None:
-            raise RuntimeError(
-                f"Could not locate target function in compiled .o. "
-                f"Found {len(text_bytes)}B .text but expected {func_size}B function."
-            )
 
         start_offset = func_addr + TEXT_FILE_OFFSET
         expected_bytes = eboot_data[start_offset:start_offset + func_size]
@@ -316,9 +315,26 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
             except FileNotFoundError:
                 pass
 
+    stats = {
+        "baseline": baseline,
+        "total": 0,
+        "compiled": 0,
+        "improvements": 0,
+        "best_scores": [baseline],
+        "selected_symbol": selected_symbol,
+        "symbol_size": len(func_bytes),
+    }
+
     if baseline == 0:
         print("Already an exact match!")
-        return 0, source, {"baseline": 0, "total": 0, "improvements": 0}
+        return 0, source, stats
+
+    skip_reason = permuter_suitability_reason(
+        func_size, len(func_bytes), baseline)
+    if skip_reason and not no_gate:
+        stats["skipped"] = skip_reason
+        print(f"PERMUTER_SKIPPED_NOT_LAST_MILE: {skip_reason}")
+        return baseline, source, stats
 
     if baseline == float("inf"):
         raise RuntimeError(
@@ -326,20 +342,13 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
             "Symbol size mismatch or relocation error."
         )
 
+    print(f"Target symbol: {selected_symbol}")
     print(f"Baseline: {baseline} bytes differ ({func_size}B function)")
     print(f"Workers: {num_workers}  |  Time limit: {time_limit}s")
     print()
 
     best_score = baseline
     best_source = source
-
-    stats = {
-        "baseline": baseline,
-        "total": 0,
-        "compiled": 0,
-        "improvements": 0,
-        "best_scores": [baseline],
-    }
 
     start_time = time.time()
     last_print = start_time
@@ -383,7 +392,7 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                     print(f"  [{elapsed:6.1f}s] Improved: {best_score} bytes differ "
                           f"(was {stats['best_scores'][-2]})")
 
-                    if save_best_path:
+                    if save_best_path and (best_score == 0 or save_improved):
                         with open(save_best_path, "w") as f:
                             f.write(best_source)
 
@@ -435,9 +444,15 @@ def main():
     parser.add_argument("--workers", type=int, default=None,
                         help="Number of parallel workers (default: CPU count)")
     parser.add_argument("--save-best", action="store_true",
-                        help="Overwrite source file with best result")
+                        help="Overwrite source file when an exact match is found")
+    parser.add_argument("--save-improved", action="store_true",
+                        help="With --save-best/--save-to, also save non-exact improvements")
     parser.add_argument("--save-to",
-                        help="Save best result to this path (instead of overwriting)")
+                        help="Save exact match to this path (instead of overwriting)")
+    parser.add_argument("--symbol",
+                        help="Exact compiled symbol to score (defaults to DB mangled_symbol)")
+    parser.add_argument("--no-gate", action="store_true",
+                        help="Run even when the baseline is outside the last-mile gate")
     parser.add_argument("--sched", choices=["1", "2"], default=None,
                         help="Override -Xsched flag (default: auto-detect from filename)")
     parser.add_argument("--mopt", choices=["0"], default=None,
@@ -455,6 +470,11 @@ def main():
     func_addr = int(func["address"], 16)
     func_size = func["size"]
     print(f"Target: {func['name']} at {func['address']} ({func_size}B)")
+    target_symbol = args.symbol or func.get("mangled_symbol") or func.get("symbol_name")
+    if target_symbol:
+        print(f"Symbol: {target_symbol}")
+    else:
+        print("Symbol: <unique-size fallback>")
 
     if args.sched:
         sched_flag = [f"-Xsched={args.sched}"]
@@ -486,6 +506,9 @@ def main():
         time_limit=args.time,
         num_workers=args.workers,
         save_best_path=save_path,
+        save_improved=args.save_improved,
+        no_gate=args.no_gate,
+        target_symbol=target_symbol,
     )
 
     if best_score == 0:
@@ -493,7 +516,7 @@ def main():
         sys.exit(0)
     elif best_score < stats.get("baseline", float("inf")):
         print(f"\nImproved but not matched. "
-              f"{'Saved to ' + save_path if save_path else 'Use --save-best to save.'}")
+              f"{'Saved to ' + save_path if save_path and args.save_improved else 'Use --save-improved to save non-exact results.'}")
         sys.exit(1)
     else:
         print("\nNo improvement found.")
