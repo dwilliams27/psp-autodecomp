@@ -203124,7 +203124,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -203137,7 +203137,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcDoEntitySetLookAtTargetEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcDoEntitySetLookAtTargetEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoEntitySetLookAtTarget.cpp",
+    "symbol_name": "__0fZgcDoEntitySetLookAtTargetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "c152b277",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:52:15Z"
   },
   {
     "address": "0x002c9104",
@@ -212583,7 +212591,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -229465,7 +229473,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -229477,7 +229485,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValEntitySoundFrequencyEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcValEntitySoundFrequencyEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "c152b277",
+        "notes": "Implemented the full gcValEntitySoundFrequency::Read body with the 1..3 version gate, gcLValue parent read, desired-object read thunk, gcDesiredValue::Read, and versioned bool reads. The cReadBlock prologue and main body match; the closest attempt is 12/404 bytes different in the versioned bool tail. The expected tail schedules the rb[3] reload between lb and sltu for the first bool and uses a1 for that bool value, while SNC emits lb/sltu/sb with a0 and reloads rb[3] after the store.\n\nTried success-body vs early-failure control flow, nested and separate version checks, explicit goto forms, temporary version variables, register binding for the first bool, and a 120s permuter pass over 4,248 generated candidates / 1,773 compiled candidates. No candidate improved beyond the 12-byte mismatch. This does not look like the known cReadBlock prologue blocker; it is a small scheduler/register allocation difference in the bool-read tail.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:52:15Z",
+        "src_file": "src/gcValEntitySoundFrequency.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/c152b277/0033da60__agent_self_reported_failure__src_gcValEntitySoundFrequency.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033dbf4",
@@ -236127,7 +236149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
