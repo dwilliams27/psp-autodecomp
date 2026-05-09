@@ -195835,7 +195835,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -205843,7 +205843,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -212376,7 +212376,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -212387,7 +212387,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcDoSetObjectRelationshipEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fZgcDoSetObjectRelationshipEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValObjectHasRelation.cpp",
+    "symbol_name": "__0fZgcDoSetObjectRelationshipEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cbd4646f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:52:36Z"
   },
   {
     "address": "0x002feb18",
@@ -236602,7 +236610,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -236614,7 +236622,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValObjectHasRelationEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fWgcValObjectHasRelationEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValObjectHasRelation.cpp",
+    "symbol_name": "__0fWgcValObjectHasRelationEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "cbd4646f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:52:36Z"
   },
   {
     "address": "0x00355b84",
