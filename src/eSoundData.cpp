@@ -74,6 +74,8 @@ struct VtblSlot20 {
 
 extern "C" void cObject___dtor_cObject_void(void *, int);
 extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cMemPool {
 public:
@@ -242,51 +244,52 @@ const cType *eSoundData::GetType(void) const {
 // gated mField58 (or computed = mField54*0.25f when v<4), then optional
 // mField5C at v>=3, then a virtual call at vtbl[20], then PlatformRead.
 int eSoundData::Read(cFile &file, cMemPool *pool) {
-    int result;
-    cReadBlock rb(file, 5, true);
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
 
-    if ((unsigned int)rb._data[3] >= 6) goto fail;
-    if ((unsigned int)rb._data[3] < 2) goto fail;
+    if ((unsigned int)rb[3] >= 6) goto fail;
+    if ((unsigned int)rb[3] < 2) goto fail;
     if (!cObject::Read(file, pool)) goto fail;
 
-    cFileSystem::Read(*(void **)rb._data[0], &mField64, 4);
-    cFileSystem::Read(*(void **)rb._data[0], &mField44, 4);
-    cFileSystem::Read(*(void **)rb._data[0], &mField48, 4);
-    cFileSystem::Read(*(void **)rb._data[0], &mField4C, 4);
+    cFileSystem::Read(*(void **)rb[0], &mField64, 4);
+    cFileSystem::Read(*(void **)rb[0], &mField44, 4);
+    cFileSystem::Read(*(void **)rb[0], &mField48, 4);
+    cFileSystem::Read(*(void **)rb[0], &mField4C, 4);
     {
         char tmp50;
-        cFileSystem::Read(*(void **)rb._data[0], &tmp50, 1);
+        cFileSystem::Read(*(void **)rb[0], &tmp50, 1);
         mField50 = tmp50 != 0;
     }
-    if ((unsigned int)rb._data[3] >= 5) goto read_51;
+    if ((unsigned int)rb[3] >= 5) goto read_51;
     goto read_52;
 
 fail:
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
     return 0;
 
 read_51:
     {
         char tmp51;
-        cFileSystem::Read(*(void **)rb._data[0], &tmp51, 1);
+        cFileSystem::Read(*(void **)rb[0], &tmp51, 1);
         mField51 = tmp51 != 0;
     }
 
 read_52:
     {
         char tmp52;
-        cFileSystem::Read(*(void **)rb._data[0], &tmp52, 1);
+        cFileSystem::Read(*(void **)rb[0], &tmp52, 1);
         mField52 = tmp52 != 0;
     }
-    cFileSystem::Read(*(void **)rb._data[0], &mField54, 4);
-    if ((unsigned int)rb._data[3] >= 4) {
-        cFileSystem::Read(*(void **)rb._data[0], &mField58, 4);
+    cFileSystem::Read(*(void **)rb[0], &mField54, 4);
+    if ((unsigned int)rb[3] >= 4) {
+        cFileSystem::Read(*(void **)rb[0], &mField58, 4);
     } else {
         mField58 = mField54 * 0.25f;
     }
-    if ((unsigned int)rb._data[3] >= 3) {
-        cFileSystem::Read(*(void **)rb._data[0], &mField5C, 1);
+    if ((unsigned int)rb[3] >= 3) {
+        cFileSystem::Read(*(void **)rb[0], &mField5C, 1);
     }
     // Virtual dispatch via fixed vtable slot at offset 160 (slot 20).
     {
@@ -294,6 +297,7 @@ read_52:
         slot->fn((char *)this + slot->offset);
     }
     PlatformRead(file, pool);
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

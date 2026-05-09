@@ -56,6 +56,9 @@ public:
     void Read(cReadBlock &);
 };
 
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+
 template <class T> T *dcast(const cBase *);
 
 struct DeleteRecord {
@@ -170,24 +173,26 @@ gcEntityAttackHelper::~gcEntityAttackHelper() {
 // 0x0010ee10 — Read(cFile &, cMemPool *)
 // ============================================================
 int gcEntityAttackHelper::Read(cFile &file, cMemPool *pool) {
-    int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 2, true);
-    if (rb._data[3] != 2) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
-    ((cName *)((char *)this + 8))->Read(rb);
+    ((cName *)((char *)this + 8))->Read(*(cReadBlock *)rb);
     {
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         cFileSystem::Read(h, (char *)this + 0x20, 4);
     }
     char b;
     {
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         cFileSystem::Read(h, &b, 1);
     }
     *(unsigned char *)((char *)this + 0x24) = (b != 0) ? 1 : 0;
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

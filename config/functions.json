@@ -26994,7 +26994,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -27026,7 +27026,15 @@
         "src_file": "src/eSoundData.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/c8ece5ed/00020754__agent_self_reported_failure__src_eSoundData.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSoundData.cpp",
+    "symbol_name": "__0fKeSoundDataEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "636cbeef",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:48:50Z"
   },
   {
     "address": "0x0002097c",
@@ -96583,7 +96591,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -96615,7 +96623,15 @@
         "src_file": "src/gcEntityAttackHelper.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/8a7f3dbb/0010ee10__agent_self_reported_failure__src_gcEntityAttackHelper.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcEntityAttackHelper.cpp",
+    "symbol_name": "__0fUgcEntityAttackHelperEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "636cbeef",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:48:50Z"
   },
   {
     "address": "0x0010eed8",
@@ -214627,7 +214643,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -218629,7 +218645,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
