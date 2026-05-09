@@ -6,9 +6,31 @@
 //   0x0035e0cc  gcValStringCompare::GetText(char *) const
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+class cFileHandle;
 class cMemPool;
+class cReadBlock;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
 
 class cWriteBlock {
 public:
@@ -26,6 +48,7 @@ class gcValue {
 public:
     cBase *mParent;
     void *mVtable;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -41,6 +64,7 @@ public:
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -69,6 +93,10 @@ struct cTypeMethod {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCopy(char *, const char *);
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
+                                             bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cType {
 public:
@@ -218,6 +246,114 @@ void gcValStringCompare::Write(cFile &file) const {
     wb.Write(mCaseSensitive);
     wb.Write(mExact);
     wb.End();
+}
+
+int gcValStringCompare::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] >= 3 || (unsigned int)rb[3] < 1 ||
+        gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x08);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x08);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int value2 = *(int *)((char *)this + 0x0C);
+    int tag2 = value2 & 1;
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x08) = newValue;
+
+    int flag3 = 0;
+    if (tag2 != 0) {
+        flag3 = 1;
+    }
+
+    int outValue2;
+    if (flag3 != 0) {
+        outValue2 = 0;
+        goto out2_done;
+    }
+    outValue2 = value2;
+out2_done:
+    int sp18 = outValue2;
+
+    int flag4 = 0;
+    if (tag2 != 0) {
+        flag4 = 1;
+    }
+
+    int base2;
+    if (flag4 != 0) {
+        base2 = value2 & ~1;
+    } else {
+        base2 = *(int *)value2;
+    }
+
+    cMemPool *childPool2 = cMemPool::GetPoolFromPtr((char *)this + 0x0C);
+    ((cReadBlock *)rb)->ReadBase(childPool2, (cBase *)base2,
+                                 *(cBase **)&sp18);
+
+    int newValue2;
+    if (sp18 == 0) {
+        newValue2 = base2 | 1;
+    } else {
+        newValue2 = sp18;
+    }
+    int readFile = rb[0];
+    *(int *)((char *)this + 0x0C) = newValue2;
+
+    char sp1c;
+    cFileSystem::Read(*(cFileHandle **)readFile, &sp1c, 1);
+    int version = rb[3];
+    *(unsigned char *)((char *)this + 0x10) = sp1c != 0;
+
+    if ((unsigned int)version >= 2) {
+        char sp1d;
+        cFileSystem::Read(*(cFileHandle **)rb[0], &sp1d, 1);
+        *(unsigned char *)((char *)this + 0x11) = sp1d != 0;
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcValStringCompare::GetText(char *buf) const {
