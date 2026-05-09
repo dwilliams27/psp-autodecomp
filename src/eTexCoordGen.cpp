@@ -9,11 +9,15 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 class cWriteBlock;
 
 extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char eTexCoordGenclassdesc[];
 
@@ -48,6 +52,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cWriteBlock {
@@ -60,6 +65,18 @@ public:
     void Write(int);
     void Write(int, const float *);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -180,4 +197,80 @@ void eTexCoordGen::Write(cFile &file) const {
         entry += 0x14;
     } while (i < 5);
     wb.End();
+}
+
+#pragma control sched=2
+int eTexCoordGen::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+
+    if ((unsigned int)rb[3] != 2)
+        goto fail;
+
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 8, 1);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 9, 1);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x0A, 1);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x0B, 1);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x0C, 1);
+    }
+    {
+        void *h = *(void **)rb[0];
+        cFileSystem::Read((cFileHandle *)h, (char *)this + 0x0D, 1);
+    }
+
+    register int i __asm__("$19") = 0;
+    register char *entry __asm__("$18") = (char *)this + 0x10;
+    register int offset __asm__("$4") = 0;
+    goto read_items;
+
+fail:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+read_items:
+    {
+        entry = entry + offset;
+        do {
+            void *h = *(void **)rb[0];
+            cFileSystem::Read((cFileHandle *)h, entry + 0x10, 4);
+            h = *(void **)rb[0];
+            cFileSystem::Read((cFileHandle *)h, entry, 0x10);
+            i++;
+            entry += 0x14;
+        } while (i < 5);
+    }
+
+    {
+        unsigned int value9 = *(unsigned char *)((char *)this + 9);
+        unsigned int valueA = *(unsigned char *)((char *)this + 0x0A);
+        value9 &= 0xff;
+        if ((int)value9 < 1) {
+            value9 = 1;
+        }
+        valueA &= 0xff;
+        *(unsigned char *)((char *)this + 9) = value9;
+        if ((int)valueA < 1) {
+            valueA = 1;
+        }
+        *(unsigned char *)((char *)this + 0x0A) = valueA;
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

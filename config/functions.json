@@ -33491,7 +33491,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -33500,7 +33500,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeTexCoordGenEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMeTexCoordGenEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eTexCoordGen.cpp",
+    "symbol_name": "__0fMeTexCoordGenEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "af8d84e9",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:49:06Z"
   },
   {
     "address": "0x00031e2c",
@@ -208028,7 +208036,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -208041,7 +208049,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcDoNetworkOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fNgcDoNetworkOpEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoNetworkOp.cpp",
+    "symbol_name": "__0fNgcDoNetworkOpEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "af8d84e9",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:49:06Z"
   },
   {
     "address": "0x002e88b4",
@@ -212352,7 +212368,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -236564,7 +236580,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",

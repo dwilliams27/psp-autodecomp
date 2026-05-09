@@ -1,8 +1,24 @@
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 class gcDoNetworkOp;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -20,9 +36,30 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
+};
+
+class gcExpression {
+};
+
+class gcAction : public gcExpression {
+public:
+    cBase *mOwner;
+    void *mVTable;
+    unsigned int mNext;
+
+    int Read(cFile &, cMemPool *);
 };
 
 struct PoolBlock {
@@ -47,17 +84,20 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
-void gcAction_gcAction(void *, cBase *);
+extern "C" void gcAction_gcAction(void *, cBase *);
 void gcAction_Write(const gcDoNetworkOp *, cFile &);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern const char gcDoNetworkOp_base_name[];
 extern const char gcDoNetworkOp_base_desc[];
 extern char gcDoNetworkOpvirtualtable[];
 
-class gcDoNetworkOp {
+class gcDoNetworkOp : public gcAction {
 public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     gcDoNetworkOp &operator=(const gcDoNetworkOp &);
 };
@@ -157,6 +197,67 @@ void gcDoNetworkOp::Write(cFile &file) const {
     }
     wb.WriteBase(ptr);
     wb.End();
+}
+
+int gcDoNetworkOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+
+    if ((unsigned int)rb[3] >= 4 || (unsigned int)rb[3] < 2 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+
+    if ((unsigned int)rb[3] >= 3) {
+        int sp14;
+        int value = *(int *)((char *)this + 0x14);
+        int tag = value & 1;
+        int flag = 0;
+        if (tag != 0) {
+            flag = 1;
+        }
+
+        int outValue;
+        if (flag != 0) {
+            outValue = 0;
+            goto out_done;
+        }
+        outValue = value;
+    out_done:
+        sp14 = outValue;
+
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+
+        int base;
+        if (flag2 != 0) {
+            base = value & ~1;
+        } else {
+            base = *(int *)value;
+        }
+
+        cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x14);
+        ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+        int newValue;
+        if (sp14 == 0) {
+            newValue = base | 1;
+        } else {
+            newValue = sp14;
+        }
+        *(int *)((char *)this + 0x14) = newValue;
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 const cType *gcDoNetworkOp::GetType(void) const {
