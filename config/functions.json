@@ -40147,7 +40147,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -40160,7 +40160,21 @@
       "0x0004da0c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeMeshEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fFeMeshEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "eb936e26",
+        "notes": "Closest attempt compiles to 364B versus the 368B target. The body reads the same fields in the same order and existing eMesh siblings still match, but SNC collapses the version >= 4 test into a shorter bnez path with sltiu in the delay slot instead of the target beqzl + explicit branch sequence. I tried structured if blocks, explicit goto labels, direct rb handle expressions, handle temporaries/barriers, and register-bound locals; register binding made allocation worse and was reverted.\n\nThe remaining drift appears to be branch-likely/scheduling/source-shape related, not a semantic miss. The local permuter could not be used on this TU because it failed to isolate the 368B target from the multi-function compiled .text before trying candidates.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T04:40:50Z",
+        "src_file": "src/eMesh.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/eb936e26/00043e04__agent_self_reported_failure__src_eMesh.cpp"
+      }
+    ]
   },
   {
     "address": "0x00043f74",
@@ -46764,7 +46778,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -61654,7 +61668,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -61666,7 +61680,15 @@
       "0x00077144"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fceSimulatedControllerTemplateEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fceSimulatedControllerTemplateEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eMesh.cpp",
+    "symbol_name": "__0fceSimulatedControllerTemplateEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "eb936e26",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T04:40:50Z"
   },
   {
     "address": "0x000766e8",
@@ -235958,7 +235980,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
