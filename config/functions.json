@@ -27224,7 +27224,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -27256,6 +27256,18 @@
         "timestamp": "2026-05-08T17:01:14Z",
         "src_file": "src/eSoundDataMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/90515d2a/000210f4__agent_self_reported_failure__src_eSoundDataMap.cpp"
+      },
+      {
+        "session": "3842f29a",
+        "notes": "Added eSoundDataMap::Read in its canonical class-owned TU, not the prompt's repeated gcNPCBipedControllerTemplate path. The closest source uses cReadBlock(file, 2, true), initializes the result with inline ori after construction, checks rb._data[3] == 2, calls eSoundData::Read(file, pool), rolls back with cFile_SetCurrentPos on failure, and returns the saved result after the cReadBlock destructor on success. compare_func reports 21/188 bytes different and all existing eSoundDataMap siblings remain matched.\n\nI also tried a different source-level lever by binding the result to $s3 and initializing it before constructing cReadBlock. That removed the s3 live range from the intended result value, shrank the function to 176B, and was clearly worse, so the closest source was restored. The final disassembly matches the target body after the constructor setup; only the version-2 cReadBlock prologue scheduling differs, with target hoisting sw s3 and li s3,1 before constructor setup and current SNC leaving sw s3/ra and li s3,1 around/after the constructor call. Root cause is the same source-unreachable prologue scheduler divergence; the promoted read-prologue compiler hook does not currently cover this li-a2=2 pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:23:54Z",
+        "src_file": "src/eSoundDataMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/3842f29a/000210f4__agent_self_reported_failure__src_eSoundDataMap.cpp"
       }
     ]
   },
@@ -29708,7 +29720,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -33161,7 +33173,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -95198,7 +95210,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -113135,7 +113147,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -113168,6 +113180,18 @@
         "timestamp": "2026-05-08T17:08:07Z",
         "src_file": "src/gcCreatureControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/3f2714b3/0013c978__agent_self_reported_failure__src_gcCreatureControllerTemplate.cpp"
+      },
+      {
+        "session": "21a17bdf",
+        "notes": "Retained the existing closest canonical gcCreatureControllerTemplate::Read(cFile &, cMemPool *) implementation: version-2 cReadBlock, parent gcEntityControllerTemplate::Read, cFile_SetCurrentPos rewind on failure, destructor on both paths, and return through the pinned result register. Re-ran compare_func in this workspace and it remains a 21/188 byte mismatch while the other functions in src/gcCreatureControllerTemplate.cpp still match.\n\nThe current object dump shows the same body shape as the target after the cReadBlock constructor: version check, parent Read call, bnez success branch, failure rewind, destructor calls, zero return, and success return via s3. The only substantive drift is the known cReadBlock prologue scheduling pattern: current SNC delays sw s3 and li s3,1 until after move s1/move a0/li a2 and the constructor call respectively, while the original schedules them in the prologue before move a0/sp. Prior sessions already tested pre-constructor asm producers, register-pinned locals, merged paths, and a short permuter run; given docs/research/failure-corpus-read-20260507.md and ADR-012, this is best classified as the compiler-level cReadBlock prologue blocker, not an unresolved control-flow reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:26:51Z",
+        "src_file": "src/gcCreatureControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/21a17bdf/0013c978__agent_self_reported_failure__src_gcCreatureControllerTemplate.cpp"
       }
     ]
   },
@@ -119557,7 +119581,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -119590,6 +119614,18 @@
         "timestamp": "2026-05-08T17:00:16Z",
         "src_file": "src/gcNPCBipedControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/27c6e1f6/00154ac0__agent_self_reported_failure__src_gcNPCBipedControllerTemplate.cpp"
+      },
+      {
+        "session": "3842f29a",
+        "notes": "Added the canonical class-owned C++ implementation in src/gcNPCBipedControllerTemplate.cpp: cReadBlock(file, 2, true), version check against rb._data[3] == 2, direct gcBipedControllerTemplate::Read(file, pool), rollback through cFile_SetCurrentPos on failure, and cFileSystem::Read of four bytes into this+0x60 on success. compare_func reports 21/208 bytes different while all already matched sibling functions in the TU remain matched.\n\nObjdump confirms the body is aligned from the post-constructor rb._data[3] load onward, including the bnezl success branch and cFileSystem::Read argument order. The remaining mismatch is confined to the cReadBlock constructor prologue window for the version-2 shape: target saves s3 and emits li s3,1 before move a0,sp / li a2,2 / sw ra / jal, while current SNC emits move s1,a1 / move a0,sp / li a2,2 first, saves s3/ra later, and places li s3,1 after the constructor call. This is the documented cReadBlock prologue blocker; the current pspcor hook is documented as covering the exact high-volume version-1 hybrid pattern, not this li-a2=2 case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:23:54Z",
+        "src_file": "src/gcNPCBipedControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/3842f29a/00154ac0__agent_self_reported_failure__src_gcNPCBipedControllerTemplate.cpp"
       }
     ]
   },
@@ -201104,7 +201140,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -206750,7 +206786,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -206776,7 +206812,15 @@
         "src_file": "src/gcDoMouseOp.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/bd764c68/002e7a84__agent_self_reported_failure__src_gcDoMouseOp.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDoMouseOp.cpp",
+    "symbol_name": "__0fLgcDoMouseOpEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3671d41c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:27:09Z"
   },
   {
     "address": "0x002e7bd8",
@@ -222912,7 +222956,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -222937,7 +222981,15 @@
         "src_file": "src/gcValCinematicInfo.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/bd764c68/00323d38__agent_self_reported_failure__src_gcValCinematicInfo.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValCinematicInfo.cpp",
+    "symbol_name": "__0fSgcValCinematicInfoEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3671d41c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:27:09Z"
   },
   {
     "address": "0x00323e40",
@@ -233867,7 +233919,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -233900,6 +233952,18 @@
         "timestamp": "2026-05-08T17:08:40Z",
         "src_file": "src/gcValMemCardStatus.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/fdfe1b6a/00350210__agent_self_reported_failure__src_gcValMemCardStatus.cpp"
+      },
+      {
+        "session": "21a17bdf",
+        "notes": "Added the canonical gcValMemCardStatus::Read(cFile &, cMemPool *) implementation in the class file: version-2 cReadBlock, parent gcValue::Read, rewind through cFile_SetCurrentPos on failure, and two cFileSystem::Read calls into offsets 8 and 12 on success. This compiles cleanly and all previously matched siblings in the TU still match; this target remains at 21/228 bytes different.\n\nThe closest object has the expected control flow and body after relocation masking, including the bnezl success path, rewind path, two field reads, destructor calls, and both epilogues. The remaining drift is confined to the known cReadBlock constructor/prologue schedule: SNC emits move s1/move a0/li a2 before saving s3 and emits li s3,1 after the cReadBlock constructor. I also tested the eWeatherEffect-style pre-constructor asm producer, both volatile and non-volatile; both worsened the diff to 34/228 bytes by changing the save/move interleaving. This appears to be the documented compiler-level cReadBlock prologue blocker rather than a source behavior issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:26:51Z",
+        "src_file": "src/gcValMemCardStatus.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/21a17bdf/00350210__agent_self_reported_failure__src_gcValMemCardStatus.cpp"
       }
     ]
   },

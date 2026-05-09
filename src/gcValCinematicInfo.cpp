@@ -10,6 +10,16 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class cReadBlock;
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
 
 class cWriteBlock {
 public:
@@ -23,6 +33,7 @@ class gcDesiredValue {
 public:
     int _value;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
 };
 
 class gcExpression {
@@ -34,6 +45,7 @@ public:
 class gcValue : public gcExpression {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValCinematicInfo : public gcValue {
@@ -47,6 +59,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -90,6 +103,13 @@ struct GetTextSlot {
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 
+extern "C" {
+    void cFile_SetCurrentPos(void *, unsigned int);
+    void cFileSystem_Read(void *, void *, unsigned int);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
+}
+
 // ── Write(cFile &) const  @ 0x00323cc8 ──
 void gcValCinematicInfo::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
@@ -98,6 +118,27 @@ void gcValCinematicInfo::Write(cFile &file) const {
     field_C.Write(wb);
     field_10.Write(wb);
     wb.End();
+}
+
+// 0x00323d38 - gcValCinematicInfo::Read(cFile &, cMemPool *)
+int gcValCinematicInfo::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    int tag = rb[3];
+    if ((unsigned int)tag >= 3 || (unsigned int)tag < 1 ||
+        gcValue::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    if ((unsigned int)rb[3] >= 2) {
+        cFileSystem_Read(*(void **)rb[0], (char *)this + 8, 4);
+        ((gcDesiredValue *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+        ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── New(cMemPool *, cBase *)  @ 0x00323b1c ──

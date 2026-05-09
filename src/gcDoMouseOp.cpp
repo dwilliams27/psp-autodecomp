@@ -5,6 +5,16 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cReadBlock;
+
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
 
 class cWriteBlock {
 public:
@@ -23,11 +33,13 @@ public:
 class gcAction : public gcExpression {
 public:
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &, cMemPool *);
 };
 
 struct cTypeMethod {
@@ -58,6 +70,7 @@ struct AllocEntry {
 };
 
 typedef void (*WriteFn)(void *, cFile *);
+typedef void (*ReadFn)(void *, cFile *, void *);
 typedef void (*TextFn)(void *, char *);
 
 struct PoolDeleteSlot {
@@ -75,6 +88,10 @@ struct DtorSlot {
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, void *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void cFileSystem_Read(void *, void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 void *cMemPool_GetPoolFromPtr(const void *);
 void cStrAppend(char *, const char *, ...);
 
@@ -99,6 +116,7 @@ public:
     static void operator delete(void *);
     const cType *GetType(void) const;
     void GetText(char *) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     ~gcDoMouseOp(void);
 };
@@ -172,6 +190,35 @@ void gcDoMouseOp::Write(cFile &file) const {
     ((WriteFn)entry->fn)(base + entry->offset, *(cFile **)&wb._data[0]);
 
     wb.End();
+}
+
+// 0x002e7a84 - gcDoMouseOp::Read(cFile &, cMemPool *)
+int gcDoMouseOp::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    int tag = rb[3];
+    if ((unsigned int)tag >= 3 || (unsigned int)tag < 1 ||
+        gcAction::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem_Read(*(void **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem_Read(*(void **)rb[0], (char *)this + 0x10, 4);
+    cHandle *handle = (cHandle *)((char *)this + 0x14);
+    *(int *)((char *)this + 0x14) = 0;
+    handle->Read(*(cReadBlock *)rb, (cMemPool *)cMemPool_GetPoolFromPtr(handle));
+    if ((unsigned int)rb[3] >= 2) {
+        char *typeInfo = *(char **)((char *)this + 0x1C);
+        void *base = (char *)this + 0x18;
+        cTypeMethod *slot = (cTypeMethod *)(typeInfo + 0x30);
+        short off = slot->offset;
+        ((ReadFn)slot->fn)((char *)base + off, *(cFile **)&rb[0],
+                           cMemPool_GetPoolFromPtr(base));
+    }
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // 0x002e7cd8 - gcDoMouseOp::GetText(char *) const
