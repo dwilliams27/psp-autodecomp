@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 class gcState;
@@ -18,7 +19,15 @@ class gcStateHandlerBase {
 public:
     gcStateHandlerBase(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    int Read(cFile &, cMemPool *);
     gcStateHandlerBase &operator=(const gcStateHandlerBase &);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
 };
 
 template <class T>
@@ -30,6 +39,7 @@ class cHandlePairT;
 template <class T>
 class cArrayBase {
 public:
+    void Read(cReadBlock &);
     cArrayBase &operator=(const cArrayBase &);
 };
 
@@ -51,10 +61,15 @@ class gcStateDefaultHandler : public gcStateHandlerBase {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
 };
 
 extern char gcStateHandlervirtualtable[];
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 static cType *type_cBase;
 static cType *type_gcStateHandlerBase;
@@ -102,6 +117,24 @@ const cType *gcStateDefaultHandler::GetType(void) const {
     }
     return type_gcStateDefaultHandler;
 }
+
+#pragma control sched=2
+int gcStateDefaultHandler::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 &&
+        gcStateHandlerBase::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    ((StatePairArray *)((char *)this + 0x30))->Read(*(cReadBlock *)rb);
+    ((StatePairArray *)((char *)this + 0x34))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+#pragma control sched=2
 
 void gcStateDefaultHandler::AssignCopy(const cBase *base) {
     gcStateDefaultHandler *src = dcast<gcStateDefaultHandler *>(base);

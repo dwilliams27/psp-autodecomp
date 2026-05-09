@@ -98,6 +98,8 @@ extern cType *D_000385E4;
 extern cType *D_00040FE8;
 
 void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 eTexture::eTexture(cBase *parent) : cObject(parent) {
     *(void **)((char *)this + 4) = (void *)0x37FD48;
@@ -144,43 +146,45 @@ void eTexture::Write(cFile &file) const {
 
 #pragma control sched=2
 int eTexture::Read(cFile &file, cMemPool *pool) {
-    int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 2, true);
-    if ((unsigned int)rb._data[3] == 2 && cObject::Read(file, pool)) goto success;
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && cObject::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
     return 0;
 success:
     {
         void *p = (char *)this + 0x44;
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         __asm__ volatile("" : "+r"(h));
         cFileSystem::Read(h, p, 1);
     }
     {
         void *p = (char *)this + 0x45;
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         __asm__ volatile("" : "+r"(h));
         cFileSystem::Read(h, p, 1);
     }
     {
         void *p = (char *)this + 0x46;
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         __asm__ volatile("" : "+r"(h));
         cFileSystem::Read(h, p, 1);
     }
     {
         void *p = (char *)this + 0x48;
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         __asm__ volatile("" : "+r"(h));
         cFileSystem::Read(h, p, 2);
     }
     {
         void *p = (char *)this + 0x4A;
-        void *h = *(void **)rb._data[0];
+        void *h = *(void **)rb[0];
         __asm__ volatile("" : "+r"(h));
         cFileSystem::Read(h, p, 2);
     }
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 #pragma control sched=2
