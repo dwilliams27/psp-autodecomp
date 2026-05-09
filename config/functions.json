@@ -33181,7 +33181,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -33216,6 +33216,18 @@
         "timestamp": "2026-05-08T17:17:22Z",
         "src_file": "src/eSpriteMtl.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/3b9cbb98/000319a8__agent_self_reported_failure__src_eSpriteMtl.cpp"
+      },
+      {
+        "session": "a514e54d",
+        "notes": "Kept the existing canonical C++ body and tried a different raw cReadBlock form using explicit __0oKcReadBlockctR6FcFileUib/__0oKcReadBlockdtv calls over int rb[5]. The function still compiles to the same matched body from the version check onward: version 2, eMaterial::Read, bnezl success path, SetCurrentPos failure path, two cFileSystem::Read calls at offsets 0x5c/0x60, destructor calls, and both epilogues line up. The remaining mismatch is 31/228 bytes with sched=1 and 34/228 bytes with sched=2, isolated to the prologue scheduling around the cReadBlock constructor.\n\nAdditional probes tried class declaration reordering and an isolated split-TU eSpriteMtl::Read probe to test whether neighboring methods were seeding SNC scheduling/register state. Both reproduced the same prologue-only mismatch. Current emits all callee-save stores before argument moves (`sw s0/s1/s2/s3/ra`, then moves); the target interleaves saves and moves (`sw s0`, `sw s2`, `move s0`, `move s2`, `sw s1`, `sw s3`, `move s1`, `li s3`, setup, `sw ra`). This is the known cReadBlock Read prologue scheduler divergence rather than a body/source-shape issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:31:54Z",
+        "src_file": "src/eSpriteMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/a514e54d/000319a8__agent_self_reported_failure__src_eSpriteMtl.cpp"
       }
     ]
   },
@@ -108280,7 +108292,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -117862,7 +117874,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -201156,7 +201168,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -201183,7 +201195,15 @@
         "src_file": "src/gcDoEntitySetAttractor.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/bcfe2161/002c4648__agent_self_reported_failure__src_gcDoEntitySetAttractor.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDoEntitySetAttractor.cpp",
+    "symbol_name": "__0fWgcDoEntitySetAttractorEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a514e54d",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:31:54Z"
   },
   {
     "address": "0x002c479c",

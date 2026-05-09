@@ -92,6 +92,8 @@ extern cType *D_00040FEC;
 extern cType *D_00041038;
 
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 // ── eSpriteMtl::Write @ 0x00031944 ──
 void eSpriteMtl::Write(cFile &file) const {
@@ -107,14 +109,17 @@ void eSpriteMtl::Write(cFile &file) const {
 // ── eSpriteMtl::Read @ 0x000319A8 ──
 int eSpriteMtl::Read(cFile &file, cMemPool *pool) {
     int result;
+    int rb[5];
     __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 2, true);
-    if ((unsigned int)rb._data[3] == 2 && eMaterial::Read(file, pool)) goto success;
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && eMaterial::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
     return 0;
 success:
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x5C, 4);
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x60, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x5C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x60, 4);
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 
