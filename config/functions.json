@@ -14701,7 +14701,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -14742,6 +14742,18 @@
         "timestamp": "2026-05-08T17:34:15Z",
         "src_file": "src/cNamed.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/3f8fe96e/00008ea4__agent_self_reported_failure__src_cNamed.cpp"
+      },
+      {
+        "session": "86803ef3",
+        "notes": "Current cNamed::Read is body-exact and compares at 14/172 bytes different. I retested the prior closest C++ RAII form and also tried a raw stack int[5] cReadBlock with direct __0oKcReadBlockctR6FcFileUib/__0oKcReadBlockdtv calls, which produced the same 14-byte mismatch.\n\nThe remaining delta is entirely in the cReadBlock constructor prologue schedule: the emitted code saves ra before loading s1=1, while the target loads s1=1 before the ra save and constructor call setup. The version check, cName::Read call, vtable dispatch at classdesc+0x70, destructor calls, and both epilogues match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:42:17Z",
+        "src_file": "src/cNamed.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/86803ef3/00008ea4__agent_self_reported_failure__src_cNamed.cpp"
       }
     ]
   },
@@ -26982,7 +26994,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -37735,7 +37747,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -37768,6 +37780,18 @@
         "timestamp": "2026-05-08T17:39:11Z",
         "src_file": "src/eFluidVolume_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/864a9f65/0003c4f8__agent_self_reported_failure__src_eFluidVolume_Read.cpp"
+      },
+      {
+        "session": "96655b50",
+        "notes": "Added eFluidVolume::Read as a split TU per the method-addition rule so include/eFluidVolume.h and already-matched siblings are untouched; src/eFluidVolume.cpp still compares cleanly. The closest source constructs cReadBlock(file, 1, true), preserves result in s2, reads mRef through ReadBase, stores offsets 0xC/0x10 through cFileSystem::Read, and explicitly destructs the read block. compare_func.py reports 101/228 bytes for the split TU; objdump shows the success body is semantically aligned, but the split TU emits bnel-to-fail with success fallthrough while the target has beql-to-success with the mRef load in the delay slot and fail path fallthrough.\n\nTried RAII cReadBlock, explicit int rb[5] constructor/destructor, plain if/goto, duplicated conditional-load forms, and sched=1. sched=1 worsened the prologue, the duplicated conditional-load form grew the function and increased the mismatch, and explicit construction did not change the branch inversion. The remaining blockers are the cReadBlock prologue schedule (sw s2/li s2,1/sw ra ordering) plus branch-likely layout/regalloc drift in this split TU; I do not see a source-only lever left without editing shared headers or changing compiler behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:44:39Z",
+        "src_file": "src/eFluidVolume_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/96655b50/0003c4f8__agent_self_reported_failure__src_eFluidVolume_Read.cpp"
       }
     ]
   },
@@ -41084,7 +41108,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -41110,6 +41134,18 @@
         "timestamp": "2026-05-08T17:35:34Z",
         "src_file": "src/eDynamicModel_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ac5899e1/000470c8__agent_self_reported_failure__src_eDynamicModel_Read.cpp"
+      },
+      {
+        "session": "86803ef3",
+        "notes": "Added a split-TU closest implementation for eDynamicModel::Read because include/eDynamicModel.h does not declare this method. The best sched=2 source compiles to the expected 256-byte function and the body from the version checks through the optional +0xF4 read, PlatformRead call, destructor calls, and both return paths matches; compare_func reports 21/256 bytes different.\n\nI tested sched=1 (worse at 26/256), moving the forced result value before the cReadBlock constructor (worse at 34/256), and raw int[5] cReadBlock storage with direct ctor/dtor calls (same 21/256). The remaining mismatch is isolated to the cReadBlock prologue scheduling: the target saves s3 before moving s1, emits li s3,1 before the constructor jal, and saves ra later; current SNC keeps li s3,1 after the jal and orders the saves/moves differently. This is the documented cReadBlock Read prologue scheduler blocker rather than a recoverable body mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:42:17Z",
+        "src_file": "src/eDynamicModel_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/86803ef3/000470c8__agent_self_reported_failure__src_eDynamicModel_Read.cpp"
       }
     ]
   },
@@ -85761,7 +85797,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00002450",
       "0x000047a0",
@@ -86299,7 +86335,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -86327,7 +86363,15 @@
         "src_file": "src/gcRegion.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/c8ece5ed/000ef464__agent_self_reported_failure__src_gcRegion.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcRegion.cpp",
+    "symbol_name": "__0fIgcRegionEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "bb05d4a8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:46:10Z"
   },
   {
     "address": "0x000ef5ac",
@@ -96539,7 +96583,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -104275,7 +104319,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -104306,7 +104350,15 @@
         "src_file": "src/gcEntityRumbleConfig.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/864a9f65/00125ec8__agent_self_reported_failure__src_gcEntityRumbleConfig.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcEntityRumbleConfig.cpp",
+    "symbol_name": "__0fUgcEntityRumbleConfigEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "bb05d4a8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:46:10Z"
   },
   {
     "address": "0x00125fb0",
@@ -117781,7 +117833,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -191572,7 +191624,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -191607,6 +191659,18 @@
         "timestamp": "2026-05-08T17:35:34Z",
         "src_file": "src/gcStringTableValue.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/ac5899e1/00289b64__agent_self_reported_failure__src_gcStringTableValue.cpp"
+      },
+      {
+        "session": "96655b50",
+        "notes": "Implemented gcStringTableValue::Read with the canonical cReadBlock version-3 template and verified all existing sibling methods in src/gcStringTableValue.cpp still match. I tested both RAII cReadBlock construction and explicit int rb[5] constructor/destructor calls; both produce the same 21/212 byte mismatch, with the function body matching after the cReadBlock entry sequence. The remaining diff is the known cReadBlock prologue scheduler divergence: original schedules sw s3/li s3,1/sw ra around constructor setup before the jal, while our SNC keeps li s3,1 after the constructor call or otherwise reorders the save sequence.\n\nManual restructurings tried in this session: explicit cReadBlock constructor/destructor, preserving result through inline ori, and the prior canonical RAII/goto-success shape. These reproduce the prior best result and do not perturb matched siblings. Root cause appears to be the documented compiler-level cReadBlock prologue scheduling blocker rather than recoverable C structure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:44:39Z",
+        "src_file": "src/gcStringTableValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/96655b50/00289b64__agent_self_reported_failure__src_gcStringTableValue.cpp"
       }
     ]
   },

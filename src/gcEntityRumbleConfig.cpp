@@ -41,6 +41,11 @@ public:
 
 void cFile_SetCurrentPos(void *, unsigned int);
 
+extern "C" {
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
+}
+
 class gcEntityRumbleConfigPoolNS {
 public:
     static gcEntityRumbleConfigPoolNS *GetPoolFromPtr(const void *);
@@ -129,18 +134,20 @@ void gcEntityRumbleConfig::Write(cFile &file) const {
 // ── Read ──  @ 0x00125ec8, 232B
 
 int gcEntityRumbleConfig::Read(cFile &file, cMemPool *pool) {
-    int result;
-    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
-    cReadBlock rb(file, 1, true);
-    if (rb._data[3] != 1) {
-        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    register int result __asm__("$17") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
         return 0;
     }
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x08, 4);
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x0C, 4);
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x10, 4);
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x14, 4);
-    cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x18, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x08, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x14, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x18, 4);
+    __0oKcReadBlockdtv(rb, 2);
     return result;
 }
 

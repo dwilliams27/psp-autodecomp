@@ -74,6 +74,8 @@ int gcRegionBase_RemoveFromWorld(void *);
 void cFile_SetCurrentPos(void *, unsigned int);
 
 extern "C" {
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
     void gcEvent___dtor_gcEvent_void(void *, int);
     void gcRegionBase___dtor_gcRegionBase_void(void *, int);
     void *__vec_new(void *, int, int, void (*)(void *));
@@ -166,9 +168,10 @@ gcRegion::~gcRegion(void) {
 }
 
 int gcRegion::Read(cFile &file, cMemPool *pool) {
-    int result = 1;
-    cReadBlock rb(file, 4, true);
-    if ((unsigned int)rb._data[3] >= 5U || (unsigned int)rb._data[3] < 3U)
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 4, true);
+    if ((unsigned int)rb[3] >= 5U || (unsigned int)rb[3] < 3U)
         goto fail;
     if (!gcRegionBase_Read(this, file, pool))
         goto fail;
@@ -177,23 +180,30 @@ int gcRegion::Read(cFile &file, cMemPool *pool) {
         char *base0 = (char *)this + 0xA8;
         TypeDispatchEntry *entry = (TypeDispatchEntry *)(typePtr + 0x30);
         short off = entry->offset;
-        int pos = rb._data[0];
+        int pos = rb[0];
         void *target = base0 + off;
         ((void (*)(void *, int, void *))entry->fn)(target, pos, cMemPool_GetPoolFromPtr(base0));
     }
-    if ((unsigned int)rb._data[3] >= 4U) {
+    if ((unsigned int)rb[3] >= 4U)
+        goto read_second;
+    goto success;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+read_second:
+    {
         char *typePtr = *(char **)((char *)this + 0xC8);
         char *base1 = (char *)this + 0xC4;
         TypeDispatchEntry *entry = (TypeDispatchEntry *)(typePtr + 0x30);
         short off = entry->offset;
-        int pos = rb._data[0];
+        int pos = rb[0];
         void *target = base1 + off;
         ((void (*)(void *, int, void *))entry->fn)(target, pos, cMemPool_GetPoolFromPtr(base1));
     }
+success:
+    __0oKcReadBlockdtv(rb, 2);
     return result;
-fail:
-    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
-    return 0;
 }
 
 struct RegionRemoveScratch {
