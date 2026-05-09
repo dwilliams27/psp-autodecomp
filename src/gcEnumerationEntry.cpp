@@ -9,9 +9,13 @@
 //   0x00238ca0 gcEnumerationEntry::~gcEnumerationEntry(void)           100B
 
 class cBase;
-class cFile;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 class cMemPool;
 class cType;
+struct cFileHandle;
 
 class cType {
 public:
@@ -28,6 +32,18 @@ public:
     void Write(unsigned int);
     void Write(unsigned char);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
 };
 
 class cMemPool {
@@ -60,6 +76,7 @@ public:
     cNameData mName;       // 8..0x20
     cNamed(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -69,6 +86,8 @@ struct cHandle {
 
 extern char cBaseclassdesc[];   // @ 0x37E6A8
 extern char cNamedclassdesc[];
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 template <class T> T *dcast(const cBase *);
 
@@ -81,6 +100,7 @@ public:
     ~gcEnumerationEntry(void);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
 
@@ -151,6 +171,22 @@ void gcEnumerationEntry::Write(cFile &file) const {
     wb.Write(mField24);
     wb.Write(mField20);
     wb.End();
+}
+
+// ── gcEnumerationEntry::Read @ 0x000d3dd0 ──
+int gcEnumerationEntry::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2 || cNamed::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x24, 4);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x20, 1);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcEnumerationEntry::AssignCopy @ 0x00238a9c ──

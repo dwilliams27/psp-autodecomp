@@ -32,6 +32,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    cFile *file;
+    unsigned int _pos;
+    int _pad[3];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(void *, void *, unsigned int);
+};
+
 class cBaseArray {
 public:
     int _count;
@@ -44,10 +58,14 @@ public:
     gcFlyingControllerTemplate(cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern "C" {
 void *dcastdcast_gcNPCFlyingControllerTemplateptr__constcBaseptr(const cBase *);
+void cFile_SetCurrentPos(void *, unsigned int);
+void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+void __0oKcReadBlockdtv(void *, int);
 }
 
 extern char gcNPCFlyingControllerTemplateclassdesc[];
@@ -62,6 +80,7 @@ public:
     gcNPCFlyingControllerTemplate(cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
 };
@@ -80,6 +99,23 @@ void gcNPCFlyingControllerTemplate::Write(cFile &file) const {
     ((const gcFlyingControllerTemplate *)this)->Write(file);
     wb.Write(*(const unsigned int *)((char *)this + 0x50));
     wb.End();
+}
+
+// ── gcNPCFlyingControllerTemplate::Read(cFile &, cMemPool *) @ 0x00155084 ──
+int gcNPCFlyingControllerTemplate::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 &&
+        ((gcFlyingControllerTemplate *)this)->Read(file, pool)) goto success;
+    cFile_SetCurrentPos((void *)rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+
+success:
+    cFileSystem::Read(*(void **)rb[0], (char *)this + 0x50, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcNPCFlyingControllerTemplate::AssignCopy(const cBase *) @ 0x0031D4EC ──
