@@ -1,7 +1,19 @@
 class cBase;
-class cFile;
-class cMemPool;
+class cFileHandle;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -15,11 +27,13 @@ public:
 
 class cHandle {
 public:
+    void Read(class cReadBlock &, cMemPool *);
     void Write(cWriteBlock &) const;
 };
 
 class gcDesiredValue {
 public:
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
@@ -32,7 +46,12 @@ public:
     void *mVTable;
     unsigned int mNext;
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class cReadBlock {
+public:
 };
 
 class cType {
@@ -47,6 +66,12 @@ struct WriteRec {
     short offset;
     short pad;
     void (*fn)(void *, cFile *);
+};
+
+struct ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
 };
 
 struct PoolBlock {
@@ -75,6 +100,10 @@ extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
+                                             bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char D_00000338[];
 extern char gcDoObjectLoadvirtualtable[];
@@ -86,6 +115,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     gcDoObjectLoad &operator=(const gcDoObjectLoad &);
 };
@@ -224,4 +254,42 @@ void gcDoObjectLoad::Write(cFile &file) const {
     rec->fn((char *)base + off, wb._file);
 
     wb.End();
+}
+
+int gcDoObjectLoad::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if ((unsigned int)rb[3] >= 4 || (unsigned int)rb[3] < 1 ||
+        gcAction::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+
+    char *handle = (char *)this + 0x10;
+    *(int *)((char *)this + 0x10) = 0;
+    ((cHandle *)handle)->Read(*(cReadBlock *)rb,
+                              cMemPool::GetPoolFromPtr(handle));
+
+    ((gcDesiredValue *)((char *)this + 0x18))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x1C))->Read(*(cReadBlock *)rb);
+
+    if ((unsigned int)rb[3] >= 2) {
+        ((gcDesiredValue *)((char *)this + 0x14))->Read(*(cReadBlock *)rb);
+    }
+    if ((unsigned int)rb[3] >= 3) {
+        char *typeInfo = *(char **)((char *)this + 0x24);
+        char *base = (char *)this + 0x20;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = *(cFile **)&rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

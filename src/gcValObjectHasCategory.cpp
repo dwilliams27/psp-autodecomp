@@ -2,6 +2,21 @@
 
 class cFile;
 class cMemPool;
+class cReadBlock;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
+                                             bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cWriteBlock {
 public:
@@ -32,6 +47,17 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cReadBlock {
+public:
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
+struct ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 struct DispatchEntry {
     short offset;
     short pad;
@@ -46,6 +72,7 @@ public:
 
 class gcValue {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -53,6 +80,7 @@ class gcValObjectHasCategory : public gcValue {
 public:
     gcValObjectHasCategory &operator=(const gcValObjectHasCategory &);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -169,4 +197,68 @@ const cType *gcValObjectHasCategory::GetType(void) const {
             0, 0, 0x133, type_value, gcValObjectHasCategory::New, 0, 0, 0);
     }
     return type_gcValObjectHasCategory;
+}
+
+int gcValObjectHasCategory::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if (rb[3] != 3 || gcValue::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x08);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x08);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x08) = newValue;
+
+    char *typeInfo = *(char **)((char *)this + 0x10);
+    ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+    char *desired = (char *)this + 0x0C;
+    short off = rec->offset;
+    char *target = desired + off;
+    cFile *f = *(cFile **)&rb[0];
+    cMemPool *desiredPool = cMemPool::GetPoolFromPtr(desired);
+    rec->fn(target, f, desiredPool);
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
