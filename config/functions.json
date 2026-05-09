@@ -50494,7 +50494,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -50510,7 +50510,15 @@
       "0x0005ffb0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeStaticLightEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMeStaticLightEReadR6FcFileP6IcMemPool",
+    "src_file": "src/eStaticLight_Read.cpp",
+    "symbol_name": "__0fMeStaticLightEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f42e9e55",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:43:13Z"
   },
   {
     "address": "0x0005eddc",
@@ -203108,7 +203116,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -215276,7 +215284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -215290,7 +215298,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUIEditBoxOpEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fPgcDoUIEditBoxOpEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "f42e9e55",
+        "notes": "Closest attempt reconstructs the full body in C++ in a split TU. I tried natural cBase* child references, m2c-style integer temporaries, explicit labels for the tagged-pointer child slot, and barriers/labels for the final tagged fallback. The body now matches the expected control shape after the cReadBlock constructor setup, including the non-branch-likely child-slot selection and final bnez/nop + branch/ori fallback store.\n\nRemaining mismatch is the known cReadBlock prologue scheduler/register-allocation blocker: save/move ordering before the constructor call differs, while the function body is otherwise aligned. I A/B tested sched=2 and local sched=1; sched=1 was slightly closer (31 differing bytes versus 34) but still only changes the prologue ordering. This should be retried after the cReadBlock prologue compiler patch rather than further source permutation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:43:13Z",
+        "src_file": "src/gcDoUIEditBoxOp_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/f42e9e55/003092d0__agent_self_reported_failure__src_gcDoUIEditBoxOp_Read.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030943c",
@@ -229427,7 +229449,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
