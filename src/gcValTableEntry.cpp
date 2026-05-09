@@ -5,6 +5,7 @@ public:
 };
 class cMemPool;
 class cType;
+class cFileHandle;
 
 class gcStringLValue {};
 
@@ -21,6 +22,11 @@ public:
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static int Read(cFileHandle *, void *, unsigned int);
 };
 
 class cType {
@@ -78,6 +84,30 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
+};
+
+class eGeomTemplate;
+
+template <class T> class cHandleT {
+public:
+    int mIndex;
+};
+
+template <class T> class cArrayBase {
+public:
+    void *mData;
+    void Read(cReadBlock &);
+};
+
+struct PoolReadEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cMemPool *, int);
+};
+
+class eWeatherSystem {
+public:
     int Read(cFile &, cMemPool *);
 };
 
@@ -232,3 +262,63 @@ int gcValTableEntry::Read(cFile &file, cMemPool *pool) {
     ((gcDesiredValue *)((char *)this + 0x20))->Read(rb);
     return result;
 }
+
+#pragma control sched=1
+int eWeatherSystem::Read(cFile &file, cMemPool *pool) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+
+    if ((unsigned int)rb._pad[1] != 2) {
+        rb.file->SetCurrentPos(rb._pos);
+        return 0;
+    }
+
+    ((cArrayBase<cHandleT<eGeomTemplate> > *)((char *)this + 8))->Read(rb);
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x14, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x18, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x1C, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x20, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x24, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x28, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x2C, 4);
+    }
+    {
+        cFileHandle *h = *(cFileHandle **)rb.file;
+        __asm__ volatile("" : "+r"(h));
+        cFileSystem::Read(h, (char *)this + 0x30, 4);
+    }
+
+    char *classDesc = *(char **)((char *)this + 4);
+    PoolReadEntry *entry = (PoolReadEntry *)(classDesc + 0x38);
+    entry->fn((char *)this + entry->offset, pool, 0);
+    return result;
+}
+#pragma control sched=2

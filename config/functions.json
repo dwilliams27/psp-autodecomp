@@ -50494,7 +50494,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -52024,7 +52024,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -52034,7 +52034,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeWeatherSystemEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fOeWeatherSystemEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValTableEntry.cpp",
+    "symbol_name": "__0fOeWeatherSystemEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f643ff38",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:34:10Z"
   },
   {
     "address": "0x00061954",
@@ -84246,7 +84254,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -97355,7 +97363,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -97386,6 +97394,18 @@
         "timestamp": "2026-05-08T22:27:47Z",
         "src_file": "src/gcEntityControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/db581918/0010fd0c__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
+      },
+      {
+        "session": "e5c7bc3c",
+        "notes": "Implemented gcEntityControllerTemplate::Read as a canonical class method in src/gcEntityControllerTemplate.cpp, not in gcValGameSetting.cpp despite the target sheet typo, because the class-method file rule requires the owning class file. The closest source emits the intended behavior: version 6 cReadBlock, cBaseArray::Read for +0x08 and +0x1C, two zeroed cHandle::Read calls over +0x10/+0x14 with cMemPool::GetPoolFromPtr, and cFileSystem::Read blocks at +0x30, +0x40, and +0x48. compare_func reports 30/308 differing bytes.\n\nObjdump comparison shows the remaining major difference is the cReadBlock constructor prologue scheduling: expected emits sw s3/li s3,1 early, then saves s1/s2/ra around the call setup, while current SNC does the all-saves-before-call shape and places li s3,1 after the constructor call. I also tried moving the loop index initialization after the zero-offset inline asm to change the post-cBaseArray scheduling; it worsened to 33/308 bytes, so I reverted. Prior documented variants covered the simpler loop form, register-bound zero offset, moving the result constant before the constructor, and sched=1; all were worse. This is the same documented cReadBlock prologue scheduler blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:32:18Z",
+        "src_file": "src/gcEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/e5c7bc3c/0010fd0c__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
       }
     ]
   },
@@ -215240,7 +215260,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -231490,7 +231510,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -231515,6 +231535,18 @@
         "timestamp": "2026-05-08T22:27:47Z",
         "src_file": "src/gcValGameSetting.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/db581918/00344adc__agent_self_reported_failure__src_gcValGameSetting.cpp"
+      },
+      {
+        "session": "e5c7bc3c",
+        "notes": "Implemented gcValGameSetting::Read as a canonical C++ method in src/gcValGameSetting.cpp using the matched cReadBlock RAII pattern: version 3 block, gcLValue::Read(file, pool), gcDesiredValue::Read at +0x0C, raw cFileSystem::Read calls at +0x08 and +0x28, and dynamic cTypeMethod read dispatch for the entry at +0x10. compare_func reports 28/300 differing bytes. Objdump comparison shows the body from the tag check onward is byte-identical except for the known cReadBlock constructor prologue scheduling: expected saves s3 and emits li s3,1 before the constructor call, while current SNC schedules sw s3 with the later saves and emits li s3,1 immediately after the call.\n\nI restored the closest prior source and verified against the current tree; prior documented variants already tried moving the result constant before the constructor and sched=1, both worse. This appears to be the documented source-level-unfixable cReadBlock prologue scheduler divergence rather than a missing C reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:32:18Z",
+        "src_file": "src/gcValGameSetting.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/e5c7bc3c/00344adc__agent_self_reported_failure__src_gcValGameSetting.cpp"
       }
     ]
   },
@@ -237709,7 +237741,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -238885,7 +238917,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -238910,6 +238942,18 @@
         "timestamp": "2026-05-08T22:50:55Z",
         "src_file": "src/gcValTableEntry.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/e0c754c8/0035f428__agent_self_reported_failure__src_gcValTableEntry.cpp"
+      },
+      {
+        "session": "f643ff38",
+        "notes": "Kept the prior closest canonical C++ implementation for gcValTableEntry::Read and revalidated it after adding the second target in the same TU. compare_func reports the existing siblings as matched and this method as a 28/344-byte mismatch. The remaining diff is the same known cReadBlock Read blocker: target schedules sw s3/move s1/li s3 before the cReadBlock constructor call, while SNC keeps li s3 after the constructor from source-level forms available here. The body otherwise follows the target range check, parent gcLValue::Read call, version >=2 desired-object dispatch, version 1 cHandle fallback, and both gcDesiredValue reads.\n\nI did not repeat the exhausted 300s permuter/manual variants from the prior snapshot. I tested this TU with the new eWeatherSystem method present to ensure no cross-function drift improved or regressed the near miss; the mismatch stayed at 28 bytes. This should remain classified as the documented cReadBlock prologue/result scheduling blocker rather than a semantic mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:34:10Z",
+        "src_file": "src/gcValTableEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/f643ff38/0035f428__agent_self_reported_failure__src_gcValTableEntry.cpp"
       }
     ]
   },
