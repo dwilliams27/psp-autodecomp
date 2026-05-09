@@ -9,6 +9,22 @@
 
 class cMemPool;
 class cFile;
+class cFileHandle;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -32,16 +48,37 @@ public:
 class cHandle {
 public:
     void Write(cWriteBlock &) const;
+    void Read(class cReadBlock &, cMemPool *);
 };
 
 class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
+    void Read(class cReadBlock &);
 };
 
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+    void Read(class cReadBlock &);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
+template <class T> class cHandleT {
+};
+
+class eSoundData;
+
+template <class T> class cArray {
+public:
+    void Read(cReadBlock &);
 };
 
 class gcEntityAnimationConfig {
@@ -62,6 +99,7 @@ public:
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     gcEntityAnimationConfig &operator=(const gcEntityAnimationConfig &);
 };
 
@@ -93,6 +131,8 @@ struct NameLookupEntry {
 
 void gcEntityAnimationConfig_ctor(gcEntityAnimationConfig *, cBase *);
 void cStrCopy(char *, const char *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 // ============================================================
 // 0x000e9854 — constructor
@@ -180,6 +220,71 @@ void gcEntityAnimationConfig::GetName(char *dest) const {
         str = gcAnimName_none;
     }
     cStrCopy(out, str);
+}
+
+// ============================================================
+// 0x000e96e4 — Read(cFile &, cMemPool *)
+// ============================================================
+int gcEntityAnimationConfig::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$17") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 5, true);
+
+    if (rb[3] != 5) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    *(int *)((char *)this + 0x08) = 0;
+    cHandle *handle = (cHandle *)((char *)this + 0x08);
+    handle->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle));
+    ((cArray<cHandleT<eSoundData> > *)((char *)this + 0x0C))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x18, 4);
+
+    int sp14;
+    int value = *(int *)((char *)this + 0x14);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = value;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    cMemPool *childPool = cMemPool::GetPoolFromPtr((char *)this + 0x14);
+    ((cReadBlock *)rb)->ReadBase(childPool, (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x14) = newValue;
+    ((cBaseArray *)((char *)this + 0x1C))->Read(*(cReadBlock *)rb);
+    ((gcDesiredValue *)((char *)this + 0x10))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ============================================================
