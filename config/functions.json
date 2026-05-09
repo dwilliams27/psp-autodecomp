@@ -27294,7 +27294,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -27323,6 +27323,18 @@
         "timestamp": "2026-05-08T16:34:18Z",
         "src_file": "src/eStaticSurfaceLight.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/3221e66c/000211d8__agent_self_reported_failure__src_eStaticSurfaceLight.cpp"
+      },
+      {
+        "session": "d49eeec5",
+        "notes": "match wrote to out-of-scope path; reverted by Phase 1 ledger",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:09:33Z",
+        "src_file": "src/eStaticSurfaceLight.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/d49eeec5/000211d8__out_of_scope_path__src_eStaticSurfaceLight.cpp"
       }
     ]
   },
@@ -39375,7 +39387,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -39400,7 +39412,15 @@
         "src_file": "src/eStaticModel_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/b6adf65a/00041b94__agent_self_reported_failure__src_eStaticModel_Read.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eStaticModel_Read.cpp",
+    "symbol_name": "__0fMeStaticModelEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d49eeec5",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T00:09:33Z"
   },
   {
     "address": "0x00041ce4",
@@ -112493,7 +112513,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -112872,7 +112892,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -192351,7 +192371,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -192375,6 +192395,18 @@
         "timestamp": "2026-05-08T16:40:21Z",
         "src_file": "src/gcUIControlString.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/f1f464c8/0028f658__agent_self_reported_failure__src_gcUIControlString.cpp"
+      },
+      {
+        "session": "d741f0ba",
+        "notes": "Compared the existing canonical gcUIControlString::Read implementation in src/gcUIControlString.cpp. All already-matched sibling methods in this TU still compare cleanly, and the Read body matches the target after the cReadBlock constructor setup: version check for 2, gcStringLValue::Read, fail SetCurrentPos path, helper Read at +0x08, two cFileSystem::Read calls at +0x14/+0x18, destructor paths, and return value handling all line up.\n\nThe remaining mismatch is 21/240 bytes and is confined to offsets 0x18..0x36, the known cReadBlock prologue scheduler window. Compiled output emits move s1/move a0/li a2/sw s3/sw ra/jal/li a3/li s3, while expected interleaves sw s3/move s1/li s3/move a0/li a2/sw ra/jal/li a3. This matches the documented compiler-level cReadBlock prologue blocker rather than a body reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:07:22Z",
+        "src_file": "src/gcUIControlString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/d741f0ba/0028f658__agent_self_reported_failure__src_gcUIControlString.cpp"
       }
     ]
   },
@@ -221828,7 +221860,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -221853,6 +221885,18 @@
         "timestamp": "2026-05-08T16:40:39Z",
         "src_file": "src/gcValCameraFollowEntity3rdVariable_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/12fd5220/00322254__agent_self_reported_failure__src_gcValCameraFollowEntity3rdVariable_Read.cpp"
+      },
+      {
+        "session": "d741f0ba",
+        "notes": "Retried the split-TU gcValCameraFollowEntity3rdVariable::Read source. The file initially had result materialization before cReadBlock and compared at 34/188 bytes different; moving the result asm back after construction restored the expected 21/188 near miss. I then tested a different explicit constructor/destructor-call shape using a local rb array and __0oKcReadBlockctR6FcFileUib/__0oKcReadBlockdtv; it produced the same 21/188 output and was not retained. Applying #pragma control sched=1 made the prologue worse at 26/188, so the better default sched=2 RAII form was kept.\n\nThe closest output has the entire body matched from the version check onward: gcLValue_Read call, bnez success branch, fail SetCurrentPos and destructor path, success destructor path, and s3 return all match. The only remaining bytes differ at offsets 0x18..0x36 with the same pre-cReadBlock scheduling as gcUIControlString::Read, so this is also the cReadBlock prologue scheduler blocker and likely needs the pspcor scheduler patch rather than more source reshaping.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T00:07:22Z",
+        "src_file": "src/gcValCameraFollowEntity3rdVariable_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/d741f0ba/00322254__agent_self_reported_failure__src_gcValCameraFollowEntity3rdVariable_Read.cpp"
       }
     ],
     "mangled_symbol": "__0figcValCameraFollowEntity3rdVariableEReadR6FcFileP6IcMemPool"
@@ -238395,7 +238439,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -240225,7 +240269,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
