@@ -7,9 +7,17 @@
 
 #include "cBase.h"
 
+class cFile;
+class cFileHandle;
+
 class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *);
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
 };
 
 class cType {
@@ -22,6 +30,19 @@ public:
 class cHandlePairT_gE_cSe {
 public:
     const char *GetName(char *, bool, char *) const;
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
+};
+
+class cHandle {
+public:
+    void Read(cReadBlock &, cMemPool *);
 };
 
 struct cSubHandle {
@@ -39,6 +60,7 @@ public:
     void GetName(char *) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
 };
 
 extern char gcMessageHandlervirtualtable[];
@@ -73,6 +95,10 @@ struct DeleteRecord {
 };
 
 void gcMessageHandler_ctor(gcMessageHandler *, cBase *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
+extern void *D_00038890[];
 
 // ============================================================
 // 0x000d75a4 — constructor
@@ -157,4 +183,102 @@ extern "C" void gcMessageHandler___dtor_gcMessageHandler_void(gcMessageHandler *
             rec->fn((char *)block + off2, self);
         }
     }
+}
+
+int gcMessageHandler::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$17") = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if (rb[3] != 2) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    cHandle *handle0 = (cHandle *)((char *)this + 0x08);
+    *(int *)((char *)this + 0x08) = 0;
+    handle0->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle0));
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x0C, 4);
+
+    int handleValue = *(int *)((char *)this + 0x08);
+    int index = handleValue & 0xFFFF;
+    void *lookup;
+    if (handleValue != 0) {
+        void *entry = D_00038890[index];
+        lookup = 0;
+        if (entry != 0) {
+            if (*(int *)((char *)entry + 0x30) == handleValue) {
+                lookup = entry;
+            }
+        }
+    } else {
+        lookup = 0;
+    }
+
+    if (lookup != 0) {
+        void *entry2 = 0;
+        if (handleValue != 0) {
+            entry2 = D_00038890[(unsigned short)handleValue];
+        }
+        unsigned char flags = *(unsigned char *)((char *)entry2 + 0x4C);
+        int bit = flags & 4;
+        int hasBit = bit != 0;
+        hasBit &= 0xFF;
+        if (hasBit != 0) {
+            int value = *(int *)((char *)this + 0x0C);
+            value &= 0x8000FFFF;
+            value |= 0x00010000;
+            *(int *)((char *)this + 0x0C) = value;
+        }
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x10, 4);
+
+    cHandle *handle1 = (cHandle *)((char *)this + 0x14);
+    *(int *)((char *)this + 0x14) = 0;
+    handle1->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle1));
+
+    int sp14;
+    int tagged = *(int *)((char *)this + 0x18);
+    int tag = tagged & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done;
+    }
+    outValue = tagged;
+out_done:
+    sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = tagged & ~1;
+    } else {
+        base = *(int *)tagged;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x18),
+                                 (cBase *)base, *(cBase **)&sp14);
+
+    int newValue;
+    if (sp14 == 0) {
+        newValue = base | 1;
+    } else {
+        newValue = sp14;
+    }
+    *(int *)((char *)this + 0x18) = newValue;
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }

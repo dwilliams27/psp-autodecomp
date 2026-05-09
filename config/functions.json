@@ -79706,7 +79706,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -79718,7 +79718,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcMessageHandlerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcMessageHandlerEReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "683c8e75",
+        "notes": "Closest attempt reconstructs the full cReadBlock body in canonical src/gcMessageHandler.cpp and preserves existing gcMessageHandler constructor/GetName/New/GetType matches. The remaining mismatch is concentrated in the first handle-table lookup after reading offset 0x0C: expected uses entry in a2, lookup/result in a1, stores li a1,0 in the beqz delay slot, and falls through to move a1,a2 after the id compare. The current source either swaps entry/result register roles or emits an extra unconditional branch around the assignment depending on spelling, which shifts the rest of the function and reports roughly 245/532 differing bytes.\n\nTried nested ifs, explicit temporary index, slot pointer spelling, equality temp, register bindings for a1/a2, moving the method from the requested gcDoQueryNavMesh.cpp into canonical gcMessageHandler.cpp, and a permuter invocation. The permuter could not run because it cannot isolate this target from a multi-function .text object. This looks like SNC register/lifetime shaping around the D_00038890 lookup rather than missing behavior; later tagged-base ReadBase and final restore blocks are structurally the standard matched pattern.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T04:08:26Z",
+        "src_file": "src/gcMessageHandler.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/683c8e75/000d7390__agent_self_reported_failure__src_gcMessageHandler.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d75a4",
@@ -195371,7 +195385,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -207035,7 +207049,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -210756,7 +210770,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -210770,7 +210784,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDoQueryNavMeshEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fQgcDoQueryNavMeshEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcDoQueryNavMesh.cpp",
+    "symbol_name": "__0fQgcDoQueryNavMeshEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "683c8e75",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T04:08:26Z"
   },
   {
     "address": "0x002f6ca4",
