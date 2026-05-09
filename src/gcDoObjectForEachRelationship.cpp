@@ -1,6 +1,37 @@
-#include "gcDoObjectForEachRelationship.h"
-
+class gcExpression;
+class cBase;
 class cFile;
+class cFileHandle;
+class cMemPool;
+class cType;
+class cReadBlock;
+
+class gcDoObjectForEachRelationship {
+public:
+    char _pad[0x28];
+    gcExpression *branch;
+
+    int GetMaxBranches(void) const;
+    gcExpression *GetBranch(int) const;
+    void SetBranch(int, gcExpression *);
+    int Read(cFile &, cMemPool *);
+    void Write(cFile &) const;
+    void AssignCopy(const cBase *);
+    gcDoObjectForEachRelationship &
+    operator=(const gcDoObjectForEachRelationship &);
+    static cBase *New(cMemPool *, cBase *);
+    const cType *GetType(void) const;
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
 
 class cWriteBlock {
 public:
@@ -14,12 +45,28 @@ public:
 
 class gcExpressionList {
 public:
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
 };
 
 class gcAction {
 public:
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+};
+
+class cHandle {
+public:
+    int mIndex;
+    void Read(cReadBlock &, cMemPool *);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 class cType {
@@ -58,8 +105,17 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct ReadRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 void gcAction_gcAction(void *, cBase *);
 void gcExpressionList_gcExpressionList(void *, void *);
+extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 extern char gcDoObjectForEachRelationshipvirtualtable[];
 extern char gcDesiredEnumerationEntryvirtualtable[];
@@ -152,6 +208,77 @@ void gcDoObjectForEachRelationship::Write(cFile &file) const {
 
     ((const gcExpressionList *)((const char *)this + 0x28))->Write(wb);
     wb.End();
+}
+
+int gcDoObjectForEachRelationship::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] >= 3 || (unsigned int)rb[3] < 1 ||
+        ((gcAction *)this)->Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    int value = *(int *)((char *)this + 0x0C);
+    int tag = value & 1;
+    int flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int outValue;
+    if (flag != 0) {
+        outValue = 0;
+        goto out_done0;
+    }
+    outValue = value;
+out_done0:
+    int sp14 = outValue;
+
+    int flag2 = 0;
+    if (tag != 0) {
+        flag2 = 1;
+    }
+
+    int base;
+    if (flag2 != 0) {
+        base = value & ~1;
+    } else {
+        base = *(int *)value;
+    }
+
+    ((cReadBlock *)rb)->ReadBase(cMemPool::GetPoolFromPtr((char *)this + 0x0C),
+                                 (cBase *)base, *(cBase **)&sp14);
+
+    register int newValue __asm__("$5");
+    if (sp14 != 0) {
+        newValue = sp14;
+    } else {
+        newValue = base | 1;
+    }
+    register unsigned int version __asm__("$4") = rb[3];
+    *(int *)((char *)this + 0x0C) = newValue;
+
+    if (version >= 2) {
+        char *typeInfo = *(char **)((char *)this + 0x14);
+        char *basePtr = (char *)this + 0x10;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = *(cFile **)&rb[0];
+        rec->fn(basePtr + off, f, cMemPool::GetPoolFromPtr(basePtr));
+    } else {
+        cHandle *handle = (cHandle *)((char *)this + 0x1C);
+        *(int *)((char *)this + 0x1C) = 0;
+        handle->Read(*(cReadBlock *)rb, cMemPool::GetPoolFromPtr(handle));
+        *(char *)((char *)this + 0x18) = 1;
+    }
+
+    ((gcExpressionList *)((char *)this + 0x28))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoObjectForEachRelationship::AssignCopy(const cBase *other) {
