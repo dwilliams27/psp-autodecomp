@@ -14,6 +14,7 @@
 
 class cBase;
 class cFile;
+class cFileHandle;
 class cMemPool;
 class cType;
 
@@ -26,6 +27,22 @@ public:
     void Write(float);
     void End(void);
 };
+
+class cReadBlock {
+public:
+    unsigned int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 
 class cType {
 public:
@@ -40,6 +57,7 @@ struct gcDesiredUIWidgetHelper {
     int _b;
     int _c;
     void Write(cWriteBlock &) const;
+    void Read(cReadBlock &);
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
@@ -68,6 +86,7 @@ public:
     cBase *mParent;
     void *mVtable;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class gcValUIPosition : public gcLValue {
@@ -82,6 +101,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     void GetText(char *) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 
@@ -93,6 +113,16 @@ public:
         void (*fn)(void *, void *) = rec->fn;
         fn(block + off, p);
     }
+};
+
+class gcValUISize : public gcLValue {
+public:
+    gcDesiredUIWidgetHelper mHelper;
+    int   mField14;
+    bool  mField18;
+    float mField1C;
+
+    int Read(cFile &, cMemPool *);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -187,6 +217,48 @@ void gcValUIPosition::Write(cFile &file) const {
     wb.Write(this->mField18);
     wb.Write(this->mField1C);
     wb.End();
+}
+
+// ── gcValUIPosition::Read(cFile &, cMemPool *) @ 0x00363f94 ──
+int gcValUIPosition::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && this->gcLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x14, 4);
+    char flag;
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], &flag, 1);
+    void *f = *(void **)&rb[0];
+    *(bool *)((char *)this + 0x18) = (flag != 0);
+    cFileSystem::Read((cFileHandle *)*(void **)f, (char *)this + 0x1C, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
+}
+
+// ── gcValUISize::Read(cFile &, cMemPool *) @ 0x0036554c ──
+int gcValUISize::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 2, true);
+    if ((unsigned int)rb[3] == 2 && this->gcLValue::Read(file, pool)) goto success;
+    cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+    __0oKcReadBlockdtv(rb, 2);
+    return 0;
+success:
+    ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(*(cReadBlock *)rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], (char *)this + 0x14, 4);
+    char flag;
+    cFileSystem::Read((cFileHandle *)*(void **)rb[0], &flag, 1);
+    void *f = *(void **)&rb[0];
+    *(bool *)((char *)this + 0x18) = (flag != 0);
+    cFileSystem::Read((cFileHandle *)*(void **)f, (char *)this + 0x1C, 4);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 // ── gcValUIPosition::GetText(char *) const @ 0x00365130 ──

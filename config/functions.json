@@ -52162,7 +52162,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -62385,7 +62385,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -62410,6 +62410,18 @@
         "timestamp": "2026-05-08T20:10:40Z",
         "src_file": "src/eGeomCurveTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/277378b4/00077d1c__agent_self_reported_failure__src_eGeomCurveTemplate.cpp"
+      },
+      {
+        "session": "ff1013ed",
+        "notes": "Rechecked the existing eGeomCurveTemplate::Read near-miss and tried a bounded new register-pressure experiment by forcing the result variable into the expected s1 register. That did not change the 180/556 byte mismatch, so I reverted it to avoid making the source noisier. All other methods in src/eGeomCurveTemplate.cpp, including constructor/destructor/AssignCopy/GetType/GetInstanceType/Write/New and gcDesiredEnumerationEntry::Read, still compare as matched.\n\nThe remaining diff is the same category documented by the previous session: expected assigns this/result/pool/file as s0/s1/s2/s3 and later reuses s2 for the handle pointer; the current TU keeps pool/file/this/result as s0/s1/s2/s3. Control flow, calls, field offsets, sched=1, cReadBlock checks, v1 fallback, and tail reads are otherwise structurally aligned. This is category=REG_ALLOC, likely context-dependent SNC allocation drift from compiling a small reconstructed TU instead of the original eAll_psp.obj.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:14:31Z",
+        "src_file": "src/eGeomCurveTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ff1013ed/00077d1c__agent_self_reported_failure__src_eGeomCurveTemplate.cpp"
       }
     ]
   },
@@ -66171,7 +66183,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -195710,7 +195722,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -195739,6 +195751,18 @@
         "timestamp": "2026-05-08T20:07:11Z",
         "src_file": "src/gcDoChangeState_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/6735b2db/0029b848__agent_self_reported_failure__src_gcDoChangeState_Read.cpp"
+      },
+      {
+        "session": "ff1013ed",
+        "notes": "Implemented gcDoChangeState::Read in the canonical class source using the explicit int rb[5] cReadBlock pattern instead of the prior split-TU RAII attempt. This gets the function to the exact 548B size, restores the expected early fail block, keeps the D_00048890 handle-table validation, models the gcDesiredValue::Read call as the original symbol with the validated handle pointer live as a third argument register, and preserves the expected bnez/nop + branch/ori tagged-pointer finalization after ReadBase. Sibling functions in src/gcDoChangeState.cpp still compare as matched.\n\nRemaining diff is 170/548 bytes. The key drift starts in the handle-table/desired-value region: expected keeps the validated handle in a2 through the branch delay slots into gcDesiredValue::Read, while this TU allocates it to s2 and moves it back for the call. I tried RAII cReadBlock, explicit rb[5], keeping children/desired temporaries live in different places, a helper declaration for the extra gcDesiredValue argument, and hard register binding for the handle pointer as both pointer and int. The best current source is exact-size but appears blocked by SNC register-allocation drift around a2 versus s2 rather than missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:14:31Z",
+        "src_file": "src/gcDoChangeState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/ff1013ed/0029b848__agent_self_reported_failure__src_gcDoChangeState.cpp"
       }
     ]
   },
@@ -222954,7 +222978,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -240172,7 +240196,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -240197,7 +240221,15 @@
         "src_file": "src/gcValUIPosition.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/77012fa5/00363f94__agent_self_reported_failure__src_gcValUIPosition.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIPosition.cpp",
+    "symbol_name": "__0fPgcValUIPositionEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3571b523",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T02:17:14Z"
   },
   {
     "address": "0x003640a4",
@@ -240433,7 +240465,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -240458,7 +240490,15 @@
         "src_file": "src/gcValUIPosition.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/77012fa5/0036554c__agent_self_reported_failure__src_gcValUIPosition.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIPosition.cpp",
+    "symbol_name": "__0fLgcValUISizeEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3571b523",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T02:17:14Z"
   },
   {
     "address": "0x0036565c",
@@ -240707,7 +240747,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
