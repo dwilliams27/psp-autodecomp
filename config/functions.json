@@ -14196,7 +14196,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ce0",
       "0x00004ff4",
@@ -14221,6 +14221,18 @@
         "timestamp": "2026-05-08T21:27:25Z",
         "src_file": "src/cConfigBase.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/461ce684/00008550__agent_self_reported_failure__src_cConfigBase.cpp"
+      },
+      {
+        "session": "c655cbeb",
+        "notes": "Implemented cConfigBase::Read as canonical C++ in a split TU so existing cConfigBase.cpp siblings keep their prior compiler context. Tried an explicit extern cReadBlock ctor/dtor form first, which produced a 332B size mismatch; the C++ RAII cReadBlock form restores the correct 356B size and the full body shape. I also tested placing the method in src/cConfigBase.cpp, but that changed an already present sibling's register allocation, so the split-TU form was kept per the repo's method-addition rule.\n\nFinal compare is 28/356 bytes different. The retained source matches the body structure: version check, two cStr::Read calls, count read, one-byte bool loop with bnezl preload, optional int-array read, destructor, and result return. The remaining mismatch is confined to the known cReadBlock prologue/setup scheduler window: SNC saves/moves s-registers and sets s5/result interleaved with argument setup before the constructor, while the available compiler emits the callee-save block before that setup. This is the documented Read/cReadBlock compiler blocker, not a remaining body reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:59:17Z",
+        "src_file": "src/cConfigBase_Read.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/c655cbeb/00008550__agent_self_reported_failure__src_cConfigBase_Read.cpp"
       }
     ]
   },
@@ -16976,7 +16988,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -17043,6 +17055,18 @@
         "timestamp": "2026-05-08T21:33:20Z",
         "src_file": "src/cGroup.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/61e247a2/0000c22c__agent_self_reported_failure__src_cGroup.cpp"
+      },
+      {
+        "session": "c655cbeb",
+        "notes": "Implemented cGroup::Read in canonical class syntax in src/cGroup.cpp. Starting from the prior 147-byte-diff attempt, I tried sched=1 around only this method, which worsened the diff to 162 bytes, then rewrote the handle lookup in the m2c-style candidate/found form. That improved the body substantially to 140 bytes. Changing the loop's false-continuation path from an early RAII return to a break with one final return moved the destructor block to the target layout and reduced the diff to 28/356 bytes. A file-handle preload/source-order tweak was also tested and reverted after worsening the diff to 235 bytes.\n\nFinal compare is 28/356 bytes different with existing cGroup siblings still matching. The loop body now follows the target branch shape: one-byte continuation read, cHandle::Read into sp+0x18, D_00038890 candidate validation using a1/a2 roles, beqzl null-found path, visited flag OR at +0x28, and reload/backedge. Remaining bytes are the cReadBlock setup/prologue scheduling window and adjacent setup ordering around D_00038890/file-handle preload, matching the known Read/cReadBlock scheduler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:59:17Z",
+        "src_file": "src/cGroup.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/c655cbeb/0000c22c__agent_self_reported_failure__src_cGroup.cpp"
       }
     ]
   },
@@ -25497,6 +25521,18 @@
         "timestamp": "2026-05-08T22:09:01Z",
         "src_file": "src/gcValEntityDistance.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/9902fff9/0001cbf8__agent_self_reported_failure__src_gcValEntityDistance.cpp"
+      },
+      {
+        "session": "fa743932",
+        "notes": "Added a local ODR-warning redeclaration for eConfigPSP/eConfigBase in the requested TU and implemented the version-gated read sequence: base Read gate, four unconditional 4-byte reads, optional version-2 field, optional version-3 bool normalization, version-4 default/read split, version-5 tail reads, and fail SetCurrentPos path. Best compare_func result in this run is 122/500 bytes different with sched=2. sched=1 was tested and gave 121/500 but moved the prologue farther from the expected interleaved save/move order, so the source was restored to the closer sched=2 form. Targeted attempts with an explicit lt4 temporary and a register-bound flag normalization either worsened the layout or produced no instruction change. Remaining differences are the cReadBlock prologue scheduler/register allocation order plus a later a0/a1 register-selection drift around the version-4 gate/default constants; the high-level body and branch topology are otherwise aligned with the expected disassembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:18:16Z",
+        "src_file": "src/gcValEntityDistance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/fa743932/0001cbf8__agent_self_reported_failure__src_gcValEntityDistance.cpp"
       }
     ]
   },
@@ -30942,6 +30978,18 @@
         "timestamp": "2026-05-08T21:47:27Z",
         "src_file": "src/eCameraEffect.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/df0a39da/0002d304__agent_self_reported_failure__src_eCameraEffect.cpp"
+      },
+      {
+        "session": "fefae0b3",
+        "notes": "Implemented eCameraEffect::Read in canonical C++ in src/eCameraEffect.cpp with local sched=1. The post-constructor body matches the target sequence: version 4 check, cObject::Read, fail SetCurrentPos path, cBaseArray::Read at +0x44, three one-byte flag reads normalized with sltu into +0x4C/+0x4D/+0x4E, four 4-byte cFileSystem::Read calls at +0x50..+0x5C, destructor, and return value path.\n\ncompare_func reports 31/376 bytes different while all existing eCameraEffect siblings still match. The remaining diff is confined to the initial cReadBlock prologue scheduling: the compiler groups sw s0/s1/s2/s3/ra before moves, but the original interleaves saves and argument moves before the constructor call. sched=1 is the closest known shape; prior sched=2 was worse. This is the documented cReadBlock prologue blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:02:23Z",
+        "src_file": "src/eCameraEffect.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/fefae0b3/0002d304__agent_self_reported_failure__src_eCameraEffect.cpp"
       }
     ]
   },
@@ -87393,6 +87441,18 @@
         "timestamp": "2026-05-08T22:02:27Z",
         "src_file": "src/gcLightingConfig.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/31bf0cc2/000f0c2c__agent_self_reported_failure__src_gcLightingConfig.cpp"
+      },
+      {
+        "session": "44897983",
+        "notes": "Closest source remains the existing full version-gated C++ body in src/gcLightingConfig.cpp: accepted versions 1..5, legacy throwaway read for versions <3, field reads at 0x08/0x0c/0x10/0x14/0x18/0x1c/0x20, version-4 default of 2.0f at 0x14, and final forced 1.0f at 0x1c. compare_func reports the correct 400B function size but 103/400 bytes differ; all gcLightingConfig siblings and the colocated gcDoEntitySubGeomOp::Read still match. The mismatch is concentrated around the post-version<3 join and version<2/version<5 gate: target keeps version in a1, file word in a0, computes the <2 flag into a2, uses a normal bnez with the <5 sltiu in the delay slot, then reloads the file handle. This source consistently puts the <2 flag in a0 and emits bnezl with a reload in the likely delay slot.\n\nTried carrying version through the later <5 test, explicit file-word temporaries, register-binding the <2 flag to $a2, precomputing <5 before the branch, an explicit skip label shape to make the delay-slot computation legal, and a simple if inversion. These either preserved the 103-byte mismatch or worsened size/control flow (396B or 185+ byte diffs). A 300s permuter pass generated 1824 candidates, compiled 816, and found no improvement over the 103-byte baseline. Root cause appears to be SNC branch scheduling/register-role drift in this Read body rather than missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:21:40Z",
+        "src_file": "src/gcLightingConfig.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/44897983/000f0c2c__agent_self_reported_failure__src_gcLightingConfig.cpp"
       }
     ]
   },
@@ -101668,7 +101728,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -101693,6 +101753,18 @@
         "timestamp": "2026-05-08T21:41:24Z",
         "src_file": "src/gcValControllerState.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/f165e344/0011e0f4__agent_self_reported_failure__src_gcValControllerState.cpp"
+      },
+      {
+        "session": "802601ec",
+        "notes": "Implemented gcValControllerState::Read in its class-owned TU despite the target block listing gcValTableInfo.cpp. The body follows the disassembly: version range 2..3, gcValue::Read failure path with SetCurrentPos and cReadBlock dtor, conditional legacy +0x08 read for tag >=3, reads at +0x0C and +0x10, desired-object virtual read via type+0x30, and conditional gcDesiredValue::Read at +0x40. Existing gcValControllerState siblings still compare as matched.\n\nClosest result is 32/368 bytes different with #pragma control sched=1 around the method. sched=2/default leaves 34 bytes different and sched=0 produces a large body mismatch. The remaining mismatch is the initial cReadBlock prologue save/move ordering only; the body after the constructor call is instruction-aligned with expected. This is the known compiler-level cReadBlock prologue scheduler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:57:16Z",
+        "src_file": "src/gcValControllerState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/802601ec/0011e0f4__agent_self_reported_failure__src_gcValControllerState.cpp"
       }
     ]
   },
@@ -111440,7 +111512,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -111658,7 +111730,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000053c8",
@@ -114202,6 +114274,18 @@
         "timestamp": "2026-05-08T21:55:57Z",
         "src_file": "src/gcPartialEntityControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/d9db77e7/0013e388__agent_self_reported_failure__src_gcPartialEntityControllerTemplate.cpp"
+      },
+      {
+        "session": "c66b2710",
+        "notes": "Implemented gcPartialEntityControllerTemplate::Read in canonical class syntax and kept the closest source in src/gcPartialEntityControllerTemplate.cpp. The best compare is 113/388 bytes different, a small improvement over the prior 115-byte attempt by forcing the first handle reset to store directly at this+0x08. Existing constructor, destructor, GetName, Write, and GetType siblings still compare as MATCH; CreateAndResetInstance remains a pre-existing mismatch in this file and was not part of this target.\n\nTried direct stores for both handle resets, explicit goto lookup shaping, pointer-arithmetic table lookup, moving the mHandle2 slot calculation after the flag block, sched=1 around the method, and a 60s non-destructive permuter run. The permuter compiled 87 candidates and found no improvement. The remaining body mismatch is still the handle-table success join and flag branch region: SNC emits an extra unconditional branch after the successful key compare and uses beqzl with the zero-store delay slot where the target uses non-likely beqz/addiu slot setup. The initial cReadBlock prologue also has the known scheduler drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:12:28Z",
+        "src_file": "src/gcPartialEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/c66b2710/0013e388__agent_self_reported_failure__src_gcPartialEntityControllerTemplate.cpp"
       }
     ]
   },
@@ -186641,6 +186725,18 @@
         "timestamp": "2026-05-08T21:47:27Z",
         "src_file": "src/gcFormatString_Read.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/df0a39da/0027c4b8__agent_self_reported_failure__src_gcFormatString_Read.cpp"
+      },
+      {
+        "session": "a1262cff",
+        "notes": "Reintroduced gcFormatString::Read in canonical C++ inside src/gcFormatString.cpp using the prior split-TU body as the starting point: version-1 cReadBlock, parent gcStringValue::Read, handle reset/read at +0x08, subhandle file read at +0x0C, handle-table lookup through 0x38890, the dead andi-zero metadata branch, both cBaseArray::Read calls, and RAII destructor returns. The best compare was 119/376 bytes different with the ternary lookup shape; the natural/goto shapes were 124/376 and the tentative-entry and barrier variants were worse. New/GetType/GetName/Write/dtor siblings still match; AssignCopy was already a 2-byte near-miss before this session.\n\nThe remaining blocker is still the lookup/control-flow join plus the known cReadBlock prologue scheduling drift. The target falls through from the successful table comparison directly into `move a0,a1` and then the common `beqz a0` test; SNC keeps emitting an extra unconditional branch or branch+nop around that join, increasing the generated size to 380-384 bytes. I tried natural nested ifs, explicit gotos, ternary assignment, clearing-on-mismatch dataflow, register and non-register found pointer forms, and a memory barrier. A permuter pass was attempted, but tools/permuter.py refused to run because it could not locate an exact 376-byte compiled function in the multi-function/current near-miss source.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:07:23Z",
+        "src_file": "src/gcFormatString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/a1262cff/0027c4b8__agent_self_reported_failure__src_gcFormatString.cpp"
       }
     ]
   },
@@ -202680,7 +202776,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -202706,7 +202802,15 @@
         "src_file": "src/gcDoEntitySetGeomCurveTarget.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/223bc925/002c781c__agent_self_reported_failure__src_gcDoEntitySetGeomCurveTarget.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDoEntitySetGeomCurveTarget.cpp",
+    "symbol_name": "__0fcgcDoEntitySetGeomCurveTargetEReadR6FcFileP6IcMemPool",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "44897983",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-09T03:21:40Z"
   },
   {
     "address": "0x002c79a8",
@@ -206596,6 +206700,18 @@
         "timestamp": "2026-05-08T21:41:24Z",
         "src_file": "src/gcValControllerState.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/f165e344/002e23d0__agent_self_reported_failure__src_gcValControllerState.cpp"
+      },
+      {
+        "session": "fefae0b3",
+        "notes": "Implemented gcDoLobbyOp::Read in canonical C++ in src/gcDoLobbyOp.cpp. The body matches the target after the cReadBlock constructor: version 5 check, gcAction::Read call, field read at +0x0C, gcDesiredValue reads at +0x10/+0x14, tagged cBase pointer reconstruction, cMemPool::GetPoolFromPtr, cReadBlock::ReadBase, fallback tagged store, destructor, and both returns all align instruction-for-instruction.\n\nTested raw int rb storage, sched=2/default, sched=1, and a cReadBlock object/RAII variant. The best result is sched=1 at 31/368 bytes different, isolated to the initial cReadBlock prologue scheduling before the first version check: SNC emits grouped callee-save stores/moves, while the original interleaves sw s0/sw s2, move s2/move s0, sw s1/sw s3, move s1, li s3, call setup. This is the known cReadBlock prologue scheduler divergence, not a source-body mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:02:23Z",
+        "src_file": "src/gcDoLobbyOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/fefae0b3/002e23d0__agent_self_reported_failure__src_gcDoLobbyOp.cpp"
       }
     ]
   },
@@ -225496,6 +225612,18 @@
         "timestamp": "2026-05-08T22:09:01Z",
         "src_file": "src/gcValEntityDistance.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/9902fff9/0032c540__agent_self_reported_failure__src_gcValEntityDistance.cpp"
+      },
+      {
+        "session": "fa743932",
+        "notes": "Implemented gcValEntityDistance::Read in canonical C++ using the gcValEntity* Read exemplar pattern: cReadBlock version gate, parent gcValue::Read, three dynamic desired-object reads through type+0x30 slots, scalar/flag reads, cName reads, gcDesiredValue reads, and normal destructor returns. compare_func reports 36/496 bytes different. Manual objdump comparison shows the function body matches the expected instruction stream from the first branch through the final epilogue; the remaining difference is the known cReadBlock Read prologue scheduler ordering, where this compiler saves/moves s1/s2/s3/s4 in a different order before the cReadBlock constructor call. Prior register binding/sched probes and this run did not move it without regressing the body, so this is the documented cReadBlock prologue blocker rather than a reconstruction issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:18:16Z",
+        "src_file": "src/gcValEntityDistance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/fa743932/0032c540__agent_self_reported_failure__src_gcValEntityDistance.cpp"
       }
     ]
   },
@@ -228995,6 +229123,18 @@
         "timestamp": "2026-05-08T21:55:57Z",
         "src_file": "src/gcValEntityScreenValue.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/d9db77e7/0033bf60__agent_self_reported_failure__src_gcValEntityScreenValue.cpp"
+      },
+      {
+        "session": "a1262cff",
+        "notes": "Reintroduced gcValEntityScreenValue::Read in canonical C++ in src/gcValEntityScreenValue.cpp. The body follows the gcAll Read pattern exactly: version-4 cReadBlock, gcValue::Read parent call, two desired-object read dispatches through type+0x30 with cMemPool::GetPoolFromPtr, cName::Read at +0x34, two cFileSystem::Read calls at +0x84/+0x88, and three gcDesiredValue::Read calls. Existing GetType, AssignCopy, Write, and GetText siblings still compare as MATCH.\n\nCompare remains 36/384 bytes different, isolated to the known cReadBlock prologue save/move scheduling divergence. From the first post-constructor branch onward, the generated body matches the target instruction-for-instruction; the mismatch is the compiler-level ordering of callee-save stores, argument moves, result initialization, and the cReadBlock constructor call setup before offset 0x3c. Per the Read-method guidance and session research notes, this is not a source-body mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:07:23Z",
+        "src_file": "src/gcValEntityScreenValue.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/a1262cff/0033bf60__agent_self_reported_failure__src_gcValEntityScreenValue.cpp"
       }
     ]
   },
@@ -233625,7 +233765,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -233877,6 +234017,18 @@
         "timestamp": "2026-05-08T21:55:01Z",
         "src_file": "src/gcValLobbyScoreboardRowInfo.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/223bc925/0034d524__agent_self_reported_failure__src_gcValLobbyScoreboardRowInfo.cpp"
+      },
+      {
+        "session": "c66b2710",
+        "notes": "Implemented gcValLobbyScoreboardRowInfo::Read in its class-owned TU, not in gcPartialEntityControllerTemplate.cpp, because the class-method placement rule requires canonical class files. The body matches the target from the cReadBlock constructor call onward: version check, gcValue::Read, failure SetCurrentPos path, two cFileSystem reads, two gcDesiredValue reads, tagged cBase pointer reconstruction, GetPoolFromPtr, ReadBase, fallback tagged store, destructor, and return path all align. Existing New, AssignCopy, GetType, GetText, and Write siblings still compare as MATCH.\n\nClosest compare is 31/388 bytes different with #pragma control sched=1 around only this method. Default sched=2 was 34 bytes different, explicit register binding improved to 32 bytes, alternate register declaration order worsened to 50 bytes. The remaining diff is confined to the known cReadBlock prologue save/move scheduling window before the constructor call: the original interleaves sw s0/sw s2, argument moves, result initialization, and sw ra, while the available compiler groups callee-save stores and moves differently. This matches the documented compiler-level cReadBlock prologue blocker.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T03:12:28Z",
+        "src_file": "src/gcValLobbyScoreboardRowInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/c66b2710/0034d524__agent_self_reported_failure__src_gcValLobbyScoreboardRowInfo.cpp"
       }
     ]
   },
@@ -236992,7 +237144,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -238922,7 +239074,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -238948,6 +239100,18 @@
         "timestamp": "2026-05-08T21:39:50Z",
         "src_file": "src/gcValTableInfo.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_101832/366c1d78/003606d4__agent_self_reported_failure__src_gcValTableInfo.cpp"
+      },
+      {
+        "session": "802601ec",
+        "notes": "Implemented gcValTableInfo::Read in the class-owned TU with the observed version gate for tags 1..2, gcValue::Read, new-format desired-object virtual read for tag >=2, legacy cHandle read for tag 1, trailing cFileSystem_Read at +0x1C, gcDesiredValue::Read at +0x20, and RAII destructor behavior. Existing gcValTableInfo siblings still compare as matched. I fixed one body-level register-encoding drift in the legacy handle store by writing +0x18 directly before forming the handle pointer.\n\nClosest result is 32/356 bytes different with #pragma control sched=1 around the method. sched=2/default leaves 34 bytes different and sched=0 breaks most of the body. The remaining delta is isolated to the cReadBlock constructor prologue save/move scheduling; the post-constructor body is aligned. This matches the documented cReadBlock prologue scheduler blocker rather than a semantic source mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-09T02:57:16Z",
+        "src_file": "src/gcValTableInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260508_185952/802601ec/003606d4__agent_self_reported_failure__src_gcValTableInfo.cpp"
       }
     ]
   },

@@ -3,9 +3,21 @@
 inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
-class cFile;
-class cMemPool;
+class cFile {
+public:
+    void SetCurrentPos(unsigned int);
+};
+class cFileHandle;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
 
 class cType {
 public:
@@ -27,7 +39,12 @@ public:
 
 class cName {
 public:
+    void Read(class cReadBlock &);
     void Write(cWriteBlock &) const;
+};
+
+class cReadBlock {
+public:
 };
 
 class gcExpression {
@@ -41,6 +58,7 @@ public:
     void *mVTable;
     unsigned int mNext;
 
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -50,6 +68,7 @@ public:
 
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     void GetText(char *) const;
 };
@@ -66,6 +85,12 @@ struct WriteRec {
     void (*fn)(void *, cFile *);
 };
 
+struct ReadRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, cFile *, cMemPool *);
+};
+
 struct GetTextRec {
     short offset;
     short _pad;
@@ -75,6 +100,8 @@ struct GetTextRec {
 extern "C" void cStrAppend(char *, const char *, ...);
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcDesiredObject_gcDesiredObject(void *, cBase *);
+extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+extern "C" void __0oKcReadBlockdtv(void *, int);
 extern "C" void gcDesiredEntityHelper_ctor(void *, int, int, int)
     __asm__("gcDesiredEntityHelper__gcDesiredEntityHelper_gcDesiredEntityHelper__gcPrimary_gcDesiredEntityHelper__gcRelationship_gcDesiredEntityHelper__gcRelationship__0011B714");
 
@@ -176,6 +203,52 @@ const cType *gcDoEntitySetGeomCurveTarget::GetType(void) const {
             0);
     }
     return type_gcDoEntitySetGeomCurveTarget;
+}
+
+int gcDoEntitySetGeomCurveTarget::Read(cFile &file, cMemPool *pool) {
+    int result = 1;
+    int rb[5];
+
+    __0oKcReadBlockctR6FcFileUib(rb, file, 3, true);
+    if ((unsigned int)rb[3] != 3 || gcAction::Read(file, pool) == 0) {
+        ((cFile *)rb[0])->SetCurrentPos(rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x10);
+        char *base = (char *)this + 0x0C;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = (cFile *)rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x38, 4);
+    cFileSystem::Read(*(cFileHandle **)rb[0], (char *)this + 0x3C, 4);
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x44);
+        char *base = (char *)this + 0x40;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = (cFile *)rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    {
+        char *typeInfo = *(char **)((char *)this + 0x58);
+        char *base = (char *)this + 0x54;
+        ReadRec *rec = (ReadRec *)(typeInfo + 0x30);
+        short off = rec->offset;
+        cFile *f = (cFile *)rb[0];
+        rec->fn(base + off, f, cMemPool::GetPoolFromPtr(base));
+    }
+
+    ((cName *)((char *)this + 0x80))->Read(*(cReadBlock *)rb);
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcDoEntitySetGeomCurveTarget::Write(cFile &file) const {
