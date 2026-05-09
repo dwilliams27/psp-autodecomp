@@ -20,6 +20,13 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
 class gcEvent {
 public:
     gcEvent &operator=(const gcEvent &);
@@ -48,6 +55,12 @@ struct WriteRecord {
     void (*fn)(void *, cFile *);
 };
 
+struct ReadRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, void *);
+};
+
 extern char gcAnimationEventvirtualtable[];
 extern char cBaseclassdesc[];
 
@@ -58,11 +71,14 @@ extern cType *D_000385DC;
 extern cType *D_00099AB8;
 
 void *cMemPool_GetPoolFromPtr(const void *);
+void cFile_SetCurrentPos(void *, unsigned int);
 void gcEvent_gcEvent(void *, cBase *, const char *);
 
 extern "C" {
     void gcAnimationEvents__gcAnimationEvents_cBaseptr(void *, cBase *);
     void gcEvent___dtor_gcEvent_void(void *, int);
+    void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
+    void __0oKcReadBlockdtv(void *, int);
 }
 
 template <class T> T *dcast(const cBase *);
@@ -73,6 +89,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     ~gcAnimationEvents();
 };
@@ -137,6 +154,48 @@ void gcAnimationEvents::Write(cFile &file) const {
     rec3->fn((char *)base3 + off3, *(cFile **)&wb);
 
     wb.End();
+}
+
+int gcAnimationEvents::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$18") = 1;
+    int rb[5];
+    __0oKcReadBlockctR6FcFileUib(rb, file, 1, true);
+    if (rb[3] != 1) {
+        cFile_SetCurrentPos(*(void **)&rb[0], rb[1]);
+        __0oKcReadBlockdtv(rb, 2);
+        return 0;
+    }
+
+    char *typeInfo0 = *(char **)((char *)this + 0x0C);
+    void *base0 = (char *)this + 0x08;
+    ReadRecord *rec0 = (ReadRecord *)(typeInfo0 + 0x30);
+    short off0 = rec0->offset;
+    rec0->fn((char *)base0 + off0, *(void **)&rb[0],
+             cMemPool_GetPoolFromPtr(base0));
+
+    char *typeInfo1 = *(char **)((char *)this + 0x28);
+    void *base1 = (char *)this + 0x24;
+    ReadRecord *rec1 = (ReadRecord *)(typeInfo1 + 0x30);
+    short off1 = rec1->offset;
+    rec1->fn((char *)base1 + off1, *(void **)&rb[0],
+             cMemPool_GetPoolFromPtr(base1));
+
+    char *typeInfo2 = *(char **)((char *)this + 0x44);
+    void *base2 = (char *)this + 0x40;
+    ReadRecord *rec2 = (ReadRecord *)(typeInfo2 + 0x30);
+    short off2 = rec2->offset;
+    rec2->fn((char *)base2 + off2, *(void **)&rb[0],
+             cMemPool_GetPoolFromPtr(base2));
+
+    char *typeInfo3 = *(char **)((char *)this + 0x60);
+    void *base3 = (char *)this + 0x5C;
+    ReadRecord *rec3 = (ReadRecord *)(typeInfo3 + 0x30);
+    short off3 = rec3->offset;
+    rec3->fn((char *)base3 + off3, *(void **)&rb[0],
+             cMemPool_GetPoolFromPtr(base3));
+
+    __0oKcReadBlockdtv(rb, 2);
+    return result;
 }
 
 void gcAnimationEvents::AssignCopy(const cBase *base) {

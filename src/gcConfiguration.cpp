@@ -26,6 +26,7 @@ class cObject : public cBase {
 public:
     cObject(cBase *);
     cObject &operator=(const cObject &);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
 
@@ -35,6 +36,14 @@ public:
     cWriteBlock(cFile &, unsigned int);
     void WriteBase(const cBase *);
     void End(void);
+};
+
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+    void ReadBase(cMemPool *, cBase *, cBase *&);
 };
 
 template <class T> T *dcast(const cBase *);
@@ -84,7 +93,10 @@ extern cType *D_000385E4;
 extern cType *D_00099AF8;
 
 extern "C" int cGetCurrentPlatform(void);
-extern "C" void gcConfig__gcConfig_cBaseptr(void *self, cBase *parent);
+extern "C" {
+    void gcConfig__gcConfig_cBaseptr(void *self, cBase *parent);
+}
+void cFile_SetCurrentPos(void *, unsigned int);
 
 class gcConfiguration : public cObject {
 public:
@@ -96,6 +108,7 @@ public:
 
     gcConfiguration(cBase *);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
     cType *GetCoreConfigType(void);
@@ -205,6 +218,39 @@ void gcConfiguration::Write(cFile &file) const {
     wb.WriteBase(mField4C);
     wb.WriteBase(mField50);
     wb.End();
+}
+
+// ── gcConfiguration::Read(cFile &, cMemPool *) @ 0x000f036c ──
+int gcConfiguration::Read(cFile &file, cMemPool *pool) {
+    register int result __asm__("$19");
+    cReadBlock rb(file, 1, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 1 || cObject::Read(file, pool) == 0) {
+        cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+        return 0;
+    }
+
+    cBase *field44 = mField44;
+    rb.ReadBase(pool, this, field44);
+    mField44 = field44;
+
+    cBase *field48 = mField48;
+    rb.ReadBase(pool, this, field48);
+    mField48 = field48;
+
+    cBase *field4C = mField4C;
+    rb.ReadBase(pool, this, field4C);
+    mField4C = field4C;
+
+    cBase *field50 = mField50;
+    rb.ReadBase(pool, this, field50);
+    mField50 = (gcConfig *)field50;
+
+    DispatchEntry *dispatch =
+        (DispatchEntry *)(*(char **)((char *)this + 4) + 0x38);
+    ((void (*)(void *, cMemPool *, bool))dispatch->fn)(
+        (char *)this + dispatch->offset, pool, false);
+    return result;
 }
 
 // ── gcConfiguration::Initialize(void) static @ 0x000f07d4 ──
