@@ -41,6 +41,15 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+void cFile_SetCurrentPos(void *, unsigned int);
+
 extern "C" void eSoundData_eSoundData(void *, cBase *);
 
 class eSoundData {
@@ -48,6 +57,7 @@ public:
     char _pad[0x68];
     ~eSoundData();
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
 };
 
 class eSoundDataMap : public eSoundData {
@@ -57,6 +67,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
     static eSoundDataMap *New(cMemPool *, cBase *);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
@@ -102,6 +113,20 @@ void eSoundDataMap::Write(cFile &file) const {
     cWriteBlock wb(file, 2);
     eSoundData::Write(file);
     wb.End();
+}
+
+// ── eSoundDataMap::Read(cFile &, cMemPool *) @ 0x000210f4 ──
+int eSoundDataMap::Read(cFile &file, cMemPool *pool) {
+    int result;
+    cReadBlock rb(file, 2, true);
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    if (rb._data[3] != 2) goto fail;
+    if (eSoundData::Read(file, pool)) goto succ;
+fail:
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+succ:
+    return result;
 }
 
 // ── eSoundDataMap::GetType(void) const @ 0x001dffb4 ──

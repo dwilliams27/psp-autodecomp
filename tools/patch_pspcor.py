@@ -577,19 +577,73 @@ def build_read_prologue_transform_stub(stub_va: int, debug_dump: bool) -> bytes:
     # Stack locals in transform:
     # +00 sw17, +04 or17, +08 or4, +0c or6, +10 sw19,
     # +14 asm_first, +18 asm_last.
+    def find_to(label: str, fail_label: str, slot: int | None = None) -> None:
+        b.mov_reg_label_abs(b.EDI, label)
+        b.call_label("find_next")
+        b.test_reg_reg(b.EAX, b.EAX)
+        b.jz_label(fail_label)
+        if slot is not None:
+            b.mov_mem_reg(b.ESP, slot, b.EAX)
+
+    b.label("try_small_stack_v2")
+    b.mov_reg_mem(b.ESI, b.EBP, 0x1c)
+    find_to("s_sw16", "try_small_fail")
+    find_to("s_small_or16", "try_small_fail")
+    # This matcher is called as a subroutine from transform, so ESP[0] is the
+    # return address and transform's local slots start at ESP[4].
+    find_to("s_sw17", "try_small_fail", 0x04)
+    find_to("s_small_sw31", "try_small_fail", 0x08)
+    find_to("s_asm_start", "try_small_fail", 0x10)
+    find_to("s_asm_nop", "try_small_fail")
+    find_to("s_asm_result_s17", "try_small_fail")
+    find_to("s_asm_nop", "try_small_fail")
+    find_to("s_asm_end", "try_small_fail", 0x14)
+    find_to("s_or4", "try_small_fail")
+    find_to("s_or6_2", "try_small_fail", 0x0c)
+    find_to("s_jal_ctor", "try_small_fail")
+    find_to("s_or7", "try_small_fail")
+
+    b.mov_reg_mem(b.EBX, b.ESP, 0x10)
+    b.mov_reg_mem(b.EDX, b.ESP, 0x14)
+    b.mov_reg_mem(b.EDI, b.ESP, 0x04)
+    b.call_label("move_range_after")
+    b.mov_reg_mem(b.EBX, b.ESP, 0x08)
+    b.mov_reg_mem(b.EDX, b.ESP, 0x08)
+    b.mov_reg_mem(b.EDI, b.ESP, 0x0c)
+    b.call_label("move_range_after")
+    b.mov_reg_imm32(b.EAX, 1)
+    b.ret()
+
+    b.label("try_small_fail")
+    b.xor_reg_reg(b.EAX, b.EAX)
+    b.ret()
+
     b.label("transform")
     b.sub_esp(0x1c)
     if debug_dump:
         b.call_label("debug_dump")
     b.mov_reg_mem(b.ESI, b.EBP, 0x1c)
+    b.call_label("try_small_stack_v2")
+    b.test_reg_reg(b.EAX, b.EAX)
+    b.jnz_label("transform_done")
+    b.mov_reg_mem(b.ESI, b.EBP, 0x1c)
 
     def find(label: str, slot: int | None = None) -> None:
-        b.mov_reg_label_abs(b.EDI, label)
+        find_to(label, "transform_done", slot)
+
+    def find_or6_read_version(slot: int) -> None:
+        b.mov_mem_reg(b.ESP, slot, b.ESI)
+        b.mov_reg_label_abs(b.EDI, "s_or6")
+        b.call_label("find_next")
+        b.test_reg_reg(b.EAX, b.EAX)
+        b.jnz_label("found_or6_read_version")
+        b.mov_reg_mem(b.ESI, b.ESP, slot)
+        b.mov_reg_label_abs(b.EDI, "s_or6_2")
         b.call_label("find_next")
         b.test_reg_reg(b.EAX, b.EAX)
         b.jz_label("transform_done")
-        if slot is not None:
-            b.mov_mem_reg(b.ESP, slot, b.EAX)
+        b.label("found_or6_read_version")
+        b.mov_mem_reg(b.ESP, slot, b.EAX)
 
     find("s_sw16")
     find("s_sw18")
@@ -598,7 +652,7 @@ def build_read_prologue_transform_stub(stub_va: int, debug_dump: bool) -> bytes:
     find("s_sw17", 0x00)
     find("s_or17", 0x04)
     find("s_or4", 0x08)
-    find("s_or6", 0x0c)
+    find_or6_read_version(0x0c)
     find("s_sw19", 0x10)
     find("s_sw31")
     find("s_jal_ctor")
@@ -631,13 +685,17 @@ def build_read_prologue_transform_stub(stub_va: int, debug_dump: bool) -> bytes:
     b.ascii_label("s_or17", "or\t$17,$5,$0")
     b.ascii_label("s_or4", "or\t$4,$sp,$0")
     b.ascii_label("s_or6", "or\t$6,$0,1")
+    b.ascii_label("s_or6_2", "or\t$6,$0,2")
     b.ascii_label("s_sw19", "sw\t$19,32($sp)")
     b.ascii_label("s_sw31", "sw\t$31,36($sp)")
+    b.ascii_label("s_small_or16", "or\t$16,$4,$0")
+    b.ascii_label("s_small_sw31", "sw\t$31,28($sp)")
     b.ascii_label("s_jal_ctor", "jal\t__0oKcReadBlockctR6FcFileUib")
     b.ascii_label("s_or7", "or\t$7,$0,1")
     b.ascii_label("s_asm_start", "#asm{")
     b.ascii_label("s_asm_nop", "#nop <- $,$")
     b.ascii_label("s_asm_result", "#nop <- $19,$0,$")
+    b.ascii_label("s_asm_result_s17", "#nop <- $17,$0,$")
     b.ascii_label("s_asm_end", "#}asm")
     b.ascii_label("s_debug_fmt", "#RPHOOK:%s\n")
     return b.finish()

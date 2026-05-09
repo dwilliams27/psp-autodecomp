@@ -23,13 +23,15 @@ reproducible compiler-compatibility shim:
 - use that generated copy only after full matched-DB regression is clean;
 - keep an explicit stock-compiler escape hatch for debugging and rollback.
 
-The target failure cluster is dense enough to justify compiler work:
+The target family was dense enough to justify compiler work:
 
 - `Read(cFile &, cMemPool *)`, excluding `PlatformRead`: 569 total rows.
-- Current status: 53 matched, 187 failed, 329 untried.
-- 188B failed cluster: 99 rows.
-- 98/99 failed 188B rows cite cReadBlock/prologue scheduling.
-- 21 matched 188B rows prove the function size and body shape are achievable.
+- Current status as of 2026-05-09: 403 matched, 166 failed.
+- 188B `Read` rows: 120 total, 120 matched.
+- The original failure cluster had 99 failed 188B rows, and 98/99 cited
+  cReadBlock/prologue scheduling.
+- 21 initially matched 188B rows proved the function size and body shape were
+  achievable before the hook work began.
 
 `tools/research/read_prologue_clusters.py` now groups original EBOOT prologue
 prefixes for this family. For 188B `Read(cFile &, cMemPool *)` rows, the
@@ -37,19 +39,15 @@ original game has only five 12-word prologue prefixes:
 
 | Cluster | Rows | Status Mix | Notes |
 |---|---:|---|---|
-| cFactory hybrid | 93 | 93 failed | Main ML2 target shape. |
-| all-saves-first | 22 | 21 matched, 1 failed | Existing matched source pattern. |
-| hybrid, version 2 | 3 | 3 failed | Same as cFactory hybrid except `li a2,2`. |
-| hybrid, version 3 | 1 | 1 failed | Same as cFactory hybrid except `li a2,3`. |
-| smaller-stack version 2 | 1 | 1 failed | `gcEvent::Read`, 32B stack frame. |
+| cFactory hybrid | 93 | 93 matched | Main ML2 target shape. |
+| all-saves-first | 22 | 22 matched | Existing matched source pattern. |
+| hybrid, version 2 | 3 | 3 matched | Same as cFactory hybrid except `li a2,2`. |
+| hybrid, version 3 | 1 | 1 matched | Same as cFactory hybrid except `li a2,3`. |
+| smaller-stack version 2 | 1 | 1 matched | `gcEvent::Read`, 32B stack frame. |
 
-That accounts for all 99 failed 188B rows and explains why the current matched
-source recipe does not generalize: it lands the all-saves-first cluster, while
-most failures need the hybrid save/move order.
-
-The hybrid families total 97 rows and all are currently failed. No matched 188B
-row has the hybrid prefix, so the compiler work is aimed at a real corpus-wide
-shape rather than a one-function anomaly.
+That accounts for all 120 188B rows. The original matched source recipe landed
+the all-saves-first cluster, while most failures needed the hybrid save/move
+order now handled by the compiler hook.
 
 ## Concrete Divergence
 
@@ -377,6 +375,13 @@ Functional transform hook:
   - move the inline asm marker group immediately after `or $17,$5,$0`;
   - leave `sw $31,36($sp)` immediately before the `cReadBlock` constructor
     `jal`.
+- The default matcher accepts exact `or $6,$0,1` and `or $6,$0,2` cReadBlock
+  version nodes. It restores the search cursor and retries by exact string
+  rather than wildcarding arbitrary `$6` constants.
+- A separate exact matcher covers the one validated smaller-stack version-2
+  shape used by `gcEvent::Read`. It keys on `sw $31,28($sp)` and
+  `#nop <- $17,$0,$`, moves that asm group after `sw $17,24($sp)`, then moves
+  `sw $31,28($sp)` after `or $6,$0,2`.
 - The hook also has an explicit debugging mode,
   `--debug-read-prologue-strings`, which emits comment-only `#RPHOOK:` lines
   into kept assembly to inspect the late-list strings. That mode is not used by
@@ -388,8 +393,10 @@ Validation results for the functional hook:
 |---|---:|
 | `cFactory::Read` failed exemplar `0x0000ab98` | `0/188` masked diffs |
 | `eDynamicFluid::Read` matched exemplar `0x0005dccc` | `0/188` masked diffs |
-| Full matched DB under patched compiler | `4444/4444` verified |
-| Full matched DB under `USE_STOCK_PSPCOR=1` | `4444/4444` verified |
+| Hybrid version-2 rows `0x000210f4`, `0x0013c978`, `0x00322254` | `0/188` masked diffs |
+| Smaller-stack version-2 row `0x000d6034` | `0/188` masked diffs |
+| Full matched DB under patched compiler | `4794/4794` verified |
+| Stock compiler escape hatch before hook-dependent rows were promoted | `4444/4444` verified |
 
 Unlocked matching target list:
 
@@ -397,10 +404,9 @@ Unlocked matching target list:
   188B `Read(cFile &, cMemPool *)` rows whose original prologue prefix exactly
   matches the cFactory hybrid shape validated by this hook.
 - Object split: 59 `gcAll_psp.obj`, 32 `eAll_psp.obj`, 2 `cAll_psp.obj`.
-- Not included yet: the three `li a2,2` hybrid rows, the one `li a2,3` hybrid
-  row, and `gcEvent::Read`'s smaller-stack variant. Those require either
-  source validation or a slightly broader hook matcher before they should be
-  treated as unlocked.
+- Follow-up expansion on 2026-05-09 matched the three `li a2,2` hybrid rows
+  and `gcEvent::Read`'s smaller-stack variant. The lone `li a2,3` row was
+  already matched by source shape before this expansion.
 
 Rejected small byte-patch experiment:
 
@@ -638,3 +644,9 @@ Milestone 4:
 - 2026-05-07: Generated
   `config/targets_read_prologue_hybrid_20260507.json` for the 93 failed 188B
   hybrid Read rows directly unlocked by the default compiler hook.
+- 2026-05-09: Expanded the functional hook with exact version-2 hybrid support
+  and a separate exact `gcEvent::Read` smaller-stack matcher. Promoted
+  `eSoundDataMap::Read`, `gcCreatureControllerTemplate::Read`,
+  `gcValCameraFollowEntity3rdVariable::Read`, and `gcEvent::Read` to matched.
+  The 188B `Read(cFile &, cMemPool *)` family is now 120/120 matched, and the
+  full matched DB verifies cleanly under the patched compiler at 4794/4794.

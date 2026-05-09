@@ -21,6 +21,20 @@ public:
     void End(void);
 };
 
+class cReadBlock {
+public:
+    int _data[5];
+    cReadBlock(cFile &, unsigned int, bool);
+    ~cReadBlock(void);
+};
+
+class cFileHandle;
+
+class cFileSystem {
+public:
+    static void Read(cFileHandle *, void *, unsigned int);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -56,6 +70,7 @@ class gcExpressionList {
 public:
     gcExpressionList(cBase *);
     gcExpressionList &operator=(const gcExpressionList &other);
+    void Read(cReadBlock &);
     void Write(cWriteBlock &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
@@ -70,6 +85,7 @@ public:
     ~gcEvent();
     gcEvent &operator=(const gcEvent &other);
     void AssignCopy(const cBase *);
+    int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -90,6 +106,7 @@ extern cType *D_000998FC;
 extern char gcEventvirtualtable[];
 extern "C" void gcExpressionList_ctor(void *, cBase *) __asm__("__0oQgcExpressionListctP6FcBase");
 extern "C" void gcExpressionList_dtor(void *, int) __asm__("__0oQgcExpressionListdtv");
+void cFile_SetCurrentPos(void *, unsigned int);
 
 gcEvent::gcEvent(cBase *parent, const char *name) {
     *(cBase **)((char *)this + 0) = parent;
@@ -125,6 +142,20 @@ void gcEvent::Write(cFile &file) const {
     ((gcExpressionList *)((char *)this + 8))->Write(wb);
     wb.Write(*guid);
     wb.End();
+}
+
+int gcEvent::Read(cFile &file, cMemPool *) {
+    int result;
+    __asm__ volatile("ori %0, $0, 1" : "=r"(result));
+    cReadBlock rb(file, 2, true);
+    if ((unsigned int)rb._data[3] == 2) goto success;
+    cFile_SetCurrentPos(*(void **)&rb._data[0], rb._data[1]);
+    return 0;
+success:
+    ((gcExpressionList *)((char *)this + 8))->Read(rb);
+    cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 0x14, 4);
+    cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 0x18, 4);
+    return result;
 }
 
 cBase *gcEvent::New(cMemPool *pool, cBase *parent) {

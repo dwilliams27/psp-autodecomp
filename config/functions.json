@@ -27306,7 +27306,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -27351,7 +27351,9 @@
         "src_file": "src/eSoundDataMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3842f29a/000210f4__agent_self_reported_failure__src_eSoundDataMap.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSoundDataMap.cpp",
+    "symbol_name": "__0fNeSoundDataMapEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x000211b0",
@@ -79310,7 +79312,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -79356,7 +79358,9 @@
         "src_file": "src/gcEvent.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/f405c366/000d6034__agent_self_reported_failure__src_gcEvent.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcEvent.cpp",
+    "symbol_name": "__0fHgcEventEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x000d60f0",
@@ -114373,7 +114377,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -114419,7 +114423,9 @@
         "src_file": "src/gcCreatureControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/21a17bdf/0013c978__agent_self_reported_failure__src_gcCreatureControllerTemplate.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcCreatureControllerTemplate.cpp",
+    "symbol_name": "__0fcgcCreatureControllerTemplateEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0013ca34",
@@ -223984,7 +223990,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -224023,7 +224029,9 @@
         "snapshot": "logs/failure_snapshots/match_20260508_185952/d741f0ba/00322254__agent_self_reported_failure__src_gcValCameraFollowEntity3rdVariable_Read.cpp"
       }
     ],
-    "mangled_symbol": "__0figcValCameraFollowEntity3rdVariableEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0figcValCameraFollowEntity3rdVariableEReadR6FcFileP6IcMemPool",
+    "src_file": "src/gcValCameraFollowEntity3rdVariable_Read.cpp",
+    "symbol_name": "__0figcValCameraFollowEntity3rdVariableEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00322310",
