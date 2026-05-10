@@ -15938,7 +15938,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -17965,7 +17965,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0000dd18",
@@ -30512,7 +30512,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0001fb1c",
@@ -30530,7 +30530,21 @@
       "0x001ebc88"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oFeGeomdtv"
+    "mangled_symbol": "__0oFeGeomdtv",
+    "failure_notes": [
+      {
+        "session": "36778efc",
+        "notes": "16B short (424B vs expected 440B). The unlink check `(_80 || _84) && this != 0 && _80` simplifies in our SNC to just `_80 != 0` \u2014 the OR short-circuit + redundant _80 reload (bnez + beqzl + beqzl, 4 instructions) is gone. The expected emits 3 branches for the outer condition; ours emits 2 after optimization fold. Tried: (1) the SetGeomFlagsOnOff source pattern verbatim \u2014 works there but not in dtor because dtor's implicit `if (this != 0)` entry guard lets compiler prove `this != 0` and fold `this != 0` from the AND; (2) goto-based equivalent rewrite \u2014 compiler still merges the two `_80 == 0` tests; (3) `eGeom *self = this; __asm__ volatile(\"\" : \"+r\"(self))` then using `self` \u2014 pattern recovers OR branches but adds an extra `if (self != 0)` check (4 branches not 3) and shifts regalloc (uses a0 instead of s0 \u2192 272B differ); (4) `*(void * volatile *)` volatile casts on the reads \u2014 272B differ; (5) -Xmopt=0 -Xxopt=0 \u2014 still simplifies; (6) stock SNC (extern/snc) \u2014 same 424B output. This is a compiler-level optimization in both stock and read-prologue SNC builds that the original SNC build of the binary didn't have. Structurally analogous to ML2 (cReadBlock prologue) \u2014 fix requires binary patching pspcor.exe, not source restructuring. All other parts of the destructor (vtable bookends 0x37FF48/0x37E6A8, eRoom::RemoveGeom + eWorld::RemoveBinGeom + room-list unlink branches, operator delete with pool/free fallback) appear structurally correct given the size mismatch is localized to the update-list unlink check.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T22:20:31Z",
+        "src_file": "src/eGeom_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/36778efc/0002c5c0__agent_self_reported_failure__src_eGeom_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002c778",
@@ -34037,7 +34051,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c5c0"
@@ -194422,13 +194436,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oNgcTableStringdtv"
+    "mangled_symbol": "__0oNgcTableStringdtv",
+    "src_file": "src/gcTableString_dtor.cpp",
+    "symbol_name": "__0oNgcTableStringdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "36778efc",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T22:20:31Z"
   },
   {
     "address": "0x0028c21c",
@@ -241329,7 +241350,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
