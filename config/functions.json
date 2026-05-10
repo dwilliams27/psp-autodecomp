@@ -161367,14 +161367,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeProjectorTemplatedtv"
+    "mangled_symbol": "__0oSeProjectorTemplatedtv",
+    "src_file": "src/eProjectorTemplate.cpp",
+    "symbol_name": "__0oSeProjectorTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fa948fe6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:10:50Z"
   },
   {
     "address": "0x002151dc",
@@ -161633,14 +161641,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPeShadowTemplatedtv"
+    "mangled_symbol": "__0oPeShadowTemplatedtv",
+    "src_file": "src/eShadowTemplate.cpp",
+    "symbol_name": "__0oPeShadowTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fa948fe6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:10:50Z"
   },
   {
     "address": "0x00215ee0",
@@ -181876,7 +181892,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -183701,7 +183717,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
