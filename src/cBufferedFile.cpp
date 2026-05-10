@@ -42,6 +42,8 @@ public:
 
     cBufferedFile(unsigned int shift);
     ~cBufferedFile(void);
+    void FillBuffer(int bufIndex);
+    void WaitForFill(void);
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         if (pool != 0) {
@@ -96,6 +98,18 @@ cBufferedFile::~cBufferedFile(void) {
     sceKernelFreeFpl(mAllocHandle, mBufferPtr[0]);
     sceKernelFreeFpl(mAllocHandle, mBufferPtr[1]);
     sceKernelDeleteFpl(mAllocHandle);
+}
+
+void cBufferedFile::Reset(unsigned int pos) {
+    WaitForFill();
+    mCurrentBuffer = 0;
+    unsigned int aligned = pos & ((unsigned int)-1 << *(unsigned int *)this);
+    mFilePos[0] = aligned;
+    mFilePos[1] = aligned + mBufferSize;
+    mBufPos = pos - aligned;
+    FillBuffer(0);
+    WaitForFill();
+    FillBuffer(1);
 }
 
 void cBufferedFile::SetFilePos(unsigned int pos) {

@@ -18392,7 +18392,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0000e5ec",
       "0x0000e63c"
@@ -18402,7 +18402,14 @@
       "0x0000e710"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNcBufferedFileFResetUi"
+    "mangled_symbol": "__0fNcBufferedFileFResetUi",
+    "src_file": "src/cBufferedFile.cpp",
+    "symbol_name": "__0fNcBufferedFileFResetUi",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "addfc852",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:30:51Z"
   },
   {
     "address": "0x0000e5ec",
@@ -91482,7 +91489,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000f88f8",
@@ -188509,7 +188516,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000006fc",
       "0x00000708",
@@ -188517,7 +188524,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcGameStringsDGetPwiK"
+    "mangled_symbol": "__0fNgcGameStringsDGetPwiK",
+    "src_file": "src/gcGameStrings.cpp",
+    "symbol_name": "__0fNgcGameStringsDGetPwiK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "addfc852",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:30:51Z"
   },
   {
     "address": "0x0027ddb4",
@@ -189296,7 +189310,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000165c",
       "0x00007dec"

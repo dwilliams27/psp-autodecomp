@@ -81,6 +81,7 @@ public:
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetName(char *) const;
+    void Get(wchar_t *, int) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     const cType *GetType(void) const;
     int  Read(cFile &, cMemPool *);
@@ -121,6 +122,9 @@ extern cType *D_0009F788;
 
 gcGameStrings *dcast(const cBase *);
 void cStrAppend(char *, const char *, ...);
+const char *cGetBuildDateTime(void);
+const char *cGetBuildInfo(void);
+void cStrCopy(wchar_t *, const char *, int);
 
 // ============================================================
 // gcGameStrings::AssignCopy(const cBase *)  @ 0x0027da78
@@ -205,6 +209,20 @@ void gcGameStrings::Write(cFile &file) const {
 // ============================================================
 void gcGameStrings::GetName(char *buf) const {
     cStrAppend(buf, gcGameStrings_fmt, gcGameStrings_name);
+}
+
+// ============================================================
+// gcGameStrings::Get(wchar_t *, int) const  @ 0x0027dd34, 128B
+// ============================================================
+void gcGameStrings::Get(wchar_t *buf, int size) const {
+    int v = this->mValue;
+    if (v <= 0) {
+        if (v >= 0) {
+            cStrCopy(buf, cGetBuildDateTime(), size);
+        }
+    } else if (v < 2) {
+        cStrCopy(buf, cGetBuildInfo(), size);
+    }
 }
 
 // ============================================================
