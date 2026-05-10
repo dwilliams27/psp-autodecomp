@@ -27889,7 +27889,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00021990"
@@ -198462,7 +198462,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -231440,7 +231440,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -231448,7 +231448,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValEntitySoundFrequencyKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fZgcValEntitySoundFrequencyKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "a3ef59b9",
+        "notes": "Closest attempt produces 756B vs target 772B (16B / 4 instrs short). Bytes 0x000-0x1bc match identically (prologue, full 5-level type cache init for type_gcValEntitySoundFrequency (id 0x1E2), dispatch through entry+8 with parent-chain walk, beqz s2 setup, addiu a1=s2+8 twice with addiu a0=s0+8 in delay slot of jal to gcDesiredEntity::operator=). Divergence at 0x1c0: SNC emits 'beql a0,s8,2a8' with bool-preload (lbu a0,0x38(s2)) in delay slot, jumping past the LIKELY-equal case; target uses 'bnel a0,s8,1d0' with first-instruction-of-destruct ('lw a2,0x34(s0)') in delay slot followed by 'b 2b8' with 'lbu a0,0x38(s2)' in its delay slot. This is a SNC scheduling-heuristic divergence on which delay-slot work to prefer: bool-preload vs val-load. The downstream register allocation drifts: target keeps val in a2, current in a0 (since current loads it inside destruct body rather than in branch delay slot); target also has separate 'ori a2,a2,1' per tagged/untagged demote branch (with 'b 214' bracketing them) vs current's single merged ori after the if-else. Target's clone-skip uses non-likely 'beqz a1,2b4' with 'move s1,a0' (preserve val) in delay slot; current's uses likely 'beqzl a0,2a8' with 'lbu a0,0x38(s2)' (bool preload) in delay slot. Tried (1) 'unsigned char' bool fields to get lbu (worked - matched), (2) memory barrier between if and bool copies (no effect), (3) explicit '| 1' per demote branch (regressed to 752B - SNC reorganized differently), (4) goto-skip-destruct form (no change - same beql emission), (5) restored. .size + b $;nop trailing pad added via __asm__ at file scope (matches matched-sibling pattern in _dtor.cpp). Type-cache statics use asm() linkage to D_000385D[8C]/D_0009F[3E8|3EC|844] symbols. Does NOT qualify as ADR-006 bnel/beql unmatchable (requires <=8B diff and all other bytes match; we have 16B and reg-allocation drift). Next agent: try forcing bnel via inline hint or restructure that makes the val load unschedulable into beql delay slot - e.g. ensure first instr of destruct is a memory write rather than read, or interpose a non-elidable operation between if-end and bool copies.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:01:38Z",
+        "src_file": "src/gcValEntitySoundFrequency_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/a3ef59b9/0033d454__agent_self_reported_failure__src_gcValEntitySoundFrequency_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033d758",
@@ -231686,13 +231700,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oZgcValEntitySoundFrequencydtv"
+    "mangled_symbol": "__0oZgcValEntitySoundFrequencydtv",
+    "src_file": "src/gcValEntitySoundFrequency_dtor.cpp",
+    "symbol_name": "__0oZgcValEntitySoundFrequencydtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "a3ef59b9",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T23:01:38Z"
   },
   {
     "address": "0x0033e8e0",
