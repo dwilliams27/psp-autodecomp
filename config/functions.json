@@ -56917,7 +56917,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -56928,7 +56928,14 @@
       "0x000768fc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oUeSimulatedControllerdtv"
+    "mangled_symbol": "__0oUeSimulatedControllerdtv",
+    "src_file": "src/eSimulatedController_dtor.cpp",
+    "symbol_name": "__0oUeSimulatedControllerdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6a5c4192",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T05:06:22Z"
   },
   {
     "address": "0x0006c07c",
@@ -79841,7 +79848,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -85623,7 +85630,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000ebee0",
@@ -239560,13 +239567,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oggcValRigidBodyControllerVariabledtv"
+    "mangled_symbol": "__0oggcValRigidBodyControllerVariabledtv",
+    "src_file": "src/gcValRigidBodyControllerVariable_dtor.cpp",
+    "symbol_name": "__0oggcValRigidBodyControllerVariabledtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6a5c4192",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T05:06:22Z"
   },
   {
     "address": "0x00359db8",
