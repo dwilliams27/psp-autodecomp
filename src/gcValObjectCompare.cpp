@@ -8,7 +8,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType;
 
 class cWriteBlock {
@@ -63,14 +68,31 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcValObjectCompare : public gcValue {
 public:
+    ~gcValObjectCompare();
     gcValObjectCompare &operator=(const gcValObjectCompare &);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     float Evaluate(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern char cBaseclassdesc[];
@@ -80,6 +102,52 @@ static cType *type_base asm("D_000385DC");
 static cType *type_expression asm("D_000385D8");
 static cType *type_value asm("D_0009F3E8");
 static cType *type_gcValObjectCompare asm("D_0009F8B8");
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcValObjectComparedtv, 0x128\n");
+
+// -----------------------------------------------------------------------------
+// gcValObjectCompare::~gcValObjectCompare(void) @ 0x003545c4, 296B
+// -----------------------------------------------------------------------------
+gcValObjectCompare::~gcValObjectCompare() {
+    *(char **)((char *)this + 4) = gcValObjectComparevirtualtable;
+    char *slot8 = (char *)this + 0x08;
+    char *slotC = (char *)this + 0x0C;
+    if (slotC != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+    if (slot8 != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 void gcValObjectCompare::AssignCopy(const cBase *base) {
     const gcValObjectCompare *other = 0;
