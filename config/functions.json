@@ -52143,13 +52143,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWeWeatherEffectTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0fWeWeatherEffectTemplatePGetInstanceTypevK",
+    "src_file": "src/eWeatherEffectTemplate.cpp",
+    "symbol_name": "__0fWeWeatherEffectTemplatePGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f34688ca",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:48:58Z"
   },
   {
     "address": "0x000615a4",
@@ -52651,13 +52659,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYeBipedControllerTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0fYeBipedControllerTemplatePGetInstanceTypevK",
+    "src_file": "src/eBipedControllerTemplate.cpp",
+    "symbol_name": "__0fYeBipedControllerTemplatePGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f34688ca",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:48:58Z"
   },
   {
     "address": "0x00062b48",
@@ -113939,7 +113955,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -121764,7 +121780,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

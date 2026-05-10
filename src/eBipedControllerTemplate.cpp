@@ -9,6 +9,18 @@
 class cBase;
 class cFile;
 class cMemPool;
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
+class eBipedController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
 
 inline void *operator new(unsigned int, void *p) {
     return p;
@@ -69,6 +81,7 @@ public:
 
     eBipedControllerTemplate(cBase *);
     ~eBipedControllerTemplate();
+    const cType *GetInstanceType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
@@ -85,6 +98,10 @@ public:
 };
 
 extern char eBipedControllerConfigvirtualtable[];
+
+extern cType *D_000385DC;
+extern cType *D_000469D8;
+extern cType *D_00046BB4;
 
 #pragma control sched=1
 
@@ -121,6 +138,34 @@ success:
 eBipedControllerTemplate::~eBipedControllerTemplate() {
     *(void **)((char *)this + 4) = eBipedControllerConfigvirtualtable;
 }
+
+#pragma control sched=1
+
+// ── eBipedControllerTemplate::GetInstanceType(void) const @ 0x00062a70 ──
+const cType *eBipedControllerTemplate::GetInstanceType(void) const {
+    if (D_00046BB4 == 0) {
+        if (D_000469D8 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_000469D8 = cType::InitializeType(0, 0, 0x232, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469D8;
+        cBase *(*factory)(cMemPool *, cBase *) =
+            (cBase *(*)(cMemPool *, cBase *))0x208DDC;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BB4 = cType::InitializeType(0, 0, 0x238, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046BB4;
+}
+
+#pragma control sched=1
 
 // ── eBipedControllerTemplate::New @ 0x00208638 ──
 cBase *eBipedControllerTemplate::New(cMemPool *pool, cBase *parent) {
