@@ -40,6 +40,14 @@ void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 void cStrCopy(char *, const char *);
 
+extern char *D_0037D87C;
+
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
+
 struct PoolBlock {
     char pad[0x1C];
     char *allocTable;
@@ -93,6 +101,7 @@ public:
     }
 
     void Write(cFile &) const;
+    void Get(wchar_t *, int) const;
     void GetName(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -114,6 +123,46 @@ void gcPlayerStrings::Write(cFile &file) const {
     mDesired.Write(wb);
     wb.Write(mValue);
     wb.End();
+}
+
+// ── gcPlayerStrings::Get(wchar_t *, int) const  @ 0x0031e3e8, 248B ──
+void gcPlayerStrings::Get(wchar_t *buf, int size) const {
+    extern void cStrCopy(wchar_t *, const char *, int);
+
+    int flag = 0;
+    int val = *(int *)((const char *)this + 0x08);
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int desiredPtr = val;
+    float f;
+    if (desiredPtr != 0) {
+        FloatDispatchEntry *fe = (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+        f = fe->fn((char *)desiredPtr + fe->offset);
+    } else {
+        f = 0.0f;
+    }
+    int idx = (int)f - 1;
+
+    char *entry = 0;
+    if (idx >= 0 && idx < 8) {
+        entry = D_0037D87C + idx * 0x44;
+    }
+    if (entry == 0) {
+        entry = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    if (entry != 0 && this->mValue == 0) {
+        cStrCopy(buf, entry + 12, size);
+    }
 }
 
 // ── New @ 0x0031e100 ──

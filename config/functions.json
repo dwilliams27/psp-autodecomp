@@ -91496,7 +91496,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f88f8",
@@ -91505,7 +91505,21 @@
       "0x00298c84"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0f5IgcCameraLgcXYZMotionDSetRC6FmVec36KcTimeValue"
+    "mangled_symbol": "__0f5IgcCameraLgcXYZMotionDSetRC6FmVec36KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "9ba4fbb1",
+        "notes": "Matched 132/136 bytes (4 bytes diff). Final diff is a 2-instruction swap at offsets 0x60/0x64 in the ticks!=0 divide path: SNC emits `mtc1 $a1, $f12` (dist) before `mtc1 $a2, $f13` (ticks bits), but the EBOOT has them in the opposite order. The cvt.s.w/lui/lwc1/mul/div sequence and final swc1 all match. Iterations performed: (1) inline `*&v` struct copy + simple if/else - 30 bytes diff. (2) Hoisted SceULong128 vv temp + `if (ticks==0)` then-branch first - 30 bytes. (3) Swapped path order to `if (ticks!=0)` - got beqzl + duplicate sv.q at fall-through (132B function, 1 instruction short). (4) Added matching `if (ticks == 0)` with stores in BOTH branches plus SceULong128 vv temp - got bnezl + duplicate sv.q matching expected size. (5) Inserted `__asm__ volatile(\"\" : : \"f\"(z))` between *(this+0x00)=vv and the first mfc1 to anchor mtc1 zero materialization - this fixed the mtc1/sv.q interleave at 0x1c/0x20. (6) Inserted `__asm__ volatile(\"\" : : \"r\"(ticks))` after `int ticks = time.mTime;` and before SceULong128 vv load - this fixed the lw/lv.q swap at 0x08/0x0c in the prologue. (7) Tried various declaration orders for `dist` and `fticks` named locals: dist-first kept reg alloc ($f12=dist, $f13=fticks) but mtc1 $a1 issued first; fticks-first put mtc1 $a2 first but flipped reg alloc to ($f12=fticks, $f13=dist) which broke mul/div register fields downstream (21 bytes diff). (8) Tried embedding mtc1 inside the inline asm via `=f`(dist) constraint - 20 bytes diff (different lui/lwc1/mtc1 sequence). Permuter ran 300s with 4094 candidates compiled, found 0 improvements over the 4-byte baseline. Root cause appears to be SNC-side scheduler choice between two valid orderings of independent mtc1 instructions after mfv: SNC consumes `$a1` (the mfv output) immediately to free the GPR before `lui $a1` reuses it, while the EBOOT's compiler version inserted mtc1 $a2 (independent of $a1) into that single-cycle latency slot first. This is REG_ALLOC drift (mtc1 destination register field), not bnel/beql divergence, so does not qualify for unmatchable classification. Source has no leverage over the scheduler's choice between these two register-allocation orderings here - it's a 4-byte register-field difference.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:31:16Z",
+        "src_file": "src/gcCamera_gcXYZMotion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/9ba4fbb1/000fbe00__agent_self_reported_failure__src_gcCamera_gcXYZMotion.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fbe88",
@@ -109331,7 +109345,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc"
@@ -135362,7 +135376,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001b9fec"
     ],
@@ -164070,7 +164084,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008ed90",
@@ -189324,14 +189338,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000165c",
       "0x00007dec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcLanguageStringsDGetPwiK"
+    "mangled_symbol": "__0fRgcLanguageStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "9ba4fbb1",
+        "notes": "Matched 148/160 bytes (12 bytes diff). Function size matches (160B), but 6 instructions differ in the conditional-zero block and the dispatch-pointer use. Iterations: (1) Initial `int v=...; int p=v; if (flag) p=0;` produced 132B (size mismatch) with bnez and no duplicate sv.q-style branch; (2) Restructured to `int p; if (flag==0) p=v; else p=0;` got 160B size with 26 byte diff and beqz+nop+b+li branching pattern; (3) Tried adding `int mDesired` field to gcLanguageStrings class with proper gcStringValue layout (`void *_b0; void *_b4;`) to enable member-access codegen \u2014 no change to compile output, AND it broke the matched destructor and other matched siblings via class-layout drift, so reverted; (4) Permuter ran 300s with 4078 candidates compiled, found 2 improvements going from 26 \u2192 12 bytes diff. The improvement (saved): reorder local declarations (`int flag = 0; int v = ...;`) and add `__asm__ volatile(\"\" ::: \"memory\")` at the end of the else branch in the conditional-zero block \u2014 this triggered the expected `lw a0, 8(a0)` first scheduling and the 4-instruction beqz/nop/b/li sequence at 0x2c-0x38; (5) Permuter also incidentally swapped `if (keep != 0 && val != 0)` to `if (val != 0 && keep != 0)` in the destructor body which broke its 2-byte match \u2014 reverted that change since the dtor was previously matched. Remaining 12-byte diff: at 0x2c the beqz target offset differs by 1 (3\u21924), at 0x34/0x38 the `li a0, 0` and `b` are swapped (compiler put body before b, expected put body in b's delay slot), at 0x3c we have nop where expected has `move a1, a0`, and at 0x40/0x48 the dispatch loads from a0 where expected uses a1 (ours skips the explicit move-to-a1 and uses a0 directly through the vtable walk). This is a register-allocation drift where the EBOOT's compiler chose to materialize `p` in a fresh register (a1) and emitted an explicit move, while our SNC keeps `p` in a0 and reuses it for the dispatch \u2014 both are valid codegen paths. Pre-existing AssignCopy 4-byte size mismatch (608 vs 612) was confirmed via `git stash` to predate this session and is unrelated to the Get changes.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:31:16Z",
+        "src_file": "src/gcLanguageStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/9ba4fbb1/0027f404__agent_self_reported_failure__src_gcLanguageStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027f4a4",
@@ -190985,14 +191013,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000165c",
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fbgcLobbyScoreboardRowStringsDGetPwiK"
+    "mangled_symbol": "__0fbgcLobbyScoreboardRowStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "ca42cfd2",
+        "notes": "Closest attempt is 11 bytes / 8 instructions diff. Function structure is correct: nwNetwork::GetLobby() call \u2192 lobby!=0 check \u2192 tag-bit val zeroing pattern (matches GetName) \u2192 branch-likely on val!=0 \u2192 ValueGetSlot vtable call returning float at classDesc+0x70 \u2192 bltz idx check \u2192 LobbyMethodSlot vtable call at lobby->classDesc+0x318 with (lobby+off, idx, &info) \u2192 mField check \u2192 cStrCopy(buf, info.text, size). Used struct gcLobbyScoreboardRowInfo {int header[5]; char text[276];} to give the right 296-byte stack buffer with text starting at offset 20. The diff is purely SNC's register allocation choice: expected has s0=this, s1=buf, s2=size, s3=lobby (forward arg-index order). Mine gets s0=size, s1=buf, s2=this, s3=lobby (reverse arg-index order). All 8 differing instructions are register field renames (sw sN offset, move sN aM, move aN sM, lw aM sN). Tried 4 source variants: rowBuf as char[296], rowBuf as struct, rowBuf declared after lobby check, this access via 'thisPtr' local before GetLobby (much worse - added addiu/lw rewrites). Permuter ran 120s with 1775 candidates compiled, zero improvement (same 11-byte starting diff). Compared with gcLobbyConfigStrings::Get (3 callee-saves: s0=size, s1=buf, s2=this) \u2014 that function uses reverse arg-order allocation, but mine with 4 callee-saves should use forward arg-order per the expected codegen. Root cause: SNC's allocator picks different starting register based on the number of callee-save vars and lobby being among them, but source-level changes don't reach that decision. Note: AssignCopy SIZE MISMATCH (616 vs DB 624) was pre-existing before my changes \u2014 not caused by this work.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:07:50Z",
+        "src_file": "src/gcLobbyScoreboardRowStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/ca42cfd2/00283f84__agent_self_reported_failure__src_gcLobbyScoreboardRowStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00284070",
@@ -191213,14 +191255,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000165c",
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyUserStringsDGetPwiK"
+    "mangled_symbol": "__0fSgcLobbyUserStringsDGetPwiK",
+    "src_file": "src/gcLobbyUserStrings.cpp",
+    "symbol_name": "__0fSgcLobbyUserStringsDGetPwiK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "18560dc5",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T17:46:13Z"
   },
   {
     "address": "0x00284abc",
@@ -195461,14 +195510,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000165c",
       "0x000603dc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcUserStringsDGetPwiK"
+    "mangled_symbol": "__0fNgcUserStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "ca42cfd2",
+        "notes": "Closest attempt is 6 bytes / 2 instructions diff (slti and lw swapped at 291e7c-291e80). Wrote canonical structure: early-return-via-negated-if pattern (matches m2c output), val=mDesired._data load before size clamp, branch-likely on val!=0 with mtc1 zero in delay slot, vtable dispatch through ValueGetSlot at classDesc+0x70 returning float, eUser::GetUserName(unsigned short, char*) call into 20-byte stack buffer, cStrCopy(buf, nameBuf, size) at end. Function structure is correct: register allocation matches (s0=size, s1=buf), all branches and andi masks match, the trunc.w.s/mfc1/andi sequence in both if/else float paths matches. Used 'unsigned short userId' to get the per-branch andi without an extra one at the call site. Only remaining diff is SNC scheduler decided to put the lw a0,8(a0) BEFORE slti rather than between slti and beqzl. Tried 6 source variants: val before clamp (lw at 291e7c, 2-diff), val after clamp (lw at 291e88, 3-diff), explicit bool clamp (worse - extra xori), int sz_lt (same 2-diff), ternary clamp (same 3-diff), separate val0C/val08 temps (worse - both loads hoisted). Permuter ran 120s with 1518 candidates compiled, zero improvement. The remaining diff is pure SNC instruction scheduling that source-level changes don't seem to influence. Root cause: SNC's scheduler picks slot 291e7c vs 291e80 for the independent lw based on heuristics that don't follow source order. NOT covered by the bnel/beql unmatchable rule.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:07:50Z",
+        "src_file": "src/gcUserStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/ca42cfd2/00291e5c__agent_self_reported_failure__src_gcUserStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00291f18",
@@ -223158,13 +223221,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0000165c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcPlayerStringsDGetPwiK"
+    "mangled_symbol": "__0fPgcPlayerStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "18560dc5",
+        "notes": "Closest attempt: 59/248 bytes differ. Function structure (size, control flow) matches exactly. The diff is purely callee-saved register allocation: original assigns s0=this, s1=buf, s2=size with val loaded into a1 and flag in a0; my output assigns s2=this, s1=buf, s0=size with val in a0 and flag in a1. This swap cascades through almost every instruction (each register-encoding byte differs) producing the 59-byte diff. The redundant null-check pattern at the end (bnez/nop/b/li, equivalent to `if (entry != 0) {} else { entry = 0; }`) is correctly emitted by writing it as `if (entry == 0) { entry = 0; } else { __asm__ volatile(\"\" ::: \"memory\"); }` \u2014 the barrier-only else branch keeps the SNC compiler from collapsing it. The val-extraction also matches the canonical SNC tagged-pointer pattern (beqz/nop/b/li form via the volatile barrier in the if-flag-set else branch). What I tried that did NOT change the s0/s2 swap: declaring flag before val, declaring val via mDesired.mOwner, removing the `int desiredPtr = val` alias (loses the move a0/a1 instruction, drops to 244B), wrapping in static inline helper `gcPlayerStrings_LookupSlot(idx)`, raw-int access for mValue check at offset 0xC, asm-volatile barrier on entry pointer with `+r` constraint, and 3-minute permuter run (improved by 1 byte, no exact match). Root cause appears to be SNC's register allocator picking the s-reg for `this` in reverse order (s2 first instead of s0) when there is no early function call to anchor the prologue \u2014 gcLobbyUserStrings::Get matched easily because nwNetwork::GetLobby() in the prologue forced s0=this via the standard delay-slot save pattern. Without an early call, the SNC scheduler in gcPlayerStrings::Get reorders the prologue saves into s2/s1/s0 and there is no source-level lever to force the original s0/s1/s2 order. This is a register-allocation drift that the permuter cannot reach (it doesn't reorder s-reg assignments).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:46:13Z",
+        "src_file": "src/gcPlayerStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/18560dc5/0031e3e8__agent_self_reported_failure__src_gcPlayerStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0031e4e0",
@@ -223176,7 +223253,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001588",
       "0x000015cc"

@@ -108,6 +108,7 @@ public:
     ~gcLobbyUserStrings();
     void AssignCopy(const cBase *);
     void GetName(char *) const;
+    void Get(wchar_t *, int) const;
     void Write(cFile &) const;
     static gcLobbyUserStrings *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
@@ -144,6 +145,24 @@ extern cType *D_0009F5F0;
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+void cStrCopy(wchar_t *, const char *, int);
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
+
+struct LobbyDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *);
+};
+
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
 
 __asm__(".word 0x1000ffff\n");
 __asm__(".word 0x00000000\n");
@@ -280,6 +299,42 @@ void gcLobbyUserStrings::GetName(char *buf) const {
     }
 
     cStrAppend(buf, (const char *)0x36E060, (const char *)0x36DAF0);
+}
+
+// ── gcLobbyUserStrings::Get(wchar_t *, int) const  @ 0x002849c8, 244B ──
+void gcLobbyUserStrings::Get(wchar_t *buf, int size) const {
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0) {
+        LobbyDispatchEntry *entry = (LobbyDispatchEntry *)(*(char **)lobby + 0x370);
+        int val = *(int *)((const char *)this + 0x08);
+        int flag = 0;
+        void *self = (char *)lobby + entry->offset;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        char tmp[24];
+        int desiredPtr = val;
+        float f;
+        if (desiredPtr != 0) {
+            FloatDispatchEntry *fe = (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+            f = fe->fn((char *)desiredPtr + fe->offset);
+        } else {
+            f = 0.0f;
+        }
+        int idx = (int)f;
+
+        entry->fn(self, idx, tmp);
+
+        if (this->mField0C == 0) {
+            cStrCopy(buf, tmp + 4, size);
+        }
+    }
 }
 
 __asm__(".word 0x1000ffff\n");
