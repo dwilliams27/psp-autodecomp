@@ -46566,7 +46566,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0005316c",
       "0x000aa718",
@@ -46574,7 +46574,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeHeightmapECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fKeHeightmapECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "455de85a",
+        "notes": "session added method declarations to include/*.h; use the split-TU pattern instead",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:31:07Z",
+        "src_file": "src/eHeightmap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/455de85a/00052cb8__header_class_modification__src_eHeightmap.cpp"
+      }
+    ]
   },
   {
     "address": "0x00052e4c",
@@ -50063,13 +50077,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0005c93c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEeSkyECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsK"
+    "mangled_symbol": "__0fEeSkyECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsK",
+    "failure_notes": [
+      {
+        "session": "455de85a",
+        "notes": "Closest attempt is a canonical C++ eSky::Cull implementation that walks mArray50 and mArray58, sets the eCameraBins state fields at 0x1770c/0x17710, and dispatches each child geom through the vtable entry at 0x98. I tried sched=2 first, then sched=1, swapped loop index/byte-offset declaration order to get s7/s8 allocation closer, used mArray member access instead of raw this+offset loads, changed count loading to the documented ternary/null-check pattern, and changed the virtual call from a struct thunk to the int* entry pattern used by matched eHeightmap::CastRay.\n\nThe remaining diff is broad rather than a last-mile byte issue: expected uses a0/a1 for the array pointer/count and keeps the virtual call's mov.s $f12,$f20 in the jalr delay slot, while this source keeps an extra array-pointer copy, uses a2 for count/child in both loops, and schedules the float argument before the integer argument moves with t3 in the delay slot. This looks like source-level register-allocation/scheduling leverage is poor for this manual vtable loop; a future retry should either find a higher-level existing class declaration that lets SNC emit the original virtual-call pattern naturally, or isolate only the per-child dispatch sequence with a small inline block while keeping the loops in C.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:31:07Z",
+        "src_file": "src/eSky.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/455de85a/0005d30c__agent_self_reported_failure__src_eSky.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005d4a8",
@@ -135308,14 +135336,28 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001b9fec",
       "0x001ba078"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5DstdNbad_exceptiondtv"
+    "mangled_symbol": "__0o5DstdNbad_exceptiondtv",
+    "failure_notes": [
+      {
+        "session": "bf230b13",
+        "notes": "Closest legal source is the canonical std::bad_exception virtual deleting destructor with std::exception as its base. It compiles cleanly and emits the ordinary destructor core: null check, bad_exception vtable store, std::exception::~exception(this, 0), flags&1 global operator delete, and epilogue. That core is only 92 bytes, while the target is 220 bytes.\n\nThe missing 128 bytes are the Sony/SNC two-level EH-frame prologue and epilogue before the destructor null check: push outer frame via *0x37E54C, push inner type/counter frame at sp+0x74 with typeinfo 0x37E4E8, save/force *0x37E548 to 0xFFFF, then restore both after the body. I tried adding a try/catch block to force source-level EH emission, but pspsnc under the project flags fails with error 0542: support for exception handling is disabled. This is the same blocker documented for std::bad_alloc::~bad_alloc and std::exception::~exception: the target was built with Sony stdlib EH machinery/flags not available to normal project C++ without Makefile/compiler-flag work or banned pure-assembly reconstruction.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:33:34Z",
+        "src_file": "src/std_bad_exception.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/bf230b13/001ba1a8__agent_self_reported_failure__src_std_bad_exception.cpp"
+      }
+    ]
   },
   {
     "address": "0x001ba284",
@@ -139098,7 +139140,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690",
@@ -139107,7 +139149,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQcMemPoolPlatformdtv"
+    "mangled_symbol": "__0oQcMemPoolPlatformdtv",
+    "src_file": "src/cMemPoolPlatform.cpp",
+    "symbol_name": "__0oQcMemPoolPlatformdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "bf230b13",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:33:34Z"
   },
   {
     "address": "0x001c5fac",
@@ -148355,7 +148405,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -149328,7 +149378,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -154058,7 +154108,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -156141,7 +156191,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
