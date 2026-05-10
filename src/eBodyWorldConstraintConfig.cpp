@@ -52,6 +52,11 @@ public:
     static void Read(cFileHandle *, void *, unsigned int);
 };
 
+class eBodyWorldConstraint {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class cReadBlock {
 public:
     int _data[5];
@@ -83,6 +88,8 @@ public:
 extern char eBodyWorldConstraintConfigvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000469EC;
+extern cType *D_00046BC4;
+extern cType *D_00046BC8;
 extern cType *D_00046BFC;
 
 class eBodyWorldConstraintConfig : public ePhysicsConstraintConfig {
@@ -99,6 +106,7 @@ public:
     eBodyWorldConstraintConfig(cBase *);
     ~eBodyWorldConstraintConfig();
     void AssignCopy(const cBase *);
+    const cType *GetInstanceType(void) const;
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -254,6 +262,30 @@ cBase *eBodyWorldConstraintConfig::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+#pragma control sched=2
+
+#pragma control sched=1
+
+// eBodyWorldConstraintConfig::GetInstanceType(void) const @ 0x0020e5f0
+const cType *eBodyWorldConstraintConfig::GetInstanceType(void) const {
+    if (D_00046BC8 == 0) {
+        if (D_00046BC4 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00046BC4 = cType::InitializeType(0, 0, 0x25E, D_000385DC, 0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046BC4;
+        cBase *(*factory)(cMemPool *, cBase *) = &eBodyWorldConstraint::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BC8 = cType::InitializeType(0, 0, 0x25F, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BC8;
 }
 
 #pragma control sched=2

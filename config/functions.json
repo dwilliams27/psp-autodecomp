@@ -39667,7 +39667,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -52143,7 +52143,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -52651,7 +52651,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -61465,13 +61465,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fceKeyframedControllerTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0fceKeyframedControllerTemplatePGetInstanceTypevK",
+    "src_file": "src/eKeyframedControllerTemplate.cpp",
+    "symbol_name": "__0fceKeyframedControllerTemplatePGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6fd9fd0f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:47:39Z"
   },
   {
     "address": "0x000759a0",
@@ -158910,13 +158918,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0faeBodyWorldConstraintConfigPGetInstanceTypevK"
+    "mangled_symbol": "__0faeBodyWorldConstraintConfigPGetInstanceTypevK",
+    "src_file": "src/eBodyWorldConstraintConfig.cpp",
+    "symbol_name": "__0faeBodyWorldConstraintConfigPGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6fd9fd0f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:47:39Z"
   },
   {
     "address": "0x0020e6c8",
@@ -159000,7 +159016,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],

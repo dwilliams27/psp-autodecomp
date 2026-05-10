@@ -18,6 +18,14 @@ public:
     static void *GetPoolFromPtr(const void *);
 };
 
+class cType {
+public:
+    static cType *InitializeType(const char *, const char *, unsigned int,
+                                 const cType *,
+                                 cBase *(*)(cMemPool *, cBase *),
+                                 const char *, const char *, unsigned int);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -49,7 +57,15 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class eKeyframedController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern char eKeyframedControllerTemplateclassdesc[];
+extern cType *D_000385DC;
+extern cType *D_000469D8;
+extern cType *D_00046BEC;
 
 template <class T> T *dcast(const cBase *);
 
@@ -79,6 +95,7 @@ public:
     eKeyframedControllerTemplate(cBase *);
     ~eKeyframedControllerTemplate();
     void SetMesh(cHandleT<eMesh>);
+    const cType *GetInstanceType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -99,6 +116,30 @@ void eKeyframedControllerTemplate::SetMesh(cHandleT<eMesh>) {
 }
 
 #pragma control sched=1
+
+// ── GetInstanceType (sched=1) ──
+
+const cType *eKeyframedControllerTemplate::GetInstanceType(void) const {
+    if (D_00046BEC == 0) {
+        if (D_000469D8 == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_000469D8 = cType::InitializeType(0, 0, 0x232, D_000385DC,
+                                               0, 0, 0, 0);
+        }
+        const cType *parentType = D_000469D8;
+        cBase *(*factory)(cMemPool *, cBase *) = &eKeyframedController::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BEC = cType::InitializeType(0, 0, 0x23A, parentType, factory,
+                                           0, 0, 0);
+    }
+    return D_00046BEC;
+}
 
 // ── AssignCopy (sched=1) ──
 
