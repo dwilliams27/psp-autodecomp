@@ -102,6 +102,7 @@ public:
 
     void Write(cFile &) const;
     void Get(wchar_t *, int) const;
+    void Set(const wchar_t *) const;
     void GetName(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -162,6 +163,52 @@ void gcPlayerStrings::Get(wchar_t *buf, int size) const {
 
     if (entry != 0 && this->mValue == 0) {
         cStrCopy(buf, entry + 12, size);
+    }
+}
+
+// ── gcPlayerStrings::Set(const wchar_t *) const @ 0x0031e4e0, 256B ──
+void gcPlayerStrings::Set(const wchar_t *src) const {
+    extern void cStrCopy(char *, const wchar_t *, int);
+    extern void cStrCopy(char *, const char *, int);
+
+    char buf[0x14];
+
+    int flag = 0;
+    int val = *(int *)((const char *)this + 0x08);
+    if (val & 1) {
+        flag = 1;
+    }
+    if (flag != 0) {
+        val = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    int desiredPtr = val;
+    float f;
+    if (desiredPtr != 0) {
+        FloatDispatchEntry *fe = (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+        f = fe->fn((char *)desiredPtr + fe->offset);
+    } else {
+        f = 0.0f;
+    }
+    int idx = (int)f - 1;
+
+    char *entry = 0;
+    if (idx >= 0 && idx < 8) {
+        entry = D_0037D87C + idx * 0x44;
+    }
+    if (entry == 0) {
+        entry = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+    }
+
+    if (entry != 0) {
+        cStrCopy(buf, src, 0x14);
+        if (this->mValue == 0) {
+            cStrCopy(entry + 12, buf, 0x14);
+        }
     }
 }
 

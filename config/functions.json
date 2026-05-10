@@ -19572,7 +19572,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00033938",
@@ -96016,7 +96016,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002f7b0",
       "0x0002f848",
@@ -164105,7 +164105,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0008ed90",
@@ -164113,7 +164113,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_dtv"
+    "mangled_symbol": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_dtv",
+    "src_file": "src/cArrayBaseeDynamicMeshVisSkinTriList.cpp",
+    "symbol_name": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "53f7dfb3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T18:12:51Z"
   },
   {
     "address": "0x0021dca8",
@@ -223274,14 +223281,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001588",
       "0x000015cc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcPlayerStringsDSetPCwK"
+    "mangled_symbol": "__0fPgcPlayerStringsDSetPCwK",
+    "failure_notes": [
+      {
+        "session": "53f7dfb3",
+        "notes": "category=REG_ALLOC. Compiled output is 252B vs expected 256B (4-byte/1-instruction delta). All bytes outside the entry-zero check sequence match. The missing instruction is 'move s2,a0' in the bnez delay slot at the entry-zero transfer (expected 0x31e58c..0x31e598 emits bnez/move/b/li, mine emits bnez/nop/b/li). Root cause: SNC's register allocator chose to put `entry` directly into s2 (callee-save) from the start of its computation; the original chose a0 (scratch) for computation and then transferred a0->s2 via the delay slot move. The 1-instruction delta also shifts which instruction fills the beqz a2 delay slot (mine fills it with sll a1,a0,0x6 useful work, expected leaves a nop because clobbering a0 would lose entry on the branch-taken path). Tried: (1) split temp/final variables (raw + entry separate), (2) inverted condition (if raw != 0 vs if raw == 0), (3) __asm__ volatile(\"\" : \"+r\"(raw)) barrier on raw, (4) __asm__ volatile(\"\" ::: \"memory\") in else branch only, (5) #pragma control sched=1 (no improvement), (6) register hint __asm__(\"$4\") on raw. Compiler in every case allocates entry to s2 directly. Permuter rejects (size mismatch, not last-mile). Closest source kept in file: Get-style pattern with entry initialized to 0 + asm memory barrier in non-zero branch. Sibling Get (0x0031e3e8) has the same shape and is also unmatched (probably same drift mechanism), suggesting this is TU-context drift per docs/research/snc-register-allocation.md and ADR-012.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T18:12:51Z",
+        "src_file": "src/gcPlayerStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/53f7dfb3/0031e4e0__agent_self_reported_failure__src_gcPlayerStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x0031e5e0",
