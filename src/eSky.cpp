@@ -2,6 +2,7 @@
 // Decompiled functions:
 //   0x002048d8  eSky::AssignCopy(const cBase *)             (112B)
 //   0x00204948  eSky::New(cMemPool *, cBase *) static       (124B)
+//   0x0005d1a8  eSky::~eSky(void)                           (356B)
 //
 // eSky inherits from cObject. Layout:
 //   [0x00..0x44) cObject base
@@ -13,7 +14,6 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class eGeomTemplate;
 class cType;
 
@@ -38,6 +38,12 @@ public:
     void *mOwner;
     cBaseArray &operator=(const cBaseArray &);
     void Write(class cWriteBlock &) const;
+    void RemoveAll(void);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cWriteBlock {
@@ -69,8 +75,15 @@ class cObject {
 public:
     char _pad[0x44];
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
     void Write(cFile &) const;
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 class eSky : public cObject {
@@ -81,10 +94,24 @@ public:
     cBaseArray mArray58;
 
     eSky(cBase *);
+    ~eSky(void);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
 };
 
 extern "C" void eSky__eSky_cBaseptr(void *self, cBase *parent);
@@ -223,5 +250,56 @@ void eSky::Write(cFile &file) const {
 
     ((const cBaseArray *)((const char *)this + 0x48))->Write(wb);
     wb.End();
+}
+#pragma control sched=2
+
+// ── eSky::~eSky(void) @ 0x0005d1a8 ──
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oEeSkydtv, 0x164\n");
+#pragma control sched=1
+eSky::~eSky(void) {
+    *(void **)((char *)this + 4) = (void *)0x3821C0;
+    void *array58 = (char *)this + 0x58;
+    void *array50 = (char *)this + 0x50;
+    void *array48 = (char *)this + 0x48;
+    void *handles = (char *)this + 0x44;
+
+    if (array58 != 0) {
+        ((cBaseArray *)array58)->RemoveAll();
+    }
+    if (array50 != 0) {
+        ((cBaseArray *)array50)->RemoveAll();
+    }
+    if (array48 != 0) {
+        ((cBaseArray *)array48)->RemoveAll();
+    }
+    if (handles != 0) {
+        void *entries = *(void **)((char *)this + 0x44);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x44) = 0;
+        }
+    }
 }
 #pragma control sched=2

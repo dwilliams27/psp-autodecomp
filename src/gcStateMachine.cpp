@@ -490,3 +490,4 @@ int gcStateMachine::IsValid(cSubHandleT<gcStateFunction> handle, int offset) con
     }
     return (unsigned char)result;
 }
+
