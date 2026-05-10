@@ -37641,7 +37641,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001ad668"
     ],
@@ -37649,7 +37649,14 @@
       "0x0003b914"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5OeInputKeyboardLeInputStateFResetv"
+    "mangled_symbol": "__0f5OeInputKeyboardLeInputStateFResetv",
+    "src_file": "src/eInputKeyboard_eInputState.cpp",
+    "symbol_name": "__0f5OeInputKeyboardLeInputStateFResetv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6a82d06e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:31:07Z"
   },
   {
     "address": "0x0003ba38",
@@ -186935,14 +186942,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_dtv",
+    "src_file": "src/gcDesiredObjectTgcDesiredUIDialoggcDesiredUIDialogHelpergcUIDialog_dtor.cpp",
+    "symbol_name": "__0oQgcDesiredObjectT76RgcDesiredUIDialog6XgcDesiredUIDialogHelper6KgcUIDialog_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6a82d06e",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:31:07Z"
   },
   {
     "address": "0x00279964",
@@ -190971,7 +190985,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000165c",
       "0x001a54fc"
@@ -195447,7 +195461,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000165c",
       "0x000603dc"
