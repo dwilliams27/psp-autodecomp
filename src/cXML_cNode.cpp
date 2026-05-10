@@ -6,6 +6,9 @@ public:
     static cMemPool *GetPoolFromPtr(const void *);
 };
 
+extern "C" void free(void *);
+extern char cXML__cNodevirtualtable[];
+
 int cStrLength(const char *);
 void cStrCopy(char *, const char *);
 
@@ -33,10 +36,35 @@ public:
         int _pad0;
         int _pad4;
         char *mText;
+        int _padC;
+        int _pad10;
+        void *mVtable;
 
+        ~cNode();
         int SetText(const char *);
+        static void operator delete(void *p) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            if (pool != 0) {
+                char *block = ((char **)pool)[9];
+                DeleteEntry *entry = (DeleteEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+                entry->fn(block + entry->offset, p);
+            } else {
+                free(p);
+            }
+        }
     };
 };
+
+cXML::cNode::~cNode() {
+    mVtable = cXML__cNodevirtualtable;
+    if (mText != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(mText);
+        char *block = ((char **)pool)[9];
+        DeleteEntry *entry = (DeleteEntry *)(((PoolBlock *)block)->allocTable + 0x30);
+        entry->fn(block + entry->offset, mText);
+        mText = 0;
+    }
+}
 
 int cXML::cNode::SetText(const char *text) {
     if (mText != 0) {

@@ -1,12 +1,15 @@
-#include "cThread.h"
 #include "thread.h"
 
 extern "C" {
-    void *cMemPool_GetPoolFromPtr(void *);
     void free(void *);
 }
 
 extern char cThreadvirtualtable[];
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 static int s_primaryInit;
 static int s_primaryThreadId;
@@ -15,6 +18,44 @@ struct VTableEntry {
     short adj;
     short pad;
     void (*fn)(void *, ...);
+};
+
+class cMemBlockAllocation;
+
+class cThread {
+public:
+    int m_threadId;
+    int m_flags;
+    void *m_vtable;
+
+    ~cThread(void);
+    void Start(void);
+    void WaitForFinish(void);
+    static bool InPrimary(void);
+    void OnCompleted(void);
+    static int ThreadFunc(unsigned int argSize, void *argBlock);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        if (pool != 0) {
+            void *block = *(void **)((char *)pool + 0x24);
+            VTableEntry *rec = (VTableEntry *)(*(char **)((char *)block + 0x1C) + 0x30);
+            short off = rec->adj;
+            ((void (*)(void *, void *))rec->fn)((char *)block + off, p);
+        } else {
+            free(p);
+        }
+    }
+};
+
+class cMemAllocator {
+public:
+    ~cMemAllocator(void);
+    void Reset(void);
+    void LogAllocations(void) const;
+    int BeginBlock(cMemBlockAllocation *);
+    void EndBlock(cMemBlockAllocation *, cMemBlockAllocation *);
+    void StopBlock(bool);
+    static void operator delete(void *);
 };
 
 void cThread::OnCompleted(void) {
@@ -60,26 +101,14 @@ bool cThread::InPrimary(void) {
     return sceKernelGetThreadId() == s_primaryThreadId;
 }
 
-extern "C" void cThread___dtor_cThread_void(cThread *self, int flags) {
-    if (self != 0) {
-        self->m_vtable = cThreadvirtualtable;
-        bool running = (bool)(self->m_flags & 0x1000);
-        if (running) {
-            if (self->m_threadId > 0) {
-                self->WaitForFinish();
-                sceKernelTerminateDeleteThread(self->m_threadId);
-            }
-        }
-        if (flags & 1) {
-            void *pool = cMemPool_GetPoolFromPtr(self);
-            if (pool != 0) {
-                void *block = *(void **)((char *)pool + 0x24);
-                VTableEntry *rec = (VTableEntry *)(*(char **)((char *)block + 0x1C) + 0x30);
-                short adj = rec->adj;
-                ((void (*)(void *, void *))rec->fn)((char *)block + adj, self);
-            } else {
-                free(self);
-            }
+cThread::~cThread(void) {
+    m_vtable = cThreadvirtualtable;
+    __asm__ volatile("" ::: "memory");
+    int running = (((m_flags & 0x1000) != 0) & 0xFF);
+    if (running != 0) {
+        if (m_threadId > 0) {
+            WaitForFinish();
+            sceKernelTerminateDeleteThread(m_threadId);
         }
     }
 }
