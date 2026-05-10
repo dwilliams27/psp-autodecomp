@@ -116,6 +116,12 @@ struct ReadEntry {
     void (*fn)(void *, cFile *, cMemPool *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcValObjectHasRelation : public gcValue {
 public:
     int mBase8;
@@ -128,7 +134,17 @@ public:
     static cBase *New(cMemPool *, cBase *);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+    ~gcValObjectHasRelation(void);
+    static void operator delete(void *);
 };
+
+inline void gcValObjectHasRelation::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    void *block = ((void **)pool)[9];
+    char *entries = ((AllocBlock *)block)->allocTable;
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, p);
+}
 
 class gcDoSetObjectRelationship : public gcAction {
 public:
@@ -439,4 +455,49 @@ second_out_done:
 
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oWgcValObjectHasRelationdtv, 0x148\n");
+
+gcValObjectHasRelation::~gcValObjectHasRelation(void) {
+    *(char **)((char *)this + 4) = D_000098C0;
+    char *baseVtable = cBaseclassdesc;
+    char *first = (char *)this + 0x0C;
+    char *desired = (char *)this + 0x08;
+
+    if ((void *)first != 0) {
+        *(char **)((char *)this + 0x10) = gcDesiredEnumerationEntryvirtualtable;
+        if ((void *)((char *)this + 0x20) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x20);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x20) = 0;
+            }
+        }
+        *(char **)((char *)this + 0x10) = baseVtable;
+    }
+
+    if ((void *)desired != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x08);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x08) = 0;
+        }
+    }
+
+    *(char **)((char *)this + 4) = baseVtable;
 }
