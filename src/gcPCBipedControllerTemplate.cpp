@@ -23,6 +23,16 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class cNamed {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcPCBipedController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class cWriteBlock {
 public:
     int _data[2];
@@ -61,10 +71,15 @@ extern char gcPCBipedControllerTemplateclassdesc[];
 extern char gcEntityControllerTemplate_dtor_classdesc[];
 extern char cBase_dtor_classdesc[];
 extern cType *D_000385DC;
+extern cType *D_000385E0;
 extern cType *D_0009A400;
+extern cType *D_0009A404;
 extern cType *D_0009F5A4;
+extern cType *D_0009F5A8;
 extern cType *D_0009F5FC;
+extern cType *D_0009F600;
 extern cType *D_0009F76C;
+extern cType *D_0009F770;
 
 struct DeleteRecord {
     short offset;
@@ -76,6 +91,7 @@ class gcPCBipedControllerTemplate : public gcBipedControllerTemplate {
 public:
     ~gcPCBipedControllerTemplate();
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -210,4 +226,34 @@ const cType *gcPCBipedControllerTemplate::GetType(void) const {
             0, 0, 0xBC, D_0009F5FC, &gcPCBipedControllerTemplate::New, 0, 0, 0);
     }
     return D_0009F76C;
+}
+
+// ── gcPCBipedControllerTemplate::GetInstanceType(void) const @ 0x001525bc ──
+const cType *gcPCBipedControllerTemplate::GetInstanceType(void) const {
+    if (D_0009F770 == 0) {
+        if (D_0009F600 == 0) {
+            if (D_0009F5A8 == 0) {
+                if (D_0009A404 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC, &cNamed::New, 0, 0, 0);
+                    }
+                    D_0009A404 = cType::InitializeType(
+                        0, 0, 0x99, D_000385E0, 0, 0, 0, 0);
+                }
+                D_0009F5A8 = cType::InitializeType(
+                    0, 0, 0xB9, D_0009A404, 0, 0, 0, 0);
+            }
+            D_0009F600 = cType::InitializeType(
+                0, 0, 0xBB, D_0009F5A8, 0, 0, 0, 0);
+        }
+        D_0009F770 = cType::InitializeType(
+            0, 0, 0xBD, D_0009F600, &gcPCBipedController::New, 0, 0, 0);
+    }
+    return D_0009F770;
 }
