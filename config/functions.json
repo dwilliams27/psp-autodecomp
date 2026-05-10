@@ -49347,14 +49347,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oFePathdtv"
+    "mangled_symbol": "__0oFePathdtv",
+    "src_file": "src/ePath_dtor.cpp",
+    "symbol_name": "__0oFePathdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "19318681",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:04:18Z"
   },
   {
     "address": "0x0005b70c",
@@ -161343,7 +161351,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -161609,7 +161617,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -240226,13 +240234,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSgcValStringComparedtv"
+    "mangled_symbol": "__0oSgcValStringComparedtv",
+    "src_file": "src/gcValStringCompare_dtor.cpp",
+    "symbol_name": "__0oSgcValStringComparedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "19318681",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:04:18Z"
   },
   {
     "address": "0x0035e880",
