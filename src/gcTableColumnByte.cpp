@@ -105,6 +105,8 @@ struct gcTableColumnByte : public gcTableColumn {
         mValues.mData = 0;
     }
 
+    ~gcTableColumnByte(void);
+    static void operator delete(void *);
     float Get(int row) const;
     int Compare(int row1, int row2) const;
     void Read(cInStream &stream);
@@ -145,6 +147,56 @@ public:
 
     void SetAttractor(gcEntity *entity, const cName &name);
 };
+
+inline void gcTableColumnByte::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oRgcTableColumnBytedtv, 0x120\n");
+
+gcTableColumnByte::~gcTableColumnByte(void) {
+    *(char **)((char *)this + 4) = (char *)0x389A80;
+    char *slot = (char *)this + 8;
+    if (slot != 0) {
+        char *data = *(char **)((char *)this + 8);
+        int count = 0;
+        if (data != 0) {
+            count = ((int *)data)[-1] & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (data != 0) {
+            data -= 4;
+            if (data != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(data);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *rec =
+                    (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(block + off, data);
+            }
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+    if (this != 0) {
+        *(char **)((char *)this + 4) = (char *)0x37E6A8;
+    }
+}
 
 float gcTableColumnByte::Get(int row) const {
     return (float)mValues.mData[row];

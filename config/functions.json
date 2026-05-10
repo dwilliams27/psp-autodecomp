@@ -52006,7 +52006,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c5c0"
@@ -63379,7 +63379,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
@@ -175755,13 +175755,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oLgcStringSetdtv"
+    "mangled_symbol": "__0oLgcStringSetdtv",
+    "src_file": "src/gcStringSet.cpp",
+    "symbol_name": "__0oLgcStringSetdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "56c6d542",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:39:54Z"
   },
   {
     "address": "0x00249e74",
@@ -184045,13 +184053,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oRgcTableColumnBytedtv"
+    "mangled_symbol": "__0oRgcTableColumnBytedtv",
+    "src_file": "src/gcTableColumnByte.cpp",
+    "symbol_name": "__0oRgcTableColumnBytedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "56c6d542",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:39:54Z"
   },
   {
     "address": "0x00271504",
