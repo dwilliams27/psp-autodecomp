@@ -138840,14 +138840,22 @@
     "obj_file": "gcDoReadFile.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMgcDoReadFiledtv"
+    "mangled_symbol": "__0oMgcDoReadFiledtv",
+    "src_file": "src/gcDoReadFile.cpp",
+    "symbol_name": "__0oMgcDoReadFiledtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81372653",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:50:31Z"
   },
   {
     "address": "0x001c4c80",
@@ -178015,7 +178023,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -178024,7 +178032,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOgcEntityAttackdtv"
+    "mangled_symbol": "__0oOgcEntityAttackdtv",
+    "src_file": "src/gcEntityAttack.cpp",
+    "symbol_name": "__0oOgcEntityAttackdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "81372653",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:50:31Z"
   },
   {
     "address": "0x0025c6a8",
@@ -216737,7 +216753,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -225578,7 +225594,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],

@@ -101,6 +101,12 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct GetTextSlot {
     short offset;
     short pad;
@@ -110,6 +116,7 @@ struct GetTextSlot {
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
 
@@ -124,11 +131,21 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    ~gcDoReadFile(void);
     void GetText(char *) const;
     gcDoReadFile &operator=(const gcDoReadFile &);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    static void operator delete(void *);
 };
+
+inline void gcDoReadFile::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 static cType *type_gcDoReadFile asm("D_000385D0");
 static cType *type_action asm("D_000385D4");
@@ -303,6 +320,47 @@ out_done:
     *(int *)((char *)this + 0x14) = newValue;
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oMgcDoReadFiledtv, 0x128\n");
+
+gcDoReadFile::~gcDoReadFile(void) {
+    *(void **)((char *)this + 4) = gcDoReadFilevirtualtable;
+    char *second = (char *)this + 0x10;
+
+    if ((void *)((char *)this + 0x14) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
 
 void gcDoReadFile::GetText(char *buf) const {

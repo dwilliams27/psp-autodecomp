@@ -43,14 +43,17 @@ class cBaseArray {
 public:
     void Write(cWriteBlock &) const;
     void Read(class cReadBlock &);
+    void RemoveAll(void);
 };
 
 class gcEntityAttack {
 public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
-    int Read(cFile &, cMemPool *);
+    ~gcEntityAttack(void);
     void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    static void operator delete(void *);
 };
 
 struct PoolBlock {
@@ -76,6 +79,12 @@ struct ReadEntry {
     void (*fn)(void *, cFile *, cMemPool *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cReadBlock {
 public:
     int _data[5];
@@ -90,6 +99,8 @@ public:
 
 void gcEntityAnimationConfig_ctor(gcEntityAnimationConfig *, cBase *);
 void gcEvent_gcEvent(void *, cBase *, const char *);
+extern "C" void gcEntityAnimationConfig___dtor_gcEntityAnimationConfig_void(void *, int);
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
 
@@ -98,6 +109,14 @@ extern char gcEntityAttackvirtualtable[];
 extern const char gcEntityAttack_event_name[];
 extern cType *D_000385DC;
 extern cType *D_0009A3F8;
+
+inline void gcEntityAttack::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 cBase *gcEntityAttack::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -149,6 +168,43 @@ const cType *gcEntityAttack::GetType(void) const {
                                            &gcEntityAttack::New, 0, 0, 0);
     }
     return D_0009A3F8;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oOgcEntityAttackdtv, 0x124\n");
+
+gcEntityAttack::~gcEntityAttack(void) {
+    *(void **)((char *)this + 4) = gcEntityAttackvirtualtable;
+    char *arrayBase = (char *)this + 0x70;
+    char *eventBase = (char *)this + 0x58;
+    if ((void *)arrayBase != 0) {
+        ((cBaseArray *)arrayBase)->RemoveAll();
+    }
+
+    if ((void *)eventBase != 0) {
+        *(void **)((char *)this + 0x5C) = (void *)0x388568;
+        if ((void *)((char *)this + 0x6C) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x6C);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0) {
+                if (val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x6C) = 0;
+                }
+            }
+        }
+        *(void **)((char *)this + 0x5C) = cBaseclassdesc;
+    }
+
+    gcEvent___dtor_gcEvent_void((char *)this + 0x38, 2);
+    gcEntityAnimationConfig___dtor_gcEntityAnimationConfig_void((char *)this + 8, 2);
+    *(void **)((char *)this + 4) = cBaseclassdesc;
 }
 
 void gcEntityAttack::Write(cFile &file) const {
