@@ -12,8 +12,23 @@ namespace std {
     class exception {
     public:
         exception();
+        ~exception();
         const char* what() const;
     };
+}
+
+std::exception::~exception() {
+    std_exception_frame frame;
+    int prev = __exception_ptr;
+    __exception_ptr = (int)&frame;
+    frame.prev = prev;
+    frame.tag = 2;
+    if (this != 0) {
+        frame.zero = 0;
+        *(const int **)this = (const int *)0x38DA1C;
+    }
+    int restore = *(volatile int *)&frame.prev;
+    __exception_ptr = restore;
 }
 
 const char* std::exception::what() const {

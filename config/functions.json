@@ -109345,7 +109345,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc"
@@ -109354,7 +109354,14 @@
       "0x0012eda8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDesiredUIWidgetDGetbK"
+    "mangled_symbol": "__0fRgcDesiredUIWidgetDGetbK",
+    "src_file": "src/gcDesiredUIWidget.cpp",
+    "symbol_name": "__0fRgcDesiredUIWidgetDGetbK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c3908cd5",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T17:55:27Z"
   },
   {
     "address": "0x0012eee0",
@@ -135376,7 +135383,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001b9fec"
     ],
@@ -135385,7 +135392,21 @@
       "0x0036b9d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0o5DstdJexceptiondtv"
+    "mangled_symbol": "__0o5DstdJexceptiondtv",
+    "failure_notes": [
+      {
+        "session": "c3908cd5",
+        "notes": "Compiles to 88B (closest non-broken attempt) vs expected 96B; structural delta, NOT register-allocation drift. Expected layout has the EH-frame setup OUTSIDE the auto-emitted (this != 0) check (sw s0,112(sp); lui s0,0x38; lw a2,-6836(s0); sw a2,0(sp); ...; sw ra,116(sp); beqz a0,...). My output has SNC unconditionally placing the (this != 0) check immediately after the prologue, with frame setup, body, AND teardown all inside the conditional block, plus the teardown scheduled into the delay slot of beqz a1 (before the operator delete jal). Net effect: missing 4 instructions = sw s0/lw s0 callee-save pair AND the post-jal cleanup pair `lw a0,0(sp); sw a0,-6836(s0)`.\n\nApproaches tried (all produced the same wrap-everything pattern):\n  1. Plain C++ body: setup; *this=vtable; teardown.\n  2. Explicit `if (this != 0)` body wrapping vtable write only.\n  3. `volatile int *eptr` for __exception_ptr accesses.\n  4. `__asm__ volatile` memory barriers around setup/body/teardown.\n  5. Local class _LocalEHFrame with ctor/dtor doing setup/teardown \u2014 SNC inlined them and applied the same wrap.\n  6. `register int *eptr asm(\"s0\")` to force callee-save use \u2014 SNC ignored the register pinning.\n  7. `virtual ~exception()` \u2014 added an extra vtable-base write, made it worse.\n  8. `~exception() throw()` \u2014 error 0542: SNC has exception handling DISABLED.\n  9. `__try`/`__finally` blocks \u2014 error: SNC does not accept these keywords (the strings in pspcfe.exe are error messages, not supported syntax).\n  10. `#pragma control sched=1` \u2014 no change.\n  11. Empty body \u2014 no frame setup, just (this != 0) + (flag & 1) tail (60B).\n\nRoot cause: SNC's auto-emitted (this != 0) wrap for deleting destructors covers the ENTIRE function body including any preceding side-effecting statements; the only way to get unconditional setup/teardown around the auto-emitted tail (vtable write + operator delete) appears to require either (a) a SNC-specific attribute/pragma not documented in the strings table I scanned (searched for naked, prolog, epilog, destruct), or (b) inline asm exceeding the 50% rule. The matching std::exception::exception() constructor at 0x001ba038 uses inline asm tricks (`register const int *vtable asm(\"a2\")`, `__asm__ volatile(\"lui $7,0x39\")`) but constructors don't have the auto-emitted (this != 0)+(flag & 1) tail to fight against, so the same trick doesn't transplant.\n\nNext-attempt suggestions: (1) Look for SNC's destructor codegen attribute \u2014 perhaps there's a `__attribute__((deleting_destructor))` or a `#pragma destructor_codegen` that controls tail placement. (2) Check pspsnc strings for `cleanup`, `unwind`, `frame_pointer`, `eh`, `__cxa_*`. (3) Try declaring std::exception::operator delete() inline in the class \u2014 SNC's deleting tail may be re-routed through it, freeing up the body layout. (4) Examine other (matched) deleting destructors in gMain_psp.obj that have similar EH-frame setup \u2014 search func_db for size-around-96B dtors in gMain that DO have the setup-outside-check shape, and reverse-engineer what source pattern produced them. The std::bad_exception::~bad_exception at 0x001ba1a8 (220B) has the same outer EH-frame structure but is also failed; matching either would unlock the other.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T17:55:27Z",
+        "src_file": "src/std_exception.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/c3908cd5/001ba078__agent_self_reported_failure__src_std_exception.cpp"
+      }
+    ]
   },
   {
     "address": "0x001ba0d8",
@@ -161934,7 +161955,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -164020,7 +164041,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008eaac",

@@ -62,6 +62,7 @@ struct gcDesiredUIWidgetHelper {
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
     void Read(cReadBlock &);
+    cObject *GetWidget(const cType *, bool) const;
 };
 
 extern "C" void gcDesiredUIWidgetHelper_ctor(void *self, gcDesiredUIWidgetHelper::gcPrimary p);
@@ -152,6 +153,25 @@ gcDesiredUIWidget::~gcDesiredUIWidget() {
 
 cObject *gcDesiredUIWidget::GetObject(bool b) const {
     return Get(b);
+}
+
+// 0x0012ede0 — Get(bool) const
+cObject *gcDesiredUIWidget::Get(bool b) const {
+    const gcDesiredUIWidgetHelper *helper = (const gcDesiredUIWidgetHelper *)((const char *)this + 0xC);
+    if (D_0009990C == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                   (const char *)0x36D89C,
+                                                   1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(0, 0, 2, D_000385DC,
+                                               &cNamed::New, 0, 0, 0);
+        }
+        D_0009990C = cType::InitializeType(0, 0, 0x84, D_000385E0,
+                                           0, 0, 0, 0);
+    }
+    return helper->GetWidget(D_0009990C, b);
 }
 
 void gcDesiredUIWidget::GetText(char *buf) const {
