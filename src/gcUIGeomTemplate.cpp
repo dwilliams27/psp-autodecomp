@@ -28,6 +28,11 @@ public:
     void Write(cFile &) const;
 };
 
+class gcUIGeom {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 class gcEvent {
 public:
     gcEvent &operator=(const gcEvent &);
@@ -53,6 +58,7 @@ public:
     gcUIGeomTemplate(cBase *);
     ~gcUIGeomTemplate();
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
     void Reset(cMemPool *, bool);
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
@@ -116,8 +122,11 @@ public:
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
 extern cType *D_000469A8;
+extern cType *D_000469C0;
 extern cType *D_000469E0;
+extern cType *D_0009F58C;
 extern cType *D_0009F590;
 extern char gcUIGeomTemplatevirtualtable[];
 extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
@@ -154,6 +163,27 @@ const cType *gcUIGeomTemplate::GetType(void) const {
             0, 0, 0x83, D_000469E0, gcUIGeomTemplate::New, 0, 0, 0);
     }
     return D_0009F590;
+}
+
+const cType *gcUIGeomTemplate::GetInstanceType(void) const {
+    if (D_0009F58C == 0) {
+        if (D_000469C0 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36D894,
+                                                       (const char *)0x36D89C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469C0 = cType::InitializeType(0, 0, 0x17, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        D_0009F58C = cType::InitializeType(0, 0, 0x82, D_000469C0,
+                                           &gcUIGeom::New, 0, 0, 0);
+    }
+    return D_0009F58C;
 }
 
 // ── gcUIGeomTemplate::AssignCopy(const cBase *) @ 0x00290e54 ──
