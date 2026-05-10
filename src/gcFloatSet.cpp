@@ -11,7 +11,10 @@ class cFile {
 public:
     void SetCurrentPos(unsigned int);
 };
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cType {
 public:
@@ -67,6 +70,8 @@ class gcFloatSet : public gcNamedSet {
 public:
     cArray<float> mArray; // 0x0C
 
+    ~gcFloatSet(void);
+    static void operator delete(void *);
     int GetSize(void) const;
     static cBase *New(cMemPool *, cBase *);
     void Write(cFile &) const;
@@ -93,11 +98,70 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct VTableSlotVoid {
     short offset;
     short pad;
     void (*fn)(void *, cMemPool *, int);
 };
+
+inline void gcFloatSet::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oKgcFloatSetdtv, 0x120\n");
+
+// ============================================================
+// 0x002496a0 — ~gcFloatSet(void)
+// ============================================================
+gcFloatSet::~gcFloatSet(void) {
+    *(char **)((char *)this + 4) = (char *)0x387E98;
+    char *slot = (char *)this + 0xC;
+    if (slot != 0) {
+        char *data = *(char **)((char *)this + 0xC);
+        int count = 0;
+        if (data != 0) {
+            count = ((int *)data)[-1] & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (data != 0) {
+            data -= 4;
+            if (data != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(data);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *rec =
+                    (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(block + off, data);
+            }
+            *(int *)((char *)this + 0xC) = 0;
+        }
+    }
+    if (this != 0) {
+        *(char **)((char *)this + 4) = (char *)0x37E6A8;
+    }
+}
 
 // ============================================================
 // 0x0024967c — GetSize(void) const
