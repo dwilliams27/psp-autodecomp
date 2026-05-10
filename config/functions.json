@@ -15938,7 +15938,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -16016,7 +16016,21 @@
       "0x002910e0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oHcObjectdtv"
+    "mangled_symbol": "__0oHcObjectdtv",
+    "failure_notes": [
+      {
+        "session": "0e1573e4",
+        "notes": "category=REG_ALLOC. Closest attempt is 18/432 bytes after one permuter pass (started at 27 bytes, permuter improved by reordering local declarations to fix s2/s3 swap). All remaining diffs are s0/s1 register naming swap: expected has this=s0 and flag=s1; SNC compiles ours with this=s1 and flag=s0. Structural code (prologue, control flow, xor+sltiu+andi pattern for field30 zero test via 'register int zero __asm__(\"$0\")', the redundant beqz s0 + andi delay slot around vtable B set, OnObjectDeleted/Remove calls, deleting-destructor tail) all match exactly.\n\nAttempts: (1) Initial source produced 27 bytes diff and 412B size (missing xor pattern and redundant beqz s0); added 'register int zero __asm__(\"$0\")' with 'if (((zero == x) & 0xFF) == 0)' pattern (copied from src/nwSocket.cpp:243-247 cObject::VisitReferences). (2) Initially had cBase_local inheritance with inline ~cBase_local body to inline parent dtor and get redundant beqz s0 check; this produced the 432B size but extra unused mangled symbol. (3) Replaced with explicit 'if (this != 0)' around the vtable B set - same diff but cleaner. (4) Tried register pinning 'register cObject *self __asm__(\"$16\")' to force this=s0 - SNC ignored the hint. Per docs/research/snc-register-allocation.md: this pattern (callee-save register rename only, structural code identical) is the documented REG_ALLOC drift and source-level fixes do not work. One permuter pass already run.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T22:24:37Z",
+        "src_file": "src/cObject_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/0e1573e4/00009dc4__agent_self_reported_failure__src_cObject_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00009f74",
@@ -34051,14 +34065,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002c5c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMeDecalSystemdtv"
+    "mangled_symbol": "__0oMeDecalSystemdtv",
+    "src_file": "src/eDecalSystem_dtor.cpp",
+    "symbol_name": "__0oMeDecalSystemdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0e1573e4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T22:24:37Z"
   },
   {
     "address": "0x00033454",
@@ -210885,7 +210906,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -217808,7 +217829,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
