@@ -84,6 +84,12 @@ struct TextEntry {
     void (*fn)(void *, char *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 
@@ -96,6 +102,7 @@ public:
     gcDesiredValue mDesiredC;
     int mField10;
 
+    ~gcValStatsTracking();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Write(cFile &) const;
@@ -103,6 +110,7 @@ public:
     gcValStatsTracking &operator=(const gcValStatsTracking &);
     void GetText(char *) const;
     int Read(cFile &, cMemPool *);
+    static void operator delete(void *);
 };
 
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
@@ -113,6 +121,62 @@ static cType *type_expression;
 static cType *type_value;
 static cType *type_variable;
 static cType *type_gcValStatsTracking;
+
+inline void gcValStatsTracking::operator delete(void *p) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+    char *block = ((char **)pool)[9];
+    DtorDeleteRecord *rec =
+        (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+    short off = rec->offset;
+    void (*fn)(void *, void *) = rec->fn;
+    fn(block + off, p);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oSgcValStatsTrackingdtv, 0x128\n");
+
+gcValStatsTracking::~gcValStatsTracking() {
+    *(char **)((char *)this + 4) = gcValStatsTrackingvirtualtable;
+    char *second = (char *)this + 0x0C;
+
+    if ((void *)((char *)this + 0x10) != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0) {
+            if (val != 0) {
+                char *obj = (char *)val;
+                char *type = ((char **)obj)[1];
+                DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(obj + off, (void *)3);
+                *(int *)((char *)this + 0x10) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int keep = 1;
+        int val = *(int *)((char *)this + 0x0C);
+        if (val & 1) {
+            keep = 0;
+        }
+        if (keep != 0 && val != 0) {
+            char *obj = (char *)val;
+            char *type = ((char **)obj)[1];
+            DtorDeleteRecord *rec = (DtorDeleteRecord *)(type + 0x50);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(obj + off, (void *)3);
+            *(int *)((char *)this + 0x0C) = 0;
+        }
+    }
+    *(char **)((char *)this + 4) = cBaseclassdesc;
+}
 
 cBase *gcValStatsTracking::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
