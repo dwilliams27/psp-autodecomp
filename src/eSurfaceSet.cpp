@@ -10,7 +10,10 @@
 #include "cBase.h"
 
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 class eSurface;
 
@@ -35,9 +38,16 @@ public:
     void Read(class cReadBlock &);
 };
 
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -71,11 +81,25 @@ public:
 
 class eSurfaceSet : public cObject {
 public:
+    ~eSurfaceSet(void);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
 };
 
 extern char eSurfaceSetvirtualtable[];   // 0x381D20
@@ -166,6 +190,43 @@ const cType *eSurfaceSet::GetType(void) const {
                                            kindName, kindDesc, 5);
     }
     return D_00046A1C;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oLeSurfaceSetdtv, 0x11c\n");
+
+// ── eSurfaceSet::~eSurfaceSet(void) @ 0x001F6B68 ──
+eSurfaceSet::~eSurfaceSet() {
+    *(void **)((char *)this + 4) = eSurfaceSetvirtualtable;
+    void *field = (char *)this + 0x44;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x44);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x44) = 0;
+        }
+    }
 }
 
 // ── eSurfaceSet::Write(cFile &) const @ 0x00053C3C ──
