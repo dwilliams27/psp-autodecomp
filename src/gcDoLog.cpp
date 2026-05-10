@@ -1,5 +1,23 @@
-#include "gcDoEntitySendMessage.h"
-#include "cBase.h"
+class cBase;
+class cFile;
+class cMemPool;
+class cType;
+class gcExpression;
+
+class gcDoLog {
+public:
+    float Evaluate(void) const;
+    int GetMaxChildren(void) const;
+    unsigned int GetTextColor(void) const;
+    gcExpression *GetChild(int) const;
+    void SetChild(int, gcExpression *);
+    int GetExprFlags(void) const;
+    void AssignCopy(const cBase *);
+    static cBase *New(cMemPool *, cBase *);
+    void Write(cFile &) const;
+    ~gcDoLog(void);
+    static void operator delete(void *);
+};
 
 template <class T>
 class cArrayBase {
@@ -13,6 +31,7 @@ public:
     cBase **mData;
     cBaseArray &operator=(const cBaseArray &);
     void SetSize(int);
+    void RemoveAll(void);
 };
 
 class cWriteBlock {
@@ -44,10 +63,32 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 gcDoLog *dcast(const cBase *);
 void gcAction_gcAction(gcDoLog *, cBase *);
 void gcAction_Write(const gcDoLog *, cFile &);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern char gcDoLogvirtualtable[];
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+inline void gcDoLog::operator delete(void *ptr) {
+    if (ptr != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+        void *block = *(void **)((char *)pool + 0x24);
+        char *entries = *(char **)((char *)block + 0x1C);
+        DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+        slot->fn((char *)block + slot->offset, ptr);
+    }
+}
 
 unsigned int gcDoLog::GetTextColor(void) const {
     return 0xFF008000;
@@ -152,4 +193,44 @@ void gcDoLog::Write(cFile &file) const {
     } while (i < 3);
 
     wb.End();
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oHgcDoLogdtv, 0x12c\n");
+
+gcDoLog::~gcDoLog(void) {
+    *(void **)((char *)this + 4) = gcDoLogvirtualtable;
+    char *text = (char *)this + 0x10;
+
+    if ((void *)((char *)this + 0x14) != 0) {
+        ((cBaseArray *)((char *)this + 0x14))->RemoveAll();
+    }
+
+    if ((void *)text != 0) {
+        char *entries = *(char **)((char *)this + 0x10);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)(entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *slot =
+                    (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+                slot->fn(block + slot->offset, basePtr);
+            }
+            *(void **)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

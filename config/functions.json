@@ -72047,7 +72047,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008f1b8",
@@ -72307,7 +72307,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0008ff88",
@@ -72318,7 +72318,15 @@
       "0x0004497c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeStaticMeshVisDatadtv"
+    "mangled_symbol": "__0oSeStaticMeshVisDatadtv",
+    "src_file": "src/eStaticMeshVisData.cpp",
+    "symbol_name": "__0oSeStaticMeshVisDatadtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4ad60226",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:15:59Z"
   },
   {
     "address": "0x00090644",
@@ -161155,7 +161163,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -208985,7 +208993,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -208993,7 +209001,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oHgcDoLogdtv"
+    "mangled_symbol": "__0oHgcDoLogdtv",
+    "src_file": "src/gcDoLog.cpp",
+    "symbol_name": "__0oHgcDoLogdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4ad60226",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:15:59Z"
   },
   {
     "address": "0x002e7518",
