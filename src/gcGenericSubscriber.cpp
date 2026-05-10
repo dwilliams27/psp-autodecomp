@@ -1,11 +1,16 @@
 // ODR-WARNING: local class redeclarations keep this TU from changing shared headers.
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
 
 class gcGenericSubscriber {
 public:
+    ~gcGenericSubscriber(void);
+    static void operator delete(void *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     void Attach(void);
@@ -68,12 +73,68 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct gcUI_ActiveSpawnScan {
     char pad[0x54];
     void **active;
 };
 
 extern "C" void cListSubscriber_cListSubscriber(void *, cBase *);
+
+inline void gcGenericSubscriber::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oTgcGenericSubscriberdtv, 0x120\n");
+
+gcGenericSubscriber::~gcGenericSubscriber(void) {
+    *(char **)((char *)this + 4) = gcGenericSubscribervirtualtable;
+    char *slot = (char *)this + 0x24;
+    if (slot != 0) {
+        char *data = *(char **)((char *)this + 0x24);
+        int count = 0;
+        if (data != 0) {
+            count = ((int *)data)[-1] & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (data != 0) {
+            data -= 4;
+            if (data != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(data);
+                char *block = ((char **)pool)[9];
+                DtorDeleteRecord *rec =
+                    (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(block + off, data);
+            }
+            *(int *)((char *)this + 0x24) = 0;
+        }
+    }
+    if (this != 0) {
+        *(char **)((char *)this + 4) = (char *)0x37E6A8;
+    }
+}
 
 cBase *gcGenericSubscriber::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
