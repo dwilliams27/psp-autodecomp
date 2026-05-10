@@ -72055,7 +72055,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0008f1b8",
@@ -72066,7 +72066,15 @@
       "0x0004e1fc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oTeDynamicMeshVisDatadtv"
+    "mangled_symbol": "__0oTeDynamicMeshVisDatadtv",
+    "src_file": "src/eDynamicMeshVisData.cpp",
+    "symbol_name": "__0oTeDynamicMeshVisDatadtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "72d99e5b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:22:53Z"
   },
   {
     "address": "0x0008f764",
@@ -161179,14 +161187,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXeParticleSystemTemplatedtv"
+    "mangled_symbol": "__0oXeParticleSystemTemplatedtv",
+    "src_file": "src/eParticleSystemTemplate.cpp",
+    "symbol_name": "__0oXeParticleSystemTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "72d99e5b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:22:53Z"
   },
   {
     "address": "0x00214420",
@@ -192546,7 +192562,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -197461,7 +197477,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",

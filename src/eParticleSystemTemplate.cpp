@@ -24,6 +24,11 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 template <class T>
 class cArrayBase {
 public:
@@ -35,13 +40,33 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
+struct ParticleDeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class eParticleSystemTemplate : public cObject {
 public:
     eParticleSystemTemplate(cBase *);
+    ~eParticleSystemTemplate(void);
     void Reset(cMemPool *, bool);
     const cType *GetType(void) const;
     const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            ParticleDeleteRecord *rec =
+                (ParticleDeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            char *base = block + off;
+            __asm__ volatile("" : "+r"(p));
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
 };
 
 struct AllocRec {
@@ -102,6 +127,7 @@ extern cType *D_000385E4;
 extern cType *D_000469A8;
 extern cType *D_000469E0;
 extern cType *D_00046C40;
+extern "C" void cObject_dtor(cObject *, int) asm("__0oHcObjectdtv");
 
 // -- eParticleSystemTemplate::eParticleSystemTemplate(cBase *) @ 0x000b6c70 --
 eParticleSystemTemplate::eParticleSystemTemplate(cBase *parent) : cObject(parent) {
@@ -335,5 +361,45 @@ cBase *eParticleSystemTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// -- eParticleSystemTemplate::~eParticleSystemTemplate(void) @ 0x002142e8 --
+eParticleSystemTemplate::~eParticleSystemTemplate(void) {
+    *(void **)((char *)this + 4) = (void *)0x00384988;
+    void *field = (char *)this + 0x144;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x144);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries -
+                            (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) -
+                            4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                ParticleDeleteRecord *rec =
+                    (ParticleDeleteRecord *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x144) = 0;
+        }
+    }
+    if (this != 0) {
+        *(void **)((char *)this + 4) = (void *)0x00380C18;
+        cObject_dtor((cObject *)this, 0);
+    }
 }
 #pragma control sched=2
