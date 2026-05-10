@@ -61,6 +61,11 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class gcNPCFlyingController {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 extern "C" {
 void *dcastdcast_gcNPCFlyingControllerTemplateptr__constcBaseptr(const cBase *);
 void cFile_SetCurrentPos(void *, unsigned int);
@@ -70,15 +75,21 @@ void __0oKcReadBlockdtv(void *, int);
 
 extern char gcNPCFlyingControllerTemplateclassdesc[];
 extern cType *D_000385DC;
+extern cType *D_000385E0;
 extern cType *D_0009A400;
+extern cType *D_0009A404;
 extern cType *D_0009F5A4;
+extern cType *D_0009F5A8;
 extern cType *D_0009F77C;
+extern cType *D_0009F780;
 extern cType *D_0009F798;
+extern cType *D_0009F79C;
 
 class gcNPCFlyingControllerTemplate : public gcFlyingControllerTemplate {
 public:
     gcNPCFlyingControllerTemplate(cBase *);
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
@@ -175,6 +186,37 @@ const cType *gcNPCFlyingControllerTemplate::GetType(void) const {
             0, 0, 0x1AE, D_0009F77C, &gcNPCFlyingControllerTemplate::New, 0, 0, 0);
     }
     return D_0009F798;
+}
+
+// ── gcNPCFlyingControllerTemplate::GetInstanceType(void) const @ 0x0015519C ──
+const cType *gcNPCFlyingControllerTemplate::GetInstanceType(void) const {
+    if (D_0009F79C == 0) {
+        if (D_0009F780 == 0) {
+            if (D_0009F5A8 == 0) {
+                if (D_0009A404 == 0) {
+                    if (D_000385E0 == 0) {
+                        if (D_000385DC == 0) {
+                            D_000385DC = cType::InitializeType(
+                                (const char *)0x36D894, (const char *)0x36D89C,
+                                1, 0, 0, 0, 0, 0);
+                        }
+                        D_000385E0 = cType::InitializeType(
+                            0, 0, 2, D_000385DC,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                    }
+                    D_0009A404 = cType::InitializeType(
+                        0, 0, 0x99, D_000385E0, 0, 0, 0, 0);
+                }
+                D_0009F5A8 = cType::InitializeType(
+                    0, 0, 0xB9, D_0009A404, 0, 0, 0, 0);
+            }
+            D_0009F780 = cType::InitializeType(
+                0, 0, 0x1AD, D_0009F5A8, 0, 0, 0, 0);
+        }
+        D_0009F79C = cType::InitializeType(
+            0, 0, 0x1AF, D_0009F780, &gcNPCFlyingController::New, 0, 0, 0);
+    }
+    return D_0009F79C;
 }
 
 // ── gcNPCFlyingControllerTemplate::New(cMemPool *, cBase *) static @ 0x0031D590 ──
