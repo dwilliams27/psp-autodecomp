@@ -102673,13 +102673,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUgcValControllerStatedtv"
+    "mangled_symbol": "__0oUgcValControllerStatedtv",
+    "src_file": "src/gcValControllerState_dtor.cpp",
+    "symbol_name": "__0oUgcValControllerStatedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d429672f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T22:44:37Z"
   },
   {
     "address": "0x0011e4e8",
@@ -230926,13 +230933,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcValEntityPathDistancedtv"
+    "mangled_symbol": "__0oXgcValEntityPathDistancedtv",
+    "src_file": "src/gcValEntityPathDistance_dtor.cpp",
+    "symbol_name": "__0oXgcValEntityPathDistancedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d429672f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T22:44:37Z"
   },
   {
     "address": "0x0033b0a0",
@@ -237727,7 +237741,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -237945,7 +237959,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
