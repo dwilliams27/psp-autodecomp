@@ -2024,7 +2024,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00001e44",
       "0x000047a0",
@@ -17896,7 +17896,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -49774,7 +49774,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0005d30c"
     ],
@@ -49782,7 +49782,15 @@
       "0x0003e1e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeRoomEnvironmentECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsK"
+    "mangled_symbol": "__0fQeRoomEnvironmentECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsK",
+    "src_file": "src/eRoomEnvironment.cpp",
+    "symbol_name": "__0fQeRoomEnvironmentECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ff9be3a6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:23:02Z"
   },
   {
     "address": "0x0005ca04",
@@ -82721,7 +82729,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00009dc4",
       "0x00038470",
@@ -82733,7 +82741,21 @@
       "0x000e0bec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5EgcUIHgcFaderEDrawRC6HeCameraRC6EmOCSRC6FeRectbK"
+    "mangled_symbol": "__0f5EgcUIHgcFaderEDrawRC6HeCameraRC6EmOCSRC6FeRectbK",
+    "failure_notes": [
+      {
+        "session": "ff9be3a6",
+        "notes": "Closest attempt reconstructs the stack eSprite at sp+8, material handle temporaries at sp+0x8c/sp+0x90, texture-size copy through sp+0, split/non-split Draw calls, and the inlined eSprite destructor vtable reset plus cObject destructor call. The current function is the right 476-byte size but still differs by 161 bytes. The first 0x00-0xa8 region is largely correct after forcing the this+0x10 material load through an address temporary and manually calling the eSprite constructor/destructor symbols.\n\nThe blocker is SNC scheduling in the split branch. The compiler hoists the -0.5f constant load/mtc1 and starts the offset multiply before the original does; the original keeps the 0.1f constant in the bc1t delay slot, then only loads -0.5f after writing the strip size locals. Several manual restructurings were tried: placement-new storage, automatic stack object with inline destructor, manual ctor/dtor aliases, different material/temp layouts, texture copy variants, memory barriers, split offset temporaries, and local negHalf. The project permuter was run for this target but skipped it because the 161-byte baseline exceeds the 128-byte last-mile gate. Root cause is likely FPU/basic-block scheduling source shape around the split-branch offset calculation, not layout.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:23:02Z",
+        "src_file": "src/gcUI_gcFader.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/ff9be3a6/000e2464__agent_self_reported_failure__src_gcUI_gcFader.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e2640",

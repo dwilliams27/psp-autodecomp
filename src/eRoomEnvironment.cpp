@@ -6,6 +6,10 @@ class cFileHandle;
 class cMemPool;
 class cType;
 class cWriteBlock;
+class eCamera;
+class eCameraBins;
+class eSky;
+class mFrustum;
 
 class cType {
 public:
@@ -66,12 +70,18 @@ public:
     void Write(cFile &) const;
 };
 
+class eSky {
+public:
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *) const;
+};
+
 class eRoomEnvironment : public cObject {
 public:
     eRoomEnvironment(cBase *);
     ~eRoomEnvironment();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
@@ -205,6 +215,49 @@ eRoomEnvironment::eRoomEnvironment(cBase *parent) : cObject(parent) {
 // eRoomEnvironment::~eRoomEnvironment(void) @ 0x0005c8c0
 eRoomEnvironment::~eRoomEnvironment() {
     *(void **)((char *)this + 4) = eRoomEnvironmentvirtualtable;
+}
+
+// eRoomEnvironment::Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *) const @ 0x0005c93c
+void eRoomEnvironment::Cull(unsigned int stamp, const eCamera &camera,
+                            const mFrustum &frustum, eCameraBins *bins) const {
+    unsigned int frame = stamp;
+    __asm__ volatile("" : "+r"(frame));
+    if (*(const unsigned int *)((const char *)this + 0x60) == frame) {
+        return;
+    }
+
+    *(unsigned int *)((char *)this + 0x60) = frame;
+    __asm__ volatile("" ::: "memory");
+    unsigned int handle = *(const unsigned int *)((const char *)this + 0x58);
+    bool valid;
+    if (handle == 0) {
+        valid = false;
+    } else {
+        unsigned int offset = (handle & 0xFFFF) << 2;
+        char *table = (char *)0x38890;
+        void *slot;
+        __asm__ volatile("addu %0,%1,%2" : "=r"(slot) : "r"(offset), "r"(table));
+        void *entry = *(void **)slot;
+        void *sky = 0;
+        if (entry != 0) {
+            if (*(unsigned int *)((char *)entry + 0x30) == handle) {
+                sky = entry;
+            }
+        }
+        valid = sky != 0;
+    }
+
+    if (((unsigned int)valid & 0xFF) != 0) {
+        eSky *sky = 0;
+        if (handle != 0) {
+            unsigned int offset = (handle & 0xFFFF) << 2;
+            char *table = (char *)0x38890;
+            void *slot;
+            __asm__ volatile("addu %0,%1,%2" : "=r"(slot) : "r"(offset), "r"(table));
+            sky = *(eSky **)slot;
+        }
+        sky->Cull(frame, camera, frustum, bins);
+    }
 }
 
 // eRoomEnvironment::AssignCopy(const cBase *) @ 0x00203d24

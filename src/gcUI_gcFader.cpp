@@ -25,6 +25,35 @@ class mOCS;
 class eRect;
 class eViewport;
 
+struct mVec2 {
+    float x;
+    float y;
+};
+
+inline void *operator new(unsigned int, void *p) {
+    return p;
+}
+
+class cObject {
+public:
+    char pad[0x44];
+    cObject(cBase *);
+    ~cObject();
+};
+
+class eSprite : public cObject {
+public:
+    char spritePad[0x28];
+
+    eSprite(cBase *);
+    bool GetTextureSize(mVec2 *) const;
+    void SetTexCoord2(mVec2);
+    void Draw(const eCamera &, const mOCS &, const mVec2 *, const mVec2 *, float) const;
+};
+
+extern "C" void eSprite_ctor(eSprite *, cBase *) asm("__0oHeSpritectP6FcBase");
+extern "C" void cObject_dtor(cObject *, int) asm("__0oHcObjectdtv");
+
 struct cTimeValue {
     int t;
 };
@@ -56,6 +85,7 @@ public:
     static void FadeImmediate(bool fadeIn, cTimeValue duration,
                               cHandleT<eMaterial> mat);
     bool Update(cTimeValue);
+    void Draw(const eCamera &, const mOCS &, const eRect &, bool) const;
 };
 
 }  // namespace gcUI
@@ -204,4 +234,75 @@ void gcFader::FadeImmediate(bool fadeIn, cTimeValue duration,
         }
         eVideo_Flip();
     }
+}
+
+void gcFader::Draw(const eCamera &camera, const mOCS &ocs, const eRect &rect,
+                   bool split) const {
+    if (!mEnabled) {
+        return;
+    }
+
+    mVec2 texCoordArg;
+    int spriteStorage[27];
+    eSprite *sprite = (eSprite *)spriteStorage;
+    mVec2 textureSize;
+    volatile mVec2 unusedSize;
+    mVec2 offset;
+    cHandle material;
+    cHandle materialCopy;
+    eSprite_ctor(sprite, 0);
+
+    const char *matPtr = (const char *)this + 0x10;
+    __asm__ volatile("" : "+r"(matPtr));
+    unsigned int mat = *(const unsigned int *)matPtr;
+    material.handle = mat;
+    materialCopy = material;
+    spriteStorage[18] = materialCopy.handle;
+
+    sprite->GetTextureSize(&textureSize);
+    float texX = textureSize.x;
+    float texY = textureSize.y;
+    texCoordArg.x = texX;
+    texCoordArg.y = texY;
+    sprite->SetTexCoord2(texCoordArg);
+
+    float width = *(const float *)((const char *)&rect + 0x0C);
+    float height = *(const float *)((const char *)&rect + 0x08);
+    float alpha = mAlpha;
+
+    if (split) {
+        float stripWidth;
+        if (mDelay > 0.0f) {
+            stripWidth = width;
+            if (mDelay < stripWidth) {
+                stripWidth = mDelay;
+            }
+            width -= stripWidth;
+        } else {
+            stripWidth = width * 0.1f;
+            width -= stripWidth;
+        }
+
+        unusedSize.x = height;
+        unusedSize.y = stripWidth;
+        *(float *)((char *)sprite + 0x4C) = height;
+        *(float *)((char *)sprite + 0x50) = stripWidth;
+        __asm__ volatile("" ::: "memory");
+
+        offset.x = 0.0f;
+        offset.y = width * -0.5f;
+        sprite->Draw(camera, ocs, 0, &offset, alpha);
+
+        width = *(const float *)((const char *)&rect + 0x0C) - stripWidth;
+        offset.x = 0.0f;
+        offset.y = width * 0.5f;
+        sprite->Draw(camera, ocs, 0, &offset, mAlpha);
+    } else {
+        *(float *)((char *)sprite + 0x4C) = height;
+        *(float *)((char *)sprite + 0x50) = width;
+        sprite->Draw(camera, ocs, 0, 0, alpha);
+    }
+
+    *(void **)((char *)sprite + 4) = (void *)0x3806A8;
+    cObject_dtor((cObject *)sprite, 0);
 }
