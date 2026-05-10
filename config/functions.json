@@ -183574,7 +183574,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -185838,7 +185838,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -187413,14 +187413,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_dtv",
+    "src_file": "src/gcDesiredObjectTgcDesiredSkingcDesiredSkinHelpereSkin_dtor.cpp",
+    "symbol_name": "__0oQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "43787a69",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:19:03Z"
   },
   {
     "address": "0x0027b738",
@@ -195726,14 +195733,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_dtv",
+    "src_file": "src/gcDesiredObjectTgcDesiredPortalgcDesiredPortalHelperePortal_dtor.cpp",
+    "symbol_name": "__0oQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "43787a69",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:19:03Z"
   },
   {
     "address": "0x00293b18",
