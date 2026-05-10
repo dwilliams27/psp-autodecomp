@@ -43,12 +43,20 @@ public:
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
+    ~gcProfileString(void);
 };
 
 struct TypeReadEntry {
     short offset;
     short pad;
     void (*fn)(void *, cFile *, cMemPool *);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 extern cType *D_000385DC;
@@ -61,6 +69,15 @@ extern "C" int gcStringLValue_Read(void *, cFile &, cMemPool *)
 extern "C" void *cMemPool_GetPoolFromPtr(const void *)
     asm("__0fP8cMemPoolLGetPoolFromPtrPCvT");
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
+extern char gcProfileStringvirtualtable[];
+
+inline void gcProfileString::operator delete(void *ptr) {
+    void *pool = cMemPool_GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 void gcProfileString::AssignCopy(const cBase *base) {
     const gcProfileString *other = 0;
@@ -166,4 +183,49 @@ int gcProfileString::Read(cFile &file, cMemPool *pool) {
                  (cMemPool *)cMemPool_GetPoolFromPtr(base));
     }
     return result;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oPgcProfileStringdtv, 0x148\n");
+
+gcProfileString::~gcProfileString(void) {
+    *(void **)((char *)this + 4) = gcProfileStringvirtualtable;
+    void *baseVtable = (void *)0x37E6A8;
+    char *first = (char *)this + 0x10;
+    char *desired = (char *)this + 8;
+
+    if ((void *)first != 0) {
+        *(void **)((char *)this + 0x14) = (void *)0x388568;
+        if ((void *)((char *)this + 0x24) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x24);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x24) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x14) = baseVtable;
+    }
+
+    if ((void *)desired != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+
+    *(void **)((char *)this + 4) = baseVtable;
 }
