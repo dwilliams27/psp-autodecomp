@@ -182459,14 +182459,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_dtv",
+    "src_file": "src/gcDesiredObjectTgcDesiredPathgcDesiredPathHelperePath_dtor.cpp",
+    "symbol_name": "__0oQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9b6113ab",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:18:49Z"
   },
   {
     "address": "0x0026b8b8",
@@ -182761,14 +182768,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_dtv"
+    "mangled_symbol": "__0oQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_dtv",
+    "src_file": "src/gcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint_dtor.cpp",
+    "symbol_name": "__0oQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_dtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9b6113ab",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T16:18:49Z"
   },
   {
     "address": "0x0026c9fc",
@@ -183012,7 +183026,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -183288,7 +183302,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -187399,7 +187413,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -195712,7 +195726,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
