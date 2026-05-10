@@ -148811,7 +148811,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0"
@@ -210927,7 +210927,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -230334,13 +230334,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oYgcValEntityPathDirectiondtv"
+    "mangled_symbol": "__0oYgcValEntityPathDirectiondtv",
+    "src_file": "src/gcValEntityPathDirection_dtor.cpp",
+    "symbol_name": "__0oYgcValEntityPathDirectiondtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4b999852",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T04:56:24Z"
   },
   {
     "address": "0x00339c84",
@@ -230793,13 +230800,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ocgcValEntityPrimaryControllerdtv"
+    "mangled_symbol": "__0ocgcValEntityPrimaryControllerdtv",
+    "src_file": "src/gcValEntityPrimaryController_dtor.cpp",
+    "symbol_name": "__0ocgcValEntityPrimaryControllerdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "4b999852",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T04:56:24Z"
   },
   {
     "address": "0x0033baa0",
