@@ -27,13 +27,39 @@ class eGeom {
 public:
     int base;
 
+    ~eGeom();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+};
+
+struct DeleteEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class eWeatherEffect : public eGeom {
 public:
     static cBase *New(cMemPool *, cBase *);
+    ~eWeatherEffect();
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
+
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -76,7 +102,42 @@ static cType *type_cBase asm("D_000385DC");
 static cType *type_eGeom asm("D_00040FF4");
 static cType *type_eWeatherEffect asm("D_00046B9C");
 
+extern char eWeatherEffectvirtualtable[];
+
 #pragma control sched=1
+
+// ── eWeatherEffect::~eWeatherEffect(void) @ 0x00060810 ──
+eWeatherEffect::~eWeatherEffect() {
+    *(void **)((char *)this + 4) = eWeatherEffectvirtualtable;
+    void *field = (char *)this + 0x90;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x90);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x90) = 0;
+        }
+    }
+}
 
 // ── eWeatherEffect::AssignCopy(const cBase *) @ 0x00207350 ──
 void eWeatherEffect::AssignCopy(const cBase *base) {

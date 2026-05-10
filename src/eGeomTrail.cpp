@@ -39,15 +39,41 @@ public:
 class eDynamicGeom : public eGeom {
 public:
     eDynamicGeom(cBase *);
+    ~eDynamicGeom();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     char _dynPad[0x58];
 };
 
+struct DeleteEntry {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class eGeomTrail : public eDynamicGeom {
 public:
     eGeomTrail(cBase *);
+    ~eGeomTrail();
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
+
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -75,6 +101,39 @@ eGeomTrail::eGeomTrail(cBase *base) : eDynamicGeom(base) {
     *(int *)((char *)this + 0xF0) = 0;
     *(int *)((char *)this + 0xF8) = 0;
     *(int *)((char *)this + 0xFC) = 0;
+}
+
+// ── eGeomTrail::~eGeomTrail(void) @ 0x000794A0 ──
+eGeomTrail::~eGeomTrail() {
+    *(void **)((char *)this + 4) = eGeomTrailvirtualtable;
+    void *field = (char *)this + 0xF8;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0xF8);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0xF8) = 0;
+        }
+    }
 }
 
 // ── eGeomTrail::Write(cFile &) const @ 0x00079358 ──
