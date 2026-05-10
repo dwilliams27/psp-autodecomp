@@ -71,11 +71,18 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+class eSimpleMotor {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 void cFile_SetCurrentPos(void *, unsigned int);
 
 extern char eSimpleMotorConfigvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000469F0;
+extern cType *D_00046BCC;
+extern cType *D_00046BD0;
 extern cType *D_00046C00;
 
 class eSimpleMotorConfig : public ePhysicsMotorConfig {
@@ -84,6 +91,7 @@ public:
     ~eSimpleMotorConfig();
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
@@ -176,6 +184,29 @@ const cType *eSimpleMotorConfig::GetType(void) const {
             0, 0, 0x263, parentType, factory, 0, 0, 0);
     }
     return D_00046C00;
+}
+
+// ── eSimpleMotorConfig::GetInstanceType(void) const @ 0x0020e8ac ──
+const cType *eSimpleMotorConfig::GetInstanceType(void) const {
+    if (D_00046BD0 == 0) {
+        if (D_00046BCC == 0) {
+            if (D_000385DC == 0) {
+                const char *name = (const char *)0x36CD74;
+                const char *desc = (const char *)0x36CD7C;
+                __asm__ volatile("" : "+r"(name), "+r"(desc));
+                D_000385DC = cType::InitializeType(
+                    name, desc, 1, 0, 0, 0, 0, 0);
+            }
+            D_00046BCC = cType::InitializeType(
+                0, 0, 0x261, D_000385DC, 0, 0, 0, 0);
+        }
+        const cType *parentType = D_00046BCC;
+        cBase *(*factory)(cMemPool *, cBase *) = &eSimpleMotor::New;
+        __asm__ volatile("" : "+r"(parentType), "+r"(factory));
+        D_00046BD0 = cType::InitializeType(
+            0, 0, 0x262, parentType, factory, 0, 0, 0);
+    }
+    return D_00046BD0;
 }
 
 // ── eSimpleMotorConfig::AssignCopy(const cBase *) @ 0x0020e6c8 ──

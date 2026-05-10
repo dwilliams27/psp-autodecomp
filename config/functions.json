@@ -39667,13 +39667,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeStaticModelTemplatePGetInstanceTypevK"
+    "mangled_symbol": "__0fUeStaticModelTemplatePGetInstanceTypevK",
+    "src_file": "src/eStaticModelTemplate.cpp",
+    "symbol_name": "__0fUeStaticModelTemplatePGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fff0b02c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:51:18Z"
   },
   {
     "address": "0x00041afc",
@@ -121956,7 +121964,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -122528,7 +122536,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534"
     ],
@@ -159032,13 +159040,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeSimpleMotorConfigPGetInstanceTypevK"
+    "mangled_symbol": "__0fSeSimpleMotorConfigPGetInstanceTypevK",
+    "src_file": "src/eSimpleMotorConfig.cpp",
+    "symbol_name": "__0fSeSimpleMotorConfigPGetInstanceTypevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fff0b02c",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T01:51:18Z"
   },
   {
     "address": "0x0020e984",

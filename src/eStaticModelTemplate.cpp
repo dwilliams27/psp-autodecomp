@@ -50,6 +50,11 @@ public:
     void Write(cFile &) const;
 };
 
+class eStaticModel {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
 template <class T>
 class cArrayBase {
 public:
@@ -80,6 +85,7 @@ public:
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -87,8 +93,11 @@ extern char eStaticModelTemplatevirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
+extern cType *D_00040FF4;
+extern cType *D_000469A4;
 extern cType *D_000469A8;
 extern cType *D_000469AC;
+extern cType *D_000469B4;
 extern cType *D_000469B0;
 
 // -- eStaticModelTemplate::Write(cFile &) const @ 0x00041158 --
@@ -191,4 +200,26 @@ const cType *eStaticModelTemplate::GetType(void) const {
                                            0, 0, 0);
     }
     return D_000469B0;
+}
+
+// -- eStaticModelTemplate::GetInstanceType(void) const @ 0x000419E4 --
+const cType *eStaticModelTemplate::GetInstanceType(void) const {
+    if (D_000469B4 == 0) {
+        if (D_000469A4 == 0) {
+            if (D_00040FF4 == 0) {
+                if (D_000385DC == 0) {
+                    D_000385DC = cType::InitializeType((const char *)0x36CD74,
+                                                       (const char *)0x36CD7C,
+                                                       1, 0, 0, 0, 0, 0);
+                }
+                D_00040FF4 = cType::InitializeType(0, 0, 0x16, D_000385DC,
+                                                   0, 0, 0, 0);
+            }
+            D_000469A4 = cType::InitializeType(0, 0, 0x1A, D_00040FF4,
+                                               0, 0, 0, 0);
+        }
+        D_000469B4 = cType::InitializeType(0, 0, 0x1D, D_000469A4,
+                                           &eStaticModel::New, 0, 0, 0);
+    }
+    return D_000469B4;
 }
