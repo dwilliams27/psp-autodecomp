@@ -84,7 +84,14 @@ struct VTableSlot {
     const cType *(*getType)(void *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 extern "C" void gcAction_gcAction(void *, cBase *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 void gcAction_Write(const gcDoNetworkOp *, cFile &);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
@@ -100,12 +107,22 @@ public:
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     gcDoNetworkOp &operator=(const gcDoNetworkOp &);
+    static void operator delete(void *);
+    ~gcDoNetworkOp(void);
 };
 
 static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoNetworkOp;
+
+inline void gcDoNetworkOp::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 cBase *gcDoNetworkOp::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -279,4 +296,45 @@ const cType *gcDoNetworkOp::GetType(void) const {
                                                    gcDoNetworkOp::New, 0, 0, 0);
     }
     return type_gcDoNetworkOp;
+}
+
+// Original object keeps this dead branch tail inside the destructor symbol.
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+gcDoNetworkOp::~gcDoNetworkOp(void) {
+    *(void **)((char *)this + 4) = gcDoNetworkOpvirtualtable;
+    char *second = (char *)this + 0x10;
+
+    if ((void *)((char *)this + 0x14) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }

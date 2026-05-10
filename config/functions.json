@@ -209407,14 +209407,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oNgcDoNetworkOpdtv"
+    "mangled_symbol": "__0oNgcDoNetworkOpdtv",
+    "src_file": "src/gcDoNetworkOp.cpp",
+    "symbol_name": "__0oNgcDoNetworkOpdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3cd3984e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:47:08Z"
   },
   {
     "address": "0x002e932c",
@@ -210947,14 +210955,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oagcDoPlayerAssignControllerdtv"
+    "mangled_symbol": "__0oagcDoPlayerAssignControllerdtv",
+    "src_file": "src/gcDoPlayerAssignController.cpp",
+    "symbol_name": "__0oagcDoPlayerAssignControllerdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3cd3984e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:47:08Z"
   },
   {
     "address": "0x002f181c",
@@ -213746,7 +213762,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -213967,7 +213983,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
