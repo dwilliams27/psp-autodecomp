@@ -199941,7 +199941,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -200173,7 +200173,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -237762,7 +237762,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -237770,7 +237770,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcValNavMeshDirectionKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fVgcValNavMeshDirectionKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "5fc0bdc7",
+        "notes": "Closest attempt is 780B vs expected 784B (4-byte / 1-instruction body diff after adding trailing b./nop via __asm__(\".size ...\") directive). Source structure follows the gcValEntityPathDistance_AssignCopy pattern with field-offset shift (destruct/clone block at +0x34 instead of +0x40, plus 24-byte cName memcpy at +0x40 and three int copies at +0x58/5C/60).\n\nThe remaining 4-byte diff is a branch-direction divergence at 0x188. Expected uses jump-in pattern: `bnel a0,s7,0x198; lw a2,this->unk34 (delay); b 0x280; lw a0,other->unk38 (delay); ... body ...; merge`. Our SNC emits skip-over pattern: `beql a0,s3,0x27c; lw a0,other->unk38 (delay); ... body ... (with explicit `lw a0,this->unk34` inside body)`. Same semantics, 1 fewer instruction. The expected pre-loads this->unk34 via the bnel delay slot into a2 and uses a2 throughout the body; ours allocates a0 for this->unk34 with a regular load at the body's start.\n\nThis is essentially the inverse of docs/decisions/006-bnel-compiler-divergence.md \u2014 our SNC picks the skip-over (likely-beql) form where original picked the jump-in (bnel + b merge) form. Same fundamental heuristic divergence, just a different code shape. The sibling file src/gcValEntitySoundFrequency_AssignCopy.cpp has the identical issue with the identical source pattern (16 bytes off there because that file also lacks the .size directive).\n\nSource restructurings tested without effect:\n  1. Plain `if (cond) { body } rest` (4-byte diff)\n  2. `int oldValue = ...; if (cond) { ... }` with the load hoisted out (made worse \u2014 16-byte diff because SNC removed the redundant load entirely but also didn't add b merge)\n  3. goto-based `if (cond == eq) goto skip; { body } skip:` (4-byte diff, same as 1)\n  4. `__asm__ volatile(\"\" :: \"r\"(srcEntity) : \"memory\")` barrier before operator= (no effect)\n  5. `char *otherKey = ...; if (otherKey != destValue)` temporary (no effect)\n\nPermuter run aborted with PERMUTER_SKIPPED_NOT_LAST_MILE because size delta is 4B. Permuter is gated on size-match.\n\nRoot cause: SNC 1.2.7503.0 register allocator places `this->unk34` in `a0` (caller-saved, also used for branch compare), preventing the bnel-delay-slot pre-load optimization the original compiler used. To match, we'd need either (a) a way to coerce SNC's RA to use `a2` for `this->unk34`, or (b) compiler-side patching of pspcor.exe to flip the branch heuristic for this pattern. Neither is straightforward from source.\n\nSuggested next steps: (i) try `register int oldValue asm(\"a2\")` hint inside the if-body; (ii) try splitting the destruct/clone into a separate inline helper to push register pressure; (iii) compare with a fully-matched sibling that has same dual-section structure (destruct-then-copies) if one exists in the corpus.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:09:28Z",
+        "src_file": "src/gcValNavMeshDirection_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/5fc0bdc7/00350b88__agent_self_reported_failure__src_gcValNavMeshDirection_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x00350e98",
@@ -237980,13 +237994,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVgcValNavMeshDirectiondtv"
+    "mangled_symbol": "__0oVgcValNavMeshDirectiondtv",
+    "src_file": "src/gcValNavMeshDirection_dtor.cpp",
+    "symbol_name": "__0oVgcValNavMeshDirectiondtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5fc0bdc7",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T23:09:28Z"
   },
   {
     "address": "0x00352c7c",
