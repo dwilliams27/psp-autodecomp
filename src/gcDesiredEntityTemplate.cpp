@@ -85,8 +85,20 @@ struct DispatchEntry {
     cType *(*fn)(void *, short, void *);
 };
 
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDesiredEntityTemplate {
 public:
+    ~gcDesiredEntityTemplate();
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
     int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
@@ -97,11 +109,63 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     const cType *GetDesiredType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oXgcDesiredEntityTemplatedtv, 0x130\n");
+
+gcDesiredEntityTemplate::~gcDesiredEntityTemplate(void) {
+    *(void **)((char *)this + 4) = (void *)0x389508;
+    char *second = (char *)this + 8;
+
+    if ((void *)((char *)this + 0x14) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+    }
+
+    *(void **)((char *)this + 4) = (void *)0x3889A8;
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
 
 cObject *gcDesiredEntityTemplate::GetObject(bool b) const {
     return Get(b);

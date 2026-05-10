@@ -52395,7 +52395,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc"
@@ -87889,7 +87889,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -181892,13 +181892,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcDesiredEntityTemplatedtv"
+    "mangled_symbol": "__0oXgcDesiredEntityTemplatedtv",
+    "src_file": "src/gcDesiredEntityTemplate.cpp",
+    "symbol_name": "__0oXgcDesiredEntityTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a5285c4b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:14:10Z"
   },
   {
     "address": "0x0026963c",
@@ -183717,13 +183725,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPgcDesiredStringdtv"
+    "mangled_symbol": "__0oPgcDesiredStringdtv",
+    "src_file": "src/gcDesiredString.cpp",
+    "symbol_name": "__0oPgcDesiredStringdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a5285c4b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:14:10Z"
   },
   {
     "address": "0x00270ea8",

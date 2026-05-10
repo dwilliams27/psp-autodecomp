@@ -13,9 +13,13 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 class cObject;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -103,6 +107,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct DispatchEntry {
     short offset;
     short pad;
@@ -111,6 +121,7 @@ struct DispatchEntry {
 
 class gcDesiredString {
 public:
+    ~gcDesiredString();
     cObject *Get(bool) const;
     cObject *GetObject(bool) const;
     gcDesiredString &operator=(const gcDesiredString &);
@@ -121,7 +132,59 @@ public:
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     const cType *GetDesiredType(void) const;
+
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oPgcDesiredStringdtv, 0x130\n");
+
+gcDesiredString::~gcDesiredString(void) {
+    *(void **)((char *)this + 4) = (void *)0x3899E0;
+    char *second = (char *)this + 8;
+
+    if ((void *)((char *)this + 0x18) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x18);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x18) = 0;
+            }
+        }
+    }
+
+    *(void **)((char *)this + 4) = (void *)0x3889A8;
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+
+    *(void **)((char *)this + 4) = (void *)0x37E6A8;
+}
 
 // ============================================================
 // 0x0012A700 — GetObject(bool) const, 28B (already matched)
