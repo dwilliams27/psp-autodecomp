@@ -47329,7 +47329,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -152946,7 +152946,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -208287,14 +208287,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oLgcDoLobbyOpdtv"
+    "mangled_symbol": "__0oLgcDoLobbyOpdtv",
+    "src_file": "src/gcDoLobbyOp_dtor.cpp",
+    "symbol_name": "__0oLgcDoLobbyOpdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "deadf533",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T05:00:37Z"
   },
   {
     "address": "0x002e38cc",
@@ -219526,14 +219533,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oNgcDoUISetTextdtv"
+    "mangled_symbol": "__0oNgcDoUISetTextdtv",
+    "src_file": "src/gcDoUISetText_dtor.cpp",
+    "symbol_name": "__0oNgcDoUISetTextdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "deadf533",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T05:00:37Z"
   },
   {
     "address": "0x00314d9c",
