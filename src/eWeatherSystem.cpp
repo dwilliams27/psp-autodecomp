@@ -23,6 +23,12 @@ public:
 class cBaseArray {
 public:
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 inline void *operator new(unsigned int, void *p) { return p; }
@@ -40,15 +46,35 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DeleteRec {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
 class eWeatherSystem {
 public:
     cBase *mOwner;
     void *mClassDesc;
 
     eWeatherSystem(cBase *);
+    ~eWeatherSystem(void);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            __asm__ volatile("" ::: "memory");
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
 };
 
 extern char eWeatherSystemclassdesc[];
@@ -182,5 +208,55 @@ const cType *eWeatherSystem::GetType(void) const {
                                                     factory, 0, 0, 0);
     }
     return type_eWeatherSystem;
+}
+#pragma control sched=2
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oOeWeatherSystemdtv, 0x138\n");
+
+// ── eWeatherSystem::~eWeatherSystem(void) @ 0x00061a10 ──
+#pragma control sched=1
+eWeatherSystem::~eWeatherSystem(void) {
+    *(void **)((char *)this + 4) = (void *)0x382B80;
+    *(eWeatherSystem **)0x37D31C = 0;
+
+    void *baseArray = (char *)this + 0x0C;
+    void *handleArray = (char *)this + 0x08;
+    if (baseArray != 0) {
+        ((cBaseArray *)baseArray)->RemoveAll();
+    }
+
+    if (handleArray != 0) {
+        void *entries = *(void **)((char *)this + 0x08);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteRec *rec = (DeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x08) = 0;
+        }
+    }
+
+    if (this != 0) {
+        *(void **)((char *)this + 4) = (void *)0x37E6A8;
+    }
 }
 #pragma control sched=2

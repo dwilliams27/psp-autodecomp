@@ -25,6 +25,7 @@ public:
 class cObject : public cBase {
 public:
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -63,6 +64,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 class cType {
@@ -107,6 +114,7 @@ public:
     gcConfig *mField50;
 
     gcConfiguration(cBase *);
+    ~gcConfiguration(void);
     void AssignCopy(const cBase *);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -117,6 +125,18 @@ public:
     static gcConfiguration *Create(void);
     static bool Initialize(void);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            void *block = pool->mBlock;
+            char *entries = *(char **)((char *)block + 0x1C);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+            short off = slot->offset;
+            void (*fn)(void *, void *) = slot->fn;
+            fn((char *)block + off, p);
+        }
+    }
 };
 
 class gcGameGlobals {
@@ -305,4 +325,53 @@ const cType *gcConfiguration::GetType(void) const {
                                            (const char *)0x36D920, 1);
     }
     return D_00099AF8;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oPgcConfigurationdtv, 0x138\n");
+
+// ── gcConfiguration::~gcConfiguration(void) @ 0x000f069c ──
+gcConfiguration::~gcConfiguration(void) {
+    register void *vtable __asm__("$5");
+    __asm__ volatile(
+        "lui $4, 0x38\n"
+        "addiu %0, $4, 0x7b50"
+        : "=r"(vtable)
+        :
+        : "$4");
+    cBase *field50 = *(cBase **)((char *)this + 0x50);
+    *(void **)((char *)this + 4) = vtable;
+    if (field50 != 0) {
+        char *typeInfo = *(char **)((char *)field50 + 4);
+        DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+        slot->fn((char *)field50 + slot->offset, (void *)3);
+        *(cBase **)((char *)this + 0x50) = 0;
+    }
+
+    cBase *field4C = *(cBase **)((char *)this + 0x4C);
+    if (field4C != 0) {
+        char *typeInfo = *(char **)((char *)field4C + 4);
+        DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+        slot->fn((char *)field4C + slot->offset, (void *)3);
+        *(cBase **)((char *)this + 0x4C) = 0;
+    }
+
+    cBase *field48 = *(cBase **)((char *)this + 0x48);
+    if (field48 != 0) {
+        char *typeInfo = *(char **)((char *)field48 + 4);
+        DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+        slot->fn((char *)field48 + slot->offset, (void *)3);
+        *(cBase **)((char *)this + 0x48) = 0;
+    }
+
+    cBase *field44 = *(cBase **)((char *)this + 0x44);
+    if (field44 != 0) {
+        char *typeInfo = *(char **)((char *)field44 + 4);
+        DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+        slot->fn((char *)field44 + slot->offset, (void *)3);
+        *(cBase **)((char *)this + 0x44) = 0;
+    }
+
+    *(gcConfiguration **)0x37D7E4 = 0;
 }
