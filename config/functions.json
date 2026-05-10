@@ -19572,7 +19572,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00033938",
@@ -19590,7 +19590,21 @@
       "0x000b87bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fReDynamicVertChunkEDrawv"
+    "mangled_symbol": "__0fReDynamicVertChunkEDrawv",
+    "failure_notes": [
+      {
+        "session": "d089e7f8",
+        "notes": "Best correct version: 51 bytes diff out of 516. Structure matches expected: bounds-checked switch dispatch with linear scan + case 0 fallthrough, conditional mCount load post-bounds, ++p form for the 0xC8000000 GE-list write, do-while loop for prim-word fill. Remaining diff dominated by case 4 codegen drift: SNC schedules 'move t0, a1' at the START of the case body while expected places it LATE after the divisions on a1; this 1-instruction shift cascades through the rest of case 4 (~36B) and creates secondary diffs in second-half register choices. Multiple case 4 reorderings tested (D_0037D118 update first, t0=a1 last, a3=t1 chain, intermediate temp variable for a1/2) all regressed to 72-274B. Permuter (4 runs, ~12 minutes total, 5784 candidates) repeatedly converges on 25-28B improvements but only by reordering 'a1 = mCount' AFTER 't0 = a1' in case 4, which introduces a semantic bug (t0 = old a1 = 0 from prologue init, instead of t0 = mCount per expected disassembly at offset 0x117b4 'move t0, a1'); rejected as incorrect. Likely root cause: TU-context register-allocation drift documented in docs/research/snc-register-allocation.md and ADR-012 \u2014 Draw was originally compiled in eAll_psp.obj with thousands of sibling functions; our 1-method split-TU presents different liveness graph context to SNC's allocator. Source kept includes permuter-discovered cosmetic-only improvements: int type=mType local (drives compiler to load mType first), unsigned int a3 (changing to int adds ~9B elsewhere), '(int)a3' cast in loop comparison to force slt over sltu, 'a3+a3+a3' for case 2 multiplication, '(a3+3)+p' commutative reorder, 'q = 3 + p' commutative reorder. category=REG_ALLOC (broader scale than canonical 8B drift; not bnel divergence).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T19:17:24Z",
+        "src_file": "src/eDynamicVertChunk_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/d089e7f8/000116bc__agent_self_reported_failure__src_eDynamicVertChunk_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x000118c0",
@@ -96016,7 +96030,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0002f7b0",
       "0x0002f848",
@@ -96031,7 +96045,14 @@
       "0x0010958c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIStackDialogEDrawv"
+    "mangled_symbol": "__0fPgcUIStackDialogEDrawv",
+    "src_file": "src/gcUIStackDialog_Draw.cpp",
+    "symbol_name": "__0fPgcUIStackDialogEDrawv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d089e7f8",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T19:17:24Z"
   },
   {
     "address": "0x0010973c",
@@ -161955,14 +161976,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oEcSet76EcPtr76LeGeomHelper_6WcRedBlackTreeAllocator6EcPtr76LeGeomHelper_6UcRedBlackTreeCompare_dtv"
+    "mangled_symbol": "__0oEcSet76EcPtr76LeGeomHelper_6WcRedBlackTreeAllocator6EcPtr76LeGeomHelper_6UcRedBlackTreeCompare_dtv",
+    "failure_notes": [
+      {
+        "session": "bc2cd4fc",
+        "notes": "Compiled to 400B (target 416B) \u2014 16 bytes short, structural divergence in tree-descent loop. Target implements iterative red-black tree post-order destruction: phase 1 walks root\u2192leftmost-then-rightmost descent emitting `beqzl s2,EXIT; sw zero,0(s0)` likely-branch w/ delay-likely root clear, then `lw left; bnez left,DOWN_LEFT; lw right; bnezl right,DOWN_RIGHT; lw s2,12(s2)` likely-branch into right; phase 2 iterates s3=current parent walk, computing `parent = (toDel->parent_link & ~1)` with mask via s4=-2 set in delay slot of `b PHASE2`, deciding isLeft via `bne parent->left, s2`, then descending right subtree if isLeft+rightExists, then dispatching `value->[0x54]+8` polymorphic destructor with flags=3 and free()ing the node, looping via bnezl s3,PHASE2_TOP w/ delay-likely `lw a0, parent_link`. The deleting-destructor tail beginning at 0x120 has the same pattern as cArrayBase (andi s1,1; sw zero,4(s0); beqz s0; jal GetPoolFromPtr; pool-or-free). Target ends with deadlock trap `1000ffff; nop` at 0x198 inside the symbol size 0x1A0 (8 bytes). Mine has no trap \u2014 symbol ends at 0x190. My descent loop diverges: SNC emits a `b $-N; lw a0,8(s2)` redundant pattern at the descent loop tail because the compiler chose a different control-flow structure for nested `if (left) cur=left; else if (right) cur=right; else break` \u2014 produces the `move s2,a0; b PHASE1_TOP; lw a0,8(s2)` cycle 3 times where target only needs 2. Two diff sources: (1) compiler can't prove the inner-loop break structure matches target's likely-branches, possibly needs explicit goto-based control flow; (2) the trailing trap word is conditional on SNC's emission policy \u2014 needs `__asm__(\".word 0x1000ffff\\n.word 0x00000000\\n\")` after the destructor body BEFORE the closing `}` (similar to eStaticModelTemplate's leading trap, but trailing here). Did not pursue further \u2014 would need 4+ more iterations + permuter. Required `#pragma control sched=1` (transition zone .gnu.linkonce.t section).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T18:24:50Z",
+        "src_file": "src/cSetcPtreGeomHelpercRedBlackTreeAllocatorcPtreGeomHelpercRedBlackTreeCompare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/bc2cd4fc/00216d0c__agent_self_reported_failure__src_cSetcPtreGeomHelpercRedBlackTreeAllocatorcPtreGeomHelpercRedBlackTreeCompare.cpp"
+      }
+    ]
   },
   {
     "address": "0x00216eac",
@@ -164041,7 +164076,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0008eaac",
@@ -164049,7 +164084,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oKcArrayBase76WeDynamicMeshVisTriList_dtv"
+    "mangled_symbol": "__0oKcArrayBase76WeDynamicMeshVisTriList_dtv",
+    "failure_notes": [
+      {
+        "session": "bc2cd4fc",
+        "notes": "Compiled to 296B (target 300B) \u2014 exactly one 4-byte instruction short. The structural diff is that the original emits TWO separate loads of mData before the loop body (lw a1,0(s0); beqz a1; lw a0,0(s0) in delay slot; lw s2,-4(a1)), while my SNC emits ONE load merged for both check and data (lw a0,0(s0); beqz a0; li s4,0; lw s4,-4(a0)). Tried: explicit `void *check`/`void *data` separate locals, `__asm__ volatile(::: \"memory\")` barrier between them, `__asm__ volatile(\"\" : \"+r\"(check))`, `*(void * const volatile *)&mData` casts, direct `mData` access with no intermediate, inline-asm `lw %0,0(%1)` to force the load. All produce ONE merged load \u2014 SNC's CSE pass eliminates the second access of `this->mData` even with memory barriers. Without an explicit `if (p != 0)` in operator delete the deleting-destructor tail is missing the `beqz s0` null check (8B short -> 292B); ADDING `if (p != 0)` to operator delete (matches eDynamicLightTemplate's pattern) gives the null check and brings size to 296B. Operator delete tail with free-fallback inlines correctly (matches target 0xc8-0x108). Register allocation also drifts: target uses count=s2 offset=s3 i=s4, mine uses count=s4 i=s3 offset=s2 (one-up-shifted). Permuter ran but tooling errored extracting .text section. The 4-byte gap can only be closed by forcing two pre-loop loads in delay-slot fill \u2014 likely needs a compiler patch or alternate ABI signature, not a source change. Required #pragma control sched=1 wrapping the destructor (without it, prologue scheduling breaks: move s0,a0 interleaves into sw block).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T18:24:50Z",
+        "src_file": "src/cArrayBaseeDynamicMeshVisTriList.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_120905/bc2cd4fc/0021da38__agent_self_reported_failure__src_cArrayBaseeDynamicMeshVisTriList.cpp"
+      }
+    ]
   },
   {
     "address": "0x0021db64",
