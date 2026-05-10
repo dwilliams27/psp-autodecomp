@@ -41343,7 +41343,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0019f6e8"
     ],
@@ -41351,7 +41351,21 @@
       "0x000a8ae4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeModelNodeControllerFApplyP6NeAnimationKey"
+    "mangled_symbol": "__0fUeModelNodeControllerFApplyP6NeAnimationKey",
+    "failure_notes": [
+      {
+        "session": "55747db8",
+        "notes": "Closest attempt is a split-TU local class redeclaration with C++ control flow, mQuat::Slerp for quaternion blending, compiler-generated SceULong128 copies for the t>=1 path, and small inline VFPU blocks for vector interpolation. The current diff is 165/340 bytes under sched=2. Moving flag loads inside the compare branches improved the mismatch from 263 bytes to 165 bytes; sched=1 made it worse, so the closest attempt is back on default sched=2.\n\nThe remaining mismatch is partly scheduling/prologue shape and partly the documented inline-asm delay-slot limitation. The target keeps this in s1/s0 before the initial compare and loads flags at the compare branch delay, while the closest source still lets SNC load blend through a0 first and move s1/s0 later. In the second interpolation block the target has `b end` with `sv.q` in the branch delay slot; because these VFPU ops are currently inline asm, SNC emits the `sv.q` before the branch and leaves a nop in the delay slot. A future retry likely needs a source shape that gets compiler-generated VFPU stores for the final scale copy or a narrower technique for reproducing that branch-delay placement without turning the function into pure assembly.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:01:44Z",
+        "src_file": "src/eModelNodeController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/55747db8/00046ce8__agent_self_reported_failure__src_eModelNodeController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00046e3c",
@@ -46536,7 +46550,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0005316c",
       "0x000aa718",
@@ -49760,7 +49774,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0005d30c"
     ],
@@ -50025,7 +50039,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0005c93c"
@@ -63921,11 +63935,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fLeTextureMapFApplyiPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fLeTextureMapFApplyiPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "55747db8",
+        "notes": "Closest attempt is a normal C++ implementation of the texture command-list update using the existing RenderState/GpuCmdList patterns from eRenderTarget. The current diff is 42/200 bytes. The control flow and size match the target, but SNC chooses different temporary registers in the flag test and GPU command block: flagBits lands in a3 instead of a2, the D_000984D0 pointer is carried in a3 instead of a2, and the later textureFlag/value block uses a2/t0/a0 differently than the target a0/a3/t0 sequence. I tried explicit flag locals, a shared RenderState pointer, ordering barriers after the command-list pointer update, predeclaring the command values to fill delay slots, and local register variable hints; the register hints were ignored by SNC.\n\nThe root cause appears to be source-shape/register-allocation sensitivity rather than missing semantics. The key remaining target pattern is `andi a2,a1,2` followed by `lui/addiu a1,D_00098428`, then reuse of a2 for D_000984D0 after the branch; current source consistently gets the same behavior with a3/a2 swapped. The closest source is left in src/eTextureMap.cpp, with a minimal header declaration added so the canonical method definition compiles.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:01:44Z",
+        "src_file": "src/eTextureMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/55747db8/0007b3dc__agent_self_reported_failure__src_eTextureMap.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007b4a4",
@@ -64094,14 +64122,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPeParticleSystemdtv"
+    "mangled_symbol": "__0oPeParticleSystemdtv",
+    "src_file": "src/eParticleSystem.cpp",
+    "symbol_name": "__0oPeParticleSystemdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d5aba68b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:20:47Z"
   },
   {
     "address": "0x0007b9c0",
@@ -64149,14 +64185,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000116bc",
       "0x000b6e4c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeParticleSystemEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fPeParticleSystemEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "d5aba68b",
+        "notes": "Closest source compiles to the correct 400-byte symbol but remains 114 bytes different. The main manual improvements were: using canonical C++ method syntax, matching the stack frame size and save offsets with a memory-only local, swapping the two post-template FillVertChunk argument sources so t0/t1 match the disassembly, forcing the destructor-independent VFPU stores at stack +0x20/+0x30/+0x40/+0x50, and restructuring the final material vtable dispatch with an $a0 register hint. The current remaining differences are mostly scheduler/register-allocation shape: the prologue moves a1 into s0 before a0 into s1 instead of delaying that move, the template/draw-object loads are scheduled in a different order, the material-color branch uses different temporaries around the mtl pointer, and the final vtable-entry pointer is still kept in s3 rather than the target's a0/a1 handoff sequence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:20:47Z",
+        "src_file": "src/eParticleSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/d5aba68b/0007befc__agent_self_reported_failure__src_eParticleSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007c08c",
@@ -82671,7 +82721,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00009dc4",
       "0x00038470",
@@ -83518,7 +83568,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002d864",
       "0x0002de40",
@@ -83538,7 +83588,21 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIDialogEDrawUi"
+    "mangled_symbol": "__0fKgcUIDialogEDrawUi",
+    "failure_notes": [
+      {
+        "session": "2fea9c87",
+        "notes": "Implemented a split-TU canonical C++ attempt in src/gcUIDialog_Draw.cpp because gcUIDialog.h does not declare Draw(unsigned int). The final source has the correct 0x3F0 frame, camera at sp+0x40, ortho rect at sp+0x350, static D_00038578/D_000385B8 identity setup, global identity copy into outgoing mOCS, and the call to gcUIDialog::Draw(const eCamera &, const mOCS &, const eRect &, unsigned int). compare_func is size-exact but reports 50/352 bytes differing.\n\nManual variants tried included plain semantic C identity construction (too small), a VFPU identity initializer with stack scratch rows at sp+0x360/0x370/0x380/0x390/0x3A0/0x3B0/0x3C0, moving the rect and scratch locals to match target offsets, hardcoding the D_000385B8 store order inside inline asm, and row-by-row versus whole-struct mOCS copies. The remaining diff is concentrated in instruction ordering/register choice in the lazy identity guard and final mOCS copy/call setup. A 300s permuter run found a 33-byte-diff candidate but no exact match; a second 60s run with --save-improved reproduced that 33-byte best but the tool still reported 'Use --save-improved' and did not save the improved candidate, so the clean 50-byte source remains in the file.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:11:19Z",
+        "src_file": "src/gcUIDialog_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/2fea9c87/000e4e34__agent_self_reported_failure__src_gcUIDialog_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x000e4f94",
@@ -113774,13 +113838,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e0bec"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcUIGeomEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fIgcUIGeomEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "2fea9c87",
+        "notes": "Added a canonical C++ gcUIGeom::Draw(const eDrawInfo &) const attempt in src/gcUIGeom.cpp with local eDrawInfo/eRect/mOCS declarations, the geom width/height rect setup, the optional vtable update call at +0xB8, and an inline VFPU block for the C120/C130/C200 scaling sequence. The best stable source is size-exact at 296B but compare_func reports 221/296 bytes differing. The core semantic shape is right, but SNC scheduling/register allocation diverges early: source-level struct access initially produced good rect stack offsets, but the compiler still chooses a different ordering for width/height conversion, callee-save setup, and the call argument setup around the inline VFPU block. A variant with explicit width/height locals made the branch delay slot closer but caused f20 to be reused for the width conversion and reduced the function to 264B, so it was reverted.\n\nTried C struct copy plus inline VFPU, a fully manual VFPU copy/scale block, stack padding to force rect at sp+0x10 and mOCS at sp+0x20, register-binding scale to $f20, and different width/height expression shapes. An inline asm direct jal to gcUI::Draw would have allowed exact call scheduling, but SNC's inline assembler rejected the mangled external label as an undefined local label. The permuter was attempted for 60s with --save-best, but it skipped as PERMUTER_SKIPPED_NOT_LAST_MILE because its compile path saw the symbol as 304B versus the DB's 296B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T02:11:19Z",
+        "src_file": "src/gcUIGeom.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_214522/2fea9c87/0013b798__agent_self_reported_failure__src_gcUIGeom.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013b8c0",

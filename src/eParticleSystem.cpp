@@ -12,11 +12,38 @@ struct eParticleSystem_UpdateRec {
 
 class cBase;
 class cFile;
-class cMemPool;
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 class cType;
+class eDrawInfo {
+public:
+    char _pad[0x18];
+};
+class eDynamicVertChunk {
+public:
+    void *mBuffer;
+    int *mPtr;
+    int mCount;
+    int mType;
+    void Draw(void);
+};
 class eDynamicGeom;
 class eParticle;
 class eParticleSystem;
+class eParticleSystemTemplate;
+class eParticleSystemUpdateInfo;
+class eColor {
+public:
+    unsigned int rgba;
+};
+
+struct DeleteEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 template <class T>
 class cArrayBase {
@@ -49,15 +76,37 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
+void eDynamicGeom___dtor_eDynamicGeom_void(void *, int);
+
 class eParticleSystem : public eDynamicGeom {
 public:
     eParticleSystem(cBase *);
     static cBase *New(cMemPool *, cBase *);
+    ~eParticleSystem();
     void AssignCopy(const cBase *);
+    void Draw(const eDrawInfo &) const;
+    int FillVertChunk(eDynamicVertChunk *, const eDrawInfo,
+                      const eParticleSystemTemplate *,
+                      const cArrayBase<eParticle> *,
+                      const eParticleSystemUpdateInfo *, eColor) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
     void SetAttractorPos(const mVec3 &);
+
+    static void operator delete(void *p);
+};
+
+struct DrawVTableEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *);
+};
+
+struct MaterialVTableEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *, float, float);
 };
 
 struct AllocRec {
@@ -91,6 +140,19 @@ extern cType *D_00046C44;
 
 #pragma control sched=1
 
+inline void eParticleSystem::operator delete(void *p) {
+    if (p != 0) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        __asm__ volatile("" ::: "memory");
+        char *base = block + off;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(base, p);
+    }
+}
+
 // ── eParticleSystem::eParticleSystem(cBase *) @ 0x0007b850 ──
 eParticleSystem::eParticleSystem(cBase *parent) : eDynamicGeom(parent) {
     *(void **)((char *)this + 4) = eParticleSystemvirtualtable;
@@ -100,6 +162,115 @@ eParticleSystem::eParticleSystem(cBase *parent) : eDynamicGeom(parent) {
     *(int *)((char *)this + 0x108) = 0;
     *(int *)((char *)this + 0x10C) = 0;
     *(int *)((char *)this + 0x110) = 0;
+}
+
+// ── eParticleSystem::~eParticleSystem(void) @ 0x0007b89c ──
+eParticleSystem::~eParticleSystem() {
+    *(void **)((char *)this + 4) = eParticleSystemvirtualtable;
+    void *field = (char *)this + 0xF0;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0xF0);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteEntry *rec = (DeleteEntry *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                __asm__ volatile("" ::: "memory");
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0xF0) = 0;
+        }
+    }
+    eDynamicGeom___dtor_eDynamicGeom_void(this, 0);
+}
+
+// ── eParticleSystem::Draw(const eDrawInfo &) const @ 0x0007befc ──
+void eParticleSystem::Draw(const eDrawInfo &di) const {
+    const eDrawInfo *diPtr = &di;
+    const eParticleSystem *self = this;
+    char *drawObj;
+    const eParticleSystemTemplate *tmpl;
+    drawObj = *(char **)((const char *)diPtr + 0x0C);
+    tmpl = *(const eParticleSystemTemplate **)((const char *)self + 0x60);
+    eDynamicVertChunk chunk = {0, 0, 0, 0};
+    eColor color;
+    int pad[3];
+    v4sf_t ocs[4];
+    volatile int extra;
+    __asm__ volatile("" : "+m"(extra));
+
+    const cArrayBase<eParticle> *particles;
+    const eParticleSystemUpdateInfo *updateInfo;
+    if (*(unsigned char *)((const char *)tmpl + 0x4C) != 0) {
+        particles = (const cArrayBase<eParticle> *)((const char *)tmpl + 0x144);
+        updateInfo = (const eParticleSystemUpdateInfo *)((const char *)tmpl + 0x150);
+    } else {
+        particles = (const cArrayBase<eParticle> *)((const char *)self + 0xF0);
+        updateInfo = (const eParticleSystemUpdateInfo *)((const char *)self + 0x100);
+    }
+
+    color.rgba = 0xFFFFFFFF;
+    unsigned char *mtl = *(unsigned char **)((const char *)self + 0xDC);
+    if (mtl != 0) {
+        if (mtl[0xD2] & 0x40) {
+            color.rgba = *(unsigned int *)(mtl + 0xD8);
+        }
+    }
+
+    if (FillVertChunk(&chunk, di, tmpl, particles, updateInfo, color) != 0) {
+        if (*(unsigned char *)((const char *)tmpl + 0x4D) == 0) {
+            __asm__ volatile("vmidt.q M000");
+            __asm__ volatile("vmov.q C120, C000");
+            __asm__ volatile("vmov.q C130, C010");
+            __asm__ volatile("vmov.q C200, C020");
+            __asm__ volatile("vmov.q C210, C030");
+            __asm__ volatile("sv.q C120, 0x20($sp)");
+            __asm__ volatile("sv.q C130, 0x30($sp)");
+            __asm__ volatile("sv.q C200, 0x40($sp)");
+            __asm__ volatile("sv.q C210, 0x50($sp)");
+        } else {
+            __asm__ volatile("vmidt.t M000");
+            __asm__ volatile("vmov.t C120, C000");
+            __asm__ volatile("vmov.t C130, C010");
+            __asm__ volatile("vmov.t C200, C020");
+            __asm__ volatile("sv.q C120, 0x20($sp)");
+            __asm__ volatile("sv.q C130, 0x30($sp)");
+            __asm__ volatile("sv.q C200, 0x40($sp)");
+            if (*(unsigned char *)((const char *)self + 0x8C) & 4) {
+                DrawVTableEntry *rec =
+                    (DrawVTableEntry *)(*(char **)((const char *)self + 4) + 0xB8);
+                short off = rec->offset;
+                void (*fn)(void *) = rec->fn;
+                fn((char *)self + off);
+            }
+            __asm__ volatile(
+                "lv.q C120, 0x40($s1)\n"
+                "sv.q C120, 0x50($sp)");
+        }
+
+        register char *entry __asm__("$4") = *(char **)(drawObj + 4) + 0xB0;
+        __asm__ volatile("" : "+r"(entry));
+        short off = *(short *)entry;
+        int count = *(int *)((const char *)diPtr + 0x14);
+        float opacity = *(float *)((const char *)self + 0x78);
+        ((void (*)(void *, int, void *, float, float))(*(void **)(entry + 4)))(
+            drawObj + off, count, ocs, opacity, 1.0f);
+        chunk.Draw();
+    }
 }
 
 // ── eParticleSystem::Write(cFile &) const @ 0x0007b748 ──
