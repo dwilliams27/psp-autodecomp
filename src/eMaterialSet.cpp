@@ -5,9 +5,21 @@ class cFile;
 class cMemPool;
 class cType;
 
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, void *, short);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cObject {
 public:
     char _pad[0x44];
+    ~cObject(void);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
@@ -55,11 +67,26 @@ class eMaterial;
 
 class eMaterialSet : public cObject {
 public:
+    ~eMaterialSet(void);
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            register void *arg __asm__("a1") = p;
+            register DeleteRecord *rec __asm__("a2") =
+                (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *, void *, short) = rec->fn;
+            fn(block + off, arg, (void *)fn, off);
+        }
+    }
 };
 
+extern char eMaterialSetvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
@@ -116,6 +143,43 @@ int eMaterialSet::Read(cFile &file, cMemPool *pool) {
 success:
     ((cArray<cHandleT<eMaterial> > *)((char *)this + 0x44))->Read(rb);
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oMeMaterialSetdtv, 0x11c\n");
+
+// ── eMaterialSet::~eMaterialSet(void) @ 0x001E1A88 ──
+eMaterialSet::~eMaterialSet() {
+    *(void **)((char *)this + 4) = eMaterialSetvirtualtable;
+    void *field = (char *)this + 0x44;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x44);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                register void *arg __asm__("a1") = basePtr;
+                register DeleteRecord *rec __asm__("a2") =
+                    (DeleteRecord *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *, void *, short) = rec->fn;
+                fn(block + off, arg, (void *)fn, off);
+            }
+            *(void **)((char *)this + 0x44) = 0;
+        }
+    }
 }
 
 // ── eMaterialSet::GetType(void) const @ 0x001E15E0 ──

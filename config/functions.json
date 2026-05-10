@@ -148405,14 +148405,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMeMaterialSetdtv"
+    "mangled_symbol": "__0oMeMaterialSetdtv",
+    "src_file": "src/eMaterialSet.cpp",
+    "symbol_name": "__0oMeMaterialSetdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4c8e480e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:37:19Z"
   },
   {
     "address": "0x001e1ba4",
@@ -149378,14 +149386,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oNeSpriteMtlSetdtv"
+    "mangled_symbol": "__0oNeSpriteMtlSetdtv",
+    "src_file": "src/eSpriteMtlSet.cpp",
+    "symbol_name": "__0oNeSpriteMtlSetdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4c8e480e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T02:37:19Z"
   },
   {
     "address": "0x001e4250",
@@ -171672,7 +171688,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -175576,7 +175592,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],

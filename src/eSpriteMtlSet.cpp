@@ -3,9 +3,19 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
 class eMaterial;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *, void *, short);
+};
 
 struct AllocEntry {
     short offset;
@@ -37,6 +47,7 @@ void cFile_SetCurrentPos(void *, unsigned int);
 class cObject {
 public:
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
 };
 
@@ -69,13 +80,27 @@ public:
     int Read(cFile &, cMemPool *);
 };
 
-class eSpriteMtlSet : public eMaterialSet {
+class eSpriteMtlSet : public cObject {
 public:
+    ~eSpriteMtlSet(void);
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            register void *arg __asm__("a1") = p;
+            register DeleteRecord *rec __asm__("a2") =
+                (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *, void *, short) = rec->fn;
+            fn(block + off, arg, (void *)fn, off);
+        }
+    }
 };
 
 extern char eMaterialSetvirtualtable[];   // 0x37FEA8
@@ -105,6 +130,43 @@ int eSpriteMtlSet::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oNeSpriteMtlSetdtv, 0x11c\n");
+
+// ── eSpriteMtlSet::~eSpriteMtlSet(void) @ 0x001E4134 ──
+eSpriteMtlSet::~eSpriteMtlSet() {
+    *(void **)((char *)this + 4) = eMaterialSetvirtualtable;
+    void *field = (char *)this + 0x44;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x44);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                register void *arg __asm__("a1") = basePtr;
+                register DeleteRecord *rec __asm__("a2") =
+                    (DeleteRecord *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *, void *, short) = rec->fn;
+                fn(block + off, arg, (void *)fn, off);
+            }
+            *(void **)((char *)this + 0x44) = 0;
+        }
+    }
 }
 
 // ── eSpriteMtlSet::AssignCopy(const cBase *) @ 0x001E3EE8 ──
