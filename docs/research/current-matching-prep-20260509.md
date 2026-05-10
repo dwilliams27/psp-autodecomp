@@ -11,8 +11,8 @@ The tracked progress chart for this snapshot is in [`docs/research/match-progres
 | Status | Count |
 |---|---:|
 | `matched` | 4796 |
-| `untried` | 3335 |
-| `failed` | 1085 |
+| `untried` | 3327 |
+| `failed` | 1093 |
 | `unmatchable_symbol_mangling` | 26 |
 
 ## Top Families
@@ -28,12 +28,12 @@ The tracked progress chart for this snapshot is in [`docs/research/match-progres
 | `Update` | 12 | 8 | 44 | 60.0% |
 | `Reset` | 30 | 12 | 41 | 71.4% |
 | `SetSize` | 2 | 6 | 37 | 25.0% |
-| `AssignCopy` | 362 | 112 | 33 | 76.4% |
+| `AssignCopy` | 362 | 115 | 30 | 75.9% |
 | `Draw` | 4 | 0 | 26 | 100.0% |
 | `Apply` | 7 | 0 | 24 | 100.0% |
 | `Set` | 27 | 12 | 24 | 69.2% |
-| `Write` | 599 | 65 | 21 | 90.2% |
 | `Cull` | 2 | 0 | 19 | 100.0% |
+| `Write` | 599 | 70 | 16 | 89.5% |
 | `GetInstanceType` | 13 | 0 | 14 | 100.0% |
 | `Collide` | 52 | 27 | 13 | 65.8% |
 | `Replicate` | 0 | 1 | 13 | 0.0% |
@@ -49,18 +49,18 @@ The tracked progress chart for this snapshot is in [`docs/research/match-progres
 | Signal | Functions | Bytes |
 |---|---:|---:|
 | `read_cblock_prologue` | 150 | 77620 |
-| `regalloc` | 406 | 164312 |
-| `tagged_pointer_branch` | 94 | 48824 |
+| `regalloc` | 411 | 166800 |
+| `tagged_pointer_branch` | 96 | 50312 |
 | `large_semantic` | 18 | 26448 |
 | `shape_collide_regalloc` | 27 | 3640 |
 | `tooling_or_placement` | 0 | 0 |
-| `uncategorized_failed` | 541 | 116316 |
+| `uncategorized_failed` | 542 | 117060 |
 
 ## Generated Target Files
 
 | File | Rows | Bytes | Purpose |
 |---|---:|---:|---|
-| `high_yield` | 160 | 60192 | Best untried non-Read families for future matching runs. |
+| `high_yield` | 160 | 59032 | Best untried non-Read families for future matching runs. |
 | `failed_retry` | 80 | 21232 | Small failed near-misses after compiler-blocked buckets are filtered out. |
 | `read_research` | 90 | 30300 | Remaining cReadBlock prologue/scheduler research targets. |
 | `tagged_research` | 40 | 15672 | Tagged/nullable-pointer branch-shape research targets. |
@@ -69,14 +69,6 @@ The tracked progress chart for this snapshot is in [`docs/research/match-progres
 
 | Address | Size | Score | Function | Reason |
 |---|---:|---:|---|---|
-| `0x00006454` | 412 | 107 | `cOutStream::Write(float, bool)` | Write family; manageable size |
-| `0x0004d350` | 464 | 107 | `eDynamicMeshExtrudedShadow::Write(cWriteBlock &) const` | Write family; manageable size |
-| `0x000065f0` | 504 | 107 | `cOutStream::Write(float, int, int, bool)` | Write family; manageable size |
-| `0x0029e740` | 744 | 101 | `gcDoEntityActivate::AssignCopy(const cBase *)` | AssignCopy family; exact-size matched method template; larger target |
-| `0x00332d28` | 744 | 101 | `gcValEntityIsAttacking::AssignCopy(const cBase *)` | AssignCopy family; exact-size matched method template; larger target |
-| `0x00345d5c` | 744 | 101 | `gcValHasPartialController::AssignCopy(const cBase *)` | AssignCopy family; exact-size matched method template; larger target |
-| `0x000d58c0` | 548 | 95 | `gcEventParams::Write(cOutStream &) const` | Write family |
-| `0x000f8ad8` | 560 | 95 | `gcCamera::Write(cOutStream &) const` | Write family |
 | `0x000fd6ac` | 596 | 95 | `gcCamera::gcState::Write(cOutStream &) const` | Write family |
 | `0x001359dc` | 612 | 95 | `gcMsgAckEntityState::Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const` | Write family |
 | `0x00113acc` | 644 | 95 | `gcEntity::Write(cFile &) const` | Write family |
@@ -89,6 +81,14 @@ The tracked progress chart for this snapshot is in [`docs/research/match-progres
 | `0x00046ce8` | 340 | 84 | `eModelNodeController::Apply(eAnimationKey *)` | Apply family; manageable size |
 | `0x000b6420` | 712 | 83 | `eParticleSystemTemplate::Write(cFile &) const` | Write family; larger target |
 | `0x0003d2e8` | 748 | 83 | `eRoom::Write(cFile &) const` | Write family; larger target |
+| `0x0010b764` | 764 | 83 | `gcStateInfo::Write(cOutStream &) const` | Write family; larger target |
+| `0x001a5bc4` | 768 | 83 | `nwMsgVoiceUpdateStatus::Write(cOutStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle) const` | Write family; larger target |
+| `0x000fca74` | 780 | 83 | `gcCamera::gcEntityFollowState::Write(cOutStream &) const` | Write family; larger target |
+| `0x0001da88` | 836 | 83 | `eAudio::Write(cOutStream &) static` | Write family; larger target |
+| `0x00125ff0` | 872 | 83 | `gcEntityTemplate::Write(cFile &) const` | Write family; larger target |
+| `0x0004eac0` | 876 | 83 | `eMeshShape::Write(cFile &) const` | Write family; larger target |
+| `0x0013b798` | 296 | 82 | `gcUIGeom::Draw(const eDrawInfo &) const` | Draw family; manageable size |
+| `0x000e4e34` | 352 | 82 | `gcUIDialog::Draw(unsigned int)` | Draw family; manageable size |
 | ... | ... | ... | 140 more | |
 
 ## Preview: failed_retry

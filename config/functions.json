@@ -10693,7 +10693,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000068c4"
     ],
@@ -10730,6 +10730,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:00:41Z"
+      },
+      {
+        "session": "9d288d80",
+        "notes": "Added the missing canonical C++ cOutStream::Write(float, bool) overload in src/cOutStream.cpp and tried several source shapes: direct high-level bit-write reconstruction, compare-before-addressing order, explicit register-bound locals for bit position/pointer/bit/marker, sched=1, m2c-style goto overflow joins, and a zero-cost memory barrier before the bit-address loads. sched=1 was much worse (306/412 bytes differ); the m2c/goto shape recovered the target a3/t0/t1 register roles in the first marker block but grew to 416B and regressed the second half. The best saved source is 412B with 92 differing bytes.\n\nThe remaining mismatch is still in SNC scheduling/register allocation around the sign fast path: the target starts the first block with lwc1/mtc1 then loads mBitPos and mData into a2/a3, while the saved source schedules the bit-position/address arithmetic differently and keeps the marker/pointer roles shifted. A 120s permuter pass improved internally from 92 to 88 bytes, and a 60s --save-improved retry reproduced 88 bytes but did not write the non-exact candidate. Root cause appears to be local register-pressure/scheduler ordering, not control-flow misunderstanding.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:18:01Z",
+        "src_file": "src/cOutStream.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/9d288d80/00006454__agent_self_reported_failure__src_cOutStream.cpp"
       }
     ]
   },
@@ -10743,7 +10755,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0000616c"
     ],
@@ -10771,6 +10783,18 @@
       {
         "session": "1279c253",
         "notes": "cOutStream::Write(float, int, int, bool) \u2014 504 bytes, calls Write(int,int,bool). Got the overall structure correct: float-to-fixed-point rounding with 0.5f bias, sign bit encoding via inline bit manipulation, overflow checks with capacity validation, and final call to Write(int, int, bool). The function compiles to exact same size (504 bytes) and the first 100 bytes (prologue, float arithmetic, rounding) match perfectly. The control flow structure is also correct: beqzl for !sign skip, beqz/sltiu/andi pattern for overflow checks in the first WriteBit, sltiu/andi/beqzl pattern for the else-path overflow check.\n\nThe blocking issue is register allocation in the inner bit-writing block. SNC assigns t4/v0/v1/t3 for bitPos/mData/bit/ptr respectively, but our compiled version assigns v0/t3/t4/v1 \u2014 a 4-way register swap. This affects every instruction that uses these registers, producing ~165/504 byte diff that is entirely register encoding differences. Memory barriers (__asm__ volatile) helped fix the outer register allocation (t1/t2 for wholeBits/sign), but could not fix the inner block. The permuter ran for 600+ seconds total across multiple attempts and could not improve past 165 bytes. The root cause appears to be SNC's graph-coloring register allocator making different interference graph traversal choices. Possible next steps: (1) try radically different code structure for the bit-writing blocks, (2) investigate if using different intermediate variable types (int vs unsigned char for the byte buffer) changes allocation, (3) try expressing the bit manipulation without intermediate variables."
+      },
+      {
+        "session": "9d288d80",
+        "notes": "Started from the prior 165/504-byte mismatch where the float scaling/rounding prologue and high-level control flow already matched. I tried a targeted register-binding rewrite of the first inline bit-write block, binding bitPos/bit/base/ptr toward the target t4/v1/v0/t3 roles and updating bitPos in place. This improved the saved baseline to 158/504 bytes. Splitting byteIndex into a t3-bound local, applying the same binding idea to the second bit block, and removing/re-adding the existing memory barrier did not improve further; removing the barrier regressed back to 165 bytes.\n\nThe remaining diff is still dominated by caller-saved register allocation in the inline bit-writing blocks. The target uses t4 for bitPos/newBitPos, v0 for mData, v1 for bit, and t3 for the destination pointer; the saved source now gets t4/v1 correct but still swaps the base/pointer path and carries the same pattern into later write paths. The permuter refused to run because the best saved baseline is still outside its 128-byte last-mile gate. This looks like the same SNC allocator tie-break issue described by the previous attempt, not a missing branch or arithmetic behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:18:01Z",
+        "src_file": "src/cOutStream.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/9d288d80/000065f0__agent_self_reported_failure__src_cOutStream.cpp"
       }
     ],
     "mangled_symbol": "__0fKcOutStreamFWritefiTCb"
@@ -44234,7 +44258,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005690",
       "0x0004d010",
@@ -44257,6 +44281,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-30T03:00:41Z"
+      },
+      {
+        "session": "4093a89d",
+        "notes": "Created the missing canonical source file and implemented the six scalar writes plus all five serialization loops under sched=1. Tried the prior-session shape with explicit base pointers, zero-offset locals, do/while loops, then rewrote the first three vertex loops to reuse the count register and added register bindings for this/wb plus the loop bases. The closest build is 0x1b8 bytes versus the 0x1d0-byte target. It now has the correct stack frame size and callee-save set, but the first half still differs: SNC keeps this in s0 and wb in s1 in the target, materializes two separate base pointers with s2/s3, keeps the first count in s4 and the iterator in s5, and uses a beqzl delay-slot move for the second count. My closest source either gets the target argument registers but optimized-away duplicate base/zero-offset choreography, or gets the loop register pressure closer but flips this/wb depending on declaration order.\n\nThe remaining root cause looks like source-level register-allocation and branch-likely shaping around the first vertex-one-weight block, not the sched flag. Volatile empty asms on the dummy zero offsets and duplicate base pointers did not force the missing li/addu zero-offset instructions. Next retry should focus on making the first-loop skip path produce the target beqzl with `move s4,a0` in the delay slot while preserving duplicate `addu s2,s6,a0` / `addu s3,s6,a0` base calculations.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:14:14Z",
+        "src_file": "src/eDynamicMeshExtrudedShadow.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/4093a89d/0004d350__agent_self_reported_failure__src_eDynamicMeshExtrudedShadow.cpp"
       }
     ]
   },
@@ -79157,7 +79193,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00001314",
       "0x000062e0",
@@ -79171,7 +79207,21 @@
       "0x001341bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEventParamsFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0fNgcEventParamsFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "a60b7c08",
+        "notes": "Closest attempt is canonical C++ in src/gcEventParams.cpp. The handle loop now matches the original branch-likely key extraction shape, and the HPR copy uses inline VFPU to reproduce the mtv/sv.q stack-vector store. The remaining output is 532B versus the expected 548B. The main divergence is register/stack layout in the HPR block: original saves s4 and s5, uses an 80-byte frame, places the angle vector at sp+0x10 and GetHPR temporaries at sp+0x20/24/28, then uses s4 for the translation pointer and s5 for the angle pointer. SNC keeps compiling this attempt with a 64-byte frame, only saves s4, and uses s2/s3 for the loop pointers despite register-binding attempts.\n\nTried direct C array assignment, explicit inline VFPU load/store, reordered locals, explicit key temporary for the dcast/cHandle loop, sched=1, and register-bound loop variables. sched=1 worsened prologue scheduling and was reverted. The remaining issue looks like TU/register-allocation and stack-frame shaping around the two float loops rather than a semantic mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:26:32Z",
+        "src_file": "src/gcEventParams.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/a60b7c08/000d58c0__agent_self_reported_failure__src_gcEventParams.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d5ae4",
@@ -90586,7 +90636,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000062e0",
       "0x00006454",
@@ -90601,7 +90651,21 @@
       "0x000fe378"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcCameraFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0fIgcCameraFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "a60b7c08",
+        "notes": "Closest attempt is split-TU source in src/gcCamera_Write.cpp because adding gcCamera::Write to src/gcCamera.cpp perturbed the already-existing gcCamera constructor comparison. The current split source is 556B versus the expected 560B. The pre-bit-write call sequence and final gcState/cHandle/gcUI calls are structurally close; the first major sensitivity was fixed by forcing stream into s0 and this into s1. The remaining mismatch is concentrated around the negated eCamera float load and the two inlined single-bit writes at offsets 0xEC1/0xEC2.\n\nTried hand-shaped direct bit writes, the matched cOutStreamBit inline helper pattern from message writers, temporary self/out locals to force saved-register assignment, a pointer barrier for the nested eCamera offset, and sched=1. The helper pattern emitted a worse register allocation and an extra no-DB helper symbol; sched=1 changed the prologue away from the target and was reverted. The permuter was attempted for 60s with --save-best, but it skipped as PERMUTER_SKIPPED_NOT_LAST_MILE because the symbol size is still 556B instead of 560B. Root cause is likely SNC register/scheduling sensitivity in the inlined bit writer, not missing behavior.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:26:32Z",
+        "src_file": "src/gcCamera_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/a60b7c08/000f8ad8__agent_self_reported_failure__src_gcCamera_Write.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f8d08",
@@ -197289,7 +197353,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -197297,7 +197361,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoEntityActivateKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcDoEntityActivateKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "4093a89d",
+        "notes": "Added `gcDoEntityActivate::AssignCopy(const cBase *)` to the canonical file, preserving all four pre-existing matched methods in the same translation unit. The implementation uses the matched AssignCopy/dynamic-cast pattern, copies the flags, calls `gcDesiredEntity::operator=`, copies fields 0x38/0x3c/0x40, and implements the gcDesiredValue-style release/clone logic for the owned slot at 0x44. The closest build is 0x2e0 bytes versus the 0x2e8-byte target; New/GetType/Read/Write still compare as MATCH after the addition.\n\nThe remaining gap is mostly local register choreography plus unreachable tail padding. The target initializes the owned slot into s7 in the prologue (`addiu s7,a0,68`) and uses s3 for the type-cache global; my closest source still allocates the owned slot to s3 despite an explicit register variable, shifting the later clone-call argument registers. I also tried to force the target's pointer-shaped 0x38 scalar copy, which got the function from 0x2d8 to 0x2e0, but the target has an additional two-word infinite-loop pad after the epilogue (`b .; nop`) that I did not leave as source-level assembly because the file-scope attempt did not attach to this symbol and would have introduced an extra non-DB symbol. Next retry should investigate whether moving AssignCopy before GetType in this TU lets the padding asm attach without regressing existing matched siblings, or find a C source shape that naturally pins the 0x44 slot in s7.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:14:14Z",
+        "src_file": "src/gcDoEntityActivate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/4093a89d/0029e740__agent_self_reported_failure__src_gcDoEntityActivate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029ea28",
@@ -227906,7 +227984,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -227914,7 +227992,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcValEntityIsAttackingKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcValEntityIsAttackingKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "89b9a95e",
+        "notes": "Implemented canonical C++ gcValEntityIsAttacking::AssignCopy with the lazy cType initialization, dynamic type walk, gcDesiredEntity::operator= on the +0x08 subobject, byte/word copies at +0x3C..+0x44, and manual release/clone handling for the tagged desired-object pointer at +0x48. The closest normal C form compiles and preserves all previously matched gcValEntityIsAttacking siblings, but AssignCopy emits 716B while the target is 744B; the generated structure is close in the copy body but has register-allocation drift from the target (dest desired pointer in s3 instead of target s7, type globals shifted s4-s7 instead of s3-s6, and a0/a1/a2 choices differ through the tagged-pointer release/copy blocks).\n\nTried direct casts, pointer-local byte-order copies, inverted empty-then-else self-assignment branch, explicit register binding for the desired slot/current word, and branch-shape changes for the tagged pointer OR path. A forced dead-label variant reached 744B size, but it changed the stack frame to 32B and recompiled the whole type-init region through unsaved temporaries, producing a much worse 463/744-byte mismatch. Root cause looks like TU/register-allocation context plus the original's trailing dead loop/padding, not a simple source expression issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:22:31Z",
+        "src_file": "src/gcValEntityIsAttacking.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/89b9a95e/00332d28__agent_self_reported_failure__src_gcValEntityIsAttacking.cpp"
+      }
+    ]
   },
   {
     "address": "0x00333010",
@@ -232697,7 +232789,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -232705,7 +232797,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValHasPartialControllerKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fZgcValHasPartialControllerKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "89b9a95e",
+        "notes": "Implemented canonical C++ gcValHasPartialController::AssignCopy using the same reconstructed pattern as gcValEntityIsAttacking, with type id 0x1C8 and the final +0x4C byte copy. The closest normal C form compiles to 716B versus the 744B target and mirrors the same structural/register drift: destination desired pointer allocated in s3 rather than target s7, type globals shifted, and the tagged-pointer release/clone code uses different argument registers even though the branch topology is similar.\n\nTried the same restructuring set as the first function: direct and pointer-local field copies, source/destination self-copy branch inversion, explicit register bindings, original-style tagged-pointer replacement expression, and a dead-label size-forcing version. The dead-label version got the size but caused a 32B frame and broad type-init/prologue divergence, so it was not kept. Existing gcValHasPartialController::GetText was already mismatching in this file during full-file compare; Write/Read/GetType/New and the neighboring methods still compare as matched.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "base",
+        "timestamp": "2026-05-10T01:22:31Z",
+        "src_file": "src/gcValHasPartialController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260509_210623/89b9a95e/00345d5c__agent_self_reported_failure__src_gcValHasPartialController.cpp"
+      }
+    ]
   },
   {
     "address": "0x00346044",
