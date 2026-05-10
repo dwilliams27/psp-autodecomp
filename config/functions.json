@@ -179240,13 +179240,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oPgcDesiredEntitydtv"
+    "mangled_symbol": "__0oPgcDesiredEntitydtv",
+    "src_file": "src/gcDesiredEntity.cpp",
+    "symbol_name": "__0oPgcDesiredEntitydtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "3191823a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T04:24:47Z"
   },
   {
     "address": "0x0026065c",
@@ -209869,7 +209876,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000d52c0",
@@ -209877,7 +209884,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0odgcDoObjectForEachRelationshipdtv"
+    "mangled_symbol": "__0odgcDoObjectForEachRelationshipdtv",
+    "src_file": "src/gcDoObjectForEachRelationship.cpp",
+    "symbol_name": "__0odgcDoObjectForEachRelationshipdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "3191823a",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-10T04:24:47Z"
   },
   {
     "address": "0x002ea414",
@@ -218305,7 +218319,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -224572,7 +224586,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],

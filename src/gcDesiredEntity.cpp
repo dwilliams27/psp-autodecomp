@@ -5,6 +5,7 @@
 //   0x0011d6f4 gcDesiredEntity::Read(cFile &, cMemPool *)  248B
 //   0x002e0c08 gcDoLobbyFriendOp::Read(cFile &, cMemPool *)  252B
 //   0x0026023c gcDesiredEntity::GetType(void) const    220B
+//   0x0026050c gcDesiredEntity::~gcDesiredEntity(void)  336B
 
 class cBase;
 class cFile;
@@ -116,8 +117,22 @@ struct gcDesiredEntityTypeInfoRead {
     gcDesiredEntityReadSlot mSlot;         // +0x30 — sub-object Read slot
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
+extern "C" void *cMemPool_GetPoolFromPtr(const void *);
+
 class gcDesiredEntity {
 public:
+    ~gcDesiredEntity();
     gcEntity *Get(bool) const;
     int HasCategory(const cHandlePairT<gcEnumeration, cSubHandleT<gcEnumerationEntry> > &) const;
     int Read(cFile &, cMemPool *);
@@ -125,6 +140,16 @@ public:
     void GetText(char *) const;
     const cType *GetType(void) const;
     static cBase *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        cMemPool *pool = (cMemPool *)cMemPool_GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 struct gcDesiredEntityPoolBlock {
@@ -142,6 +167,7 @@ extern char D_00000338[];
 extern char gcDesiredEntityHelperclassdesc[];
 extern char cBaseclassdesc[];
 extern char gcDesiredEntityvirtualtable[];
+
 extern "C" void *cMemPool_GetPoolFromPtr(const void *);
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
@@ -285,6 +311,55 @@ cBase *gcDesiredEntity::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+// ── gcDesiredEntity::~gcDesiredEntity @ 0x0026050c ──
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oPgcDesiredEntitydtv, 0x150\n");
+
+gcDesiredEntity::~gcDesiredEntity(void) {
+    *(void **)((char *)this + 4) = (void *)0x388A48;
+    void *baseVtable = (void *)0x37E6A8;
+    char *first = (char *)this + 0x14;
+    char *second = (char *)this + 8;
+
+    if ((void *)first != 0) {
+        *(void **)((char *)this + 0x18) = (void *)0x388568;
+        if ((void *)((char *)this + 0x28) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x28);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0) {
+                if (val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x28) = 0;
+                }
+            }
+        }
+        *(void **)((char *)this + 0x18) = baseVtable;
+    }
+
+    *(void **)((char *)this + 4) = (void *)0x3889A8;
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 8) = 0;
+        }
+    }
+
+    *(void **)((char *)this + 4) = baseVtable;
 }
 
 // ── gcDesiredEntity::GetType @ 0x0026023c ──

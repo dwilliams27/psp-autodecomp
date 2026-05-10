@@ -2,15 +2,26 @@ class gcExpression;
 class cBase;
 class cFile;
 class cFileHandle;
-class cMemPool;
 class cType;
 class cReadBlock;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
 
 class gcDoObjectForEachRelationship {
 public:
     char _pad[0x28];
     gcExpression *branch;
 
+    ~gcDoObjectForEachRelationship();
     int GetMaxBranches(void) const;
     gcExpression *GetBranch(int) const;
     void SetBranch(int, gcExpression *);
@@ -21,11 +32,16 @@ public:
     operator=(const gcDoObjectForEachRelationship &);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
-};
 
-class cMemPool {
-public:
-    static cMemPool *GetPoolFromPtr(const void *);
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((char **)block)[7] + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
 };
 
 class cFile {
@@ -116,6 +132,8 @@ void gcExpressionList_gcExpressionList(void *, void *);
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void gcExpressionList___dtor_gcExpressionList_void(void *, int);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 
 extern char gcDoObjectForEachRelationshipvirtualtable[];
 extern char gcDesiredEnumerationEntryvirtualtable[];
@@ -126,6 +144,53 @@ static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
 static cType *type_gcDoObjectForEachRelationship asm("D_0009F6B0");
+
+// ── gcDoObjectForEachRelationship::~gcDoObjectForEachRelationship @ 0x002ea2bc ──
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0odgcDoObjectForEachRelationshipdtv, 0x158\n");
+
+gcDoObjectForEachRelationship::~gcDoObjectForEachRelationship(void) {
+    *(void **)((char *)this + 4) = gcDoObjectForEachRelationshipvirtualtable;
+    gcExpressionList___dtor_gcExpressionList_void((char *)this + 0x28, 2);
+    char *second = (char *)this + 0xC;
+
+    if ((void *)((char *)this + 0x10) != 0) {
+        *(void **)((char *)this + 0x14) = (void *)0x388568;
+        if ((void *)((char *)this + 0x24) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x24);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0) {
+                if (val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x24) = 0;
+                }
+            }
+        }
+        *(void **)((char *)this + 0x14) = (void *)0x37E6A8;
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xC);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xC) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
+}
 
 int gcDoObjectForEachRelationship::GetMaxBranches(void) const {
     return 1;
