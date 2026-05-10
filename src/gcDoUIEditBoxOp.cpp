@@ -5,8 +5,12 @@
 
 class cBase;
 class cFile;
-class cMemPool;
 class cType;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 class cWriteBlock {
 public:
@@ -68,9 +72,12 @@ public:
     void GetText(char *) const;
     void Write(cFile &) const;
     gcDoUIEditBoxOp &operator=(const gcDoUIEditBoxOp &);
+    static void operator delete(void *);
+    ~gcDoUIEditBoxOp(void);
 };
 
 void gcAction_gcAction(gcDoUIEditBoxOp *, cBase *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
 void gcDesiredUIWidgetHelper_ctor(gcDesiredUIWidgetHelper *, int);
 
 extern char gcDoUIEditBoxOpvirtualtable[];
@@ -86,6 +93,12 @@ struct AllocEntry {
     short offset;
     short pad;
     int (*fn)(void *, int, int, int, int);
+};
+
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
 };
 
 struct cTypeNode {
@@ -107,6 +120,14 @@ struct GetTextSlot {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+
+inline void gcDoUIEditBoxOp::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 cBase *gcDoUIEditBoxOp::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -336,4 +357,45 @@ use_name_done:
     }
 
     cStrCat(out, (const char *)0x36DCEC);
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oPgcDoUIEditBoxOpdtv, 0x128\n");
+
+gcDoUIEditBoxOp::~gcDoUIEditBoxOp(void) {
+    *(void **)((char *)this + 4) = gcDoUIEditBoxOpvirtualtable;
+    char *second = (char *)this + 0x1C;
+
+    if ((void *)((char *)this + 0x20) != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x20);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x20) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x1C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x1C) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
 }
