@@ -21,7 +21,13 @@ class cObject {
 public:
     char _pad[0x44];
     cObject(cBase *);
+    ~cObject(void);
     cObject &operator=(const cObject &);
+};
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
 };
 
 class cWriteBlock {
@@ -74,22 +80,41 @@ struct AllocRec {
     void *(*fn)(void *, int, int, int, int);
 };
 
-class eStaticModelTemplate : public eStaticGeomTemplate {
+struct DeleteRecord {
+    short offset;
+    short _pad;
+    void (*fn)(void *, void *);
+};
+
+class eStaticModelTemplate {
 public:
+    char _pad[0x44];
     cHandle mHandle44;
     cHandle mHandle48;
     cHandle mHandle4C;
     float mField50;
     cArray<float> mValues;
 
+    ~eStaticModelTemplate(void);
     void Write(cFile &) const;
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(block + off, p);
+        }
+    }
 };
 
 extern char eStaticModelTemplatevirtualtable[];
+extern "C" void cObject_dtor(cObject *, int) asm("__0oHcObjectdtv");
 extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
@@ -156,6 +181,45 @@ cBase *eStaticModelTemplate::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oUeStaticModelTemplatedtv, 0x12c\n");
+
+// -- eStaticModelTemplate::~eStaticModelTemplate(void) @ 0x001ec188 --
+eStaticModelTemplate::~eStaticModelTemplate(void) {
+    *(void **)((char *)this + 4) = eStaticModelTemplatevirtualtable;
+    void *field = (char *)this + 0x54;
+    if (field != 0) {
+        void *entries = *(void **)((char *)this + 0x54);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries - 4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                DeleteRecord *rec = (DeleteRecord *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(block + off, basePtr);
+            }
+            *(void **)((char *)this + 0x54) = 0;
+        }
+    }
+    if (this != 0) {
+        *(void **)((char *)this + 4) = (void *)0x00380C18;
+        cObject_dtor((cObject *)this, 0);
+    }
 }
 
 // -- eStaticModelTemplate::GetType(void) const @ 0x001EBFE4 --

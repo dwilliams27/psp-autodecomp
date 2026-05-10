@@ -72307,7 +72307,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0008ff88",
@@ -151290,14 +151290,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUeStaticModelTemplatedtv"
+    "mangled_symbol": "__0oUeStaticModelTemplatedtv",
+    "src_file": "src/eStaticModelTemplate.cpp",
+    "symbol_name": "__0oUeStaticModelTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d51c0835",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:09:24Z"
   },
   {
     "address": "0x001ec2b4",
@@ -160114,14 +160122,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeDynamicLightTemplatedtv"
+    "mangled_symbol": "__0oVeDynamicLightTemplatedtv",
+    "src_file": "src/eDynamicLightTemplate.cpp",
+    "symbol_name": "__0oVeDynamicLightTemplatedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "d51c0835",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-10T03:09:24Z"
   },
   {
     "address": "0x002101d4",
@@ -208937,7 +208953,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
