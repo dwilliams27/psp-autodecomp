@@ -1,0 +1,1386 @@
+[
+  {
+    "address": "0x00136f68",
+    "size": 508,
+    "name": "gcStaticInstance::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStaticInstance",
+    "category": "Read",
+    "priority": 753,
+    "score": 247,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcStaticInstance.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b600063a/00136f68__agent_self_reported_failure__src_gcStaticInstance.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030df90",
+    "size": 452,
+    "name": "gcDoUISendMessage::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUISendMessage",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoUISendMessage.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/7da57404/0030df90__agent_self_reported_failure__src_gcDoUISendMessage.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 166,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 166,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0014f48c",
+    "size": 464,
+    "name": "gcDoSetValue::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoSetValue",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValBinaryOp.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/436603d5/0014f48c__agent_self_reported_failure__src_gcValBinaryOp.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 178,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 178,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0015c9bc",
+    "size": 344,
+    "name": "gcValUnaryOp::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUnaryOp",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValUnaryOp_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3b4cbe17/0015c9bc__agent_self_reported_failure__src_gcValUnaryOp_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": null,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": null,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0034b384",
+    "size": 532,
+    "name": "gcValLobbyScoreboardInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLobbyScoreboardInfo",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValLobbyScoreboardInfo.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/d5cf6f68/0034b384__agent_self_reported_failure__src_gcValLobbyScoreboardInfo.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": null,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": null,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00350b88",
+    "size": 784,
+    "name": "gcValNavMeshDirection::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValNavMeshDirection",
+    "category": "AssignCopy",
+    "priority": 814,
+    "score": 186,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValNavMeshDirection_AssignCopy.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_175602/5fc0bdc7/00350b88__agent_self_reported_failure__src_gcValNavMeshDirection_AssignCopy.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00343260",
+    "size": 116,
+    "name": "gcValExternalVariable::Set(float)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValExternalVariable",
+    "category": "Set",
+    "priority": 818,
+    "score": 182,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValExternalVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/770e3501/00343260__agent_self_reported_failure__src_gcValExternalVariable.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002fc87c",
+    "size": 244,
+    "name": "gcDoSetEventEnumParam::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoSetEventEnumParam",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoSetEventEnumParam.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/e8a49ca9/002fc87c__agent_self_reported_failure__src_gcDoSetEventEnumParam.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x003268c4",
+    "size": 288,
+    "name": "gcValEntityConstant::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityConstant",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityConstant.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/003268c4__agent_self_reported_failure__src_gcValEntityConstant.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0032f100",
+    "size": 288,
+    "name": "gcValEntityHasAnimation::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasAnimation",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityHasAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/0032f100__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00330eac",
+    "size": 288,
+    "name": "gcValEntityHasTimeSince::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasTimeSince",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityHasTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/00330eac__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0033f480",
+    "size": 288,
+    "name": "gcValEntityTimeSince::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityTimeSince",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityHasTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/0033f480__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003407ec",
+    "size": 288,
+    "name": "gcValEntityVariable::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityVariable",
+    "category": "GetText",
+    "priority": 826,
+    "score": 174,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityVariable_GetText.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/237053a9/003407ec__agent_self_reported_failure__src_gcValEntityVariable_GetText.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00020168",
+    "size": 496,
+    "name": "eWorld::UpdateVolumeLocation(eVolume *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eWorld",
+    "category": "UpdateVolumeLocation",
+    "priority": 827,
+    "score": 173,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/eWorld.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_201648/4754e2dd/00020168__agent_self_reported_failure__src_eWorld.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 17,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001503d0",
+    "size": 348,
+    "name": "gcDoSwitch::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoSwitch",
+    "category": "Read",
+    "priority": 830,
+    "score": 170,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoSwitch_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/52d67590/001503d0__agent_self_reported_failure__src_gcDoSwitch_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 20,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 20,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00336f78",
+    "size": 296,
+    "name": "gcValLookAtControllerVariable::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLookAtControllerVariable",
+    "category": "GetText",
+    "priority": 832,
+    "score": 168,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValLookAtControllerVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/55d42875/00336f78__agent_self_reported_failure__src_gcValLookAtControllerVariable.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 22,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 22,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00346654",
+    "size": 312,
+    "name": "gcValHasPartialController::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValHasPartialController",
+    "category": "GetText",
+    "priority": 833,
+    "score": 167,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValHasPartialController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/36ed7da4/00346654__agent_self_reported_failure__src_gcValHasPartialController.cpp",
+    "failure_classification": {
+      "primary": "tagged_pointer_shape",
+      "tags": [
+        "tagged_pointer_shape",
+        "retryable_nearmiss"
+      ],
+      "action": "research",
+      "confidence": "medium",
+      "near_miss_bytes": 23,
+      "summary": "Tagged/nullable owned-pointer branch-shape issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "retryable_nearmiss",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030ac54",
+    "size": 560,
+    "name": "gcDoUIFade::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUIFade",
+    "category": "Read",
+    "priority": 835,
+    "score": 165,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoUIFade_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/07ab9a8b/0030ac54__agent_self_reported_failure__src_gcDoUIFade_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 25,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 25,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002a13e0",
+    "size": 292,
+    "name": "gcDoEntityActivatePartialController::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntityActivatePartialController",
+    "category": "GetText",
+    "priority": 836,
+    "score": 164,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoEntityActivatePartialController_GetText.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/237053a9/002a13e0__agent_self_reported_failure__src_gcDoEntityActivatePartialController_GetText.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 26,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 26,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00302b48",
+    "size": 348,
+    "name": "gcDoStateParentHandler::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoStateParentHandler",
+    "category": "Read",
+    "priority": 836,
+    "score": 164,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoStateParentHandler_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/ba26f583/00302b48__agent_self_reported_failure__src_gcDoStateParentHandler_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 26,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 26,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00158c84",
+    "size": 440,
+    "name": "gcValConsoleInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValConsoleInfo",
+    "category": "Read",
+    "priority": 837,
+    "score": 163,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValConsoleInfo_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/402837ae/00158c84__agent_self_reported_failure__src_gcValConsoleInfo_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 27,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 27,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000e9908",
+    "size": 324,
+    "name": "gcEntityCustomAnimation::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityCustomAnimation",
+    "category": "Read",
+    "priority": 841,
+    "score": 159,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcEntityCustomAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b884c458/000e9908__agent_self_reported_failure__src_gcEntityCustomAnimation.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002e23d0",
+    "size": 368,
+    "name": "gcDoLobbyOp::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoLobbyOp",
+    "category": "Read",
+    "priority": 841,
+    "score": 159,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoLobbyOp.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fefae0b3/002e23d0__agent_self_reported_failure__src_gcDoLobbyOp.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0034d524",
+    "size": 388,
+    "name": "gcValLobbyScoreboardRowInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLobbyScoreboardRowInfo",
+    "category": "Read",
+    "priority": 841,
+    "score": 159,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValLobbyScoreboardRowInfo.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c66b2710/0034d524__agent_self_reported_failure__src_gcValLobbyScoreboardRowInfo.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0014aeec",
+    "size": 348,
+    "name": "gcDoEvaluation::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEvaluation",
+    "category": "Read",
+    "priority": 844,
+    "score": 156,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoEvaluation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/f405c366/0014aeec__agent_self_reported_failure__src_gcDoEvaluation.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 34,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 34,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0026fd6c",
+    "size": 636,
+    "name": "gcDesiredStringTable::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredStringTable",
+    "category": "AssignCopy",
+    "priority": 853,
+    "score": 147,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDesiredStringTable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/a2e5ca9b/0026fd6c__agent_self_reported_failure__src_gcDesiredStringTable.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 43,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 43,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00274e48",
+    "size": 636,
+    "name": "gcDesiredTableTemplate::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredTableTemplate",
+    "category": "AssignCopy",
+    "priority": 853,
+    "score": 147,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDesiredTableTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/a2e5ca9b/00274e48__agent_self_reported_failure__src_gcDesiredTableTemplate.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 43,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 43,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000d7290",
+    "size": 256,
+    "name": "gcMessageHandler::Write(cFile &) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMessageHandler",
+    "category": "Write",
+    "priority": 861,
+    "score": 139,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 51,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 51,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002fa058",
+    "size": 192,
+    "name": "gcDoReturn::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoReturn",
+    "category": "Evaluate",
+    "priority": 861,
+    "score": 139,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoReturn.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/e6ada47c/002fa058__agent_self_reported_failure__src_gcDoReturn.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 51,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 51,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0013081c",
+    "size": 544,
+    "name": "gcUIWidgetList::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIWidgetList",
+    "category": "Read",
+    "priority": 868,
+    "score": 132,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcUIWidgetList.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/07ab9a8b/0013081c__agent_self_reported_failure__src_gcUIWidgetList.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 58,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 58,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00127a58",
+    "size": 408,
+    "name": "gcDesiredEntityTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredEntityTemplate",
+    "category": "Read",
+    "priority": 869,
+    "score": 131,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDesiredEntityTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/8b555208/00127a58__agent_self_reported_failure__src_gcDesiredEntityTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 59,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 59,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0031e3e8",
+    "size": 248,
+    "name": "gcPlayerStrings::Get(wchar_t *, int) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcPlayerStrings",
+    "category": "Get",
+    "priority": 869,
+    "score": 131,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcPlayerStrings.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_120905/18560dc5/0031e3e8__agent_self_reported_failure__src_gcPlayerStrings.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 59,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 59,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00330618",
+    "size": 728,
+    "name": "gcValEntityHasTimeSince::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasTimeSince",
+    "category": "AssignCopy",
+    "priority": 871,
+    "score": 129,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityHasTimeSince_AssignCopy.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_175602/f32e0ea6/00330618__agent_self_reported_failure__src_gcValEntityHasTimeSince_AssignCopy.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 61,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 61,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0032e6b4",
+    "size": 728,
+    "name": "gcValEntityHasAnimation::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasAnimation",
+    "category": "AssignCopy",
+    "priority": 875,
+    "score": 125,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcValEntityHasAnimation_AssignCopy.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_175602/d6d5c18f/0032e6b4__agent_self_reported_failure__src_gcValEntityHasAnimation_AssignCopy.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 65,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 65,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002844ac",
+    "size": 624,
+    "name": "gcLobbyUserStrings::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcLobbyUserStrings",
+    "category": "AssignCopy",
+    "priority": 879,
+    "score": 121,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcLobbyUserStrings.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/c3be1d1b/002844ac__agent_self_reported_failure__src_gcLobbyUserStrings.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 69,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 69,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00109908",
+    "size": 308,
+    "name": "gcStateHandlerBase::Write(cFile &) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStateHandlerBase",
+    "category": "Write",
+    "priority": 880,
+    "score": 120,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 86,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 86,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002c0c9c",
+    "size": 568,
+    "name": "gcDoEntitySendMessage::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntitySendMessage",
+    "category": "Read",
+    "priority": 880,
+    "score": 120,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoEntitySendPartialControllerMessage.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/96affa08/002c0c9c__agent_self_reported_failure__src_gcDoEntitySendPartialControllerMessage.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 92,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 92,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030987c",
+    "size": 452,
+    "name": "gcDoUIEditBoxOp::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUIEditBoxOp",
+    "category": "GetText",
+    "priority": 880,
+    "score": 120,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcDoUIEditBoxOp.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/43d70073/0030987c__agent_self_reported_failure__src_gcDoUIEditBoxOp.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 93,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 93,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0028083c",
+    "size": 624,
+    "name": "gcLobbyFriendStrings::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcLobbyFriendStrings",
+    "category": "AssignCopy",
+    "priority": 880,
+    "score": 120,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_src_file": "src/gcLobbyFriendStrings.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/30879a9e/0028083c__agent_self_reported_failure__src_gcLobbyFriendStrings.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 101,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 101,
+    "blocker_tags": [
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000e9b74",
+    "size": 212,
+    "name": "gcEntityCustomAnimation::~gcEntityCustomAnimation(void)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityCustomAnimation",
+    "category": "Destructor",
+    "priority": 880,
+    "score": 120,
+    "reason": "tagged/nullable-pointer branch-shape research candidate",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 109,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 109,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  }
+]

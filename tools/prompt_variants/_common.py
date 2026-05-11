@@ -8,6 +8,13 @@ rendering so we don't duplicate the loop across N variants.
 import os
 
 from common import build_addr_map
+from failure_classifier import (
+    classify_failure,
+    failure_notes_list,
+    required_bool,
+    required_text,
+    validate_address,
+)
 from orchestrator import (
     disassemble_function,
     get_class_header,
@@ -61,6 +68,32 @@ PROJECT_CONTEXT = (
 )
 
 
+def _placement_list(placement: dict, key: str) -> list:
+    if key not in placement:
+        raise ValueError(f"placement missing required {key}")
+    value = placement[key]
+    if value is None:
+        # FALLBACK-OK: placement_for_function uses None/empty optional lists to
+        # mean "no extra headers/sources".
+        return []
+    if not isinstance(value, list):
+        raise ValueError(f"placement {key} must be a list")
+    return value
+
+
+def _placement_optional_text(placement: dict, key: str) -> str:
+    if key not in placement:
+        raise ValueError(f"placement missing required {key}")
+    value = placement[key]
+    if value is None or value == "":
+        # FALLBACK-OK: placement_for_function uses None/empty strings to mean
+        # "no class name" or "no sibling prefix".
+        return ""
+    if not isinstance(value, str):
+        raise ValueError(f"placement {key} must be a string")
+    return value
+
+
 def render_context_blocks(batch, functions, class_name,
                           already_matched_suffix=None):
     """Emit CLASS HEADER and ALREADY MATCHED blocks. Returns list of parts."""
@@ -97,10 +130,12 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     for the same method signature (closest by byte size).
     """
     parts = []
-    addr = int(func["address"], 16)
+    addr = int(validate_address(required_text(func, "address")), 16)
     try:
         disasm = disassemble_function(addr, func["size"])
     except RuntimeError as e:
+        # FALLBACK-OK: prompt rendering skips this target and records a prep
+        # warning; the session should continue with other batch members.
         warnings.append({"type": "disasm_failed", "address": func["address"],
                          "name": func["name"], "error": str(e)})
         return parts, False
@@ -108,20 +143,34 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     try:
         m2c = get_m2c_output(func)
     except RuntimeError as e:
+        # FALLBACK-OK: m2c is useful scaffolding, not byte-match evidence. Keep
+        # the target in the prompt with an explicit unavailable marker.
         warnings.append({"type": "m2c_failed", "address": func["address"],
                          "name": func["name"], "error": str(e)})
         m2c = m2c_unavailable_note
 
-    callees = func.get("callees", [])
+    if "callees" not in func or func["callees"] is None:
+        raise ValueError(f"{func['address']}: missing callees list")
+    if not isinstance(func["callees"], list):
+        raise ValueError(f"{func['address']}: callees must be a list")
+    callees = [
+        validate_address(c_addr, context=f"{func['address']} callee")
+        for c_addr in func["callees"]
+    ]
     callee_names = []
     for c_addr in callees:
         target = addr_map.get(c_addr)
-        callee_names.append(target["name"] if target else f"unknown@{c_addr}")
+        if target:
+            callee_names.append(required_text(target, "name"))
+        else:
+            # FALLBACK-OK: extracted call graphs can contain SDK/import or stale
+            # addresses that have no DB function row.
+            callee_names.append(f"unknown@{c_addr}")
 
     parts.append(f"== FUNCTION {func_num}: {func['name']} ==\n")
     parts.append(f"Address: {func['address']}, Size: {func['size']} bytes, "
-                 f"Obj: {func['obj_file']}\n")
-    parts.append(f"Leaf: {func.get('is_leaf', 'unknown')}")
+                 f"Obj: {required_text(func, 'obj_file')}\n")
+    parts.append(f"Leaf: {required_bool(func, 'is_leaf')}")
     if callee_names:
         parts.append(f", Calls: {', '.join(callee_names)}")
     parts.append("\n")
@@ -142,7 +191,7 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
             for idx, (exemplar, exemplar_src) in enumerate(exemplars, 1):
                 parts.append(
                     f"\nExemplar {idx}: {exemplar['name']} "
-                    f"({exemplar['size']}B, {exemplar.get('obj_file')})\n"
+                    f"({exemplar['size']}B, {required_text(exemplar, 'obj_file')})\n"
                     f"```\n{exemplar_src}```\n"
                 )
             parts.append(
@@ -151,45 +200,89 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
                 "from the same obj/family when they disagree.\n"
             )
 
-    prior_notes = func.get("failure_notes", [])
-    if prior_notes:
-        parts.append(f"\nPRIOR ATTEMPTS ({len(prior_notes)} failed):\n")
-        for note in prior_notes:
-            meta = []
-            if note.get("src_file"):
-                meta.append(f"src={note['src_file']}")
-            if note.get("snapshot"):
-                meta.append(f"snapshot={note['snapshot']}")
-            suffix = f" ({', '.join(meta)})" if meta else ""
-            parts.append(f"  Session {note['session']}{suffix}: {note['notes']}\n")
-        guidance = prior_notes_guidance or (
-            "Use these notes to avoid repeating the same approaches. "
-            "Try something different.\n"
+    prior_notes = failure_notes_list(func)
+    if not prior_notes:
+        # FALLBACK-OK: old failed rows can lack notes.  They still get a
+        # classifier block so agents know the evidence is thin.
+        pass
+    failed_status = required_text(func, "match_status") == "failed"
+    if failed_status or prior_notes:
+        classification = classify_failure(func)
+        parts.append(
+            "\nFAILURE CLASSIFICATION:\n"
+            f"  primary={classification.primary}; "
+            f"action={classification.action}; "
+            f"confidence={classification.confidence}; "
+            f"near_miss={classification.near_miss_bytes}; "
+            f"tags={', '.join(classification.tags)}\n"
+            f"  {classification.summary}\n"
         )
-        parts.append(guidance)
+        if classification.action == "quarantine":
+            parts.append(
+                "  Guidance: do not repeat ordinary source-shape attempts; "
+                "only continue if you have new regalloc/compiler leverage.\n"
+            )
+        elif classification.action == "research":
+            parts.append(
+                "  Guidance: treat this as focused research/codegen work, "
+                "not a normal retry.\n"
+            )
+        elif classification.action == "prep":
+            parts.append(
+                "  Guidance: improve type/layout/context evidence before "
+                "spending time on byte iteration.\n"
+            )
+
+        if prior_notes:
+            parts.append(f"\nPRIOR ATTEMPTS ({len(prior_notes)} failed):\n")
+            for note in prior_notes:
+                if not isinstance(note, dict):
+                    raise ValueError(f"{func['address']}: failure note must be an object")
+                if "notes" not in note or not str(note["notes"]).strip():
+                    raise ValueError(f"{func['address']}: failure note has empty notes")
+                if "session" not in note or not str(note["session"]).strip():
+                    raise ValueError(f"{func['address']}: failure note missing session")
+                meta = []
+                if "src_file" in note and note["src_file"]:
+                    meta.append(f"src={note['src_file']}")
+                if "snapshot" in note and note["snapshot"]:
+                    meta.append(f"snapshot={note['snapshot']}")
+                suffix = f" ({', '.join(meta)})" if meta else ""
+                parts.append(f"  Session {note['session']}{suffix}: {note['notes']}\n")
+            guidance = prior_notes_guidance or (
+                "Use these notes to avoid repeating the same approaches. "
+                "Try something different.\n"
+            )
+            parts.append(guidance)
+        elif failed_status:
+            parts.append("\nPRIOR ATTEMPTS: no structured failure note recorded.\n")
 
     parts.append(f"\nDisassembly:\n{disasm}\n\n")
     parts.append(f"m2c output:\n{m2c}\n\n")
 
-    placement = placement or placement_for_function(func)
+    if placement is None:
+        placement = placement_for_function(func)
     parts.append("PLACEMENT:\n")
     parts.append(f"  Canonical write target: {source_file}\n")
-    if placement.get("class_name"):
-        parts.append(f"  Owning class: {placement['class_name']}\n")
-    headers = placement.get("header_files") or []
+    class_name = _placement_optional_text(placement, "class_name")
+    if class_name:
+        parts.append(f"  Owning class: {class_name}\n")
+    headers = _placement_list(placement, "header_files")
     if headers:
         parts.append(f"  Declaration header(s): {', '.join(headers)}\n")
+    source_files = _placement_list(placement, "source_files")
     related_sources = [
-        p for p in placement.get("source_files", [])
+        p for p in source_files
         if p != source_file
     ]
     if related_sources:
         parts.append(
             f"  Related allowed source(s): {', '.join(related_sources)}\n"
         )
-    if placement.get("sibling_prefix"):
+    sibling_prefix = _placement_optional_text(placement, "sibling_prefix")
+    if sibling_prefix:
         parts.append(
-            f"  Split-TU source pattern allowed: {placement['sibling_prefix']}*.cpp\n"
+            f"  Split-TU source pattern allowed: {sibling_prefix}*.cpp\n"
         )
     parts.append(
         "Use the canonical target unless a related source already contains "

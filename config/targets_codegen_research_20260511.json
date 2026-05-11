@@ -1,0 +1,2516 @@
+[
+  {
+    "address": "0x00344524",
+    "size": 108,
+    "name": "gcValFPSInfo::Evaluate(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValFPSInfo",
+    "category": "Evaluate",
+    "priority": 737,
+    "score": 263,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 2,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00264540",
+    "size": 156,
+    "name": "gcMsgPlayCinematic::New(nwMsgBuffer &) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMsgPlayCinematic",
+    "category": "New",
+    "priority": 743,
+    "score": 257,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcMsgPlayCinematic.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/027ec4ae/00264540__agent_self_reported_failure__src_gcMsgPlayCinematic.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00047be8",
+    "size": 124,
+    "name": "eDynamicModel::GetSkinIndex(void) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicModel",
+    "category": "GetSkinIndex",
+    "priority": 746,
+    "score": 254,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 11,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 11,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0007fa0c",
+    "size": 60,
+    "name": "eShadowFillModelMtl::Unapply(void) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eShadowFillModelMtl",
+    "category": "Unapply",
+    "priority": 748,
+    "score": 252,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001e1134",
+    "size": 52,
+    "name": "eTexture::GetFullTexCoords(mVec4 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eTexture",
+    "category": "GetFullTexCoords",
+    "priority": 758,
+    "score": 242,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0001d6f0",
+    "size": 216,
+    "name": "eAudioGroup::StopSound(cHandleT<eSoundData>, cTimeValue)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eAudioGroup",
+    "category": "StopSound",
+    "priority": 760,
+    "score": 240,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 0,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 0,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00008cf4",
+    "size": 152,
+    "name": "cName::Write(cOutStream &) const",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cName",
+    "category": "Write",
+    "priority": 760,
+    "score": 240,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/cName.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/ecc06b50/00008cf4__agent_self_reported_failure__src_cName.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0004a284",
+    "size": 176,
+    "name": "eDynamicModel::SetShapeController(eRigidBodyState *, ePhysicsController *, unsigned int)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicModel",
+    "category": "SetShapeController",
+    "priority": 760,
+    "score": 240,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eDynamicModel.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/af005f70/0004a284__agent_self_reported_failure__src_eDynamicModel.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0027c258",
+    "size": 108,
+    "name": "gcFormatString::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcFormatString",
+    "category": "AssignCopy",
+    "priority": 762,
+    "score": 238,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 2,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00258ff0",
+    "size": 156,
+    "name": "gcState::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcState",
+    "category": "AssignCopy",
+    "priority": 762,
+    "score": 238,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcState.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/753c670f/00258ff0__agent_self_reported_failure__src_gcState.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 2,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000569a0",
+    "size": 124,
+    "name": "eMemCard::CardPresent(void) static",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eMemCard",
+    "category": "CardPresent",
+    "priority": 763,
+    "score": 237,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 3,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 3,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00110030",
+    "size": 112,
+    "name": "gcEntityControllerTemplate::FindAnimationSet(cHandleT<gcEnumeration>) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityControllerTemplate",
+    "category": "FindAnimationSet",
+    "priority": 764,
+    "score": 236,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000fbe00",
+    "size": 136,
+    "name": "gcCamera::gcXYZMotion::Set(const mVec3 &, cTimeValue)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcCamera::gcXYZMotion",
+    "category": "Set",
+    "priority": 764,
+    "score": 236,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcCamera_gcXYZMotion.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_120905/9ba4fbb1/000fbe00__agent_self_reported_failure__src_gcCamera_gcXYZMotion.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0008d63c",
+    "size": 272,
+    "name": "eRenderSurface::Initialize(int, int, unsigned int, bool, int)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eRenderSurface",
+    "category": "Initialize",
+    "priority": 764,
+    "score": 236,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eRenderSurface.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_201648/a8b4314b/0008d63c__agent_self_reported_failure__src_eRenderSurface.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0023a890",
+    "size": 156,
+    "name": "gcString::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcString",
+    "category": "AssignCopy",
+    "priority": 765,
+    "score": 235,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 5,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 5,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00210e5c",
+    "size": 416,
+    "name": "eGeomCurve::AssignCopy(const cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eGeomCurve",
+    "category": "AssignCopy",
+    "priority": 765,
+    "score": 235,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 5,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 5,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00065454",
+    "size": 440,
+    "name": "eBipedController::PostUpdate(mOCS *, eDynamicModel *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBipedController",
+    "category": "PostUpdate",
+    "priority": 765,
+    "score": 235,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eBipedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_201648/21dc2e56/00065454__agent_self_reported_failure__src_eBipedController.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 5,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 5,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002a54fc",
+    "size": 132,
+    "name": "gcPartialBodyControllerTemplate::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcPartialBodyControllerTemplate",
+    "category": "AssignCopy",
+    "priority": 766,
+    "score": 234,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcPartialBodyControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/b3807681/002a54fc__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 6,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 6,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0011f550",
+    "size": 100,
+    "name": "gcPlayer::GetPlayerForCamera(const gcCamera *) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcPlayer",
+    "category": "GetPlayerForCamera",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00005458",
+    "size": 136,
+    "name": "cWriteBlock::cWriteBlock(cFile &, unsigned int)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cWriteBlock",
+    "category": "cWriteBlock",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0002c778",
+    "size": 156,
+    "name": "eGeom::SetTemplate(cHandleT<eGeomTemplate>, bool)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eGeom",
+    "category": "SetTemplate",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0006d12c",
+    "size": 212,
+    "name": "eSimulatedController::GetSubObjectIndex(const cName &) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSimulatedController",
+    "category": "GetSubObjectIndex",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eSimulatedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/6fb12182/0006d12c__agent_self_reported_failure__src_eSimulatedController.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0012bc18",
+    "size": 216,
+    "name": "gcTableTemplate::Reset(cMemPool *, bool)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcTableTemplate",
+    "category": "Reset",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0004a070",
+    "size": 224,
+    "name": "eDynamicModel::GetSurface(int) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicModel",
+    "category": "GetSurface",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eDynamicModel.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/4852e10b/0004a070__agent_self_reported_failure__src_eDynamicModel.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00289f4c",
+    "size": 236,
+    "name": "gcSurface::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcSurface",
+    "category": "AssignCopy",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0012e8a0",
+    "size": 256,
+    "name": "gcDesiredUIWidgetHelper::Read(cReadBlock &)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredUIWidgetHelper",
+    "category": "Read",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00265288",
+    "size": 264,
+    "name": "gcDesiredObjectT<gcDesiredCustomAnimation, gcDesiredCustomAnimationHelper, gcEntityCustomAnimation>::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredObjectT<gcDesiredCustomAnimation, gcDesiredCustomAnimationHelper, gcEntityCustomAnimation>",
+    "category": "GetText",
+    "priority": 768,
+    "score": 232,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_123104/7d3a7c7f/00265288__agent_self_reported_failure__src_gcDesiredObjectTgcDesiredCustomAnimationgcDesiredCustomAnimationHelpergcEntityCustomAnimation.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00072950",
+    "size": 92,
+    "name": "eConvexHullShape::ePolyFace::Write(cWriteBlock &) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eConvexHullShape::ePolyFace",
+    "category": "Write",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0006ff34",
+    "size": 124,
+    "name": "eTriangleShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, float *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eTriangleShape",
+    "category": "GetProjectedMinMax",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000372d8",
+    "size": 164,
+    "name": "eBroadphase::ClearAccumulatedImpulses(eCollisionPair *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBroadphase",
+    "category": "ClearAccumulatedImpulses",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00124a70",
+    "size": 292,
+    "name": "gcMsgLoadRegions::gcMsgLoadRegions(int, int, bool)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMsgLoadRegions",
+    "category": "gcMsgLoadRegions",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000809d4",
+    "size": 440,
+    "name": "eDynamicLightHeightmapMtl::~eDynamicLightHeightmapMtl(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicLightHeightmapMtl",
+    "category": "Destructor",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eDynamicLightHeightmapMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/dd71eb79/000809d4__agent_self_reported_failure__src_eDynamicLightHeightmapMtl.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00080df8",
+    "size": 440,
+    "name": "eDynamicLightModelMtl::~eDynamicLightModelMtl(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicLightModelMtl",
+    "category": "Destructor",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eDynamicLightModelMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/1c97b88c/00080df8__agent_self_reported_failure__src_eDynamicLightModelMtl.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00083efc",
+    "size": 440,
+    "name": "eProjectedHeightmapMtl::~eProjectedHeightmapMtl(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eProjectedHeightmapMtl",
+    "category": "Destructor",
+    "priority": 770,
+    "score": 230,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eProjectedHeightmapMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/2b59df5f/00083efc__agent_self_reported_failure__src_eProjectedHeightmapMtl.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0003c8dc",
+    "size": 300,
+    "name": "eRoomAABBTree::Write(cWriteBlock &) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eRoomAABBTree",
+    "category": "Write",
+    "priority": 771,
+    "score": 229,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eRoomAABBTree_Write.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/f34575f8/0003c8dc__agent_self_reported_failure__src_eRoomAABBTree_Write.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 11,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 11,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001a63e4",
+    "size": 60,
+    "name": "nwConnection::nwMsgsBlock::nwMsgsBlock(void)",
+    "obj_file": "nwAll_psp.obj",
+    "class_name": "nwConnection::nwMsgsBlock",
+    "category": "nwMsgsBlock",
+    "priority": 772,
+    "score": 228,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 2,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000fdddc",
+    "size": 156,
+    "name": "gcViewport::UpdateUI(cTimeValue) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcViewport",
+    "category": "UpdateUI",
+    "priority": 772,
+    "score": 228,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcViewport.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/cf7a051d/000fdddc__agent_self_reported_failure__src_gcViewport.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 12,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 12,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001edbe8",
+    "size": 512,
+    "name": "cArrayBase<cArrayBase> & cArrayBase<short>::operator=(const cArrayBase<cArrayBase> &)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "cArrayBase<cArrayBase> & cArrayBase<short>",
+    "category": "operator=",
+    "priority": 772,
+    "score": 228,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 12,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 12,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001a0af8",
+    "size": 368,
+    "name": "mBox::XformInv(const mBox &, const mOCS &)",
+    "obj_file": "mAll_psp.obj",
+    "class_name": "mBox",
+    "category": "XformInv",
+    "priority": 773,
+    "score": 227,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0035ec68",
+    "size": 500,
+    "name": "gcValStringIndex::VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValStringIndex",
+    "category": "VisitReferences",
+    "priority": 773,
+    "score": 227,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00108420",
+    "size": 608,
+    "name": "gcNetGame::Update(cTimeValue) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcNetGame",
+    "category": "Update",
+    "priority": 774,
+    "score": 226,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcNetGame.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_201648/364fd7d1/00108420__agent_self_reported_failure__src_gcNetGame.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001a635c",
+    "size": 136,
+    "name": "nwConnection::GetQuality(void) const",
+    "obj_file": "nwAll_psp.obj",
+    "class_name": "nwConnection",
+    "category": "GetQuality",
+    "priority": 774,
+    "score": 226,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/nwConnection.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/f182e059/001a635c__agent_self_reported_failure__src_nwConnection.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 24,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0010fbb8",
+    "size": 160,
+    "name": "gcEntityAttackSet::GetAttackIndex(const cBaseArrayT<gcEntityAttackSet *> &, const gcEntityAttack *, int *, const gcEntityAttack *) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityAttackSet",
+    "category": "GetAttackIndex",
+    "priority": 774,
+    "score": 226,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 24,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002a7964",
+    "size": 204,
+    "name": "gcBipedControllerTemplate::~gcBipedControllerTemplate(void)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcBipedControllerTemplate",
+    "category": "Destructor",
+    "priority": 775,
+    "score": 225,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcBipedControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/002a7964__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 25,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 25,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00124d10",
+    "size": 228,
+    "name": "gcMsgLoadRegions::Read(cInStream &, nwSocketHandle, const nwAddress &, nwConnectionHandle)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMsgLoadRegions",
+    "category": "Read",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x002fc87c",
+    "size": 244,
+    "name": "gcDoSetEventEnumParam::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoSetEventEnumParam",
+    "category": "GetText",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcDoSetEventEnumParam.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/e8a49ca9/002fc87c__agent_self_reported_failure__src_gcDoSetEventEnumParam.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x003268c4",
+    "size": 288,
+    "name": "gcValEntityConstant::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityConstant",
+    "category": "GetText",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcValEntityConstant.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/003268c4__agent_self_reported_failure__src_gcValEntityConstant.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00330eac",
+    "size": 288,
+    "name": "gcValEntityHasTimeSince::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasTimeSince",
+    "category": "GetText",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcValEntityHasTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/00330eac__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x003407ec",
+    "size": 288,
+    "name": "gcValEntityVariable::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityVariable",
+    "category": "GetText",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcValEntityVariable_GetText.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/237053a9/003407ec__agent_self_reported_failure__src_gcValEntityVariable_GetText.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00268ce8",
+    "size": 360,
+    "name": "gcDesiredEntityTemplate::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredEntityTemplate",
+    "category": "AssignCopy",
+    "priority": 776,
+    "score": 224,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x000f270c",
+    "size": 100,
+    "name": "gcMap::FindLoadedRegion(const cGUIDT<gcRegion> &) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMap",
+    "category": "FindLoadedRegion",
+    "priority": 778,
+    "score": 222,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 3,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 3,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x001101a8",
+    "size": 112,
+    "name": "gcEntityControllerTemplate::FindAttackSet(cHandleT<gcEnumeration>) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityControllerTemplate",
+    "category": "FindAttackSet",
+    "priority": 779,
+    "score": 221,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcEntityControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/b07f7676/001101a8__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00004540",
+    "size": 336,
+    "name": "cMemPool::cMemPool(cMemAllocator *, const char *)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cMemPool",
+    "category": "cMemPool",
+    "priority": 779,
+    "score": 221,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00213598",
+    "size": 488,
+    "name": "eTextureMap::AssignCopy(const cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eTextureMap",
+    "category": "AssignCopy",
+    "priority": 780,
+    "score": 220,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eTextureMap.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/b7ace5a8/00213598__agent_self_reported_failure__src_eTextureMap.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 5,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 5,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0036ae00",
+    "size": 172,
+    "name": "gcValVariable::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValVariable",
+    "category": "GetText",
+    "priority": 780,
+    "score": 220,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcValVariable_GetText.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/c9cfa829/0036ae00__agent_self_reported_failure__src_gcValVariable_GetText.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0008e714",
+    "size": 44,
+    "name": "eVideoPlatform::SetShadowInfo(float, float, const mPlane &) static",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eVideoPlatform",
+    "category": "SetShadowInfo",
+    "priority": 781,
+    "score": 219,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eVideoPlatform.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_162336/567ba94e/0008e714__agent_self_reported_failure__src_eVideoPlatform.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 6,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 6,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000132f0",
+    "size": 80,
+    "name": "eMoviePlatform::avsync_video_setPts(unsigned int)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eMoviePlatform",
+    "category": "avsync_video_setPts",
+    "priority": 783,
+    "score": 217,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000eb7dc",
+    "size": 92,
+    "name": "gcCinematicInstance::FreeDynamicInstances(void) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcCinematicInstance",
+    "category": "FreeDynamicInstances",
+    "priority": 783,
+    "score": 217,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00005dbc",
+    "size": 212,
+    "name": "cReadBlock::~cReadBlock(void)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cReadBlock",
+    "category": "Destructor",
+    "priority": 783,
+    "score": 217,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/cReadBlock.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/650bf8ca/00005dbc__agent_self_reported_failure__src_cReadBlock.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0010e958",
+    "size": 372,
+    "name": "gcDesiredEnumerationEntryHelper::GetText(char *, bool) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredEnumerationEntryHelper",
+    "category": "GetText",
+    "priority": 783,
+    "score": 217,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcDesiredEnumerationEntryHelper.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_123104/ee788b26/0010e958__agent_self_reported_failure__src_gcDesiredEnumerationEntryHelper.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000219bc",
+    "size": 452,
+    "name": "eBspTree::~eBspTree(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBspTree",
+    "category": "Destructor",
+    "priority": 783,
+    "score": 217,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eBspTree_dtor.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_175602/67440fe3/000219bc__agent_self_reported_failure__src_eBspTree_dtor.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x001f5f84",
+    "size": 112,
+    "name": "eSurfaceProperty::AssignCopy(const cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSurfaceProperty",
+    "category": "AssignCopy",
+    "priority": 785,
+    "score": 215,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 10,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 10,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0035e0cc",
+    "size": 384,
+    "name": "gcValStringCompare::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValStringCompare",
+    "category": "GetText",
+    "priority": 788,
+    "score": 212,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcValStringCompare.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/b8c9eae9/0035e0cc__agent_self_reported_failure__src_gcValStringCompare.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002a7edc",
+    "size": 292,
+    "name": "gcDoEntityBipedSetShape::New(cMemPool *, cBase *) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntityBipedSetShape",
+    "category": "New",
+    "priority": 789,
+    "score": 211,
+    "reason": "constant_cse_codegen research candidate; Compiler hoists/reuses constants differently from target.",
+    "failure_src_file": "src/gcDoEntityBipedSetShape.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/1a939e2d/002a7edc__agent_self_reported_failure__src_gcDoEntityBipedSetShape.cpp",
+    "failure_classification": {
+      "primary": "constant_cse_codegen",
+      "tags": [
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Compiler hoists/reuses constants differently from target."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00350b88",
+    "size": 784,
+    "name": "gcValNavMeshDirection::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValNavMeshDirection",
+    "category": "AssignCopy",
+    "priority": 789,
+    "score": 211,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcValNavMeshDirection_AssignCopy.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260510_175602/5fc0bdc7/00350b88__agent_self_reported_failure__src_gcValNavMeshDirection_AssignCopy.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00065b54",
+    "size": 104,
+    "name": "eBipedController::GetVelocity(int, const mVec3 &, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBipedController",
+    "category": "GetVelocity",
+    "priority": 789,
+    "score": 211,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eBipedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065b54__agent_self_reported_failure__src_eBipedController.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00065d74",
+    "size": 104,
+    "name": "eBipedController::GetPosition(int, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBipedController",
+    "category": "GetPosition",
+    "priority": 789,
+    "score": 211,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eBipedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065d74__agent_self_reported_failure__src_eBipedController.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00117440",
+    "size": 88,
+    "name": "gcEntity::GetPlayer(void) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntity",
+    "category": "GetPlayer",
+    "priority": 790,
+    "score": 210,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 15,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 15,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0032f100",
+    "size": 288,
+    "name": "gcValEntityHasAnimation::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasAnimation",
+    "category": "GetText",
+    "priority": 791,
+    "score": 209,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcValEntityHasAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/0032f100__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0033f480",
+    "size": 288,
+    "name": "gcValEntityTimeSince::GetText(char *) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityTimeSince",
+    "category": "GetText",
+    "priority": 791,
+    "score": 209,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcValEntityHasTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/0033f480__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000f2bf8",
+    "size": 148,
+    "name": "gcMap::LoadRegionSet(int, int)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcMap",
+    "category": "LoadRegionSet",
+    "priority": 792,
+    "score": 208,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcMap.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_191203/d3a7655e/000f2bf8__agent_self_reported_failure__src_gcMap.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 17,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0005ddc0",
+    "size": 176,
+    "name": "eDynamicFluid::~eDynamicFluid(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicFluid",
+    "category": "Destructor",
+    "priority": 792,
+    "score": 208,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eDynamicFluid.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/1a22a2d3/0005ddc0__agent_self_reported_failure__src_eDynamicFluid.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 17,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0006c490",
+    "size": 180,
+    "name": "eSimulatedController::GetVelocity(int, const mVec3 &, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSimulatedController",
+    "category": "GetVelocity",
+    "priority": 792,
+    "score": 208,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eSimulatedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/da2fe209/0006c490__agent_self_reported_failure__src_eSimulatedController.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 17,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00020168",
+    "size": 496,
+    "name": "eWorld::UpdateVolumeLocation(eVolume *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eWorld",
+    "category": "UpdateVolumeLocation",
+    "priority": 792,
+    "score": 208,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/eWorld.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_201648/4754e2dd/00020168__agent_self_reported_failure__src_eWorld.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 17,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00141224",
+    "size": 108,
+    "name": "gcBipedController::gcBipedController(cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcBipedController",
+    "category": "gcBipedController",
+    "priority": 793,
+    "score": 207,
+    "reason": "constant_cse_codegen research candidate; Compiler hoists/reuses constants differently from target.",
+    "failure_classification": {
+      "primary": "constant_cse_codegen",
+      "tags": [
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 8,
+      "summary": "Compiler hoists/reuses constants differently from target."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00272dd0",
+    "size": 76,
+    "name": "gcTableColumnStringBuffer::Get(int, wchar_t *, int) const",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcTableColumnStringBuffer",
+    "category": "Get",
+    "priority": 793,
+    "score": 207,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 18,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 18,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x00065cf0",
+    "size": 132,
+    "name": "eBipedController::GetLocalToWorld(int, mOCS *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBipedController",
+    "category": "GetLocalToWorld",
+    "priority": 793,
+    "score": 207,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/eBipedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/02ef5779/00065cf0__agent_self_reported_failure__src_eBipedController.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 18,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 18,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000eb73c",
+    "size": 160,
+    "name": "gcCinematicInstance::UpdateAll(cTimeValue) static",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcCinematicInstance",
+    "category": "UpdateAll",
+    "priority": 794,
+    "score": 206,
+    "reason": "branch_direction_codegen research candidate; Branch-likely or jump-in/skip-over codegen divergence.",
+    "failure_src_file": "src/gcCinematicInstance.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/930ddec5/000eb73c__agent_self_reported_failure__src_gcCinematicInstance.cpp",
+    "failure_classification": {
+      "primary": "branch_direction_codegen",
+      "tags": [
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 19,
+      "summary": "Branch-likely or jump-in/skip-over codegen divergence."
+    },
+    "near_miss_bytes": 19,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0034adb8",
+    "size": 224,
+    "name": "gcValLobbyOptions::Set(float)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLobbyOptions",
+    "category": "Set",
+    "priority": 794,
+    "score": 206,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_src_file": "src/gcValHeadset.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260506_235212/99ede13a/0034adb8__agent_self_reported_failure__src_gcValHeadset.cpp",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 19,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 19,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  },
+  {
+    "address": "0x0025fff4",
+    "size": 360,
+    "name": "gcDesiredEntity::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDesiredEntity",
+    "category": "AssignCopy",
+    "priority": 794,
+    "score": 206,
+    "reason": "regalloc_drift research candidate; Register naming/live-range drift after structure is correct.",
+    "failure_classification": {
+      "primary": "regalloc_drift",
+      "tags": [
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "quarantine",
+      "confidence": "high",
+      "near_miss_bytes": 19,
+      "summary": "Register naming/live-range drift after structure is correct."
+    },
+    "near_miss_bytes": 19,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "quarantine"
+  }
+]

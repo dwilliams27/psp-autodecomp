@@ -26,6 +26,8 @@ def _make_func(addr, class_name, name=None, size=8):
         "obj_file": "test.obj",
         "size": size,
         "is_leaf": True,
+        "callees": [],
+        "callers": [],
         "match_status": "untried",
     }
 

@@ -1,0 +1,488 @@
+[
+  {
+    "address": "0x000d8654",
+    "size": 180,
+    "name": "gcUIWidget::Reset(cMemPool *, bool)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIWidget",
+    "category": "Reset",
+    "priority": 798,
+    "score": 202,
+    "reason": "near-miss 8B; Reset retry family; has failure snapshot; manageable size",
+    "failure_src_file": "src/gcUIWidget.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_170107/03a5259e/000d8654__agent_self_reported_failure__src_gcUIWidget.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 8,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0000c0d8",
+    "size": 180,
+    "name": "cFactory::OnNameChanged(void)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cFactory",
+    "category": "OnNameChanged",
+    "priority": 813,
+    "score": 187,
+    "reason": "near-miss 3B; has failure snapshot; manageable size",
+    "failure_src_file": "src/cFactory.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/287a7542/0000c0d8__agent_self_reported_failure__src_cFactory.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 3,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 3,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00244064",
+    "size": 292,
+    "name": "gcStreamedCinematic::AssignCopy(const cBase *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStreamedCinematic",
+    "category": "AssignCopy",
+    "priority": 813,
+    "score": 187,
+    "reason": "near-miss 3B; AssignCopy retry family; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 3,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 3,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00075100",
+    "size": 40,
+    "name": "eKeyframedController::GetInvMass(int, float *, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eKeyframedController",
+    "category": "GetInvMass",
+    "priority": 817,
+    "score": 183,
+    "reason": "near-miss 7B; has failure snapshot; manageable size",
+    "failure_src_file": "src/eKeyframedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/a0376310/00075100__agent_self_reported_failure__src_eKeyframedController.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 7,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 7,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00048cc8",
+    "size": 180,
+    "name": "eDynamicModel::ResetAnimationState(void)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicModel",
+    "category": "ResetAnimationState",
+    "priority": 827,
+    "score": 173,
+    "reason": "near-miss 17B; has failure snapshot; manageable size",
+    "failure_src_file": "src/eDynamicModel.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_232432/888688e8/00048cc8__agent_self_reported_failure__src_eDynamicModel.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 17,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 17,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x001f4d9c",
+    "size": 36,
+    "name": "eHeightmapShape::GetInertialTensor(float, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eHeightmapShape",
+    "category": "GetInertialTensor",
+    "priority": 828,
+    "score": 172,
+    "reason": "near-miss 18B; has failure snapshot; manageable size",
+    "failure_src_file": "src/eHeightmapShape.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/126b2744/001f4d9c__agent_self_reported_failure__src_eHeightmapShape.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 18,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 18,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0002c154",
+    "size": 128,
+    "name": "eMaterial::operator=(const eMaterial &)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eMaterial",
+    "category": "operator=",
+    "priority": 832,
+    "score": 168,
+    "reason": "near-miss 2B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 2,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0006c5d4",
+    "size": 120,
+    "name": "eSimulatedController::GetInvMass(int, float *, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSimulatedController",
+    "category": "GetInvMass",
+    "priority": 835,
+    "score": 165,
+    "reason": "near-miss 25B; has failure snapshot; manageable size",
+    "failure_src_file": "src/eSimulatedController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260430_231646/679d28cb/0006c5d4__agent_self_reported_failure__src_eSimulatedController.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 25,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 25,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0006ddf8",
+    "size": 96,
+    "name": "eBoxShape::GetInertialTensor(float, mVec3 *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBoxShape",
+    "category": "GetInertialTensor",
+    "priority": 836,
+    "score": 164,
+    "reason": "near-miss 6B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 6,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 6,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00044c44",
+    "size": 140,
+    "name": "eDynamicGeom::eDynamicGeom(cBase *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicGeom",
+    "category": "eDynamicGeom",
+    "priority": 838,
+    "score": 162,
+    "reason": "near-miss 8B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 8,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 8,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x001eea5c",
+    "size": 512,
+    "name": "cArrayBase<cArrayBase> & cArrayBase<unsigned int>::operator=(const cArrayBase<cArrayBase> &)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "cArrayBase<cArrayBase> & cArrayBase<unsigned int>",
+    "category": "operator=",
+    "priority": 842,
+    "score": 158,
+    "reason": "near-miss 12B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 12,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 12,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0004269c",
+    "size": 128,
+    "name": "eStaticModel::CastSphere(const eCollisionInfo &, const mRay &, float, mCollideHit *) const",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eStaticModel",
+    "category": "CastSphere",
+    "priority": 842,
+    "score": 158,
+    "reason": "near-miss 32B; has failure snapshot; manageable size",
+    "failure_src_file": "src/eStaticModel.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260503_231848/71e70ccb/0004269c__agent_self_reported_failure__src_eStaticModel.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 32,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 32,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x0024bc50",
+    "size": 512,
+    "name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcTableTemplate> >::operator=(const cArrayBase<cArrayBase> &)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcTableTemplate> >",
+    "category": "operator=",
+    "priority": 846,
+    "score": 154,
+    "reason": "near-miss 16B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 16,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00241684",
+    "size": 512,
+    "name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcEntityCustomAnimation> >::operator=(const cArrayBase<cArrayBase> &)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcEntityCustomAnimation> >",
+    "category": "operator=",
+    "priority": 854,
+    "score": 146,
+    "reason": "near-miss 24B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 24,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00268344",
+    "size": 512,
+    "name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcEnumeration> >::operator=(const cArrayBase<cArrayBase> &)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "cArrayBase<cArrayBase> & cArrayBase<cHandleT<gcEnumeration> >",
+    "category": "operator=",
+    "priority": 854,
+    "score": 146,
+    "reason": "near-miss 24B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 24,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00002ec8",
+    "size": 132,
+    "name": "cFastMemAllocator::Reset(void)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cFastMemAllocator",
+    "category": "Reset",
+    "priority": 854,
+    "score": 146,
+    "reason": "near-miss 64B; Reset retry family; has failure snapshot; manageable size",
+    "failure_src_file": "src/cFastMemAllocator.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260505_170107/bc38cb24/00002ec8__agent_self_reported_failure__src_cFastMemAllocator.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 64,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 64,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x000e4e34",
+    "size": 352,
+    "name": "gcUIDialog::Draw(unsigned int)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIDialog",
+    "category": "Draw",
+    "priority": 860,
+    "score": 140,
+    "reason": "near-miss 50B; has failure snapshot; manageable size",
+    "failure_src_file": "src/gcUIDialog_Draw.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260509_214522/2fea9c87/000e4e34__agent_self_reported_failure__src_gcUIDialog_Draw.cpp",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 50,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 50,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  },
+  {
+    "address": "0x00004b38",
+    "size": 116,
+    "name": "cStr::cStr(const char *, ...)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cStr",
+    "category": "cStr",
+    "priority": 873,
+    "score": 127,
+    "reason": "near-miss 43B; manageable size",
+    "failure_classification": {
+      "primary": "retryable_nearmiss",
+      "tags": [
+        "retryable_nearmiss"
+      ],
+      "action": "retry",
+      "confidence": "medium",
+      "near_miss_bytes": 43,
+      "summary": "Small byte diff with no stronger compiler-blocker signal."
+    },
+    "near_miss_bytes": 43,
+    "blocker_tags": [
+      "retryable_nearmiss"
+    ],
+    "failure_action": "retry"
+  }
+]

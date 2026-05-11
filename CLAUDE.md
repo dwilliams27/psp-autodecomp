@@ -147,6 +147,8 @@ sudo chmod -R a+rX /usr/local/share/claude
 
 **Process:**
 - **Run `/pre-commit-review` before EVERY commit.** No exceptions. 4 review agents including silent-fallback auditor. Do NOT use `/simplify`.
+- `/pre-commit-review` is defined in `.claude/commands/pre-commit-review.md`; use that command text as the source of truth and always spin up the review agents before committing code.
+- Keep `AGENTS.md` and `CLAUDE.md` in sync. When one root guidance file changes, mirror the same policy change into the other in the same commit.
 - No silent fallbacks — broken things fail loud. No graceful degradation without human approval.
 - No deferred shortcuts — handle edge cases now, not "later."
 - Decisions → `docs/decisions/NNN-*.md`. Direction → `docs/direction/NNN-*.md`. Sessions → `docs/sessions/YYYY-MM-DD.md`.
