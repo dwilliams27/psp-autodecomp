@@ -231949,7 +231949,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -231957,7 +231957,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityTimeSinceKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fUgcValEntityTimeSinceKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "8f9c82ca",
+        "notes": "category=REG_ALLOC. Diff cannot be closed: 63/788 bytes after 5min permuter (4833 candidates, 8 improvements from 76 -> 63). All structure is correct (type-cache 5-level chain, dispatch loop, gcDesiredEntity::operator= call, byte/int field copies at 0x3C/0x3D/0x40/0x44, 0x48 cleanup with delete + clone). The divergence is caused by the extra type_variable lookup vs 4-level siblings: this requires saving s8 (instead of s7 like gcValEntityHasTimeSince) for `this+0x48`, which cascades through register allocation in the field-copy section.\n\nSpecifically:\n- Field-copy section (0x1c0-0x1f0): target uses a1=SRC, a2=DST; mine uses a0=SRC, a1=DST. Compiler folds the last `sw` into beq's delay slot in target but not in mine.\n- Cleanup section (0x1f8-0x2dc): cascading rename a0<->a2, a1<->a2 throughout. Target also folds `lw a2,0x48(s0)` into delay slot of beq.\n\nVariations tried: (1) baseline = HasTimeSince exemplar style with psrc/pdst temp vars (76 diff), (2) hoisted SRC ptr declarations interleaved with byte ops (71 diff), (3) inline single-statement field copies (size shrank to 772, optimized too aggressively), (4) `if ((const void *)other != this)` simplified compare (size shrank to 768, +0x48 optimized away). Permuter best=63 with 8 improvements found via random mutations over 300s.\n\nPer docs/research/snc-register-allocation.md, this pattern (context-sensitive scratch-register cascade caused by surrounding TU pressure) typically has no source-level fix. The destructor sibling at 0x33fad0 matched cleanly because it doesn't have the field-copy/cleanup section. The closest matched 5-level + 0x48-cleanup AssignCopy sibling I could find (gcValEntityVariable, 788B same size) is also unmatched (status U). Suggest a future agent try: (a) different TU isolation (perhaps moving AssignCopy to canonical src/gcValEntityTimeSince.cpp would shift register pressure); (b) longer permuter with --workers 8; (c) compiler-flag mutations via permuter.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-11T01:09:25Z",
+        "src_file": "src/gcValEntityTimeSince_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/8f9c82ca/0033e8e0__agent_self_reported_failure__src_gcValEntityTimeSince_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033ebf4",
@@ -232183,13 +232197,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUgcValEntityTimeSincedtv"
+    "mangled_symbol": "__0oUgcValEntityTimeSincedtv",
+    "src_file": "src/gcValEntityTimeSince_dtor.cpp",
+    "symbol_name": "__0oUgcValEntityTimeSincedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8f9c82ca",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T01:09:25Z"
   },
   {
     "address": "0x0033fcac",
