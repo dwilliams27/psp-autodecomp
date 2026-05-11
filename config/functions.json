@@ -227995,7 +227995,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -228003,7 +228003,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasAnimationKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcValEntityHasAnimationKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "d6d5c18f",
+        "notes": "Got function down to exact 728B size (matches target) but 76/728 bytes still differ; permuter ran for 120s and improved to 65 bytes. Adapted from gcValEntitySoundFrequency_AssignCopy.cpp template with offset 0x48 (instead of 0x34) for the managed-pointer destruct/clone block, and added byte/word copies at 0x3C/0x3D/0x40/0x44 between operator= and the destruct block.\n\nKey fixes applied: (1) used `signed char` to force `lb`/`sb` (vs `unsigned char` in exemplar which produces `lbu`/`sb`); (2) split the parent computation `parent = ((val & ~1) | 1)` into two statements `parent = val & ~1; parent |= 1;` to force SNC to emit two ORI instructions (one per branch) rather than factoring into a single ORI at the join \u2014 matched target's 28-instruction destruct block; (3) precomputed `cloneSrc = (char *)oVal + offset` before the GetPoolFromPtr call so SNC schedules `lh s1, 0(s3)` BEFORE the jal and `addu s1, s2, s1` into jal's delay slot (matches target's clone block); (4) used reused pointer locals (`psrc`, `pdst` reassigned twice) for word copies which got the size to match exactly.\n\nRemaining 65-byte diff is structural register allocation: target loads val into a2 (not a0) in the destruct block because the byte/word section in target uses a0/a1/a2 actively and defers the SW of word 0x44 into the beq's delay slot. Mine still has a nop in beq delay slot. To match, the SW must move to the delay slot, which requires the compiler to see no aliasing risk. Tried many source variants \u2014 explicit pointer locals, ordering of declarations, inlining computations \u2014 but the SNC scheduler keeps putting the SW before the beq. The val-register choice (a0 vs a2) cascades into 1 missing register-move in destruct block. Recommend: try register-allocation hint via inline asm, or restructure to compute comparison address earlier so the compiler can defer the SW. See docs/research/snc-register-allocation.md if available.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-11T00:43:28Z",
+        "src_file": "src/gcValEntityHasAnimation_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/d6d5c18f/0032e6b4__agent_self_reported_failure__src_gcValEntityHasAnimation_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0032e98c",
@@ -228218,13 +228232,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcValEntityHasAnimationdtv"
+    "mangled_symbol": "__0oXgcValEntityHasAnimationdtv",
+    "src_file": "src/gcValEntityHasAnimation_dtor.cpp",
+    "symbol_name": "__0oXgcValEntityHasAnimationdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d6d5c18f",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:43:28Z"
   },
   {
     "address": "0x0032f92c",
@@ -229408,7 +229429,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -230612,7 +230633,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
