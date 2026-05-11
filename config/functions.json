@@ -229429,13 +229429,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oWgcValEntityIsAttackingdtv"
+    "mangled_symbol": "__0oWgcValEntityIsAttackingdtv",
+    "src_file": "src/gcValEntityIsAttacking_dtor.cpp",
+    "symbol_name": "__0oWgcValEntityIsAttackingdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "2a795cb7",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:46:19Z"
   },
   {
     "address": "0x00333f38",
@@ -230633,13 +230640,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0okgcValEntityPartialControllerVariabledtv"
+    "mangled_symbol": "__0okgcValEntityPartialControllerVariabledtv",
+    "src_file": "src/gcValEntityPartialControllerVariable_dtor.cpp",
+    "symbol_name": "__0okgcValEntityPartialControllerVariabledtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "2a795cb7",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:46:19Z"
   },
   {
     "address": "0x00338d0c",
@@ -231914,7 +231928,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -232148,7 +232162,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
