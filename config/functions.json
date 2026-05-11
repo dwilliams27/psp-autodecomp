@@ -228513,7 +228513,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -228521,7 +228521,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasTimeSinceKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcValEntityHasTimeSinceKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "f32e0ea6",
+        "notes": "category=REG_ALLOC. Cloned the failed sibling src/gcValEntityHasAnimation_AssignCopy.cpp (which is also unmatched with the same diff pattern) with type id 0x112, parent type_value, type cache slot D_0009F810. Function semantics, control flow, branch-likely structure, and field-copy expressions all match the target. The remaining 61-byte diff is callee-temp register-allocation drift in three sections:\n\n1) byte-copy at 0x3C/0x3D (target uses a0 for byte value with a1/a2 as hoisted addresses for src40/dst40; mine uses a2 for byte value with a0/a1 hoisted). 2) the int copies at 0x40/0x44 (target reuses a1 src44 ptr for value44 then puts dst44 in a0; mine puts value44 in a0 and dst44 in a1). 3) the tagged/owned/parent path at +0x48 (target loads val into a2 and saves tagged to a3 via an extra `move a3, a0`, then moves val from a2 to a0 \u2014 two extra moves; mine loads val into a0 and keeps tagged in a1 with only one `move a2, a1`). The size diff during best schedule attempts is exactly 4 bytes = the missing `move a3, a0` in target. The clone-path at the bottom is offset by the same 4 bytes and has the same register-rename diffs.\n\nApproaches tried: original sibling source (76/728), hoisting psrc40/pdst40 to before byte copies (71/728), full direct dereference (size 712B, SNC folded lw/sw pairs), hoisting other48/this48 alongside int ptr declarations (724B size mismatch with delay-slot fill but missing the extra move), interleaving pointer declarations between byte copies (724B). Final form passed through the permuter (--time 150 then --time 60 --save-improved): 5352 + 2160 candidates, 11 improvements total, best=60\u219261 bytes (intermediate permuter sometimes recovers worse states), zero exact matches. Pattern matches snc-register-allocation.md exactly: differing instructions are otherwise identical, only register fields differ, control flow + immediates + offsets match, permuter cannot improve further. Do not try harder per ADR-012 guidance \u2014 TU-context-dependent allocation drift with no local source leverage.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-11T01:01:14Z",
+        "src_file": "src/gcValEntityHasTimeSince_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/f32e0ea6/00330618__agent_self_reported_failure__src_gcValEntityHasTimeSince_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x003308f0",
@@ -228725,13 +228739,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcValEntityHasTimeSincedtv"
+    "mangled_symbol": "__0oXgcValEntityHasTimeSincedtv",
+    "src_file": "src/gcValEntityHasTimeSince_dtor.cpp",
+    "symbol_name": "__0oXgcValEntityHasTimeSincedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f32e0ea6",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T01:01:14Z"
   },
   {
     "address": "0x003316d8",
