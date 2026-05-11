@@ -63769,14 +63769,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oJeGeomWakedtv"
+    "mangled_symbol": "__0oJeGeomWakedtv",
+    "failure_notes": [
+      {
+        "session": "d2af3d32",
+        "notes": "Stuck at 43/476 byte diff. category=REG_ALLOC (with scale somewhat larger than typical drift). The destructor body and operator-delete dispatches all match exactly after adding __asm__ volatile(\"\" ::: \"memory\") barriers between rec->offset load and base/fn computation (same barrier pattern as src/eParticleSystem.cpp). The remaining diff is concentrated in the inner-loop body at offsets ~0x80-0xc8: expected keeps the per-iteration `entry` pointer (entries + byteOff) in callee-save s6 and recomputes entry+4 inline (lh/sw via +4 immediate offset, with a separate addiu a1, s6, 4 for the null check), while my output puts entry in a0 and CSE's entry+4 into s6, then uses 0 immediate offset for the lh/sw. This cascades through the inner empty count loop register choices (a1/a2/a3 vs a0/a1/a2). Additionally, two adjacent instructions are swapped: expected reload-of-entries (`lw a0, 244(s0)`) comes BEFORE `addiu s4, s4, 1`, mine has them in opposite order. Tried: register-pinning entry to $22 via `register char *entry __asm__(\"$22\")` at function scope and at loop scope (SNC ignores both forms); inlining the null check `if (entry + 4 != 0)` instead of using `nextAddr` local; using `((void **)entry)[1]` array notation (worse, 181 bytes); typing nextAddr as `void **` (no change); barriers between reload and i++; explicit -Xsched=1 cmdline (no change since #pragma already set); permuter 3min 2933 candidates (zero improvement from 43). The dispatch sequences, prologue/epilogue, vtable store, outer cleanup, parent-dtor call, and deleting tail all match. The root cause appears to be SNC's regalloc heuristic deciding which of {entry, entry+4} to keep in the callee-save slot based on use count; in this nested-loop shape the compiler picks the opposite of the original TU.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-11T00:12:34Z",
+        "src_file": "src/eGeomWake_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/d2af3d32/0007a064__agent_self_reported_failure__src_eGeomWake_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007a240",
@@ -197965,14 +197979,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oNgcDoConsoleOpdtv"
+    "mangled_symbol": "__0oNgcDoConsoleOpdtv",
+    "src_file": "src/gcDoConsoleOp_dtor.cpp",
+    "symbol_name": "__0oNgcDoConsoleOpdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d2af3d32",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:12:34Z"
   },
   {
     "address": "0x0029d8e4",
@@ -227953,7 +227974,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -228176,7 +228197,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
