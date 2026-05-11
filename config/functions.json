@@ -213423,14 +213423,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOgcDoSaveGameOpdtv"
+    "mangled_symbol": "__0oOgcDoSaveGameOpdtv",
+    "src_file": "src/gcDoSaveGameOp_dtor.cpp",
+    "symbol_name": "__0oOgcDoSaveGameOpdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "512c0dda",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:10:44Z"
   },
   {
     "address": "0x002fc008",
@@ -215675,14 +215682,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcDoStatsTrackingOpdtv"
+    "mangled_symbol": "__0oTgcDoStatsTrackingOpdtv",
+    "src_file": "src/gcDoStatsTrackingOp_dtor.cpp",
+    "symbol_name": "__0oTgcDoStatsTrackingOpdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "512c0dda",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:10:44Z"
   },
   {
     "address": "0x00304e74",
@@ -226869,7 +226883,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -227079,7 +227093,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
