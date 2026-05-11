@@ -226904,7 +226904,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -226912,7 +226912,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityConstantKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTgcValEntityConstantKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "fb5b9a38",
+        "notes": "Got to 724B / 728B target (4 bytes short). The first 0x1a4 bytes (~73 instructions) of the field-copy region match byte-exact when using pointer-typed locals (srcWord40/dstWord40/srcWord44/dstWord44) which forces indirect addressing for the word copies. The divergence begins at offset 0x1a8 where target emits `lw a1, 0(a1)` (self-modifying load: pointer-register-becomes-value) instead of my `lw a0, 0(a1)`. The downstream consequences: target ends up with sw in the beq's delay slot (data in a1, addr in a0, beq operand in a2), while my code emits the sw before the beq (data in a0, addr in a1, beq operand in a0) which conflicts with the addiu prep so the delay slot is a nop \u2014 exactly +1 instruction = +4 bytes.\n\nTried: (1) reordering pointer var declarations (no change); (2) register int v44 asm(\"a1\") hint (compiler ignored, fell back to direct addressing \u2014 gave 716B); (3) __asm__ volatile (\"\":\"+r\"(srcWord44)) barrier (preserved indirect but no register swap); (4) __asm__ volatile (\"lw %0,0(%0)\":\"=r\"(w44):\"0\"(srcWord44)) same-reg constraint (compiler propagated the pattern to v40 too, but lost the byte-interleave); (5) various other barriers and orderings.\n\nRoot cause: SNC's register allocator chose a0 (caller-save default) as the data register for v44 instead of reusing the pointer register a1 (the 'deref-and-replace' optimization the target uses). Without that, the sw can't go into the beq's delay slot because the addiu before beq overwrites a0.\n\nAlso: the target uses s7 for destValue (this+0x48) while mine ends up in s3. gcValEntityHasAnimation_AssignCopy.cpp (same family, same target size 728B, ALSO unmatched at 708B) gets s7 for destValue, but uses direct addressing for word copies \u2014 so it has a different shape of mismatch.\n\nRecommended next attempts: (a) try inline asm to emit the entire `lw a1,0(a1); addiu a0,s0,0x44; addiu a2,s2,0x48; beq a2,s7,L; sw a1,0(a0)` sequence verbatim, but the s7-vs-s3 register for destValue won't match unless destValue's register can also be steered (might require restructuring the whole function); (b) try perturbing the type-init chain or the cast-check loop so the compiler's register-assignment heuristics push destValue to s7 and v44 to a1. Permuter rejects with PERMUTER_SKIPPED_NOT_LAST_MILE because size-delta is 4B not 0B; would need to first land at exact size.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-11T00:40:10Z",
+        "src_file": "src/gcValEntityConstant_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/fb5b9a38/00326040__agent_self_reported_failure__src_gcValEntityConstant_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x00326318",
@@ -227114,13 +227128,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcValEntityConstantdtv"
+    "mangled_symbol": "__0oTgcValEntityConstantdtv",
+    "src_file": "src/gcValEntityConstant_dtor.cpp",
+    "symbol_name": "__0oTgcValEntityConstantdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fb5b9a38",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:40:10Z"
   },
   {
     "address": "0x003270f0",
@@ -228471,7 +228492,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -228683,7 +228704,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
