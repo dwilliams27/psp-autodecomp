@@ -27889,14 +27889,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00021990"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIeBspTreedtv"
+    "mangled_symbol": "__0oIeBspTreedtv",
+    "failure_notes": [
+      {
+        "session": "67440fe3",
+        "notes": "category=REG_ALLOC. Source code is structurally complete and the diff is 13/452 bytes \u2014 a pure callee-saved register naming swap (s2/s3) for the cached 'arr8 = this+8' pointer vs the 'entries = *(this+0xC)' temporary in the first cleanup loop. Pattern matches docs/research/snc-register-allocation.md exactly: same instruction selection, same scheduling, same delay-slot caching, only the s2/s3 fields differ across ~12 instructions plus 4 jal relocation immediates. Tried reordering the arrC/arr8 declarations both ways \u2014 no effect, mine assigns s2 to arr8 and s3 to entries while expected does the opposite. Permuter ran 180s, 2241 candidates compiled, zero improvements (started 13, ended 13). Split-TU pattern used (src/eBspTree_dtor.cpp) with local redeclaration of eBspTree (PlatformFree + ~eBspTree + operator delete) following gcValNavMeshDirection_dtor.cpp template. Trailer __asm__('.word 0x1000ffff ... .size __0oIeBspTreedtv, 0x1C4') reproduces the trailing infinite-loop padding. The inner null check before the final base-vtable write was reproduced via explicit `if (this != 0) *(void**)((char*)this+4) = 0x37E6A8;` (matches cObject_dtor.cpp pattern). operator delete includes `if (p != 0)` guard to reproduce the second `beqz this` before the deletion call. Stack frame, register save set, all immediates, all loads/stores, all branches match \u2014 only the s2/s3 naming differs. No source leverage available.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:24:32Z",
+        "src_file": "src/eBspTree_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/67440fe3/000219bc__agent_self_reported_failure__src_eBspTree_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00021b80",
@@ -63755,7 +63769,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
@@ -185487,13 +185501,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oZgcTableColumnStringBufferdtv"
+    "mangled_symbol": "__0oZgcTableColumnStringBufferdtv",
+    "src_file": "src/gcTableColumnStringBuffer_dtor.cpp",
+    "symbol_name": "__0oZgcTableColumnStringBufferdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e816b479",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:05:41Z"
   },
   {
     "address": "0x00273280",
@@ -197944,7 +197965,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -198462,14 +198483,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSgcDoEntityActivatedtv"
+    "mangled_symbol": "__0oSgcDoEntityActivatedtv",
+    "failure_notes": [
+      {
+        "session": "67440fe3",
+        "notes": "category=REG_ALLOC. Best attempt produces 440B vs expected 460B (20-byte / 5-instruction shortfall) plus 88+ encoding differences. Two stacked REG_ALLOC problems: (1) Top-level s0/s1 swap \u2014 expected allocates s1=this and s0=arg1 (delete flag); mine produces the more natural s0=this, s1=arg1. The swap propagates through every instruction that touches `this` or `arg1`, producing dozens of cosmetic encoding differences but identical instruction selection. (2) Constant 0x37E6A8 (the parent base vtable) is loaded into s2 in mine and reused 8 times via single `sw s2, ...` instructions (often in beqzl delay slots), while expected re-loads it freshly twice via `lui a0, 0x38; addiu a0, a0, -6488; sw a0, ...`. Expected also splits the `lui` across a `beqz` delay slot at the inner cleanup's entry, a pattern that requires the constant to NOT be hoisted. Tried (a) volatile-qualified vtable writes (no change), (b) extracted inline helper DtorMemberAt (made diff worse \u2014 110 insn instead of 88, 448B instead of 440B), (c) inlining ptr44/ptr20/ptr34/ptr14 expressions instead of declaring locals (no change), (d) reordering ptr44/ptrC declarations (no change). Permuter was skipped (PERMUTER_SKIPPED_NOT_LAST_MILE) because size delta 20B disqualifies the candidate as a last-mile run. Source structure follows the gcDoPlay2dSound/gcDoUIFade/gcDoLobbyOp split-TU template with operator delete inline. Inner-block structure: outer `if(this+0xC!=0)` containing initial vtable swap to 0x388A48, nested `if(this+0x20!=0)` block with vtable 0x388568 \u2192 cleanup +0x34 \u2192 vtable 0x37E6A8, then vtable 0x3889A8 \u2192 `if(this+0x14!=0)` cleanup \u2192 vtable 0x37E6A8. Closing `gcAction_dtor(this, 0)` call. Root cause is the same SNC TU-context register-allocation drift documented in docs/decisions/012-snc-context-dependent-regalloc.md \u2014 the original gcAll_psp.obj compiled in a different register-allocator state. No source leverage to flip s0/s1 at the destructor entry without breaking other matched siblings.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:24:32Z",
+        "src_file": "src/gcDoEntityActivate_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/67440fe3/002a0014__agent_self_reported_failure__src_gcDoEntityActivate_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a01e0",
@@ -199941,7 +199976,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -199949,7 +199984,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoEntityBipedSetShapeKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcDoEntityBipedSetShapeKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "adefe168",
+        "notes": "Implemented AssignCopy inline in the canonical src/gcDoEntityBipedSetShape.cpp TU. The body covers all five logical phases of the target: (1) type-cache init chain (type_base=0x385DC -> type_expression=0x385D8 -> type_action=0x385D4 -> type_gcDoEntityBipedSetShape=0x9F604 via cType::InitializeType with type IDs 1/0x6A/0x6B/0x189); (2) dynamic_cast isa-walk through the vtable+8 dispatch slot and cTypeNode->parent chain; (3) mFlags merge at +0x8 (`(this->flags & ~3) | (copy->flags & 3)`); (4) explicit `gcDesiredEntity::operator=(this+0xC, copy+0xC)` call to the matched sibling at 0x11D404; (5) the +0x38 tagged-owned-pointer release-and-clone block with self-assign-via-bnel-and-VFPU-load duplication; (6) final lv.q/sv.q at +0x40.\n\nClosest output is 720B vs expected 732B (12 bytes / 3 instructions short). Match rate ~98.4%. Structurally correct on:\n- Prologue / type-init / isa-check (matched cleanly)\n- mFlags merge (matched)\n- gcDesiredEntity::operator= call sequence (matched, jal+addiu delay slot)\n- bnel-based self-assign check + duplicated lv.q in the self-assign branch (achieved after a `goto vfpu_store` with explicit __asm__ volatile lv.q in both branches)\n- owned-cleanup block at +0x38 (achieved the expected beqz / li-(-2) / and / b / ori-(delay) / lw / ori 7-instruction pattern by factoring `|= 1` out and using goto to split the if-else)\n- source-clone block (cMemPool::GetPoolFromPtr + curBaseRef computation + clone vtable+0x10 dispatch)\n- final sv.q + epilogue\n\nThe remaining 3-instruction shortfall is regalloc / scheduling drift that source-level changes did not fully recover:\n- Expected uses s7 for `this+0x38` whereas mine allocates s3 (my `char *thisSlot38` local is declared first so it picks the lower callee-save). Reordering locals did not change SNC's allocation choice.\n- Expected emits `move s1, a0` in the delay slot of the `beqz a0, ...` that gates the source-clone block (carrying `source value` from a0 into the callee-save s1). Mine loads srcRaw directly into s1 via `lw s1, 56(s2)`, which fills the delay slot with `nop` and saves one instruction. Multiple variable shapes (separate temporary, dependency through a parameter expression, explicit `(cBase *)srcRaw` cast on a fresh local) were tried; SNC kept the direct load.\n- A few other subtle byte-level scheduling alignments that I traced to the same `lw direct-into-callee-save vs move-after-load` choice.\n\nApproaches tried: (1) `*this = *copy` style (compiles but emits a jal to operator= and is the wrong shape entirely); (2) inline operator= body without `|= 1` factoring (704B - compiler folded to ternary-style with beqzl + delay-likely); (3) factored `|= 1` post if-else (716B - same fold but slightly different); (4) explicit `goto deref_path; ...; goto store_slot;` splitting the tagFlag if-else into two basic blocks (720B - achieved the expected beqz / b / ori-delay-slot / lw / ori pattern); (5) similar restructuring of the curBaseRef computation. The `int srcRaw_temp = ...; ... int srcRaw = srcRaw_temp;` indirection to force a move instruction was attempted but SNC optimized it away.\n\nNot unmatchable_bnel; the remaining diff is regalloc + delay-slot scheduling drift, not branch-likely heuristics. Permuter would be a natural next step: it could shuffle local declarations and explore alternative if-else shapes for the tagFlag and srcOwned blocks to nudge SNC into the expected scheduling. Source is structurally complete; if the regalloc-drift category is acceptable (per docs/decisions/006), this could be marked unmatchable, but it does not satisfy the strict bnel-only criterion.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:46:55Z",
+        "src_file": "src/gcDoEntityBipedSetShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/adefe168/002a7c00__agent_self_reported_failure__src_gcDoEntityBipedSetShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a7edc",
@@ -200173,14 +200222,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcDoEntityBipedSetShapedtv"
+    "mangled_symbol": "__0oXgcDoEntityBipedSetShapedtv",
+    "failure_notes": [
+      {
+        "session": "adefe168",
+        "notes": "Implemented split-TU destructor following the gcDoPlay2dSound_dtor.cpp / gcDoUIFade_dtor.cpp exemplar pattern: local class redeclaration with an inline `operator delete` that dispatches through cMemPool::GetPoolFromPtr -> block[0x24]->allocTable[0x1C][+0x30] so SNC emits the deleting-destructor pool tail, plus a `.size __0oXgcDoEntityBipedSetShapedtv, 0x1cc` asm directive. Body matches the disassembly structure: vtable bookend store, outer cleanup at +0x38 (owned-pointer pattern), then nested cleanup inside `if (inner != 0)` with the vtable transition triplet (0x388A48 -> 0x3889A8 -> 0x37E6A8 at +0x10) bracketing the embedded gcDesiredEntity sub-object cleanup (0x388568 -> 0x37E6A8 at +0x24, with the +0x34 owned-pointer dispatch inside), the +0x14 owned-pointer cleanup, then gcAction_dtor(this, 0). SNC then auto-emits the `if (in_chrg & 1) operator_delete(this)` tail.\n\nClosest output is 448B vs expected 460B (12 bytes / 3 instructions short). The diff is structural and reproducible across stock SNC (extern/snc) and the read-prologue SNC: the compiler caches the literal constant 0x37E6A8 into the dead callee-save register s2 once (`lui s2, 0x38; addiu s2, s2, -0x1958` hoisted before the inner branch) and reuses `sw s2, 0x24(s0)` / `sw s2, 0x10(s0)` across every exit path of both cleanup blocks. The expected version does not cache: it emits a fresh `lui a0, 0x38` in each branch-likely delay slot leading to the convergence point, and an `addiu a0, a0, -0x1958; sw a0, ...` pair at each convergence. That re-derivation costs 3 extra instructions (the lui-in-delay-slot hoisting pattern) that mine optimizes away. The same SNC-version compiler-divergence pattern is documented in config/functions.json notes for gcPlayerStrings::~gcPlayerStrings (`target reloads the desired value into a0 after the member-address guard and uses branch-likely skips with cBaseclassdesc lui in delay slots`).\n\nApproaches tried: (1) baseline with `outer`+`inner` locals = 448B (cached); (2) `*(void *volatile *)` on every store to 0x37E6A8 = 448B (volatile doesn't prevent register CSE of literal value); (3) `__asm__ volatile(\"\" ::: \"memory\")` barrier between the +0x24 store and the 0x3889A8 store = 448B (memory barrier doesn't clobber registers); (4) `#pragma control sched=1` = 448B (different prologue scheduling but same body caching); (5) stock SNC (extern/snc) = 448B (same as read-prologue); (6) removing all locals (no `outer`/`inner`) = 452B but register allocation flips to `this in s1, arg1 in s0` matching expected AND s2-cache disappears, however the compiler then re-derives `this+0xC` via `addiu a0, s1, 12` in each branch-likely delay slot and inlines the result through a0 - still 1 instruction short and different bytes; (7) keeping `inner` only = 448B (s2 caches again); (8) adding a 3rd local `innerSub` for `this+0x20` = 456B but creates a 4th callee-save (s3) and a 32-byte stack frame (expected is 16-byte), so this overshoots on prologue and undershoots on body. The `__asm__ volatile(\"\" : : \"r\"(inner))` at the end to extend `inner`'s live range was silently dropped by SNC.\n\nRoot cause is that SNC's register allocator decides to reuse the dead callee-save s2 (freed after the `beqz s2, ...` early-exit check on `this+0xC`) to cache the literal 0x37E6A8 across the two final stores. The expected build's compiler did not make this CSE choice. Source-level changes can flip the register allocation (move 6) and the live-range of `inner` (move 8), but I could not find a structure that keeps `inner` in s2 AND prevents SNC from also reusing s2 for the 0x37E6A8 cache. Not unmatchable_bnel - the divergence is constant-CSE / dead-reg-reuse, not branch-likely heuristics. Would benefit from a permuter run targeting `inner` declaration order and the volatile/non-volatile combinations on the two 0x37E6A8 stores; structurally the file is correct.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:46:55Z",
+        "src_file": "src/gcDoEntityBipedSetShape_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/adefe168/002a8ed4__agent_self_reported_failure__src_gcDoEntityBipedSetShape_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002a90a0",
@@ -205128,14 +205191,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oegcDoEntitySetPrimaryControllerdtv"
+    "mangled_symbol": "__0oegcDoEntitySetPrimaryControllerdtv",
+    "failure_notes": [
+      {
+        "session": "098d7ee7",
+        "notes": "category=REG_ALLOC. 12B short (448B compiled vs 460B expected) \u2014 an improvement over the previously documented 20B-short attempt. Wrote a fresh split-TU dtor (src/gcDoEntitySetPrimaryController_dtor.cpp) following the matched gcDoPlay2dSound/gcDoUIFade/gcDoLobbyOp template with inline class-local operator delete, volatile vtable writes for 0x388A48/0x388568/0x37E6A8/0x3889A8, and an asm-volatile memory barrier between the inner-block and the 0x3889A8 write. Body structure: outer if(this+0x38!=0) cleanup, then if(inner=this+0xC) helper with nested if(this+0x20!=0) and if(this+0x14!=0) cleanups, closing gcAction_dtor(this,0). Mangled symbol __0oegcDoEntitySetPrimaryControllerdtv with .size 0x1cc trailer directive (cosmetic only \u2014 does not add bytes).\n\nRoot cause is the documented SNC context-dependent register allocation (docs/decisions/012-snc-context-dependent-regalloc.md). My compiled .o uses s0=this, s1=arg1, s2=this+0xC then reuses s2 for the cBaseclassdesc constant 0x37E6A8 \u2014 emitting `sw s2,36(s0)` in beqzl delay slots and as the final write of each inner block, plus one `lui s2,0x38; addiu s2,s2,-6488` setup pair early. The expected uses s1=this, s0=arg1, s2=this+0xC live for the full helper section (never reassigned), recomputes 0x37E6A8 freshly twice via `lui a0,0x38; addiu a0,a0,-6488`, uses `beqz` (not branch-likely) for the outer subobject-pointer checks with `lui a0,0x38` in the always-executing delay slot, and emits one redundant `lui a0,0x39` to fill another delay slot. Net difference: my .o saves 2 inst on early setup but loses 3 inst per inner block (2 inner blocks \u00d7 ~2 inst), with the redundant lui adding 1 more inst \u2014 total 12B target excess. All matched sibling dtors in this family (gcDoPlay2dSound 448B, gcDoUIFade 444B, gcDoLobbyOp 388B) match at <=448B; no matched 460B dtor exists in the codebase. config/functions.json explicitly notes 'No source leverage to flip s0/s1 at the destructor entry without breaking other matched siblings.'\n\nTried: (a) the canonical split-TU exemplar pattern (gcDoEntityBipedSetShape_dtor.cpp clone) \u2014 448B, 12B short; (b) trailing `__asm__ volatile(\"\" : : \"r\"(inner))` hint to keep `inner` live across the gcAction_dtor call, hoping to prevent s2 reuse \u2014 made things WORSE (444B, 16B short), the compiler still reused s2 plus added a move; (c) permuter at --time 60 \u2014 declined with PERMUTER_SKIPPED_NOT_LAST_MILE (12B exceeds last-mile gate). No structural source variation tried produced the target's `beqz`/inline-recompute pattern; the choice between hoisting 0x37E6A8 into s2 versus recomputing inline is made by SNC's register allocator based on TU compilation context. The remaining gap is bytes-only register allocation drift, not a logic, scheduling, or expression-ordering bug.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:37:46Z",
+        "src_file": "src/gcDoEntitySetPrimaryController_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/098d7ee7/002cb568__agent_self_reported_failure__src_gcDoEntitySetPrimaryController_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002cb734",
@@ -205361,14 +205438,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSgcDoEntitySetScaledtv"
+    "mangled_symbol": "__0oSgcDoEntitySetScaledtv",
+    "failure_notes": [
+      {
+        "session": "098d7ee7",
+        "notes": "category=REG_ALLOC. 12B short (448B compiled vs 460B expected). Structurally identical destructor to gcDoEntitySetPrimaryController::~gcDoEntitySetPrimaryController (same disassembly modulo the class-vtable immediate 0x3318 vs 0x3238) \u2014 both produce byte-for-byte the same compiled .o output relative to its function start. Used the same split-TU template (src/gcDoEntitySetScale_dtor.cpp) with inline class-local operator delete, volatile vtable writes for 0x388A48/0x388568/0x37E6A8/0x3889A8, and the same gcAction_dtor(this,0) tail. Mangled symbol __0oSgcDoEntitySetScaledtv.\n\nSame root cause as the sibling: SNC context-dependent register allocation (docs/decisions/012-snc-context-dependent-regalloc.md). My .o hoists 0x37E6A8 into callee-save s2 and emits `sw s2,...` in beqzl delay slots; the original gcAll_psp.obj recomputes 0x37E6A8 freshly inline via `lui a0,0x38; addiu a0,a0,-6488` at each use, uses non-likely `beqz` for the outer subobject-pointer checks with `lui a0,0x38` in the delay slots, and emits one redundant `lui a0,0x39` filler. Permuter declined (PERMUTER_SKIPPED_NOT_LAST_MILE, 12B delta). Whatever fix (compiler-side or source-side) eventually resolves the PrimaryController dtor should resolve this one identically \u2014 they are the same machine code apart from the class-vtable lui/addiu reloc.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "base",
+        "timestamp": "2026-05-10T23:37:46Z",
+        "src_file": "src/gcDoEntitySetScale_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260510_175602/098d7ee7/002cc61c__agent_self_reported_failure__src_gcDoEntitySetScale_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002cc7e8",
@@ -207411,7 +207502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -211685,14 +211776,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcDoPlayerSetEntitydtv"
+    "mangled_symbol": "__0oTgcDoPlayerSetEntitydtv",
+    "src_file": "src/gcDoPlayerSetEntity_dtor.cpp",
+    "symbol_name": "__0oTgcDoPlayerSetEntitydtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e816b479",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-11T00:05:41Z"
   },
   {
     "address": "0x002f2848",
@@ -212709,7 +212807,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
