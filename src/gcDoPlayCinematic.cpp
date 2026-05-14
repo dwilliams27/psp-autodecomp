@@ -5,6 +5,8 @@ class cReadBlock;
 
 class gcDoPlayCinematic {
 public:
+    static void operator delete(void *);
+    ~gcDoPlayCinematic(void);
     int GetExprFlags(void) const;
     int GetMaxChildren(void) const;
     gcExpression *GetChild(int) const;
@@ -68,6 +70,7 @@ public:
 
 class cBaseArray {
 public:
+    void RemoveAll(void);
     void Read(cReadBlock &);
 };
 
@@ -98,9 +101,25 @@ struct gcDoPlayCinematicData {
     gcExpression **mChildren;
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void gcAction_dtor(void *, int) asm("__0oIgcActiondtv");
+extern char gcDoPlayCinematicvirtualtable[];
+
+inline void gcDoPlayCinematic::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 gcExpression *gcDoPlayCinematic::GetChild(int index) const {
     gcDoPlayCinematicData *self = (gcDoPlayCinematicData *)this;
@@ -289,4 +308,71 @@ void gcDoPlayMovie::AssignCopy(const cBase *other) {
         }
     }
     *this = *(const gcDoPlayMovie *)copy;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oRgcDoPlayCinematicdtv, 0x1a0\n");
+
+// gcDoPlayCinematic::~gcDoPlayCinematic(void) @ 0x002f0ca0
+gcDoPlayCinematic::~gcDoPlayCinematic(void) {
+    *(void **)((char *)this + 4) = gcDoPlayCinematicvirtualtable;
+    char *first = (char *)this + 0x30;
+    char *second = (char *)this + 0x2C;
+    char *array = (char *)this + 0x24;
+    char *third = (char *)this + 0x20;
+
+    if ((void *)first != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x30);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x30) = 0;
+            }
+        }
+    }
+
+    if ((void *)second != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x2C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x2C) = 0;
+            }
+        }
+    }
+
+    if ((void *)array != 0) {
+        ((cBaseArray *)array)->RemoveAll();
+    }
+
+    if ((void *)third != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x20);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x20) = 0;
+            }
+        }
+    }
+
+    gcAction_dtor(this, 0);
 }
