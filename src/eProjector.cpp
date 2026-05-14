@@ -7,6 +7,13 @@ class cBase;
 class cFile;
 class cMemPool_fwd;
 class cType;
+class eCamera;
+class eCameraBins;
+class eMaterial;
+class mFrustum;
+
+template <class T>
+class cHandleT;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
@@ -68,6 +75,8 @@ public:
     int Read(cFile &, cMemPool *);
     void Reset(cMemPool *, bool);
     void Update(cTimeValue);
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *,
+              unsigned int, int, const cHandleT<eMaterial> *, float) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -98,6 +107,7 @@ public:
 };
 
 void cFile_SetCurrentPos(void *, unsigned int);
+extern "C" float fabsf(float);
 
 template <class T> T *dcast(const cBase *);
 
@@ -157,6 +167,128 @@ void eProjector::Update(cTimeValue) {
         void (*fn)(void *) = (void (*)(void *))entry[1];
         fn((char *)this + adj);
     }
+}
+
+// eProjector::Cull(unsigned int, const eCamera &, const mFrustum &,
+//                  eCameraBins *, unsigned int, int,
+//                  const cHandleT<eMaterial> *, float) const @ 0x0007D530
+void eProjector::Cull(unsigned int stamp, const eCamera &camera,
+                      const mFrustum &, eCameraBins *bins, unsigned int,
+                      int arg5, const cHandleT<eMaterial> *material,
+                      float value) const {
+    if ((*(unsigned int *)0x37D0F0 & 0x10) == 0) {
+        return;
+    }
+    if ((*(unsigned short *)((char *)bins + 4) & 8) != 0) {
+        return;
+    }
+    if (*(unsigned int *)((char *)this + 0x88) == stamp) {
+        return;
+    }
+    unsigned int combined = (unsigned int)arg5 | (unsigned int)material;
+    *(unsigned int *)((char *)this + 0x88) = stamp;
+    if (combined != 0) {
+        return;
+    }
+    if (*(int *)((char *)this + 0x60) == 0) {
+        return;
+    }
+
+    char *type = *(char **)((char *)this + 4);
+    char *entry = type + 0xD8;
+    short off = *(short *)entry;
+    void *self = (char *)this + off;
+    float (*fn)(void *, const eCamera &, float) =
+        *(float (**)(void *, const eCamera &, float))(entry + 4);
+    float fade = fn(self, camera, value);
+    if (fade == 0.0f) {
+        return;
+    }
+
+    char *camBase = (char *)&camera + 0x20;
+    if (*(unsigned char *)((char *)this + 0x8C) & 4) {
+        char *type2 = *(char **)((char *)this + 4);
+        char *entry2 = type2 + 0xB8;
+        short off2 = *(short *)entry2;
+        void *self2 = (char *)this + off2;
+        void (*updateFn)(void *) = *(void (**)(void *))(entry2 + 4);
+        updateFn(self2);
+        camBase = (char *)&camera + 0x20;
+    }
+
+    int dotBits;
+    char *dotA = camBase + 0x20;
+    char *dotB = camBase + 0x30;
+    __asm__ volatile(
+        "lv.q C120, 0(%1)\n"
+        "lv.q C130, 0(%2)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv %0, S100\n"
+        : "=r"(dotBits)
+        : "r"(dotA), "r"(dotB));
+    float dot = *(float *)&dotBits;
+
+    int aligned = 0;
+    if (fabsf(-1.0f - dot) <= 0.00001f) {
+        aligned = 1;
+    }
+
+    float distance = 0.0f;
+    if (((unsigned int)aligned & 0xFF) == 0) {
+        int distBits;
+        __asm__ volatile(
+            "lv.q C120, 0x110(%1)\n"
+            "lv.q C130, 0x40(%2)\n"
+            "vsub.t C120, C120, C130\n"
+            "vdot.t S100, C120, C120\n"
+            "vsqrt.s S100, S100\n"
+            "mfv %0, S100\n"
+            : "=r"(distBits)
+            : "r"(&camera), "r"(this));
+        distance = *(float *)&distBits;
+    }
+
+    if ((*(unsigned short *)((char *)bins + 4) & 0x7F) == 0) {
+        return;
+    }
+    if (*(int *)((char *)bins + 8) >= 3000) {
+        return;
+    }
+
+    char *countPtr = (char *)bins + 8;
+    int index = *(int *)countPtr;
+    *(int *)countPtr = index + 1;
+    char *bin = (char *)bins + (index << 5) + 0x0C;
+    *(unsigned short *)bin = 0x40;
+
+    int layer = 2;
+    char *bins10000 = (char *)bins + 0x10000;
+    char *bins20000 = (char *)bins + 0x20000;
+    if (*(unsigned char *)(bins10000 + 0x770C) != 0) {
+        layer = *(int *)(bins10000 + 0x7710);
+    }
+
+    *(unsigned short *)bin =
+        *(unsigned short *)bin | (unsigned short)(layer << 9);
+
+    int view = *(unsigned char *)(bins20000 - 0x7C00);
+    int *stat = (int *)(bins20000 + 0x8374 - 0x10000 + layer * 0x14 + view * 4);
+    *stat = *stat + 1;
+
+    *(int *)(bin + 0x0C) = 0;
+    if (fade < 1.0f) {
+        *(unsigned short *)bin = *(unsigned short *)bin | 0x10;
+    }
+    *(unsigned short *)(bin + 2) = 0;
+    *(int *)(bin + 8) = 0;
+    *(unsigned short *)(bin + 4) = 0;
+    *(const eProjector **)(bin + 0x10) = this;
+    *(const eCamera **)(bin + 0x14) = &camera;
+    *(float *)(bin + 0x18) = fade;
+    *(unsigned char *)(bin + 6) = *(unsigned char *)(bins20000 - 0x7C00);
+    *(short *)(bin + 0x1E) = (short)(int)(distance * 5.0f);
+    *(unsigned char *)(bin + 7) = 0xFF;
+    *(unsigned short *)(bin + 0x1C) = *(int *)((char *)bins + 8);
 }
 
 // ── AssignCopy ──

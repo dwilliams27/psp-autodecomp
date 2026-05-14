@@ -1,5 +1,4 @@
-#include "eDynamicMesh.h"
-
+class cBase;
 class cFile;
 class cMemPool;
 class cName;
@@ -8,6 +7,57 @@ class eDynamicMeshNode;
 class eDynamicMeshBone;
 class eDynamicMeshLookAt;
 class eDynamicMeshVisData;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
+struct DeleteRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+class cObject {
+public:
+    char _pad[0x44];
+    cObject(cBase *);
+    cObject &operator=(const cObject &);
+};
+
+class eDynamicMesh : public cObject {
+public:
+    eDynamicMesh(cBase *);
+    ~eDynamicMesh();
+
+    const cType *GetType(void) const;
+    void Write(cFile &) const;
+    int Read(cFile &, cMemPool *);
+    void PlatformRead(cFile &, cMemPool *);
+    void PlatformFree();
+    int GetNodeIndex(const cName &, int) const;
+    int GetCollisionShapeIndex(const cName &) const;
+    int HasSkin() const;
+    void Free();
+    void Reset(cMemPool *, bool);
+
+    void AssignCopy(const cBase *);
+    static eDynamicMesh *New(cMemPool *, cBase *);
+
+    static void operator delete(void *p) {
+        if (p != 0) {
+            cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+            char *block = ((char **)pool)[9];
+            register volatile DeleteRec *rec __asm__("a1") =
+                (volatile DeleteRec *)(((char **)block)[7] + 0x30);
+            short off = rec->offset;
+            char *base = block + off;
+            void (*fn)(void *, void *) = rec->fn;
+            fn(base, p);
+        }
+    }
+};
 
 class cType {
 public:
@@ -51,11 +101,14 @@ class cBaseArray {
 public:
     void *mData;
     cBaseArray &operator=(const cBaseArray &);
+    void RemoveAll(void);
 };
 
 eDynamicMesh *dcast(const cBase *);
 
 extern "C" void eDynamicMeshVisData___dtor_eDynamicMeshVisData_void(void *, int);
+extern "C" void eMesh___dtor_eMesh_void(eDynamicMesh *, int)
+    __asm__("__0oFeMeshdtv");
 
 void eDynamicMesh_eDynamicMesh(eDynamicMesh *, cBase *);
 
@@ -208,4 +261,119 @@ int eDynamicMesh::GetCollisionShapeIndex(const cName &name) const {
         if (matched) return v0;
     }
     return -1;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+
+// ── Destructor ──
+
+eDynamicMesh::~eDynamicMesh() {
+    *(void **)((char *)this + 4) = (void *)0x381740;
+
+    Free();
+
+    cBaseArray *shapes = (cBaseArray *)((char *)this + 0x74);
+    cArrayBase<eDynamicMeshLookAt> *lookAts =
+        (cArrayBase<eDynamicMeshLookAt> *)((char *)this + 0x70);
+    cArrayBase<eDynamicMeshBone> *bones =
+        (cArrayBase<eDynamicMeshBone> *)((char *)this + 0x6C);
+    cArrayBase<eDynamicMeshNode> *nodes =
+        (cArrayBase<eDynamicMeshNode> *)((char *)this + 0x68);
+
+    if (shapes != 0) {
+        shapes->RemoveAll();
+    }
+
+    if (lookAts != 0) {
+        void *entries = *(void **)((char *)this + 0x70);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries -
+                            (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) -
+                            4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                register volatile DeleteRec *rec __asm__("a1") =
+                    (volatile DeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x70) = 0;
+        }
+    }
+
+    if (bones != 0) {
+        void *entries = *(void **)((char *)this + 0x6C);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries -
+                            (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) -
+                            4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                register volatile DeleteRec *rec __asm__("a1") =
+                    (volatile DeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x6C) = 0;
+        }
+    }
+
+    if (nodes != 0) {
+        void *entries = *(void **)((char *)this + 0x68);
+        int count = 0;
+        if (entries != 0) {
+            count = *(int *)((char *)entries - 4) & 0x3FFFFFFF;
+        }
+        int i = 0;
+        if (i < count) {
+            do {
+                i++;
+            } while (i < count);
+        }
+        if (entries != 0) {
+            char *basePtr = (char *)entries -
+                            (((unsigned int)*(int *)((char *)entries - 4) >> 30) * 4) -
+                            4;
+            if (basePtr != 0) {
+                cMemPool *pool = cMemPool::GetPoolFromPtr(basePtr);
+                char *block = ((char **)pool)[9];
+                register volatile DeleteRec *rec __asm__("a1") =
+                    (volatile DeleteRec *)(((char **)block)[7] + 0x30);
+                short off = rec->offset;
+                char *base = block + off;
+                void (*fn)(void *, void *) = rec->fn;
+                fn(base, basePtr);
+            }
+            *(void **)((char *)this + 0x68) = 0;
+        }
+    }
+
+    eMesh___dtor_eMesh_void(this, 0);
 }

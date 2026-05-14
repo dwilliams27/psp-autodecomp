@@ -44824,7 +44824,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -44833,7 +44833,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMeDynamicMeshdtv"
+    "mangled_symbol": "__0oMeDynamicMeshdtv",
+    "src_file": "src/eDynamicMesh.cpp",
+    "symbol_name": "__0oMeDynamicMeshdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1977dbb8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T04:25:27Z"
   },
   {
     "address": "0x0004e550",
@@ -46913,7 +46921,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008fe84"
     ],
@@ -63173,13 +63181,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicLightECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fNeDynamicLightECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "65e00873",
+        "notes": "Implemented a split-TU canonical C++ method for eDynamicLight::Cull because the shared eDynamicLight header does not declare Cull and the repo's method-addition rule forbids perturbing the matched canonical TU. The source reconstructs the full control flow: global render flag gate, bin flags/count checks, frame-stamp guard, opacity and pass/material filters, virtual opacity slot +0xD8, optional virtual update slot +0xB8, VFPU dot/parallel test, distance sqrt, and camera-bin draw-info insertion. It compiles, but compares 450/672 bytes different. The compiled prologue still saves s4 and emits a 700-byte body shape instead of the target's 672-byte no-s4 shape; SNC CSE keeps the vtable pointer live across the two virtual calls despite attempts to reload it. The stamp store also schedules into the opacity compare branch delay slot, while the target stores before loading opacity. Inline VFPU emits the intended operations but operand register order differs around the camera dot and distance blocks.\n\nTried direct vtable local, direct reload from this+4, memory barrier after the stamp store, and straightforward C bin-entry writes. The Makefile compiles the split TU with -Xsched=2 even though this address is in the sched=1 zone; #pragma control sched=1 was present but the output still showed broad scheduling/register drift. A future retry should either put this into a known sched=1 build path or force volatile vtable loads/register bindings more aggressively before last-mile tuning. Diff is too large for bnel/unmatchable classification.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:25:26Z",
+        "src_file": "src/eDynamicLight_Cull.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/65e00873/0007798c__agent_self_reported_failure__src_eDynamicLight_Cull.cpp"
+      }
+    ]
   },
   {
     "address": "0x00077c2c",
@@ -65101,13 +65123,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeProjectorECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fKeProjectorECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "1977dbb8",
+        "notes": "Implemented a compiling canonical eProjector::Cull body using the sched=1 TU, virtual calls at vtable offsets 0xD8/0xB8, inline VFPU for the dot/sqrt sequences, and direct eCameraBins record writes. Previous matched eProjector methods still compare as MATCH, but Cull remains a large mismatch: emitted symbol is 0x2B4/692 bytes versus the 0x288/648 byte target, with compare_func reporting 450/648 bytes differing after the best restructuring attempted.\n\nKey remaining drift: initial guard/store shape was fixed to match the target bnez delay-slot stamp store, but virtual-call setup still uses addiu-to-slot patterns that differ from the target's a1 slot register layout; VFPU pointer setup keeps an extra s3/camBase temporary and uses different source registers for the lv.q operands; the camera-bin write block uses a3/addiu temporary stores where the target keeps the bin pointer in a2 and folds offsets directly. A useful next attempt should rewrite the bin-writing tail with explicit register-bound locals for a0/a1/a2/a3/t0/t1 and consider small inline asm for the pointer setup around the two VFPU blocks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:25:27Z",
+        "src_file": "src/eProjector.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/1977dbb8/0007d530__agent_self_reported_failure__src_eProjector.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007d7b8",
@@ -93235,7 +93271,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002d864",
       "0x0002de40",
@@ -98267,7 +98303,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d478c",
       "0x00224254",
@@ -98314,7 +98350,21 @@
       "0x00355b84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0ffgcDesiredEnumerationEntryHelperDGetP6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K"
+    "mangled_symbol": "__0ffgcDesiredEnumerationEntryHelperDGetP6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K",
+    "failure_notes": [
+      {
+        "session": "65e00873",
+        "notes": "Implemented gcDesiredEnumerationEntryHelper::Get in the canonical helper file while preserving the existing matched Write method. The closest saved source compiles with Write still matching and Get at 131/540 bytes different. The main semantics are reconstructed: global context at 0x37D7B4, jump-table cases for helper types 1-13, direct handle/subhandle copies, dcast<gcEnumeration>, handle-table validation at 0x38890, and first/last enumeration-entry selection through gcEnumeration::Get and GetSize. A free extern with the real gcEnumeration::Get(int) mangled name is used so calls follow the target ABI shape of a0=this, a1=out-pair, a2=index.\n\nTried literal 0x37D7B4 loads, extern g_expressionEvalStack loads, volatile outSub to keep s2 live, explicit case 13 to get the 13-entry switch, direct array indexing for primary/secondary cases, a forced stack dummy, top-level pair locals, and the hidden-return vs explicit-ABI call forms. The closest version has the correct tail call convention and uses s2 for out+4, but still differs in the initial global-load/null-check shape (plain beqz/addiu+lw instead of target bnezl load in delay), stack-slot placement for the temporary spill/pairs, and register choice for type/secondary (a2/t1 instead of target t0/a2). Diff is source/codegen shaping, not missing behavior, and is far above the <=8-byte compiler-divergence threshold.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:25:26Z",
+        "src_file": "src/gcDesiredEnumerationEntryHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/65e00873/0010e73c__agent_self_reported_failure__src_gcDesiredEnumerationEntryHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010e958",
@@ -117410,7 +117460,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00110e70",
       "0x00141874",
@@ -131645,7 +131695,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a691c",
       "0x001a8618",
