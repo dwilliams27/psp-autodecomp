@@ -45,6 +45,12 @@ public:
     char _dynPad[0x58];
 };
 
+template <class T>
+class cArrayBase {
+public:
+    bool SetSize(int, const cArrayBase<T> &);
+};
+
 struct DeleteEntry {
     short offset;
     short _pad;
@@ -54,6 +60,19 @@ struct DeleteEntry {
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class eGeomTrailParticle;
+
+struct eGeomTrailParticleDefault {
+    int words[8];
+};
+
+struct eGeomTrailHandleEntry {
+    char _pad0[0x30];
+    int handle;
+    char _pad34[0x29];
+    unsigned char flag;
 };
 
 class eGeomTrail : public eDynamicGeom {
@@ -75,11 +94,13 @@ public:
     }
 
     const cType *GetType(void) const;
+    void Reset(cMemPool *, bool);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     char _trailPad[0x30];
 };
 
+extern eGeomTrailHandleEntry *D_00038890[];
 extern char eGeomTrailvirtualtable[];
 extern cType *D_000385DC;
 extern cType *D_00040FF4;
@@ -133,6 +154,102 @@ eGeomTrail::~eGeomTrail() {
             }
             *(void **)((char *)this + 0xF8) = 0;
         }
+    }
+}
+
+// ── eGeomTrail::Reset(cMemPool *, bool) @ 0x000795C4 ──
+void eGeomTrail::Reset(cMemPool *, bool) {
+    int stackPad[4];
+    stackPad[0] = 0;
+    __asm__ volatile("" : "+m"(stackPad));
+
+    int *tailCount = (int *)((char *)this + 0xFC);
+    *tailCount = 0;
+    *(int *)((char *)this + 0xF4) = 0;
+
+    cArrayBase<eGeomTrailParticle> *particles =
+        (cArrayBase<eGeomTrailParticle> *)((char *)this + 0xF8);
+    void *templCheck = *(void **)((char *)this + 0x60);
+    if (templCheck == 0) {
+        goto no_template;
+    }
+
+    void *templ = templCheck;
+    {
+        int size = 0;
+        __asm__ volatile("" : "+r"(size));
+        size = *(int *)((char *)templ + 0x50) + 1;
+        eGeomTrailParticleDefault def;
+        def.words[0] = 0;
+        eGeomTrailParticleDefault *defPtr = &def;
+        __asm__ volatile("" : "+r"(defPtr));
+        defPtr->words[1] = 0;
+        defPtr->words[2] = 0;
+        defPtr->words[3] = 0;
+        defPtr->words[4] = 0;
+        defPtr->words[5] = 0;
+        defPtr->words[6] = 0;
+        defPtr->words[7] = 0;
+        particles->SetSize(size, *(cArrayBase<eGeomTrailParticle> *)defPtr);
+    }
+
+    *(unsigned char *)((char *)this + 0x8D) = 0;
+    register int handle __asm__("$4") = *(int *)((char *)templ + 0x48);
+    eGeomTrailHandleEntry *valid;
+    if (handle != 0) {
+        goto first_lookup;
+    }
+    valid = 0;
+    goto first_done;
+
+no_template:
+    {
+        eGeomTrailParticleDefault def;
+        def.words[0] = 0;
+        eGeomTrailParticleDefault *defPtr = &def;
+        __asm__ volatile("" : "+r"(defPtr));
+        defPtr->words[1] = 0;
+        defPtr->words[2] = 0;
+        defPtr->words[3] = 0;
+        defPtr->words[4] = 0;
+        defPtr->words[5] = 0;
+        defPtr->words[6] = 0;
+        defPtr->words[7] = 0;
+        particles->SetSize(0, *(cArrayBase<eGeomTrailParticle> *)defPtr);
+        return;
+    }
+
+first_lookup:
+    {
+        eGeomTrailHandleEntry *candidate = D_00038890[handle & 0xFFFF];
+        valid = 0;
+        if (candidate != 0) {
+            if (candidate->handle == handle) {
+                valid = candidate;
+            }
+        }
+    }
+
+first_done:
+    if (valid != 0) {
+        eGeomTrailHandleEntry *entry;
+        unsigned char flag;
+        if (handle == 0) {
+            entry = 0;
+            flag = entry->flag;
+            goto have_flag;
+        } else {
+            eGeomTrailHandleEntry *candidate = D_00038890[handle & 0xFFFF];
+            entry = 0;
+            if (candidate != 0) {
+                if (candidate->handle == handle) {
+                    entry = candidate;
+                }
+            }
+        }
+        flag = entry->flag;
+have_flag:
+        *(unsigned char *)((char *)this + 0x8D) = flag;
     }
 }
 

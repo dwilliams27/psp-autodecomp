@@ -63694,14 +63694,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oKeGeomTraildtv"
+    "mangled_symbol": "__0oKeGeomTraildtv",
+    "src_file": "src/eGeomTrail.cpp",
+    "symbol_name": "__0oKeGeomTraildtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "88cb6737",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T02:43:47Z"
   },
   {
     "address": "0x000795c4",
@@ -63713,13 +63721,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00211e44"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeGeomTrailFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fKeGeomTrailFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "88cb6737",
+        "notes": "Implemented eGeomTrail::Reset(cMemPool *, bool) as canonical C++ in src/eGeomTrail.cpp. The current source reconstructs the stack frame, clears fields 0xFC and 0xF4, sizes the particle cArrayBase at 0xF8 with a zeroed 32-byte default particle, handles the null-template early return, validates the template handle at +0x48 through D_00038890, and conditionally copies byte +0x5D to this+0x8D. Existing matched eGeomTrail constructor/destructor/New/GetType/Write/Read still compare as MATCH.\n\nClosest retained source is size-correct at 344 bytes but compare_func reports MISMATCH: 19/344 bytes differ. Manual variants tried included direct if/else, explicit goto layout to place the null-template block before the first handle lookup, stack padding to force locals at sp+0x10/sp+0x30, pointer-shaped default initialization to match the SetSize setup, duplicated null-handle flag load to recover the extra lbu, register hints for handle/candidate/flag, and raw SetSize call experiments. Permuter ran 300s under default sched=2 and improved 27 -> 19 bytes, then a save-improved run retained the 19-byte source; a separate 300s --sched 1 run from that baseline generated 7560 candidates / 3285 compiled with zero improvement. Remaining diff is register-selection drift in the two D_00038890 lookups: generated code uses candidate/result in a1/a2 opposite the original in several lw/beqz/move/lbu/sb encodings. This is retryable failed, not unmatchable_bnel, because the diff is 19 bytes and not isolated to bnel/beql.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:43:47Z",
+        "src_file": "src/eGeomTrail.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/88cb6737/000795c4__agent_self_reported_failure__src_eGeomTrail.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007971c",
@@ -197149,7 +197171,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -197356,7 +197378,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00121680",
