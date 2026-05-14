@@ -26027,7 +26027,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000062e0",
       "0x00006454",
@@ -46354,7 +46354,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4",
@@ -59294,7 +59294,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -83902,7 +83902,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0002d864",
       "0x0002de40",
@@ -83936,7 +83936,15 @@
         "src_file": "src/gcUIDialog_Draw.cpp",
         "snapshot": "logs/failure_snapshots/match_20260509_214522/2fea9c87/000e4e34__agent_self_reported_failure__src_gcUIDialog_Draw.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcUIDialog_Draw.cpp",
+    "symbol_name": "__0fKgcUIDialogEDrawUi",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "bc49800f",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T01:23:10Z"
   },
   {
     "address": "0x000e4f94",
@@ -92100,7 +92108,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000616c",
       "0x00006454",
@@ -92112,7 +92120,21 @@
       "0x000f8ad8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5IgcCameraHgcStateFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0f5IgcCameraHgcStateFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "24436b33",
+        "notes": "Closest attempt is a 592B body versus the 596B original. The structure is correct: 32-bit stream write, two inlined bit writes, four three-float write loops, then cTimeValue/gcHPRMotion/gcEntityFollowState child writes. I tried direct bit-write blocks, the matched cOutStreamBit helper pattern, a goto-shaped helper to avoid beqzl in the overflow check, pointer-increment loops, shared loop-counter declarations, and fixed-register local declarations for the float pointers. The goto-shaped helper fixed the branch-likely size loss in the bit write path.\n\nRemaining blocker appears to be register allocation in the float-loop tail. The original keeps the bool argument in s2 and uses s3 as the loop counter with pointers in s4-s7. The closest source still allocates the bool argument in s3 and the loop counter in s2, leaving a 4-byte size miss and register-field drift around the four loops. Further work should focus on preserving s2 as the bool argument while forcing the counter to s3, or run the permuter from this snapshot.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:18:28Z",
+        "src_file": "src/gcCamera_gcState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/24436b33/000fd6ac__agent_self_reported_failure__src_gcCamera_gcState.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fd900",
@@ -112012,7 +112034,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000092f0",
       "0x00009ad8",
@@ -112196,7 +112218,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00000ccc",
       "0x000092f0",
@@ -112205,7 +112227,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcMsgAckEntityStateFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
+    "mangled_symbol": "__0fTgcMsgAckEntityStateFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
+    "failure_notes": [
+      {
+        "session": "24436b33",
+        "notes": "Added gcMsgAckEntityState::Write to the canonical file without regressing the existing matched New/GetType methods. The current source follows the expected sequence: resolve the handle through D_00038890, write a stack cObjectKey, write cIRand()&1 as a bit, write the entity 0x80 flag bit, conditionally write the entity handle at +0x44, initialize gcReplicationVisitor at sp+0x0c, call SetNetStream with a3=0/t0=randomFlag, then dispatch the type entry at +0xA0.\n\nThe function still mismatches heavily (compare_func reports 356/612 bytes differ). The prologue/stack layout is now correct after making cHandle an 8-byte local, and the SetNetStream argument order is corrected, but register allocation differs throughout the two inlined bit writes. There is also a handle-table lookup branch-delay mismatch: the original has bne with nop then move s1,a1, while this source still lets SNC schedule a move near the branch path. Next retry should reshape the lookup with explicit gotos and consider writing the two bit-write blocks directly from the m2c register pattern instead of using the shared cOutStreamBit helper.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:18:28Z",
+        "src_file": "src/gcMsgAckEntityState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/24436b33/001359dc__agent_self_reported_failure__src_gcMsgAckEntityState.cpp"
+      }
+    ]
   },
   {
     "address": "0x00135c40",
@@ -173820,7 +173856,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -173839,6 +173875,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:01:05Z"
+      },
+      {
+        "session": "bc49800f",
+        "notes": "Started from the tracked cArrayBase<cHandleT<gcEnumeration> > sibling body and added the gcEntityCustomAnimation explicit instantiation. A single-instantiation TU compiled to 492/512 bytes; adding the paired gcEnumeration instantiation did not improve it. I then tested the newer gcTableTemplate failure-snapshot shape with oldData/allocCap temporaries and a goto-based allocation diamond; that recovered the target bgtz+nop / b+li allocation branch but perturbed the prologue and compiled to 500/512 bytes. The closest retained source combines the cleaner sibling prologue/loops with only the allocation diamond and compiles to 496/512 bytes.\n\nThe remaining gap is the known template-array register/source-shape drift: the initial this-data load is kept in s3 instead of target a2, and the post-resize copy loop emits the compact null-destination branch instead of the target beqzl with duplicated loop increment and a fresh other.mData load. I tried an explicit continue/duplicated-increment form; it made the symbol size exact but worsened to 162/512 differing bytes. A required permuter pass was attempted with --time 300 --save-best, but tools/permuter.py aborts before search because it cannot extract .text from the temporary template object (.gnu.linkonce section). Not a bnel/beql divergence; retryable structural/regalloc drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:23:10Z",
+        "src_file": "src/cArrayBasecArrayBasecArrayBasecHandleTgcEntityCustomAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/bc49800f/00241684__agent_self_reported_failure__src_cArrayBasecArrayBasecArrayBasecHandleTgcEntityCustomAnimation.cpp"
       }
     ]
   },
