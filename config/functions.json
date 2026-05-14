@@ -46921,13 +46921,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008fe84"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeHeightmapEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fKeHeightmapEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "d3c28607",
+        "notes": "Created split-TU C++ implementation because include/eHeightmap.h does not declare Draw. The closest source compiles at the correct 764-byte size with sched=1 and reproduces the high-level control flow: transform hook, tile draw vtable dispatch, handle lookup, GPU command writes, and BuildTileDisplayList call. sched=2 was also tested and was worse; sched=1 gives the expected prologue ordering but saved-register offsets remain shifted and allocation differs substantially (current compare reports 594/764 bytes differing). Earlier variants tried a direct stack zero-vector, a no-alloca zero buffer, and recomputing the `this != *(0x37D134)` flag near each call; `__builtin_alloca(0)` was removed after it emitted real calls.\n\nThe remaining root issue appears to be register-allocation/source-shape, not a branch-likely near miss: original keeps this=s0, templateData=s3, drawRec=s4, GPU list base=s5, chunk=s6, flags=s7, and OCS/split tile state in s8, while the C source still gives SNC a different long-lived set and spills stack arguments at +0x20/+0x24/+0x28/+0x2c instead of the original +0x20/+0x24/+0x28 pattern. A retry should start by forcing register lifetimes with explicit `register ... asm(\"sN\")` variables or by reducing live locals before the first branch; permuter is not appropriate until the diff is below roughly 30 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:33:10Z",
+        "src_file": "src/eHeightmap_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/d3c28607/00052e4c__agent_self_reported_failure__src_eHeightmap_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x00053148",
@@ -68569,7 +68583,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002d864",
       "0x0002d8ec",
@@ -68586,7 +68600,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeReflectionTextureFApplyiPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fSeReflectionTextureFApplyiPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "66a82be8",
+        "notes": "Added a first canonical eReflectionTexture::Apply(int, const eCamera *, const eWorld *) const body in the owning TU. It implements the duplicated render-target handle lookup through D_00038890, dirty check against D_0037D150, mirror-plane setup, VFPU mirror transform block, temporary eCamera/eCameraBins construction, Cull/Select/Draw/Unselect calls, final D_0037D140 reset, and virtual tail Apply dispatch. Existing matched eReflectionTexture methods still compare cleanly after this addition. The new Apply compiles but mismatches heavily: 545/756 bytes differ and generated size is 780B vs expected 756B. The main root cause is local stack expression shape: many stores compile as addiu temp,sp,offset + sw rather than original folded sw/lw offset(sp), and placement-new emits null checks around eCamera/eCameraBins construction. A next attempt should replace the char-array local model with individual local variables/typed structs at the same stack offsets, and call constructors directly rather than placement-new to remove the extra beqz blocks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:26:56Z",
+        "src_file": "src/eReflectionTexture.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/66a82be8/00084f34__agent_self_reported_failure__src_eReflectionTexture.cpp"
+      }
+    ]
   },
   {
     "address": "0x00085228",
@@ -93271,7 +93299,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002d864",
       "0x0002de40",
@@ -93293,7 +93321,21 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportEDrawvT"
+    "mangled_symbol": "__0fKgcViewportEDrawvT",
+    "failure_notes": [
+      {
+        "session": "d3c28607",
+        "notes": "Added canonical gcViewport::Draw to the existing local class redeclaration. The implementation compiles and preserves all previously matched gcViewport methods, and it follows the expected semantics: iterate five active viewports, SetViewport, construct/make/set ortho camera, optionally draw lens flare through the global handle table, GetOrthoRect, initialize/copy identity OCS, draw viewport UI, then draw the global UI and mouse. Initial version kept the identity initializer out-of-line and compiled to 528B; adding always_inline expanded it, but the target still mismatches heavily (592/860 bytes differ).\n\nThe main blocker is stack/local layout. The original uses final OCS at sp+0x0, rect at sp+0x40, final camera at sp+0x50, per-viewport OCS at sp+0x370, per-viewport camera at sp+0x3b0, and identity scratch at sp+0x6d0/0x740. The current source places rect at sp+0, call OCS at sp+0x10, per-viewport camera around sp+0x480, and final camera around sp+0xc0, so even correct calls and VFPU blocks are scheduled around different addresses. A retry should use raw storage or a packed locals struct plus placement-new/manual constructor calls to force those offsets before tuning the handle lookup branch-likely and VFPU instruction order.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:33:10Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/d3c28607/000fe500__agent_self_reported_failure__src_gcViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fe85c",
@@ -117460,7 +117502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00110e70",
       "0x00141874",
@@ -117468,7 +117510,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcBipedControllerGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fRgcBipedControllerGUpdate6KcTimeValue",
+    "src_file": "src/gcBipedController.cpp",
+    "symbol_name": "__0fRgcBipedControllerGUpdate6KcTimeValue",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "4ff90b30",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T04:40:03Z"
   },
   {
     "address": "0x00141348",
@@ -131695,7 +131745,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001a691c",
       "0x001a8618",
@@ -131705,7 +131755,21 @@
       "0x001a8260"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fInwSocketGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fInwSocketGUpdate6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "4ff90b30",
+        "notes": "Closest source is in src/nwSocket.cpp and compiles to a 4-byte near match. All control flow, calls, stack frame, branch-likely around DestroyConnection, loop body, and epilogue match; the only remaining difference is the loop-entry order after the initial max-connections test: original has `lw s1,0(sp)` then `li s3,0`, while SNC emits `li s3,0` then `lw s1,0(sp)`. This is not a bnel/beql divergence and not the documented callee-save register-allocation drift pattern.\n\nTried straightforward C, direct `dt`, local `cTimeValue`, scalar saved time, explicit register attempts, volatile load attempts, empty asm input constraints, sched=1, and memory barriers. The best shape uses a zero-instruction memory barrier after the `if (i < mMaxConnections)` branch to keep the branch delay slot as `nop`, plus direct `conn->Update(dt)` and `DestroyConnection(((ConnLite *)conn)->mHandle)`. A 600s permuter run was started from the 4-byte baseline and manually stopped after several minutes with no improvement and repeated SNC candidate timeouts.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:40:03Z",
+        "src_file": "src/nwSocket.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/4ff90b30/001a82c4__agent_self_reported_failure__src_nwSocket.cpp"
+      }
+    ]
   },
   {
     "address": "0x001a8370",
@@ -192082,7 +192146,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00000fec",
       "0x0000165c",
@@ -192090,7 +192154,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcLobbyScoreboardStringsDGetPwiK"
+    "mangled_symbol": "__0fYgcLobbyScoreboardStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "66a82be8",
+        "notes": "Added canonical gcLobbyScoreboardStrings::Get(wchar_t *, int) const in the owning TU using the matched lobby desired-value patterns from gcLobbyGameStrings/gcLobbyAccountStrings and a single large local buffer to force the expected 0x161e0 frame. The current closest attempt has the correct frame size and key stack offsets: temp text at sp+0x2000, lobby scoreboard output at sp+0x2028, and final row string base at sp+0xee4c. It compiles, but the function is 524B vs expected 548B. The missing 24B are in the final desired-value-to-row branch: SNC reuses s0 for the desired pointer/row and merges the row-offset calculation, while original keeps s0 as the 0xee4c base constant and emits the longer a0/a1 shift/add sequence. A forced s0 base-constant variant reached 528B but produced incorrect source semantics because the local-array base added another 0x2000, so I reverted to the semantically correct closest attempt. A permuter run was attempted but skipped as not last-mile because the symbol size differs by 20B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:26:56Z",
+        "src_file": "src/gcLobbyScoreboardStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/66a82be8/00282d98__agent_self_reported_failure__src_gcLobbyScoreboardStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00282fbc",
@@ -196294,7 +196372,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196305,7 +196383,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcUIEditBoxKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fLgcUIEditBoxKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "4eb07f91",
+        "notes": "Added gcUIEditBox::AssignCopy with inline type initialization/type-chain walk, the gcUITextControl copy sequence, and the edit-box 0x110-0x120 tail. Also declared gcUIWidget::operator= so the compiler calls the real assignment operator instead of inlining the implicit header copy; this restored the expected call and kept all existing gcUIEditBox functions matched. The method now compiles at the expected size but remains a 335/964-byte mismatch. Main divergences mirror gcUIMarqueeControl: the dcast loop branch shape differs from the original bnez/beqzl/bnel pattern, and SNC chooses s2 for many normal field-copy source pointers where the original uses s1, with s2 reserved for the short/cursor loops. Tried external dcast, manual typed dcast, goto-based dcast, reused void* walk/result, split casted/other/shortBase variables, pointer-temporary expansion for the 0x118/0x120 tail, and a byte-base pointer experiment; closest version is left in src/gcUIEditBox.cpp. Likely needs a more exact reconstruction of the original dcast macro/source idiom or targeted register-allocation work.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:33:00Z",
+        "src_file": "src/gcUIEditBox.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/4eb07f91/002901ec__agent_self_reported_failure__src_gcUIEditBox.cpp"
+      }
+    ]
   },
   {
     "address": "0x002905b0",
@@ -196591,7 +196683,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196602,7 +196694,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcUIMarqueeControlKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcUIMarqueeControlKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "4eb07f91",
+        "notes": "Added a canonical gcUIMarqueeControl::AssignCopy body with the full inline type initialization/type-chain walk and copied the gcUITextControl AssignCopy field order plus the 0x110-0x120 marquee tail. The method now compiles at the expected size and all pre-existing gcUIMarqueeControl functions in the TU still match, but AssignCopy remains a 321/932-byte mismatch. The closest attempt uses an expanded dcast-like check; the original branch region uses the walked type pointer itself as the 0/1 result with bnez/beqzl/bnel shape, while SNC from this source still emits a different loop shape around the type-chain walk. After the cast, register allocation also chooses s2 for several normal field-copy source addresses (0xC8, cArrayBase calls, 0xE4+) where the original uses s1 and reserves s2 mostly for the short cursor loop. Tried external dcast, manual typed dcast, goto-based dcast, reused void* walk/result, split casted/other/shortBase variables, and a separate byte-base pointer; the byte-base variant was worse and was reverted. Root cause appears to be source-shape/register-allocation around the inlined dcast and s1/s2 split, not missing declarations or calls.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:33:00Z",
+        "src_file": "src/gcUIMarqueeControl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/4eb07f91/00291378__agent_self_reported_failure__src_gcUIMarqueeControl.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029171c",

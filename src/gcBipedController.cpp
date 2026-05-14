@@ -15,7 +15,13 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class cTimeValue;
 class mOCS;
+
+class cTimeValue {
+public:
+    int mTime;
+};
 
 class cType {
 public:
@@ -56,6 +62,7 @@ class gcEntityController {
 public:
     gcEntityController(cBase *);
     ~gcEntityController();
+    void Update(cTimeValue);
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void OnDeselected(void);
@@ -78,10 +85,13 @@ public:
     ~gcBipedController();
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    void Update(cTimeValue);
     void OnDeselected(void);
     void OnDeactivated(void);
     void OnSnappedTo(const mOCS &, bool);
     const cType *GetType(void) const;
+    int IsOnGround(void) const;
+    int IsWallWalkEnabled(void) const;
     static void operator delete(void *p) {
         cMemPool *pool = cMemPool::GetPoolFromPtr(p);
         char *block = ((char **)pool)[9];
@@ -150,6 +160,36 @@ int gcBipedController::Read(cFile &file, cMemPool *pool) {
     return 0;
 success:
     return result;
+}
+
+// ── gcBipedController::Update(cTimeValue) @ 0x00141290 ──
+void gcBipedController::Update(cTimeValue dt) {
+    gcEntityController::Update(dt);
+    if (IsOnGround()) {
+        int *timer = (int *)((char *)this + 0xB0);
+        volatile int zero = 0;
+        *timer = 0;
+    } else {
+        __asm__ volatile("" ::: "memory");
+        int t = dt.mTime;
+        int current = *(int *)((char *)this + 0xB0);
+        volatile int spill0 = t;
+        volatile int spill1 = t;
+        *(int *)((char *)this + 0xB0) = current + t;
+    }
+
+    void *entity = *(void **)((char *)this + 0x20);
+    if (!IsWallWalkEnabled() && *(unsigned char *)((char *)entity + 0x50) == 0) {
+        float zero = 0.0f;
+        char *base = ((char **)*(char **)this)[0x1F8 / 4];
+        base += 0x20;
+        base += 4;
+        *(float *)base = zero;
+        base = ((char **)*(char **)this)[0x1F8 / 4];
+        base += 0x20;
+        base += 8;
+        *(float *)base = zero;
+    }
 }
 
 // ── gcBipedController::OnDeselected(void) @ 0x0014200c ──
