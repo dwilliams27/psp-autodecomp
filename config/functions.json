@@ -67714,7 +67714,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69369,7 +69369,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69658,7 +69658,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69666,7 +69666,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeStandardGeomTrailMtldtv"
+    "mangled_symbol": "__0oVeStandardGeomTrailMtldtv",
+    "src_file": "src/eStandardGeomTrailMtl_dtor.cpp",
+    "symbol_name": "__0oVeStandardGeomTrailMtldtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "fe0f4d81",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T03:11:24Z"
   },
   {
     "address": "0x00087bd4",
@@ -80232,13 +80239,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIgcStringdtv"
+    "mangled_symbol": "__0oIgcStringdtv",
+    "failure_notes": [
+      {
+        "session": "994a6735",
+        "notes": "Implemented a split-TU canonical C++ destructor with class-local operator delete, exact 424-byte symbol size including the trailing self-branch padding, and the expected two cArrayBase<wchar_t> teardown passes for offsets 0x1C then 0x18. The control flow, delete calls through cMemPool::GetPoolFromPtr, branch-likely null-delete slots, vtable stores, and final deleting-destructor tail are structurally aligned. Remaining mismatch is 44/424 bytes: SNC allocates this/delete-flag and loop count/index registers differently (notably s1/s0 and a1/a0 choices) while preserving equivalent offsets and branches. Tried direct duplicated destructor bodies, helper-based cArray teardown, class-local operator delete with and without null guard, split TU placement for padding, explicit register binding (worse: 314-byte diff), and sched=1 (worse: 76-byte diff). tools/permuter.py ran 300s with --save-best, generated 6936 candidates / compiled 2945, and found zero improvement; best remained 44 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:59:46Z",
+        "src_file": "src/gcString_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/994a6735/000d6790__agent_self_reported_failure__src_gcString_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d6938",
@@ -80250,7 +80271,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001314",
       "0x000014d8",
@@ -80260,7 +80281,21 @@
       "0x000d6dec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcStringDSetPCw"
+    "mangled_symbol": "__0fIgcStringDSetPCw",
+    "failure_notes": [
+      {
+        "session": "994a6735",
+        "notes": "Added gcString::Set(const wchar_t *) in canonical C++ in src/gcString.cpp. Closest source is exact-size 608B and implements the null/empty clear path, cStrLength+1 sizing, cArray-style allocation through alloc record +0x28 with tag 0x36DA98 and line 0x112, copy/zero-fill loop, old-buffer pool delete, and final cStrCopy. Matched siblings Write/New/GetType still compare cleanly; existing AssignCopy remains its prior 5-byte mismatch. Remaining Set mismatch is 244/608 bytes after relocation masking: control flow and semantics are close, but register scheduling differs across the empty clear path, allocation record load/call setup, copy loop pointer/check temporaries, and final delete path. Tried helper vs direct delete blocks, explicit bgtz allocation diamond using gotos (recovered exact size), recomputing dst+byteOff inside the copy loop, explicit alloc temporaries for offset/fn/base/size, zero-store variants for the empty path, and sched=1 (worse at 267/608). Diff is too broad for last-mile permuter per repo guidance; likely needs a different source-shape seed for cArrayBase<wchar_t> reallocation rather than local permutation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:59:46Z",
+        "src_file": "src/gcString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/994a6735/000d6938__agent_self_reported_failure__src_gcString.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d6b98",
@@ -155027,7 +155062,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -155035,7 +155070,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeSurfacePropertyTabledtv"
+    "mangled_symbol": "__0oVeSurfacePropertyTabledtv",
+    "failure_notes": [
+      {
+        "session": "fe0f4d81",
+        "notes": "category=REG_ALLOC. Match converged to 8/480 byte diff after substantial restructuring (started 83 bytes, then 50, then 11, then 8 via mask-variable trick). Remaining 8 bytes is a pure s3<->s4 register swap on (loop-index i) and (loop-invariant mask 0x3FFFFFFF) \u2014 first differing instruction at 0x6c: 'li s4,0x0' (expected) vs 'li s3,0x0' (current). All structural instructions match: same control flow, same stack frame (-48), same call sequence, identical immediates, identical memory offsets. Permuter ran 240s post-convergence, 0 improvements. Tried both orderings of declaration: declaring 'int mask' before 'int i' shifts the mask init out of the beqz delay slot (~18 bytes drift); declaring 'int mask' inside 'if (i < outerCount)' AFTER int i gets the cleanest result (8 bytes) but allocator still picks i=s3 not s4. Also tried explicit asm-init for offset (made it 288 bytes worse), removing mask entirely (11 bytes with instruction reorder at 0x78), sched=2 (105 bytes worse). Source structure that got to 8 bytes: inlined (char*)this+0x4C/0x44 instead of stored locals (huge reduction from 83 to 50 bytes), reload outerEntries fresh inside the loop body each iter (50 -> 11 bytes), explicit 'int mask = 0x3FFFFFFF; __asm__ volatile(\"\" : \"+r\"(mask));' inside the if-block (11 -> 8 bytes). The remaining s3/s4 swap matches the textbook REG_ALLOC drift criteria in docs/research/snc-register-allocation.md (\u22648 bytes, only register-field differences, callee-save only, permuter zero-progress). Note that the sister file src/eOnePassModelMtl_dtor.cpp has a related 67-byte unmatched diff with the same structural pattern (m78 vtable destruct + two array deletions); fixing that would benefit from the same eSimulatedController-style barriers used here for function 1.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:11:24Z",
+        "src_file": "src/eSurfacePropertyTable_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/fe0f4d81/001f73b0__agent_self_reported_failure__src_eSurfacePropertyTable_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x001f7590",
@@ -214317,7 +214366,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -214554,7 +214603,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
