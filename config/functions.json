@@ -16917,7 +16917,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -16938,6 +16938,18 @@
         "timestamp": "2026-05-06T08:14:01Z",
         "src_file": "src/cFactory.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/287a7542/0000c0d8__agent_self_reported_failure__src_cFactory.cpp"
+      },
+      {
+        "session": "5d7878fd",
+        "notes": "REG_ALLOC drift \u2014 3-byte register-encoding diff, source has no leverage. Closest attempt is in a split-TU file (src/cFactory_OnNameChanged.cpp) because adding `void OnNameChanged(void);` to cFactory.cpp's local class regressed FindObject (16B diff) and DeleteGroups (size mismatch) \u2014 exactly the perturbation documented in docs/direction/005-regalloc-drift-guards.md. The split-TU isolates OnNameChanged's allocator context.\n\nThe entire function body matches except for the pre-loop counter init at offset 0x40/0x50: expected emits `addiu a0,v0,-1; ... move a3,a0` (counter primary \u2192 a0, shadow \u2192 a3); mine emits `addiu a3,v0,-1; ... move a0,a3` (primary \u2192 a3, shadow \u2192 a0). Loop body, dance pattern, CRC table access, final xor \u2014 all match. Diff is purely in 3 register-field bytes of the two init instructions (the addiu's rd field and the move's rd/rs fields).\n\nApproaches attempted in THIS session beyond prior:\n1. register-binding `__asm__(\"a0\")` / `__asm__(\"a3\")` on the two counter vars \u2014 SNC honored bindings for crc/p (a2/a1) but swapped a0\u2194a3 for the counter, ignoring the binding for those two vars specifically.\n2. Swapping the C role: `old_a0 = var_a0; var_a0 = var_a3 - 1; var_a3 = var_a0;` (so var_a0 is captured first instead of var_a3). Compiler still chose to put the captured-first variable in physical a3, not a0 \u2014 confirming the choice is independent of variable name and loop-body role.\n3. Inline-asm forced `addiu` and `move` writing into register-bound vars. This destabilized the whole prologue (24-byte diff) because SNC reallocated everything around the forced bindings.\n4. Single-counter simpler loop (`captured = i; i--;`) \u2014 produced 172 bytes vs expected 180, dropping the dance entirely. Confirms the dual-counter dance is what expected wants but the byte count constrains us to it.\n5. Permuter --time 300 --save-best: 10176 candidates generated, 6239 compiled, zero improvements past 3 bytes baseline.\n\nMatches the REG_ALLOC failure signature in docs/direction/005-regalloc-drift-guards.md: \u22648 byte diff, all in register encoding fields, permuter \u22655min no improvement, \u22653 source restructurings tested. Per docs/decisions/006, this is `failed` (NOT unmatchable_bnel \u2014 diff is not in bnel/beql opcodes).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:49:06Z",
+        "src_file": "src/cFactory_OnNameChanged.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/5d7878fd/0000c0d8__agent_self_reported_failure__src_cFactory_OnNameChanged.cpp"
       }
     ]
   },
@@ -152353,7 +152365,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -174296,7 +174308,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00006e7c",
       "0x00009d70",
@@ -174327,7 +174339,14 @@
         "variant": "base",
         "timestamp": "2026-04-30T10:39:38Z"
       }
-    ]
+    ],
+    "src_file": "src/gcStreamedCinematic.cpp",
+    "symbol_name": "__0fTgcStreamedCinematicKAssignCopyPC6FcBase",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5d7878fd",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T00:49:06Z"
   },
   {
     "address": "0x00244188",
@@ -176433,7 +176452,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],

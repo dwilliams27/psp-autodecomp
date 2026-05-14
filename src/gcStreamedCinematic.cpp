@@ -77,6 +77,7 @@ void gcCinematic___dtor_gcCinematic_void(void *, int);
 int gcCinematic_Read(void *, cFile &, cMemPool *);
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int, bool);
 extern "C" void __0oKcReadBlockdtv(void *, int);
+extern "C" void __0oHgcEventasRC6HgcEvent(gcEvent *, const gcEvent *, int);
 
 class gcStreamedCinematic {
 public:
@@ -246,25 +247,24 @@ void gcStreamedCinematic::AssignCopy(const cBase *base) {
     *(unsigned char *)((char *)this + 0x9A) =
         *(unsigned char *)((char *)other + 0x9A);
 
-    char *var_a1 = (char *)other + 0x9C;
-    int temp_a0 = *(int *)var_a1;
-    char *var_a2 = (char *)this + 0x9C;
-    var_a1 = (char *)other + 0xA0;
-    char *var_a0 = (char *)this + 0xA0;
-    *(int *)var_a2 = temp_a0;
-    int temp_a1 = *(int *)var_a1;
-    var_a2 = (char *)other + 0xA4;
-    *(int *)var_a0 = temp_a1;
-    temp_a1 = *(int *)var_a2;
-    var_a0 = (char *)this + 0xA4;
-    var_a2 = (char *)other + 0xA8;
-    var_a1 = (char *)this + 0xA8;
-    *(int *)var_a0 = temp_a1;
-    int temp_a2 = *(int *)var_a2;
-    *(int *)var_a1 = temp_a2;
-
-    ((gcEvent *)((char *)this + 0xAC))->operator=(
-        *(const gcEvent *)((char *)other + 0xAC));
+    int *src9C = (int *)((char *)other + 0x9C);
+    int v9C = *src9C;
+    int *dst9C = (int *)((char *)this + 0x9C);
+    int *srcA0 = (int *)((char *)other + 0xA0);
+    *dst9C = v9C;
+    int *dstA0 = (int *)((char *)this + 0xA0);
+    int *srcA4 = (int *)((char *)other + 0xA4);
+    *dstA0 = *srcA0;
+    int *dstA4 = (int *)((char *)this + 0xA4);
+    int *srcA8 = (int *)((char *)other + 0xA8);
+    *dstA4 = *srcA4;
+    int tempA8 = *srcA8;
+    gcEvent *eventDst = (gcEvent *)((char *)this + 0xAC);
+    int *dstA8 = (int *)((char *)this + 0xA8);
+    *dstA8 = tempA8;
+    __0oHgcEventasRC6HgcEvent(eventDst,
+                              (const gcEvent *)((char *)other + 0xAC),
+                              tempA8);
     *(int *)((char *)this + 0xC8) = *(int *)((char *)other + 0xC8);
     *(int *)((char *)this + 0xCC) = *(int *)((char *)other + 0xCC);
     *(unsigned char *)((char *)this + 0xD0) =
