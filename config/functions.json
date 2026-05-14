@@ -4817,7 +4817,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001ac408"
     ],
@@ -4876,6 +4876,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T08:19:36Z"
+      },
+      {
+        "session": "11a032a2",
+        "notes": "Failed near-miss, 43-byte diff (out of 116 bytes total). Same root cause as prior session: SNC's automatic vararg save-area emission for a variadic CONSTRUCTOR does not produce the interleaved prologue shape the target uses. The target interleaves the 6 vararg saves (sw a2..t3 at sp+0x18..0x2c) with the callee-save sw s0,4(sp)/sw ra,8(sp) and the move s0,a0/move a0,a1 \u2014 and lands sw t3,44(sp) in the delay slot of the bnez. The current source emits all 6 vararg saves correctly via explicit inline asm but the compiler places them as a contiguous block AFTER the (incorrectly-offset) callee saves at sp+0/sp+4 instead of sp+4/sp+8.\n\nNew investigation this session: confirmed via experiments in src/test_va_experiment.cpp (now deleted) that SNC's __builtin_stdarg_start does exist (strings extern/snc/pspcfe.exe lists `__builtin_va_list`, `__builtin_stdarg_start`, `__builtin_varargs_start`, `__builtin_va_arg`, `__builtin_va_end`) but the SDK is missing <stdarg.h> (and include_snc/) so we can't directly use them. Key discovery: a `char buf[0x28]` local in the same function shape DOES make SNC auto-emit the 6 vararg saves and interleave them with the prologue \u2014 proved by replicating cName::Set's pattern. But that pattern requires extra callee-save register usage (s1 etc.) and makes the frame 96 bytes, not the 48 bytes target needs.\n\nFor the 48-byte-frame variadic constructor in cFilename::cFilename (same shape, 120B target) we also fail with 24-byte diff \u2014 no auto-emit at all. So this isn't just a cStr-specific problem; it's a constructor-vs-method asymmetry in SNC's varargs handling under our compiler config. To match: would likely need either (a) the missing SNC stdarg.h header that triggers proper __builtin_stdarg_start lowering, (b) a different compile flag we haven't tried, or (c) source contortion forcing both the right frame layout AND the interleaved saves.\n\nCurrent source compiles to size-correct 116 bytes via manual sw a2/a3/t0-t3 inline asm. Vararg manipulation via lui+addiu+andi+addu+addiu pattern (matches cName::Set's matched form) computes va_list at sp+0x18. 43 differing bytes are all in the prologue interleaving (s0/ra offsets and instruction ordering).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:37:59Z",
+        "src_file": "src/cStr.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/11a032a2/00004b38__agent_self_reported_failure__src_cStr.cpp"
       }
     ]
   },
@@ -59294,7 +59306,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -59307,7 +59319,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeFWriteR6FcFileK"
+    "mangled_symbol": "__0fQeConvexHullShapeFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "949df51e",
+        "notes": "Implemented eConvexHullShape::Write(cFile &) const in the sched=1 region using the eFont/eConfigBase cWriteBlock pattern: construct cWriteBlock(file, 1), call eShape::Write(file), write counts for arrays at +0x80/+0x84/+0x88/+0x8C, stream float triples and byte data, then write ePolyFace and ePolyEdge arrays before End(). Existing helper callees ePolyFace::Write and ePolyEdge::Write are used. The source compiles to 652B versus expected 676B; permuter was attempted for 300s but skipped immediately because symbol size does not match DB size (delta 24B).\n\nThe missing bytes are from loop shape: original SNC emits normal beqz exits with explicit zero-offset setup before each array loop (li zero-offset plus addu base+offset), while current source compiles to branch-likely exits that fold the next array load into the delay slot and omit the explicit zero-offset add. Tried straightforward pointer loops, separate base/count reloads, and zero-offset variables with inline barriers; SNC still optimized to the shorter branch-likely shape. Adding this method in the canonical file also exposes an existing eConvexHullShape::Collide compare mismatch in the same TU, so a future retry may want a split-TU Write-only file if policy allows it.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:30:04Z",
+        "src_file": "src/eConvexHullShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/949df51e/000700fc__agent_self_reported_failure__src_eConvexHullShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x000703a0",
@@ -83426,7 +83452,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x0000553c",
@@ -99504,7 +99530,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005510",
@@ -99519,7 +99545,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityFWriteR6FcFileK"
+    "mangled_symbol": "__0fIgcEntityFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "11a032a2",
+        "notes": "Failed near-miss, 12-byte diff (3 instructions out of 644-byte / 161-instruction function). Closest size: 632 bytes. All call patterns, struct dispatches (this+0x84 + 0xB8 single-arg, this+0x84 + 0x28 two-arg with sp+8 base reload), the four wb.Write(3, float*) calls, cBaseArray::Write at this+0x210, and the cHandle/uint loop at this+0x48 all match byte-for-byte. The 3 missing instructions are all `addu reg, reg, a0` (with a0=0, one-time-before-loop strength reduction artifacts) plus the inner loop's beqzl\u2192beqz conversion:\n\n  1. Outer loop entry needs: `li a0,0` + `addu s3,s3,a0` + `move s0,s3` pattern. Compiler currently emits just `move s2,s3` (using s2 instead of s0).\n  2. Inner loop entry needs: `li a0,0` + `addu s0,s0,a0` pattern. Mine has neither (compiler uses beqzl with s4++ in delay slot instead).\n  3. Inner loop comparison: target uses beqz with safe `li a0,0` delay slot. Mine uses beqzl (branch-likely) with s4++ in delay slot.\n\nRoot cause: target's source uses explicit `int offset = 0` variables for both outer (`slot + offset` initial, then offset += 4 per iter) and inner (`innerB + offset` initial, then offset += 4) loops. The compiler strength-reduces these to `s3 = arr + 0` (one-time addu) plus per-iter increments. When I added explicit offset variables, register allocation shifted heavily (s7\u2192s2 for this; s8\u2192s0 for &file; 458/644 bytes differ). The extra int variables created register pressure even though they're strength-reduced away.\n\nTo match: need to introduce offset variables WITHOUT disturbing register allocation. The pattern in cBaseArray::Write at src/cBaseArray.cpp:196 uses `int *tmp = mData; __asm__(\"\": \"+r\"(tmp)); int offset = 0; loop: ...; offset += 4; goto loop;` \u2014 an asm-barrier-bound tmp variable + goto-loop pattern. Worth retrying with this exact shape adapted for the nested-array case. Also try permuter with --time 600 targeting this 12-byte gap.\n\nThe file is a split-TU at src/gcEntity_Write.cpp (uses local gcEntity redeclaration with Write method, per SPLIT-TU rule, to avoid header edits that would regress gcEntity sibling methods).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:37:59Z",
+        "src_file": "src/gcEntity_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/11a032a2/00113acc__agent_self_reported_failure__src_gcEntity_Write.cpp"
+      }
+    ]
   },
   {
     "address": "0x00113d50",
@@ -112034,7 +112074,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000092f0",
       "0x00009ad8",
@@ -112042,7 +112082,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcMsgUpdateEntityStateFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
+    "mangled_symbol": "__0fWgcMsgUpdateEntityStateFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
+    "failure_notes": [
+      {
+        "session": "949df51e",
+        "notes": "Implemented the canonical C++ method in src/gcMsgUpdateEntityState.cpp using the matched gcMsgUpdatePlayerState/gcMsgUpdateRegionState replication visitor pattern, cHandle/cObjectKey writes, D_00038890 handle resolution, and local cOutStreamBit bit writes. The existing New/GetType methods remain matched. Best non-asm attempt with the reusable WriteBit helper is 632B versus expected 664B; a manual m2c-shaped bit-write rewrite reached the expected 664B size but had a large byte mismatch because SNC chose different registers/schedules through both bit writers. Current closest source keeps the cleaner helper version because it is closer structurally and less brittle.\n\nDiff root causes: the original keeps an early failure return block before the main body, uses s4 as the constant 1 across bit writes, saves/uses an additional callee-save register for the visitor pointer, and emits the two bit writers in a beqz + unconditional-branch shape rather than the bnez/beqzl shape produced by the matched cOutStreamBit helper. Tried positive-body-with-return, early-failure form, manual bit-write expansion, and register-pinned visitor pointer; register pinning to s5 did not take under SNC. Permuter was not run because the remaining size delta is 32B, outside last-mile constraints.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:30:04Z",
+        "src_file": "src/gcMsgUpdateEntityState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/949df51e/00134c90__agent_self_reported_failure__src_gcMsgUpdateEntityState.cpp"
+      }
+    ]
   },
   {
     "address": "0x00134f28",
@@ -149117,7 +149171,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0"
@@ -153264,7 +153318,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -158750,7 +158804,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x001edde8",
@@ -191232,13 +191286,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oYgcLobbyScoreboardStringsdtv"
+    "mangled_symbol": "__0oYgcLobbyScoreboardStringsdtv",
+    "src_file": "src/gcLobbyScoreboardStrings_dtor.cpp",
+    "symbol_name": "__0oYgcLobbyScoreboardStringsdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "83caf89b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:41:33Z"
   },
   {
     "address": "0x00283a68",
@@ -242152,13 +242213,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOgcValTableInfodtv"
+    "mangled_symbol": "__0oOgcValTableInfodtv",
+    "src_file": "src/gcValTableInfo_dtor.cpp",
+    "symbol_name": "__0oOgcValTableInfodtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "83caf89b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:41:33Z"
   },
   {
     "address": "0x00361068",
