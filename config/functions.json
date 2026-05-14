@@ -3001,7 +3001,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00003a10",
       "0x001ad668",
@@ -3010,7 +3010,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUcDynamicMemAllocatorFResetv"
+    "mangled_symbol": "__0fUcDynamicMemAllocatorFResetv",
+    "failure_notes": [
+      {
+        "session": "6aaa3d85",
+        "notes": "Closest attempt uses the matched cFastMemAllocator RAII lock pattern plus a local cDynamicMemTag with volatile tag-bit stores. This gets the prologue, lock/unlock stack object, early null-pool path, memset calls, field clears, bnezl on mCurrent, and overall 440-byte size aligned, but compare_func still reports 67 differing bytes. The remaining mismatch is localized to the free-tag rewrite block: SNC schedules the size load, tag pointer addiu, mask constant setup, and e000/2000 register choices differently from the original, then the destructor branch uses a0 liveness differently after AddToBin.\n\nTried manual lock/unlock, volatile stack lock fields, RAII lock, raw char* tag arithmetic, volatile unsigned int* tagWord, and struct-field tag->bits access. Manual lock versions either changed prologue/save ordering or collapsed the destructor paths; struct tag access was closest. Next retry should focus on the body at original 0x32b4-0x3358, especially source ordering for mPoolSize/tag->bits/mask constants and preserving a0 as the lock active byte after AddToBin.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:11:06Z",
+        "src_file": "src/cDynamicMemAllocator.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/6aaa3d85/000031d0__agent_self_reported_failure__src_cDynamicMemAllocator.cpp"
+      }
+    ]
   },
   {
     "address": "0x00003388",
@@ -38452,7 +38466,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0003e1e8",
       "0x001a1dc0"
@@ -38461,7 +38475,21 @@
       "0x00091d40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeRoomAABBTreeECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fNeRoomAABBTreeECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "055c0846",
+        "notes": "Implemented the stack-based AABB-tree DFS in canonical C++ form with local class redeclarations, handle-table lookup through 0x38890, mFrustum::Clip on node and room boxes, and eRoom::Cull forwarding. Tried plain indexed stack, volatile stack count, explicit count pointer pushes, a one-word-shifted local stack to place work entries at sp+4 with stackCount at sp+0xCC, sched=1, and forced padding variants. The closest shape has the right stack entry addressing and main control flow, but compare_func still reports 318/544 bytes different. The blocking issue is stack-frame/prologue shape: SNC emits a 0x110-byte frame or moves callee-save stores before the original stack initialization when padding is forced, while the original has a 0x120-byte frame with stack initialization before most saves and three unused words before the argument spill area. Root cause appears to be source/TU-sensitive frame layout and scheduling around the local DFS stack, not a branch-likely unmatchable case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:16:31Z",
+        "src_file": "src/eRoomAABBTree.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/055c0846/0003ce98__agent_self_reported_failure__src_eRoomAABBTree.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003d0b8",
@@ -44782,7 +44810,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -63131,7 +63159,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -65059,7 +65087,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -68491,7 +68519,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002d864",
       "0x0002d8ec",
@@ -82181,7 +82209,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d8654"
     ],
@@ -82189,7 +82217,21 @@
       "0x000e38cc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIWidgetGroupFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fPgcUIWidgetGroupFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "6aaa3d85",
+        "notes": "Implemented a split-TU Reset to avoid register-allocation drift in the already matched methods in src/gcUIWidgetGroup.cpp. The best attempt mirrors the two-dimensional cArray count loops, range check, circular child-list traversal, and virtual Reset dispatch through type+0x38. compare_func still reports 316 differing bytes. The base Reset call is now declared with an int third argument so the prologue no longer emits the extra bool conversion, but the frame is still 48 bytes instead of the original 64 and register ownership differs: original uses s3=0x3fffffff, s4=column, s5/s6=short row/col, s7=cell pointer saved at sp+8 around jalr, and s8=current/first widget.\n\nTried straightforward locals, split TU, int-vs-bool helper declaration, and register asm hints for row/mask/column/cell/short temporaries. The next retry should probably use a local gcUICell-like object or small helper that forces the original sp+0/sp+2 and sp+4/sp+6 short slots, then preserve s7 as the cell pointer across the virtual call so the inner linked-list loop uses bne with a restored s7 delay slot rather than bnel with a preloaded type pointer.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:11:06Z",
+        "src_file": "src/gcUIWidgetGroup_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/6aaa3d85/000ddbf4__agent_self_reported_failure__src_gcUIWidgetGroup_Reset.cpp"
+      }
+    ]
   },
   {
     "address": "0x000dddd0",
@@ -98211,7 +98253,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d478c",
       "0x00224254",
@@ -151330,14 +151372,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oFeFontdtv"
+    "mangled_symbol": "__0oFeFontdtv",
+    "failure_notes": [
+      {
+        "session": "055c0846",
+        "notes": "Added the canonical eFont destructor body using the matched cArray cleanup pattern for offsets 0x60, 0x5C, and 0x48, inline class-local operator delete with the null guard needed for the deleting tail, implicit cObject base destruction, and the trailing infinite-loop words with an explicit .size so the symbol size is 0x230. Existing eFont ctor/Write/AssignCopy/New/GetType remain matched. The current destructor is a 12-byte mismatch: instruction selection, stack size, control flow, calls, and immediates match, but SNC assigns the preserved locals as s2/s3/s4 differently from the original around the array address/entries variables. Tried local declaration reordering, shared entries variable, register-asm hints, and a 300-second permuter run; the permuter compiled 3614 candidates and found zero improvement. category=REG_ALLOC.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:16:31Z",
+        "src_file": "src/eFont.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/055c0846/001e7efc__agent_self_reported_failure__src_eFont.cpp"
+      }
+    ]
   },
   {
     "address": "0x001e812c",
@@ -159884,14 +159940,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeCollisionPolytopedtv"
+    "mangled_symbol": "__0oSeCollisionPolytopedtv",
+    "failure_notes": [
+      {
+        "session": "25f75531",
+        "notes": "Implemented the destructor in canonical C++ with local class/operator delete and two explicit red-black-tree cleanup loops for the tree at +0x1930 and the base tree at +0. Tried a compact structured loop first, then a m2c/goto-shaped version, then added/removed zero-instruction barriers around left/right-child probes, and finally switched this method to sched=1. sched=2 produced a 0x240-byte function; sched=1 reaches the expected 0x260 size and the delete tail layout, but the body is still 372/608 bytes different.\n\nThe closest attempt is in src/eCollisionPolytope.cpp. Remaining mismatch is dominated by branch-shape and register-allocation differences inside the traversal blocks: expected uses bnezl right-child probes with the child load in the delay slot and keeps the parent/flag temporaries in the a0/a2/a3/t0/t1 pattern shown in the disassembly, while SNC compiles this source into inverted beqz/beqzl blocks and uses alternate temporaries. Diff is far above the last-mile permuter threshold, so I did not run permuter; next retry should focus on reproducing the exact cRedBlackTree destructor source idiom or finding a matched template-tree destructor sibling rather than local scheduling tweaks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:19:52Z",
+        "src_file": "src/eCollisionPolytope.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/25f75531/0020d8cc__agent_self_reported_failure__src_eCollisionPolytope.cpp"
+      }
+    ]
   },
   {
     "address": "0x0020db2c",
@@ -191948,7 +192018,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000fec",
       "0x0000165c",
@@ -232769,14 +232839,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oWgcValEntityScreenValuedtv"
+    "mangled_symbol": "__0oWgcValEntityScreenValuedtv",
+    "src_file": "src/gcValEntityScreenValue.cpp",
+    "symbol_name": "__0oWgcValEntityScreenValuedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "25f75531",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T04:19:52Z"
   },
   {
     "address": "0x0033d454",

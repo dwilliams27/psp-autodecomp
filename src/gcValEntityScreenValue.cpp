@@ -8,7 +8,11 @@
 
 class cBase;
 class cFile;
-class cMemPool;
+
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
 
 struct cTypeMethod {
     short offset;
@@ -48,9 +52,25 @@ struct DispatchEntry {
     cType *(*fn)(void *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
 class cName {
 public:
     void Write(cWriteBlock &) const;
+};
+
+class gcDesiredCamera {
+public:
+    ~gcDesiredCamera(void);
 };
 
 class gcDesiredObject {
@@ -71,11 +91,22 @@ public:
 
 class gcValEntityScreenValue {
 public:
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
     void GetText(char *) const;
     gcValEntityScreenValue &operator=(const gcValEntityScreenValue &);
+    ~gcValEntityScreenValue(void);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -202,4 +233,103 @@ void gcValEntityScreenValue::GetText(char *buf) const {
     cStrAppend(buf, gcValEntityScreenValue_text_fmt);
     cStrAppend(buf, gcValEntityScreenValue_text_arg1,
                     gcValEntityScreenValue_text_arg2);
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oWgcValEntityScreenValuedtv, 0x280\n");
+
+gcValEntityScreenValue::~gcValEntityScreenValue(void) {
+    register void *vt asm("a0");
+    __asm__ volatile("lui %0,0x0\n\taddiu %0,%0,0x7d58" : "=r"(vt));
+    *(void **)((char *)this + 4) = vt;
+
+    char *p94 = (char *)this + 0x94;
+    char *p90 = (char *)this + 0x90;
+    char *p8c = (char *)this + 0x8C;
+    char *outer = (char *)this + 0x08;
+    void *baseDesc = (void *)0x37E6A8;
+
+    if ((void *)p94 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x94);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x94) = 0;
+        }
+    }
+
+    if ((void *)p90 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x90);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x90) = 0;
+        }
+    }
+
+    if ((void *)p8c != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x8C);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x8C) = 0;
+        }
+    }
+
+    ((gcDesiredCamera *)((char *)this + 0x4C))->~gcDesiredCamera();
+
+    if ((void *)outer != 0) {
+        *(void **)((char *)this + 0x0C) = (void *)0x388A48;
+        if ((void *)((char *)this + 0x1C) != 0) {
+            *(void **)((char *)this + 0x20) = (void *)0x388568;
+            if ((void *)((char *)this + 0x30) != 0) {
+                int owned = 1;
+                int val = *(int *)((char *)this + 0x30);
+                if (val & 1) {
+                    owned = 0;
+                }
+                if (owned != 0 && val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot =
+                        (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x30) = 0;
+                }
+            }
+            *(void **)((char *)this + 0x20) = baseDesc;
+        }
+        *(void **)((char *)this + 0x0C) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x10) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x10);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x10) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x0C) = baseDesc;
+    }
+
+    *(void **)((char *)this + 4) = baseDesc;
 }
