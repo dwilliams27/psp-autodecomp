@@ -2865,7 +2865,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
@@ -2886,7 +2886,14 @@
         "src_file": "src/cFastMemAllocator.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_170107/bc38cb24/00002ec8__agent_self_reported_failure__src_cFastMemAllocator.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cFastMemAllocator_Reset.cpp",
+    "symbol_name": "__0fRcFastMemAllocatorFResetv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9f07afbd",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:05:18Z"
   },
   {
     "address": "0x00002f4c",
@@ -38460,7 +38467,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -91979,7 +91986,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000616c",
       "0x00006454",
@@ -182045,7 +182052,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -182064,6 +182071,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:01:05Z"
+      },
+      {
+        "session": "9f07afbd",
+        "notes": "cArrayBase<cHandleT<gcEnumeration>>::operator=. Best 492/512 bytes (20-byte diff, 5 instructions short of expected). Prior agent reached 24-byte diff; I improved by adding `__asm__ volatile(\"\" ::: \"memory\")` barrier between the outer thisCap computation and the inner branch which forced the compiler to emit the redundant `li a1,0x0` reinitialization the expected disassembly has at 0x2683a0.\n\nRemaining structural diffs (all register-allocation / scheduling drift not fixable from source):\n1. Outer mData read: expected loads into a2 (caller-save) at 0x2683{7c}, then re-loads into s3 (callee-save) at 0x2683a8 inside the inner branch. Mine consolidates both into a single s3 load at offset 0x38 in the prologue. SNC's decision based on liveness analysis; I tried temp-variable scoping and ternary forms \u2014 both either kept the consolidated form or added an unwanted `move a3,s3` extra instruction.\n2. Alloc-path branch shape: expected uses `bgtz s4,target; nop; b merge; (li s3,0 delay)` (4 insts, 16 bytes). Mine uses `blez s4,merge` (1 inst, 4 bytes). Net diff = 8 bytes. Source form `T* newData = 0; if (cap>0) {...} mData = newData;` vs `T* newData; if (cap>0) ... else newData=0; mData = newData;` produced identical bytes \u2014 SNC chose `blez` either way.\n3. Fast-path delay slot fill: expected emits `nop` at delay of `beqz a0,...` then explicit `lw a0,0(s1)` reload of other.mData. Mine fills the delay slot with `addu a0,a0,a2` (productive address computation), saving 1 instruction. Same register-allocation drift.\n\nThe permuter could NOT run on this file (Failed to extract .text section \u2014 the symbol lives in `.gnu.linkonce.t.<symbol>` section since this is a template instantiation, not regular `.text`). This is a tooling limitation that also blocked the prior agent.\n\nNo `bnel/beql` divergence (this is not an unmatchable_bnel case \u2014 diff is structural, not branch-likely heuristic). Classification: REG_ALLOC drift in a template TU. The sibling 0x00241684 (cArrayBase<cHandleT<gcEntityCustomAnimation>>::operator=) has identical disassembly and the same diff pattern \u2014 both blocked by the same TU-context register-allocation drift.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:05:18Z",
+        "src_file": "src/cArrayBasecArrayBasecArrayBasecHandleTgcEnumeration.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/9f07afbd/00268344__agent_self_reported_failure__src_cArrayBasecArrayBasecArrayBasecHandleTgcEnumeration.cpp"
       }
     ]
   },
