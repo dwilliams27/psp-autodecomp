@@ -20,10 +20,12 @@ import multiprocessing
 import os
 import random
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import dataclass
 
 from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
                     load_db, find_function,
@@ -47,6 +49,31 @@ FLAG_VARIANTS = [
     ["-Xsched=2", "-Xmopt=0"],
     ["-Xsched=1", "-Xmopt=0"],
 ]
+
+_active_compile_proc = None
+
+
+@dataclass
+class CompileResult:
+    ok: bool
+    returncode: int | None
+    stdout: str = ""
+    stderr: str = ""
+    timed_out: bool = False
+
+    def diagnostic(self, max_chars=2000):
+        parts = []
+        if self.timed_out:
+            parts.append("timed out after 30s")
+        elif self.returncode is not None:
+            parts.append(f"exit status {self.returncode}")
+        for label, text in (("stdout", self.stdout), ("stderr", self.stderr)):
+            text = (text or "").strip()
+            if text:
+                if len(text) > max_chars:
+                    text = text[:max_chars] + "...<truncated>"
+                parts.append(f"{label}: {text}")
+        return "; ".join(parts) if parts else "no compiler diagnostic"
 
 
 class SymbolSelectionError(RuntimeError):
@@ -76,15 +103,69 @@ def _detect_sched(src_path):
     return ["-Xsched=2"]
 
 
-def compile_source(src_path, o_path, cflags):
-    """Compile a source file with SNC. Returns True on success."""
-    cmd = [WIBO, SNC] + cflags + ["-o", o_path, src_path]
+def _terminate_process_group(proc, term_timeout=2.0, kill_timeout=2.0):
+    """Terminate a compiler process group without blocking forever."""
+    if proc is None or proc.poll() is not None:
+        return
+
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        return result.returncode == 0
+        os.killpg(proc.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+
+    try:
+        proc.communicate(timeout=term_timeout)
+        return
     except subprocess.TimeoutExpired:
+        pass
+
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+
+    try:
+        proc.communicate(timeout=kill_timeout)
+    except subprocess.TimeoutExpired:
+        pass
+
+
+def compile_source(src_path, o_path, cflags):
+    """Compile a source file with SNC."""
+    global _active_compile_proc
+    cmd = [WIBO, SNC] + cflags + ["-o", o_path, src_path]
+    proc = None
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        _active_compile_proc = proc
+        stdout, stderr = proc.communicate(timeout=30)
+        return CompileResult(
+            ok=(proc.returncode == 0),
+            returncode=proc.returncode,
+            stdout=stdout,
+            stderr=stderr,
+        )
+    except subprocess.TimeoutExpired:
+        _terminate_process_group(proc)
         print(f"WARNING: SNC timed out (30s) on {src_path}", file=sys.stderr)
-        return False
+        return CompileResult(
+            ok=False,
+            returncode=None,
+            stderr=f"SNC timed out (30s) on {src_path}",
+            timed_out=True,
+        )
+    except KeyboardInterrupt:
+        _terminate_process_group(proc, term_timeout=0.5, kill_timeout=0.5)
+        raise
+    finally:
+        if _active_compile_proc is proc:
+            _active_compile_proc = None
 
 
 def extract_text_bytes(o_path):
@@ -186,7 +267,7 @@ def permuter_suitability_reason(func_size, symbol_size, baseline_diff):
         )
     if baseline_diff == float("inf"):
         return "baseline could not be scored"
-    max_reasonable_diff = max(128, int(func_size * 0.20))
+    max_reasonable_diff = 30
     if baseline_diff > max_reasonable_diff:
         return (
             f"baseline diff {baseline_diff}B exceeds last-mile gate "
@@ -206,6 +287,14 @@ def _worker_init(expected_bytes, func_size, base_cflags, target_sym):
     _w_func_size = func_size
     _w_cflags = base_cflags
     _w_target_sym = target_sym
+    signal.signal(signal.SIGTERM, _worker_sigterm)
+
+
+def _worker_sigterm(signum, _frame):
+    """Terminate any active compiler child before the worker exits."""
+    _terminate_process_group(_active_compile_proc, term_timeout=0.5,
+                             kill_timeout=0.5)
+    raise SystemExit(128 + signum)
 
 
 def _worker_eval(args):
@@ -223,7 +312,8 @@ def _worker_eval(args):
         with open(src_path, "w") as f:
             f.write(source)
 
-        if not compile_source(src_path, o_path, cflags):
+        compile_result = compile_source(src_path, o_path, cflags)
+        if not compile_result.ok:
             return float("inf"), source, "compile_fail"
 
         text_bytes = extract_text_bytes(o_path)
@@ -278,7 +368,7 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
     Returns (best_score, best_source, stats_dict).
     """
     if num_workers is None:
-        num_workers = os.cpu_count() or 4
+        num_workers = 2
 
     batch_size = num_workers * 2
     suffix = _detect_suffix(source)
@@ -290,17 +380,14 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
     orig_o_path = orig_src_path + ".o"
 
     try:
-        if not compile_source(orig_src_path, orig_o_path, cflags):
-            print("ERROR: Original source does not compile.", file=sys.stderr)
-            return float("inf"), source, {}
-
-        text_bytes = extract_text_bytes(orig_o_path)
-        if text_bytes is None:
+        compile_result = compile_source(orig_src_path, orig_o_path, cflags)
+        if not compile_result.ok:
             raise RuntimeError(
-                f"Failed to extract .text section from {orig_o_path}. "
-                f"Check that objcopy supports the .o format."
+                "Original source does not compile: "
+                + compile_result.diagnostic()
             )
 
+        text_bytes = extract_text_bytes(orig_o_path)
         selected_symbol, func_bytes, relocs = locate_symbol_bytes(
             orig_o_path, text_bytes, func_size, target_symbol
         )
@@ -319,14 +406,22 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
         "baseline": baseline,
         "total": 0,
         "compiled": 0,
+        "compile_fail": 0,
+        "symbol_fail": 0,
         "improvements": 0,
         "best_scores": [baseline],
         "selected_symbol": selected_symbol,
         "symbol_size": len(func_bytes),
+        "saved": False,
     }
 
     if baseline == 0:
+        if save_best_path:
+            with open(save_best_path, "w") as f:
+                f.write(source)
+            stats["saved"] = True
         print("Already an exact match!")
+        stats["exact"] = True
         return 0, source, stats
 
     skip_reason = permuter_suitability_reason(
@@ -379,6 +474,10 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                 stats["total"] += 1
 
                 if status == "compile_fail":
+                    stats["compile_fail"] += 1
+                    continue
+                if status == "symbol_fail":
+                    stats["symbol_fail"] += 1
                     continue
                 stats["compiled"] += 1
 
@@ -395,11 +494,13 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                     if save_best_path and (best_score == 0 or save_improved):
                         with open(save_best_path, "w") as f:
                             f.write(best_source)
+                        stats["saved"] = True
 
                     if best_score == 0:
                         elapsed = time.time() - start_time
                         print(f"\n  EXACT MATCH found in {elapsed:.1f}s "
                               f"after {stats['total']} candidates!")
+                        stats["exact"] = True
                         return 0, best_source, stats
 
             # Periodic status
@@ -421,9 +522,12 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
     print()
     print(f"Search complete: {elapsed:.1f}s elapsed")
     print(f"  Candidates: {stats['total']} generated, {stats['compiled']} compiled")
+    print(f"  Failures: {stats['compile_fail']} compile, "
+          f"{stats['symbol_fail']} symbol isolation")
     print(f"  Rate: {rate:.1f} candidates/sec")
     print(f"  Best: {best_score} bytes differ (started at {baseline})")
     print(f"  Improvements: {stats['improvements']}")
+    stats["exact"] = False
 
     return best_score, best_source, stats
 
@@ -432,7 +536,30 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
+def _print_result(best_score, stats, save_path=None, saved=False):
+    baseline = stats.get("baseline", float("inf"))
+    skipped = stats.get("skipped")
+    selected_symbol = stats.get("selected_symbol", "<unknown>")
+    fields = [
+        f"baseline={baseline}",
+        f"best={best_score}",
+        f"total={stats.get('total', 0)}",
+        f"compiled={stats.get('compiled', 0)}",
+        f"compile_fail={stats.get('compile_fail', 0)}",
+        f"symbol_fail={stats.get('symbol_fail', 0)}",
+        f"improvements={stats.get('improvements', 0)}",
+        f"exact={str(best_score == 0).lower()}",
+        f"saved={str(saved).lower()}",
+        f"symbol={selected_symbol}",
+    ]
+    if skipped:
+        fields.append(f"skipped={skipped!r}")
+    if save_path:
+        fields.append(f"save_path={save_path}")
+    print("PERMUTER_RESULT " + " ".join(fields))
+
+
+def run_main():
     parser = argparse.ArgumentParser(
         description="SNC-aware source permuter for last-mile byte matching"
     )
@@ -442,7 +569,7 @@ def main():
     parser.add_argument("--time", type=int, default=300,
                         help="Time limit in seconds (default: 300)")
     parser.add_argument("--workers", type=int, default=None,
-                        help="Number of parallel workers (default: CPU count)")
+                        help="Number of parallel workers (default: 2)")
     parser.add_argument("--save-best", action="store_true",
                         help="Overwrite source file when an exact match is found")
     parser.add_argument("--save-improved", action="store_true",
@@ -457,12 +584,26 @@ def main():
                         help="Override -Xsched flag (default: auto-detect from filename)")
     parser.add_argument("--mopt", choices=["0"], default=None,
                         help="Add -Xmopt=0 flag")
+    parser.add_argument("--fprreserve", type=int, default=None,
+                        help="Add -Xfprreserve=N flag")
+    parser.add_argument("--gprreserve", type=int, default=None,
+                        help="Add -Xgprreserve=N flag")
+    parser.add_argument("--vfpumatrix", type=int, default=None,
+                        help="Add -Xvfpumatrix=N flag")
+    parser.add_argument("--vfpuscalar", type=int, default=None,
+                        help="Add -Xvfpuscalar=N flag")
+    parser.add_argument("--debug-traceback", action="store_true",
+                        help="Print Python traceback for permuter tool errors")
 
     args = parser.parse_args()
 
+    if args.save_improved and not (args.save_best or args.save_to):
+        parser.error("--save-improved requires --save-best or --save-to")
+
     if not os.path.exists(args.source):
-        print(f"Error: source file not found: {args.source}", file=sys.stderr)
-        sys.exit(1)
+        print(f"PERMUTER_ERROR: source file not found: {args.source}",
+              file=sys.stderr)
+        return 1
 
     functions = load_db()
 
@@ -483,6 +624,14 @@ def main():
     cflags = BASE_CFLAGS + sched_flag
     if args.mopt:
         cflags.append(f"-Xmopt={args.mopt}")
+    if args.fprreserve is not None:
+        cflags.append(f"-Xfprreserve={args.fprreserve}")
+    if args.gprreserve is not None:
+        cflags.append(f"-Xgprreserve={args.gprreserve}")
+    if args.vfpumatrix is not None:
+        cflags.append(f"-Xvfpumatrix={args.vfpumatrix}")
+    if args.vfpuscalar is not None:
+        cflags.append(f"-Xvfpuscalar={args.vfpuscalar}")
     print(f"Flags: {' '.join(cflags)}")
 
     with open(args.source, "r") as f:
@@ -497,7 +646,7 @@ def main():
     elif args.save_to:
         save_path = args.save_to
 
-    best_score, best_source, stats = run_search(
+    best_score, _best_source, stats = run_search(
         source=source,
         func_addr=func_addr,
         func_size=func_size,
@@ -511,17 +660,44 @@ def main():
         target_symbol=target_symbol,
     )
 
+    saved = bool(stats.get("saved", False))
+    _print_result(best_score, stats, save_path=save_path, saved=saved)
+
     if best_score == 0:
         print(f"\nSource {'saved to ' + save_path if save_path else '(not saved — use --save-best)'}")
-        sys.exit(0)
+        return 0
     elif best_score < stats.get("baseline", float("inf")):
         print(f"\nImproved but not matched. "
               f"{'Saved to ' + save_path if save_path and args.save_improved else 'Use --save-improved to save non-exact results.'}")
-        sys.exit(1)
+        return 1
     else:
         print("\nNo improvement found.")
-        sys.exit(1)
+        return 1
+
+
+def main():
+    def _sigterm(signum, _frame):
+        _terminate_process_group(_active_compile_proc, term_timeout=0.5,
+                                 kill_timeout=0.5)
+        print(f"PERMUTER_ERROR: terminated by signal {signum}", file=sys.stderr)
+        raise SystemExit(128 + signum)
+
+    signal.signal(signal.SIGTERM, _sigterm)
+    try:
+        return run_main()
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        _terminate_process_group(_active_compile_proc, term_timeout=0.5,
+                                 kill_timeout=0.5)
+        print("PERMUTER_ERROR: interrupted", file=sys.stderr)
+        return 130
+    except Exception as exc:
+        if "--debug-traceback" in sys.argv:
+            raise
+        print(f"PERMUTER_ERROR: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

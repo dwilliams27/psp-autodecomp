@@ -156,6 +156,9 @@ def category(func: dict) -> str:
         return "Destructor"
     if "operator=" in name:
         return "operator="
+    class_name = func.get("class_name") or ""
+    if class_name and method == class_name.split("::")[-1]:
+        return "Constructor"
     return method or "Other"
 
 

@@ -8,6 +8,7 @@ Run from repo root:
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import sys
 import tempfile
@@ -84,6 +85,87 @@ def test_prompt_placement_block():
     assert "Canonical write target: src/eBar.cpp" in text
     assert "Related allowed source(s): src/eBar_Attempt.cpp" in text
     assert "Write to: src/eBar.cpp" in text
+
+
+def test_orchestrator_target_metadata_sanitizer_accepts_nested_dicts():
+    import orchestrator
+
+    tmp = tempfile.mkdtemp(prefix="target_meta_")
+    try:
+        path = os.path.join(tmp, "targets.json")
+        with open(path, "w") as f:
+            json.dump([{
+                "address": "0x00001000",
+                "failure_classification": {
+                    "action": "retry",
+                    "tags": ["near_miss"],
+                },
+            }], f)
+
+        rows = orchestrator.load_targets_file(path)
+        assert rows[0]["address"] == "0x00001000"
+        assert rows[0]["failure_classification"]["action"] == "retry"
+        assert rows[0]["failure_classification"]["tags"] == ["near_miss"]
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_orchestrator_rejects_non_string_battle_packet():
+    import orchestrator
+
+    tmp = tempfile.mkdtemp(prefix="target_meta_bad_")
+    try:
+        path = os.path.join(tmp, "targets.json")
+        with open(path, "w") as f:
+            json.dump([{"address": "0x00001000", "battle_packet": True}], f)
+
+        try:
+            orchestrator.load_targets_file(path)
+        except ValueError as exc:
+            assert "battle_packet" in str(exc)
+            assert "must be a string path" in str(exc)
+        else:
+            raise AssertionError("non-string battle_packet did not fail closed")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_orchestrator_hydrates_target_metadata_copies_after_db_update():
+    import orchestrator
+
+    db_func = _make_func("0x00001000", "eFoo")
+    batch_copy = dict(db_func)
+    batch_copy["_target_metadata"] = {"battle_packet": "docs/research/x.md"}
+    decision = orchestrator.FunctionDecision(
+        address=db_func["address"],
+        status="matched",
+        src_file="src/eFoo.cpp",
+        symbol_name="sym_eFoo",
+    )
+
+    addr_index = {db_func["address"]: db_func}
+    orchestrator.apply_decisions_to_funcs(
+        addr_index, [decision], "session-test",
+        "backend", "model", "effort", "identity",
+        "2026-05-14T00:00:00+00:00", "variant",
+    )
+    hydrated = orchestrator.hydrated_matched_funcs(addr_index, [batch_copy])
+
+    assert hydrated == [db_func]
+    assert hydrated[0]["src_file"] == "src/eFoo.cpp"
+    assert "_target_metadata" not in hydrated[0]
+
+
+def test_matching_prep_category_handles_nested_constructors():
+    from generate_matching_prep import category
+
+    func = _make_func(
+        "0x00001000",
+        "gcUI::gcFader",
+        name="gcUI::gcFader::gcFader(void)",
+    )
+    func["method_name"] = "gcFader"
+    assert category(func) == "Constructor"
 
 
 def test_compare_func_read_only_by_default():
@@ -163,7 +245,8 @@ def test_permuter_symbol_selection_and_gate():
 
     assert "symbol size" in permuter.permuter_suitability_reason(100, 120, 10)
     assert "exceeds" in permuter.permuter_suitability_reason(1000, 1000, 300)
-    assert permuter.permuter_suitability_reason(1000, 1000, 100) is None
+    assert "exceeds" in permuter.permuter_suitability_reason(1000, 1000, 31)
+    assert permuter.permuter_suitability_reason(1000, 1000, 30) is None
 
 
 def test_permuter_main_passes_db_symbol():
@@ -193,10 +276,7 @@ def test_permuter_main_passes_db_symbol():
         with mock.patch.object(permuter, "load_db", return_value=[func]), \
                 mock.patch.object(permuter, "find_function", return_value=func), \
                 mock.patch.object(permuter, "run_search", side_effect=fake_run_search):
-            try:
-                permuter.main()
-            except SystemExit as e:
-                assert e.code == 0
+            assert permuter.main() == 0
 
         assert captured["target_symbol"] == "__0fGeFooJDoItv"
 
@@ -208,10 +288,7 @@ def test_permuter_main_passes_db_symbol():
         with mock.patch.object(permuter, "load_db", return_value=[func]), \
                 mock.patch.object(permuter, "find_function", return_value=func), \
                 mock.patch.object(permuter, "run_search", side_effect=fake_run_search):
-            try:
-                permuter.main()
-            except SystemExit as e:
-                assert e.code == 0
+            assert permuter.main() == 0
 
         assert captured["target_symbol"] == "explicit_sym"
     finally:
@@ -223,6 +300,10 @@ def test_permuter_main_passes_db_symbol():
 def main():
     test_orchestrator_placement()
     test_prompt_placement_block()
+    test_orchestrator_target_metadata_sanitizer_accepts_nested_dicts()
+    test_orchestrator_rejects_non_string_battle_packet()
+    test_orchestrator_hydrates_target_metadata_copies_after_db_update()
+    test_matching_prep_category_handles_nested_constructors()
     test_compare_func_read_only_by_default()
     test_compare_func_update_db_opt_in()
     test_permuter_symbol_selection_and_gate()

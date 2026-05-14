@@ -18,15 +18,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from battle_packets import packet_filename  # noqa: E402
 from common import load_db  # noqa: E402
+from failure_classifier import classify_failure  # noqa: E402
+from generate_matching_prep import category as target_category  # noqa: E402
+from path_guards import repo_relative_path  # noqa: E402
 
-
-_NEAR_MISS_PATTERNS = (
-    re.compile(r"\b(\d+)\s*/\s*\d+\s*-?\s*bytes?\b", re.I),
-    re.compile(r"\b(\d+)\s+bytes?\s+(?:differ|diff|off|wrong)\b", re.I),
-    re.compile(r"\b(\d+)\s*-?\s*byte\s+(?:diff|mismatch)\b", re.I),
-    re.compile(r"\bdiff_count\s*=\s*(\d+)\b", re.I),
-)
 
 _CODEGEN_TERMS = (
     "register allocation",
@@ -63,41 +60,6 @@ def _last_note_meta(func: dict) -> dict:
     return notes[-1] if notes else {}
 
 
-def _category(name: str) -> str:
-    method = name.split("::")[-1]
-    if "GetType(" in name:
-        return "GetType"
-    if "AssignCopy(" in name:
-        return "AssignCopy"
-    if "VisitReferences(" in name:
-        return "VisitReferences"
-    if "PlatformRead(" in name:
-        return "PlatformRead"
-    if "Read(" in name:
-        return "Read"
-    if "Write(" in name:
-        return "Write"
-    if "New(" in name:
-        return "New"
-    if method.startswith("~"):
-        return "Destructor"
-    if "(" in method:
-        ctor_name = method.split("(", 1)[0]
-        cls = (name.split("::")[-2] if "::" in name else "")
-        if ctor_name == cls.split("::")[-1]:
-            return "Constructor"
-    if "operator" in name:
-        return "Operator"
-    return "Other"
-
-
-def _near_miss_value(notes: str) -> int | None:
-    values: list[int] = []
-    for pat in _NEAR_MISS_PATTERNS:
-        values.extend(int(m.group(1)) for m in pat.finditer(notes))
-    return min(values) if values else None
-
-
 def _is_known_hard(func: dict, notes: str) -> bool:
     name = func.get("name", "")
     lower = notes.lower()
@@ -106,7 +68,7 @@ def _is_known_hard(func: dict, notes: str) -> bool:
     return any(term.lower() in lower for term in _HARD_TERMS)
 
 
-def _score(func: dict) -> tuple[int, list[str], bool]:
+def _score(func: dict, classification) -> tuple[int, list[str], bool]:
     notes = _notes_for(func)
     lower = notes.lower()
     meta = _last_note_meta(func)
@@ -129,7 +91,7 @@ def _score(func: dict) -> tuple[int, list[str], bool]:
         score -= 25
         reasons.append("no failure_notes")
 
-    miss = _near_miss_value(notes)
+    miss = classification.near_miss_bytes
     if miss is not None:
         if miss <= 8:
             score += 90
@@ -156,7 +118,7 @@ def _score(func: dict) -> tuple[int, list[str], bool]:
         score += 10
         reasons.append("failed on 5.4; good 5.5 retry")
 
-    cat = _category(func.get("name", ""))
+    cat = target_category(func)
     if cat in {"Write", "AssignCopy", "New", "Constructor"}:
         score += 8
         reasons.append(f"{cat} retry family")
@@ -182,12 +144,19 @@ def _score(func: dict) -> tuple[int, list[str], bool]:
 
 def build_targets(functions: list[dict], include_known_hard: bool,
                   include_no_notes: bool, min_score: int,
-                  limit: int | None) -> tuple[list[dict], dict[str, int]]:
+                  limit: int | None,
+                  exclude_actions: set[str] | None = None,
+                  battle_packet_dir: str | None = None,
+                  max_near_miss: int | None = None,
+                  ) -> tuple[list[dict], dict[str, int]]:
     rows = []
+    exclude_actions = exclude_actions or set()
     stats = {
         "failed_total": 0,
         "no_notes_skipped": 0,
         "known_hard_skipped": 0,
+        "action_skipped": 0,
+        "near_miss_skipped": 0,
         "below_score_skipped": 0,
         "eligible_before_limit": 0,
         "limit_truncated": 0,
@@ -200,14 +169,27 @@ def build_targets(functions: list[dict], include_known_hard: bool,
         if not notes and not include_no_notes:
             stats["no_notes_skipped"] += 1
             continue
-        score, reasons, hard = _score(func)
+        classification = classify_failure(func)
+        if classification.action in exclude_actions:
+            stats["action_skipped"] += 1
+            continue
+        if (
+            max_near_miss is not None and
+            (
+                classification.near_miss_bytes is None or
+                classification.near_miss_bytes > max_near_miss
+            )
+        ):
+            stats["near_miss_skipped"] += 1
+            continue
+        score, reasons, hard = _score(func, classification)
         if hard and not include_known_hard:
             stats["known_hard_skipped"] += 1
             continue
         if score < min_score:
             stats["below_score_skipped"] += 1
             continue
-        rows.append((score, func, reasons))
+        rows.append((score, func, reasons, classification))
 
     rows.sort(key=lambda item: (-item[0], int(item[1].get("size") or 0),
                                int(item[1]["address"], 16)))
@@ -217,20 +199,30 @@ def build_targets(functions: list[dict], include_known_hard: bool,
         rows = rows[:limit]
 
     targets = []
-    for score, func, reasons in rows:
-        targets.append({
+    for score, func, reasons, classification in rows:
+        target = {
             "address": func["address"],
             "size": func.get("size", 0),
             "name": func.get("name", ""),
             "obj_file": func.get("obj_file"),
             "class_name": func.get("class_name"),
-            "category": _category(func.get("name", "")),
+            "category": target_category(func),
             "priority": max(1, 100 - score),
             "score": score,
+            "failure_action": classification.action,
+            "failure_primary": classification.primary,
+            "near_miss_bytes": classification.near_miss_bytes,
             "failure_src_file": _last_note_meta(func).get("src_file"),
             "failure_snapshot": _last_note_meta(func).get("snapshot"),
             "reason": "; ".join(reasons),
-        })
+        }
+        if battle_packet_dir:
+            target["battle_packet"] = repo_relative_path(
+                Path(battle_packet_dir) / packet_filename(func),
+                allowed_roots=("docs/research/battle-packets",),
+                label="--battle-packet-dir",
+            )
+        targets.append(target)
     return targets, stats
 
 
@@ -247,6 +239,13 @@ def main() -> int:
                     help="Include known compiler-hard buckets such as Read prologue failures.")
     ap.add_argument("--include-no-notes", action="store_true",
                     help="Include failed rows that lack failure_notes.")
+    ap.add_argument("--exclude-action", action="append", default=[],
+                    choices=["retry", "prep", "research", "quarantine"],
+                    help="Exclude failure-classifier action; may be repeated.")
+    ap.add_argument("--battle-packet-dir",
+                    help="Add deterministic battle_packet paths under this directory.")
+    ap.add_argument("--max-near-miss", type=int,
+                    help="Only include rows with classified near_miss_bytes <= N.")
     ap.add_argument("--dry-run", action="store_true",
                     help="Print summary and preview without writing.")
     args = ap.parse_args()
@@ -257,12 +256,17 @@ def main() -> int:
         include_no_notes=args.include_no_notes,
         min_score=args.min_score,
         limit=args.limit,
+        exclude_actions=set(args.exclude_action),
+        battle_packet_dir=args.battle_packet_dir,
+        max_near_miss=args.max_near_miss,
     )
 
     print(f"Failed rows in DB:       {stats['failed_total']}")
     print(f"Selected retry targets:  {len(targets)}")
     print(f"Skipped no notes:        {stats['no_notes_skipped']}")
     print(f"Skipped known-hard:      {stats['known_hard_skipped']}")
+    print(f"Skipped by action:       {stats['action_skipped']}")
+    print(f"Skipped by near-miss:    {stats['near_miss_skipped']}")
     print(f"Skipped below score:     {stats['below_score_skipped']}")
     if stats["limit_truncated"]:
         print(f"Truncated by --limit:    {stats['limit_truncated']}")

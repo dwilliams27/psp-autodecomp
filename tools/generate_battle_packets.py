@@ -13,7 +13,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from battle_packets import packet_filename, render_packet  # noqa: E402
 from common import build_addr_map, load_db  # noqa: E402
-from failure_classifier import required_size, required_text, validate_address  # noqa: E402
+from failure_classifier import (  # noqa: E402
+    classify_failure,
+    required_size,
+    required_text,
+    validate_address,
+)
 from path_guards import repo_output_path  # noqa: E402
 
 
@@ -73,19 +78,30 @@ def _select_functions(functions: list[dict], args) -> tuple[list[dict], dict[str
     return ordered, target_meta
 
 
-def _write_index(output_dir: Path, packets: list[tuple[dict, Path]]) -> None:
+def _write_index(output_dir: Path, packets: list[tuple[dict, Path, dict]]) -> None:
     lines = [
         "# Battle Packets",
         "",
         f"Generated: {date.today().isoformat()}",
         "",
-        "| Address | Size | Status | Function | Packet |",
-        "|---|---:|---|---|---|",
+        "| Address | Size | Action | Primary | Status | Function | Packet |",
+        "|---|---:|---|---|---|---|---|",
     ]
-    for func, path in packets:
+    for func, path, meta in packets:
         rel = path.name
+        cls = classify_failure(func)
+        for key, expected in (
+            ("failure_action", cls.action),
+            ("failure_primary", cls.primary),
+        ):
+            if key in meta and meta[key] != expected:
+                raise ValueError(
+                    f"{required_text(func, 'address')}: target metadata {key}="
+                    f"{meta[key]!r} disagrees with classifier {expected!r}"
+                )
         lines.append(
             f"| `{validate_address(required_text(func, 'address'))}` | {required_size(func)} | "
+            f"`{cls.action}` | `{cls.primary}` | "
             f"`{required_text(func, 'match_status')}` | `{required_text(func, 'name')}` | "
             f"[packet]({rel}) |"
         )
@@ -143,19 +159,20 @@ def main() -> int:
         label="--output-dir",
     )
     output_dir.mkdir(parents=True, exist_ok=True)
-    written: list[tuple[dict, Path]] = []
+    written: list[tuple[dict, Path, dict]] = []
     for func in selected:
+        meta = target_meta.get(validate_address(func["address"])) or {}
         path = output_dir / packet_filename(func)
         path.write_text(render_packet(
             func,
             functions,
-            target_metadata=target_meta.get(validate_address(func["address"])),
+            target_metadata=meta,
             include_disasm=not args.no_disasm,
             include_m2c=not args.no_m2c,
             include_exemplars=not args.no_exemplars,
             include_header=not args.no_header,
         ))
-        written.append((func, path))
+        written.append((func, path, meta))
     _write_index(output_dir, written)
     print(f"Wrote {len(written)} packet(s) to {output_dir}")
     print(f"Index: {output_dir / 'index.md'}")

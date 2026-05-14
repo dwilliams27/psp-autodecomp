@@ -5,6 +5,7 @@ the actual A/B knob) and calls these helpers for the mechanical per-function
 rendering so we don't duplicate the loop across N variants.
 """
 
+import json
 import os
 
 from common import build_addr_map
@@ -174,6 +175,27 @@ def render_function_block(func, func_num, addr_map, source_file, warnings,
     if callee_names:
         parts.append(f", Calls: {', '.join(callee_names)}")
     parts.append("\n")
+
+    target_metadata = func.get("_target_metadata") or {}
+    if target_metadata:
+        if not isinstance(target_metadata, dict):
+            raise ValueError(f"{func['address']}: _target_metadata must be an object")
+        parts.append("\nTARGET QUEUE METADATA:\n")
+        packet_path = target_metadata.get("battle_packet")
+        if packet_path:
+            parts.append(
+                f"  Battle packet: {packet_path}\n"
+                "  Read this packet before editing; it contains the prepared "
+                "failure notes, exemplars, disassembly, and m2c context for "
+                "this retry.\n"
+            )
+        for key in (
+            "score", "failure_action", "failure_primary", "near_miss_bytes",
+            "reason", "failure_snapshot", "failure_src_file",
+        ):
+            if key in target_metadata and target_metadata[key] not in (None, ""):
+                value = json.dumps(target_metadata[key], ensure_ascii=False)
+                parts.append(f"  {key}: {value}\n")
 
     sched_hint = get_sched_hint(func)
     if sched_hint:

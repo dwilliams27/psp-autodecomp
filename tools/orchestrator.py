@@ -43,6 +43,7 @@ from backends import (AgentRateLimited, AgentRefused, AVAILABLE_BACKENDS,
 from ab_schedule import (Schedule, build_schedule, identity_key,
                          safe_identity_tag,
                          MODE_DISJOINT, MODE_SHOOTOUT, MODE_HYBRID)
+from path_guards import REPO_ROOT, repo_relative_path
 
 # db_lock: every DB read/write goes through this; workers never touch
 # the DB directly. git_lock: serializes git subprocess calls — git's
@@ -174,6 +175,19 @@ def apply_decisions_to_funcs(addr_index, decisions, session_id,
                 note["snapshot"] = d.failure_snapshot_path
             target.setdefault("failure_notes", []).append(note)
             target["failure_notes"] = target["failure_notes"][-5:]
+
+
+def hydrated_matched_funcs(addr_index, matched_funcs):
+    """Return DB-row versions of matched funcs after DB decision updates."""
+    hydrated = []
+    for func in matched_funcs:
+        target = addr_index.get(func["address"])
+        if target is None:
+            raise RuntimeError(
+                f"hydrated_matched_funcs: unknown address {func['address']}"
+            )
+        hydrated.append(target)
+    return hydrated
 
 
 def verifier_failure_note(prefix, src_file=None, reason=None,
@@ -798,9 +812,73 @@ def load_targets_file(path):
     if not isinstance(targets, list):
         raise ValueError(f"Targets file {path} must be a JSON array")
     for i, t in enumerate(targets):
+        if not isinstance(t, dict):
+            raise ValueError(f"Target entry {i} in {path} must be an object")
         if "address" not in t:
             raise ValueError(f"Target entry {i} in {path} missing 'address' field: {t}")
+        targets[i] = _sanitize_target_entry(t, context=f"{path}: target {i}")
     return targets
+
+
+def _reject_control_text(value, context):
+    if any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+        raise ValueError(f"{context}: control characters are not allowed")
+
+
+def _sanitize_target_value(key, value, context):
+    if key == "battle_packet":
+        if not isinstance(value, str):
+            raise ValueError(f"{context}.{key}: must be a string path")
+        _reject_control_text(value, f"{context}.{key}")
+        rel = repo_relative_path(
+            value,
+            allowed_roots=("docs/research/battle-packets",),
+            label=f"{context}.{key}",
+        )
+        if not (REPO_ROOT / rel).is_file():
+            raise ValueError(f"{context}.{key}: packet does not exist: {rel}")
+        return rel
+    if isinstance(value, str):
+        _reject_control_text(value, f"{context}.{key}")
+        return value
+    if isinstance(value, (int, float, bool)) or value is None:
+        return value
+    if isinstance(value, list):
+        return [
+            _sanitize_target_value(f"{key}[{idx}]", item, context)
+            for idx, item in enumerate(value)
+        ]
+    if isinstance(value, dict):
+        sanitized = {}
+        nested_context = f"{context}.{key}"
+        for nested_key, nested_value in value.items():
+            if not isinstance(nested_key, str):
+                raise ValueError(
+                    f"{nested_context}: target metadata keys must be strings"
+                )
+            _reject_control_text(nested_key, f"{nested_context}.{nested_key}")
+            sanitized[nested_key] = _sanitize_target_value(
+                nested_key, nested_value, nested_context
+            )
+        return sanitized
+    raise ValueError(
+        f"{context}.{key}: unsupported target metadata type "
+        f"{type(value).__name__}"
+    )
+
+
+def _sanitize_target_entry(target, context):
+    sanitized = {}
+    for key, value in target.items():
+        if not isinstance(key, str):
+            raise ValueError(f"{context}: target metadata keys must be strings")
+        _reject_control_text(key, f"{context}.{key}")
+        sanitized[key] = _sanitize_target_value(key, value, context)
+    addr = sanitized["address"]
+    if not isinstance(addr, str) or not re.fullmatch(r"0x[0-9a-fA-F]{8}", addr):
+        raise ValueError(f"{context}.address: expected 0x-prefixed 8-digit hex address")
+    sanitized["address"] = addr.lower()
+    return sanitized
 
 
 def _group_and_fill_batch(candidates, batch_size):
@@ -1428,7 +1506,9 @@ def pick_next_batch_targeted(functions, targets, addr_index, batch_size,
             continue
         if allowed_addrs is not None and addr not in allowed_addrs:
             continue
-        candidates.append(func)
+        candidate = dict(func)
+        candidate["_target_metadata"] = dict(t)
+        candidates.append(candidate)
 
     if not candidates:
         return []
@@ -3907,6 +3987,9 @@ def main():
                     addr_index, outcome.decisions, session_id,
                     backend_name, backend_model, outcome.backend_effort,
                     outcome.identity, matched_at, variant,
+                )
+                outcome.matched_funcs = hydrated_matched_funcs(
+                    addr_index, outcome.matched_funcs
                 )
 
             final_matched = 0
