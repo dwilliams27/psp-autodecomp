@@ -39988,7 +39988,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c5c0",
@@ -39996,7 +39996,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMeStaticModeldtv"
+    "mangled_symbol": "__0oMeStaticModeldtv",
+    "failure_notes": [
+      {
+        "session": "9a0294ce",
+        "notes": "Best attempt: 480B output vs expected 484B (4B / 1 instruction short). Body bytes match the expected outer cArrayBase<cArrayBase<...>> teardown pattern; the diff is concentrated in the trailer between the array-cleanup epilogue and the deleting-destructor pool-delete sequence.\n\nApproaches tried (12 distinct source variants): (1) canonical C++ `~eStaticModel()` with inheritance + explicit `*(void * volatile *)((char*)this+4) = eGeomvirtualtable;` swap; (2) same without the volatile cast; (3) same without explicit swap (relying on inheritance auto-emit) \u2014 432B; (4) operator delete with and without `if (p != 0)` null check (this controls one of the trailer beqz checks); (5) explicit `eGeom_dtor(this, 0)` call alongside inheritance (produces duplicate call); (6) no inheritance + explicit `eGeom_dtor` call (eDecalSystem-style) \u2014 produces no wrapper; (7) `volatile eStaticModel *self = this; if (self != 0) ...` \u2014 gets the wrapper but inserts sw/lw stack-spill ops; (8) `eStaticModel *self = this; __asm__ volatile(\"\" : \"+r\"(self)); if (self != 0) ...` \u2014 gets wrapper around just the vtable swap but eGeom_dtor stays outside via auto-inheritance; (9) explicit `this->eGeom::~eGeom();` \u2014 produces duplicate eGeom_dtor calls (one explicit, one auto); (10) `__asm__ volatile(\"\" ::: \"memory\")` barrier before the eGeomvirtualtable swap \u2014 eliminates hoisted lui but loses 4B more; (11) `#pragma control sched=1` \u2014 no change; (12) `__asm__(\".word 0x1000ffff\"); __asm__(\".word 0\"); __asm__(\".size __0oMeStaticModeldtv, 0x1e4\");` at file scope \u2014 adds trap bytes AT THE END of the destructor symbol (per eHeightmapShape.cpp pattern) but section bytes still 480B because actual instruction emission ends earlier.\n\nByte-level diff vs expected (from objdump): expected trailer at 0x154-0x184 (13 insns) has `beqz s0, 0x178; andi a0, s1, 0x1 (bdslot); lui a0, 0x38; addiu a0, a0, 2888; sw a0, 4(s0); move a0, s0; jal __0oFeGeomdtv; move a1, zero; andi a0, s1, 0x1 (duplicate); beqz a0, X; nop; beqz s0, X; nop`. The `beqz s0` at 0x154 wraps the vtable+eGeom block (this != 0 wrapper) and the SECOND `andi a0` at 0x174 is the post-jal recompute (a0 was clobbered). Plus expected has trap `b $; nop` at 0x1dc-0x1e0. Our best output is identical to expected EXCEPT we're missing the outer `if (this != 0)` wrapper around vtable+eGeom (1 insn: the beqz s0; the bdslot `andi a0` and the post-jal recompute are also missing/merged). All other body bytes match modulo expected register-allocation drift (we use s6 for entries, expected uses a0).\n\nRoot cause hypothesis: SNC ProDG emits this `if (this != 0) { vtable_swap; base_dtor(); }` post-body wrapper specifically when the destructor body contains a non-trivial cArrayBase teardown loop. eHeightmap::~eHeightmap (matched at 144B in src/eHeightmap.cpp) does NOT have this wrapper \u2014 its body is just `vtable_swap; PlatformFree(); vtable_swap_to_base;` with no loop. eDecalSystem::~eDecalSystem (matched at 428B in src/eDecalSystem_dtor.cpp) also does NOT have this wrapper \u2014 but its local class declaration omits inheritance and uses an explicit `eGeom_dtor(this, 0);` call. Our expected disasm has BOTH the array body AND the inheritance-style base call AND the wrapper. None of the source patterns I tried produce that exact combination \u2014 either the wrapper is missing (canonical inheritance) or it's malformed (sw/lw spill from volatile local) or there are duplicate eGeom calls (explicit + implicit).\n\nNext steps for retry: (a) investigate whether SNC has a `__attribute__((destructor))` or similar that triggers the wrapper; (b) try explicit `(this)->~eGeom();` AND removing the inheritance from the local class declaration so the implicit auto-emit doesn't fire; (c) read docs/research/snc-name-mangling.md (the dtv suffix may be a hint) and docs/research/snc-vtable-layout.md (vtable swap pattern). Note also the unwanted second symbol `__0oMeStaticModeldlPvT` (operator delete out-of-line copy) \u2014 this is harmless (different mangled name, no DB entry) but indicates the operator delete is being emitted as both inline-into-dtor and out-of-line; the original .o file appears to only have it inlined.\n\nClassification: NOT regalloc_drift (the diff is structural codegen, not s0/s1/s2 swap). NOT bnel-divergence (no branch-likely involved). Closer to constant_cse_codegen / branch_direction_codegen, but the underlying issue is base-destructor wrapping by SNC. CastSphere (function 1 at 0x0004269c) is matched and committed via split-TU; that work is preserved regardless of dtor outcome.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:09:01Z",
+        "src_file": "src/eStaticModel_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/9a0294ce/00041f54__agent_self_reported_failure__src_eStaticModel_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00042138",
@@ -40067,7 +40081,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -40085,7 +40099,14 @@
         "src_file": "src/eStaticModel.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/71e70ccb/0004269c__agent_self_reported_failure__src_eStaticModel.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eStaticModel_CastSphere.cpp",
+    "symbol_name": "__0fMeStaticModelKCastSphereRC6OeCollisionInfoRC6EmRayfP6LmCollideHitK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "9a0294ce",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:09:01Z"
   },
   {
     "address": "0x0004271c",
@@ -92079,7 +92100,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000616c",
       "0x00006454",
@@ -112175,7 +112196,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000ccc",
       "0x000092f0",
