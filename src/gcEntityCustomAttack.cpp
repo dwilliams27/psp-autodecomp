@@ -5,6 +5,11 @@ class cFile;
 class cMemPool;
 class cType;
 
+class cName {
+public:
+    void Set(const char *, ...);
+};
+
 class cFile {
 public:
     void SetCurrentPos(unsigned int);
@@ -69,6 +74,17 @@ struct CopyRec {
     cBase *(*fn)(void *, cMemPool *, cBase *);
 };
 
+struct HandleEntry {
+    char _pad[0x30];
+    int handle;
+};
+
+struct ResetDispatchRec {
+    short offset;
+    short pad;
+    void (*fn)(void *);
+};
+
 class gcEntityCustomAttack : public cObject {
 public:
     char _pad[0x44];
@@ -78,6 +94,7 @@ public:
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
+    void Reset(cMemPool *, bool);
     void Write(cFile &) const;
     static cBase *New(cMemPool *, cBase *);
 };
@@ -90,6 +107,7 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_0009F434;
+extern HandleEntry *D_00038890[];
 
 void gcEntityCustomAttack::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
@@ -177,6 +195,112 @@ cBase *gcEntityCustomAttack::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+void gcEntityCustomAttack::Reset(cMemPool *, bool) {
+    if (((*(short *)((char *)this + 0x1C) == 0) & 0xFF) != 0) {
+        int temp_a0 = *(int *)((char *)this + 0x44);
+        int var_a2 = 0;
+        if (temp_a0 & 1) {
+            var_a2 = 1;
+        }
+        if (var_a2 == 0) {
+            goto valid_from_value;
+        }
+        var_a2 = 0;
+        goto valid_done;
+    valid_from_value:
+        var_a2 = temp_a0 != 0;
+        var_a2 = (var_a2 & 0xFF) != 0;
+    valid_done:
+        if (var_a2 != 0) {
+            var_a2 = 0;
+            int temp_a1 = temp_a0 & 1;
+            if (temp_a1 != 0) {
+                var_a2 = 1;
+            }
+            char *base;
+            if (var_a2 == 0) {
+                goto slot_from_value;
+            }
+            base = 0;
+            __asm__ volatile("" : "+r"(base));
+            goto slot_done;
+        slot_from_value:
+            base = (char *)temp_a0;
+        slot_done:
+            int *slot = (int *)(base + 0x10);
+            int handle = *slot;
+            HandleEntry *found;
+            if (handle == 0) {
+                found = 0;
+            } else {
+                int var_a3 = (int)D_00038890[handle & 0xFFFF];
+                int var_t0 = 0;
+                if (var_a3 != 0) {
+                    if (*(int *)(var_a3 + 0x30) == handle) {
+                        var_t0 = var_a3;
+                    }
+                }
+                found = (HandleEntry *)var_t0;
+            }
+            if (found != 0) {
+                int var_a1 = 0;
+                temp_a1 = temp_a0 & 1;
+                if (temp_a1 != 0) {
+                    var_a1 = 1;
+                }
+                char *base2;
+                if (var_a1 == 0) {
+                    goto slot2_from_value;
+                }
+                base2 = 0;
+                __asm__ volatile("" : "+r"(base2));
+                goto slot2_done;
+            slot2_from_value:
+                base2 = (char *)temp_a0;
+            slot2_done:
+                int *slot2 = (int *)(base2 + 0x10);
+                int handle2 = *slot2;
+                HandleEntry *entry2;
+                if (handle2 == 0) {
+                    entry2 = 0;
+                } else {
+                    HandleEntry *candidate = D_00038890[handle2 & 0xFFFF];
+                    entry2 = 0;
+                    if (candidate != 0) {
+                        if (candidate->handle == handle2) {
+                            entry2 = candidate;
+                        }
+                    }
+                }
+
+                const char *name;
+                if (entry2 != 0) {
+                    int temp_a0_2 =
+                        ((*(short *)((char *)entry2 + 0x1C) == 0) & 0xFF);
+                    entry2 = (HandleEntry *)((char *)entry2 + 8);
+                    if (temp_a0_2 != 0) {
+                        entry2 = (HandleEntry *)0x36DAB8;
+                    } else {
+                        __asm__ volatile("" ::: "memory");
+                    }
+                    name = (const char *)entry2;
+                } else if (handle2 != 0) {
+                    name = (const char *)0x36DAC4;
+                } else {
+                    name = (const char *)0x36DACC;
+                }
+                ((cName *)((char *)this + 8))->Set(name);
+
+                ResetDispatchRec *rec =
+                    (ResetDispatchRec *)(*(char **)((char *)this + 4) + 0x70);
+                short offset = rec->offset;
+                void (*fn)(void *) = rec->fn;
+                fn((char *)this + offset);
+            }
+        }
+    }
 }
 
 void gcEntityCustomAttack::AssignCopy(const cBase *base) {
