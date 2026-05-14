@@ -185923,13 +185923,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001618"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fYgcTableColumnStringTableDGetiPwTBK"
+    "mangled_symbol": "__0fYgcTableColumnStringTableDGetiPwTBK",
+    "failure_notes": [
+      {
+        "session": "fdcdc83a",
+        "notes": "Closest source is a full C++ implementation in gcTableColumnStringTable::Get with matching size (324B), matching calls, matching branch structure, and matching null-text fallback shape. Remaining diff is 27 bytes concentrated in t0/t1 caller-temp register allocation across the initial handle-table validity check and the two repeated cArray row lookups: current uses t1 for the validated/container/data pointer and t0 for counts in several spots where the original uses t0 for the pointer and t1 for the count. Control flow, immediates, offsets, stack frame, and cStrCopy call sequence otherwise line up.\n\nTried initial direct inline lookup, explicit idx==0/else validity shape, explicit if/else null-text selection, local fixed-register declarations for t0/t1, reverting to simpler valid=0 shape, and a sched=1 pragma around only this method (worsened to 56-byte diff). Ran tools/permuter.py for 300s with --save-best: 5472 candidates generated, 2140 compiled, zero improvements over the 27-byte baseline. Hypothesis: this is caller-temp allocation drift caused by the duplicated lookup expression/TU context rather than a semantic mismatch; next retry should focus on finding an expression form that makes SNC keep candidate/data in t0 without changing the now-correct branch layout.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:43:07Z",
+        "src_file": "src/gcTableColumnStringTable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/fdcdc83a/00272388__agent_self_reported_failure__src_gcTableColumnStringTable.cpp"
+      }
+    ]
   },
   {
     "address": "0x002724cc",
@@ -185941,7 +185955,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -190499,14 +190513,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0000165c",
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcLobbyAccountStringsDGetPwiK"
+    "mangled_symbol": "__0fVgcLobbyAccountStringsDGetPwiK",
+    "src_file": "src/gcLobbyAccountStrings.cpp",
+    "symbol_name": "__0fVgcLobbyAccountStringsDGetPwiK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "fdcdc83a",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:43:07Z"
   },
   {
     "address": "0x0027ff58",
@@ -205550,7 +205572,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",

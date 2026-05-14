@@ -73,6 +73,24 @@ struct GetNameSlot {
     void (*fn)(void *, char *);
 };
 
+struct LobbyDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *);
+};
+
+struct AccountDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
+
 class cBase {
 public:
     cBase *mOwner;          // 0
@@ -111,6 +129,7 @@ public:
     }
     ~gcLobbyAccountStrings();
     void AssignCopy(const cBase *);
+    void Get(wchar_t *, int) const;
     void GetName(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
@@ -132,6 +151,12 @@ extern cType *D_0009F4E8;
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+void cStrCopy(wchar_t *, const char *, int);
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
 
 // ── GetType ──  @ 0x0027fbe8, 220B
 const cType *gcLobbyAccountStrings::GetType(void) const {
@@ -176,6 +201,56 @@ gcLobbyAccountStrings *gcLobbyAccountStrings::New(cMemPool *pool, cBase *parent)
         result = obj;
     }
     return result;
+}
+
+// ── gcLobbyAccountStrings::Get(wchar_t *, int) const @ 0x0027fe24 ──
+void gcLobbyAccountStrings::Get(wchar_t *buf, int size) const {
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0) {
+        char tmp[24];
+        int mode = mField08;
+        if (mode <= 0) {
+            if (mode < 0) {
+                return;
+            }
+            AccountDispatchEntry *entry =
+                (AccountDispatchEntry *)(*(char **)lobby + 0x100);
+            entry->fn((char *)lobby + entry->offset, tmp);
+        } else if (mode < 2) {
+            LobbyDispatchEntry *entry =
+                (LobbyDispatchEntry *)(*(char **)lobby + 0xF8);
+            int val = mField0C;
+            int flag = 0;
+            void *self = (char *)lobby + entry->offset;
+            if (val & 1) {
+                flag = 1;
+            }
+            if (flag != 0) {
+                val = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int desiredPtr = val;
+            float f;
+            if (desiredPtr != 0) {
+                FloatDispatchEntry *fe =
+                    (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+                f = fe->fn((char *)desiredPtr + fe->offset);
+            } else {
+                f = 0.0f;
+            }
+            int idx = (int)f;
+
+            entry->fn(self, idx, tmp);
+        } else {
+            return;
+        }
+
+        if (mField10 == 0) {
+            cStrCopy(buf, tmp + 4, size);
+        }
+    }
 }
 
 // ── gcLobbyAccountStrings::GetName(char *) const @ 0x0027ff58, 216B ──
