@@ -174149,7 +174149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc"
@@ -174158,7 +174158,15 @@
       "0x0025c584"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcEntityAnimationConfigdtv"
+    "mangled_symbol": "__0oXgcEntityAnimationConfigdtv",
+    "src_file": "src/gcEntityAnimationConfig_dtor.cpp",
+    "symbol_name": "__0oXgcEntityAnimationConfigdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "9bb92255",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:27:59Z"
   },
   {
     "address": "0x00241104",
@@ -193223,7 +193231,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000165c",
       "0x001a5774",
@@ -195058,7 +195066,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
@@ -199617,14 +199625,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ojgcDoEntityActivatePartialControllerdtv"
+    "mangled_symbol": "__0ojgcDoEntityActivatePartialControllerdtv",
+    "src_file": "src/gcDoEntityActivatePartialController_dtor.cpp",
+    "symbol_name": "__0ojgcDoEntityActivatePartialControllerdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "9bb92255",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:27:59Z"
   },
   {
     "address": "0x002a1c24",
