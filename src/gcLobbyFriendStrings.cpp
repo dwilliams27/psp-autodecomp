@@ -101,6 +101,18 @@ struct GetNameSlot {
     void (*fn)(void *, char *);
 };
 
+struct LobbyDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *);
+};
+
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
+
 class gcLobbyFriendStrings : public gcStringValue {
 public:
     int _b8;   // 0x08 - gcDesiredValue tagged self-ptr
@@ -108,6 +120,7 @@ public:
 
     ~gcLobbyFriendStrings();
     void AssignCopy(const cBase *);
+    void Get(wchar_t *, int) const;
     void GetName(char *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -132,6 +145,12 @@ extern "C" void cFile_SetCurrentPos(void *, unsigned int);
 
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+void cStrCopy(wchar_t *, const char *, int);
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
 
 // ── gcLobbyFriendStrings::GetType(void) const  @ 0x00280b3c, 220B ──
 const cType *gcLobbyFriendStrings::GetType(void) const {
@@ -173,6 +192,47 @@ int gcLobbyFriendStrings::Read(cFile &file, cMemPool *pool) {
     ((gcDesiredValue *)((char *)this + 8))->Read(rb);
     cFileSystem::Read(*(cFileHandle **)rb._data[0], (char *)this + 0x0C, 4);
     return result;
+}
+
+// ── gcLobbyFriendStrings::Get(wchar_t *, int) const  @ 0x00280d58, 280B ──
+void gcLobbyFriendStrings::Get(wchar_t *buf, int size) const {
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0) {
+        LobbyDispatchEntry *entry = (LobbyDispatchEntry *)(*(char **)lobby + 0x1A8);
+        int val = *(int *)((const char *)this + 0x08);
+        int flag = 0;
+        void *self = (char *)lobby + entry->offset;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        char tmp[72];
+        int desiredPtr = val;
+        float f;
+        if (desiredPtr != 0) {
+            FloatDispatchEntry *fe = (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+            f = fe->fn((char *)desiredPtr + fe->offset);
+        } else {
+            f = 0.0f;
+        }
+        int idx = (int)f;
+
+        entry->fn(self, idx, tmp);
+
+        int v = this->mField;
+        if (v <= 0) {
+            if (v >= 0) {
+                cStrCopy(buf, tmp + 4, size);
+            }
+        } else if (v < 2) {
+            cStrCopy(buf, tmp + 32, size);
+        }
+    }
 }
 
 // ── gcLobbyFriendStrings::GetName(char *) const @ 0x00280e70, 184B ──
