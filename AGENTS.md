@@ -108,6 +108,7 @@ Orchestrator (`tools/orchestrator.py`) drives headless coding-agent CLIs. Backen
 sudo ./tools/sandbox_setup.sh
 sudo -i -u autodecomp claude                        # authenticate Claude
 sudo -i -u autodecomp codex login                   # authenticate Codex (or export OPENAI_API_KEY)
+./scripts/check_agent_auth.sh                       # verify both agents respond as autodecomp
 
 # Running
 ./tools/run_overnight.sh --hours 8                                    # full overnight (Claude)
