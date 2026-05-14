@@ -1,5 +1,10 @@
 #include "cBase.h"
 
+class cMemPool {
+public:
+    static cMemPool *GetPoolFromPtr(const void *);
+};
+
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -36,8 +41,16 @@ struct GetTextSlot {
     void (*fn)(void *, char *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 class gcDoLoadRegionSet : public gcAction {
 public:
+    static void operator delete(void *);
+    ~gcDoLoadRegionSet(void);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
@@ -86,8 +99,62 @@ static cType *type_gcDoLoadRegionSet;
 void gcAction_gcAction(void *, cBase *);
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
+extern "C" void gcAction___dtor_gcAction_void(void *, int);
+extern "C" void gcEvent___dtor_gcEvent_void(void *, int);
 extern "C" void gcEvent_ctor(void *, cBase *, const char *)
     __asm__("__0oHgcEventctP6FcBasePCc");
+
+inline void gcDoLoadRegionSet::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oRgcDoLoadRegionSetdtv, 0x140\n");
+
+gcDoLoadRegionSet::~gcDoLoadRegionSet(void) {
+    *(void **)((char *)this + 4) = D_00003938;
+    gcEvent___dtor_gcEvent_void((char *)this + 0x34, 2);
+    gcEvent___dtor_gcEvent_void((char *)this + 0x18, 2);
+    char *slot14 = (char *)this + 0x14;
+    char *slot10 = (char *)this + 0x10;
+
+    if ((void *)slot14 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x14);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot =
+                (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x14) = 0;
+        }
+    }
+
+    if ((void *)slot10 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x10);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot =
+                (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x10) = 0;
+        }
+    }
+
+    gcAction___dtor_gcAction_void(this, 0);
+}
 
 cBase *gcDoLoadRegionSet::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
