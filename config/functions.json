@@ -39110,14 +39110,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIeRoomSetdtv"
+    "mangled_symbol": "__0oIeRoomSetdtv",
+    "failure_notes": [
+      {
+        "session": "1cb8d442",
+        "notes": "category=REG_ALLOC. The destructor source in src/eRoomSet_dtor.cpp matches the expected control flow, calls, stack frame, array teardown shapes, delete tail, and immediates, but remains at a 19-byte diff caused by an s2/s3 callee-save allocation swap. First drift is at function offset 0x38: expected addiu s3,s0,0x44 and lw s2,0x4c(s0), while SNC emits addiu s2,s0,0x44 and lw s3,0x4c(s0); the same swap propagates through the first two array frees. Tried canonical TU and split TU, declaration reordering, an outer entries temporary, a forced register variable, a tied empty asm constraint, and sched=1. sched=1 worsened to 63 bytes; forced/uninitialized variants disrupted the function. A 300s permuter run generated 11280 candidates, compiled 3274, and found zero improvement over the 19-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T04:22:24Z",
+        "src_file": "src/eRoomSet_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/1cb8d442/0003fe54__agent_self_reported_failure__src_eRoomSet_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00040094",
@@ -196230,7 +196244,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196527,7 +196541,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -198620,7 +198634,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680",
@@ -198628,7 +198642,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMgcDoCameraOpdtv"
+    "mangled_symbol": "__0oMgcDoCameraOpdtv",
+    "src_file": "src/gcDoCameraOp.cpp",
+    "symbol_name": "__0oMgcDoCameraOpdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1cb8d442",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T04:22:24Z"
   },
   {
     "address": "0x0029adb8",
