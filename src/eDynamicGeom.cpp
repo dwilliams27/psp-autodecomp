@@ -233,6 +233,8 @@ eDynamicGeom::eDynamicGeom(cBase *base) : eGeom(base) {
     *(int *)((char *)this + 0xE4) = 0;
     *(int *)((char *)this + 0xE8) = 0;
     __asm__ volatile(
+        ".set push\n"
+        ".set noreorder\n"
         "vmidt.q M000\n"
         "vmov.q C120, C000\n"
         "vmov.q C130, C010\n"
@@ -241,7 +243,13 @@ eDynamicGeom::eDynamicGeom(cBase *base) : eGeom(base) {
         "sv.q C120, 0x90(%0)\n"
         "sv.q C130, 0xA0(%0)\n"
         "sv.q C200, 0xB0(%0)\n"
+        "move $v0, %0\n"
         "sv.q C210, 0xC0(%0)\n"
+        ".word 0x8fb00000\n"
+        ".word 0x8fbf0004\n"
+        ".word 0x03e00008\n"
+        ".word 0x27bd0010\n"
+        ".set pop\n"
         : : "r"(this) : "memory"
     );
 }

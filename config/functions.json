@@ -2865,7 +2865,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
@@ -16917,7 +16917,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -30195,7 +30195,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00009d70",
       "0x0002c304"
@@ -39957,7 +39957,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c5c0",
@@ -40036,7 +40036,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -40833,7 +40833,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0002c538"
     ],
@@ -40866,7 +40866,15 @@
         "timestamp": "2026-04-30T20:07:12Z"
       }
     ],
-    "mangled_symbol": "__0oMeDynamicGeomctP6FcBase"
+    "mangled_symbol": "__0oMeDynamicGeomctP6FcBase",
+    "src_file": "src/eDynamicGeom.cpp",
+    "symbol_name": "__0oMeDynamicGeomctP6FcBase",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e42b0fa0",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T00:41:05Z"
   },
   {
     "address": "0x00044cd0",
@@ -42106,6 +42114,18 @@
         "timestamp": "2026-05-06T08:22:46Z",
         "src_file": "src/eDynamicModel.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/888688e8/00048cc8__agent_self_reported_failure__src_eDynamicModel.cpp"
+      },
+      {
+        "session": "8ff06f7b",
+        "notes": "category=REG_ALLOC/retryable_nearmiss. Started from the existing split-TU closest attempt. Re-tested the known sched=2 shape, tried explicit register-bound locals for byteOff=t0/len=t1, and tried asm-output zero initialization for byteOff. Register-bound locals were ignored by SNC and left the same 17-byte t0/t1 swap; asm-output initialization worsened scheduling to a 57-byte diff, so it was reverted. Current source is back to the best known 17/180-byte mismatch and preserves the matched SetGeomFlagsOnOff sibling.\n\nRemaining diff is only register naming in the loop body: compiled byteOff/len use t1/t0 while expected uses t0/t1. Differing words are at offsets 0x50, 0x64-0x7c, 0x88, 0x90-0xa0, all matching operations/immediates/control flow except t0/t1 encodings. Ran tools/permuter.py for 326.5s with 8,448 generated candidates and 5,403 compiled; best stayed 17 bytes with zero improvements.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:37:44Z",
+        "src_file": "src/eDynamicModel_SetGeomFlagsOnOff.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/8ff06f7b/00048cc8__agent_self_reported_failure__src_eDynamicModel_SetGeomFlagsOnOff.cpp"
       }
     ]
   },
@@ -57212,6 +57232,18 @@
         "timestamp": "2026-05-01T04:39:38Z",
         "src_file": "src/eSimulatedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/679d28cb/0006c5d4__agent_self_reported_failure__src_eSimulatedController.cpp"
+      },
+      {
+        "session": "8ff06f7b",
+        "notes": "Created a split-TU implementation to avoid adding GetInvMass to include/eSimulatedController.h and perturbing existing matched methods. Started from the prior C++ valid-entry pattern, then changed the zero fallback to numeric ABI registers ($4/$5/$6/$7) so the mtc1/swc1/mfc1/mtv/jr/sv.q sequence matches the original zero path exactly. Also tested sched=1, a valid/maskedValid control-flow variant, an if/else body-path variant, an always_inline+noreturn zero helper, and a naked method annotation; none removed the compiler-generated return block cleanly.\n\nClosest source is 15/120 bytes off but emits a 128-byte symbol, so tools/permuter.py skipped with PERMUTER_SKIPPED_NOT_LAST_MILE. The remaining word-level diff is at 0x34 and 0x64-0x74: SNC emits an extra jr/nop after the explicit zero-path jr before the body path, shifting the final lwc1/swc1/lv.q/jr/sv.q sequence by 8 bytes. The original has bnezl target 0x64 with lw a0,36(a1) in the delay slot; closest source has target 0x6c because of the synthetic return block.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:37:44Z",
+        "src_file": "src/eSimulatedController_GetInvMass.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/8ff06f7b/0006c5d4__agent_self_reported_failure__src_eSimulatedController_GetInvMass.cpp"
       }
     ]
   },
@@ -58143,7 +58175,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -58159,7 +58191,15 @@
         "variant": "base",
         "timestamp": "2026-04-30T18:29:25Z"
       }
-    ]
+    ],
+    "src_file": "src/eBoxShape_GetInertialTensor.cpp",
+    "symbol_name": "__0fJeBoxShapeRGetInertialTensorfP6FmVec3K",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e42b0fa0",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T00:41:05Z"
   },
   {
     "address": "0x0006de58",
@@ -61262,6 +61302,18 @@
         "timestamp": "2026-05-01T04:30:22Z",
         "src_file": "src/eKeyframedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/a0376310/00075100__agent_self_reported_failure__src_eKeyframedController.cpp"
+      },
+      {
+        "session": "7f3dc83c",
+        "notes": "Closest retained attempt is the existing v4sf_t output shape: scalar C emits mtc1/swc1, three separate mfc1 statements bind a0/a1/a2, the inline mtv block builds C120, and the final C vector assignment lets SNC put sv.q in the jr ra delay slot. It remains a 7/40 byte mismatch because SNC inserts an extra vmov.q C120,C120 before jr ra.\n\nI tested binding the vector variable directly to C120 and using it as an asm input instead of an output. SNC still emitted the same extra vector move and warned that the vector was potentially uninitialized, so this did not improve the prior best. This is the same known delay-slot/VFPU construction blocker from earlier notes: pure inline sv.q would remove the vmov but cannot fill the jr delay slot, while compiler-generated sv.q needs a vector value and currently materializes it with vmov.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:33:31Z",
+        "src_file": "src/eKeyframedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7f3dc83c/00075100__agent_self_reported_failure__src_eKeyframedController.cpp"
       }
     ],
     "mangled_symbol": "__0fUeKeyframedControllerKGetInvMassiPfP6FmVec3K"
@@ -80650,6 +80702,18 @@
         "timestamp": "2026-05-05T22:54:17Z",
         "src_file": "src/gcUIWidget.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_170107/03a5259e/000d8654__agent_self_reported_failure__src_gcUIWidget.cpp"
+      },
+      {
+        "session": "7f3dc83c",
+        "notes": "Closest retained attempt is the split-TU Reset source, which compiles to 172B vs expected 180B. It matches the high-level loop and final SetSizeDirty/flag stores, but still omits the pair.first round-trip reload in the loop body: expected has sw t0,0(sp), lw t1,0(sp), later move t0,t1 before storing handle->first, while this source keeps the first value live and stores it directly. I also tested canonical gcUIWidget.cpp with temporary header declarations; it produced the same 172B shape, so the shared header edits were reverted per split-TU guardrails.\n\nTried volatile Pair, volatile pair.first pointer, cast-to-volatile field read, explicit handle-second pointer materialization, fixed register declarations, and declaration-order changes. Some variants force the missing lw but introduce extra post-loop reloads or reorder the loop into a 39-99 byte mismatch. permuter.py was run with --time 300 --save-best, but skipped because the candidate symbol size is 172B and the DB target is 180B. Root cause remains forcing pair.first to be re-read from stack without making SNC spill/reorder the rest of the loop.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:33:31Z",
+        "src_file": "src/gcUIWidget_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7f3dc83c/000d8654__agent_self_reported_failure__src_gcUIWidget_Reset.cpp"
       }
     ]
   },
@@ -153760,7 +153824,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -174232,7 +174296,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00006e7c",
       "0x00009d70",
@@ -181919,7 +181983,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
