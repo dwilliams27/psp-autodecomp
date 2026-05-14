@@ -4810,7 +4810,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x001ac408"
     ],
@@ -30207,7 +30207,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00009d70",
       "0x0002c304"
@@ -30244,6 +30244,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:56:39Z"
+      },
+      {
+        "session": "0aa429db",
+        "notes": "Down to 2/128 bytes diff matching prior agent's best. Diff is exactly the rt nibble in the addiu pair at offsets 0x28 and 0x2c: expected `addiu a0,s0,72` then `addiu a1,s1,72` (src first), got `addiu a1,s1,72` then `addiu a0,s0,72` (dst first). All other bytes match including base cObject assignment, mField44 copy, loop body (lw/sw/slti/bnez), pointer increments in correct slots (dst++ before slti, src++ in delay), tail copies (mField50/54), CopyMaterialData call with mField58 in delay slot, and epilogue.\n\nApproaches tried (extending prior agent's set): (1) Plain int* declarations both src-first and dst-first - SNC picks weird allocation without binding (10-byte diff). (2) `register int *src asm(\"$a0\")` and `register int *dst asm(\"$a1\")` with src declared first - SNC IGNORES the binding and emits src->$a1, dst->$a0 (6-byte diff). (3) Same bindings with dst declared first - SNC respects bindings (src->$a0, dst->$a1) but emits addiu a1 BEFORE addiu a0 (2-byte diff, our best). (4) Inverted bindings src->$a1, dst->$a0 - same 2-byte output (SNC ignores bindings here too). (5) Inline-asm explicit `addiu` instructions - addiu order correct but SNC then re-allocates loop registers wrongly (12+ byte diff). (6) Tried every combination of -Xsched=0/1/2 -Xxopt=0/1/2 -Xmopt=0/1/2; sched=2 is best at 2 bytes, others much worse. (7) #pragma sched=1 at function scope - same 2-byte baseline. (8) Asm barriers (`__asm__ volatile(\"\" : \"+r\"(src))`) between declarations - flips back to 6-byte. (9) Permuter ran 240s (3869 candidates compiled) from the 2-byte baseline with zero improvement.\n\nUsed split-TU pattern in src/eMaterial_operator_eq.cpp to avoid perturbing the matched siblings in src/eMaterial.cpp (verified all 5 prior matches stay intact).\n\nRoot cause hypothesis: SNC's instruction scheduler has a fixed ordering preference for two adjacent independent addiu instructions in this context: it consistently emits the higher-numbered destination register first ($a1 before $a0). The original game source likely used a structure that forced SNC to materialize the source pointer first via a dependency we haven't identified - possibly a different parent class layout, a non-trivial cObject::operator= invocation, or an inlined helper. The 2-byte rt-field swap is the only remaining diff; the bnel/beql unmatchable category does not apply (this is addiu, not branch-likely).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:05:05Z",
+        "src_file": "src/eMaterial_operator_eq.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/0aa429db/0002c154__agent_self_reported_failure__src_eMaterial_operator_eq.cpp"
       }
     ]
   },
@@ -83862,7 +83874,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0002d864",
       "0x0002de40",
@@ -99442,7 +99454,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x00005510",
@@ -152365,7 +152377,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -152384,6 +152396,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:20:43Z"
+      },
+      {
+        "session": "bc1fbdd3",
+        "notes": "Created the canonical template-method source using the existing cArrayBase<cHandleT<gcEnumeration> > sibling as the base pattern, with the unsigned-int allocation tag 0x36CF0C. The best stable source emits the correct mangled symbol and matches the allocation/free structure much more closely than the initial 476-byte clone: distinct oldData/allocCap temporaries recover s4, goto allocation shape recovers the target bgtz+nop / b+li allocation diamond, and a memory barrier in the equal-size loop forces the expected nop after the loop-exit branch. Current closest output is still a 500-byte symbol versus the 512-byte target.\n\nRemaining gap is in the two word-copy loops. The post-resize loop still emits a compact common-increment null check instead of the target beqzl-with-increment-in-delay shape; attempts using duplicated increments, gotos, and continue made the function size exact but perturbed loop-carried registers badly, producing 180-197 differing bytes. The equal-size loop remains the same a2/a3 offset/count register allocation swap described in the prior notes; register bindings for a2/a3 and srcData/dstData temporaries did not move SNC's choice. sched=1 was tested and did not change the size. tools/permuter.py was attempted for 300s with --save-best but failed before search with 'Failed to extract .text section from /tmp/...cpp.o'.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:57:45Z",
+        "src_file": "src/cArrayBasecArrayBasecArrayBaseunsignedint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/bc1fbdd3/001eea5c__agent_self_reported_failure__src_cArrayBasecArrayBasecArrayBaseunsignedint.cpp"
       }
     ]
   },
@@ -153836,7 +153860,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -153858,7 +153882,14 @@
         "snapshot": "logs/failure_snapshots/match_20260430_231646/126b2744/001f4d9c__agent_self_reported_failure__src_eHeightmapShape.cpp"
       }
     ],
-    "mangled_symbol": "__0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K"
+    "mangled_symbol": "__0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K",
+    "src_file": "src/eHeightmapShape.cpp",
+    "symbol_name": "__0fPeHeightmapShapeRGetInertialTensorfP6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0aa429db",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:05:05Z"
   },
   {
     "address": "0x001f4dc0",
@@ -173761,7 +173792,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -176452,7 +176483,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -176471,6 +176502,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:05:38Z"
+      },
+      {
+        "session": "bc1fbdd3",
+        "notes": "Created the canonical template-method source using the existing cArrayBase<cHandleT<gcEnumeration> > sibling as the base pattern, with the gcTableTemplate handle allocation tag 0x36DA98. The best stable source emits the correct mangled symbol and matches the allocation/free structure much more closely than the initial 476-byte clone: distinct oldData/allocCap temporaries recover s4, goto allocation shape recovers the target bgtz+nop / b+li allocation diamond, and a memory barrier in the equal-size loop forces the expected nop after the loop-exit branch. Current closest output is still a 500-byte symbol versus the 512-byte target.\n\nRemaining gap is identical to the unsigned-int instantiation. The post-resize loop still emits a compact common-increment null check instead of the target beqzl-with-increment-in-delay shape; attempts using duplicated increments, gotos, and continue made the function size exact but perturbed loop-carried registers badly, producing 180-197 differing bytes. The equal-size loop remains the same a2/a3 offset/count register allocation swap described in the prior notes; register bindings for a2/a3 and srcData/dstData temporaries did not move SNC's choice. sched=1 was tested and did not change the size. tools/permuter.py was attempted for 300s with --save-best but failed before search with 'Failed to extract .text section from /tmp/...cpp.o'.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T00:57:45Z",
+        "src_file": "src/cArrayBasecArrayBasecArrayBasecHandleTgcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/bc1fbdd3/0024bc50__agent_self_reported_failure__src_cArrayBasecArrayBasecArrayBasecHandleTgcTableTemplate.cpp"
       }
     ]
   },

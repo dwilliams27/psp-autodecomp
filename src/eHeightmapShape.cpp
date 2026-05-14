@@ -130,6 +130,34 @@ void eHeightmapShape::GetProjectedMinMax(const mVec3 &, const mOCS &, float *, f
 }
 
 #pragma control sched=1
+// eHeightmapShape::GetInertialTensor — 0x001f4d9c
+// Inertia tensor for a heightmap is identically zero (no rotational inertia).
+// Mirrors the eSphereShape GetInertialTensor lowering: mtc1 zero, $f12 to get
+// 0 into a float reg, three mfc1 to int regs, then mtv/sv.q with sv.q in jr's
+// delay slot.
+void eHeightmapShape::GetInertialTensor(float, mVec3 *out) const {
+    float scale = 0.0f;
+    int a, b, c;
+    __asm__ volatile("mfc1 %0, %1" : "=r"(a) : "f"(scale));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(b) : "f"(scale));
+    __asm__ volatile("mfc1 %0, %1" : "=r"(c) : "f"(scale));
+    __asm__ volatile(
+        ".set push\n"
+        ".set noreorder\n"
+        "mtv %0, S120\n"
+        "mtv %1, S121\n"
+        "mtv %2, S122\n"
+        "jr $ra\n"
+        "sv.q C120, 0($a1)\n"
+        "addu $zero, %3, $zero\n"
+        ".set pop\n"
+        :: "r"(a), "r"(b), "r"(c), "r"(out)
+        : "memory"
+    );
+}
+#pragma control sched=2
+
+#pragma control sched=1
 
 // eHeightmapShape::GetType(void) const — 0x001f4cbc
 const cType *eHeightmapShape::GetType(void) const {
