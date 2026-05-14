@@ -38479,7 +38479,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -38496,7 +38496,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeRoomFWriteR6FcFileK"
+    "mangled_symbol": "__0fFeRoomFWriteR6FcFileK",
+    "src_file": "src/eRoom.cpp",
+    "symbol_name": "__0fFeRoomFWriteR6FcFileK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "46fc5508",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T01:42:16Z"
   },
   {
     "address": "0x0003d5d4",
@@ -74886,7 +74893,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -92041,7 +92048,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000616c",
       "0x00006454",
@@ -92053,7 +92060,21 @@
       "0x000fd6ac"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5IgcCameraTgcEntityFollowStateFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0f5IgcCameraTgcEntityFollowStateFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "46fc5508",
+        "notes": "Closest attempt: function size matches exactly at 780 bytes, but 504 of those bytes still differ from target. Function consists of: cHandle::Write + cOutStream::Write(int,32,true) + 4 inline cOutStreamBit bit-writes (mField_8, _9, _A, _8) + multiple gcScalarMotion/gcHPRMotion calls + 3-iteration float loop. Used m2c-style goto-into-else pattern (goto reload1..4 with label inside else) which produces target's exact bit-write shape \u2014 beqz with sltiu in delay slot, sb, lbu reload, shared sltiu at branch target. Also used s. direct access (not local cOutStreamBit *bs pointer) so bit-writes use s1 directly. The KEY remaining issue is register allocation drift: target uses s3 for the 1-constant in the 3-float loop body (reusing s3 after fp dies) and s5 for the loop iterator. My output uses s4 for the constant, s5 for the loop counter, s3 for iterator. Tried register pinning via `register const float *iter asm(\"$21\")`, `register bool t asm(\"$19\")`, `register const float *fp asm(\"$19\")` and `asm(\"$21\")`, plus inline asm volatile move barrier \u2014 SNC silently ignored all the pinning hints and allocated fp/iter to the same register (s3). Per docs/research/snc-register-allocation.md, SNC's allocator is heuristic-driven and resists hints when liveness analysis sees variables as redundant copies. Even with goto-into-else producing target's beqz pattern, the 4 bit-writes still have different register layouts in surrounding code, making the byte diff stay at 504B (well above permuter's 156B last-mile gate). Permuter cannot run. Suspect the original source either uses different compiler flags (#pragma control on a per-method basis?), or a structurally different bit-write expansion (perhaps WriteBit as a true non-inlined function call) that pre-establishes specific register layouts. Next agent: try declaring 1 as a single static const before the function and reference it instead of using `register int one`, OR try using a real inline WriteBit method with __attribute__((always_inline)) and a non-trivial signature that forces specific register conventions.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:42:16Z",
+        "src_file": "src/gcCamera_gcEntityFollowState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/46fc5508/000fca74__agent_self_reported_failure__src_gcCamera_gcEntityFollowState.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fcd80",
@@ -182636,7 +182657,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00006e7c",

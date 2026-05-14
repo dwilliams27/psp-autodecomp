@@ -22,12 +22,34 @@ class cWriteBlock {
 public:
     int _data[2];
     cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(unsigned int);
+    void Write(int, const float *);
+    void Write(int, const unsigned short *);
+    void WriteBase(const cBase *);
     void End();
 };
 
 class cObject {
 public:
     cObject(cBase *);
+    void Write(cFile &) const;
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class cBaseArray {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class eRoomAABBTree {
+public:
+    void Write(cWriteBlock &) const;
 };
 
 class cType {
@@ -50,6 +72,7 @@ public:
     void Free();
     void RemoveVolume(eVolume *);
     void ClearRoomVolumeList(eVolume *);
+    void Write(cFile &) const;
 };
 
 class eVolumeBody {
@@ -196,6 +219,124 @@ void eRoom::Free() {
 void eRoom::RemoveVolume(eVolume *volume) {
     ClearRoomVolumeList(volume);
     ((eVolumeBody *)volume)->mField24 = 0;
+}
+
+void eRoom::Write(cFile &file) const {
+    cWriteBlock wb(file, 4);
+    ((const cObject *)this)->Write(file);
+
+    wb.Write(*(const unsigned int *)((const char *)this + 0x90));
+    wb.Write(3, (const float *)((const char *)this + 0xA0));
+    wb.Write(3, (const float *)((const char *)this + 0xB0));
+    wb.WriteBase(*(const cBase *const *)((const char *)this + 0xC0));
+
+    void *arr_C4_a = *(void *const *)((const char *)this + 0xC4);
+    int count_C4_a = 0;
+    if (arr_C4_a != 0) {
+        count_C4_a = *(int *)((char *)arr_C4_a - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(count_C4_a);
+
+    void *arr_C4_b = *(void *const *)((const char *)this + 0xC4);
+    int count_C4_b = 0;
+    if (arr_C4_b != 0) {
+        count_C4_b = *(int *)((char *)arr_C4_b - 4) & 0x3FFFFFFF;
+    }
+    int *base_C4 = (int *)arr_C4_b;
+    int i_C4 = 0;
+    if (i_C4 < count_C4_b) {
+        int offset_C4 = 0;
+        int *p_C4 = base_C4 + offset_C4;
+        do {
+            ((const cHandle *)p_C4)->Write(wb);
+            i_C4 += 1;
+            p_C4++;
+        } while (i_C4 < count_C4_b);
+    }
+
+    ((const cHandle *)((const char *)this + 0xCC))->Write(wb);
+    ((const eRoomAABBTree *)((const char *)this + 0xD0))->Write(wb);
+
+    void *arr_E0_a = *(void *const *)((const char *)this + 0xE0);
+    int count_E0_a = 0;
+    if (arr_E0_a != 0) {
+        count_E0_a = *(int *)((char *)arr_E0_a - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(count_E0_a);
+
+    void *arr_E0_b = *(void *const *)((const char *)this + 0xE0);
+    int count_E0_b = 0;
+    if (arr_E0_b != 0) {
+        count_E0_b = *(int *)((char *)arr_E0_b - 4) & 0x3FFFFFFF;
+    }
+    int *base_E0 = (int *)arr_E0_b;
+    int i_E0 = 0;
+    if (i_E0 < count_E0_b) {
+        int offset_E0 = 0;
+        int *p_E0 = base_E0 + offset_E0;
+        do {
+            ((const cHandle *)p_E0)->Write(wb);
+            i_E0 += 1;
+            p_E0++;
+        } while (i_E0 < count_E0_b);
+    }
+
+    void *arr_C8_a = *(void *const *)((const char *)this + 0xC8);
+    int count_C8_a = 0;
+    if (arr_C8_a != 0) {
+        count_C8_a = *(int *)((char *)arr_C8_a - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(count_C8_a);
+
+    void *arr_C8_b = *(void *const *)((const char *)this + 0xC8);
+    int count_C8_b = 0;
+    if (arr_C8_b != 0) {
+        count_C8_b = *(int *)((char *)arr_C8_b - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(count_C8_b, (const unsigned short *)arr_C8_b);
+
+    wb.Write(3, (const float *)((const char *)this + 0x80));
+    wb.Write(3, (const float *)((const char *)this + 0x50));
+    wb.Write(3, (const float *)((const char *)this + 0x60));
+    wb.Write(3, (const float *)((const char *)this + 0x70));
+
+    void *arr_E4_a = *(void *const *)((const char *)this + 0xE4);
+    int count_E4_a = 0;
+    if (arr_E4_a != 0) {
+        count_E4_a = *(int *)((char *)arr_E4_a - 4) & 0x3FFFFFFF;
+    }
+    wb.Write(count_E4_a);
+
+    void *arr_E4_b = *(void *const *)((const char *)this + 0xE4);
+    int count_E4_b = 0;
+    if (arr_E4_b != 0) {
+        count_E4_b = *(int *)((char *)arr_E4_b - 4) & 0x3FFFFFFF;
+    }
+    int *base_E4 = (int *)arr_E4_b;
+    int i_E4 = 0;
+    if (i_E4 < count_E4_b) {
+        int offset_E4 = 0;
+        int *p_E4 = base_E4 + offset_E4;
+        do {
+            ((const cHandle *)p_E4)->Write(wb);
+            i_E4 += 1;
+            p_E4++;
+        } while (i_E4 < count_E4_b);
+    }
+
+    ((const cHandle *)((const char *)this + 0xEC))->Write(wb);
+    ((const cBaseArray *)((const char *)this + 0xD8))->Write(wb);
+    wb.WriteBase(*(const cBase *const *)((const char *)this + 0x104));
+
+    void *p_118_a = *(void *const *)((const char *)this + 0x118);
+    wb.Write((bool)(p_118_a != 0));
+
+    void *p_118_b = *(void *const *)((const char *)this + 0x118);
+    if (p_118_b != 0) {
+        wb.WriteBase((const cBase *)p_118_b);
+    }
+
+    wb.End();
 }
 
 void gcUI::Write(cFile &f) const {
