@@ -1,4 +1,5 @@
 class cBase;
+class cFile;
 class cMemPool;
 class cType;
 class eParticle;
@@ -17,6 +18,28 @@ public:
 class cObject {
 public:
     cObject(cBase *);
+};
+
+class cWriteBlock {
+public:
+    int _data[2];
+    cWriteBlock(cFile &, unsigned int);
+    void Write(bool);
+    void Write(int);
+    void Write(unsigned int);
+    void Write(float);
+    void Write(int, const float *);
+    void End(void);
+};
+
+class cHandle {
+public:
+    void Write(cWriteBlock &) const;
+};
+
+class eDynamicGeomTemplate {
+public:
+    void Write(cFile &) const;
 };
 
 class cNamed {
@@ -51,6 +74,7 @@ public:
     eParticleSystemTemplate(cBase *);
     ~eParticleSystemTemplate(void);
     void Reset(cMemPool *, bool);
+    void Write(cFile &) const;
     const cType *GetType(void) const;
     const cType *GetInstanceType(void) const;
     static cBase *New(cMemPool *, cBase *);
@@ -222,6 +246,66 @@ eParticleSystemTemplate::eParticleSystemTemplate(cBase *parent) : cObject(parent
         ::: "a0", "memory");
     *(int *)((char *)this + 0x184) = 0;
     *(float *)((char *)this + 0x44) = 300.0f;
+}
+
+// -- eParticleSystemTemplate::Write(cFile &) const @ 0x000b6420 --
+#pragma control sched=1
+void eParticleSystemTemplate::Write(cFile &file) const {
+    cWriteBlock wb(file, 7);
+    ((const eDynamicGeomTemplate *)this)->Write(file);
+    wb.Write(*(const bool *)((const char *)this + 0x4D));
+    wb.Write(*(const bool *)((const char *)this + 0x4C));
+    wb.Write(*(const int *)((const char *)this + 0x50));
+    wb.Write(*(const int *)((const char *)this + 0x54));
+    wb.Write(3, (const float *)((const char *)this + 0x60));
+    ((const cHandle *)((const char *)this + 0x78))->Write(wb);
+    wb.Write(*(const bool *)((const char *)this + 0x7C));
+    wb.Write(*(const bool *)((const char *)this + 0x7D));
+    wb.Write(*(const int *)((const char *)this + 0x80));
+    wb.Write(*(const int *)((const char *)this + 0x84));
+    wb.Write(*(const int *)((const char *)this + 0x88));
+    wb.Write(*(const int *)((const char *)this + 0x8C));
+    wb.Write(*(const int *)((const char *)this + 0x90));
+    wb.Write(*(const int *)((const char *)this + 0xB0));
+    wb.Write(*(const bool *)((const char *)this + 0xB4));
+    wb.Write(*(const float *)((const char *)this + 0xB8));
+    wb.Write(*(const float *)((const char *)this + 0xBC));
+    wb.Write(*(const float *)((const char *)this + 0xC0));
+    wb.Write(*(const float *)((const char *)this + 0xC4));
+    wb.Write(*(const int *)((const char *)this + 0xC8));
+    wb.Write(*(const float *)((const char *)this + 0xCC));
+    wb.Write(*(const int *)((const char *)this + 0xD0));
+    wb.Write(*(const float *)((const char *)this + 0xD4));
+    wb.Write(*(const float *)((const char *)this + 0xD8));
+    wb.Write(*(const float *)((const char *)this + 0xDC));
+    wb.Write(*(const float *)((const char *)this + 0x70));
+    wb.Write(*(const float *)((const char *)this + 0x74));
+    wb.Write(*(const float *)((const char *)this + 0xE0));
+    wb.Write(*(const float *)((const char *)this + 0xE8));
+    wb.Write(*(const float *)((const char *)this + 0xE4));
+    wb.Write(*(const float *)((const char *)this + 0xEC));
+    wb.Write(*(const bool *)((const char *)this + 0xF0));
+    wb.Write(*(const float *)((const char *)this + 0xF4));
+    wb.Write(*(const float *)((const char *)this + 0xF8));
+    wb.Write(*(const int *)((const char *)this + 0xFC));
+    wb.Write(*(const int *)((const char *)this + 0x100));
+    wb.Write(*(const int *)((const char *)this + 0x104));
+    wb.Write(*(const unsigned int *)((const char *)this + 0x108));
+    wb.Write(*(const unsigned int *)((const char *)this + 0x10C));
+    wb.Write(*(const float *)((const char *)this + 0x110));
+    wb.Write(*(const float *)((const char *)this + 0x118));
+    wb.Write(*(const float *)((const char *)this + 0x114));
+    wb.Write(*(const float *)((const char *)this + 0x11C));
+    wb.Write(*(const int *)((const char *)this + 0x120));
+    wb.Write(*(const int *)((const char *)this + 0x124));
+    wb.Write(*(const bool *)((const char *)this + 0x128));
+    wb.Write(3, (const float *)((const char *)this + 0x130));
+    wb.Write(*(const int *)((const char *)this + 0x140));
+    wb.Write(*(const bool *)((const char *)this + 0x94));
+    wb.Write(*(const float *)((const char *)this + 0x98));
+    wb.Write(3, (const float *)((const char *)this + 0xA0));
+    wb.Write(*(const float *)((const char *)this + 0x48));
+    wb.End();
 }
 
 // -- eParticleSystemTemplate::Reset(cMemPool *, bool) @ 0x0007b578 --
