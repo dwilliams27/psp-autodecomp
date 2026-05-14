@@ -70130,7 +70130,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -70362,7 +70362,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -197234,7 +197234,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -197242,7 +197242,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoCameraFollowEntityKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcDoCameraFollowEntityKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "d02accd4",
+        "notes": "Got the structure mostly right: type-init chain (5 levels), dcast loop, inline gcAction-style operator= bit-fiddling at offset 8, gcDesiredEntity::operator= calls for the +0x18 (gcDesiredCamera) and +0x4C (gcDesiredObject) members, full inline gcDesiredValue operator= for the +0x44 self-check pattern (copied verbatim from gcLobbyGameStrings.cpp::operator=), and the byte/int copy tail. After fixing register allocation (don't declare p44_this upfront \u2014 let SNC compute it inline so it gets allocated to s8 not s3), our output is 792 bytes vs expected 816 \u2014 a 24-byte (6-instruction) shortfall. The structural diff is: SNC emits `beql a0,s8,end-of-block; <byte-load in delay>; <fall-through processing>` while expected emits `bnel a0,s8,processing-label; <oldValue-load in delay>; b end; <byte-load in delay>; processing-label: ...`. Both produce equivalent semantics for `if (X != Y) { body }`. Expected pre-loads oldValue into a2 via the bnel delay slot AND pre-loads byte via the b delay slot, then uses extra `move a3,a0; move a0,a2` to reorganize registers inside the dtor path. Net diff: +8B (bnel diamond) + +8B (extra reg moves) + +8B (b.;nop pad) = 24B exactly. Tried: (1) using a method call `((gcDesiredValue*)..)->operator=(...)` \u2014 went WORSE (780B because of method-call register pressure changing s8 to s1); (2) pre-loading `int oldValue = *...` before the if-check \u2014 went WORSE (788B, SNC moved logic around); (3) #pragma control sched=1 \u2014 also 788B. Root cause: SNC's scheduler heuristic chose beql here instead of bnel+b; the bnel pattern fills 2 delay slots usefully but is paid for with the extra `b` instruction. Cannot force the choice via source-level transformations easily. Permuter cannot run (size mismatch error); would need a way to coerce the bnel branch shape. Next agent could try: inserting __asm__ volatile memory barriers between the dv-block and byte-copy, declaring the byte load as a separate sequence point, or using a goto-based structure to force the bnel pattern.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:15:14Z",
+        "src_file": "src/gcDoCameraFollowEntity_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/d02accd4/00294edc__agent_self_reported_failure__src_gcDoCameraFollowEntity_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029520c",
@@ -197441,7 +197455,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680",
@@ -197449,7 +197463,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oWgcDoCameraFollowEntitydtv"
+    "mangled_symbol": "__0oWgcDoCameraFollowEntitydtv",
+    "src_file": "src/gcDoCameraFollowEntity_dtor.cpp",
+    "symbol_name": "__0oWgcDoCameraFollowEntitydtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d02accd4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T03:15:14Z"
   },
   {
     "address": "0x00295fb4",
