@@ -39930,7 +39930,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -40214,7 +40214,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -67714,7 +67714,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -67722,7 +67722,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUeProjectedDynamicMtldtv"
+    "mangled_symbol": "__0oUeProjectedDynamicMtldtv",
+    "failure_notes": [
+      {
+        "session": "89ee2e1d",
+        "notes": "category=REG_ALLOC. Closest source is a split-TU canonical C++ destructor based on the matched eOnePassModelMtl destructor pattern. It matches stack frame, control flow, vtable stores, PlatformFree call, both array release loops, eMaterial destructor call, deleting-destructor tail, and padded terminal branch. The remaining diff is 10 bytes: in the first 0x64 array-release block SNC assigns the live entries/basePtr value to s3 and the second-array address to s2, while the original uses s2 for entries/basePtr and s3 for the second-array address. The second array block and deleting tail already use the expected registers.\n\nTried the direct eOnePassModelMtl pattern, adding the pool-delete register barriers, reordering p64/p60 declarations, moving p64/p60 lifetimes before PlatformFree, and explicit register-variable constraints. The barriers reduced the mismatch from 60 bytes to 10; lifetime/register-constraint variants either stayed at 10 bytes or worsened to 32/307 bytes. Ran tools/permuter.py for 600s with --save-best on 0x00083150: 17,208 candidates generated, 4,603 compiled, zero improvements, best remained 10 bytes. Suspect SNC context-dependent s2/s3 allocation drift from compiling this split TU rather than the original monolithic eAll_psp.obj.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:15:59Z",
+        "src_file": "src/eProjectedDynamicMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/89ee2e1d/00083150__agent_self_reported_failure__src_eProjectedDynamicMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00083308",
@@ -68170,7 +68184,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -68540,7 +68554,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69369,7 +69383,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69377,7 +69391,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTeSilhouetteModelMtldtv"
+    "mangled_symbol": "__0oTeSilhouetteModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "89ee2e1d",
+        "notes": "category=REG_ALLOC. Closest source is the same split-TU destructor pattern as eProjectedDynamicMtl, with the eSilhouetteModelMtl vtable and PlatformFree callee. It matches stack frame, control flow, vtable stores, PlatformFree call, both array release loops, eMaterial destructor call, deleting-destructor tail, and padded terminal branch. The remaining diff is the same 10-byte first-array s2/s3 allocation swap: generated code uses s3 for the first entries/basePtr value and s2 for the second-array address, while the original uses s2 for entries/basePtr and s3 for the second-array address.\n\nTried the same source restructurings as the eProjectedDynamicMtl sibling: direct destructor pattern, pool-delete barriers, p64/p60 declaration reorder, pre-PlatformFree lifetimes, and explicit register-variable constraints. Because this function is byte-identical in shape to eProjectedDynamicMtl aside from constants/callee relocation, the 600s permuter run on 0x00083150 is representative: 17,208 candidates generated, 4,603 compiled, zero improvements, best remained 10 bytes. Suspect the same SNC context-dependent s2/s3 allocation drift from split-TU compilation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:15:59Z",
+        "src_file": "src/eSilhouetteModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/89ee2e1d/00087068__agent_self_reported_failure__src_eSilhouetteModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00087220",
@@ -174121,7 +174149,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc"
@@ -193195,7 +193223,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0000165c",
       "0x001a5774",
@@ -195030,7 +195058,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
@@ -199589,7 +199617,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -214387,7 +214415,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -214624,7 +214652,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -233140,13 +233168,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcValEntityVariabledtv"
+    "mangled_symbol": "__0oTgcValEntityVariabledtv",
+    "src_file": "src/gcValEntityVariable.cpp",
+    "symbol_name": "__0oTgcValEntityVariabledtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6df163cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:23:56Z"
   },
   {
     "address": "0x00341018",
@@ -235058,13 +235094,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oZgcValHasPartialControllerdtv"
+    "mangled_symbol": "__0oZgcValHasPartialControllerdtv",
+    "src_file": "src/gcValHasPartialController.cpp",
+    "symbol_name": "__0oZgcValHasPartialControllerdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "6df163cc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:23:56Z"
   },
   {
     "address": "0x00346e98",
