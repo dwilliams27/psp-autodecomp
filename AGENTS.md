@@ -15,6 +15,16 @@ Autonomous decompilation of PSP games using coding agent swarms.
 
 **Start of session:** Read the most recent file in `docs/sessions/` for current strategic context, active campaigns, and known blockers. Update it as you work.
 
+## Shared agent skills
+
+Repo-local skills are shared policy and workflow assets for Claude and Codex.
+
+- Source of truth: `.claude/skills/<skill>/SKILL.md`. Claude discovers these directly from the repo.
+- Codex discovers skills from `${CODEX_HOME:-~/.codex}/skills`, so after adding or editing a repo skill, run `./scripts/sync_agent_skills.sh` to install/update Codex symlinks.
+- Verify skill sync with `./scripts/sync_agent_skills.sh --check`. A new Codex session is required before newly synced skills appear in Codex's active skill list.
+- Do not edit Codex-installed skill copies directly. Edit `.claude/skills/...` and rerun the sync script.
+- When changing cross-agent workflow policy, keep `AGENTS.md`, `CLAUDE.md`, and relevant shared skills in sync in the same commit.
+
 ## Current target
 
 **Days of Thunder** (USA, PSP Mini, NPUZ00185). ViciousEngine/SNC (SN Systems ProDG). 3.57 MB .text, ~9K named functions, full debug symbols.

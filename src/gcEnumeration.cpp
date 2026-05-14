@@ -63,16 +63,6 @@ public:
     void Write(cWriteBlock &) const;
 };
 
-struct gcEnumerationGetResult {
-    int owner;
-    int value;
-};
-
-struct HandleEntry {
-    char pad[0x30];
-    int handle;
-};
-
 class cNamed {
 public:
     static cBase *New(cMemPool *, cBase *);
@@ -84,7 +74,6 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_000998F0;
-extern HandleEntry *D_00048890[];
 
 class gcEnumeration : public cObject {
 public:
@@ -98,8 +87,6 @@ public:
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
-    gcEnumerationGetResult Get(int) const;
-    int IsIndexed(void) const;
     ~gcEnumeration();
     void Write(cFile &) const;
 
@@ -157,80 +144,6 @@ void gcEnumeration::Write(cFile &file) const {
     wb.Write(mField50);
     mHandle.Write(wb);
     wb.End();
-}
-
-// ── gcEnumeration::Get(int) const @ 0x000d478c ──
-gcEnumerationGetResult gcEnumeration::Get(int index) const {
-    int handle = *(int *)((const char *)this + 0x54);
-    HandleEntry *entry;
-    if (handle != 0) {
-        HandleEntry *candidate = D_00048890[handle & 0xFFFF];
-        entry = 0;
-        if (candidate != 0) {
-            if (candidate->handle == handle) {
-                entry = candidate;
-            }
-        }
-    } else {
-        entry = 0;
-    }
-
-    if (entry != 0) {
-        gcEnumeration *target = 0;
-        if (handle != 0) {
-            target = (gcEnumeration *)D_00048890[handle & 0xFFFF];
-        }
-        gcEnumerationGetResult child = target->Get(index);
-        int value = child.value;
-        gcEnumerationGetResult result;
-        result.owner = 0;
-        if (this != 0) {
-            result.owner = *(int *)((const char *)this + 0x30);
-        }
-        result.value = value;
-        return result;
-    }
-
-    if (IsIndexed()) {
-        int value = (index & 0xFFFF) | 0x10000;
-        gcEnumerationGetResult result;
-        result.owner = 0;
-        if (this != 0) {
-            result.owner = *(int *)((const char *)this + 0x30);
-        }
-        result.value = value;
-        return result;
-    }
-
-    if (index >= 0) {
-        void **items = (void **)*(void **)((const char *)this + 0x44);
-        int count = 0;
-        if (items != 0) {
-            count = ((int *)items)[-1];
-        }
-        if (index < count) {
-            void *item = items[index];
-            if (item != 0) {
-                int value = *(int *)((char *)item + 0x24);
-                gcEnumerationGetResult result;
-                result.owner = 0;
-                if (this != 0) {
-                    result.owner = *(int *)((const char *)this + 0x30);
-                }
-                result.value = value;
-                return result;
-            }
-        }
-    }
-
-    int value = 0;
-    gcEnumerationGetResult result;
-    result.owner = 0;
-    if (this != 0) {
-        result.owner = *(int *)((const char *)this + 0x30);
-    }
-    result.value = value;
-    return result;
 }
 
 // Original object keeps this branch-loop pad inside the destructor symbol.

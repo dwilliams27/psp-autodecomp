@@ -107180,7 +107180,8 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fXgcDesiredEntityTemplateOGetDesiredTypevK",
-    "src_file": "src/gcDesiredEntityTemplate.cpp"
+    "src_file": "src/gcDesiredEntityTemplate.cpp",
+    "symbol_name": "__0fXgcDesiredEntityTemplateOGetDesiredTypevK"
   },
   {
     "address": "0x001282e8",

@@ -9,11 +9,6 @@ class cFile;
 class cMemPool;
 class cType;
 
-class cMemPool {
-public:
-    static cMemPool *GetPoolFromPtr(const void *);
-};
-
 class cType {
 public:
     static cType *InitializeType(const char *, const char *, unsigned int,
@@ -33,7 +28,6 @@ public:
 class cBaseArray {
 public:
     int _data[2];
-    cBaseArray &operator=(const cBaseArray &);
     void Write(cWriteBlock &) const;
 };
 
@@ -57,7 +51,6 @@ public:
     bool GetText(char *, bool) const;
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
-    void AssignCopy(const cBase *);
 };
 
 extern cType *D_000385DC;
@@ -72,24 +65,6 @@ struct GetTextSlot {
     short offset;
     short pad;
     void (*fn)(void *, char *);
-};
-
-struct TypeDispatchEntry {
-    short offset;
-    short _pad;
-    cType *(*fn)(void *, short, void *);
-};
-
-struct DeleteDispatchEntry {
-    short offset;
-    short _pad;
-    void (*fn)(void *, int, void *, short);
-};
-
-struct CloneDispatchEntry {
-    short offset;
-    short _pad;
-    int (*fn)(void *, cMemPool *, int, void *);
 };
 
 void cStrAppend(char *, const char *, ...);
@@ -144,126 +119,6 @@ const cType *gcDesiredEventParams::GetType(void) const {
                                            &gcDesiredEventParams::New, 0, 0, 0);
     }
     return D_0009F45C;
-}
-
-void gcDesiredEventParams::AssignCopy(const cBase *base) {
-    const gcDesiredEventParams *other = 0;
-    char *destSlot = (char *)this + 0x18;
-
-    if (base != 0) {
-        if (D_0009F45C == 0) {
-            if (D_000385DC == 0) {
-                D_000385DC = cType::InitializeType(
-                    (const char *)0x36D894, (const char *)0x36D89C,
-                    1, 0, 0, 0, 0, 0);
-            }
-            D_0009F45C = cType::InitializeType(
-                0, 0, 0x153, D_000385DC, &gcDesiredEventParams::New,
-                0, 0, 0);
-        }
-
-        void *classDesc = *(void **)((const char *)base + 4);
-        cType *target = D_0009F45C;
-        TypeDispatchEntry *entry = (TypeDispatchEntry *)((char *)classDesc + 8);
-        short offset = entry->offset;
-        cType *(*fn)(void *, short, void *) = entry->fn;
-        cType *type = fn((char *)base + offset, offset, fn);
-        int isValid;
-
-        if (target != 0) {
-            goto have_target;
-        }
-        isValid = 0;
-        goto cast_done;
-
-have_target:
-        if (type != 0) {
-loop_cast:
-            if (type == target) {
-                isValid = 1;
-            } else {
-                type = *(cType **)((char *)type + 0x1C);
-                if (type != 0) {
-                    goto loop_cast;
-                }
-                goto invalid_cast;
-            }
-        } else {
-invalid_cast:
-            isValid = 0;
-        }
-
-cast_done:
-        if (isValid != 0) {
-            other = (const gcDesiredEventParams *)base;
-        }
-    }
-
-    const cBaseArray &srcArr0 =
-        *(const cBaseArray *)((const char *)other + 0x08);
-    ((cBaseArray *)((char *)this + 0x08))->operator=(srcArr0);
-    const cBaseArray &srcArr1 =
-        *(const cBaseArray *)((const char *)other + 0x10);
-    ((cBaseArray *)((char *)this + 0x10))->operator=(srcArr1);
-
-    if ((const char *)other + 0x18 != destSlot) {
-        int oldValue = *(int *)((char *)this + 0x18);
-        int keepOld = 1;
-        int oldTag = oldValue & 1;
-        if (oldTag != 0) {
-            keepOld = 0;
-        }
-        if (keepOld != 0) {
-            int oldRaw = oldValue;
-            int tagged = 0;
-            if (oldTag != 0) {
-                tagged = 1;
-            }
-            int stored;
-            if (tagged != 0) {
-                stored = oldValue & ~1;
-                stored = stored | 1;
-            } else {
-                stored = *(int *)oldValue;
-                stored = stored | 1;
-            }
-            *(int *)((char *)this + 0x18) = stored;
-            if (oldRaw != 0) {
-                DeleteDispatchEntry *rec =
-                    (DeleteDispatchEntry *)(*(char **)(oldRaw + 4) + 0x50);
-                short off = rec->offset;
-                void (*fn)(void *, int, void *, short) = rec->fn;
-                fn((char *)oldRaw + off, 3, (void *)fn, off);
-            }
-        }
-
-        int srcValue = *(int *)((const char *)other + 0x18);
-        int cloneIt = 1;
-        int srcTag = srcValue & 1;
-        if (srcTag != 0) {
-            cloneIt = 0;
-        }
-        if (cloneIt != 0) {
-            char *classDesc = *(char **)(srcValue + 4);
-            CloneDispatchEntry *rec = (CloneDispatchEntry *)(classDesc + 0x10);
-            short off = rec->offset;
-            char *srcBase = (char *)srcValue + off;
-            cMemPool *pool = cMemPool::GetPoolFromPtr(destSlot);
-            int current = *(int *)((char *)this + 0x18);
-            int tagged = 0;
-            if (current & 1) {
-                tagged = 1;
-            }
-            int cloneArg;
-            if (tagged != 0) {
-                cloneArg = current & ~1;
-            } else {
-                cloneArg = *(int *)current;
-            }
-            void *fn = (void *)rec->fn;
-            *(int *)((char *)this + 0x18) = rec->fn(srcBase, pool, cloneArg, fn);
-        }
-    }
 }
 
 bool gcDesiredEventParams::GetText(char *buf, bool addSeparator) const {

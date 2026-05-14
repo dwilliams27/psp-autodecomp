@@ -13,6 +13,8 @@ Usage:
 """
 
 import argparse
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import sys
 
@@ -20,11 +22,56 @@ from common import load_db, save_db
 from byte_match import CompileFailed, check_byte_match, compile_src
 
 
+def default_jobs() -> int:
+    return max(1, min(8, os.cpu_count() or 1))
+
+
+def normalize_src_file(src_file: str) -> str:
+    normalized = os.path.normpath(src_file)
+    if os.path.isabs(normalized):
+        try:
+            normalized = os.path.relpath(normalized, os.getcwd())
+        except ValueError as exc:
+            raise ValueError(f"src_file is not under this checkout: {src_file}") from exc
+    if normalized.startswith("..") or os.path.isabs(normalized):
+        raise ValueError(f"src_file is not repo-relative: {src_file}")
+    return normalized
+
+
+def verify_source_group(src_file: str, funcs: list[tuple[int, dict]]) -> list[tuple[int, str, dict, object]]:
+    results: list[tuple[int, str, dict, object]] = []
+    try:
+        o_path = compile_src(src_file)
+    except CompileFailed as e:
+        msg = str(e)[:200]
+        return [(idx, "compile_failure", func, msg) for idx, func in funcs]
+    except RuntimeError as e:
+        msg = str(e)[:200]
+        return [(idx, "tooling_error", func, msg) for idx, func in funcs]
+
+    for idx, func in funcs:
+        try:
+            result = check_byte_match(func, src_file, o_path=o_path)
+        except CompileFailed as e:
+            results.append((idx, "compile_failure", func, str(e)[:200]))
+        except RuntimeError as e:
+            results.append((idx, "tooling_error", func, str(e)[:200]))
+        else:
+            results.append((idx, "result", func, result))
+    return results
+
+
 def verify_all(verbose: bool = False, fix: bool = False,
-               fix_compile_failures: bool = False) -> int:
+               fix_compile_failures: bool = False,
+               jobs: int = None) -> int:
     """Returns a non-zero code when the DB is in a state the operator
     needs to fix (mismatches found, or tooling errors that prevent a
     clean audit). 0 means "everything verified, no action needed.\""""
+    if jobs is None:
+        jobs = default_jobs()
+    if jobs < 1:
+        raise ValueError("--jobs must be >= 1")
+
     functions = load_db()
     matched = [f for f in functions if f["match_status"] == "matched"]
     if not matched:
@@ -35,40 +82,59 @@ def verify_all(verbose: bool = False, fix: bool = False,
     problems: list[tuple[dict, str]] = []
     compile_failures: list[tuple[dict, str]] = []
     tooling_errors: list[tuple[dict, str]] = []
-    compiled_objects: dict[str, str] = {}
-    compile_errors: dict[str, str] = {}
+    by_src: dict[str, list[tuple[int, dict]]] = defaultdict(list)
+    result_by_index: dict[int, tuple[str, object]] = {}
+    queued_indices: set[int] = set()
 
-    for func in matched:
+    for idx, func in enumerate(matched):
         src_file = func.get("src_file")
         if not src_file:
             problems.append((func, "no src_file in DB entry — run the backfill migration"))
             continue
-        if not os.path.exists(src_file):
-            problems.append((func, f"src_file missing: {src_file}"))
-            continue
-
         try:
-            if src_file in compile_errors:
-                raise CompileFailed(compile_errors[src_file])
-            o_path = compiled_objects.get(src_file)
-            if o_path is None:
-                o_path = compile_src(src_file)
-                compiled_objects[src_file] = o_path
-            result = check_byte_match(func, src_file, o_path=o_path)
-        except CompileFailed as e:
-            # Compile failure means the current source the DB points at
-            # won't build. That's a per-function failure — the match is
-            # no longer verifiable from this source. Collect separately
-            # so the fix loop can flip these to `failed` when the operator
-            # explicitly opts into compile-failure repair.
-            compile_errors[src_file] = str(e)[:200]
-            compile_failures.append((func, compile_errors[src_file]))
+            normalized_src_file = normalize_src_file(src_file)
+        except ValueError as e:
+            tooling_errors.append((func, str(e)))
+            continue
+        if not os.path.exists(normalized_src_file):
+            problems.append((func, f"src_file missing: {normalized_src_file}"))
+            continue
+        by_src[normalized_src_file].append((idx, func))
+        queued_indices.add(idx)
+
+    if by_src:
+        print(f"Verifying {len(matched)} matched functions from {len(by_src)} source files with {jobs} jobs.")
+
+    if jobs == 1:
+        for src_file, funcs in by_src.items():
+            for idx, status, func, payload in verify_source_group(src_file, funcs):
+                result_by_index[idx] = (status, payload)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as executor:
+            futures = [
+                executor.submit(verify_source_group, src_file, funcs)
+                for src_file, funcs in by_src.items()
+            ]
+            for future in as_completed(futures):
+                for idx, status, func, payload in future.result():
+                    result_by_index[idx] = (status, payload)
+
+    for idx, func in enumerate(matched):
+        outcome = result_by_index.get(idx)
+        if outcome is None:
+            if idx in queued_indices:
+                tooling_errors.append((func, "internal verifier error: missing worker result"))
+            continue
+        status, payload = outcome
+        if status == "compile_failure":
+            compile_failures.append((func, payload))
             print(f"  ✗ {func['address']}  {func['size']:>4}B  {func['name']} — compile_failed")
             continue
-        except RuntimeError as e:
-            tooling_errors.append((func, str(e)[:200]))
+        if status == "tooling_error":
+            tooling_errors.append((func, payload))
             continue
 
+        result = payload
         if result.ok:
             verified += 1
             if func.get("symbol_name") != result.sym_name:
@@ -148,11 +214,15 @@ def main() -> int:
                     help="With --fix, also flip compile failures to 'failed'. "
                          "Omit for narrow repairs that should only unmatch "
                          "byte/provenance problems.")
+    ap.add_argument("--jobs", type=int, default=default_jobs(),
+                    help=f"Number of source files to verify in parallel "
+                         f"(default: {default_jobs()}, use 1 for sequential).")
     args = ap.parse_args()
     return verify_all(
         verbose=args.verbose,
         fix=args.fix,
         fix_compile_failures=args.fix_compile_failures,
+        jobs=args.jobs,
     )
 
 

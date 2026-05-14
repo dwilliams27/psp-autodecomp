@@ -79,7 +79,6 @@ public:
     ~nwConnection();
     void Close();
     void SetError(nwConnectionError);
-    void Update(cTimeValue);
 };
 
 class cMemPool {
@@ -133,8 +132,6 @@ public:
     static void UpdateAll(cTimeValue);
     static nwSocket *GetSocket(nwSocketHandle);
     static nwConnection *GetConnection(nwConnectionHandle);
-    void DestroyConnection(nwConnectionHandle);
-    void ReceivePackets(void);
 };
 
 extern "C" {
@@ -204,27 +201,6 @@ nwSocket::nwSocket(nwTransport *transport, nwSocketHandle handle,
       mField2C(0)
 {
     cStrCopy(mName, "");
-}
-
-// ------------------------------------------------------------------
-void nwSocket::Update(cTimeValue dt) {
-    ReceivePackets();
-    int i = 0;
-    if (i < mMaxConnections) {
-        __asm__ volatile("" ::: "memory");
-        int offset = 0;
-        do {
-            nwConnection *conn = *(nwConnection **)((char *)mConnections + offset);
-            if (conn != 0) {
-                conn->Update(dt);
-                if (*(int *)((char *)conn + 0x20) == 0) {
-                    DestroyConnection(((ConnLite *)conn)->mHandle);
-                }
-            }
-            i++;
-            offset += 4;
-        } while (i < mMaxConnections);
-    }
 }
 
 // ------------------------------------------------------------------

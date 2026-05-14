@@ -74,11 +74,6 @@ struct DeleteRecord {
     void (*fn)(void *, void *);
 };
 
-struct gcStringTableEntry {
-    char pad[0x18];
-    const wchar_t *mText;
-};
-
 class gcTableColumnStringTablePoolNS {
 public:
     static gcTableColumnStringTablePoolNS *GetPoolFromPtr(const void *);
@@ -110,7 +105,6 @@ struct gcTableColumnStringTable : public gcTableColumn {
     const cType *GetType(void) const;
     int IsValid(void) const;
     void *GetContainer(void) const;
-    void Get(int row, wchar_t *buf, int bufsize) const;
 
     // Inline so SNC inlines it into the deleting-destructor variant.
     static void operator delete(void *p) {
@@ -122,9 +116,6 @@ struct gcTableColumnStringTable : public gcTableColumn {
         rec->fn(block + rec->offset, p);
     }
 };
-
-void cStrCopy(wchar_t *, const wchar_t *, int);
-extern void *D_00038890[];
 
 static cType *type_base;
 static cType *type_intermediate;
@@ -225,74 +216,4 @@ const cType *gcTableColumnStringTable::GetType(void) const {
                                                                0, 0, 0);
     }
     return type_gcTableColumnStringTable;
-}
-
-// 0x00272388 — fetch string-table row text for this column's bound table.
-void gcTableColumnStringTable::Get(int row, wchar_t *buf, int bufsize) const {
-    int idx = mHandle.mIndex;
-    void *valid;
-    if (idx == 0) {
-        valid = 0;
-    } else {
-        void *candidate = D_00038890[idx & 0xFFFF];
-        valid = 0;
-        if (candidate != 0 && *(int *)((char *)candidate + 0x30) == idx) {
-            valid = candidate;
-        }
-    }
-
-    if (valid != 0) {
-        void *table = 0;
-        if (idx != 0) {
-            table = D_00038890[idx & 0xFFFF];
-        }
-
-        gcStringTableEntry *entry = 0;
-        if (row >= 0) {
-            gcStringTableEntry **data =
-                *(gcStringTableEntry ***)((char *)table + 0x44);
-            int count = 0;
-            if (data != 0) {
-                count = ((int *)data)[-1];
-            }
-            if (row < count) {
-                entry = data[row];
-            }
-        }
-
-        if (entry != 0) {
-            __asm__ volatile("" ::: "memory");
-
-            void *table2 = 0;
-            if (idx != 0) {
-                table2 = D_00038890[idx & 0xFFFF];
-            }
-
-            gcStringTableEntry *entry2 = 0;
-            if (row >= 0) {
-                gcStringTableEntry **data =
-                    *(gcStringTableEntry ***)((char *)table2 + 0x44);
-                int count = 0;
-                if (data != 0) {
-                    count = ((int *)data)[-1];
-                }
-                if (row < count) {
-                    entry2 = data[row];
-                }
-            }
-
-            const wchar_t *text;
-            if (entry2->mText != 0) {
-                text = entry2->mText;
-            } else {
-                text = (const wchar_t *)0x36DAF4;
-            }
-            cStrCopy(buf, text, bufsize);
-            return;
-        }
-    }
-
-    if (bufsize > 0) {
-        *buf = 0;
-    }
 }
