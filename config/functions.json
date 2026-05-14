@@ -26039,7 +26039,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000062e0",
       "0x00006454",
@@ -26051,7 +26051,21 @@
       "0x00108140"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeAudioFWriteR6KcOutStreamT"
+    "mangled_symbol": "__0fGeAudioFWriteR6KcOutStreamT",
+    "failure_notes": [
+      {
+        "session": "7f5942e0",
+        "notes": "Large 836B function with inlined cOutStream bit-writes (3 of them) + channel iteration over 4 eAudioGroups at 0x40E88 with channels at 0x37D0D4. Reached ~820 bytes (close on size). Major outstanding issues: (1) SNC strength-reduces (groupOff + 0x10) + faderBase in fader loop into a single running pointer (s3) instead of keeping groupOff (s5) and faderBase (s7) separate as in expected. This propagates register-allocation drift through the rest of the function. (2) SNC hoists overflow lbu OUT of the channel loop (loaded once at pre-loop into a3, reused for first bit-write) \u2014 my source has the read inside the if block but SNC moves it. (3) First overflow check in expected uses bnezl with sltiu in delay slot, mine uses bnez with sw mBitPos in delay slot due to different scheduling. Patterns tried: (a) explicit faderBase variable, (b) inline (base + 8), (c) struct-field access for floats and field4C (this fixed extra addiu+lwc1 patterns into folded lwc1 24(s1)), (d) using grp->mChannelEnd directly without local variable (this fixed bnezl filter delay slots), (e) explicit unsigned char + & 0xFF for bool conversions (fixed andi+sltu+andi pattern). Still ~120 bytes differ at byte level despite size being close. Need to investigate forcing groupOff to stay separate from running pointer (maybe via __asm__ barrier between groupOff and faderPtr expression, or unfoldable expression structure) and preventing overflow hoist. Permuter (5+ min) might help close remaining gap.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:11:53Z",
+        "src_file": "src/eAudio.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7f5942e0/0001da88__agent_self_reported_failure__src_eAudio.cpp"
+      }
+    ]
   },
   {
     "address": "0x0001ddcc",
@@ -45045,7 +45059,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x000055d0",
@@ -45060,7 +45074,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeMeshShapeFWriteR6FcFileK"
+    "mangled_symbol": "__0fKeMeshShapeFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "fcbc4f4e",
+        "notes": "Implemented eMeshShape::Write with sched=1 context inherited from the surrounding eMeshShape methods, preserving eShape::Write, unsigned-short write, vector writes, all six dynamic-array count/write loops, element strides, and End placement. Typed element structs were added locally so SNC emits the zero-offset addu before each loop body, matching the expected loop shape through the final eMeshShapeTriList array.\n\nClosest build is 872 bytes versus the expected 876 bytes. The remaining visible difference is near the final 0x94 array: original emits move s1,s0 before cWriteBlock::Write(count) so it can reload arr94 through s1 after s0 becomes the count; generated code reloads through s0 directly and omits that move. Tried a self94 temporary, fixed-register self94, and an empty asm register barrier, but SNC optimized them away. compare_func.py also reports an existing eMeshShape::Collide mismatch in this file; the new Write body itself remains the unresolved target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:14:58Z",
+        "src_file": "src/eMeshShape.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/fcbc4f4e/0004eac0__agent_self_reported_failure__src_eMeshShape.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004ee2c",
@@ -46373,7 +46401,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4",
@@ -46381,7 +46409,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeHeightmapTemplatedtv"
+    "mangled_symbol": "__0oSeHeightmapTemplatedtv",
+    "failure_notes": [
+      {
+        "session": "7f5942e0",
+        "notes": "Created split-TU file following ePath_dtor.cpp pattern. Got to MISMATCH: 16/348 bytes differ. Size matches (348B). Structural diff is purely in the data84 deleting destructor inline call sequence (bytes 0x38-0x50, 7 instructions). Expected: lw a1,4(a0); addiu a1,a1,80; lh a2,0(a1); addu a0,a0,a2; lw a2,4(a1); jalr a2; li a1,3 (delay). Mine: lw a2,4(a0); li a1,3; addiu a2,a2,80; lh a3,0(a2); lw a2,4(a2); jalr a2; addu a0,a0,a3 (delay). Both 7 instructions but expected reuses a1 across vtable\u2192entry\u2192arg sequence while mine reserves a1 early for the arg=3 constant, forcing offset into a3 instead of a2 and base computation into the delay slot. This is REG_ALLOC drift \u2014 SNC chooses to pre-load the call arg early in mine. Tried: (a) inline call without fn variable (no change), (b) DeleteEntry struct vs raw (entry+4) access (DeleteEntry folds correctly to lw 4(a1)), (c) memory barrier after vtable store (fixed earlier issue where data84 was loaded to a1 then moved to a0 \u2014 saved 1 instruction). Suggestion for next agent: try inline asm hint to force a1 = 3 only at call site, or restructure the inline call so the second arg uses a value that depends on the vtable manipulation. Permuter recommended (5+ min).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:11:53Z",
+        "src_file": "src/eHeightmapTemplate_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7f5942e0/00052168__agent_self_reported_failure__src_eHeightmapTemplate_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x000522c4",
@@ -47504,13 +47546,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oKeLightGriddtv"
+    "mangled_symbol": "__0oKeLightGriddtv",
+    "failure_notes": [
+      {
+        "session": "2a295f56",
+        "notes": "category=REG_ALLOC. 10-byte s2/s3 regalloc swap. Reached structural match using `class eLightGrid : public cBase` to inline cBase::~cBase parent vtable stomp at 0x37E6A8, file-scope inline `operator delete` (eDecalSystem-style, no free fallback), and `__asm__(\".word 0x1000ffff\\n.word 0x00000000\\n.size __0oKeLightGriddtv, 0x1a8\\n\")` directive to add the trailing trap pad (matches eSky::~eSky pattern). Memory barrier between `off = rec->offset` and `char *base = block + off` (eSimulatedController pattern) collapsed the operand pattern from 60-byte mismatch down to 10-byte regalloc-only diff. Remaining diff: target uses s2 for `entries` and s3 for `nodesAddr`, ours uses opposite. Tried (a) declaring nodesAddr first vs samplesAddr first, (b) shared function-scope `entries` variable vs per-block declarations, (c) #pragma control sched=1 and sched=2. Permuter ran 5 minutes generating 7632 candidates with zero improvement. Per docs/research/snc-register-allocation.md this is canonical SNC regalloc drift; source has no leverage.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:37:13Z",
+        "src_file": "src/eLightGrid_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/2a295f56/00054e8c__agent_self_reported_failure__src_eLightGrid_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00055034",
@@ -63638,7 +63694,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00044cd0"
@@ -63657,7 +63713,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00211e44"
     ],
@@ -65095,7 +65151,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -65103,7 +65159,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSeProjectedModelMtldtv"
+    "mangled_symbol": "__0oSeProjectedModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "f4a5ef5c",
+        "notes": "category=REG_ALLOC. Diff = 10 bytes, pure s2<->s3 register swap in the first array-cleanup block (offsets 0x4c-0xc8). Expected uses s3 for arr60Addr (long-lived address kept across function calls) and s2 for first-block entries; our build assigns the opposite. After 0xc8 the second block matches identically because the second entries reuses s2 either way. Approach: copied eDecalSystem_dtor/eSimulatedController_dtor split-TU pattern (local class redecl, inline global operator delete, .word/.size trampoline directives, #pragma control sched=1, eMaterial_dtor extern with __0oJeMaterialdtv mangling). Original attempt without memory barrier between `short off = rec->offset;` and `char *base = block + off;` gave 60-byte diff due to scheduler reordering within the inner delete tail; adding `__asm__ volatile(\"\" ::: \"memory\")` barrier (in both array delete tails AND the inline operator delete) collapsed the diff to 10 bytes \u2014 exactly matching eSimulatedController_dtor.cpp's pattern. Variations tried: (a) declaration order swap arr60Addr first, (b) function-scope shared `entries` variable, (c) block-scoped entries (final, canonical) \u2014 all produce the same 10-byte s2/s3 swap. Permuter ran 300s, 7128 candidates generated/3122 compiled, zero improvement. This fits docs/research/snc-register-allocation.md (callee-save rename, control flow/stack/calls all match, permuter stuck) \u2014 the doc says 'typically <=8 bytes' but the pattern is exact: callee-save register naming swap with no source leverage. The 10-byte value vs the 8-byte threshold is because addiu rs/rt are both renamed in one instruction (0x90: addiu sX,sX,-4 contributes 2 bytes).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:20:22Z",
+        "src_file": "src/eProjectedModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/f4a5ef5c/0007df50__agent_self_reported_failure__src_eProjectedModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007e108",
@@ -67221,7 +67291,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -67231,7 +67301,14 @@
       "0x00082e48"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oQeOnePassModelMtldtv"
+    "mangled_symbol": "__0oQeOnePassModelMtldtv",
+    "src_file": "src/eOnePassModelMtl_dtor.cpp",
+    "symbol_name": "__0oQeOnePassModelMtldtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5d53484b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T02:43:46Z"
   },
   {
     "address": "0x00082154",
@@ -68735,7 +68812,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -68745,7 +68822,21 @@
       "0x00086a14"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeShadowVolumeModelMtldtv"
+    "mangled_symbol": "__0oVeShadowVolumeModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "f4a5ef5c",
+        "notes": "category=REG_ALLOC. Identical 10-byte s2<->s3 swap as eProjectedModelMtl::~eProjectedModelMtl(0x0007df50) \u2014 these two destructors share the same disassembly structure modulo vtable address (0x385930 vs 0x384CB8) and PlatformFree call target. Source follows same split-TU pattern with memory barrier; both array delete tails and inline operator delete include `__asm__ volatile(\"\" ::: \"memory\")` between off-load and base-compute, matching eSimulatedController_dtor.cpp. Without the barrier the diff was 60 bytes (scheduler reordering inner delete tail); with barrier it drops to 10 bytes \u2014 pure callee-save register naming swap in the first array block. Did not run an independent permuter since the eProjectedModelMtl permuter already failed to fix the equivalent diff (7000+ candidates, 0 improvements). Same root cause: SNC's register allocator chose the opposite assignment of (arr60Addr, first-block-entries) to (s2, s3) compared to the original eAll_psp.obj TU context. Source has no leverage \u2014 per docs/research/snc-register-allocation.md.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:20:22Z",
+        "src_file": "src/eShadowVolumeModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/f4a5ef5c/000862f0__agent_self_reported_failure__src_eShadowVolumeModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x000864a8",
@@ -69545,7 +69636,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69764,7 +69855,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -69772,7 +69863,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeStandardHeightmapMtldtv"
+    "mangled_symbol": "__0oVeStandardHeightmapMtldtv",
+    "failure_notes": [
+      {
+        "session": "10519bd5",
+        "notes": "category=REG_ALLOC. 10/440 byte diff after relocation masking, all single-byte register-field renames (s2 <-> s3) in the array-processing block (offsets 0x4c, 0x50, 0x54, 0x5c, 0x8c, 0x90, 0x94, 0xa0, 0xc0, 0xc8). Pattern: SNC cached the second array's base address (this+0x60) in a callee-save reg across the first array's work; in our build it lands in s2, expected has s3, and the working 'entries' variable swaps the other way. Source structure (split-TU, ODR-isolated local class redecl, eMaterial_dtor extern, inline operator delete, sched=1 pragma) mirrors the close-but-not-matching siblings eProjectedModelMtl_dtor.cpp and eShadowVolumeModelMtl_dtor.cpp, which produce the IDENTICAL 10-byte diff. Tried three source restructurings: (1) swap arr60Addr/arr64Addr declaration order, (2) hoist 'entries' to outer scope as a shared local, (3) keep entries block-scoped. None moved the allocator. Permuter ran 300.5s, 3865 compiled candidates, 0 improvements (best=10 throughout). This matches the documented REG_ALLOC drift in docs/research/snc-register-allocation.md and ADR-012 (context-dependent SNC register allocator). Source for retry is preserved in src/eStandardHeightmapMtl_dtor.cpp; the .size and trap-pattern __asm__ are in place so the only delta is the s2/s3 tie-break.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:31:50Z",
+        "src_file": "src/eStandardHeightmapMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/10519bd5/000888c0__agent_self_reported_failure__src_eStandardHeightmapMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00088a78",
@@ -70450,7 +70555,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -70459,7 +70564,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQeTwoPassModelMtldtv"
+    "mangled_symbol": "__0oQeTwoPassModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "10519bd5",
+        "notes": "category=REG_ALLOC. 10/464 byte diff after relocation masking, all single-byte register-field renames (s2 <-> s3) at offsets 0x64, 0x68, 0x6c, 0x74, 0xa4, 0xa8, 0xac, 0xb8, 0xd8, 0xe0. Same pattern as eStandardHeightmapMtl_dtor.cpp and the matched-shape siblings eProjectedModelMtl_dtor.cpp / eShadowVolumeModelMtl_dtor.cpp: SNC cached the second array's base in a callee-save reg across the first array's work and chose s2 where the original picked s3. Function has the additional eTexCoordGen_dtor(this+0xF0, 2) and eTexCoordGen_dtor(this+0x7C, 2) calls between PlatformFree and the second vtable swap; those bytes match. Permuter ran 300.6s, 2697 compiled candidates, 0 improvements (best=10 throughout). Per docs/research/snc-register-allocation.md the recommended action once the diff collapses to callee-save renames is to stop and classify REG_ALLOC; further source perturbation risks regressing matched siblings (ADR-012). Source preserved at src/eTwoPassModelMtl_dtor.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:31:50Z",
+        "src_file": "src/eTwoPassModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/10519bd5/0008b384__agent_self_reported_failure__src_eTwoPassModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008b554",
@@ -85907,7 +86026,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000ebee0",
@@ -85916,7 +86035,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcCinematicInstancedtv"
+    "mangled_symbol": "__0oTgcCinematicInstancedtv",
+    "failure_notes": [
+      {
+        "session": "2a295f56",
+        "notes": "Closest attempt is 416B (8 bytes short of target 424B). Structure: `class gcCinematicInstance : public cBase` for chained vtable stomp at 0x37E6A8; file-scope inline operator delete (eDecalSystem pattern, with `char *base = block + off` intermediate); local class redecl declares StopVoiceOver/CloseDialogs/HandleStreamedCinematicDelete (mangling matches: __0fTgcCinematicInstanceN/M/d...). Linked-list unlink in first block (parent->mFirstInstance at +0x7C, mPrev/mNext at +0x48/+0x4C) used direct field access (no local bindings) to encourage register reload pattern. Second block (mFlag at +0x39, mPrev2/mNext2 at +0x50/+0x54, head at D_0037D7C8 / D_0037D7C4) bound to locals p/n. Three structural diffs vs target: (a) target uses s1 for `this` and s0 for flags; ours has them swapped; (b) target uses direct offset stores like `sw a0, 76(a2)`; ours emits `addiu+sw 0(a3)` for some prev/next field assignments (1 extra insn each); (c) target has more redundant reloads of mPrev/mNext from `this`; ours collapses via locals. Tried direct accesses everywhere (overshot to 448B), local bindings everywhere (came up 24B short at 400B), and current mixed approach (8B short at 416B). #pragma control sched=1 did not change codegen. Permuter rejected the source as not-last-mile (size delta 8B too large to permute). Suspect the s0/s1 swap is regalloc drift in the same family as eLightGrid's s2/s3 swap; the codegen-pattern diffs are SNC scheduler choices for which-base-register-to-keep that source restructuring did not move.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:37:13Z",
+        "src_file": "src/gcCinematicInstance_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/2a295f56/000eb238__agent_self_reported_failure__src_gcCinematicInstance_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x000eb3e0",
@@ -97011,7 +97144,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000062e0",
       "0x000092f0",
@@ -97022,7 +97155,21 @@
       "0x00170f00"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcStateInfoFWriteR6KcOutStreamK"
+    "mangled_symbol": "__0fLgcStateInfoFWriteR6KcOutStreamK",
+    "failure_notes": [
+      {
+        "session": "89229441",
+        "notes": "Implemented gcStateInfo::Write in canonical class syntax with local cOutStream/cHandle/cTimeValueRef declarations and the observed serializer order: state match bit, optional current handle/id pair, target handle/id pair, then two optional cTimeValue writes. The first clean version using one WriteBit(sameState) compiled to 628B; duplicating the first true/false bit-write paths reduced this to a 740B size mismatch; m2c-style goto materialization of the equality byte reduced it to 756B; a manual first-bit writer produced the closest attempt at 760B vs the 764B target. A hoisted stream-setup variant regressed to 748B, so the source was restored to the closest 760B form.\n\nThe remaining gap is in the first discriminator/equality/bit-write scheduling. Expected hoists the output bit position/data pointer setup before the final same-state branch and uses a beqzl with the bit-position store in the delay slot; the closest C shape still emits a different branch/setup ordering and is 4 bytes short. Later cHandle/cOutStream/cTimeValue write order is represented, but compare_func stops at the size mismatch. Next retry should focus specifically on hand-shaping that first discriminator block or trying a longer cOutStreamBit overflow local pattern for the later two bits.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:58:35Z",
+        "src_file": "src/gcStateInfo.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/89229441/0010b764__agent_self_reported_failure__src_gcStateInfo.cpp"
+      }
+    ]
   },
   {
     "address": "0x0010ba60",
@@ -105981,7 +106128,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00005458",
       "0x00005510",
@@ -105996,7 +106143,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcEntityTemplateFWriteR6FcFileK"
+    "mangled_symbol": "__0fQgcEntityTemplateFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "fcbc4f4e",
+        "notes": "Implemented the full gcEntityTemplate::Write serializer in canonical C++ form with cWriteBlock construction, cObject::Write, cBaseArray/cHandle/cName writes, and all four dynamic-array sections. The closest source has the correct 872-byte function size after changing the dynamic-array loops to typed pointer cursors and preserving the nested array entry pointer; all sibling functions in src/gcEntityTemplate.cpp still compile, with the pre-existing gcDoMouseOp::AssignCopy mismatch still reported by compare_func.py.\n\nRemaining mismatch is 80/872 bytes and appears to be SNC register allocation rather than field order: generated code keeps this in s1 and reuses s0 for counts/file, while the original keeps this in s0 and uses s1 for file/counts. Tried direct this accesses, local self/file temporaries, fixed-register declarations, typed loop cursors, and explicit nested pointer temporaries. The final nested loop shape now matches the original structurally including move s4,s3 and the inner zero-offset addu, but the early and middle accesses are still encoded against s1 instead of s0.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:14:58Z",
+        "src_file": "src/gcEntityTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/fcbc4f4e/00125ff0__agent_self_reported_failure__src_gcEntityTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00126358",
@@ -111172,7 +111333,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000dd980"
@@ -129410,7 +129571,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000616c",
       "0x000062e0"
@@ -129421,6 +129582,18 @@
       {
         "session": "b7c40c91",
         "notes": "Not attempted to completion. This 768B function has 2 cOutStream::Write(int/uint, bits, crc) calls followed by a 4-case switch on this->field5 (cases 0/1/2/3). Within each case, additional Write(int, bits, true) calls are interleaved with INLINED single-bit writes (bool-write) \u2014 each bit-write is a ~15-instruction sequence (load mBitPos/mData, compute byte offset and bit-in-byte, check/set mOverflow, then bit-mask RMW on the target byte). The exact sequence matches the inline expansion of a hypothetical cOutStream::Write(bool,bool) overload that isn't declared in include/cOutStream.h and has no existing implementation in src/. Matching would require: (1) defining an inline cOutStream::Write(bool, bool) method whose expansion exactly reproduces the 15-instruction bit-write (see the sign-bit write in src/cOutStream.cpp for a working template with __asm__ volatile memory barriers); (2) carefully matching SNC's branch-likely pattern in the switch (beqz/blezl/bnezl mixed with range checks \u2014 not a jump table; compiler emitted sequential slti comparisons); (3) ensuring the 's0 repurposing' (s0 holds `this` initially, then is overwritten with field values after the last `this` use). Recommended approach: implement Write(bool, bool) as an inline method inside a locally-redeclared cOutStream class in this TU and mirror the source structure of cOutStream::Write(float, int, int, bool). Expect iterative diff-reduction; probably 4-8 hours of matching work. Suggest retry after Read is attempted (shares the same inline-bit-op infrastructure \u2014 read uses mirror pattern)."
+      },
+      {
+        "session": "89229441",
+        "notes": "Added nwMsgVoiceUpdateStatus::Write with canonical method syntax and local struct handle declarations so the mangled name matches the DB. The first if/else mode decoder produced a 756B size mismatch and the wrong branch direction (bgtzl for the 0/1 split). Rewriting the mode logic as a switch produced the correct 768B size and the expected blezl/bnezl-style high-level case layout, but still mismatches 492/768 bytes. The normal signed 4-bit write at offset 4 and unsigned 2-bit mode write are in place, and cases map to offsets 6/7, 8/9, 0xA, and 0xB as in the disassembly.\n\nThe large remaining diff is concentrated in the inlined one-bit writes and branch scheduling inside the cases. The simple cOutStreamBit helper was too short but closer in mismatch count; changing it to reload a local overflow byte matched the conceptual cOutStream::Write style but worsened the byte diff. This function remains a branch-direction/codegen research target. Next retry should compare the current switch layout against the target and tune the local WriteBit helper/register choices rather than reverting to the if/else shape, unless specifically attacking the bgtzl vs blezl split.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T01:58:35Z",
+        "src_file": "src/nwMsgVoiceUpdateStatus.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/89229441/001a5bc4__agent_self_reported_failure__src_nwMsgVoiceUpdateStatus.cpp"
       }
     ],
     "mangled_symbol": "__0fWnwMsgVoiceUpdateStatusFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
@@ -149214,14 +149387,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIeGeomMtldtv"
+    "mangled_symbol": "__0oIeGeomMtldtv",
+    "failure_notes": [
+      {
+        "session": "709fc535",
+        "notes": "category=REG_ALLOC. Pure s2/s3 register-allocation drift. 10/420 bytes differ. Target allocates s3=arr60Addr (preserved across arr64 cleanup) and s2=arr64 entries; our build allocates s2=arr60Addr and s3=arr64 entries. Differing instructions are exclusively the rs/rt register fields in: 38 (addiu sN,s0,0x60), 3c (lw sM,0x64(s0)), 40 (beqz sM), 48 (lw a0,-4(sM)), 78 (beqz sM), 7c (addiu sM,sM,-4), 80 (beqzl sM), 8c (move a0,sM), 94 (move a1,sM). No control-flow, immediate, stack-frame, addressing-mode, or call-target differences anywhere in the function. Source closely mirrors the matched eDecalSystem_dtor.cpp template (sched=2, both array addresses declared upfront so arr60Addr is preserved across the arr64 cleanup, inline class-local operator delete, asm tail '.word 0x1000ffff/.word 0/.size __0oIeGeomMtldtv,0x1a4' for the SNC deleting-destructor sentinel, eMaterial_dtor extern with asm(\"__0oJeMaterialdtv\")). Permuter ran 360s/4068 compiled candidates with --save-best and produced 0 improvements. This is the documented SNC context-dependent register-allocation tie-break described in docs/research/snc-register-allocation.md and docs/decisions/012-snc-context-dependent-regalloc.md \u2014 small TU-context differences flip the s2/s3 choice and there is no local source leverage. Per ADR-012 stop chasing once the diff is only callee-save reg naming.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:06:07Z",
+        "src_file": "src/eGeomMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/709fc535/001e2028__agent_self_reported_failure__src_eGeomMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x001e21cc",
@@ -153361,14 +153548,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oFeSkindtv"
+    "mangled_symbol": "__0oFeSkindtv",
+    "failure_notes": [
+      {
+        "session": "709fc535",
+        "notes": "category=REG_ALLOC. Identical s2/s3 register-allocation drift to eGeomMtl::~eGeomMtl. 10/420 bytes differ. Target allocates s3=arr44Addr (preserved across arr48 cleanup) and s2=arr48 entries; our build allocates s2=arr44Addr and s3=arr48 entries. Differing instructions are exclusively the rs/rt register fields at offsets 38, 3c, 40, 48, 78, 7c, 80, 8c, ac, b4 \u2014 control flow, immediates, stack frame, vtable address (0x3815F8), addressing modes, and call targets all match. Source modeled on ePath_dtor.cpp (sched=1, sw_s0..sw_ra then 'move s0,a0' then 'beqz a0' with 'move s1,a1' in delay slot, inline class-local operator delete with __asm__ memory barrier between rec offset load and base computation, cObject_dtor extern with asm(\"__0oHcObjectdtv\"), asm tail '.word 0x1000ffff/.word 0/.size __0oFeSkindtv,0x1a4'). Permuter ran 360s/4630 compiled candidates --save-best with 0 improvements. Same SNC context-dependent allocator tie-break described in docs/research/snc-register-allocation.md.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T02:06:07Z",
+        "src_file": "src/eSkin_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/709fc535/001f1f20__agent_self_reported_failure__src_eSkin_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x001f20c4",
@@ -154790,7 +154991,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -208111,7 +208312,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d6148",
@@ -211707,7 +211908,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -222932,7 +223133,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d6148"
@@ -230757,13 +230958,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0odgcValLookAtControllerVariabledtv"
+    "mangled_symbol": "__0odgcValLookAtControllerVariabledtv",
+    "src_file": "src/gcValLookAtControllerVariable_dtor.cpp",
+    "symbol_name": "__0odgcValLookAtControllerVariabledtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "5d53484b",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-14T02:43:46Z"
   },
   {
     "address": "0x003377ac",
