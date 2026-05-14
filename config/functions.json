@@ -39930,7 +39930,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -39957,6 +39957,18 @@
         "identity": "codex/gpt-5.4/high",
         "variant": "base",
         "timestamp": "2026-04-29T22:25:22Z"
+      },
+      {
+        "session": "511c242e",
+        "notes": "Started from the prior closest PlatformRead shape in src/eStaticModel.cpp. I moved the GUID locals to the target stack slots by adding a 4-byte padding local before the GUID pair, so the generated stores now use visPool at sp+0x20, guid at sp+0x28, guidCopy at sp+0x30, and hasVisData at sp+0x40. I also changed the byte test to an int temporary, which removes the extra andi and gets the target lb/sltu/bnezl form. Current output is 412B versus target 428B.\n\nRemaining gap is the same compiler-shaped constant CSE noted by the prior session: SNC still reuses the first 0x812D2B72/0xB1E8A1F9 materialization instead of emitting the original duplicate lui/addiu sequence before GetValue. I tried memory barriers around the GUID copies and register-pinned constants in a0/a1; neither forced the duplicate materialization. The allocator tail still differs in scheduling/register choice around the beqzl after jalr. Permuter was attempted for 300s but refused to run because the symbol is a 16-byte size mismatch, so this remains a retryable read_prologue/constant-CSE failure.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:31:13Z",
+        "src_file": "src/eStaticModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/511c242e/00041ce4__agent_self_reported_failure__src_eStaticModel.cpp"
       }
     ]
   },
@@ -40214,11 +40226,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fMeStaticModelEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fMeStaticModelEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "511c242e",
+        "notes": "Added a split-TU local redeclaration in src/eStaticModel_Draw.cpp because Draw is not declared in include/eStaticModel.h and the repo rules forbid changing the shared class header for method additions. The source mirrors the disassembly's two registry lookups, vis-data fallback, GPU packet writes, LOD scale calculation, two vtable calls, and final packet emission. I tested sched=2 first, then sched=1; sched=1 is marginally closer by the differ count but still emits a 792B function versus the 768B target.\n\nThe blocker is register allocation and expression shape, not missing high-level behavior. SNC keeps an extra callee-save register live (s7), stores the packet cursor as packetBase+8 instead of target packetBase with 8(s3) accesses, and shapes the first type lookup differently from the target a0/a1 flow. I also tried explicit register steering for self/di/vis/packet/draw-object, but SNC reassigned the incoming arguments to different s-registers and did not improve the diff. Future work should rewrite this in a more m2c-like goto style with long-lived values deliberately mapped to target s0-s6 and no helper abstractions.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:31:13Z",
+        "src_file": "src/eStaticModel_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/511c242e/00042f60__agent_self_reported_failure__src_eStaticModel_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x00043260",
@@ -68184,7 +68210,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -68193,7 +68219,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTeReflectionModelMtldtv"
+    "mangled_symbol": "__0oTeReflectionModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "4183810d",
+        "notes": "category=REG_ALLOC. Implemented canonical split-TU C++ destructor matching the sibling material destructor pattern: vtable swap to 0x385710, PlatformFree(), eTexCoordGen_dtor(this+0x7C, 2), base eMaterial vtable swap, cArray cleanup at 0x64 and 0x60, eMaterial_dtor(this, 0), and inlined pool delete tail. Final compare is 10/452 bytes different; all observed differences are the first array/p60 saved-register allocation swap, with current using s2 for p60 and s3 for the first entries pointer where the original uses s3 for p60 and s2 for entries. Control flow, calls, stack frame, immediates, offsets, branch-likely forms, and delete tail otherwise match.\n\nTried the straight sibling pattern, explicit register declarations for p60/entries, stronger no-op register constraints, and a hoisted-second-array source shape; the constraint and hoisting variants worsened the diff substantially, while the sibling/register-declaration pattern returns to the 10-byte saved-register rename. Ran tools/permuter.py for 300.6s on 0x00084444 with 6,504 candidates generated and 2,725 compiled; best stayed at 10 bytes with zero improvements. This matches docs/research/snc-register-allocation.md / ADR-012 context-dependent regalloc drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:32:17Z",
+        "src_file": "src/eReflectionModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/4183810d/00084444__agent_self_reported_failure__src_eReflectionModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00084608",
@@ -68554,7 +68594,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x0002c0d0",
@@ -68563,7 +68603,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTeRefractionModelMtldtv"
+    "mangled_symbol": "__0oTeRefractionModelMtldtv",
+    "failure_notes": [
+      {
+        "session": "4183810d",
+        "notes": "category=REG_ALLOC. Implemented the same canonical split-TU destructor as eReflectionModelMtl with the refraction-specific vtable 0x385878 and PlatformFree() call. Final compare is 10/452 bytes different with the same saved-register allocation shape as reflection: current uses s2 for p60 and s3 for the first entries pointer, while the original uses s3 for p60 and s2 for entries. The function shape, calls, stack frame, immediates, offsets, branch-likely forms, array cleanup, eMaterial_dtor tail, and operator-delete tail otherwise match.\n\nTried the straight sibling pattern, explicit register declarations for p60/entries, stronger no-op register constraints, and a hoisted-second-array source shape. The bad variants produced ~299-309 byte diffs, and the closest source returns to the same 10-byte register rename. Because this source is structurally identical to the reflection destructor except for vtable/callee and reflection's 300.6s permuter pass found zero improvement, this is classified as the same retryable REG_ALLOC drift rather than bnel/unmatchable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:32:17Z",
+        "src_file": "src/eRefractionModelMtl_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/4183810d/000855e4__agent_self_reported_failure__src_eRefractionModelMtl_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x000857a8",
@@ -79079,7 +79133,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d478c",
       "0x00238f34"
@@ -79115,7 +79169,21 @@
       "0x001731d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEnumerationDGetiK"
+    "mangled_symbol": "__0fNgcEnumerationDGetiK",
+    "failure_notes": [
+      {
+        "session": "1ffa67eb",
+        "notes": "Implemented the full semantic body as canonical C++ returning a two-word handle-pair-like result by value: resolve mHandle through D_00048890, recursively dispatch to the resolved gcEnumeration, otherwise use IsIndexed() to synthesize 0x10000 | (index & 0xffff), otherwise bounds-check the cBaseArray at this+0x44 and read the entry sub-handle at +0x24, falling back to {this+0x30, 0}. Existing matched siblings in src/gcEnumeration.cpp still compare as matched. The closest compliant source compiles to the expected 460-byte size but differs by 233 bytes.\n\nRoot cause appears to be aggregate-return ABI shape. The original disassembly keeps this in a0, the hidden return buffer in a1, and index in a2; the current SNC canonical by-value form puts the hidden return buffer in a0, this in a1, and index in a2, causing broad prologue/call/store drift even though the high-level body is correct. I also tried making the return struct non-trivial and a temporary ABI-hack void method experiment; neither produced a valid match, and the hack shrank to 400 bytes and was reverted. This is not a bnel issue and the diff is too large for permuter last-mile use.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:40:17Z",
+        "src_file": "src/gcEnumeration.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/1ffa67eb/000d478c__agent_self_reported_failure__src_gcEnumeration.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d4958",
@@ -102530,7 +102598,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0011b72c",
       "0x0011d3ec"
@@ -102543,7 +102611,21 @@
       "0x002a9e30"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredEntityHelperDGetbK"
+    "mangled_symbol": "__0fVgcDesiredEntityHelperDGetbK",
+    "failure_notes": [
+      {
+        "session": "7c63fd4b",
+        "notes": "Implemented canonical gcDesiredEntityHelper::Get(bool) const in src/gcDesiredEntityHelper.cpp. Tried an out-of-line resolver (compiled to 208B, rejected because resolver was not inlined), fully inlined relationship resolution, explicit goto labels for rel<2/rel<3, a switch(rel) form, and the current staged first-pass result to encourage the original a0-carried second relationship pass. The current closest attempt compiles to 336B versus expected 352B; Write remains matched. Permuter was attempted but skipped because the symbol size delta is 16B, outside its last-mile mode.\n\nThe remaining gap is source-shape/codegen in the two relationship-selection blocks. Expected uses the original irregular switch lowering with bnez/bnezl around rel<2 and rel<3 and carries the first-stage entity through a0 before the second pass. The closest source now reproduces the Validate call shape better, but SNC still emits shorter branch structure and a different handle-lookup shape, leaving the function 16B short. Next attempt should focus on reproducing the exact irregular switch lowering shown in the disassembly, especially the rel>=3 fallthrough branch+nop and handle load in the bnezl delay slot.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:39:31Z",
+        "src_file": "src/gcDesiredEntityHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7c63fd4b/0011cec0__agent_self_reported_failure__src_gcDesiredEntityHelper.cpp"
+      }
+    ]
   },
   {
     "address": "0x0011d020",
@@ -104368,7 +104450,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x001193e4",
       "0x0011d8c0",
@@ -104390,7 +104472,21 @@
       "0x0033c0e0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDesiredCameraDGetbK"
+    "mangled_symbol": "__0fPgcDesiredCameraDGetbK",
+    "failure_notes": [
+      {
+        "session": "7c63fd4b",
+        "notes": "Implemented gcDesiredCamera::Get(bool) const in src/gcDesiredCamera.cpp with the mode jump table, desired-entity path, D_0037D840 viewport camera cases, and D_0037D804 case. Tried direct returns (produced many duplicated epilogues), a shared result variable (current closest), char* vs void* result, making case 7 return directly, and a local sched=1 check. Existing matched gcDesiredCamera methods still match. Current closest compiles to 352B versus expected 356B; permuter was attempted but skipped because the size delta is 4B.\n\nThe remaining gap is the final case-7/shared-epilogue shape. Expected case 7 emits `lui a0,D_0037D804; b shared_epilogue; lw v0,D_0037D804(a0)` with the load in the branch delay slot. SNC from the current C places the load immediately before the shared epilogue, omitting that one branch instruction. Cases 1-6 also use v0 as the temporary where expected uses a1 before `addiu v0,a1,0x10`, but the primary size blocker is the missing branch at case 7. A useful next variant would try to force non-empty code between case 7 and the common return without adding extra runtime work.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-14T03:39:31Z",
+        "src_file": "src/gcDesiredCamera.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260514_022603/7c63fd4b/001217e8__agent_self_reported_failure__src_gcDesiredCamera.cpp"
+      }
+    ]
   },
   {
     "address": "0x0012194c",
@@ -191116,7 +191212,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000165c",
       "0x001a54fc",
@@ -191124,7 +191220,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLobbyGameStringsDGetPwiK"
+    "mangled_symbol": "__0fSgcLobbyGameStringsDGetPwiK",
+    "src_file": "src/gcLobbyGameStrings.cpp",
+    "symbol_name": "__0fSgcLobbyGameStringsDGetPwiK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "1ffa67eb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-14T03:40:17Z"
   },
   {
     "address": "0x002818b8",
@@ -199424,7 +199528,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -221745,7 +221849,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -230904,7 +231008,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -233452,7 +233556,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"

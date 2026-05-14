@@ -70,6 +70,7 @@ extern cType *D_0009F4F4;
 void cStrAppend(char *, const char *, ...);
 void cStrCat(char *, const char *);
 void cStrCopy(char *, const wchar_t *, int);
+void cStrCopy(wchar_t *, const char *, int);
 void *memset(void *, int, unsigned int);
 
 struct PoolBlock {
@@ -99,6 +100,18 @@ struct LobbyDispatchEntry {
     short offset;
     short pad;
     void (*fn)(void *, void *, int);
+};
+
+struct LobbyIndexDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int, void *);
+};
+
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
 };
 
 struct LobbyGameInfo {
@@ -158,6 +171,7 @@ public:
     int Read(cFile &, cMemPool *);
     void AssignCopy(const cBase *);
     void GetName(char *) const;
+    void Get(wchar_t *, int) const;
     void Set(const wchar_t *) const;
     const cType *GetType(void) const;
     static gcLobbyGameStrings *New(cMemPool *, cBase *);
@@ -299,6 +313,72 @@ const cType *gcLobbyGameStrings::GetType(void) const {
             0, 0, 0);
     }
     return D_0009F4F4;
+}
+
+// ── gcLobbyGameStrings::Get(wchar_t *, int) const @ 0x00281710 ──
+void gcLobbyGameStrings::Get(wchar_t *buf, int size) const {
+    LobbyGameInfo info;
+    void *lobby = nwNetwork::GetLobby();
+    if (lobby != 0) {
+        info.field28 = 0;
+        memset(info.field2C, 0, 0x10);
+        info.field3C = 0;
+
+        switch (mField08) {
+        case 0: {
+            LobbyDispatchEntry *entry =
+                (LobbyDispatchEntry *)(*(char **)lobby + 0x258);
+            entry->fn((char *)lobby + entry->offset, &info, entry->offset);
+            break;
+        }
+        case 1: {
+            LobbyIndexDispatchEntry *entry =
+                (LobbyIndexDispatchEntry *)(*(char **)lobby + 0x250);
+            int val = mField0C;
+            int flag = 0;
+            void *self = (char *)lobby + entry->offset;
+            if (val & 1) {
+                flag = 1;
+            }
+            if (flag != 0) {
+                val = 0;
+            } else {
+                __asm__ volatile("" ::: "memory");
+            }
+
+            int desiredPtr = val;
+            float f;
+            if (desiredPtr != 0) {
+                FloatDispatchEntry *fe =
+                    (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+                f = fe->fn((char *)desiredPtr + fe->offset);
+            } else {
+                f = 0.0f;
+            }
+            int idx = (int)f;
+
+            entry->fn(self, idx, &info);
+            break;
+        }
+        case 2: {
+            LobbyDispatchEntry *entry =
+                (LobbyDispatchEntry *)(*(char **)lobby + 0x258);
+            entry->fn((char *)lobby + entry->offset, &info, entry->offset);
+            break;
+        }
+        default:
+            return;
+        }
+
+        int field = mField10;
+        if (field <= 0) {
+            if (field >= 0) {
+                cStrCopy(buf, info.text0, size);
+            }
+        } else if (field < 2) {
+            cStrCopy(buf, info.text1, size);
+        }
+    }
 }
 
 // ── New ──  @ 0x00281400, 152B
