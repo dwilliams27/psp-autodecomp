@@ -71570,7 +71570,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0000e208",
       "0x0036bdbc"
@@ -80583,7 +80583,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001314",
       "0x000014d8",
@@ -80606,6 +80606,18 @@
         "timestamp": "2026-05-14T02:59:46Z",
         "src_file": "src/gcString.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/994a6735/000d6938__agent_self_reported_failure__src_gcString.cpp"
+      },
+      {
+        "session": "d5b36e6a",
+        "notes": "Retained the prior best exact-size gcString::Set(const wchar_t *) attempt in canonical C++ in src/gcString.cpp. Final compare remains 244/608 bytes different after relocation masking; matched siblings Write/New/GetType still compare cleanly and the pre-existing AssignCopy mismatch remains 5 bytes. The retained source implements the null/empty clear path, cStrLength+1 sizing, alloc record +0x28 with tag 0x36DA98 and line 0x112, zero-fill/copy loop, old-buffer delete via alloc record +0x30, and final cStrCopy.\n\nThis session read the battle packet plus branch-likely, delay-slot, loop/switch, and register-allocation docs. I tried a cArray-style source-shape change that made the empty branch carry an explicit zero pointer, reversed the oldCount/newCount equality source order, and rewrote the resize loop to use a moving dstIter like nearby cArray examples. SNC kept the broad register/scheduling shape and compare worsened to 384/608, so I reverted to the prior best. The remaining mismatch is too broad for last-mile permuter; likely still needs a different high-level cArray<wchar_t> resize seed rather than local scheduling tweaks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-17T19:26:56Z",
+        "src_file": "src/gcString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260517_210450/d5b36e6a/000d6938__agent_self_reported_failure__src_gcString.cpp"
       }
     ]
   },
@@ -81262,7 +81274,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d8708"
     ],
@@ -81295,6 +81307,18 @@
         "timestamp": "2026-05-14T00:33:31Z",
         "src_file": "src/gcUIWidget_Reset.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/7f3dc83c/000d8654__agent_self_reported_failure__src_gcUIWidget_Reset.cpp"
+      },
+      {
+        "session": "d5b36e6a",
+        "notes": "Created/retained split-TU canonical C++ source for gcUIWidget::Reset(cMemPool *, bool) in src/gcUIWidget_Reset.cpp per the split-TU guardrail. Final compare is 9/180 bytes different. The best source now matches the expected control flow, stack frame, bnezl null-load, pair.first stack reload, handle/second/pairSecond pointer roles, post-loop pair2 stores, SetSizeDirty call, and final flag stores. The visible remaining codegen difference is a local t2/t3 allocation swap in the loop body around handleSecondPtr/secondCopy: current emits addiu t2,a2,4; lw t3,0(a0); sw t3,0(t2), while expected wants addiu t3,a2,4; lw t2,0(a0); sw t2,0(t3), with t2 then reused for slti.\n\nTried the prior 172B pair-source baseline, volatile Pair, memory operands, fixed register declarations, local declaration reorders, explicit handleSecondPtr, volatile handleSecondPtr/first reload, and loop temporary register bindings. A 600s permuter run improved 11 bytes to 9 bytes but did not save; a follow-up 120s run with --save-best --save-improved reproduced and saved the 9-byte candidate. A manual swap of the t2/t3 register bindings did not change the allocation and worsened scheduling by moving the ra save earlier, so it was reverted. This looks like a near-final caller-save register allocation drift, but it is 9 bytes rather than the <=8-byte documented threshold, so it is left as ordinary failed/retryable rather than REG_ALLOC/unmatchable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-17T19:26:56Z",
+        "src_file": "src/gcUIWidget_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260517_210450/d5b36e6a/000d8654__agent_self_reported_failure__src_gcUIWidget_Reset.cpp"
       }
     ]
   },
@@ -105720,7 +105744,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64"
     ],
@@ -105740,7 +105764,14 @@
         "variant": "base",
         "timestamp": "2026-04-30T04:43:08Z"
       }
-    ]
+    ],
+    "src_file": "src/gcMsgLoadRegions.cpp",
+    "symbol_name": "__0oQgcMsgLoadRegionsctP6GcGUIDT76IgcRegion_b",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "e4c4e6e1",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-17T19:30:09Z"
   },
   {
     "address": "0x00124c2c",
@@ -185681,7 +185712,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
@@ -185710,6 +185741,18 @@
         "timestamp": "2026-05-01T02:12:04Z",
         "src_file": "src/gcTableColumnShort.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_201648/35213a14/0027169c__agent_self_reported_failure__src_gcTableColumnShort.cpp"
+      },
+      {
+        "session": "e4c4e6e1",
+        "notes": "Restored gcTableColumnShort::SetSize(int) into canonical src/gcTableColumnShort.cpp from the prior failure snapshot (it had been dropped from the class). Best build is 396B with the same 2/396-byte diff documented in prior session 35213a14: target emits `addu a2,s3,a1` for the initial copy-loop dst = newData + offset where the offset (a1) has just been set to 0 in the beqz delay slot, while SNC folds our `addu(s3, 0)` to a plain `move a2, s3` (encoding 02653021 vs 02603025). All other 394 bytes match \u2014 prologue, alloc path, both `li a0,0` duplicates from the bnez/bgtz join, copy-loop body (move a3,a2 + slt + lh + sh + addiu a0/a1/a2), free-count empty loop, and free tail all align exactly.\n\nNew approaches tried this session beyond prior agents': (1) `__asm__ volatile(\"\" : \"+r\"(offset))` no-op barrier on offset before `dst = newData + offset` \u2014 SNC still constant-folds the add (2-byte diff unchanged); (2) `__asm__ volatile(\"ori %0,$0,0\" : \"=r\"(offset))` to materialize 0 through an opaque init \u2014 broke scheduling badly (37B diff, scheduler can't see the constant and emits a real `ori a1,$0,0` outside the delay slot); (3) inline-asm-only addu (`__asm__(\"or %0,$0,$0\\n\\taddu %1,%2,%0\" : \"=&r\"(offset),\"=r\"(dst) : \"r\"(newData))`) \u2014 much worse (182B diff, hostile to surrounding scheduling) and against the asm policy anyway; (4) `#pragma control sched=1` for just this method (with sched=2 restored before sibling methods) \u2014 37B diff, lost the entire delay-slot scheduling. Re-ran tools/permuter.py for 300s/2 workers from the 2B baseline: 2776 candidates, 1065 compiled, zero improvements (matches the prior agent's 4488/2230/0).\n\nRoot cause is an SNC peephole/constant-propagation choice on `addu(reg, 0_reg)`: the original SNC keeps the addu (probably because its scheduler shoved `li a1,0` into the beqz delay slot BEFORE constant-propagation could fold it), while our SNC propagates the 0 through and rewrites to `or a2,s3,$0` (move). The source has no leverage \u2014 any C/C++ form that yields offset==0 at the dst init is foldable; any form that hides the 0 (volatile, asm, function call) inserts instructions or load/stores not in the target and blows up the diff. Diff is 2 bytes but on different opcodes (move vs addu), NOT bnel/beql, so per docs/decisions/006 this stays `failed` rather than `unmatchable_bnel`. Closest matching source is the current src/gcTableColumnShort.cpp; the offending instruction is at offset 0x228 in the compiled .o (target byte 02653021, our byte 02603025).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-17T19:30:09Z",
+        "src_file": "src/gcTableColumnShort.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260517_210450/e4c4e6e1/0027169c__agent_self_reported_failure__src_gcTableColumnShort.cpp"
       }
     ]
   },

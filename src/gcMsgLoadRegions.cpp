@@ -73,14 +73,14 @@ public:
 };
 
 gcMsgLoadRegions::gcMsgLoadRegions(cGUIDT<gcRegion> *regions, bool flag) {
-    gcMsgLoadRegions *self = this;
+    this->mVTable = (void *)0x389070;
+    __vec_new((char *)this + 4, 2, 8, (void (*)(void *))0x245578);
     cGUIDT<gcRegion> *regionBase = regions;
-    self->mVTable = (void *)0x389070;
-    __vec_new((char *)self + 4, 2, 8, (void (*)(void *))0x245578);
-    self->mFlag = flag;
+    __asm__ volatile("" : "+r"(regionBase));
+    this->mFlag = flag;
     int i = 0;
     do {
-        cGUIDT<gcRegion> *dst = &((cGUIDT<gcRegion> *)((char *)self + 4))[i];
+        cGUIDT<gcRegion> *dst = &((cGUIDT<gcRegion> *)((char *)this + 4))[i];
         cGUIDT<gcRegion> *src = &regionBase[i];
         int a = src->a;
         int b = src->b;
