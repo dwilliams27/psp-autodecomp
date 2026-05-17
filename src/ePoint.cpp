@@ -75,20 +75,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
 };
 
-typedef unsigned int SceULong128 __attribute__((mode(TI)));
 typedef int v4sf_t __attribute__((mode(V4SF)));
-
-struct mOCS {
-    SceULong128 row0;
-    SceULong128 row1;
-    SceULong128 row2;
-    SceULong128 position;
-};
-
-struct ePointCtorLocals {
-    mOCS input;
-    char pad[0x70];
-};
 
 class ePoint : public cObject {
 public:
@@ -112,84 +99,8 @@ extern cType *D_000385DC;
 extern cType *D_000385E0;
 extern cType *D_000385E4;
 extern cType *D_00046A4C;
-extern mOCS D_00038578;
-extern int D_000385B8;
 
 void cFile_SetCurrentPos(void *, unsigned int);
-
-// -- ePoint::ePoint(cBase *) @ 0x0005c2f4 --
-ePoint::ePoint(cBase *parent) : cObject(parent) {
-    volatile ePointCtorLocals locals;
-    void *identity = &D_00038578;
-
-    *(void **)((char *)this + 4) = ePoint_cBase_vtable;
-    if (D_000385B8 == 0) {
-        D_000385B8 = 1;
-        __asm__ volatile(
-            "mtc1 $zero, $f12\n"
-            "mfc1 $a2, $f12\n"
-            "mfc1 $a3, $f12\n"
-            "mfc1 $t0, $f12\n"
-            "mtv $a2, S120\n"
-            "mtv $a3, S121\n"
-            "mtv $t0, S122\n"
-            "sv.q C120, 0x40($sp)\n"
-            "lui $a2, 0x3f80\n"
-            "mtc1 $a2, $f13\n"
-            "mfc1 $a2, $f13\n"
-            "mfc1 $a3, $f12\n"
-            "mfc1 $t0, $f12\n"
-            "mtv $a2, S130\n"
-            "mtv $a3, S131\n"
-            "mtv $t0, S132\n"
-            "sv.q C130, 0x80($sp)\n"
-            "mfc1 $a2, $f12\n"
-            "mfc1 $a3, $f13\n"
-            "mfc1 $t0, $f12\n"
-            "mtv $a2, S200\n"
-            "mtv $a3, S201\n"
-            "mtv $t0, S202\n"
-            "sv.q C200, 0x90($sp)\n"
-            "mfc1 $a2, $f12\n"
-            "mfc1 $a3, $f12\n"
-            "mfc1 $t0, $f13\n"
-            "mtv $a2, S210\n"
-            "mtv $a3, S211\n"
-            "mtv $t0, S212\n"
-            "sv.q C210, 0xa0($sp)\n"
-            "sv.q C130, 0x50($sp)\n"
-            "sv.q C200, 0x60($sp)\n"
-            "sv.q C210, 0x70($sp)\n"
-            "sv.q C130, -0x7a88($a1)\n"
-            "sv.q C200, 0x10(%0)\n"
-            "sv.q C210, 0x20(%0)\n"
-            "sv.q C120, 0x30(%0)\n"
-            :
-            : "r"(identity)
-            : "$a2", "$a3", "$t0", "$f12", "$f13", "memory");
-    }
-
-    __asm__ volatile(
-        "lv.q C120, -0x7a88($a1)\n"
-        "sv.q C120, 0x0($sp)\n"
-        "lv.q C130, 0x10($a0)\n"
-        "sv.q C130, 0x10($sp)\n"
-        "lv.q C130, 0x20($a0)\n"
-        "sv.q C130, 0x20($sp)\n"
-        "lv.q C130, 0x30($a0)\n"
-        "sv.q C130, 0x30($sp)\n"
-        "sv.q C120, 0x50($s0)\n"
-        "lv.q C120, 0x10($sp)\n"
-        "sv.q C120, 0x60($s0)\n"
-        "lv.q C120, 0x20($sp)\n"
-        "sv.q C120, 0x70($s0)\n"
-        "lv.q C120, 0x30($sp)\n"
-        "sv.q C120, 0x80($s0)\n"
-        : "+m"(locals)
-        : "r"(identity)
-        : "memory");
-    *(int *)((char *)this + 0x90) = 0xFF4000;
-}
 
 // ── ePoint::Write(cFile &) const @ 0x0005c13c ──
 #pragma control sched=1

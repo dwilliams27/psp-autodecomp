@@ -70,7 +70,6 @@ struct gcTableColumnShort : public gcTableColumn {
     static void operator delete(void *);
     void Read(cInStream &stream);
     void AssignCopy(const cBase *other);
-    void SetSize(int size);
     void Get(int row, wchar_t *buf, int bufsize) const;
     void Set(int row, const wchar_t *text, bool flag);
     int Compare(int row1, int row2) const;
@@ -146,85 +145,6 @@ gcTableColumnShort::~gcTableColumnShort(void) {
     }
     if (this != 0) {
         *(char **)((char *)this + 4) = (char *)0x37E6A8;
-    }
-}
-
-// 0x0027169c, 396B
-void gcTableColumnShort::SetSize(int size) {
-    short *oldData = mValues.mData;
-    int oldCount = 0;
-    if (oldData != 0) {
-        oldCount = ((int *)oldData)[-1] & 0x3FFFFFFF;
-    }
-    if (oldCount != size) {
-        short *newData;
-        if (size <= 0) {
-            newData = 0;
-        } else {
-            cMemPool *pool = cMemPool::GetPoolFromPtr((char *)this + 8);
-            void *block = ((void **)pool)[9];
-            int bytes = size + size;
-            char *allocTable = ((PoolBlock *)block)->allocTable;
-            bytes += 4;
-            AllocEntry *entry = (AllocEntry *)(allocTable + 0x28);
-            int *allocated = (int *)entry->fn((char *)block + entry->offset,
-                                             bytes, 2,
-                                             0x36DA98, 0x112);
-            allocated[0] = size;
-            newData = (short *)(allocated + 1);
-        }
-
-        int i = 0;
-        if (newData == 0) {
-            if (size > 0) {
-                return;
-            }
-        }
-
-        i = 0;
-        if (i < size) {
-            int offset = 0;
-            short *dst = (short *)((char *)newData + offset);
-            do {
-                short *store = dst;
-                if (store != 0) {
-                    int value = 0;
-                    if (i < oldCount) {
-                        value = *(short *)((char *)mValues.mData + offset);
-                    }
-                    *store = (short)value;
-                }
-                i++;
-                offset += 2;
-                dst++;
-            } while (i < size);
-        }
-
-        short *freeData = mValues.mData;
-        int freeCount = 0;
-        if (freeData != 0) {
-            freeCount = ((int *)freeData)[-1] & 0x3FFFFFFF;
-        }
-        int j = 0;
-        if (j < freeCount) {
-            do {
-                j++;
-            } while (j < freeCount);
-        }
-
-        if (freeData != 0) {
-            void *oldBlock = (char *)freeData - 4;
-            if (oldBlock != 0) {
-                cMemPool *pool = cMemPool::GetPoolFromPtr(oldBlock);
-                void *block = ((void **)pool)[9];
-                char *allocTable = ((PoolBlock *)block)->allocTable;
-                AllocEntry *entry = (AllocEntry *)(allocTable + 0x30);
-                ((void (*)(void *, void *))entry->fn)((char *)block + entry->offset,
-                                                       oldBlock);
-            }
-            mValues.mData = 0;
-        }
-        mValues.mData = newData;
     }
 }
 

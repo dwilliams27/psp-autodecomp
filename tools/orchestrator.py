@@ -2847,7 +2847,19 @@ def create_overnight_branch():
     return branch
 
 
-def _collect_compile_failures(src_paths, cwd=None):
+def default_compile_jobs():
+    return max(1, min(8, os.cpu_count() or 1))
+
+
+def _compile_one_source(src_path, cwd=None):
+    try:
+        compile_src(src_path, cwd=cwd)
+        return None
+    except CompileFailed as e:
+        return (src_path, str(e))
+
+
+def _collect_compile_failures(src_paths, cwd=None, jobs=None):
     """Compile each src path via byte_match.compile_src. Returns list of
     (path, error_message) tuples for failures. Skips non-.cpp/.c paths
     and deleted files (no-op for those, not failure).
@@ -2855,22 +2867,47 @@ def _collect_compile_failures(src_paths, cwd=None):
     `cwd` (Phase 3 shootout): run make inside a worktree. Paths must
     be relative to `cwd` when set (e.g. `src/foo.cpp`, not absolute).
     """
-    from byte_match import compile_src, CompileFailed
-    failures = []
+    if jobs is None:
+        jobs = default_compile_jobs()
+    if jobs < 1:
+        raise ValueError("jobs must be >= 1")
+
+    compile_paths = []
     for p in src_paths:
         if not p.endswith((".cpp", ".c")):
             continue
         full = os.path.join(cwd, p) if cwd else p
         if not os.path.exists(full):
             continue  # deletion in the change set, not a failure
-        try:
-            compile_src(p, cwd=cwd)
-        except CompileFailed as e:
-            failures.append((p, str(e)))
+        compile_paths.append(p)
+
+    failures = []
+    if jobs == 1:
+        for p in compile_paths:
+            failure = _compile_one_source(p, cwd=cwd)
+            if failure:
+                failures.append(failure)
+        return failures
+
+    failure_by_path = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as executor:
+        future_by_path = {
+            executor.submit(_compile_one_source, p, cwd=cwd): p
+            for p in compile_paths
+        }
+        for future in concurrent.futures.as_completed(future_by_path):
+            failure = future.result()
+            if failure:
+                failure_by_path[failure[0]] = failure
+
+    for p in compile_paths:
+        failure = failure_by_path.get(p)
+        if failure:
+            failures.append(failure)
     return failures
 
 
-def verify_tree_compiles():
+def verify_tree_compiles(jobs=None):
     """Compile every src/*.cpp and src/*.c. Raise on any failure.
 
     Pre-flight gate at run start: we refuse to start sessions from a
@@ -2878,8 +2915,11 @@ def verify_tree_compiles():
     src file either inherits the brokenness or wastes Claude tokens
     debugging it.
     """
+    if jobs is None:
+        jobs = default_compile_jobs()
     sources = sorted(glob.glob("src/*.cpp") + glob.glob("src/*.c"))
-    failures = _collect_compile_failures(sources)
+    log(f"  Compiling {len(sources)} source files with {jobs} jobs...")
+    failures = _collect_compile_failures(sources, jobs=jobs)
     if failures:
         msg_lines = [
             f"Pre-session build check failed — {len(failures)} src files "

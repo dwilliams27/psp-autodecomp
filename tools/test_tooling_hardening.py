@@ -156,6 +156,39 @@ def test_orchestrator_hydrates_target_metadata_copies_after_db_update():
     assert "_target_metadata" not in hydrated[0]
 
 
+def test_orchestrator_collect_compile_failures_parallel():
+    import orchestrator
+
+    tmp = tempfile.mkdtemp(prefix="compile_preflight_")
+    try:
+        src_dir = os.path.join(tmp, "src")
+        os.makedirs(src_dir)
+        for name in ("ok.cpp", "bad.cpp"):
+            with open(os.path.join(src_dir, name), "w") as f:
+                f.write("int x;\n")
+
+        calls = []
+
+        def fake_compile_src(path, cwd=None):
+            calls.append((path, cwd))
+            if path == "src/bad.cpp":
+                raise orchestrator.CompileFailed("bad compile")
+            return os.path.join(cwd, "build/src", path)
+
+        with mock.patch.object(orchestrator, "compile_src",
+                               side_effect=fake_compile_src):
+            failures = orchestrator._collect_compile_failures(
+                ["README.md", "src/ok.cpp", "src/missing.cpp", "src/bad.cpp"],
+                cwd=tmp,
+                jobs=2,
+            )
+
+        assert failures == [("src/bad.cpp", "bad compile")]
+        assert sorted(path for path, _cwd in calls) == ["src/bad.cpp", "src/ok.cpp"]
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def test_matching_prep_category_handles_nested_constructors():
     from generate_matching_prep import category
 
@@ -303,6 +336,7 @@ def main():
     test_orchestrator_target_metadata_sanitizer_accepts_nested_dicts()
     test_orchestrator_rejects_non_string_battle_packet()
     test_orchestrator_hydrates_target_metadata_copies_after_db_update()
+    test_orchestrator_collect_compile_failures_parallel()
     test_matching_prep_category_handles_nested_constructors()
     test_compare_func_read_only_by_default()
     test_compare_func_update_db_opt_in()
