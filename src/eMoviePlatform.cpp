@@ -446,8 +446,9 @@ void eMoviePlatform::avsync_video_setPts(unsigned int pts) {
     int idx = *(int *)((char *)this + 0x368);
     int size = *(int *)((char *)this + 0x374);
     *(unsigned int *)((char *)this + 0x378) = pts;
+    int slot = idx * 4;
     int count = *(int *)((char *)this + 0x370);
-    *(unsigned int *)((char *)this + idx * 4 + 0x358) = pts;
+    *(unsigned int *)((char *)this + slot + 0x358) = pts;
     *(int *)((char *)this + 0x370) = count + 1;
     *(int *)((char *)this + 0x368) = (idx + 1) % size;
 }

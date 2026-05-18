@@ -95,11 +95,24 @@ success:
 // ── eSurfaceProperty::AssignCopy(const cBase *) @ 0x001f5f84 ──
 #pragma control sched=1
 void eSurfaceProperty::AssignCopy(const cBase *base) {
-    struct cName { int m[6]; };
     struct Tail { int x; };
     eSurfaceProperty *other = dcast<eSurfaceProperty>(base);
-    *(cName *)((char *)this + 8) = *(const cName *)((char *)other + 8);
+    int *src = (int *)((char *)other + 8);
+    int *dst = (int *)((char *)this + 8);
+    __asm__ volatile("" : "+r"(src), "+r"(dst));
+    int w0 = src[0];
+    int w1 = src[1];
+    int w2 = src[2];
+    dst[0] = w0;
+    dst[1] = w1;
+    dst[2] = w2;
     __asm__ volatile("" ::: "memory");
+    int w3 = src[3];
+    int w4 = src[4];
+    int w5 = src[5];
+    dst[3] = w3;
+    dst[4] = w4;
+    dst[5] = w5;
     *(Tail *)((char *)this + 0x20) = *(const Tail *)((char *)other + 0x20);
 }
 

@@ -20902,7 +20902,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00012078"
@@ -20924,7 +20924,14 @@
         "timestamp": "2026-04-30T21:33:40Z"
       }
     ],
-    "mangled_symbol": "__0fOeMoviePlatformTavsync_video_setPtsUi"
+    "mangled_symbol": "__0fOeMoviePlatformTavsync_video_setPtsUi",
+    "src_file": "src/eMoviePlatform.cpp",
+    "symbol_name": "__0fOeMoviePlatformTavsync_video_setPtsUi",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f448c6d3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:39:12Z"
   },
   {
     "address": "0x00013340",
@@ -42894,7 +42901,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00064f68",
@@ -155262,7 +155269,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001ccefc"
     ],
@@ -155288,7 +155295,14 @@
         "variant": "base",
         "timestamp": "2026-04-30T19:37:43Z"
       }
-    ]
+    ],
+    "src_file": "src/eSurfaceProperty.cpp",
+    "symbol_name": "__0fQeSurfacePropertyKAssignCopyPC6FcBase",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f448c6d3",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:39:12Z"
   },
   {
     "address": "0x001f5ff4",
@@ -162371,7 +162385,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0007b164"
