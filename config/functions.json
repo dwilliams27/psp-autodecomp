@@ -14673,7 +14673,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000012d0",
       "0x0000616c",
@@ -20895,7 +20895,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00012078"
@@ -49957,6 +49957,18 @@
         "timestamp": "2026-05-17T19:26:02Z",
         "src_file": "src/ePoint.cpp",
         "snapshot": "logs/failure_snapshots/match_20260517_210450/c98dfc39/0005c2f4__agent_self_reported_failure__src_ePoint.cpp"
+      },
+      {
+        "session": "2c3981b0",
+        "notes": "Reintroduced the prior closest canonical ePoint::ePoint(cBase *) constructor into src/ePoint.cpp, including the cObject(parent) base call, ePoint vtable store, D_00038578/D_000385B8 static identity initialization, VFPU identity construction/copy sequence, and color field store. Verified the already-listed ePoint siblings still match; the constructor remains 15/304 bytes different. sched=1 around the constructor did not change the result.\n\nThe mismatch is the same root issue as the prior c98dfc39 attempt: the inline-asm-heavy body emits the desired VFPU instruction sequence, but SNC allocates only a 16-byte frame with s0/ra at 0/4 instead of the original 192-byte frame with s0/ra at 0xB0/0xB4. The volatile ePointCtorLocals frame-pressure pattern remains in the source, but this toolchain still optimizes the frame down unless real C vector temporaries are introduced; those prior variants perturb the VFPU copy body. No bnel/beql issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:19:26Z",
+        "src_file": "src/ePoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/2c3981b0/0005c2f4__agent_self_reported_failure__src_ePoint.cpp"
       }
     ]
   },
@@ -53773,6 +53785,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T08:34:26Z"
+      },
+      {
+        "session": "c51b4983",
+        "notes": "Started from the existing 19/408-byte constructor near miss. Verified sched=2 and a per-function sched=1 check both remain at 19 differing bytes. Tried tying the VFPU stack stores to real eBipedMatrix memory operands to force the target 0x70 frame; that produced the desired frame but SNC materialized stack addresses with extra addiu instructions around each sv.q/lv.q and regressed to 169 differing bytes. An empty memory-constraint anchor did not affect allocation, so the best source remains the prior hand-shaped VFPU version with the 16-byte generated frame. Remaining blocker is still frame allocation plus static matrix address/register shape in the identity-matrix setup/copy region.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:16:27Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/c51b4983/00064984__agent_self_reported_failure__src_eBipedController.cpp"
       }
     ]
   },
@@ -54094,6 +54118,18 @@
         "timestamp": "2026-05-01T05:32:03Z",
         "src_file": "src/eBipedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065d74__agent_self_reported_failure__src_eBipedController.cpp"
+      },
+      {
+        "session": "c51b4983",
+        "notes": "Added eBipedController::GetPosition(int, mVec3 *) const using the closest prior GetVelocity-style branch-likely shape. Current best is a same-size 14/104-byte mismatch: the entry computation, null checks, ok flag, and bnezl delay-slot reload are present, but SNC still emits a duplicate lw entry[0] before the true-path lv.q and chooses a3/t0 for two zero-vector mfc1/mtv registers instead of the target a1/a3. A manual inline-asm tail removed some generated structure but changed the short-circuit branch shape and/or added an extra compiler epilogue, so it was reverted. The permuter was attempted for 300s but skipped with PERMUTER_SKIPPED_NOT_LAST_MILE because it measured the emitted symbol as 108B while the DB target is 104B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:16:27Z",
+        "src_file": "src/eBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/c51b4983/00065d74__agent_self_reported_failure__src_eBipedController.cpp"
       }
     ]
   },
@@ -61553,7 +61589,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -61587,7 +61623,14 @@
         "snapshot": "logs/failure_snapshots/match_20260514_022603/7f3dc83c/00075100__agent_self_reported_failure__src_eKeyframedController.cpp"
       }
     ],
-    "mangled_symbol": "__0fUeKeyframedControllerKGetInvMassiPfP6FmVec3K"
+    "mangled_symbol": "__0fUeKeyframedControllerKGetInvMassiPfP6FmVec3K",
+    "src_file": "src/eKeyframedController.cpp",
+    "symbol_name": "__0fUeKeyframedControllerKGetInvMassiPfP6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f6f9b8e2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:23:35Z"
   },
   {
     "address": "0x00075128",
@@ -71570,7 +71613,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0000e208",
       "0x0036bdbc"
@@ -95030,7 +95073,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00104ef4"
     ],
@@ -98454,7 +98497,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -155180,7 +155223,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x001ccefc"
     ],
@@ -176768,6 +176811,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T06:18:29Z"
+      },
+      {
+        "session": "2c3981b0",
+        "notes": "Recreated a dedicated cArrayBase<int>::operator= template instantiation and iterated from the prior cArrayBase 4-byte sibling patterns. The current source implements the allocator/free skeleton, masked header counts, allocation with element size 4 and tag 0x36DA98, resize-copy loop, and same-size copy loop. I tested the generic mData form, the unsigned-int/cHandle-style form, post-allocation source-data liveness barriers, register-bound loop locals, split source/destination/value temporaries, and explicit null-destination branch spellings.\n\nBest retained source is semantically closest but still compiles to 500B instead of the target 512B. The resize-copy setup now has the intended `li a0; lw s3,0(s1); li a1` ordering, but SNC still emits a shorter resize-copy null-destination branch and the same-size loop keeps offset/count in the wrong registers and reuses the source pointer instead of reloading both source and destination bases like the target. An explicit if/else increment produced an exact/oversized shape but regressed to a broad 150/512 byte mismatch, so I reverted to the tighter 500B source. Root cause appears to remain source-level register allocation/control-shape drift in the cArrayBase copy loops.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:19:26Z",
+        "src_file": "src/cArrayBasecArrayBasecArrayBaseint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/2c3981b0/00248bb0__agent_self_reported_failure__src_cArrayBasecArrayBasecArrayBaseint.cpp"
       }
     ]
   },
@@ -185753,6 +185808,18 @@
         "timestamp": "2026-05-17T19:30:09Z",
         "src_file": "src/gcTableColumnShort.cpp",
         "snapshot": "logs/failure_snapshots/match_20260517_210450/e4c4e6e1/0027169c__agent_self_reported_failure__src_gcTableColumnShort.cpp"
+      },
+      {
+        "session": "f6f9b8e2",
+        "notes": "Restored 2-byte baseline from prior failure snapshot e4c4e6e1: src/gcTableColumnShort.cpp now builds 396B and differs by exactly 2 bytes at offset 0xb8 (file offset 0x228). Target emits `addu a2,s3,a1` (02653021) for the copy-loop preheader `dst = newData + offset` where offset=0 has just been initialized in the beqz delay slot; SNC folds this to `or a2,s3,$0` (02603025) i.e. `move a2,s3`. All other 394 bytes match: prologue, alloc path, both `li a0,0` duplicates from the bnez/bgtz join, copy-loop body, free-count empty loop, and free tail. All sibling methods in this TU still match.\n\nNew approaches this session beyond prior agents'/notes: (1) `int offset = i + i;` with i=0 \u2014 SNC still folds to `move a2,s3` (2-byte diff unchanged); (2) `int offset; __asm__(\"ori %0, $0, 0\" : \"=r\"(offset));` non-volatile \u2014 without the volatile barrier SNC reorders the asm OUT of delay-slot vicinity, producing 182B diff (matches the prior 'inline-asm-only addu' approach). All prior attempts in the failure notes (volatile no-op barrier, volatile ori init, register-pinned a1, sched=1 pragma, sched=2 pragma, char* vs short* dst arithmetic, splitting bytes calc, separate dst/store locals, etc.) re-confirmed as ineffective by the prior agent's 4488+2776 permuter candidates / 2230+1065 compiled / zero improvements.\n\nRoot cause is SNC's SSA-level constant propagation folding `addu(reg, 0_reg)` to `or(reg, $0)` after the mid-end sees offset=0. The original SNC build kept the addu \u2014 likely because in the original eAll/gcAll TU the constant-prop and scheduling passes ordered differently, or the surrounding TU context perturbed the SSA. There is no local source leverage that can hide the offset=0 from SNC at the SSA level without inserting actual instructions (volatile asm, memory loads, function calls) that blow up the diff. Per docs/decisions/006, diff is on addu vs or \u2014 NOT bnel/beql \u2014 so this stays `failed` rather than `unmatchable_bnel`. Closest source is current src/gcTableColumnShort.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:23:35Z",
+        "src_file": "src/gcTableColumnShort.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/f6f9b8e2/0027169c__agent_self_reported_failure__src_gcTableColumnShort.cpp"
       }
     ]
   },
@@ -201386,7 +201453,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0011b6f4",
       "0x0011b714",
@@ -239481,7 +239548,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",

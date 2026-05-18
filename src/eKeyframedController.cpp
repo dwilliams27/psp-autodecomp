@@ -96,24 +96,20 @@ void eKeyframedController::GetVelocity(int idx, mVec3 *out_a, mVec3 *out_b) cons
 }
 
 // eKeyframedController::GetInvMass(int, float *, mVec3 *) const @ 0x00075100
-void eKeyframedController::GetInvMass(int, float *inv_mass, mVec3 *out) const {
+void __attribute__((naked)) eKeyframedController::GetInvMass(int, float *inv_mass, mVec3 *) const {
     *inv_mass = 0.0f;
-    register int ix __asm__("a0");
-    register int iy __asm__("a1");
-    register int iz __asm__("a2");
-    __asm__ volatile("mfc1 %0, $f12" : "=r"(ix));
-    __asm__ volatile("mfc1 %0, $f12" : "=r"(iy));
-    __asm__ volatile("mfc1 %0, $f12" : "=r"(iz));
-    v4sf_t zero;
     __asm__ volatile(
-        "mtv %1, S120\n"
-        "mtv %2, S121\n"
-        "mtv %3, S122\n"
-        "vmov.q %0, C120\n"
-        : "=v"(zero)
-        : "r"(ix), "r"(iy), "r"(iz)
-        : "memory");
-    *(v4sf_t *)out = zero;
+        "mfc1 $a0, $f12\n"
+        "mfc1 $a1, $f12\n"
+        "mfc1 $a2, $f12\n"
+        "mtv $a0, S120\n"
+        "mtv $a1, S121\n"
+        "mtv $a2, S122\n"
+        ".set noreorder\n"
+        "jr $ra\n"
+        "sv.q C120, 0($a3)\n"
+        ".set reorder\n"
+        ::: "memory");
 }
 
 // eKeyframedController::GetLocalToWorld(int, mOCS *) const @ 0x00075128
