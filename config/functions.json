@@ -54003,7 +54003,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -117592,7 +117592,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0013cb70"
     ],
@@ -201506,7 +201506,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0011b6f4",
       "0x0011b714",
@@ -201538,7 +201538,14 @@
         "src_file": "src/gcDoEntityBipedSetShape.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_235212/1a939e2d/002a7edc__agent_self_reported_failure__src_gcDoEntityBipedSetShape.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcDoEntityBipedSetShape.cpp",
+    "symbol_name": "__0fXgcDoEntityBipedSetShapeDNewP6IcMemPoolP6FcBaseT",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "0338ff4c",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:42:11Z"
   },
   {
     "address": "0x002a8000",
@@ -239601,7 +239608,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -239622,6 +239629,18 @@
         "timestamp": "2026-05-10T23:09:28Z",
         "src_file": "src/gcValNavMeshDirection_AssignCopy.cpp",
         "snapshot": "logs/failure_snapshots/match_20260510_175602/5fc0bdc7/00350b88__agent_self_reported_failure__src_gcValNavMeshDirection_AssignCopy.cpp"
+      },
+      {
+        "session": "0338ff4c",
+        "notes": "Closest is 780B vs target 784B after applying the .size 0x310 padding hack (8 bytes b./nop tail). Remaining 4-byte / 1-instruction structural diff at offset 0x188 \u2014 branch-shape divergence. Target uses 4-instruction skip-shape: `bnel a0,s7,body; lw a2,52(s0) (delay, this->unk34 preload); b 0x350e08 (merge); lw a0,56(s2) (delay, other->unk38 preload)`. Our SNC emits 2-instruction consolidated form: `beql a0,s3,merge; lw a0,56(s2) (delay)` with the body's first instr being its own `lw a0,52(s0)` (this->unk34 load). Net diff: target = +2 instrs in branch region, mine = +1 instr in body (the explicit load). Function is 195 instrs total without padding (mine) vs 196 (target). Sibling functions gcValEntityPathDistance::AssignCopy (0x00339c84, [F] 704B) and gcValEntitySoundFrequency_AssignCopy (mentioned in prior notes) exhibit the IDENTICAL pattern and are also failed \u2014 this is a recurring SNC heuristic divergence for `if (otherPtr != this+tagged_offset)` tagged-pointer destruct/clone patterns where target preloads via bnel delay and SNC consolidates via beql.\n\nThis session's attempts (on top of prior agent's 5 restructurings):\n  6. `register int oldValue asm($6)` to coerce body to use a2 \u2014 SNC ignored the hint, kept body's load in a0.\n  7. `do { if(cond_eq) break; body } while(0)` \u2014 produced same beql shape.\n  8. `__asm__ volatile(\"lw %0,52(%1)\" : \"=r\"(oldValue) : \"r\"(this) : \"memory\");` as first body instr \u2014 REGRESSED to 776B (8B short) because SNC eliminated subsequent loads.\n\nDoes NOT meet docs/decisions/006 unmatchable_bnel criteria because the diff is bnel+b vs beql (different shape) rather than bnel vs bne+nop (different encoding of same shape). Per criteria #3, permuter cannot run (size mismatch). All other bytes match perfectly.\n\nNext-agent ideas (untried): (a) emit the missing `b 0x350e08` instruction via top-level inline asm in the body between destruct and clone halves; (b) introduce a SECOND outer if-check (e.g., redundant null-check on other) to confuse SNC's heuristic; (c) try the volatile cond approach (`volatile int neq = ...`); (d) try wrapping the entire if in a labeled goto: `if (eq) goto skip; body; skip:` \u2014 note prior agent says they did this but didn't show source; reconfirm with explicit goto-to-label-after-body. The sibling gcValEntityPathDistance_AssignCopy may help: matching it first could reveal a working pattern.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:42:11Z",
+        "src_file": "src/gcValNavMeshDirection_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/0338ff4c/00350b88__agent_self_reported_failure__src_gcValNavMeshDirection_AssignCopy.cpp"
       }
     ]
   },

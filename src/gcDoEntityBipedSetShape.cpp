@@ -108,36 +108,40 @@ cBase *gcDoEntityBipedSetShape::New(cMemPool *pool, cBase *parent) {
         gcDesiredObject_gcDesiredObject(sub, (cBase *)obj);
         ((void **)obj)[4] = D_00000338;
 
-        gcDesiredEntityHelper_ctor((char *)obj + 0x18, 1, 0, 0);
-        void *helperDesc = (void *)0x388A48;
-        void *baseDesc = (void *)0x37E6A8;
-        ((void **)obj)[4] = helperDesc;
-        ((void **)obj)[9] = baseDesc;
+        char *helper = (char *)obj + 0x18;
+        int one = 1;
+        gcDesiredEntityHelper_ctor(helper, 1, 0, 0);
 
         __asm__ volatile(
             "lui        $4,0x39\n"
+            "addiu      $4,$4,-30136\n"
+            "lui        $5,0x38\n"
+            "addiu      $5,$5,-6488\n"
+            "sw         $4,16(%0)\n"
+            "sw         $5,36(%0)\n"
+            "lui        $4,0x39\n"
             "mtc1       $0,$f12\n"
-            "sw         $16,32($17)\n"
+            "sw         %1,32(%0)\n"
             "addiu      $4,$4,-31384\n"
             "mfc1       $5,$f12\n"
-            "sw         $4,36($17)\n"
+            "sw         $4,36(%0)\n"
             "mfc1       $6,$f12\n"
-            "sb         $18,40($17)\n"
+            "sb         %2,40(%0)\n"
             "mfc1       $4,$f12\n"
-            "sb         $0,41($17)\n"
-            "sw         $0,44($17)\n"
-            "ori        $7,$16,1\n"
-            "sw         $0,48($17)\n"
-            "ori        $8,$17,1\n"
-            "sw         $7,52($17)\n"
-            "sw         $8,56($17)\n"
+            "sb         $0,41(%0)\n"
+            "sw         $0,44(%0)\n"
+            "ori        $7,%1,1\n"
+            "sw         $0,48(%0)\n"
+            "ori        $8,%0,1\n"
+            "sw         $7,52(%0)\n"
+            "sw         $8,56(%0)\n"
             "mtv        $4,S120\n"
             "mtv        $5,S121\n"
             "mtv        $6,S122\n"
-            "sv.q       C120,0x40($17)\n"
+            "sv.q       C120,0x40(%0)\n"
             :
-            :
-            : "a0", "a1", "a2", "a3", "t0", "memory");
+            : "r"(obj), "r"(sub), "r"(one)
+            : "$4", "$5", "$6", "$7", "$8", "$f12", "memory");
 
         result = obj;
     }
