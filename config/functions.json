@@ -3302,7 +3302,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -3333,6 +3333,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T08:26:27Z"
+      },
+      {
+        "session": "b8b64fcd",
+        "notes": "REG_ALLOC drift, 3/336 bytes (category=REG_ALLOC). Improved from prior agent's 4-byte baseline by fixing addu operand order in CRC table indexing: splitting `table[(crc ^ *p) & 0xFF]` into `idx4 = ((crc ^ *p) & 0xFF) << 2; idx4 += (unsigned int)table; *(unsigned int *)idx4` made SNC emit the target's `addu t1, t1, t0` (index-first) instead of `addu t1, t0, t1` (table-first). That saved 1 byte. Constructor also moved from src/cMemBlockSuspend.cpp to canonical src/cMemPool.cpp per CLAUDE.md class-method-file rule; the prior version in cMemBlockSuspend.cpp was preserved/restored by a hook so both files now compile to identical 3-byte mismatch. Remaining 3 bytes are caller-save register choice in CRC setup: built emits `addiu a3,v0,-1; move a1,a3` while target emits `addiu a1,v0,-1; move a3,a1` \u2014 the first-initialized variable maps to a3 in our TU but to a1 in original. Tried: register int var __asm__(\"$5\") binding (SNC silently ignores), name swap of var_a1/var_a3 (compiler maps consistently regardless of names), explicit subtraction operand order. Permuter run 1: 600s on 4-byte baseline (2868 candidates, 0 improvements). Permuter run 2: ~125s on 3-byte baseline (521 candidates, 0 improvements). Matches ADR-012 context-dependent regalloc pattern but for caller-save a1/a3 not callee-save s-regs. Loop body, CRC table read, list insertion, lock calls, prologue, and epilogue are byte-identical.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:46:43Z",
+        "src_file": "src/cMemPool.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/b8b64fcd/00004540__agent_self_reported_failure__src_cMemPool.cpp"
       }
     ]
   },
@@ -50643,7 +50655,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0003f474"
@@ -50702,7 +50714,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x0003f474",
       "0x0005d928"
@@ -54127,7 +54139,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -54145,7 +54157,14 @@
         "src_file": "src/eBipedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/02ef5779/00065c5c__agent_self_reported_failure__src_eBipedController.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eBipedController_GetInvMass.cpp",
+    "symbol_name": "__0fQeBipedControllerKGetInvMassiPfP6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6d6a2eee",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T21:53:21Z"
   },
   {
     "address": "0x00065cf0",
@@ -54157,7 +54176,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -54175,7 +54194,14 @@
         "src_file": "src/eBipedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/02ef5779/00065cf0__agent_self_reported_failure__src_eBipedController.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eBipedController_GetLocalToWorld.cpp",
+    "symbol_name": "__0fQeBipedControllerPGetLocalToWorldiP6EmOCSK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "6d6a2eee",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T21:53:21Z"
   },
   {
     "address": "0x00065d74",
@@ -55908,7 +55934,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -64008,7 +64034,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00211e44"
     ],
@@ -69087,7 +69113,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -69126,6 +69152,18 @@
         "timestamp": "2026-05-09T01:39:52Z",
         "src_file": "src/eShadowVolumeModelMtl.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3b4cbe17/00086074__agent_self_reported_failure__src_eShadowVolumeModelMtl.cpp"
+      },
+      {
+        "session": "b8b64fcd",
+        "notes": "REG_ALLOC drift, 2/344 bytes (category=REG_ALLOC). eShadowVolumeModelMtl::Read added in canonical src/eShadowVolumeModelMtl.cpp under existing #pragma control sched=1 region. All sibling methods (Constructor, GetType, Write, PlatformRead, PlatformFree, New, CreateData) still MATCH. The 2-byte diff is solely on the mField75 test: built emits `lbu a0,117(s2); bnez a0,...` while target emits `lbu a1,117(s2); bnez a1,...`. Tried: `register int enabled __asm__(\"a1\")` with separate `__asm__ volatile(\"lbu %0,117(%1)\")` (SNC silently ignores binding and emits its own lbu), combined `register unsigned int enabled __asm__(\"a1\") = ((unsigned char *)this)[0x75]` (same \u2014 SNC ignores), pinning a0 via `register int flags __asm__(\"$4\")` plus `+r(flags)` constraint (SNC frees a0 anyway), clobber list with $4 before the load, plus the simpler ternary without goto-labels (regressed to 107B). Root cause: SNC freely reuses a0 for the lbu since flags was just stored to memory (a0 is free), while target's original compiler chose a1 because a0 is needed in the bnez delay slot for mode=5. This is a context-dependent heuristic difference between compiler versions, not source-level fixable. Permuter ran 600s (2424 candidates, 0 improvements).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:46:43Z",
+        "src_file": "src/eShadowVolumeModelMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/b8b64fcd/00086074__agent_self_reported_failure__src_eShadowVolumeModelMtl.cpp"
       }
     ]
   },
@@ -86711,7 +86749,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000eb7dc",
       "0x000eb840"
@@ -86746,7 +86784,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000eb73c"
@@ -86766,6 +86804,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T21:12:49Z"
+      },
+      {
+        "session": "0be00f8f",
+        "notes": "FreeDynamicInstances (92B target): body bytes match exactly through natural epilogue (jr ra; addiu sp,sp,16) at offset 0x50. Symbol comes out at 84B vs target 92B \u2014 the 8-byte trailing 'b .; nop' trap after the epilogue is missing. This matches both prior agents' diagnosis (sessions dce77d20 and 61501237). Tried additionally: (1) `for(;;){}` at end \u2014 replaces epilogue with infinite-loop trap, drops jr ra/addiu sp epilogue entirely (76B); (2) `return; trap: goto trap;` after the do-while \u2014 label dead-code eliminated, identical 84B output. Same 84B body-matching shape that prior agents produced.\n\nGlobal scan: 386 functions in the DB exhibit a trailing 'b .; nop' trap (8 bytes: ff ff 00 10 00 00 00 00). All 386 are unmatched. ZERO matched functions in the DB have this trap. This is a known-unsolved SNC codegen idiom \u2014 the trap is emitted by the SN compiler under conditions that no agent in this project has yet reverse-engineered. The pattern correlates with deletion/iteration functions (many destructors, ::~Foo, ::Free, ::DeleteGroups, eRoom::Free) but no source-level recipe is known. Likely matchable only via pspcor.exe patching or discovery of a specific source idiom (perhaps a noreturn declaration on the vtable thunk or a compiler-recognized infinite-loop sentinel) we have not yet identified. Permuter can't help since we're missing bytes, not rearranging existing ones.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:48:21Z",
+        "src_file": "src/gcCinematicInstance.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/0be00f8f/000eb7dc__agent_self_reported_failure__src_gcCinematicInstance.cpp"
       }
     ],
     "mangled_symbol": "__0fTgcCinematicInstanceUFreeDynamicInstancesvT"
@@ -86827,7 +86877,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000eab04"
     ],
@@ -86848,6 +86898,18 @@
         "timestamp": "2026-05-06T07:45:07Z",
         "src_file": "src/gcCinematicInstance.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/eceb75ce/000ebc64__agent_self_reported_failure__src_gcCinematicInstance.cpp"
+      },
+      {
+        "session": "0be00f8f",
+        "notes": "FindPlayingCinematic(cHandle, bool) static (168B target): 29 bytes differ \u2014 exact same diff as prior session eceb75ce. Created as a split-TU (src/gcCinematicInstance_FindPlayingCinematic.cpp) per the SPLIT-TU rule to avoid header edits that could regress matched siblings in src/gcCinematicInstance.cpp. The other 11 functions in gcCinematicInstance.cpp still match cleanly.\n\nByte-level diff analysis (from objdump): The xor-sltiu-andi bool chain is generated correctly, but SNC allocates the entire chain into register a0 (the LHS reg from the initial `lw a0,8(s1)` load). Target uses xor a2,s0,a0; sltiu a1,a2,1; andi a1,a1,0xff; beqz a1,advance; lw a0,0(s1) in delay slot. Our output uses xor a0,s0,a0; sltiu a0,a0,1; andi a0,a0,0xff; beqzl a0,advance; lw s1,84(s1) in delay slot \u2014 branch-likely variant with advance-in-delay instead of preload-this-in-delay. Also a duplicated lw s1,84(s1) appears after the IsStreamed call. Even the stack-frame setup order differs: target spills `sw a0,0(sp)` at function offset 0x08 (third insn), we spill at offset 0x28 (in beqz delay slot).\n\nVariants tested in this session: (1) original int diff/eq variant \u2014 29B (baseline); (2) inline `*(gcCinematic**)node` cinematic load at call site \u2014 29B identical; (3) xor operand swap (nodeHandle ^ handle.mIndex instead of handle.mIndex ^ nodeHandle) \u2014 31B worse; (4) direct `handle.mIndex == nodeHandle` (no bool mask) \u2014 156B (drops xor chain entirely, wrong shape); (5) `bool eq = (a==b)` variable \u2014 164B (drops andi 0xff); (6) `#pragma control sched=1` \u2014 32B worse. None affected the a0 vs a2/a1 register choice for the bool chain.\n\nPermuter: 300s run, 3420 candidates generated, 842 compiled, 0 improvements (started at 29, ended at 29). Combined with prior 240s/7632/0-improvements run from session eceb75ce, the source search space around this function has been thoroughly explored without finding a structural variant that flips the register allocation. Classification confirmed: regalloc_drift + branch_direction_codegen, quarantine. The compiler's choice between (xor\u2192a2, sltiu\u2192a1, beqz a1 + preload this) vs (xor\u2192a0, sltiu\u2192a0, beqzl a0 + advance) is driven by an internal SNC scheduling heuristic for register-pressure-vs-delay-slot-fill trade-offs that's not directly controllable from C++ source. Likely unmatchable without compiler patching or a yet-undiscovered idiom.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:48:21Z",
+        "src_file": "src/gcCinematicInstance_FindPlayingCinematic.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/0be00f8f/000ebc64__agent_self_reported_failure__src_gcCinematicInstance_FindPlayingCinematic.cpp"
       }
     ]
   },
@@ -93228,7 +93290,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000e0520",
       "0x000f88f8",
@@ -93253,6 +93315,18 @@
         "timestamp": "2026-05-06T01:42:55Z",
         "src_file": "src/gcViewport.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_191203/78471c89/000fde78__agent_self_reported_failure__src_gcViewport.cpp"
+      },
+      {
+        "session": "cccb51cf",
+        "notes": "Added gcViewport::ResetAll to src/gcViewport.cpp at the closest known TU location after OnMemPoolResetAll. Baseline source compiles to the correct 148-byte shape with an 11-byte diff: loop body/calls are structurally correct, but generated prologue initializes s2 before s0, and the final clear emits addiu a0,a0,0x4e40; addiu a0,a0,0x1380; sb zero,0(a0) instead of target addiu a0,a0,0x4e40; li a1,0; sb a1,0x1380(a0). Moving ResetAll earlier in the file changed prologue/register scheduling, so the current placement is the closest source. Tried explicit one/zero locals, typed tail struct, volatile tail member, volatile pointer, volatile byte store, and sched=1. Volatile forms can produce the exact final three-instruction store, but they disturb the loop scheduling/prologue and increase the diff substantially; non-volatile forms preserve the loop but fold/split the final store differently. Full last-mile permuter ran 600s (4620 candidates generated, 2425 compiled) with zero improvements; best stayed 11 bytes. Root cause remains SNC constant-folding/scheduler behavior around the post-loop store.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:48:28Z",
+        "src_file": "src/gcViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/cccb51cf/000fde78__agent_self_reported_failure__src_gcViewport.cpp"
       }
     ]
   },
@@ -99456,7 +99530,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00110218"
@@ -99475,6 +99549,18 @@
         "timestamp": "2026-05-04T10:54:24Z",
         "src_file": "src/gcEntityControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/b07f7676/001101a8__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
+      },
+      {
+        "session": "cccb51cf",
+        "notes": "Closest source remains the existing C++ loop in gcEntityControllerTemplate.cpp. It compiles to the correct 112-byte function with a 4-byte scheduling diff only: generated order is li v0,0; li a1,0; lw a0,0(sp); li a3,0, while target is li v0,0; lw a0,0(sp); li a1,0; li a3,0. Tested sched=1 around the method, an h.mIndex local, an empty asm +r use of h.mIndex, and a memory barrier; all either preserved the same ordering or worsened prologue/register allocation. Full last-mile permuter ran 600s (5020 candidates generated, 2500 compiled) with zero improvements; best stayed 4 bytes. This does not qualify for unmatchable_bnel because the diff is li/lw scheduling, not bnel/beql.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:48:28Z",
+        "src_file": "src/gcEntityControllerTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/cccb51cf/001101a8__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp"
       }
     ]
   },
@@ -101271,7 +101357,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0011ecc0",
@@ -101297,6 +101383,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T21:05:48Z"
+      },
+      {
+        "session": "57649131",
+        "notes": "Started from the existing gcEntity::GetPlayer near-miss. Reconfirmed it preserves the target front half through the initial beqz, lb 0x67, bltzl with lw 0x218 in the delay slot, the redundant second bltz, and the player-table calculation, but still emits the inverse tail shape: beqz a1; nop; b check_index with lb 0x67(a1) in the unconditional branch delay slot. The original has bnezl a1 back to the index check with the lb in the likely delay slot and then falls through to return zero.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:52:31Z",
+        "src_file": "src/gcEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/57649131/00117440__agent_self_reported_failure__src_gcEntity.cpp"
       }
     ]
   },
@@ -132648,7 +132746,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -174119,7 +174217,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000dd7cc"
@@ -196815,7 +196913,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0013aff8"
@@ -242933,7 +243031,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001428"
@@ -242953,6 +243051,18 @@
         "timestamp": "2026-05-07T06:34:52Z",
         "src_file": "src/gcValStringCompare.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_235212/b8c9eae9/0035e0cc__agent_self_reported_failure__src_gcValStringCompare.cpp"
+      },
+      {
+        "session": "57649131",
+        "notes": "Started from the existing closest gcValStringCompare::GetText body, which already reconstructs the two 256-byte local buffers, desired-object text dispatch through type slot +0x40, fallback cStrCopy(0x36DACC), and final mExact-selected cStrAppend. Verified the current source is still a 13/384 byte near miss. Tried removing the initial memory barrier, adding zero-instruction register constraints for buf/right buffer, and moving the buf constraint before the right-buffer store to influence the prologue schedule; all variants worsened the diff (16-34 bytes) or left later register placement worse, so I restored the prior near-miss source.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:52:31Z",
+        "src_file": "src/gcValStringCompare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/57649131/0035e0cc__agent_self_reported_failure__src_gcValStringCompare.cpp"
       }
     ]
   },
