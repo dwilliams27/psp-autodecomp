@@ -101,21 +101,9 @@ void gcBipedControllerTemplate::Write(cFile &file) const {
 }
 
 // ── gcBipedControllerTemplate::~gcBipedControllerTemplate(void) @ 0x002A7964 ──
-//
-// SNC inlines the entire base-destructor chain. Both gcCreatureControllerTemplate
-// and gcBipedControllerTemplate have empty destructor bodies, so the generated
-// code is identical to gcEntityControllerTemplate's destructor: vptr swap to
-// gcEntityAttackSetvirtualtable+0x10, two cBaseArray::RemoveAll calls (members
-// at +0x1C and +0x8 of the entity-controller layout), then vptr swap to
-// cFastMemAllocatorvirtualtable+0x50 (cBase's vtable).
-gcBipedControllerTemplate::~gcBipedControllerTemplate() {
-    *(char **)((char *)this + 4) = gcEntityControllerTemplate_dtor_classdesc;
-    void *p1 = (char *)this + 0x1C;
-    void *p2 = (char *)this + 0x8;
-    if (p1) cBaseArray__RemoveAll_void(p1);
-    if (p2) cBaseArray__RemoveAll_void(p2);
-    *(char **)((char *)this + 4) = cBase_dtor_classdesc;
-}
+// Lives in src/gcBipedControllerTemplate_dtor.cpp (split TU; the .size /
+// `.word` trap trailer pattern requires the dtor to be the only function in
+// its compilation unit).
 
 // ── gcBipedControllerTemplate::GetType(void) const @ 0x002A7854 ──
 const cType *gcBipedControllerTemplate::GetType(void) const {

@@ -16510,7 +16510,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0000acec",
@@ -16546,6 +16546,18 @@
         "timestamp": "2026-05-01T02:29:22Z",
         "src_file": "src/cFactory.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_201648/c5a1ae9a/0000acec__agent_self_reported_failure__src_cFactory.cpp"
+      },
+      {
+        "session": "24e68b3f",
+        "notes": "Reverified the existing cFactory::FindObject baseline: correct 648-byte size with 16/648 bytes differing, while the surrounding cFactory methods remain as before. The mismatch remains isolated to the final isFactory/type-walk tail: expected has li a0,0 followed by beqzl a0 with lw s1,0(s1) in the delay slot, then an unconditional branch to the recurse/null-check join. The current source still compiles to the bnez-first parent advance shape with the parent load after the branch.\n\nRead the branch-likely and loop research, then tried two focused tail restructurings not retained: default-zero isFactory with only a match assignment, and an inline `if (isFactory == 0) { factory = *(cFactory **)factory; ... } else { goto recurse_parent; }` block to expose the parent load as the first false-branch instruction. The default-zero version regressed to the known 636B shape; the inline false-branch form compiled back to the same 16-byte baseline, so src/cFactory.cpp was restored to the prior best source. Prior 300s and 600s permuter runs already found zero improvement, and this remains broader branch-layout divergence, not eligible for unmatchable_bnel.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:21:09Z",
+        "src_file": "src/cFactory.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/24e68b3f/0000acec__agent_self_reported_failure__src_cFactory.cpp"
       }
     ]
   },
@@ -51421,7 +51433,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -51438,6 +51450,18 @@
         "timestamp": "2026-05-07T00:18:30Z",
         "src_file": "src/eStaticPointLight.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_155600/94289255/0005f07c__agent_self_reported_failure__src_eStaticPointLight.cpp"
+      },
+      {
+        "session": "56fd9e90",
+        "notes": "Same 23/224-byte diff as prior agent's failure snapshot. The expected disassembly uses bc1tl (FP branch-likely, opcode 0x45030026) at offset 0x24 with `mfc1 a0,$f12` as the delay-slot hoisted first instruction of the zero block, then the zero block at 0xc0 begins with `mfc1 a2,$f12` (since a0 was set by the delay slot). Our compiled output emits the conventional bc1t+nop+full-zero-block-with-mfc1-a0, producing one extra instruction and a 228-byte function. All other bytes match the expected disassembly exactly (the prologue, vdot.t/mfv setup, c.le.s comparison, positive-path inverse-square attenuation `100.0f / ((distance * distance) * 3.1415927f)`, color byte loads scaled by 1/255 stored at sp+16/20/24, factor multiplication, sv.q to out, and zero-path return).\n\nThe matched eStaticSkyLight (0x5f388) and eStaticSunLight (0x5fc30) siblings use the SAME source pattern (volatile float color[8] stack array + asm vdot.t + `if (dot > zero)` early-return + zero asm tail) and SNC emits bc1t there with a useful fall-through delay-slot fill of `lui a2,0x3b80` (the 1/255 scale constant load). In our PointLight case the fall-through path's first instruction is `lwc1 $f12,32(t0)` which WRITES to $f12 \u2014 the same FP register that the branch target needs to READ ($f12 holds the zero-value), so SNC can't fill the delay slot with the fall-through's first instruction. The expected SNC build chose `bc1tl + target's first instruction` to fill the slot productively; our SNC version chose `bc1t + nop`.\n\nExhaustive search of the codebase finds ONLY 0x0005f07c uses the bc1tl+mfc1 codegen pattern across all expected/build/func/*.o (grep `bc1tl` followed by `mfc1` in disassembly returns this single function). No matched compiled .o in our build/src/ emits this pattern. The bc1tl-with-mfc1-delay-slot variant appears to be a heuristic our SNC binary (pspsnc 1.2.7503.0) does not exercise on this pattern.\n\nThis session retried the prior attempts plus several new ones: (a) inverted condition with goto (`if (dot <= zero) goto zero_path;`) \u2014 still bc1t+nop; (b) non-volatile single `mfc1 %0,$f12` outside the asm block to let SNC hoist it \u2014 SNC keeps it where it is, still bc1t+nop; (c) `#pragma control xopt=5` per-routine \u2014 produces a totally different (much shorter, ~152B) function because xopt=5 eliminates the volatile color stack array stores (treats them as dead writes), so not viable; (d) `#pragma control reg=3` \u2014 SNC error 0020: Invalid change in controls ALIAS, CALLMOD or REG in routine, can't override mid-routine. The permuter cannot run on this function (`PERMUTER_ERROR: Could not score original source against EBOOT. Symbol size mismatch`) because the compiled symbol is 228B vs DB 224B \u2014 permuter requires baseline size to match before mutation.\n\nNo source-level lever available: volatile asm blocks cannot be hoisted into delay slots, and the bc1tl emission is gated by a compiler heuristic we cannot trigger from C++. Cannot classify `unmatchable_bnel` per CLAUDE.md (the diff is 23 bytes, not \u22648; the divergent instruction is bc1t vs bc1tl, not bne/beq vs bnel/beql). Possible angles for next agent: (1) emit the bc1tl block via a SINGLE large inline asm spanning the comparison + branch + zero-path tail (might cross the 50% inline-asm threshold; check carefully against CLAUDE.md \"assembly ban\" rule); (2) try a fresh SNC binary or different pspsnc version (would require coordinator action, not agent action); (3) the .word/.size trailer trick used to fix the gcBipedControllerTemplate dtor in this session does NOT help here \u2014 that pattern only appends bytes after the function epilogue, but our divergence is mid-function at offsets 0x24/0x28/0xc0+.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:36:58Z",
+        "src_file": "src/eStaticPointLight.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/56fd9e90/0005f07c__agent_self_reported_failure__src_eStaticPointLight.cpp"
       }
     ]
   },
@@ -54039,7 +54063,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -54056,6 +54080,18 @@
         "timestamp": "2026-05-01T05:32:03Z",
         "src_file": "src/eBipedController.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/1f5da794/00065b54__agent_self_reported_failure__src_eBipedController.cpp"
+      },
+      {
+        "session": "b8305266",
+        "notes": "Best result is 5/104 bytes different (down from prior session 1f5da794's 14 bytes baseline). Source moved to split-TU file src/eBipedController_GetVelocity.cpp with a local class redeclaration to follow the SPLIT-TU rule (canonical header include/eBipedController.h declares only the `(int, mVec3 *, mVec3 *) const` overload, not the `(int, const mVec3 &, mVec3 *) const` target). Compiled symbol is 112B vs DB 104B (8B trailing `jr ra; nop` that SNC emits after the inline-asm-terminated has_body block); compare_func reports 5 byte content diff in the first 104 bytes.\n\nThe 5 bytes of content diff are: (1) byte 0x1e (rt field of `lw` at 0x1c): expected `lw a2, 4(a1)` (a2=$6), mine emits `lw a1, 4(a1)` (a1=$5, overwriting entry pointer); (2) byte 0x22 (rs field of `beq` at 0x20): mine `beq $5, $0, +0xc`, expected `beq $6, $0, +0xc`; (3) byte 0x33 (opcode field of branch at 0x30): mine `bne $4, $0, +0x28`, expected `bnezl a0, +0x28` (branch-likely); (4-5) bytes 0x36-0x37 (delay slot of branch at 0x30): mine emits `nop`, expected emits `lw a0, 0(a1)` (conditional reload of entry[0]).\n\nApproaches tried this session: (a) snapshot's `void * volatile *entry` + `goto has_body` with plain C body read \u2014 produced 14/104 diff (matches snapshot baseline); the volatile entry forced a redundant `lw $4, 0($5)` BEFORE the lv.q at has_body in addition to the bnel delay slot reload. (b) Replaced the body read at has_body with `register void *body __asm__(\"$4\"); __asm__ volatile(\"\" : \"=r\"(body));` \u2014 this eliminates the redundant pre-lv.q reload but ALSO causes SNC to drop the branch-likely transform (now plain `bne` with `nop` delay slot). Net: 5/104 diff. (c) Same as (b) but without the volatile qualifier on entry \u2014 SNC CSE'd the entry[0] reads and produced a totally different layout (true path inline, false path appended), 45+ byte diff. (d) Moved `lw $4, 0(%0)` INSIDE the has_body lv.q asm so entry stays live through the function \u2014 fixed the register-allocation diff at offsets 0x1c/0x20 (now matches $6) but rest got worse (16-byte total diff because the lv.q+jr+sv block shifted). (e) Restructured to put the lv.q+jr+sv inline within the `if (ok)` block followed by an explicit return, with the false path appended \u2014 this produces a fundamentally different basic-block layout (45+ byte diff). (f) Added `__attribute__((noreturn))` to the GetVelocity declaration \u2014 no effect, SNC still emits the trailing `jr ra; nop`. (g) `__builtin_unreachable()` \u2014 not supported by SNC (error 0020: identifier undefined).\n\nPermuter rejected with `PERMUTER_SKIPPED_NOT_LAST_MILE: symbol size 112B does not match DB size 104B (delta 8B)`. The 8-byte size delta is the trailing `jr ra; nop` that SNC adds after the has_body inline asm (SNC can't see that the asm has its own `jr ra` and `sv.q` in the delay slot). Without an SNC pragma/attribute to suppress trailing-return emission, this size delta cannot be closed from C source alone.\n\nRoot cause: the original compiler emitted a branch-likely (`bnezl`) that reloads entry[0] into a0 in the delay slot, with the same register reused for both the `ok` flag (before branch) and the body pointer (after branch). Our SNC version doesn't recognize this two-pass register-reuse pattern unless the C source has `entry[0]` read as a normal (non-volatile) compiler-tracked load at the start of the true-path basic block, which then conflicts with the goto/fallthrough structure needed for the false path to come first. The 5-byte residual fits the `branch_direction_codegen` classification but mixes register-allocation drift with bnel divergence, so it does not satisfy the strict `unmatchable_bnel` criteria (criterion 4: all other bytes match perfectly is violated by the $5/$6 register diff). Stays `failed`.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:28:41Z",
+        "src_file": "src/eBipedController_GetVelocity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/b8305266/00065b54__agent_self_reported_failure__src_eBipedController_GetVelocity.cpp"
       }
     ]
   },
@@ -86710,7 +86746,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x000eb73c"
@@ -86791,7 +86827,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000eab04"
     ],
@@ -93192,7 +93228,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000e0520",
       "0x000f88f8",
@@ -99420,7 +99456,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00110218"
@@ -101235,7 +101271,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0011ecc0",
@@ -117669,7 +117705,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0013cb70"
     ],
@@ -117699,6 +117735,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T19:06:27Z"
+      },
+      {
+        "session": "b8305266",
+        "notes": "Best result remains 8/108 bytes different \u2014 same as prior sessions 825a28f3 and d9a1284f. The full body matches through the vtable store, zero-vector setup, VFPU store, and through `mtc1 $4, $f12` at offset 0x50. The remaining 8-byte mismatch is the final two instructions: expected emits `move v0,s0; swc1 $f12,0xB8(s0)`, SNC emits `swc1 $f12,0xB8(s0); or $2,$16,$0`. SNC refuses to schedule the implicit constructor return-value move into the mtc1\u2192swc1 latency gap, instead placing it after the swc1.\n\nNew approaches tried this session: (a) plain-C float-constant tail (`*(float*)... = 0.0f; = 1.0f;`) \u2014 SNC failed to hoist the `lui` and gave a 16-byte diff. (b) `register float zero __asm__(\"$f12\")` register binding \u2014 same 16-byte diff (SNC scheduled the same way regardless of register binding). (c) Recipe-style three separate `mfc1 %0, %1` asm with `float zero = 0.0f` local \u2014 produced lui+swc1+mtc1 in correct order at offsets 0x48-0x50 but still placed `move v0,s0` after `swc1 $f12,0xB8` (16-byte diff). (d) Explicit `or $2, %0, $0` inside inline asm \u2014 landed in the correct latency-fill slot at 0x54 but SNC also emitted a redundant epilogue `or $2,$16,$0` at 0x5c, making the function 4 bytes too long (20-byte diff total). (e) `register void *v0 __asm__(\"$2\") = (void *)this;` between mtc1 asm and swc1 asm with v0 passed as `\"r\"(v0)` input to the swc1 asm \u2014 SNC dead-eliminated the assignment because it knew the implicit constructor return would set $2 to `this` anyway (8-byte diff, same as baseline). (f) Register-binding the temp to `$4` with `register int one_bits __asm__(\"$4\") = 0x3f800000;` then C swc1's around an inline-asm mtc1 \u2014 got the 0x48-0x54 region matching but the implicit return move still landed at 0x5c, function was 4 bytes too long (and SNC's $f20 spill made it 75 bytes diff). (g) Tried sched=1 pragma \u2014 got 24 byte diff (worse), so sched=2 is correct. Permuter ran 240s, 1992 candidates, 981 compiled \u2014 zero improvements over 8-byte baseline.\n\nRoot cause: SNC's constructor implicit-return scheduler places `move v0, $sX` either AT the function end or, when filling a stall, in the available cycle BEFORE an inline-asm-emitted store but NOT BEFORE a compiler-emitted swc1 that follows an inline-asm mtc1. The 8-byte gap is one (`swc1`, `move`) pair-swap. Source has no leverage over this pair-swap. Differing instructions are swc1/move not bnel/bne+nop, so this stays `failed` rather than `unmatchable`. Future attempts should research SNC pspcor.exe for the constructor-return-move pass and consider whether `__attribute__((naked))` with a manually emitted prologue/epilogue would let us hand-place the move \u2014 but that would push the function past the 50% inline-asm threshold and into assembly-ban territory.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:28:41Z",
+        "src_file": "src/gcBipedController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/b8305266/00141224__agent_self_reported_failure__src_gcBipedController.cpp"
       }
     ]
   },
@@ -201492,7 +201540,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -201522,7 +201570,14 @@
         "src_file": "src/gcBipedControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/6a6e21cb/002a7964__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcBipedControllerTemplate_dtor.cpp",
+    "symbol_name": "__0oZgcBipedControllerTemplatedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "56fd9e90",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T21:36:58Z"
   },
   {
     "address": "0x002a7a30",
@@ -233839,7 +233894,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -233860,6 +233915,18 @@
         "timestamp": "2026-05-07T00:57:00Z",
         "src_file": "src/gcValEntityHasTimeSince.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_155600/aced64d7/0033f480__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp"
+      },
+      {
+        "session": "24e68b3f",
+        "notes": "Added the prior best gcValEntityTimeSince::GetText source shape to the canonical file and verified it compiles to the correct 288-byte size with a 16-byte mismatch. The matching prefix covers the entity GetText virtual call, local buffer setup, enum helper call with bool=false, first tagged-pointer validity test, local append, and final cStrAppend. The remaining diff is still in the second tagged-pointer block after cStrAppend: expected keeps the tag flag in a1/a2 and emits move a1,a0 plus beqzl a1 for the null fallback, while this TU routes the flag through s1 and emits a non-likely beqz with an addiu+lw type-info load sequence.\n\nTried removing the pinned a0 value/barrier, pinning flag/tag to a1/a2, making self a mutable +r asm operand, rewriting the second tag block with explicit labels, and clobbering s1 around the block. These either reproduced the same 16-byte diff or shortened the symbol to 280B, so they were reverted to the 288B near-match. Ran `python3 tools/permuter.py src/gcValEntityTimeSince.cpp 0x0033f480 --time 600 --workers 2 --save-best`; it generated 5420 candidates, compiled 2661, and found zero improvement from the 16-byte baseline. Suspect branch-direction/register-allocation interaction around the tagged pointer fallback, not a simple bnel divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:21:09Z",
+        "src_file": "src/gcValEntityTimeSince.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/24e68b3f/0033f480__agent_self_reported_failure__src_gcValEntityTimeSince.cpp"
       }
     ]
   },
@@ -242866,7 +242933,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001428"

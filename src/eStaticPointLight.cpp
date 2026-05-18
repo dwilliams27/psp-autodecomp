@@ -84,6 +84,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
+    void GetDirectLight(mVec3 *, const mVec3 &, const mVec3 &, const mRay &, const mVec3 &) const;
     void GetSampleRay(mRay *, mVec3 *, const mVec3 &, const mVec3 &) const;
     void AssignCopy(const cBase *);
     static cBase *New(cMemPool *, cBase *);
@@ -143,6 +144,59 @@ eStaticPointLight::eStaticPointLight(cBase *parent)
 eStaticPointLight::~eStaticPointLight() {
     *(void **)((char *)this + 4) = eStaticPointLightvirtualtable;
 }
+
+// ── 0x0005f07c — GetDirectLight(...) const ──
+#pragma control sched=2
+void eStaticPointLight::GetDirectLight(mVec3 *out, const mVec3 &, const mVec3 &normal, const mRay &ray, const mVec3 &) const {
+    volatile float color[8];
+
+    float zero, dot;
+    __asm__ volatile(
+        "lv.q C120, 0x10(%2)\n"
+        "lv.q C130, 0(%3)\n"
+        "vdot.t S100, C120, C130\n"
+        "mfv $a2, S100\n"
+        "mtc1 $a2, %1\n"
+        "mtc1 $zero, %0\n"
+        : "=f"(zero), "=f"(dot)
+        : "r"(&ray), "r"(&normal)
+        : "$a2"
+    );
+
+    if (dot > zero) {
+        float distance = *(const float *)((const char *)&ray + 0x20);
+        float attenuation = 100.0f / ((distance * distance) * 3.1415927f);
+        float scale = 1.0f / 255.0f;
+        color[4] = (float)*(const unsigned char *)((const char *)this + 0x4A) * scale;
+        color[5] = (float)*(const unsigned char *)((const char *)this + 0x49) * scale;
+        color[6] = (float)*(const unsigned char *)((const char *)this + 0x48) * scale;
+        float factor = (dot * *(const float *)((const char *)this + 0x44)) * attenuation;
+
+        __asm__ volatile(
+            "mfc1 $a0, %0\n"
+            "mtv $a0, S100\n"
+            "lv.q C120, 0x10($sp)\n"
+            "vscl.t C120, C120, S100\n"
+            "sv.q C120, 0(%1)\n"
+            :: "f"(factor), "r"(out)
+            : "$a0", "memory"
+        );
+        return;
+    }
+
+    __asm__ volatile(
+        "mfc1 $a0, %0\n"
+        "mfc1 $a2, %0\n"
+        "mfc1 $a3, %0\n"
+        "mtv $a0, S120\n"
+        "mtv $a2, S121\n"
+        "mtv $a3, S122\n"
+        "sv.q C120, 0(%1)\n"
+        :: "f"(zero), "r"(out)
+        : "$a0", "$a2", "$a3", "memory"
+    );
+}
+#pragma control sched=1
 
 // ── 0x00205df0 — AssignCopy(const cBase *) ──
 void eStaticPointLight::AssignCopy(const cBase *base) {
