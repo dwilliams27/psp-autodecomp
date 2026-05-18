@@ -94,6 +94,7 @@ public:
     bool ProfileExists(const gcStringValue *) const;
     unsigned char ProfileIsCorrupt(const gcStringValue *) const;
     int ProfileHeaderTimePlayed(const gcStringValue *) const;
+    float ProfileHeaderValue(const gcStringValue *, int) const;
     void OnProfileLoaded(gcProfile *);
     void HandleSaveGame(void);
     void SaveGameClear(int, int);
@@ -209,6 +210,29 @@ int gcGameSettings::ProfileHeaderTimePlayed(const gcStringValue *s) const {
     }
     volatile int result;
     result = 0;
+    return result;
+}
+
+float gcGameSettings::ProfileHeaderValue(const gcStringValue *s, int idx) const {
+    float result;
+    if (idx >= 0) {
+        if (idx < 2) {
+            int p = ProfileFind(s);
+            if (p >= 0) {
+                char *header = (char *)mProfiles + p * 24 + 12;
+                __asm__ volatile("" : "+r"(header));
+                result = *(float *)(header + idx * 4);
+                goto done;
+            } else {
+                goto zero;
+            }
+        }
+    }
+    return 0.0f;
+
+zero:
+    result = 0.0f;
+done:
     return result;
 }
 
