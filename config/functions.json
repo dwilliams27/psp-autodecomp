@@ -14673,7 +14673,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000012d0",
       "0x0000616c",
@@ -14705,7 +14705,14 @@
         "src_file": "src/cName.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/ecc06b50/00008cf4__agent_self_reported_failure__src_cName.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cName.cpp",
+    "symbol_name": "__0fFcNameFWriteR6KcOutStreamK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "618e7745",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:32:48Z"
   },
   {
     "address": "0x00008d8c",
@@ -30254,7 +30261,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00009d70",
       "0x0002c304"
@@ -98497,7 +98504,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -98545,6 +98552,18 @@
         "timestamp": "2026-05-05T20:35:21Z",
         "src_file": "src/gcDesiredEnumerationEntryHelper.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_123104/ee788b26/0010e958__agent_self_reported_failure__src_gcDesiredEnumerationEntryHelper.cpp"
+      },
+      {
+        "session": "618e7745",
+        "notes": "Same 4-byte / 1-instruction CFG-flattening divergence the prior agent (ee788b26) hit. Best stays at 368B (expected 372B). All other bytes match. Diff localized to the entry != 0 inner if/else: expected emits an inner-merge `b 0xdc; nop` (2 instr) AND fills the inner beqz's delay slot with `addiu a2,a2,8` (entry+8 speculative); mine collapses both inner branches into parallel basic blocks `b 0x140; addiu a1,a1,...` each, with `nop` in the beqz delay slot. Net: expected has 1 more instruction. Not a bnel/beql divergence \u2014 both emit plain `beqz`. category=CFG_FLATTEN.\n\nApproaches tried this session (4 new beyond prior agent's 6): (A) inverted inner if to `if (isZero == 0) entry+8 else 0xDAB8` (== gcDesiredEnumeration::GetText pattern) \u2192 364B (bnezl); (B) hoisted `text._data[0] = '\\0'` outside the mField1 == 0 block (and even outside the mField0 == 1 block) \u2192 368B, moves sb zero EARLIER than expected; (C) pre-assigned src = entry+8 then conditional override \u2192 368B with extra `move a1, a0`; (D) explicit `goto have_src` after inner if/else + 0-initialized src \u2192 368B; (E) `else { if/else }` instead of `else if` \u2192 368B; (F) explicit `cStr tmp(src); text = tmp;` instead of `text = cStr(src);` \u2192 368B; (G) `__asm__ volatile(\"\" : \"+r\"(src))` anchor after inner if \u2192 368B no change.\n\nPermuter cannot run: `PERMUTER_SKIPPED_NOT_LAST_MILE: symbol size 368B does not match DB size 372B (delta 4B)`. Needs source shape that produces 372B before permuter will explore. No source structure tested produces 372B \u2014 compiler picks the flat CFG layout regardless.\n\nROOT CAUSE per ADR-012 (`docs/decisions/012-snc-context-dependent-regalloc.md`): SNC's scheduler and CFG layout carry internal state across functions within a TU. Original `gcAll_psp.obj` had thousands of functions preceding this one; our per-class file has only the matched 104B Write sibling. Different TU context \u2192 different CFG choices. Not source-controllable.\n\nNOT classifiable as unmatchable_bnel \u2014 diff is `b; nop` inner-merge presence, not `bnel/beql` vs `bne/beq+nop` per ADR-006. Stays `failed` (retryable).\n\nFor next agent: every reasonable source restructuring has been tried (10 total across 3 sessions). Source on disk is the cleanest 368B variant (prior agent's snapshot pattern: `else { src = entry+8 }` form). Only remaining avenues are out-of-scope: pspcor.exe scheduler patch (ADR-011 territory), or merging all gcAll_psp classes into a monolithic TU to reproduce original compilation context.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:32:48Z",
+        "src_file": "src/gcDesiredEnumerationEntryHelper.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/618e7745/0010e958__agent_self_reported_failure__src_gcDesiredEnumerationEntryHelper.cpp"
       }
     ]
   },
@@ -179824,7 +179843,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00171e80"

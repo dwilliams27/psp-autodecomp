@@ -122,8 +122,9 @@ void cName::Read(cReadBlock &rb) {
 void cName::Write(cOutStream &out) const {
     int len = cStrLength(mName) & 0xFFFF;
     {
+        unsigned int lenArg = (unsigned int)(len & 0xFFFF);
         bool sign2 = true;
-        out.Write((unsigned int)(len & 0xFFFF), 0x10, sign2);
+        out.Write(lenArg, 0x10, sign2);
     }
     for (int i = 0; i < len; i++) {
         bool sign = false;
