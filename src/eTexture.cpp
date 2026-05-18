@@ -1,14 +1,3 @@
-typedef int v4sf_t __attribute__((mode(V4SF)));
-
-struct mVec4 {
-    union {
-        v4sf_t v;
-        struct {
-            float x, y, z, w;
-        };
-    };
-} __attribute__((aligned(16)));
-
 class cBase;
 class cFile;
 class cMemPool;
@@ -68,7 +57,6 @@ class eTexture : public cObject {
 public:
     eTexture(cBase *);
     const cType *GetType(void) const;
-    void GetFullTexCoords(mVec4 *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
 };
@@ -143,27 +131,6 @@ const cType *eTexture::GetType(void) const {
                                            (const char *)0x36CDB4, 5);
     }
     return D_00040FE8;
-}
-
-void eTexture::GetFullTexCoords(mVec4 *out) const {
-    v4sf_t v;
-    __asm__ volatile(
-        "lui $a2, 0x3f80\n"
-        "mtc1 $zero, $f12\n"
-        "mtc1 $a2, $f13\n"
-        "mfc1 $a0, $f12\n"
-        "mfc1 $a3, $f12\n"
-        "mfc1 $a2, $f13\n"
-        "mfc1 $t0, $f13\n"
-        "mtv $a0, S120\n"
-        "mtv $a3, S121\n"
-        "mtv $a2, S122\n"
-        "mtv $t0, S123\n"
-        "vmov.q %0, C120\n"
-        : "=v"(v)
-        :
-        : "$a0", "$a2", "$a3", "$t0", "$f12", "$f13", "memory");
-    *(v4sf_t *)out = v;
 }
 
 void eTexture::Write(cFile &file) const {
