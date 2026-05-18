@@ -9741,7 +9741,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -10377,6 +10377,18 @@
         "timestamp": "2026-05-04T12:23:46Z",
         "src_file": "src/cReadBlock.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/650bf8ca/00005dbc__agent_self_reported_failure__src_cReadBlock.cpp"
+      },
+      {
+        "session": "9202a769",
+        "notes": "Started from the preserved 8-byte near miss. Rechecked sched=1 around the destructor, direct Read(mFile->mHandle, &dummy, 4), split readFile/buf/handle locals, and a zero-instruction buf register barrier before loading mHandle. All variants either stayed at the same 8-byte mismatch or worsened; sched=1 widened the masked diff. Restored the prior closest source shape with int *pd and the +r barrier.\n\nRemaining diff is still only the Read argument setup order at offsets 0x58-0x60: target emits lw a0,0(s0); move a1,sp; lw a0,0(a0); jal, while SNC schedules lw a0,0(s0); lw a0,0(a0); move a1,sp; jal. Ran tools/permuter.py for 600s with --workers 2 --save-best --save-improved; 5,940 candidates generated, 2,220 compiled, no improvement, best stayed 8 bytes. This is not a bnel/beql divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:11:45Z",
+        "src_file": "src/cReadBlock.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/9202a769/00005dbc__agent_self_reported_failure__src_cReadBlock.cpp"
       }
     ]
   },
@@ -51409,7 +51421,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -72395,7 +72407,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0007d7b8",
@@ -72420,7 +72432,15 @@
         "snapshot": "logs/failure_snapshots/match_20260505_162336/567ba94e/0008e714__agent_self_reported_failure__src_eVideoPlatform.cpp"
       }
     ],
-    "mangled_symbol": "__0fOeVideoPlatformNSetShadowInfofTBRC6GmPlaneT"
+    "mangled_symbol": "__0fOeVideoPlatformNSetShadowInfofTBRC6GmPlaneT",
+    "src_file": "src/eVideoPlatform.cpp",
+    "symbol_name": "__0fOeVideoPlatformNSetShadowInfofTBRC6GmPlaneT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "91cd8bb8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-18T21:18:50Z"
   },
   {
     "address": "0x0008e740",
@@ -149683,6 +149703,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T19:55:21Z"
+      },
+      {
+        "session": "91cd8bb8",
+        "notes": "Best retained source is a native-vector hybrid: inline asm builds the exact target constants and mtv fan-out in C120, then a compiler-generated v4sf_t assignment stores to *out so sv.q lands in the jr delay slot. Moving the required vector operand reference to `vmov.q %0, C120` localizes the mismatch to 7/52 bytes: the first 11 target instructions are exact, then the extra vmov.q occupies the slot where the original has jr, shifting the compiler-owned jr/sv.q by one instruction. Without that real `%0` reference SNC emits an extra leading vector clear/initialization instead; comments, empty asm, or unreferenced outputs do not suppress it.\n\nNew attempts beyond prior notes: tried pure C consecutive float stores on mVec4, a union containing v4sf_t plus float lanes, and 16-byte alignment. SNC still lowered those to four scalar swc1 stores and a 32-byte symbol, not the target mtc1/mfc1/mtv/sv.q grouping. The permuter was invoked for the 7-byte near miss but skipped with PERMUTER_SKIPPED_NOT_LAST_MILE because the generated symbol is 56B versus the 52B DB target. A byte-exact first 52 bytes would be possible by putting `jr $ra` and `sv.q` directly in inline asm, but that is a pure-assembly body for this function and violates the task's assembly ban.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:18:50Z",
+        "src_file": "src/eTexture.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/91cd8bb8/001e1134__agent_self_reported_failure__src_eTexture.cpp"
       }
     ],
     "mangled_symbol": "__0fIeTextureQGetFullTexCoordsP6FmVec4K"
@@ -201460,7 +201492,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -229801,7 +229833,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000011c0",
       "0x00001368",
@@ -229822,6 +229854,18 @@
         "timestamp": "2026-05-07T00:44:10Z",
         "src_file": "src/gcValEntityHasAnimation.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_155600/ef146dc2/0032f100__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp"
+      },
+      {
+        "session": "9202a769",
+        "notes": "Reintroduced the prior GetText attempt into the canonical file; existing GetType/New/Write siblings still match. Tried to force the second tagged-pointer dispatch toward the target's a1/a2 beqzl shape with register bindings for the check value, signed flag/check variants, removing the second memory barrier, and a zero-instruction use of this to keep s1 live. These either kept the 16-byte near miss or worsened size/register allocation, so the source is restored to the prior closest unsigned flag/check shape.\n\nRemaining mismatch is the known tagged-pointer normalization and dispatch block after cStrAppend(local, 0x36DCBC): target keeps flag/check in a1/a2 and uses beqzl a1 with the else-path lui in the likely delay slot; generated code uses s1 for the temporary and a regular beqz/addiu+lw shape. Ran tools/permuter.py for 600s with --workers 2 --save-best --save-improved; 5,256 candidates generated, 2,588 compiled, no improvement, best stayed 16 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:11:45Z",
+        "src_file": "src/gcValEntityHasAnimation.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/9202a769/0032f100__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp"
       }
     ]
   },
