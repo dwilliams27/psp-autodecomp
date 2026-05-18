@@ -3302,7 +3302,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -16498,7 +16498,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0000acec",
@@ -42913,7 +42913,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00064f68",
@@ -42937,6 +42937,18 @@
         "timestamp": "2026-05-06T06:15:04Z",
         "src_file": "src/eDynamicModel.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/af005f70/0004a284__agent_self_reported_failure__src_eDynamicModel.cpp"
+      },
+      {
+        "session": "951505b4",
+        "notes": "Created a split TU with a minimal eDynamicModel redeclaration because SetShapeController is not declared in include/eDynamicModel.h and the repo's method-addition rule forbids editing the shared header. Starting from the prior 10/176-byte snapshot, sched=1 fixed the 0x7f7fffff constant encoding (`lui 0x7f7f; ori 0xffff`). The closest retained source is 6/176 bytes different and uses a zero-instruction mask register hint plus volatile default-pointer load.\n\nThe remaining diff is still the null-controller setup/register allocation: target has `li t0,-7; lw a3,276(a0); and a2,a2,t0; sh; sw a3`, while the closest source emits equivalent operations with mask/default registers allocated as a3/t0 and still chooses the alternate max-float constant encoding in the VFPU block. Tried source-ordering the masked store before/after the default load, volatile reads, mask temporaries, sched=1 vs sched=2, and fixed register hints for `$8`/`$7`; variants either stayed at 6-10 bytes or regressed the VFPU tail. A 600s permuter run produced 5176 candidates, compiled 2953, and found zero improvements from the 6-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:06:28Z",
+        "src_file": "src/eDynamicModel_SetShapeController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/951505b4/0004a284__agent_self_reported_failure__src_eDynamicModel_SetShapeController.cpp"
       }
     ]
   },
@@ -57470,7 +57482,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -57492,7 +57504,14 @@
         "snapshot": "logs/failure_snapshots/match_20260430_231646/da2fe209/0006c490__agent_self_reported_failure__src_eSimulatedController.cpp"
       }
     ],
-    "mangled_symbol": "__0fUeSimulatedControllerLGetVelocityiRC6FmVec3P6FmVec3K"
+    "mangled_symbol": "__0fUeSimulatedControllerLGetVelocityiRC6FmVec3P6FmVec3K",
+    "src_file": "src/eSimulatedController_GetVelocity.cpp",
+    "symbol_name": "__0fUeSimulatedControllerLGetVelocityiRC6FmVec3P6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f4078aea",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T21:11:37Z"
   },
   {
     "address": "0x0006c544",
@@ -57534,7 +57553,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -57564,7 +57583,14 @@
         "src_file": "src/eSimulatedController_GetInvMass.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/8ff06f7b/0006c5d4__agent_self_reported_failure__src_eSimulatedController_GetInvMass.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSimulatedController_GetInvMass.cpp",
+    "symbol_name": "__0fUeSimulatedControllerKGetInvMassiPfP6FmVec3K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f4078aea",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T21:11:37Z"
   },
   {
     "address": "0x0006c64c",
@@ -69013,7 +69039,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -162416,7 +162442,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0007b164"
@@ -162446,6 +162472,18 @@
         "timestamp": "2026-05-07T06:04:59Z",
         "src_file": "src/eTextureMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260506_235212/b7ace5a8/00213598__agent_self_reported_failure__src_eTextureMap.cpp"
+      },
+      {
+        "session": "951505b4",
+        "notes": "Restored the prior best AssignCopy cast shape and improved the current source from 81/488 differing bytes back to 5/488. The useful changes were adding the local cType parent layout, changing the vtable slot to a one-argument getType function, using an equality-first parent walk, and making the D_00046C3C target load a +r memory-clobber barrier. That barrier fixed the target-load scheduling and restored the expected beqzl/bnel parent-chain loop.\n\nRemaining diff is isolated to the virtual GetType dispatch setup: target uses entry pointer in a1 and offset/function in a0/a1 (`addiu a1,a0,8; lh a0,0(a1); lw a1,4(a1); jalr a1; addu a0,s1,a0`), while SNC still emits the same operations through a0/a1/a2. Tried fixed-register hints for the slot pointer (`a1`, `$5`) and raw char* slot loads; these either had no effect or regressed badly. A 600s permuter run produced 4988 candidates, compiled 2362, and found zero improvements from the 5-byte baseline.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T21:06:28Z",
+        "src_file": "src/eTextureMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/951505b4/00213598__agent_self_reported_failure__src_eTextureMap.cpp"
       }
     ]
   },
@@ -233757,7 +233795,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",
