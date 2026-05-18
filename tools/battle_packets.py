@@ -243,8 +243,22 @@ def render_packet(
         lines += ["", "## Disassembly", "", "```asm", disasm.rstrip(), "```"]
 
     if include_m2c and get_m2c_output:
-        m2c = get_m2c_output(func)
-        lines += ["", "## m2c Starting Point", "", "```c", m2c.rstrip(), "```"]
+        try:
+            m2c = get_m2c_output(func)
+        except RuntimeError as exc:
+            lines += [
+                "",
+                "## m2c Generation Failed",
+                "",
+                "The automatic m2c starting point could not be generated for this target.",
+                "This is a packet-generation warning for this function only; use the disassembly and prior failure notes instead.",
+                "",
+                "```text",
+                str(exc).rstrip(),
+                "```",
+            ]
+        else:
+            lines += ["", "## m2c Starting Point", "", "```c", m2c.rstrip(), "```"]
 
     lines += [
         "",

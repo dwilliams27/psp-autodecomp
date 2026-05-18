@@ -36,6 +36,16 @@ REG_MAP = {
     "gp": "$gp", "sp": "$sp", "fp": "$fp", "ra": "$ra",
 }
 
+BRANCH_MNEMONICS = {
+    "b", "bal",
+    "beq", "beql", "bne", "bnel",
+    "beqz", "beqzl", "bnez", "bnezl",
+    "bgez", "bgezl", "bgezal", "bgezall",
+    "bgtz", "bgtzl", "blez", "blezl",
+    "bltz", "bltzl", "bltzal", "bltzall",
+    "bc1f", "bc1fl", "bc1t", "bc1tl",
+}
+
 
 def build_addr_to_name(functions):
     """Build address → function name lookup for JAL resolution."""
@@ -93,10 +103,8 @@ def convert_to_m2c_asm(objdump_output, func, addr_lookup):
         if not m:
             continue
         insn = m.group(3).strip()
-        # Find branch targets (beqz, bnez, b, beq, bne, etc.)
-        branch_m = re.search(r"\b(?:b|beq|bne|beqz|bnez|bgez|bgtz|blez|bltz|bgezal|bltzal|beql|bnel|beqzl|bnezl|bc1f|bc1t|bc1fl|bc1tl)\s+.*?0x([0-9a-f]+)", insn)
-        if branch_m:
-            target = int(branch_m.group(1), 16)
+        target = branch_target(insn)
+        if target is not None:
             if func_addr <= target < func_addr + func["size"]:
                 branch_targets.add(target)
 
@@ -173,6 +181,17 @@ def convert_registers(insn):
     return f"{mnemonic} {''.join(result)}"
 
 
+def branch_target(insn):
+    """Return a direct branch target address, or None for non-branches."""
+    parts = insn.split(None, 1)
+    if len(parts) != 2 or parts[0] not in BRANCH_MNEMONICS:
+        return None
+    match = re.search(r"0x([0-9a-fA-F]+)$", parts[1].strip())
+    if not match:
+        return None
+    return int(match.group(1), 16)
+
+
 def resolve_jal(insn, addr_lookup):
     """Replace jal 0xADDR with jal func_name."""
     m = re.match(r"(jal\s+)0x([0-9a-fA-F]+)", insn)
@@ -210,7 +229,8 @@ def run_m2c(asm_text, target="mipsel-gcc-c", context=None):
 
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
-            print(f"m2c error: {result.stderr}", file=sys.stderr)
+            detail = result.stderr.strip() or result.stdout.strip()
+            print(f"m2c error: {detail}", file=sys.stderr)
             return None
         return result.stdout
     finally:

@@ -330,6 +330,36 @@ def test_permuter_main_passes_db_symbol():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_decompile_func_labels_branch_likely_targets():
+    import decompile_func
+
+    func = _make_func(
+        "0x00117440",
+        "gcEntity",
+        name="gcEntity::GetPlayer(void) const",
+        size=0x58,
+    )
+    func["safe_name"] = "gcEntity__GetPlayer_voidconst__00117440"
+    objdump = """
+00117440: 00802825  move a1,a0
+00117444: 10a00012  beqz a1,0x117490
+00117448: 00000000  nop
+0011744c: 80a40067  lb a0,103(a1)
+00117450: 0482000d  bltzl a0,0x117488
+00117454: 8ca50218  lw a1,536(a1)
+00117488: 54a0fff1  bnezl a1,0x117450
+0011748c: 80a40067  lb a0,103(a1)
+00117490: 03e00008  jr ra
+00117494: 00001025  move v0,zero
+"""
+    asm = decompile_func.convert_to_m2c_asm(objdump, func, {})
+
+    assert ".L00117488:" in asm
+    assert "bltzl $a0,.L00117488" in asm
+    assert ".L00117450:" in asm
+    assert "bnezl $a1,.L00117450" in asm
+
+
 def main():
     test_orchestrator_placement()
     test_prompt_placement_block()
@@ -342,6 +372,7 @@ def main():
     test_compare_func_update_db_opt_in()
     test_permuter_symbol_selection_and_gate()
     test_permuter_main_passes_db_symbol()
+    test_decompile_func_labels_branch_likely_targets()
     print("tooling hardening smoke: PASS")
 
 

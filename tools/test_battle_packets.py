@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import sys
+from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -94,11 +95,40 @@ def test_failed_packet_without_notes_says_so():
     assert "No failure notes recorded." in packet
 
 
+def test_m2c_failure_is_local_and_visible():
+    import battle_packets as bp
+    import orchestrator
+
+    target = _func("0x00000010", "gcFoo::Set(int)", "failed", notes="1-byte diff")
+    placement = {
+        "source_file": "src/gcFoo.cpp",
+        "header_files": [],
+        "source_files": ["src/gcFoo.cpp"],
+        "sibling_prefix": "",
+    }
+    with mock.patch.object(orchestrator, "placement_for_function", return_value=placement), \
+            mock.patch.object(orchestrator, "get_sched_hint", return_value=None), \
+            mock.patch.object(orchestrator, "get_method_template_guidance", return_value=None), \
+            mock.patch.object(orchestrator, "get_m2c_output", side_effect=RuntimeError("m2c error: boom")):
+        packet = bp.render_packet(
+            target,
+            [target],
+            include_disasm=False,
+            include_m2c=True,
+            include_exemplars=False,
+            include_header=False,
+        )
+    assert "m2c Generation Failed" in packet
+    assert "m2c error: boom" in packet
+    assert "Agent Checklist" in packet
+
+
 def main():
     test_packet_contains_classifier_and_graph_without_toolchain()
     test_packet_filename_is_stable_and_safe()
     test_packet_filename_rejects_bad_address()
     test_failed_packet_without_notes_says_so()
+    test_m2c_failure_is_local_and_visible()
     print("battle packet smoke: PASS")
 
 
