@@ -9741,7 +9741,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -30268,7 +30268,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00009d70",
       "0x0002c304"
@@ -30317,6 +30317,18 @@
         "timestamp": "2026-05-14T01:05:05Z",
         "src_file": "src/eMaterial_operator_eq.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/0aa429db/0002c154__agent_self_reported_failure__src_eMaterial_operator_eq.cpp"
+      },
+      {
+        "session": "560f3189",
+        "notes": "Closest source remains the known 2/128 byte mismatch. Everything matches except the adjacent 0x48 pointer setup addiu pair: target has addiu a0,s0,72 followed by addiu a1,s1,72; generated code emits the same two instructions in the opposite order. The loop body, slti/bnez shape, delay slot, tail field copies, CopyMaterialData call, and epilogue all match after relocation masking.\n\nThis session retried the prior split-TU baseline, tested an explicit inline-asm pointer setup variant, and ran tools/permuter.py for 600s with --save-best. The explicit addiu variant worsened to 12 bytes by assigning the loop pointers to the wrong registers; the permuter compiled 2885 candidates and found zero improvement. This is not the bnel/beql unmatchable case; it is an addiu scheduling/register setup ordering drift.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:55:23Z",
+        "src_file": "src/eMaterial_operator_eq.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/560f3189/0002c154__agent_self_reported_failure__src_eMaterial_operator_eq.cpp"
       }
     ]
   },
@@ -57458,7 +57470,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -57522,7 +57534,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -89659,7 +89671,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000f20a8",
@@ -89680,7 +89692,14 @@
         "variant": "base",
         "timestamp": "2026-04-30T18:20:39Z"
       }
-    ]
+    ],
+    "src_file": "src/gcMap.cpp",
+    "symbol_name": "__0fFgcMapQFindLoadedRegionRC6GcGUIDT76IgcRegion_K",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "d5fba0b4",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-18T20:55:47Z"
   },
   {
     "address": "0x000f2770",
@@ -89881,7 +89900,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000f2c8c"
     ],
@@ -89902,6 +89921,18 @@
         "timestamp": "2026-05-06T01:25:06Z",
         "src_file": "src/gcMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_191203/d3a7655e/000f2bf8__agent_self_reported_failure__src_gcMap.cpp"
+      },
+      {
+        "session": "d5fba0b4",
+        "notes": "category=REG_ALLOC. 17/148 byte diff is a stable register-allocation drift cascade: SNC chains everything through a1 (group->sets->set live range, with counts in a3), while expected splits group/sets into a3 and set/inner-count into a1. The cascade affects 8 instructions (lw dest fields, beqz/bnez source fields, the addu operand pairs, and the final 'addiu a1,a1,8' vs 'addiu a1,a3,8'). New attempts this session: (1) explicit register hints 'register T *group __asm__(\"$7\"); register void *set __asm__(\"$5\")' had ZERO effect on output (SNC ignored the hints for non-initialized scalars in this control-flow shape, even though it respects them in FindStreamedCinematic which initializes at declaration); (2) array indexing form 'group = groups[groupIdx]' produced identical 17B diff; (3) removing the redundant 'set = 0; goto have_set' shrank the function to 140B (compiler merged the b targets) - not the right shape; (4) declaring 'set' before 'group' at top of function had no effect. Ran permuter for 400s (3128 candidates, 1363 compiled), ZERO improvements over baseline 17B. Per docs/research/snc-register-allocation.md this matches the regalloc-drift quarantine pattern even though the cascade exceeds the typical 8B threshold - the underlying field changes are all callee-save / scratch register field renames with identical opcodes/immediates/offsets. Root cause likely the TU-context difference described in ADR-012 (original eAll_psp.obj packed thousands of functions into one TU, this repo splits per-class). Source preserved in canonical pointer-arith form matching ClearRegionSetState (matched sibling at 0x000f2b40).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:55:47Z",
+        "src_file": "src/gcMap.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/d5fba0b4/000f2bf8__agent_self_reported_failure__src_gcMap.cpp"
       }
     ]
   },
@@ -179877,7 +179908,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00171e80"
@@ -179894,6 +179925,18 @@
         "identity": "codex/gpt-5.5/high",
         "variant": "base",
         "timestamp": "2026-04-30T09:50:30Z"
+      },
+      {
+        "session": "560f3189",
+        "notes": "Closest source is an 8/260 byte mismatch. The first three zero-vector stores, scalar initialization through 0x110, the 0xD0 vector setup, and the 0x100 vector setup now match. The improvement came from a local class layout, explicit VFPU setup registers for the later vector stores, explicit 1.0/0.5 constant loads, and a 240s permuter run with --save-best --save-improved; an earlier 600s exact-save run also found the same 8-byte best but did not save it.\n\nRemaining diff is the constructor tail scheduling only: generated code emits swc1 $f13,304(a0) at 0xEC and keeps move v0,a0 in the jr delay slot, while target has move v0,a0 at 0xEC and swc1 $f13,304(a0) in the jr delay slot. Tried sched=1, explicit return-register asm, v0 clobber barriers, and source store reordering; either no effect or worse/extra instructions. Suspect this needs compiler-generated rather than inline-asm-owned final vector/tail scheduling, but the current source is the closest retained attempt.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-18T20:55:23Z",
+        "src_file": "src/gcEntityControllerCommonState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_220939/560f3189/0025d594__agent_self_reported_failure__src_gcEntityControllerCommonState.cpp"
       }
     ]
   },
@@ -229720,7 +229763,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "in_progress",
     "callees": [
       "0x000011c0",
       "0x00001368",

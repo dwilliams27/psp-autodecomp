@@ -737,18 +737,9 @@ gcRegion *gcMap::FindLoadedRegion(const cGUIDT<gcRegion> &guid) const {
     do {
         gcRegion *region = *regions;
         if (region != 0) {
-            int match = 0;
-            if (*(int *)((char *)region + 0x20) == guid.mA) {
-                match = (unsigned char)match;
-                if (*(int *)((char *)region + 0x24) == guid.mB) {
-                    match = 1;
-                    goto matched_path;
-                }
-            } else {
-matched_path:
-                match = (unsigned char)match;
-            }
-            if (match != 0) {
+            bool matched = (*(int *)((char *)region + 0x20) == guid.mA) &&
+                           (*(int *)((char *)region + 0x24) == guid.mB);
+            if (matched) {
                 return region;
             }
         }
