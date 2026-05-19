@@ -2,6 +2,7 @@
 // Methods in this file:
 //   0x0036164c  AssignCopy(const cBase *)
 //   0x0036169c  New(cMemPool *, cBase *) static
+//   0x00361ab0  Set(float)
 //   0x00361cac  GetText(char *) const
 //   0x00361cfc  Write(cFile &) const
 //   0x00361d54  Read(cFile &, cMemPool *)
@@ -17,6 +18,8 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcUIWidget;
+class gcUICheckBox;
 
 class cWriteBlock {
 public:
@@ -49,7 +52,13 @@ struct gcDesiredUIWidgetHelper {
     void Write(cWriteBlock &) const;
     void Read(cReadBlock &);
     void GetText(char *) const;
+    gcUIWidget *GetWidget(const cType *, bool) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+};
+
+class gcUICheckBox {
+public:
+    void Check(unsigned char);
 };
 
 void cStrCat(char *, const char *);
@@ -90,6 +99,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void GetText(char *) const;
+    void Set(float);
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     static cBase *New(cMemPool *, cBase *);
@@ -126,6 +136,11 @@ static cType *type_expression asm("D_000385D8");
 static cType *type_value asm("D_0009F3E8");
 static cType *type_variable asm("D_0009F3EC");
 static cType *type_gcValUIChecked asm("D_0009F8F4");
+static cType *type_named asm("D_000385E0");
+static cType *type_gcUIWidget asm("D_0009990C");
+static cType *type_gcUIControl asm("D_0009F40C");
+static cType *type_gcUITextControl asm("D_0009F410");
+static cType *type_gcUICheckBox asm("D_0009F580");
 
 // ── gcValUIChecked::GetType(void) const @ 0x00361734 ──
 const cType *gcValUIChecked::GetType(void) const {
@@ -190,6 +205,51 @@ int gcValUIChecked::Read(cFile &file, cMemPool *pool) {
 success:
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->Read(rb);
     return result;
+}
+
+// ── gcValUIChecked::Set(float) @ 0x00361ab0 ──
+void gcValUIChecked::Set(float value) {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 8);
+
+    if (type_gcUICheckBox == 0) {
+        if (type_gcUITextControl == 0) {
+            if (type_gcUIControl == 0) {
+                if (type_gcUIWidget == 0) {
+                    if (type_named == 0) {
+                        if (type_base == 0) {
+                            type_base = cType::InitializeType((const char *)0x36D894,
+                                                              (const char *)0x36D89C,
+                                                              1, 0, 0, 0, 0, 0);
+                        }
+                        type_named = cType::InitializeType(
+                            0, 0, 2, type_base,
+                            (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                    }
+                    type_gcUIWidget = cType::InitializeType(0, 0, 0x84, type_named,
+                                                            0, 0, 0, 0);
+                }
+                type_gcUIControl = cType::InitializeType(
+                    0, 0, 0x201, type_gcUIWidget,
+                    (cBase *(*)(cMemPool *, cBase *))0x263000, 0, 0, 0);
+            }
+            type_gcUITextControl = cType::InitializeType(
+                0, 0, 0x200, type_gcUIControl,
+                (cBase *(*)(cMemPool *, cBase *))0x263AA4, 0, 0, 0);
+        }
+        type_gcUICheckBox = cType::InitializeType(
+            0, 0, 0x7F, type_gcUITextControl,
+            (cBase *(*)(cMemPool *, cBase *))0x28EE64, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(type_gcUICheckBox, true);
+    if (widget != 0) {
+        int checked = 0;
+        if (value != 0.0f) {
+            checked = 1;
+        }
+        ((gcUICheckBox *)widget)->Check((unsigned char)checked);
+    }
 }
 
 // ── gcValUIChecked::~gcValUIChecked(void) @ 0x00361e9c ──

@@ -49544,7 +49544,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0005b194",
       "0x0005b768",
@@ -49554,7 +49554,21 @@
       "0x00111190"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPePathControllerFReset6IcHandleT76FePath_RC6FmVec3fTDbTF"
+    "mangled_symbol": "__0fPePathControllerFReset6IcHandleT76FePath_RC6FmVec3fTDbTF",
+    "failure_notes": [
+      {
+        "session": "8f8b7ae2",
+        "notes": "Closest attempt is 496B vs target 504B (8-byte / 2-insn gap). KEY FINDING: the func_db metadata signature `Reset(cHandleT<ePath>, const mVec3 &, float, const mVec3 &, bool, const mVec3 &)` is WRONG. The ACTUAL signature based on register usage and matching the mangled symbol `__0fPePathControllerFReset6IcHandleT76FePath_RC6FmVec3fTDbTF` is `Reset(cHandleT<ePath>, const mVec3 &, float, float, bool, bool)`. The asm shows TWO float args (f12, f13 entry vals) and TWO bools (a3, t0 both andi'd to 0xff). My current source uses this corrected signature and produces the correct mangled name.\n\nThe 8-byte size mismatch is in the prologue \u2014 target has TWO `lw a0, 0(sp)` instructions (target offsets 0x34 and 0x3C) around the `sw a0, 0(s0)` store to this->mId. Mine has only one. SNC reloads handle.mIndex from the stack-spilled cHandleT struct after writing it to this->mId, probably due to strict-aliasing conservatism (this and the local handle struct could alias). Tried adding constructor/copy-constructor declarations to cHandleT to force spill \u2014 no effect.\n\nOther fixes applied: (1) used address literal 0x38890 not 0x48890 for the handle table \u2014 target uses section-relative (lui a2, 0x4; addiu -30576 = 0x38890); (2) corrected mul operand order to `path->mTotalLength * t1` and `path->mTotalLength * t2`; (3) restructured the if/else for handle.mIndex==0 into explicit else branch to trigger the second `li s4, 0` (matched).\n\nWhat to try next: (a) explicit local int copy of handle.mIndex referenced twice; (b) volatile qualifier on the handle access; (c) restructure to write this->mId AFTER the handle-zero check; (d) check if maybe FindClosestPoint signature in include/ePath.h returning void vs float affects scheduling. The signature is probably actually returning float (asm at 5ae44 does mov.s f20, f0 after the call).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:32:14Z",
+        "src_file": "src/ePathController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/8f8b7ae2/0005ac9c__agent_self_reported_failure__src_ePathController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005ae94",
@@ -115412,7 +115426,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001bbc50"
     ],
@@ -203038,7 +203052,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d6148",
@@ -244605,7 +244619,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -244613,7 +244627,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUICheckedDSetf"
+    "mangled_symbol": "__0fOgcValUICheckedDSetf",
+    "src_file": "src/gcValUIChecked.cpp",
+    "symbol_name": "__0fOgcValUICheckedDSetf",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "8f8b7ae2",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T05:32:14Z"
   },
   {
     "address": "0x00361cac",
