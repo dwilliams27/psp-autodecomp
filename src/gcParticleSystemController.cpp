@@ -5,6 +5,23 @@ class cName;
 class gcEntity;
 class ePoint;
 
+class cTimeValue {
+public:
+    int mTime;
+};
+
+class mVec3 {
+public:
+    float x;
+    float y;
+    float z;
+};
+
+class eParticleSystem {
+public:
+    void SetAttractorPos(const mVec3 &);
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
@@ -48,6 +65,7 @@ public:
     ~gcSubGeomController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    void Update(cTimeValue time);
 };
 
 class gcParticleSystemController : public gcSubGeomController {
@@ -62,6 +80,7 @@ public:
     ~gcParticleSystemController();
     void Reset(cMemPool *pool, bool flag);
     void Write(cFile &file) const;
+    void Update(cTimeValue time);
     void SetTarget(cHandleT<gcEntity> p, const cName &name);
     void SetTarget(cHandleT<ePoint> p);
     void AssignCopy(const cBase *base);
@@ -118,6 +137,12 @@ struct gcSubObjectSlot {
     short offset;
     short pad;
     int (*fn)(void *, const cName &, int);
+};
+
+struct gcSubObjectPosSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, short, void *);
 };
 
 struct gcEntitySubObject {
@@ -239,6 +264,75 @@ void gcParticleSystemController::Write(cFile &file) const {
     cWriteBlock wb(file, 1);
     gcSubGeomController::Write(file);
     wb.End();
+}
+
+void gcParticleSystemController::Update(cTimeValue time) {
+    gcSubGeomController::Update(time);
+
+    eParticleSystem *system = *(eParticleSystem **)((char *)this + 0x0C);
+    if (system != 0) {
+        unsigned short mode = *(unsigned short *)((char *)this + 0x2C);
+        switch (mode) {
+            case 1: {
+                int handle = *(int *)((char *)this + 0x24);
+                gcHandleEntry *found;
+                if (handle == 0) {
+                    found = 0;
+                } else {
+                    gcHandleEntry *candidate =
+                        (gcHandleEntry *)D_00038890[handle & 0xFFFF];
+                    found = 0;
+                    if (candidate != 0) {
+                        if (candidate->handle == handle) {
+                            found = candidate;
+                        }
+                    }
+                }
+
+                if (found != 0) {
+                    gcHandleEntry *entry = 0;
+                    if (handle != 0) {
+                        entry = (gcHandleEntry *)D_00038890[handle & 0xFFFF];
+                    }
+                    system->SetAttractorPos(*(mVec3 *)((char *)entry + 0x80));
+                }
+                break;
+            }
+
+            case 0: {
+                int handle = *(int *)((char *)this + 0x28);
+                gcHandleEntry *found;
+                if (handle == 0) {
+                    found = 0;
+                } else {
+                    gcHandleEntry *candidate =
+                        (gcHandleEntry *)D_00038890[handle & 0xFFFF];
+                    found = 0;
+                    if (candidate != 0) {
+                        if (candidate->handle == handle) {
+                            found = candidate;
+                        }
+                    }
+                }
+
+                if (found != 0) {
+                    gcHandleEntry *entry = 0;
+                    if (handle != 0) {
+                        entry = (gcHandleEntry *)D_00038890[handle & 0xFFFF];
+                    }
+                    gcEntitySubObject *subObject =
+                        (gcEntitySubObject *)((char *)entry + 0x80);
+                    gcSubObjectPosSlot *slot =
+                        (gcSubObjectPosSlot *)(subObject->classDesc + 0xE8);
+                    char ocs[0x4C];
+                    short subIndex = *(short *)((char *)this + 0x2E);
+                    slot->fn((char *)subObject + slot->offset, subIndex, ocs + 0x0C);
+                    system->SetAttractorPos(*(mVec3 *)(ocs + 0x3C));
+                }
+                break;
+            }
+        }
+    }
 }
 
 gcParticleSystemController::gcParticleSystemController(cBase *parent) : gcSubGeomController(parent) {

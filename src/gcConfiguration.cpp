@@ -11,6 +11,7 @@ inline void *operator new(unsigned int, void *p) { return p; }
 
 class cFile;
 class cMemPool;
+class cType;
 
 class cName {
 public:
@@ -53,6 +54,24 @@ struct DispatchEntry {
     short offset;
     short pad;
     void (*fn)(void *);
+};
+
+struct TypeDispatchEntry {
+    short offset;
+    short pad;
+    cType *(*fn)(void *);
+};
+
+struct ResetDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, cMemPool *, int);
+};
+
+struct DeleteDispatchEntry {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
 };
 
 struct PoolBlock {
@@ -116,6 +135,7 @@ public:
     gcConfiguration(cBase *);
     ~gcConfiguration(void);
     void AssignCopy(const cBase *);
+    void Reset(cMemPool *, bool);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
     const cType *GetType(void) const;
@@ -271,6 +291,63 @@ int gcConfiguration::Read(cFile &file, cMemPool *pool) {
     ((void (*)(void *, cMemPool *, bool))dispatch->fn)(
         (char *)this + dispatch->offset, pool, false);
     return result;
+}
+
+void gcConfiguration::Reset(cMemPool *pool, bool flag) {
+    cType *coreType = GetCoreConfigType();
+    TypeDispatchEntry *coreGetType =
+        (TypeDispatchEntry *)(*(char **)((char *)mField44 + 4) + 8);
+    if (coreGetType->fn((char *)mField44 + coreGetType->offset) != coreType) {
+        if (mField44 != 0) {
+            DeleteDispatchEntry *coreDelete =
+                (DeleteDispatchEntry *)(*(char **)((char *)mField44 + 4) + 0x50);
+            coreDelete->fn((char *)mField44 + coreDelete->offset, 3);
+            mField44 = 0;
+        }
+        mField44 = coreType->mCreate(pool, this);
+    }
+    ResetDispatchEntry *coreReset =
+        (ResetDispatchEntry *)(*(char **)((char *)mField44 + 4) + 0x38);
+    coreReset->fn((char *)mField44 + coreReset->offset, pool, flag);
+
+    cType *engineType = GetEngineConfigType();
+    TypeDispatchEntry *engineGetType =
+        (TypeDispatchEntry *)(*(char **)((char *)mField48 + 4) + 8);
+    if (engineGetType->fn((char *)mField48 + engineGetType->offset) !=
+        engineType) {
+        if (mField48 != 0) {
+            DeleteDispatchEntry *engineDelete =
+                (DeleteDispatchEntry *)(*(char **)((char *)mField48 + 4) + 0x50);
+            engineDelete->fn((char *)mField48 + engineDelete->offset, 3);
+            mField48 = 0;
+        }
+        mField48 = engineType->mCreate(pool, this);
+    }
+    ResetDispatchEntry *engineReset =
+        (ResetDispatchEntry *)(*(char **)((char *)mField48 + 4) + 0x38);
+    engineReset->fn((char *)mField48 + engineReset->offset, pool, flag);
+
+    cType *networkType = GetNetworkConfigType();
+    TypeDispatchEntry *networkGetType =
+        (TypeDispatchEntry *)(*(char **)((char *)mField4C + 4) + 8);
+    if (networkGetType->fn((char *)mField4C + networkGetType->offset) !=
+        networkType) {
+        if (mField4C != 0) {
+            DeleteDispatchEntry *networkDelete =
+                (DeleteDispatchEntry *)(*(char **)((char *)mField4C + 4) + 0x50);
+            networkDelete->fn((char *)mField4C + networkDelete->offset, 3);
+            mField4C = 0;
+        }
+        mField4C = networkType->mCreate(pool, this);
+    }
+    ResetDispatchEntry *networkReset =
+        (ResetDispatchEntry *)(*(char **)((char *)mField4C + 4) + 0x38);
+    networkReset->fn((char *)mField4C + networkReset->offset, pool, flag);
+
+    gcConfig *config = mField50;
+    ResetDispatchEntry *configReset =
+        (ResetDispatchEntry *)(*(char **)((char *)config + 4) + 0x38);
+    configReset->fn((char *)config + configReset->offset, pool, flag);
 }
 
 // ── gcConfiguration::Initialize(void) static @ 0x000f07d4 ──

@@ -31364,13 +31364,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x000f8f08"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeCameraEffectMgrGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fQeCameraEffectMgrGUpdate6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "20676039",
+        "notes": "Added canonical eCameraEffectMgr::Update(cTimeValue) in src/eCameraEffectMgr.cpp using the existing 0x14-byte entry layout. The closest variant uses #pragma control sched=1 and a direct *(float *)0x36C800 scale expression; its loop body matches the target branch-likely shape and FPU register choices after the first setup block, including the upper clamp as c.lt.s + bc1fl and the final swc1 delay slot. Current symbol size is 196B vs target 192B, so the permuter skipped it as PERMUTER_SKIPPED_NOT_LAST_MILE. The remaining structural gap is the scale constant setup: SNC emits lui a0,0x37; addiu a0,a0,-14336; lwc1 f16,0(a0), while the original uses lui a0,0x37; lwc1 f16,-14336(a0). I tried source reordering, ternary vs if/else clamp shapes, sched=1, direct literal loads, a hard-register inline load, and a named-symbol load. The inline/named-symbol variants removed or changed the address materialization but disturbed the loop register allocation and FPU scheduling more severely, so the checked-in source keeps the closest readable C shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:34:05Z",
+        "src_file": "src/eCameraEffectMgr.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/20676039/0002d6d8__agent_self_reported_failure__src_eCameraEffectMgr.cpp"
+      }
+    ]
   },
   {
     "address": "0x0002d798",
@@ -34245,7 +34259,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ad668",
@@ -38812,7 +38826,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0005c93c",
       "0x001a1d3c"
@@ -44853,7 +44867,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -44869,7 +44883,21 @@
       "0x0004da0c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDynamicMeshMPlatformReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fMeDynamicMeshMPlatformReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "d6132531",
+        "notes": "Created split-TU file src/eDynamicMesh_PlatformRead.cpp following eStaticMesh::PlatformRead exemplar pattern (which itself is also size-mismatched in current source). Function size: 560 vs DB's 600 (off by 40 bytes = 10 instructions). DESTRUCTOR PROTECTION: tried adding to eDynamicMesh.cpp directly first which broke the already-matched destructor (646 vs 644) so reverted and used split TU. Remaining issues: (1) SAVED REG ALLOCATION: expected uses s0=this, s1=&ms (cMemBlockSuspend at sp+8), s2=&rb (cReadBlock at sp+12), s3=pool, s4=&file. Mine uses s0=this, s1=pool, s2=&ms, s3=&rb, s4=&file - pool is in s1 (low) instead of s3. The source declaration order is: cGUID guidArg; cMemBlockSuspend ms(pool); cReadBlock rb(file, 1, true); cMemPool *visPool; ... but SNC allocates pool to s1 due to its earlier use as ctor arg. (2) 32-ITERATION LOOP: expected has 3 sll/sra pairs (sign-extends), mine has only 1. Tried adding explicit (short) casts in comparison but compiler optimized away. (3) LOOP REG ALLOC: expected uses s3 for i, a0 for ptr. Mine uses a0 for i, s1 for ptr. (4) BRANCH SHAPE: mine emits bnezl/b for the no-visdata cleanup skip path, expected uses bnez direct. Next agent should try: (a) reorder declarations so pool is later (e.g. construct ms first, then declare pool somehow); (b) use register __asm__ hints to force pool=$19 (s3); (c) try sched=1 instead of sched=2; (d) the eStaticMesh::PlatformRead exemplar has the same issue and IS currently unmatched so this isn't a solved pattern - may need substantially different source structure.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:25:45Z",
+        "src_file": "src/eDynamicMesh_PlatformRead.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d6132531/0004dfa4__agent_self_reported_failure__src_eDynamicMesh_PlatformRead.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004e1fc",
@@ -48989,14 +49017,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIeNavMeshdtv"
+    "mangled_symbol": "__0oIeNavMeshdtv",
+    "failure_notes": [
+      {
+        "session": "d6132531",
+        "notes": "4-array destructor with inline pool-delete pattern. Tried both extern-C cObject_dtor call and C++ inheritance auto-chain - both produce identical bytes. Tried sched=2 first (early move s0,a0 issue) then sched=1 which fixed the prolog ordering. Remaining diffs after sched=1: (1) SAVED REG ALLOCATION: expected gives entries=s2 and pointer pre-computes=s3/s4/s5; mine gives entries=s5 and pointers=s2/s3/s4 - the compiler seems to prefer giving entries the highest-numbered saved register because pointers are declared first in source. (2) OPERATOR DELETE TAIL: expected uses a1 for rec (reassigned to p in jalr delay slot); mine uses a2 for rec with move a1,s0 hoisted early. This affects 4 instructions in operator delete and same 4 in each of the 5 inline pool-delete blocks. NOTE: eDynamicMesh.cpp uses 'register volatile DeleteRec *rec __asm__(\"a1\")' to force a1 - this trick should fix the operator-delete byte pattern. (3) TRAILING TRAP: expected has 'b .; nop' (8 bytes) at end, mine doesn't. Function size mismatch 692 vs 700 = exactly trap size. The trap appears in eDynamicMesh.cpp (which adds explicit __asm__(.word 0x1000ffff) between functions) - that's the pattern used to inject inter-function trap padding. Next agent should try: use 'register volatile DeleteRec *rec __asm__(\"a1\")' in operator delete (proven pattern from eDynamicMesh.cpp:52), and add __asm__(\".word 0x1000ffff\\n\"); __asm__(\".word 0x00000000\\n\"); AFTER the destructor body in the .cpp file. Also try giving entries explicit register __asm__(\"$18\") for s2 allocation.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:25:45Z",
+        "src_file": "src/eNavMesh_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d6132531/0005777c__agent_self_reported_failure__src_eNavMesh_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00057a38",
@@ -52570,7 +52612,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000db0",
       "0x002076a0"
@@ -73998,13 +74040,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x00091d40"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeCameraEffectMgrECullUiRC6HeCameraP6LeCameraBinsK"
+    "mangled_symbol": "__0fQeCameraEffectMgrECullUiRC6HeCameraP6LeCameraBinsK",
+    "failure_notes": [
+      {
+        "session": "20676039",
+        "notes": "Added a compileable canonical eCameraEffectMgr::Cull(unsigned int, const eCamera &, eCameraBins *) const reconstruction in src/eCameraEffectMgr.cpp. The implementation follows the disassembly at a high level: global 0x37D0F0 debug flag gate, camera-slot lookup in eCameraBins, 8 active camera-effect entries with fade calculation and VFPU camera-vector length, draw-record emission, and the final 4 base effect handles. It reuses local byte-offset views and inline handle resolution/record allocation patterns copied from matched Cull-family code such as eWeatherEffect::Cull. The source compiles, but compare_func reports 1356/1648 bytes differing and nm shows the generated symbol is 1744B vs the 1648B target, so it is not a last-mile permuter candidate; a 10s permuter probe confirmed PERMUTER_SKIPPED_NOT_LAST_MILE. The main root cause is source shape: helper-like inline code and ordinary C loops produce different register allocation and too much code around repeated handle resolution/record filling. A retry should inline the two repeated record-building blocks exactly in disassembly order, avoid reusable helper abstractions, and tune the VFPU/save-restore sequence against docs/research/snc-struct-vfpu-codegen.md and snc-delay-slots.md.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:34:05Z",
+        "src_file": "src/eCameraEffectMgr.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/20676039/00099dd4__agent_self_reported_failure__src_eCameraEffectMgr.cpp"
+      }
+    ]
   },
   {
     "address": "0x0009a444",
@@ -92761,7 +92817,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0016a888"
@@ -119504,7 +119560,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x0014a3d8",
@@ -119930,14 +119986,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0007c238",
       "0x00148100"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcParticleSystemControllerGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fagcParticleSystemControllerGUpdate6KcTimeValue",
+    "src_file": "src/gcParticleSystemController.cpp",
+    "symbol_name": "__0fagcParticleSystemControllerGUpdate6KcTimeValue",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "0a442f42",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T06:44:04Z"
   },
   {
     "address": "0x0014a554",
@@ -126155,7 +126219,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000f08f8",
       "0x000f09dc",
@@ -126163,7 +126227,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcConfigurationFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fPgcConfigurationFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "0a442f42",
+        "notes": "Implemented the full Reset logic in canonical C++: each of mField44/mField48/mField4C compares its virtual GetType slot at +8 against GetCore/GetEngine/GetNetworkConfigType, deletes through vtable slot +0x50 when the type changed, recreates through cType::mCreate at +0x10, then dispatches Reset through vtable slot +0x38; mField50 always dispatches Reset. The closest source compiles to the correct control-flow shape and call sequence but is 528B versus the 536B target. The target includes a trailing infinite-loop word pair after the epilogue; an attempted local global-asm size/padding directive did not attach to this symbol under SNC and was removed.\n\nRoot cause appears to be register-allocation drift plus trailing symbol padding: SNC assigns the bool byte to s2 and the desired cType to s3, while the target has s3=flag byte and s2=desired type. This swap repeats through compare branches, create calls, and Reset dispatch arguments. Tried direct field reloads instead of long-lived object locals, ResetDispatchEntry bool vs int argument, explicit register-binding attempts, and sched=1; register binding either had no effect or worsened prologue scheduling, and sched=1 moved saves before the initial moves. See category=REG_ALLOC; no permuter run was useful because the closest object is still size-mismatched by the trailing 8 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:44:04Z",
+        "src_file": "src/gcConfiguration.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/0a442f42/00164130__agent_self_reported_failure__src_gcConfiguration.cpp"
+      }
+    ]
   },
   {
     "address": "0x00164348",
@@ -196559,7 +196637,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196570,7 +196648,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIButtonKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fKgcUIButtonKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "07dae2ef",
+        "notes": "Implemented gcUIButton::AssignCopy in canonical C++ syntax using the matched gcUITextControl::AssignCopy copy block, plus an inlined dcast/type-initialization helper matching the target control flow. Tried direct dcast, explicit in-body type walk, split source/accepted pointer locals, and inline-helper variants; the inline helper produced the correct 928-byte size and the expected branch-likely cast structure. Read the branch-likely, loop/switch, FPU scheduling, and register-allocation research docs after the source variants converged.\n\ncategory=REG_ALLOC. Final compare is a same-size 4-byte mismatch after two permuter passes: first 300s improved 17 -> 7 bytes, second 600s improved 7 -> 4 bytes and saved the best source. Remaining differences are confined to register-selection drift in the copy block; control flow, calls, stack frame, immediates, and function size match.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:37:13Z",
+        "src_file": "src/gcUIButton.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/07dae2ef/0028e1b8__agent_self_reported_failure__src_gcUIButton.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028e558",
@@ -196651,7 +196743,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196662,7 +196754,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcUICheckBoxKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fMgcUICheckBoxKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "07dae2ef",
+        "notes": "Implemented gcUICheckBox::AssignCopy with the same inline dcast/type-initialization helper pattern and the gcUITextControl::AssignCopy field-copy template, changing only the class type id/New function and the final handle-copy count of 3. Tried direct dcast, explicit in-body type walk, split pointer locals, and the inline-helper form; the final source compiles to the correct 928-byte function with the expected cast/type-init shape.\n\ncategory=REG_ALLOC. Final compare is a same-size 5-byte mismatch after two permuter passes: first 300s improved 17 -> 10 bytes, second 600s improved 10 -> 5 bytes and saved the best source. Remaining bytes appear to be the same s-register allocation drift as gcUIButton rather than a branch-likely or structural mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:37:13Z",
+        "src_file": "src/gcUICheckBox.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/07dae2ef/0028eac4__agent_self_reported_failure__src_gcUICheckBox.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028ee64",
@@ -206817,7 +206923,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -234233,7 +234339,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x001187f4",
       "0x001188dc",
@@ -234500,7 +234606,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -234764,7 +234870,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -234773,7 +234879,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityVariableIEvaluatevK"
+    "mangled_symbol": "__0fTgcValEntityVariableIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "8c07270a",
+        "notes": "Implemented gcValEntityVariable::Evaluate(void) const alongside Set using the same helper declarations and handle-pair reconstruction. The closest attempt reached the target 504-byte size once, but with a large byte diff; the retained source is 500B/504B after restoring the more useful stack/object shape. Existing matched methods in this file still compare cleanly.\n\nThe remaining mismatch is concentrated in the same tagged-pointer/evaluation block: original code reloads pair.mHandle between trunc.w.s and mfc1, uses a specific beqz+nop+b+li shape for the low-bit tag clear, and passes the subhandle through t0 before moving it to a2. I tried restructuring the zero/nonzero eval path, duplicating the pair-handle load in both branches, register-pinning evalObj/col/row/subp, and adding memory barriers. These changed size and some scheduling, but did not converge to the original register allocation and branch shape.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:39:13Z",
+        "src_file": "src/gcValEntityVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/8c07270a/003403ec__agent_self_reported_failure__src_gcValEntityVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x003405e4",
@@ -234785,7 +234905,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -234795,7 +234915,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityVariableDSetf"
+    "mangled_symbol": "__0fTgcValEntityVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "8c07270a",
+        "notes": "Implemented gcValEntityVariable::Set(float) in canonical C++ using the matched class conventions already in src/gcValEntityVariable.cpp. The closest source compiles to the correct 520-byte size at one point, and the current retained attempt is 516B/520B with the correct broad stack layout and helper-call structure. The hard part is the shared tagged-pointer subexpression path at this+0x48: SNC keeps choosing different branch-likely shapes/registers around the tag test and different argument setup for gcEnumeration::GetSubObjectHandle.\n\nTried direct if/else, goto-shaped branches, explicit handle-pair scratch/found/empty locals to force the sp+8/sp+16/sp+28/sp+40 stack layout, register variables for a0/a1/t0, and memory barriers around the tag clear/evaluation paths. Set still differs substantially in bytes because the compiler collapses or reorders the tag-clear branch and uses different registers in the enumeration lookup/copy path. Did not run the permuter because the diff is far above the <=30 byte last-mile threshold for a meaningful run.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:39:13Z",
+        "src_file": "src/gcValEntityVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/8c07270a/003405e4__agent_self_reported_failure__src_gcValEntityVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x003407ec",
