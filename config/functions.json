@@ -37640,7 +37640,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad668"
     ],
@@ -37648,7 +37648,14 @@
       "0x0003b184"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5LeInputMouseLeInputStateFResetv"
+    "mangled_symbol": "__0f5LeInputMouseLeInputStateFResetv",
+    "src_file": "src/eInputMouse_eInputState.cpp",
+    "symbol_name": "__0f5LeInputMouseLeInputStateFResetv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f4d2f3a1",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T04:03:09Z"
   },
   {
     "address": "0x0003b8dc",
@@ -194218,7 +194225,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000165c",
       "0x001a5774",
@@ -194228,7 +194235,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcNetworkConfigStringsDGetPwiK"
+    "mangled_symbol": "__0fWgcNetworkConfigStringsDGetPwiK",
+    "src_file": "src/gcNetworkConfigStrings.cpp",
+    "symbol_name": "__0fWgcNetworkConfigStringsDGetPwiK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "f4d2f3a1",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T04:03:09Z"
   },
   {
     "address": "0x002861b4",
@@ -196034,7 +196048,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
@@ -196053,7 +196067,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
@@ -205489,7 +205503,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -205497,7 +205511,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoEntitySetAttractorKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fWgcDoEntitySetAttractorKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "6adc67a3",
+        "notes": "Implemented gcDoEntitySetAttractor::AssignCopy with the same type-check template, two gcDesiredEntity operator= calls, cName word copies, and the owned gcDesiredValue destroy/clone sequence. Tried the same owner-slot allocation variants as gcDoTableQuery plus two cName copy shapes: direct int-indexed stores and preloaded temporaries. The closest compiling source is 784B versus the 792B DB target after adding the known dead tail; compare_func still reports size mismatch, so I did not run the permuter.\n\nThe remaining mismatch has the same core register-allocation problem: original uses s7 for this+0x80 and s3 for type_gcDoEntitySetAttractor, while this TU keeps the owned slot in s3 and shifts the type statics to s4-s7. The cName block-copy ordering is also sensitive, but the size/register issue has to be solved first. Not classified as unmatchable_bnel because the mismatch is larger than the documented <=8B branch-likely divergence and includes frame/register allocation differences.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T03:54:05Z",
+        "src_file": "src/gcDoEntitySetAttractor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/6adc67a3/002c3fe4__agent_self_reported_failure__src_gcDoEntitySetAttractor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c42fc",
@@ -215256,7 +215284,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -215504,14 +215532,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoSetEventObjectKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fSgcDoSetEventObjectKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b4855529",
+        "notes": "Implemented the matched AssignCopy type-check prefix and the full tagged-pointer assignment/deep-copy logic in canonical C++ syntax. Existing matched siblings in src/gcDoSetEventObject.cpp still compare cleanly, and the closest generated AssignCopy is 704B versus the 708B target. The remaining mismatch is concentrated in register allocation/source shape: SNC assigns the field pointer to s3 and shifts the type globals to s4-s7, while the target uses s7 for the field pointer and s3-s6 for type globals; reshaping with explicit type-slot locals flips the registers correctly but bloats the type-init prefix with addiu-low instructions and branch-likely forms.\n\nTried direct field accesses, field-address locals before and after the cast block, duplicated versus common OR in the destination tagged-pointer normalization, and explicit symbol-tail .size attempts. The duplicated OR variant got closest by matching the destructive-assignment length, but the symbol remains size-mismatched so the permuter was not a valid last-mile tool.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T03:57:22Z",
+        "src_file": "src/gcDoSetEventObject.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b4855529/002fcc5c__agent_self_reported_failure__src_gcDoSetEventObject.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fcf20",
@@ -215741,7 +215783,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -218264,7 +218306,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -218273,7 +218315,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoTableQueryKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fOgcDoTableQueryKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "6adc67a3",
+        "notes": "Implemented a canonical C++ gcDoTableQuery::AssignCopy using the matched AssignCopy type-check template and the owned-pointer destroy/clone pattern from gcDoEntitySetPrimaryController::AssignCopy. Tried early owner-slot declaration, fixed-register spellings, an empty asm register constraint, sched=1, moving the owner-slot calculation after the cast, and reordered pair-copy expressions. The closest compiling source is 776B versus the 784B DB target after adding the known dead tail; compare_func still reports size mismatch, so this is not a valid last-mile permuter target.\n\nThe root blocker is register allocation/source shape around the owned slot: original keeps this+0x14 in s7 while the local TU source keeps it in s3, shifting type_gcDoTableQuery/type_action/type_expression/type_base through s4-s7 instead of s3-s6. Moving the slot later gives the desired type registers but changes the frame to 32B and breaks the branch shape. The branch-likely type-cast loop itself matches the documented pattern; this is not an unmatchable_bnel case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T03:54:05Z",
+        "src_file": "src/gcDoTableQuery.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/6adc67a3/00306334__agent_self_reported_failure__src_gcDoTableQuery.cpp"
+      }
+    ]
   },
   {
     "address": "0x00306644",
@@ -220057,14 +220113,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoUIListOpKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fMgcDoUIListOpKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "b4855529",
+        "notes": "Added the canonical AssignCopy body with matched type-check prefix, helper word copies, destination tagged-pointer cleanup, source clone through vtable slot 0x10, and final tail word copy. Existing matched gcDoUIListOp siblings still compare cleanly. The closest generated AssignCopy is 744B versus the 756B target after reshaping the helper word copies and duplicating the tagged-pointer OR in each branch.\n\nThe remaining gap mirrors gcDoSetEventObject: the generated code uses shifted callee-save registers for the field pointer/type globals and still differs in the tagged-pointer assignment block and unreachable tail sizing. Because the generated symbol is still not the same size as the DB target, I did not run the permuter; this is not yet a last-mile diff.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T03:57:22Z",
+        "src_file": "src/gcDoUIListOp.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b4855529/0030cb78__agent_self_reported_failure__src_gcDoUIListOp.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030ce6c",
@@ -221080,7 +221150,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534"
@@ -232270,7 +232340,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -232425,7 +232495,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d44c8",
@@ -234083,7 +234153,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",

@@ -96,6 +96,22 @@ struct GetNameSlot {
     void (*fn)(void *, char *);
 };
 
+struct FloatDispatchEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
+
+class nwNetwork {
+public:
+    static void GetInterfaceName(int idx, char *buf, int size);
+    static void GetInterfaceStatus(char *buf, int size);
+    static void GetLastErrorString(char *buf, int size);
+    static void GetEULA(char *buf, int size);
+};
+
+void cStrCopy(wchar_t *, const char *, int);
+
 class gcNetworkConfigStrings : public gcStringValue {
 public:
     int mField08;
@@ -103,6 +119,7 @@ public:
 
     ~gcNetworkConfigStrings();
     void AssignCopy(const cBase *);
+    void Get(wchar_t *, int) const;
     void GetName(char *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -210,6 +227,48 @@ void gcNetworkConfigStrings::GetName(char *buf) const {
         cStrCat(buf, (const char *)0x36E2CC);
     }
     cStrCat(buf, (const char *)0x36DAF0);
+}
+
+// 0x00286094 — Get(wchar_t *, int) const
+void gcNetworkConfigStrings::Get(wchar_t *buf, int size) const {
+    char tmp[256];
+    tmp[0] = 0;
+    int mode = mField0C;
+    switch (mode) {
+    case 0: {
+        int val = mField08;
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            val = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+        int desiredPtr = val;
+        float f;
+        if (desiredPtr != 0) {
+            FloatDispatchEntry *fe = (FloatDispatchEntry *)(*(char **)(desiredPtr + 4) + 0x70);
+            f = fe->fn((char *)desiredPtr + fe->offset);
+        } else {
+            f = 0.0f;
+        }
+        int idx = (int)f;
+        nwNetwork::GetInterfaceName(idx, tmp, 0xFF);
+        break;
+    }
+    case 1:
+        nwNetwork::GetInterfaceStatus(tmp, 0xFF);
+        break;
+    case 2:
+        nwNetwork::GetLastErrorString(tmp, 0xFF);
+        break;
+    case 3:
+        nwNetwork::GetEULA(tmp, 0xFF);
+        break;
+    }
+    cStrCopy(buf, tmp, size);
 }
 
 __asm__(".word 0x1000ffff\n");
