@@ -52561,11 +52561,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeWeatherEffectECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fOeWeatherEffectECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "3d742ebb",
+        "notes": "Implemented the full leaf cull path from disassembly: stamp guard, mode/material early-out, weather-template handle lookup through table 0x38890, material flag tests, alpha scaling by camera+0x1F4, 32-byte bin record emission, bucket count increment, depth/material-id flags, and final record fields. Tried a naive char* version, sched=2, typed struct views for folded offsets, m2c-style goto/valid-pointer handling, and a candidate/effect split to influence register allocation. The typed version preserves existing eWeatherEffect dtor/Write/Read matches and the Cull symbol is now the correct 592B size.\n\nStuck on register/control-flow shape in the first handle-resolution block: original keeps the resolved weather material in t3 and uses a1 as the temporary candidate, while SNC keeps the pointer in a1 for the current C++ shape. That cascades through most downstream loads/stores and leaves a large 361/592 byte diff, so this is not a valid last-mile permuter target. Also observed FPU scheduling drift around alpha*camera->0x1F4 vs mtc1 zero ordering; sched=2 did not fix it and worsened nearby scheduling.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:42:04Z",
+        "src_file": "src/eWeatherEffect.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/3d742ebb/00060b80__agent_self_reported_failure__src_eWeatherEffect.cpp"
+      }
+    ]
   },
   {
     "address": "0x00060dd0",
@@ -82550,7 +82564,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d85bc",
@@ -198933,7 +198947,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680",
@@ -198941,7 +198955,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0ocgcDoCameraLookFromEntityNodedtv"
+    "mangled_symbol": "__0ocgcDoCameraLookFromEntityNodedtv",
+    "src_file": "src/gcDoCameraLookFromEntityNode_dtor.cpp",
+    "symbol_name": "__0ocgcDoCameraLookFromEntityNodedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "3d742ebb",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T05:42:04Z"
   },
   {
     "address": "0x00297378",
@@ -199168,7 +199190,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00121680",

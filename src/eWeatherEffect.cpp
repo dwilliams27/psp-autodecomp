@@ -4,6 +4,11 @@ class cMemPool;
 class cType;
 class eGeom;
 class eWeatherEffect;
+class eCamera;
+class mFrustum;
+class eCameraBins;
+class eMaterial;
+template <class T> class cHandleT;
 
 typedef int v4sf_t __attribute__((mode(V4SF)));
 
@@ -61,6 +66,8 @@ public:
     }
 
     void AssignCopy(const cBase *);
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *,
+              unsigned int, int, const cHandleT<eMaterial> *, float) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     const cType *GetType(void) const;
@@ -80,6 +87,41 @@ struct DispatchEntry {
     short offset;
     short _pad;
     void (*fn)(void *);
+};
+
+struct WeatherTemplateView {
+    char pad00[0x70];
+    unsigned int effectMaterial;
+};
+
+struct WeatherEffectMtlView {
+    char pad00[0x30];
+    unsigned int handle;
+    char pad34[0x10];
+    int hasDepth;
+    unsigned int material;
+    char pad4C[4];
+    int sortKey;
+    char pad54[8];
+    unsigned char flags;
+    unsigned char mask;
+    char pad5E;
+    signed char binIndex;
+};
+
+struct WeatherBinRecord {
+    unsigned short flags;
+    unsigned short materialId;
+    unsigned short zero4;
+    unsigned char category;
+    unsigned char ff;
+    int sortKey;
+    WeatherEffectMtlView *effectMtl;
+    const eWeatherEffect *effect;
+    const eCamera *camera;
+    float alpha;
+    unsigned short count;
+    unsigned short zero1E;
 };
 
 class eWeatherParticle;
@@ -138,6 +180,147 @@ eWeatherEffect::~eWeatherEffect() {
         }
     }
 }
+
+#pragma control sched=1
+
+// ── eWeatherEffect::Cull(...) const @ 0x00060b80 ──
+void eWeatherEffect::Cull(unsigned int stamp, const eCamera &camera,
+                          const mFrustum &frustum, eCameraBins *bins,
+                          unsigned int, int mode,
+                          const cHandleT<eMaterial> *material,
+                          float alpha) const {
+    unsigned int oldStamp = *(const unsigned int *)((const char *)this + 0x88);
+    if (stamp == oldStamp) {
+        return;
+    }
+    *(unsigned int *)((char *)this + 0x88) = stamp;
+
+    if ((mode | (int)material) != 0) {
+        return;
+    }
+
+    WeatherTemplateView *weatherTemplate =
+        *(WeatherTemplateView **)((const char *)this + 0x60);
+    if (weatherTemplate == 0) {
+        return;
+    }
+
+    unsigned int handle = weatherTemplate->effectMaterial;
+    WeatherEffectMtlView *effectMtl = 0;
+    WeatherEffectMtlView *candidate = 0;
+    if (handle == 0) {
+        effectMtl = 0;
+    } else {
+        unsigned int offset = (handle & 0xFFFF) << 2;
+        char *table = (char *)0x38890;
+        void *slot;
+        __asm__ volatile("addu %0,%1,%2" : "=r"(slot) : "r"(offset), "r"(table));
+        WeatherEffectMtlView *entry = *(WeatherEffectMtlView **)slot;
+        if (entry != 0) {
+            if (entry->handle == handle) {
+                candidate = entry;
+            }
+        }
+        effectMtl = candidate;
+    }
+
+    WeatherEffectMtlView *mtl = effectMtl;
+    if (mtl == 0) {
+        return;
+    }
+
+    float distanceAlpha = alpha * *(const float *)((const char *)&camera + 0x1F4);
+    if (distanceAlpha == 0.0f) {
+        return;
+    }
+
+    if ((mtl->mask & *(unsigned short *)((char *)bins + 4)) == 0) {
+        return;
+    }
+
+    int count = *(int *)((char *)bins + 8);
+    if (count >= 3000) {
+        return;
+    }
+
+    unsigned char flags = mtl->flags;
+    if ((flags & 0x80) != 0) {
+        return;
+    }
+
+    unsigned int binFlags = 0;
+    if ((flags & 0x20) != 0) {
+        binFlags = 8;
+    }
+    unsigned int alphaFlags = 4;
+    if ((flags & 1) != 0) {
+        alphaFlags = 0;
+    }
+    binFlags = (binFlags & 0xFFFF) | alphaFlags;
+
+    int binIndex = mtl->binIndex;
+    int nextCount = count + 1;
+    *(int *)((char *)bins + 8) = nextCount;
+
+    WeatherBinRecord *record =
+        (WeatherBinRecord *)((char *)bins + (count << 5) + 0x0C);
+    record->flags = (unsigned short)(binFlags & 0xFFFF);
+
+    if (*(unsigned char *)((char *)bins + 0x1770C) != 0) {
+        binIndex = *(int *)((char *)bins + 0x17710);
+    }
+
+    record->flags = record->flags | (unsigned short)(binIndex << 9);
+
+    unsigned int category = *(unsigned char *)((char *)bins + 0x18400);
+    int *bucket = (int *)((char *)bins + 0x18374 + binIndex * 0x14 + category * 4);
+    *bucket = *bucket + 1;
+
+    record->effectMtl = mtl;
+
+    if (distanceAlpha < 1.0f) {
+        record->flags = record->flags | 0x10;
+    }
+
+    if (mtl->hasDepth != 0) {
+        record->flags = record->flags | 0x20;
+    }
+
+    unsigned int materialHandle = mtl->material;
+    unsigned short materialId = 0;
+    char *resolvedMaterial;
+    if (materialHandle == 0) {
+        resolvedMaterial = 0;
+    } else {
+        unsigned int offset = (materialHandle & 0xFFFF) << 2;
+        char *table = (char *)0x38890;
+        void *slot;
+        __asm__ volatile("addu %0,%1,%2" : "=r"(slot) : "r"(offset), "r"(table));
+        char *entry = *(char **)slot;
+        resolvedMaterial = 0;
+        if (entry != 0) {
+            if (*(unsigned int *)(entry + 0x30) == materialHandle) {
+                resolvedMaterial = entry;
+            }
+        }
+    }
+    if (resolvedMaterial != 0) {
+        materialId = (unsigned short)(materialHandle & 0xFFFF);
+    }
+
+    record->materialId = materialId;
+    record->sortKey = mtl->sortKey;
+    record->zero4 = 0;
+    record->effect = this;
+    record->camera = &camera;
+    record->alpha = distanceAlpha;
+    record->category = *(unsigned char *)((char *)bins + 0x18400);
+    record->zero1E = 0;
+    record->ff = 0xFF;
+    record->count = *(int *)((char *)bins + 8);
+}
+
+#pragma control sched=1
 
 // ── eWeatherEffect::AssignCopy(const cBase *) @ 0x00207350 ──
 void eWeatherEffect::AssignCopy(const cBase *base) {
