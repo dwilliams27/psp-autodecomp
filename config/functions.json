@@ -211631,13 +211631,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoLobbyUserOpIEvaluatevK"
+    "mangled_symbol": "__0fPgcDoLobbyUserOpIEvaluatevK",
+    "src_file": "src/gcDoLobbyUserOp.cpp",
+    "symbol_name": "__0fPgcDoLobbyUserOpIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f6db6518",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:20:42Z"
   },
   {
     "address": "0x002e66a4",
@@ -214279,14 +214287,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0011d8c0",
       "0x0011f3b0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoPlayerSetEntityIEvaluatevK"
+    "mangled_symbol": "__0fTgcDoPlayerSetEntityIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "ec67ec0a",
+        "notes": "Closest C++ source matches the full control-flow shape and size for gcDoPlayerSetEntity::Evaluate; all existing methods in the file still compare as MATCH. Remaining diff is 10 bytes in the final gcPlayer::SetEntity call setup only: original uses sw s0,0(sp); lw a1,0(sp); move a0,s1; sw a1,4(sp); jal; lw a1,4(sp), while SNC for this TU emits the same stack slots/call but routes the first reload through a0 and leaves move a0,s1 in the jal delay slot. Tried plain cHandleT local, volatile cHandleT, raw mangled call declaration, a0/a1 register variables, memory barriers, and reordered temporaries.\n\nRead branch-likely, vtable-layout, and register-allocation notes. The 300s permuter run generated 2860 candidates / 1137 compiled, with no improvement from the 10-byte baseline. Root-cause hypothesis: argument-register scheduling / register-allocation drift in the reduced TU; not a branch-likely divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:20:41Z",
+        "src_file": "src/gcDoPlayerSetEntity.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/ec67ec0a/002f1e70__agent_self_reported_failure__src_gcDoPlayerSetEntity.cpp"
+      }
+    ]
   },
   {
     "address": "0x002f1fbc",
@@ -220218,7 +220240,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d92a8",
@@ -222082,7 +222104,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8708",
@@ -222809,7 +222831,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012366c",
@@ -237176,7 +237198,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -240611,7 +240633,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000569a0",
       "0x00056a1c",
@@ -240621,7 +240643,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValMemCardStatusIEvaluatevK"
+    "mangled_symbol": "__0fSgcValMemCardStatusIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "ec67ec0a",
+        "notes": "Closest C++ source matches the target size and high-level linear dispatch for gcValMemCardStatus::Evaluate; all existing methods in the file still compare as MATCH. Remaining diff is 15 bytes in the selector comparison block: the original switch lowering uses the assembler-temp register at for constants 1..5 after the bounds-check nop, while the closest hand-shaped if/goto variant uses a2 for those constants. Tried switch with default case, explicit case 0, signed vs unsigned selector, inverted bounds check, sched=1, goto-shaped case layout, and memory/register barriers to preserve the target delay slot.\n\nRead snc-loop-switch and snc-register-allocation notes. The 300s permuter run generated 2784 candidates / 1291 compiled, with no improvement from the 15-byte baseline. Root-cause hypothesis: switch/compare lowering is context-sensitive; source can choose either subtract-normalized switch lowering or the correct layout with a2 constants, but did not reach the original at-register encoding.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:20:41Z",
+        "src_file": "src/gcValMemCardStatus.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/ec67ec0a/003502f4__agent_self_reported_failure__src_gcValMemCardStatus.cpp"
+      }
+    ]
   },
   {
     "address": "0x00350444",
@@ -244021,14 +244057,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000015cc",
       "0x000016a8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValStringCompareIEvaluatevK"
+    "mangled_symbol": "__0fSgcValStringCompareIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "f6db6518",
+        "notes": "Implemented the full C++ body using the matched gcValStringCompare tagged-pointer conventions: two 256-byte narrow buffers, two 4096-wchar temporary buffers, virtual text extraction through vtable slot 0x70, cStrCopy(..., 0x100), cStrCompare, and the exact/non-exact float return diamond. Tried direct m2c-style control flow, base-pointer temporaries, assigning through the original pointer, explicit if/else vtable-load shapes, non-null-path memory barriers, final-return goto shaping, declaration-order changes, and a sched=1 pragma experiment.\n\nClosest retained source compiles and keeps New/GetType/AssignCopy/Read/Write matched, but Evaluate still mismatches: generated symbol is 0x17c bytes while target is 0x170 bytes, and compare_func reports 235/368 differing bytes. The root issue is the virtual string extraction blocks: SNC chooses different register allocation and delay-slot scheduling around the tagged pointer nulling and vtable load than the original. Not a permuter candidate because the generated size is not equal to the target size.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:20:42Z",
+        "src_file": "src/gcValStringCompare.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/f6db6518/0035df5c__agent_self_reported_failure__src_gcValStringCompare.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035e0cc",

@@ -33,6 +33,7 @@ public:
     ~gcDoLobbyUserOp(void);
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+    float Evaluate(void) const;
 };
 
 class gcDoLog {
@@ -104,6 +105,23 @@ struct DtorSlot {
     short offset;
     short pad;
     void (*fn)(void *, int);
+};
+
+struct LobbyUserDispatchEntry {
+    short offset;
+    short pad;
+    void *fn;
+};
+
+struct ValueEvalEntry {
+    short offset;
+    short pad;
+    float (*fn)(void *);
+};
+
+class nwNetwork {
+public:
+    static void *GetLobby(void);
 };
 
 static cType *type_action asm("D_000385D4");
@@ -249,6 +267,98 @@ int gcDoLobbyUserOp::Read(cFile &file, cMemPool *pool) {
     }
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+float gcDoLobbyUserOp::Evaluate(void) const {
+    const gcDoLobbyUserOp *self = this;
+    void *lobby = nwNetwork::GetLobby();
+    float zero = 0.0f;
+    int out[6];
+
+    if (lobby == 0) goto done;
+
+    {
+        LobbyUserDispatchEntry *entry =
+            (LobbyUserDispatchEntry *)(*(char **)lobby + 0x370);
+        short offset = entry->offset;
+        void *object = (char *)lobby + offset;
+        int value = *(int *)((const char *)self + 0x14);
+        int flag = 0;
+        if (value & 1) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            value = 0;
+        } else {
+            __asm__ volatile("" ::: "memory");
+        }
+
+        int index;
+        int evalValue = value;
+        if (evalValue != 0) {
+            ValueEvalEntry *eval =
+                (ValueEvalEntry *)(*(char **)(evalValue + 4) + 0x70);
+            index = (int)eval->fn((char *)value + eval->offset);
+        } else {
+            index = (int)zero;
+        }
+
+        ((void (*)(void *, int, int *))entry->fn)(object, index, out);
+    }
+
+    {
+        int op = *(int *)((const char *)self + 0x0C);
+        if (op >= 2) goto opTwoOrMore;
+        if (op < 0) goto done;
+
+        {
+            char *desc = *(char **)lobby;
+            if (op > 0) goto opOne;
+
+            LobbyUserDispatchEntry *slot =
+                (LobbyUserDispatchEntry *)(desc + 0x3E0);
+            ((void (*)(void *, int, int))slot->fn)(
+                (char *)lobby + slot->offset, out[0],
+                *(int *)((const char *)self + 0x10));
+            goto done;
+
+    opTwoOrMore:
+            if (op < 3) goto opTwo;
+            if (op < 4) goto opThree;
+            goto done;
+
+        opOne:
+            {
+                LobbyUserDispatchEntry *slotOne =
+                    (LobbyUserDispatchEntry *)(desc + 0x3E8);
+                ((void (*)(void *, int, unsigned char))slotOne->fn)(
+                    (char *)lobby + slotOne->offset, out[0],
+                    *(unsigned char *)((const char *)self + 0x18));
+                goto done;
+            }
+
+    opTwo:
+            {
+                LobbyUserDispatchEntry *slot =
+                (LobbyUserDispatchEntry *)(*(char **)lobby + 0x3F0);
+                ((void (*)(void *, int))slot->fn)(
+                    (char *)lobby + slot->offset, out[0]);
+                goto done;
+            }
+
+    opThree:
+            {
+                LobbyUserDispatchEntry *slot =
+                (LobbyUserDispatchEntry *)(*(char **)lobby + 0x3F8);
+                ((void (*)(void *, int))slot->fn)(
+                    (char *)lobby + slot->offset, out[0]);
+                goto done;
+            }
+        }
+    }
+
+done:
+    return zero;
 }
 
 // 0x002e6c64 — GetType(void) const

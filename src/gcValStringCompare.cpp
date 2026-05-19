@@ -63,6 +63,7 @@ public:
     gcValStringCompare &operator=(const gcValStringCompare &);
     const cType *GetType(void) const;
     void AssignCopy(const cBase *);
+    float Evaluate(void) const;
     void GetText(char *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
@@ -93,6 +94,8 @@ struct cTypeMethod {
 
 void cStrAppend(char *, const char *, ...);
 void cStrCopy(char *, const char *);
+void cStrCopy(char *, const wchar_t *, int);
+int cStrCompare(const char *, const char *, bool);
 
 extern "C" void __0oKcReadBlockctR6FcFileUib(void *, cFile &, unsigned int,
                                              bool);
@@ -354,6 +357,97 @@ out2_done:
 
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+float gcValStringCompare::Evaluate(void) const {
+    char left[256];
+    char right[256];
+    wchar_t leftWide[4096];
+    wchar_t rightWide[4096];
+
+    left[0] = 0;
+    right[0] = 0;
+
+    int flag = 0;
+    int value = *(int *)((const char *)this + 0x08);
+    int tag = value & 1;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    int ok;
+    if (flag != 0) {
+        ok = 0;
+    } else {
+        ok = value != 0;
+        ok &= 0xFF;
+        ok = ok != 0;
+    }
+
+    if (ok != 0) {
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+
+        char *type;
+        if (flag2 == 0) {
+            type = *(char **)(value + 4);
+        } else {
+            value = 0;
+            type = *(char **)(value + 4);
+        }
+
+        cTypeMethod *slot = (cTypeMethod *)(type + 0x70);
+        ((void (*)(void *, wchar_t *, int))slot->fn)(
+            (char *)value + slot->offset, leftWide, 0x1000);
+        cStrCopy(left, leftWide, 0x100);
+    }
+
+    value = *(int *)((const char *)this + 0x0C);
+    tag = value & 1;
+    flag = 0;
+    if (tag != 0) {
+        flag = 1;
+    }
+
+    if (flag != 0) {
+        ok = 0;
+    } else {
+        ok = value != 0;
+        ok &= 0xFF;
+        ok = ok != 0;
+    }
+
+    if (ok != 0) {
+        int flag2 = 0;
+        if (tag != 0) {
+            flag2 = 1;
+        }
+
+        char *type;
+        if (flag2 == 0) {
+            type = *(char **)(value + 4);
+        } else {
+            value = 0;
+            type = *(char **)(value + 4);
+        }
+
+        cTypeMethod *slot = (cTypeMethod *)(type + 0x70);
+        ((void (*)(void *, wchar_t *, int))slot->fn)(
+            (char *)value + slot->offset, rightWide, 0x1000);
+        cStrCopy(right, rightWide, 0x100);
+    }
+
+    int cmp = cStrCompare(left, right, *(bool *)((const char *)this + 0x10));
+    int result;
+    if (*(unsigned char *)((const char *)this + 0x11) == 0) goto notExact;
+    result = cmp == 0;
+    goto done;
+notExact:
+    result = cmp;
+done:
+    return (float)result;
 }
 
 void gcValStringCompare::GetText(char *buf) const {
