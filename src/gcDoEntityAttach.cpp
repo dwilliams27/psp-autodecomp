@@ -57,6 +57,12 @@ struct AllocEntry {
     void *(*fn)(void *, int, int, int, int);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
 struct WriteRec {
     short offset;
     short pad;
@@ -84,11 +90,22 @@ extern const char gcDoEntityAttach_base_name[];
 extern const char gcDoEntityAttach_base_desc[];
 extern char gcDoEntityAttachvirtualtable[];
 extern char D_00000338[];
+extern char gcDesEnt_vtbl_a[] asm("__0dPgcDesiredEntityG__vtbl");
+extern char gcDesEnt_vtbl_b[] asm("__0dPgcDesiredEntityG__vtbl");
+extern char gcDesEnumEntry_vtbl_a[] asm("__0dZgcDesiredEnumerationEntryG__vtbl");
+extern char gcDesEnumEntry_vtbl_b[] asm("__0dZgcDesiredEnumerationEntryG__vtbl");
+extern char gcDesObj_vtbl_a[] asm("__0dPgcDesiredObjectG__vtbl");
+extern char gcDesObj_vtbl_b[] asm("__0dPgcDesiredObjectG__vtbl");
+extern char cBase_vtbl_a[] asm("__0dFcBaseG__vtbl");
+extern char cBase_vtbl_b[] asm("__0dFcBaseG__vtbl");
+extern char cBase_vtbl_c[] asm("__0dFcBaseG__vtbl");
+extern char cBase_vtbl_d[] asm("__0dFcBaseG__vtbl");
 
 extern "C" {
 void gcAction_ctor_cBase(void *, cBase *);
 int gcAction_Read(void *, cFile &, cMemPool *)
     __asm__("__0fIgcActionEReadR6FcFileP6IcMemPool");
+void gcAction_dtor(void *, int) asm("__0oIgcActiondtv");
 void gcDesiredObject_ctor_cBase(void *, cBase *);
 void gcDesiredEntityHelper_ctor(void *, int, int, int);
 void cFile_SetCurrentPos(void *, unsigned int);
@@ -98,6 +115,8 @@ void __0oKcReadBlockdtv(void *, int);
 
 class gcDoEntityAttach : public gcAction {
 public:
+    static void operator delete(void *);
+    ~gcDoEntityAttach(void);
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
@@ -110,6 +129,14 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoEntityAttach;
+
+inline void gcDoEntityAttach::operator delete(void *ptr) {
+    cMemPool *pool = cMemPool::GetPoolFromPtr(ptr);
+    void *block = *(void **)((char *)pool + 0x24);
+    char *entries = *(char **)((char *)block + 0x1C);
+    DtorDeleteRecord *slot = (DtorDeleteRecord *)(entries + 0x30);
+    slot->fn((char *)block + slot->offset, ptr);
+}
 
 cBase *gcDoEntityAttach::New(cMemPool *pool, cBase *parent) {
     void *block = ((void **)pool)[9];
@@ -307,4 +334,143 @@ int gcDoEntityAttach::Read(cFile &file, cMemPool *pool) {
     ((gcDesiredValue *)((char *)this + 0x84))->Read(*(cReadBlock *)rb);
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+__asm__(".word 0x1000ffff\n");
+__asm__(".word 0x00000000\n");
+__asm__(".size __0oQgcDoEntityAttachdtv, 0x32c\n");
+
+gcDoEntityAttach::~gcDoEntityAttach(void) {
+    *(void **)((char *)this + 4) = gcDoEntityAttachvirtualtable;
+    char *p84 = (char *)this + 0x84;
+    char *p80 = (char *)this + 0x80;
+    char *p3C = (char *)this + 0x3C;
+    char *p10 = (char *)this + 0x10;
+
+    if ((void *)p84 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x84);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x84) = 0;
+            }
+        }
+    }
+
+    if ((void *)p80 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x80);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0) {
+            if (val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x80) = 0;
+            }
+        }
+    }
+
+    if ((void *)p3C != 0) {
+        *(void **)((char *)this + 0x40) = gcDesEnt_vtbl_a;
+
+        if ((void *)((char *)this + 0x50) != 0) {
+            *(void **)((char *)this + 0x54) = gcDesEnumEntry_vtbl_a;
+
+            if ((void *)((char *)this + 0x64) != 0) {
+                int owned = 1;
+                int val = *(int *)((char *)this + 0x64);
+                if (val & 1) {
+                    owned = 0;
+                }
+                if (owned != 0) {
+                    if (val != 0) {
+                        char *typeInfo = *(char **)(val + 4);
+                        DtorDeleteRecord *slot =
+                            (DtorDeleteRecord *)(typeInfo + 0x50);
+                        slot->fn((char *)val + slot->offset, (void *)3);
+                        *(int *)((char *)this + 0x64) = 0;
+                    }
+                }
+            }
+            *(void **)((char *)this + 0x54) = cBase_vtbl_a;
+        }
+
+        *(void **)((char *)this + 0x40) = gcDesObj_vtbl_a;
+
+        if ((void *)((char *)this + 0x44) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x44);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0) {
+                if (val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot =
+                        (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x44) = 0;
+                }
+            }
+        }
+        *(void **)((char *)this + 0x40) = cBase_vtbl_b;
+    }
+
+    if ((void *)p10 != 0) {
+        *(void **)((char *)this + 0x14) = gcDesEnt_vtbl_b;
+
+        if ((void *)((char *)this + 0x24) != 0) {
+            *(void **)((char *)this + 0x28) = gcDesEnumEntry_vtbl_b;
+
+            if ((void *)((char *)this + 0x38) != 0) {
+                int owned = 1;
+                int val = *(int *)((char *)this + 0x38);
+                if (val & 1) {
+                    owned = 0;
+                }
+                if (owned != 0) {
+                    if (val != 0) {
+                        char *typeInfo = *(char **)(val + 4);
+                        DtorDeleteRecord *slot =
+                            (DtorDeleteRecord *)(typeInfo + 0x50);
+                        slot->fn((char *)val + slot->offset, (void *)3);
+                        *(int *)((char *)this + 0x38) = 0;
+                    }
+                }
+            }
+            *(void **)((char *)this + 0x28) = cBase_vtbl_c;
+        }
+
+        *(void **)((char *)this + 0x14) = gcDesObj_vtbl_b;
+
+        if ((void *)((char *)this + 0x18) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x18);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0) {
+                if (val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot =
+                        (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x18) = 0;
+                }
+            }
+        }
+
+        *(void **)((char *)this + 0x14) = cBase_vtbl_d;
+    }
+
+    gcAction_dtor(this, 0);
 }

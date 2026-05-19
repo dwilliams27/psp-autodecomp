@@ -33038,7 +33038,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0003b1b0",
       "0x0009fc88",
@@ -64227,13 +64227,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeGeomTrailECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fKeGeomTrailECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "0938e222",
+        "notes": "Built a canonical C++ eGeomTrail::Cull body in src/eGeomTrail.cpp using the matched gcUIGeom/eWeatherEffect Cull bin-record pattern and the eGeomTrail-specific offsets from disassembly. The implementation resolves the trail material handle at template+0x48, calls the vtable fade/update hooks at +0xD8/+0xB8, emits the VFPU camera dot and distance blocks, and fills the eCameraBins record fields at the observed offsets. Existing matched eGeomTrail methods still compare byte-exact after the edit.\n\nClosest compare is a compiled Cull body that compare_func reports as 500/896 differing bytes. I tried reshaping the material handle block to force the original a0/s3 lifetime, removing the saved vtable pointer, changing the near-minus-one distance branch between initialized-dist and explicit true/else forms, and changing byte flag temporaries. The best source still differs heavily in register allocation and scheduling: SNC keeps the template/material pointer in saved registers, orders the virtual-call argument setup differently, emits lb+andi for byte loads where the original uses lbu, and schedules the inline VFPU/pointer setup differently. Not a bnel/beql near miss and not suitable for permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:52:52Z",
+        "src_file": "src/eGeomTrail.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/0938e222/0007971c__agent_self_reported_failure__src_eGeomTrail.cpp"
+      }
+    ]
   },
   {
     "address": "0x00079a9c",
@@ -75641,7 +75655,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00011644",
       "0x000116bc",
@@ -75650,7 +75664,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeGeomTrailEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fKeGeomTrailEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "0938e222",
+        "notes": "Added only a canonical eGeomTrail::Draw(const eDrawInfo &) const placeholder so the method has the required class syntax in the owning source file. compare_func reports a size mismatch: target Draw is 3188 bytes, emitted placeholder is 8 bytes.\n\nI inspected the full disassembly and the available eDynamicVertChunk/mBSpline/eParticleSystem Draw patterns. This function is a large spline interpolation and VFPU strip-builder with many stack temporaries, dynamic vertex records, color/alpha packing, and matrix setup before virtual draw dispatch. I did not attempt a partial pure-assembly copy; a future retry should reconstruct it as C++ around eDynamicVertChunk::BeginStrip/End/Draw and mBSpline::Interpolate, with small inline VFPU blocks only for the vector math.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:52:52Z",
+        "src_file": "src/eGeomTrail.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/0938e222/000b40d0__agent_self_reported_failure__src_eGeomTrail.cpp"
+      }
+    ]
   },
   {
     "address": "0x000b4d44",
@@ -92859,13 +92887,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0016a888"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0f5IgcCameraLgcXYZMotionGUpdatefTB"
+    "mangled_symbol": "__0f5IgcCameraLgcXYZMotionGUpdatefTB",
+    "failure_notes": [
+      {
+        "session": "774d2722",
+        "notes": "Created canonical split source src/gcCamera_gcXYZMotion.cpp with a local gcCamera::gcXYZMotion redeclaration and implemented Update(float,float) as a VFPU/C hybrid. The closest useful variant uses a SceULong128 local memory operand to force the original 32-byte leaf frame and compiler-visible VFPU stack scratch, with inline VFPU for normalize/scale/vector add operations and C for the scalar clamp branches. It compiles, but compare_func reports 242/368 bytes different, so it is not last-mile and was not permuted.\n\nMain blocker is source shape around mixed VFPU and scalar FPU scheduling. The current code gets the leaf frame and broad operation order, but scalar FPU registers diverge immediately after mfv: generated code puts the first distance in $f12 and introduces different $f14/$f15/$f16 lifetimes, while the original uses mtc1 a1,$f14, accumulates in $f16, keeps the speed limit live in $f15, and stores/loads the vector scratch at the original stack slot. I also tried an empty stack scratch, a hardcoded $sp scratch, removing the final scale preservation move, and a padded scratch struct; those either failed to allocate the frame, changed the frame to 48 bytes, or increased the diff. A future attempt likely needs a more faithful scalar/VFPU boundary, not permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:49:23Z",
+        "src_file": "src/gcCamera_gcXYZMotion.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/774d2722/000fbe88__agent_self_reported_failure__src_gcCamera_gcXYZMotion.cpp"
+      }
+    ]
   },
   {
     "address": "0x000fbff8",
@@ -119602,14 +119644,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [
       "0x0014a3d8",
       "0x0017e740"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fTgcSubGeomControllerGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fTgcSubGeomControllerGUpdate6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "774d2722",
+        "notes": "Implemented canonical gcSubGeomController::Update in the existing source file using the matched class conventions: virtual cTypeMethod slot call at object+4+0xD0, fade delta/current/target update, and final multiply into the controlled object's +0xD4 field. Initial C shape compiled to the exact 220-byte size with a 22-byte mismatch. Manual store-order barriers plus the permuter's best saved variant reduced this to 12/220 bytes different, while preserving the matched constructor and SetFade siblings.\n\nThe remaining diff is a pure scalar FPU temporary allocation swap: generated code uses $f12 for zero and $f14 for the target value, while the original uses $f14 for zero and $f12 for target. Control flow, stack frame, virtual call sequence, branch-likely shape, store ordering, and final multiply all line up. Tried explicit register-bound zero/current/delta locals, sched=1, source store-order variants, and two permuter runs: 300s improved 22 -> 15, then manual barriers improved 15 -> 12, then a 600s run compiled 2757 candidates with zero improvement. This is retryable failed, not bnel/unmatchable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:49:23Z",
+        "src_file": "src/gcSubGeomController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/774d2722/00148100__agent_self_reported_failure__src_gcSubGeomController.cpp"
+      }
+    ]
   },
   {
     "address": "0x001481dc",
@@ -183029,7 +183085,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -184668,7 +184724,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -187831,7 +187887,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -188223,7 +188279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -190201,7 +190257,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00000e84",
       "0x00000fec",
@@ -201615,14 +201671,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcDoEntityAttachdtv"
+    "mangled_symbol": "__0oQgcDoEntityAttachdtv",
+    "src_file": "src/gcDoEntityAttach.cpp",
+    "symbol_name": "__0oQgcDoEntityAttachdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "14497867",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T06:56:55Z"
   },
   {
     "address": "0x002a54fc",
@@ -202847,7 +202911,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4",
@@ -202858,7 +202922,15 @@
       "0x002b444c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oagcDoEntityFindAttachedBasedtv"
+    "mangled_symbol": "__0oagcDoEntityFindAttachedBasedtv",
+    "src_file": "src/gcDoEntityFindAttachedBase_dtor.cpp",
+    "symbol_name": "__0oagcDoEntityFindAttachedBasedtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "14497867",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T06:56:55Z"
   },
   {
     "address": "0x002b07b8",
