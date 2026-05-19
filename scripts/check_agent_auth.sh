@@ -87,15 +87,25 @@ def is_exact_ok(value):
     return value.strip() == "OK"
 
 
-for line in text.splitlines():
-    line = line.strip()
-    if not line.startswith("{"):
-        continue
-    try:
-        obj = json.loads(line)
-    except json.JSONDecodeError:
-        continue
+def iter_json_objects(text):
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line[0] not in "{[":
+            continue
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            # FALLBACK-OK: probe logs intentionally mix diagnostics with JSON.
+            continue
+        if isinstance(payload, list):
+            for item in payload:
+                if isinstance(item, dict):
+                    yield item
+        elif isinstance(payload, dict):
+            yield payload
 
+
+for obj in iter_json_objects(text):
     if name == "Claude":
         result = obj.get("result")
         if isinstance(result, str) and is_exact_ok(result):

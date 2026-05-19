@@ -121,6 +121,11 @@ sudo -i -u autodecomp codex login                   # authenticate Codex (or exp
 ./scripts/check_agent_auth.sh                       # verify both agents respond as autodecomp
 
 # Running
+# Required operator pre-flight: `git status --short --branch` must show branch `main` with no dirty or untracked paths.
+# `run_overnight.sh` creates an overnight branch and refuses tracked dirty paths or non-`main` branches;
+# untracked files must also be committed, removed, or stashed so run provenance includes the target config.
+# Do not chain target generation directly into `run_overnight.sh`; generated config/docs files must be committed,
+# removed, or stashed before launching.
 ./tools/run_overnight.sh --hours 8                                    # full overnight (Claude)
 ./tools/run_overnight.sh --hours 8 --backend codex                    # Codex backend
 ./tools/run_overnight.sh --hours 8 --targets config/finetune_targets.json  # targeted run

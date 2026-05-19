@@ -1,0 +1,2916 @@
+[
+  {
+    "address": "0x00086074",
+    "size": 344,
+    "name": "eShadowVolumeModelMtl::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eShadowVolumeModelMtl",
+    "category": "Read",
+    "priority": 782,
+    "score": 218,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eShadowVolumeModelMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260518_220939/b8b64fcd/00086074__agent_self_reported_failure__src_eShadowVolumeModelMtl.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 2,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 2,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00081040",
+    "size": 352,
+    "name": "eFilteredTexture::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eFilteredTexture",
+    "category": "Read",
+    "priority": 784,
+    "score": 216,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eFilteredTexture.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/9757cba1/00081040__agent_self_reported_failure__src_eFilteredTexture.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 4,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 4,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003265e0",
+    "size": 296,
+    "name": "gcValEntityConstant::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityConstant",
+    "category": "Read",
+    "priority": 789,
+    "score": 211,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityConstant.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3d6710c0/003265e0__agent_self_reported_failure__src_gcValEntityConstant.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 9,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 9,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0032ec54",
+    "size": 296,
+    "name": "gcValEntityHasAnimation::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasAnimation",
+    "category": "Read",
+    "priority": 789,
+    "score": 211,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityHasAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3d6710c0/0032ec54__agent_self_reported_failure__src_gcValEntityHasAnimation.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 9,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 9,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00339018",
+    "size": 308,
+    "name": "gcValEntityPathDirection::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityPathDirection",
+    "category": "Read",
+    "priority": 789,
+    "score": 211,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityPathDirection.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/30a534f0/00339018__agent_self_reported_failure__src_gcValEntityPathDirection.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 9,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 9,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003356e4",
+    "size": 328,
+    "name": "gcValEntityIsValid::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityIsValid",
+    "category": "Read",
+    "priority": 789,
+    "score": 211,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityIsValid.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/29b5ac37/003356e4__agent_self_reported_failure__src_gcValEntityIsValid.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 9,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 9,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000815e0",
+    "size": 312,
+    "name": "eFrameBufferTexture::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eFrameBufferTexture",
+    "category": "Read",
+    "priority": 792,
+    "score": 208,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eFrameBufferTexture.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/52527ae2/000815e0__agent_self_reported_failure__src_eFrameBufferTexture.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 12,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 12,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0033da60",
+    "size": 404,
+    "name": "gcValEntitySoundFrequency::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntitySoundFrequency",
+    "category": "Read",
+    "priority": 792,
+    "score": 208,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntitySoundFrequency.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c152b277/0033da60__agent_self_reported_failure__src_gcValEntitySoundFrequency.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 12,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 12,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00327408",
+    "size": 268,
+    "name": "gcValEntityControllerVariable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityControllerVariable",
+    "category": "Read",
+    "priority": 793,
+    "score": 207,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityControllerVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/12109897/00327408__agent_self_reported_failure__src_gcValEntityControllerVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00330bb8",
+    "size": 296,
+    "name": "gcValEntityHasTimeSince::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasTimeSince",
+    "category": "Read",
+    "priority": 793,
+    "score": 207,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityHasTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fc70d2d3/00330bb8__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0033eef8",
+    "size": 296,
+    "name": "gcValEntityTimeSince::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityTimeSince",
+    "category": "Read",
+    "priority": 793,
+    "score": 207,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityTimeSince.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fc70d2d3/0033eef8__agent_self_reported_failure__src_gcValEntityTimeSince.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 13,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 13,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000211d8",
+    "size": 120,
+    "name": "eSound::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSound",
+    "category": "Read",
+    "priority": 794,
+    "score": 206,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eStaticSurfaceLight.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/d49eeec5/000211d8__out_of_scope_path__src_eStaticSurfaceLight.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00008ea4",
+    "size": 172,
+    "name": "cNamed::Read(cFile &, cMemPool *)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cNamed",
+    "category": "Read",
+    "priority": 794,
+    "score": 206,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/cNamed.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/86803ef3/00008ea4__agent_self_reported_failure__src_cNamed.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0003c4f8",
+    "size": 228,
+    "name": "eFluidVolume::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eFluidVolume",
+    "category": "Read",
+    "priority": 794,
+    "score": 206,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eFluidVolume_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/96655b50/0003c4f8__agent_self_reported_failure__src_eFluidVolume_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0002b820",
+    "size": 268,
+    "name": "eShape::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eShape",
+    "category": "Read",
+    "priority": 794,
+    "score": 206,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eShape_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/d313d996/0002b820__agent_self_reported_failure__src_eShape_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x001a4d9c",
+    "size": 336,
+    "name": "nwConfigBase::Read(cFile &, cMemPool *)",
+    "obj_file": "nwAll_psp.obj",
+    "class_name": "nwConfigBase",
+    "category": "Read",
+    "priority": 794,
+    "score": 206,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/nwConfigBase_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/29b5ac37/001a4d9c__agent_self_reported_failure__src_nwConfigBase_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 14,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 14,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00125d3c",
+    "size": 232,
+    "name": "gcEntitySoundConfig::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntitySoundConfig",
+    "category": "Read",
+    "priority": 796,
+    "score": 204,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcEntitySoundConfig.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/1e24c675/00125d3c__agent_self_reported_failure__src_gcEntitySoundConfig.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0002d044",
+    "size": 260,
+    "name": "eCameraEffectLayer::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eCameraEffectLayer",
+    "category": "Read",
+    "priority": 796,
+    "score": 204,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eCameraEffectLayer_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/1e24c675/0002d044__agent_self_reported_failure__src_eCameraEffectLayer_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002a9a14",
+    "size": 1052,
+    "name": "gcDoEntityCastRay::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntityCastRay",
+    "category": "Read",
+    "priority": 851,
+    "score": 149,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoEntityCastRay.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/5fc332e9/002a9a14__agent_self_reported_failure__src_gcDoEntityCastRay.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 16,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 16,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000e8e8c",
+    "size": 224,
+    "name": "gcAnimationEvent::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcAnimationEvent",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eLensFlare.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3e302832/000e8e8c__agent_self_reported_failure__src_eLensFlare.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 20,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 20,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00151fe0",
+    "size": 336,
+    "name": "gcDoWhile::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoWhile",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoWhile.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c3b1ea68/00151fe0__agent_self_reported_failure__src_gcDoWhile.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 20,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 20,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x001503d0",
+    "size": 348,
+    "name": "gcDoSwitch::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoSwitch",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoSwitch_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/52d67590/001503d0__agent_self_reported_failure__src_gcDoSwitch_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 20,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 20,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000f036c",
+    "size": 364,
+    "name": "gcConfiguration::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcConfiguration",
+    "category": "Read",
+    "priority": 800,
+    "score": 200,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcConfiguration.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/e9362c53/000f036c__agent_self_reported_failure__src_gcConfiguration.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 20,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 20,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00361d54",
+    "size": 200,
+    "name": "gcValUIChecked::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUIChecked",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUIChecked.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3ffd6144/00361d54__agent_self_reported_failure__src_gcValUIChecked.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00362194",
+    "size": 200,
+    "name": "gcValUIEnabled::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUIEnabled",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUIEnabled.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/4a341290/00362194__agent_self_reported_failure__src_gcValUIEnabled.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003637c0",
+    "size": 200,
+    "name": "gcValUIOpacity::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUIOpacity",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUIOpacity.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/62e25904/003637c0__agent_self_reported_failure__src_gcValUIOpacity.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00369d88",
+    "size": 200,
+    "name": "gcValUIVisible::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUIVisible",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUIVisible.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/62e25904/00369d88__agent_self_reported_failure__src_gcValUIVisible.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00154ac0",
+    "size": 208,
+    "name": "gcNPCBipedControllerTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcNPCBipedControllerTemplate",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcNPCBipedControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3842f29a/00154ac0__agent_self_reported_failure__src_gcNPCBipedControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00289b64",
+    "size": 212,
+    "name": "gcStringTableValue::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStringTableValue",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcStringTableValue.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/96655b50/00289b64__agent_self_reported_failure__src_gcStringTableValue.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00291d80",
+    "size": 220,
+    "name": "gcUserStrings::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUserStrings",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcUserStrings.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/841fb97f/00291d80__agent_self_reported_failure__src_gcUserStrings.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0031e30c",
+    "size": 220,
+    "name": "gcPlayerStrings::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcPlayerStrings",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcPlayerStrings.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/219a3040/0031e30c__agent_self_reported_failure__src_gcPlayerStrings.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003684e8",
+    "size": 220,
+    "name": "gcValUIVar::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUIVar",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUIVar.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/a9d4c73e/003684e8__agent_self_reported_failure__src_gcValUIVar.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000319a8",
+    "size": 228,
+    "name": "eSpriteMtl::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSpriteMtl",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eSpriteMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/a514e54d/000319a8__agent_self_reported_failure__src_eSpriteMtl.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00350210",
+    "size": 228,
+    "name": "gcValMemCardStatus::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValMemCardStatus",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValMemCardStatus.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/21a17bdf/00350210__agent_self_reported_failure__src_gcValMemCardStatus.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0013fc58",
+    "size": 232,
+    "name": "gcPartialBodyControllerTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcPartialBodyControllerTemplate",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcPartialBodyControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/4255defd/0013fc58__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0028f658",
+    "size": 240,
+    "name": "gcUIControlString::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIControlString",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcUIControlString.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/d741f0ba/0028f658__agent_self_reported_failure__src_gcUIControlString.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00140fdc",
+    "size": 252,
+    "name": "gcBipedControllerTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcBipedControllerTemplate",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcBipedControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/0dab37d3/00140fdc__agent_self_reported_failure__src_gcBipedControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000470c8",
+    "size": 256,
+    "name": "eDynamicModel::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eDynamicModel",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eDynamicModel_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/86803ef3/000470c8__agent_self_reported_failure__src_eDynamicModel_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000d6bfc",
+    "size": 260,
+    "name": "gcStringTable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStringTable",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcStringTable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/62c8fa57/000d6bfc__agent_self_reported_failure__src_gcStringTable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030c794",
+    "size": 260,
+    "name": "gcDoUISetFocus::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUISetFocus",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoUISetFocus.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3a958c24/0030c794__agent_self_reported_failure__src_gcDoUISetFocus.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030a33c",
+    "size": 268,
+    "name": "gcDoUIEffect::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUIEffect",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoUIEffect.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/7b80bfbf/0030a33c__agent_self_reported_failure__src_gcDoUIEffect.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00009b8c",
+    "size": 292,
+    "name": "cObject::Read(cFile &, cMemPool *)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cObject",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/cObject_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c3b1ea68/00009b8c__agent_self_reported_failure__src_cObject_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000d3f30",
+    "size": 344,
+    "name": "gcEnumeration::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEnumeration",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcEnumeration.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/f9a85b0a/000d3f30__agent_self_reported_failure__src_gcEnumeration.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000382d4",
+    "size": 412,
+    "name": "eSprite::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eSprite",
+    "category": "Read",
+    "priority": 801,
+    "score": 199,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eSprite.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/7da57404/000382d4__agent_self_reported_failure__src_eSprite.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 21,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 21,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000ef860",
+    "size": 268,
+    "name": "gcRegionSet::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcRegionSet",
+    "category": "Read",
+    "priority": 802,
+    "score": 198,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcRegionSet.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/12109897/000ef860__agent_self_reported_failure__src_gcRegionSet.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 22,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 22,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0032fc10",
+    "size": 280,
+    "name": "gcValEntityHasConstants::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasConstants",
+    "category": "Read",
+    "priority": 802,
+    "score": 198,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityHasConstants.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/219a3040/0032fc10__agent_self_reported_failure__src_gcValEntityHasConstants.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 22,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 22,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003319bc",
+    "size": 280,
+    "name": "gcValEntityHasVariables::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityHasVariables",
+    "category": "Read",
+    "priority": 802,
+    "score": 198,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityHasVariables.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/841fb97f/003319bc__agent_self_reported_failure__src_gcValEntityHasVariables.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 22,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 22,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00342b10",
+    "size": 336,
+    "name": "gcValEventVar::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEventVar",
+    "category": "Read",
+    "priority": 802,
+    "score": 198,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEventVar.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3f0583d4/00342b10__agent_self_reported_failure__src_gcValEventVar.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 22,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 22,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003402c4",
+    "size": 296,
+    "name": "gcValEntityVariable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityVariable",
+    "category": "Read",
+    "priority": 803,
+    "score": 197,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/1cb249f6/003402c4__agent_self_reported_failure__src_gcValEntityVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002a106c",
+    "size": 316,
+    "name": "gcDoEntityActivatePartialController::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntityActivatePartialController",
+    "category": "Read",
+    "priority": 803,
+    "score": 197,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/1cb249f6/002a106c__agent_self_reported_failure__src_gcValEntityVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0033675c",
+    "size": 316,
+    "name": "gcValLookAtControllerVariable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLookAtControllerVariable",
+    "category": "Read",
+    "priority": 803,
+    "score": 197,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValLookAtControllerVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/8e20c0aa/0033675c__agent_self_reported_failure__src_gcValLookAtControllerVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002ed1dc",
+    "size": 344,
+    "name": "gcDoPlay2dSound::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoPlay2dSound",
+    "category": "Read",
+    "priority": 803,
+    "score": 197,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoPlay2dSound.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/f9a85b0a/002ed1dc__agent_self_reported_failure__src_gcDoPlay2dSound.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00136f68",
+    "size": 508,
+    "name": "gcStaticInstance::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcStaticInstance",
+    "category": "Read",
+    "priority": 803,
+    "score": 197,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcStaticInstance.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b600063a/00136f68__agent_self_reported_failure__src_gcStaticInstance.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 23,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 23,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0013bb04",
+    "size": 352,
+    "name": "gcUIGeomTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIGeomTemplate",
+    "category": "Read",
+    "priority": 804,
+    "score": 196,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcUIGeomTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/a9d4c73e/0013bb04__agent_self_reported_failure__src_gcUIGeomTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 24,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0013c3ec",
+    "size": 404,
+    "name": "gcRoomInstance::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcRoomInstance",
+    "category": "Read",
+    "priority": 804,
+    "score": 196,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcRoomInstance.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/4a341290/0013c3ec__agent_self_reported_failure__src_gcRoomInstance.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 24,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 24,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0030ac54",
+    "size": 560,
+    "name": "gcDoUIFade::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoUIFade",
+    "category": "Read",
+    "priority": 825,
+    "score": 175,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoUIFade_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/07ab9a8b/0030ac54__agent_self_reported_failure__src_gcDoUIFade_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 25,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 25,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0036685c",
+    "size": 292,
+    "name": "gcValUITexCoord::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValUITexCoord",
+    "category": "Read",
+    "priority": 806,
+    "score": 194,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValUITexCoord.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/0f59e58a/0036685c__agent_self_reported_failure__src_gcValUITexCoord.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 26,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 26,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00302b48",
+    "size": 348,
+    "name": "gcDoStateParentHandler::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoStateParentHandler",
+    "category": "Read",
+    "priority": 806,
+    "score": 194,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoStateParentHandler_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/ba26f583/00302b48__agent_self_reported_failure__src_gcDoStateParentHandler_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 26,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 26,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0032267c",
+    "size": 300,
+    "name": "gcValCameraVariable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValCameraVariable",
+    "category": "Read",
+    "priority": 807,
+    "score": 193,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValCameraVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/0f59e58a/0032267c__agent_self_reported_failure__src_gcValCameraVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "constant_cse_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 27,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 27,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00158c84",
+    "size": 440,
+    "name": "gcValConsoleInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValConsoleInfo",
+    "category": "Read",
+    "priority": 807,
+    "score": 193,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValConsoleInfo_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/402837ae/00158c84__agent_self_reported_failure__src_gcValConsoleInfo_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "tagged_pointer_shape",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 27,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 27,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00344adc",
+    "size": 300,
+    "name": "gcValGameSetting::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValGameSetting",
+    "category": "Read",
+    "priority": 808,
+    "score": 192,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValGameSetting.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/e5c7bc3c/00344adc__agent_self_reported_failure__src_gcValGameSetting.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 28,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 28,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00358ebc",
+    "size": 312,
+    "name": "gcValRigidBodyControllerVariable::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValRigidBodyControllerVariable",
+    "category": "Read",
+    "priority": 808,
+    "score": 192,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValRigidBodyControllerVariable.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/30a534f0/00358ebc__agent_self_reported_failure__src_gcValRigidBodyControllerVariable.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 28,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 28,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0035f428",
+    "size": 344,
+    "name": "gcValTableEntry::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValTableEntry",
+    "category": "Read",
+    "priority": 808,
+    "score": 192,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValTableEntry.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/f643ff38/0035f428__agent_self_reported_failure__src_gcValTableEntry.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 28,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 28,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00008550",
+    "size": 356,
+    "name": "cConfigBase::Read(cFile &, cMemPool *)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cConfigBase",
+    "category": "Read",
+    "priority": 808,
+    "score": 192,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/cConfigBase_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c655cbeb/00008550__agent_self_reported_failure__src_cConfigBase_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 28,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 28,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0000c22c",
+    "size": 356,
+    "name": "cGroup::Read(cFile &, cMemPool *)",
+    "obj_file": "cAll_psp.obj",
+    "class_name": "cGroup",
+    "category": "Read",
+    "priority": 808,
+    "score": 192,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/cGroup.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c655cbeb/0000c22c__agent_self_reported_failure__src_cGroup.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 28,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 28,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0010fd0c",
+    "size": 308,
+    "name": "gcEntityControllerTemplate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityControllerTemplate",
+    "category": "Read",
+    "priority": 810,
+    "score": 190,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcEntityControllerTemplate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/e5c7bc3c/0010fd0c__agent_self_reported_failure__src_gcEntityControllerTemplate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 30,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 30,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0010ace4",
+    "size": 388,
+    "name": "gcState::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcState",
+    "category": "Read",
+    "priority": 810,
+    "score": 190,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcState.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/8b555208/0010ace4__agent_self_reported_failure__src_gcState.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 30,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 30,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00139d20",
+    "size": 292,
+    "name": "gcUICheckBox::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUICheckBox",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcUICheckBox.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/59eb20df/00139d20__agent_self_reported_failure__src_gcUICheckBox.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0002cd4c",
+    "size": 324,
+    "name": "eGeomMtl::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eGeomMtl",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eGeomMtl.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b884c458/0002cd4c__agent_self_reported_failure__src_eGeomMtl.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x000e9908",
+    "size": 324,
+    "name": "gcEntityCustomAnimation::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcEntityCustomAnimation",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcEntityCustomAnimation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b884c458/000e9908__agent_self_reported_failure__src_gcEntityCustomAnimation.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002e23d0",
+    "size": 368,
+    "name": "gcDoLobbyOp::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoLobbyOp",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoLobbyOp.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fefae0b3/002e23d0__agent_self_reported_failure__src_gcDoLobbyOp.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0002d304",
+    "size": 376,
+    "name": "eCameraEffect::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eCameraEffect",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eCameraEffect.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fefae0b3/0002d304__agent_self_reported_failure__src_eCameraEffect.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0034d524",
+    "size": 388,
+    "name": "gcValLobbyScoreboardRowInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValLobbyScoreboardRowInfo",
+    "category": "Read",
+    "priority": 811,
+    "score": 189,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValLobbyScoreboardRowInfo.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/c66b2710/0034d524__agent_self_reported_failure__src_gcValLobbyScoreboardRowInfo.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 31,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 31,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0013a494",
+    "size": 324,
+    "name": "gcUIEditBox::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcUIEditBox",
+    "category": "Read",
+    "priority": 812,
+    "score": 188,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcUIEditBox_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/3f0583d4/0013a494__agent_self_reported_failure__src_gcUIEditBox_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 32,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 32,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x003606d4",
+    "size": 356,
+    "name": "gcValTableInfo::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValTableInfo",
+    "category": "Read",
+    "priority": 812,
+    "score": 188,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValTableInfo.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/802601ec/003606d4__agent_self_reported_failure__src_gcValTableInfo.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 32,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 32,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00044628",
+    "size": 360,
+    "name": "eStaticMesh::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eStaticMesh",
+    "category": "Read",
+    "priority": 812,
+    "score": 188,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eStaticMesh.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/d4d842da/00044628__agent_self_reported_failure__src_eStaticMesh.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 32,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 32,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0011e0f4",
+    "size": 368,
+    "name": "gcValControllerState::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValControllerState",
+    "category": "Read",
+    "priority": 812,
+    "score": 188,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValControllerState.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/802601ec/0011e0f4__agent_self_reported_failure__src_gcValControllerState.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 32,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 32,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00319894",
+    "size": 268,
+    "name": "gcDoPortalActivate::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoPortalActivate",
+    "category": "Read",
+    "priority": 814,
+    "score": 186,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoPortalActivate.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/7b80bfbf/00319894__agent_self_reported_failure__src_gcDoPortalActivate.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "branch_direction_codegen"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 34,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 34,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0014aeec",
+    "size": 348,
+    "name": "gcDoEvaluation::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEvaluation",
+    "category": "Read",
+    "priority": 814,
+    "score": 186,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoEvaluation.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/f405c366/0014aeec__agent_self_reported_failure__src_gcDoEvaluation.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "branch_direction_codegen",
+        "tagged_pointer_shape"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 34,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 34,
+    "blocker_tags": [
+      "branch_codegen",
+      "branch_direction_codegen",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift",
+      "tagged_pointer_branch",
+      "tagged_pointer_shape"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00031154",
+    "size": 356,
+    "name": "eRenderTarget::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eRenderTarget",
+    "category": "Read",
+    "priority": 814,
+    "score": 186,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eRenderTarget_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fb406a35/00031154__agent_self_reported_failure__src_eRenderTarget_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 34,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 34,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0033bf60",
+    "size": 384,
+    "name": "gcValEntityScreenValue::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityScreenValue",
+    "category": "Read",
+    "priority": 816,
+    "score": 184,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityScreenValue.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/a1262cff/0033bf60__agent_self_reported_failure__src_gcValEntityScreenValue.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 36,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 36,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00032020",
+    "size": 484,
+    "name": "eStandardSpriteMtl::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eStandardSpriteMtl",
+    "category": "Read",
+    "priority": 816,
+    "score": 184,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eStandardSpriteMtl_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/ff4a529b/00032020__agent_self_reported_failure__src_eStandardSpriteMtl_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 36,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 36,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0032c540",
+    "size": 496,
+    "name": "gcValEntityDistance::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValEntityDistance",
+    "category": "Read",
+    "priority": 816,
+    "score": 184,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValEntityDistance.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fa743932/0032c540__agent_self_reported_failure__src_gcValEntityDistance.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 36,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 36,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00137dd0",
+    "size": 504,
+    "name": "gcSurface::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcSurface",
+    "category": "Read",
+    "priority": 816,
+    "score": 184,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcSurface.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/b600063a/00137dd0__agent_self_reported_failure__src_gcSurface.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 36,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 36,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x002cf4f4",
+    "size": 1012,
+    "name": "gcDoEntitySpawn::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcDoEntitySpawn",
+    "category": "Read",
+    "priority": 871,
+    "score": 129,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcDoEntitySpawn.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/70eaca18/002cf4f4__agent_self_reported_failure__src_gcDoEntitySpawn.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 36,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 36,
+    "blocker_tags": [
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x0012f3c4",
+    "size": 260,
+    "name": "gcAction::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcAction",
+    "category": "Read",
+    "priority": 819,
+    "score": 181,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcAction.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/51561c1e/0012f3c4__agent_self_reported_failure__src_gcAction.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 39,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 39,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x001500ec",
+    "size": 300,
+    "name": "gcValCaseRange::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValCaseRange",
+    "category": "Read",
+    "priority": 819,
+    "score": 181,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValCaseRange_Read.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/51561c1e/001500ec__agent_self_reported_failure__src_gcValCaseRange_Read.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 39,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 39,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00046bd0",
+    "size": 120,
+    "name": "ePhysicsController::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "ePhysicsController",
+    "category": "Read",
+    "priority": 824,
+    "score": 176,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/ePhysicsController.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/ec45590d/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "constant_cse_codegen",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 44,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 44,
+    "blocker_tags": [
+      "constant_cse",
+      "constant_cse_codegen",
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x00021768",
+    "size": 384,
+    "name": "eBspTree::Read(cFile &, cMemPool *)",
+    "obj_file": "eAll_psp.obj",
+    "class_name": "eBspTree",
+    "category": "Read",
+    "priority": 824,
+    "score": 176,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/eBspTree.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/fb406a35/00021768__agent_self_reported_failure__src_eBspTree.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "regalloc_drift",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 44,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 44,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler",
+      "regalloc",
+      "regalloc_drift"
+    ],
+    "failure_action": "research"
+  },
+  {
+    "address": "0x001585ac",
+    "size": 324,
+    "name": "gcValBinaryOp::Read(cFile &, cMemPool *)",
+    "obj_file": "gcAll_psp.obj",
+    "class_name": "gcValBinaryOp",
+    "category": "Read",
+    "priority": 826,
+    "score": 174,
+    "reason": "cReadBlock prologue/scheduler research; body reported close",
+    "failure_src_file": "src/gcValBinaryOp.cpp",
+    "failure_snapshot": "logs/failure_snapshots/match_20260508_185952/436603d5/001585ac__agent_self_reported_failure__src_gcValBinaryOp.cpp",
+    "failure_classification": {
+      "primary": "read_prologue_compiler",
+      "tags": [
+        "read_prologue_compiler",
+        "needs_layout"
+      ],
+      "action": "research",
+      "confidence": "high",
+      "near_miss_bytes": 46,
+      "summary": "cReadBlock Read prologue/scheduler compiler issue."
+    },
+    "near_miss_bytes": 46,
+    "blocker_tags": [
+      "needs_layout",
+      "read_cblock_prologue",
+      "read_prologue_compiler"
+    ],
+    "failure_action": "research"
+  }
+]
