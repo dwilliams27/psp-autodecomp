@@ -65164,13 +65164,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeParticleSystemECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fPeParticleSystemECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "2a684790",
+        "notes": "Implemented eParticleSystem::Cull in a split TU to avoid perturbing the existing eParticleSystem.cpp methods. The code follows eWeatherEffect::Cull plus the particle-specific opacity vtable call, VFPU camera distance, threshold fade, material handle lookup, and eCameraBins record fill. The current symbol size is exact at 1016 bytes, but compare_func reports 590/1016 bytes differ, so it is not last-mile; tools/permuter.py skipped with PERMUTER_SKIPPED_NOT_LAST_MILE. Important divergence: SNC allocates alpha in f20 and zero in f22, while the target uses f22 for alpha and f20 for zero; attempts to force FPU register variables did not take. I also adjusted the initial material handle lookup to match the target bnez/andi shape and inserted an inline move/lwc1 through s5 for the template fade threshold, which fixed the size but not the broad register/scheduling diff. Next retry should first solve the f20/f22 allocation and confirm sched=1 is truly applied for this split TU.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:10:45Z",
+        "src_file": "src/eParticleSystem_Cull.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/2a684790/0007bb04__agent_self_reported_failure__src_eParticleSystem_Cull.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007befc",
@@ -73903,7 +73917,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0001fb84",
       "0x0001fd30",
@@ -73922,7 +73936,21 @@
       "0x000f31a4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeWorldECullRC6HeCameraRC6ImFrustumRC6FmVec3P6LeCameraBinsiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fGeWorldECullRC6HeCameraRC6ImFrustumRC6FmVec3P6LeCameraBinsiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "42efe115",
+        "notes": "Built a canonical C++ eWorld::Cull from the disassembly using the existing eRoom::Cull and eRoomEnvironment::Cull patterns: CleanNeedsUpdateList/LockWorld/GetNextCullId prologue, three-list prepass with VFPU frustum copy, current-room/portal path with handle validation, room-set AABB fallback, global geom ring cull, camera effect cull, and unlock. The closest attempt compiles to the exact target size (1200B) and preserves all previously matched eWorld methods, but compare_func still reports 903/1200 bytes differing. asm-differ shows the main issue is register allocation/stack layout from the prologue onward: the original assigns this/camera/frustum/pos/bins/pass/material to s1/s5/s6/s0/s4/s8/s7 and saves f20 at 0xD4(sp), while the generated source assigns a different saved-register set and places locals/saves about 8 bytes lower. Tried a register-variable plus stack-pad variant to force the original saved-register mapping; it worsened to 951 differing bytes. Tried sched=2 instead of the sched=1 hint; it worsened to 948 differing bytes. Root hypothesis: source shape is semantically close but not close enough to original allocation/lifetime ordering; next retry should focus on matching the prologue liveness and the three-list local stack layout before tuning inner calls. Permuter was not run because this is not a last-mile diff.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:13:21Z",
+        "src_file": "src/eWorld.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/42efe115/00091d40__agent_self_reported_failure__src_eWorld.cpp"
+      }
+    ]
   },
   {
     "address": "0x000921f0",
@@ -75301,7 +75329,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -89908,7 +89936,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000f2a30",
@@ -89917,7 +89945,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fFgcMapFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "2a684790",
+        "notes": "Implemented gcMap::Reset in a split TU because include/gcMap.h does not declare Reset and the split-TU rule forbids adding the method to the shared header. Tried an initial helper-based cArray resize, forced inline helpers, then rewrote as one hand-shaped method with stack cGUIDT<gcRegion>[400], __vec_new, FillRegionList, and ResetRegionStates. The current attempt compiles and reaches the target symbol, but compare_func reports 645/784 bytes differ. Objdump shows SNC allocates too many callee-saved registers (s0-s6) and emits a larger prologue/epilogue than the target, which uses s0-s3 and places the stack GUID array at sp+8. The generated resize logic is structurally similar but register allocation is far from target: byteCount/newData/oldCount live in s4-s6 instead of the target's s1-s3 pattern. Next retry should focus on forcing the four-register shape, likely by reducing live ranges or using local register variables for self/count/oldCount/newData.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:10:45Z",
+        "src_file": "src/gcMap_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/2a684790/000f1458__agent_self_reported_failure__src_gcMap_Reset.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f1768",
@@ -108089,7 +108131,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0011d8c0",
@@ -196156,7 +196198,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000015cc",
       "0x0000165c",
@@ -203283,7 +203325,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000d6148",
@@ -230832,14 +230874,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUgcValEntityDirectiondtv"
+    "mangled_symbol": "__0oUgcValEntityDirectiondtv",
+    "src_file": "src/gcValEntityDirection.cpp",
+    "symbol_name": "__0oUgcValEntityDirectiondtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "42efe115",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T08:13:21Z"
   },
   {
     "address": "0x0032bf90",

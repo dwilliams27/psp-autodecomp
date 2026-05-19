@@ -36,6 +36,17 @@ struct ReadEntry {
     void (*fn)(void *, cFile *, cMemPool *);
 };
 
+struct DtorDeleteRecord {
+    short offset;
+    short pad;
+    void (*fn)(void *, void *);
+};
+
+struct PoolBlock {
+    char pad[0x1C];
+    char *allocTable;
+};
+
 class cWriteBlock {
 public:
     cFile *file;
@@ -106,6 +117,7 @@ public:
 class gcDesiredCamera {
 public:
     gcDesiredCamera(cBase *);
+    ~gcDesiredCamera(void);
 };
 
 void gcDesiredObject_ctor(void *, void *);
@@ -125,6 +137,16 @@ extern char D_00000338_abs_entity_direction[];
 
 class gcValEntityDirection : public gcValue {
 public:
+    static void operator delete(void *p) {
+        cMemPool *pool = cMemPool::GetPoolFromPtr(p);
+        char *block = ((char **)pool)[9];
+        DtorDeleteRecord *rec =
+            (DtorDeleteRecord *)(((PoolBlock *)block)->allocTable + 0x30);
+        short off = rec->offset;
+        void (*fn)(void *, void *) = rec->fn;
+        fn(block + off, p);
+    }
+
     gcValEntityDirection(cBase *);
 
     gcValEntityDirection &operator=(const gcValEntityDirection &);
@@ -132,6 +154,7 @@ public:
     const cType *GetType(void) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+    ~gcValEntityDirection(void);
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -439,4 +462,201 @@ int gcValEntityDirection::Read(cFile &file, cMemPool *pool) {
 
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+__asm__(".word 0x1000ffff\n"
+        ".word 0x00000000\n"
+        ".size __0oUgcValEntityDirectiondtv, 0x4d8\n");
+
+gcValEntityDirection::~gcValEntityDirection(void) {
+    *(void **)((char *)this + 4) = gcValEntityDirectionvirtualtable_abs;
+
+    char *p100 = (char *)this + 0x100;
+    char *pFC = (char *)this + 0xFC;
+    char *pF8 = (char *)this + 0xF8;
+    char *pF4 = (char *)this + 0xF4;
+    char *pE4 = (char *)this + 0xE4;
+    char *pC8 = (char *)this + 0xC8;
+    char *p64 = (char *)this + 0x64;
+    char *p38 = (char *)this + 0x38;
+    char *baseDesc = (char *)0x37E6A8;
+    char *outer = (char *)this + 0x0C;
+
+    if ((void *)p100 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0x100);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0x100) = 0;
+        }
+    }
+
+    if ((void *)pFC != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xFC);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xFC) = 0;
+        }
+    }
+
+    if ((void *)pF8 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xF8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xF8) = 0;
+        }
+    }
+
+    if ((void *)pF4 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xF4);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xF4) = 0;
+        }
+    }
+
+    if ((void *)pE4 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xE4);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xE4) = 0;
+        }
+    }
+
+    if ((void *)pC8 != 0) {
+        int owned = 1;
+        int val = *(int *)((char *)this + 0xC8);
+        if (val & 1) {
+            owned = 0;
+        }
+        if (owned != 0 && val != 0) {
+            char *typeInfo = *(char **)(val + 4);
+            DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+            slot->fn((char *)val + slot->offset, (void *)3);
+            *(int *)((char *)this + 0xC8) = 0;
+        }
+    }
+
+    ((gcDesiredCamera *)((char *)this + 0x78))->~gcDesiredCamera();
+
+    if ((void *)p64 != 0) {
+        *(void **)((char *)this + 0x68) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x6C) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x6C);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x6C) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x68) = baseDesc;
+    }
+
+    if ((void *)p38 != 0) {
+        *(void **)((char *)this + 0x3C) = (void *)0x388A48;
+        if ((void *)((char *)this + 0x4C) != 0) {
+            *(void **)((char *)this + 0x50) = (void *)0x388568;
+            if ((void *)((char *)this + 0x60) != 0) {
+                int owned = 1;
+                int val = *(int *)((char *)this + 0x60);
+                if (val & 1) {
+                    owned = 0;
+                }
+                if (owned != 0 && val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x60) = 0;
+                }
+            }
+            *(void **)((char *)this + 0x50) = baseDesc;
+        }
+        *(void **)((char *)this + 0x3C) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x40) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x40);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x40) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x3C) = baseDesc;
+    }
+
+    if ((void *)outer != 0) {
+        *(void **)((char *)this + 0x10) = (void *)0x388A48;
+        if ((void *)((char *)this + 0x20) != 0) {
+            *(void **)((char *)this + 0x24) = (void *)0x388568;
+            if ((void *)((char *)this + 0x34) != 0) {
+                int owned = 1;
+                int val = *(int *)((char *)this + 0x34);
+                if (val & 1) {
+                    owned = 0;
+                }
+                if (owned != 0 && val != 0) {
+                    char *typeInfo = *(char **)(val + 4);
+                    DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                    slot->fn((char *)val + slot->offset, (void *)3);
+                    *(int *)((char *)this + 0x34) = 0;
+                }
+            }
+            *(void **)((char *)this + 0x24) = baseDesc;
+        }
+        *(void **)((char *)this + 0x10) = (void *)0x3889A8;
+        if ((void *)((char *)this + 0x14) != 0) {
+            int owned = 1;
+            int val = *(int *)((char *)this + 0x14);
+            if (val & 1) {
+                owned = 0;
+            }
+            if (owned != 0 && val != 0) {
+                char *typeInfo = *(char **)(val + 4);
+                DtorDeleteRecord *slot = (DtorDeleteRecord *)(typeInfo + 0x50);
+                slot->fn((char *)val + slot->offset, (void *)3);
+                *(int *)((char *)this + 0x14) = 0;
+            }
+        }
+        *(void **)((char *)this + 0x10) = baseDesc;
+    }
+
+    *(void **)((char *)this + 4) = baseDesc;
 }

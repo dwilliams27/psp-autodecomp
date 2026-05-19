@@ -2,6 +2,12 @@
 #define EWORLD_H
 
 struct mVec3;
+class eCamera;
+class mFrustum;
+class eCameraBins;
+class eMaterial;
+class ePortal;
+template <class T> class cHandleT;
 
 class eSound {
 public:
@@ -20,6 +26,12 @@ public:
 
     int Contains(const mVec3 &) const;
     int IsPointInFluidVolume(const mVec3 &) const;
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *,
+              int, int, const cHandleT<eMaterial> *, float) const;
+    void CullPortals(unsigned int, const eCamera &, eCameraBins *,
+                     const mFrustum &, const mVec3 &, cHandleT<ePortal>,
+                     cHandleT<eRoom>, int, const cHandleT<eMaterial> *,
+                     float) const;
 };
 
 class eRoomSet {
@@ -53,6 +65,8 @@ public:
     void RemoveRoomSet(eRoomSet *rs);
     const eRoom *GetRoomFromPos(const eRoom *, const mVec3 &) const;
     int IsPointInFluidVolume(const eRoom *, const mVec3 &) const;
+    void Cull(const eCamera &, const mFrustum &, const mVec3 &, eCameraBins *,
+              int, const cHandleT<eMaterial> *, float) const;
     static int GetNextCullId(void);
     static void operator delete(void *);
 };

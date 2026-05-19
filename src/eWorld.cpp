@@ -1,9 +1,40 @@
 #include "eWorld.h"
 #include "mVec3.h"
 
+class eCamera;
+class eCameraBins;
+class eMaterial;
+class ePortal;
+template <class T> class cHandleT {
+public:
+    int handle;
+    cHandleT() : handle(0) {}
+};
+
+typedef int eWorld_v4sf_t __attribute__((mode(V4SF)));
+
+struct mSphere {
+    eWorld_v4sf_t v;
+};
+
+class mFrustum {
+public:
+    int Clip(const mSphere &, unsigned int) const;
+};
+
 class cMemPool {
 public:
     static cMemPool *GetPoolFromPtr(const void *);
+};
+
+class eGeom {
+public:
+    static void CleanNeedsUpdateList(void);
+};
+
+class eCameraEffectMgr {
+public:
+    void Cull(unsigned int, const eCamera &, eCameraBins *) const;
 };
 
 struct DeleteRecord {
@@ -15,6 +46,8 @@ struct DeleteRecord {
 class eRoomAABBTree {
 public:
     int Contains(const mVec3 &) const;
+    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *,
+              int, const cHandleT<eMaterial> *, float) const;
 };
 
 struct HandleEntry {
@@ -35,6 +68,33 @@ struct HandleRawValues {
 extern HandleEntry *D_00038890[];
 
 static int sNextCullId;
+
+struct eWorldCullCallRec {
+    short offset;
+    short pad;
+    void (*fn)(void *, unsigned int, const eCamera &, const mFrustum &,
+               eCameraBins *, int, int, const cHandleT<eMaterial> *, float);
+};
+
+struct eWorldUpdateRec {
+    short offset;
+    short pad;
+    void (*fn)(void *);
+};
+
+struct eWorldCullGeom {
+    char pad0[4];
+    char *typeInfo;
+    char pad8[0x38];
+    mSphere sphere;
+    char pad50[0x20];
+    eWorldCullGeom *next;
+    float radiusA;
+    float radiusB;
+    char pad7C[0x10];
+    unsigned char flags;
+    unsigned char mask;
+};
 
 void eWorld::LockWorld(bool lock) const {
     if (lock) {
@@ -177,6 +237,157 @@ const eRoom *eWorld::GetRoomFromPos(const eRoom *room, const mVec3 &pos) const {
     }
     return 0;
 }
+
+#pragma control sched=1
+void eWorld::Cull(const eCamera &camera, const mFrustum &frustum,
+                  const mVec3 &pos, eCameraBins *bins, int pass,
+                  const cHandleT<eMaterial> *material, float alpha) const {
+    eGeom::CleanNeedsUpdateList();
+    const eWorld *self = this;
+    self->LockWorld(true);
+    unsigned int stamp = GetNextCullId();
+
+    if (pass == 0 && ((*(unsigned short *)((char *)bins + 4) & 0x10) == 0)) {
+        int clips[3];
+        unsigned char enabled[3];
+        clips[0] = 0;
+        clips[1] = 6;
+        clips[2] = 2;
+        enabled[0] = 1;
+        enabled[1] = 1;
+        enabled[2] = 0;
+
+        int i = 0;
+        do {
+            *(unsigned char *)((char *)bins + 0x1770C) = enabled[i];
+            *(int *)((char *)bins + 0x17710) = clips[i];
+            eWorldCullGeom *head =
+                *(eWorldCullGeom *const *)((const char *)self + 4 + i * 4);
+            eWorldCullGeom *geom = head;
+            if (head != 0) {
+                do {
+                    if (((geom->mask & *(unsigned short *)((char *)bins + 4)) != 0) ||
+                        ((*(unsigned int *)0x37D0F0 & 0x2000) != 0)) {
+                        if ((geom->flags & 0x10) != 0) {
+                            char localFrustum[0x60];
+                            const char *src = (const char *)&frustum;
+                            char *dst = localFrustum;
+                            unsigned int j = 0;
+                            do {
+                                float w = *(const float *)(src + 0x0C);
+                                __asm__ volatile(
+                                    "lv.q C120, 0(%1)\n"
+                                    "sv.q C120, 0(%0)"
+                                    :
+                                    : "r"(dst), "r"(src)
+                                    : "memory");
+                                *(float *)(dst + 0x0C) = w;
+                                j++;
+                                dst += 0x10;
+                                src += 0x10;
+                            } while (j < 6);
+                            *(float *)(localFrustum + 0x1C) =
+                                -(*(float *)(localFrustum + 0x0C) +
+                                  *(const float *)((const char *)&camera + 0x1E0));
+
+                            eWorldCullCallRec *rec =
+                                (eWorldCullCallRec *)(geom->typeInfo + 0x98);
+                            rec->fn((char *)geom + rec->offset, stamp, camera,
+                                    *(const mFrustum *)localFrustum, bins, 0x40,
+                                    pass, material, alpha);
+                        } else {
+                            eWorldCullCallRec *rec =
+                                (eWorldCullCallRec *)(geom->typeInfo + 0x98);
+                            rec->fn((char *)geom + rec->offset, stamp, camera,
+                                    frustum, bins, 0x40, pass, material, alpha);
+                        }
+                    }
+                    geom = geom->next;
+                } while (geom != head);
+            }
+            i++;
+        } while (i < 3);
+    }
+
+    eRoom *room = *(eRoom *const *)((const char *)&camera + 0x258);
+    if (room != 0) {
+        int contained = room->Contains(pos);
+        volatile int held = contained;
+        int value = held;
+        int invalid;
+        if (value == 0) {
+            invalid = 1;
+        } else {
+            HandleEntry *entry = D_00038890[value & 0xFFFF];
+            HandleEntry *valid = 0;
+            if (entry != 0) {
+                if (entry->handle == value) {
+                    valid = entry;
+                }
+            }
+            invalid = valid == 0;
+        }
+        if ((invalid & 0xFF) != 0) {
+            room = (eRoom *)GetRoomFromPos(0, pos);
+        }
+        if (room != 0) {
+            cHandleT<ePortal> portal;
+            cHandleT<eRoom> roomHandle;
+            room->CullPortals(stamp, camera, bins, frustum, pos, portal,
+                              roomHandle, pass, material, alpha);
+        } else {
+            goto cull_room_sets;
+        }
+    } else {
+cull_room_sets:
+        eRoomSet *set = self->roomSetList;
+        if (set != 0) {
+            do {
+                ((const eRoomAABBTree *)((const char *)set + 0x44))
+                    ->Cull(stamp, camera, frustum, bins, pass, material, alpha);
+                set = set->prevRoomSet;
+            } while (set != self->roomSetList);
+        }
+    }
+
+    {
+        eWorldCullGeom *head = *(eWorldCullGeom *const *)((const char *)self + 0);
+        eWorldCullGeom *geom = head;
+        if (head != 0) {
+            do {
+                if (((geom->mask & *(unsigned short *)((char *)bins + 4)) != 0) ||
+                    ((*(unsigned int *)0x37D0F0 & 0x2000) != 0)) {
+                    if ((geom->flags & 4) != 0) {
+                        eWorldUpdateRec *rec =
+                            (eWorldUpdateRec *)(geom->typeInfo + 0xB8);
+                        rec->fn((char *)geom + rec->offset);
+                    }
+
+                    float radius = geom->radiusA * geom->radiusB;
+                    mSphere sphere;
+                    sphere.v = geom->sphere.v;
+                    *(float *)((char *)&sphere + 0x0C) = radius;
+                    int clip = frustum.Clip(sphere, 0x40);
+                    if (clip != 0) {
+                        eWorldCullCallRec *rec =
+                            (eWorldCullCallRec *)(geom->typeInfo + 0x98);
+                        rec->fn((char *)geom + rec->offset, stamp, camera,
+                                frustum, bins, clip, pass, material, alpha);
+                    }
+                }
+                geom = geom->next;
+            } while (geom != head);
+        }
+    }
+
+    if (pass == 0 && ((*(unsigned short *)((char *)bins + 4) & 0x80) != 0)) {
+        ((const eCameraEffectMgr *)((const char *)&camera + 0x25C))
+            ->Cull(stamp, camera, bins);
+    }
+    self->LockWorld(false);
+}
+
+#pragma control sched=2
 
 void eWorld::RemoveRoom(eRoom *r) {
     if (r && r->nextRoom && r->prevRoom) {
