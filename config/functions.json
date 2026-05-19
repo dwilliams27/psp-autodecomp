@@ -44825,7 +44825,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -48961,7 +48961,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -82564,7 +82564,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000d85bc",
@@ -82575,7 +82575,15 @@
       "0x00130a8c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oPgcUIWidgetGroupdtv"
+    "mangled_symbol": "__0oPgcUIWidgetGroupdtv",
+    "src_file": "src/gcUIWidgetGroup_dtor.cpp",
+    "symbol_name": "__0oPgcUIWidgetGroupdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "066eeef8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T05:51:23Z"
   },
   {
     "address": "0x000ddbf4",
@@ -86249,14 +86257,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000d6148"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oQgcCinematicEventdtv"
+    "mangled_symbol": "__0oQgcCinematicEventdtv",
+    "failure_notes": [
+      {
+        "session": "df7a643c",
+        "notes": "category=REG_ALLOC. Added gcCinematicEvent::~gcCinematicEvent in canonical C++ syntax with class-local operator delete, array header cleanups at 0x4C and 0x08, tagged-pointer delete at 0x44, gcEvent::~gcEvent at this+0x10, base classdesc reset to 0x37E6A8, deleting-destructor pool free tail, and the trailing b/nop trap. Existing ctor/New/GetType in the same file still compare as MATCH.\n\nRemaining diff is 15 bytes from saved-register allocation around the first array data and cached subobject slots. Expected uses s2 for the first 0x4C array data, s3 for slot44, and s4 for slot08; this TU emits the same instructions/control flow but rotates those values through s2/s3/s4. Tried removing a persistent event local, adding the operator-delete null guard, explicit early/predeclared array data variants, and local reorderings; the best source that preserved expected scheduling remained 15B off, while eager data loading got 14B but moved the 0x4C load before the expected branch region. Permuter ran 600s with --workers 2 --save-best: 5760 candidates generated, 2457 compiled, best stayed 15, zero improvements.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:48:23Z",
+        "src_file": "src/gcCinematicEvent.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/df7a643c/000ea310__agent_self_reported_failure__src_gcCinematicEvent.cpp"
+      }
+    ]
   },
   {
     "address": "0x000ea520",
@@ -199190,7 +199212,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00121680",
@@ -199198,7 +199220,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oXgcDoCameraLookFromPointdtv"
+    "mangled_symbol": "__0oXgcDoCameraLookFromPointdtv",
+    "src_file": "src/gcDoCameraLookFromPoint_dtor.cpp",
+    "symbol_name": "__0oXgcDoCameraLookFromPointdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "066eeef8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T05:51:23Z"
   },
   {
     "address": "0x002985e0",
@@ -203409,7 +203439,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000d52c0",
@@ -203417,7 +203447,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oRgcDoEntityForEachdtv"
+    "mangled_symbol": "__0oRgcDoEntityForEachdtv",
+    "failure_notes": [
+      {
+        "session": "df7a643c",
+        "notes": "category=REG_ALLOC. Implemented a split-TU canonical C++ destructor with class-local operator delete, array header cleanup for offset 0x34, gcExpressionList::~gcExpressionList at this+0x2C, gcDesiredEntityTemplate/gcDesiredObject/cBase vtable transitions at this+0x18, tagged-pointer deletes at 0x28 and 0x1C, gcAction::~gcAction, and the deleting-destructor pool free tail. The generated function is the correct 516B and structurally matches the target including stack frame, control flow, calls, immediates, delay slots, and trailing b/nop trap.\n\nRemaining diff is 10 bytes from an s2/s3 callee-save register swap in the first array cleanup: expected keeps desired=this+0x14 in s3 and data in s2, while this split TU allocates desired to s2 and data to s3. Tried baseline direct local pattern, explicit arraySlot local, predeclared data local, and eager data-load variant; the eager load worsened to 14B by moving the data load before the vtable store. Permuter ran 600s with --workers 2 --save-best: 6308 candidates generated, 2348 compiled, best stayed 10, zero improvements.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:48:23Z",
+        "src_file": "src/gcDoEntityForEach_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/df7a643c/002b3c4c__agent_self_reported_failure__src_gcDoEntityForEach_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002b3e50",
@@ -206167,7 +206211,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -214521,7 +214565,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
