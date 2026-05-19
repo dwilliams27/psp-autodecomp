@@ -37279,7 +37279,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001ad668"
     ],
@@ -126576,7 +126576,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0000242c",
       "0x00005458",
@@ -245332,7 +245332,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -245340,7 +245340,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUIOpacityIEvaluatevK"
+    "mangled_symbol": "__0fOgcValUIOpacityIEvaluatevK",
+    "src_file": "src/gcValUIOpacity.cpp",
+    "symbol_name": "__0fOgcValUIOpacityIEvaluatevK",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c744b9b7",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T04:51:11Z"
   },
   {
     "address": "0x003639e0",
@@ -245352,7 +245359,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -245360,7 +245367,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUIOpacityDSetf"
+    "mangled_symbol": "__0fOgcValUIOpacityDSetf",
+    "src_file": "src/gcValUIOpacity.cpp",
+    "symbol_name": "__0fOgcValUIOpacityDSetf",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c744b9b7",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T04:51:11Z"
   },
   {
     "address": "0x00363b78",

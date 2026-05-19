@@ -15,6 +15,8 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcUIWidget;
+class gcDialog;
 
 class cWriteBlock {
 public:
@@ -40,6 +42,8 @@ struct gcDesiredUIWidgetHelper {
     void Read(cReadBlock &);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     void GetText(char *) const;
+    gcUIWidget *GetWidget(const cType *, bool) const;
+    gcDialog *GetDialog(bool) const;
 };
 
 extern "C" char *strcat(char *, const char *);
@@ -90,6 +94,8 @@ public:
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
     void GetText(char *) const;
+    void Set(float);
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
 
     static void operator delete(void *p) {
@@ -107,6 +113,8 @@ static cType *type_expression;
 static cType *type_value;
 static cType *type_variable;
 static cType *type_gcValUIOpacity;
+static cType *type_named;
+static cType *type_gcUIWidget;
 
 inline gcLValue::gcLValue(cBase *parent) {
     mVtable = gcLValuevirtualtable;
@@ -197,6 +205,85 @@ void gcValUIOpacity::VisitReferences(unsigned int flags, cBase *ctx, void (*cb)(
         cb(ctx, (unsigned int)(void *)this, user);
     }
     ((gcDesiredUIWidgetHelper *)((char *)this + 8))->VisitReferences(flags, (cBase *)this, cb, user, mask);
+}
+
+// ── gcValUIOpacity::Set(float) @ 0x003639e0 ──
+void gcValUIOpacity::Set(float value) {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 8);
+
+    if (type_gcUIWidget == 0) {
+        if (type_named == 0) {
+            if (type_base == 0) {
+                type_base = cType::InitializeType((const char *)0x36D894,
+                                                  (const char *)0x36D89C,
+                                                  1, 0, 0, 0, 0, 0);
+            }
+            type_named = cType::InitializeType(
+                0, 0, 2, type_base,
+                (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+        }
+        type_gcUIWidget = cType::InitializeType(0, 0, 0x84, type_named,
+                                                0, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(type_gcUIWidget, false);
+    if (widget != 0) {
+        float clamped;
+        if (value <= 0.0f) {
+            clamped = 0.0f;
+        } else if (value < 1.0f) {
+            clamped = value;
+        } else {
+            clamped = 1.0f;
+        }
+        *(float *)((char *)widget + 0x80) = clamped;
+    } else {
+        gcDialog *dialog = helper->GetDialog(false);
+        if (dialog != 0) {
+            float clamped;
+            if (value <= 0.0f) {
+                clamped = 0.0f;
+            } else if (value < 1.0f) {
+                clamped = value;
+            } else {
+                clamped = 1.0f;
+            }
+            *(float *)((char *)dialog + 0x5C) = clamped;
+        }
+    }
+}
+
+// ── gcValUIOpacity::Evaluate(void) const @ 0x00363888 ──
+float gcValUIOpacity::Evaluate(void) const {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 8);
+
+    if (type_gcUIWidget == 0) {
+        if (type_named == 0) {
+            if (type_base == 0) {
+                type_base = cType::InitializeType((const char *)0x36D894,
+                                                  (const char *)0x36D89C,
+                                                  1, 0, 0, 0, 0, 0);
+            }
+            type_named = cType::InitializeType(
+                0, 0, 2, type_base,
+                (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+        }
+        type_gcUIWidget = cType::InitializeType(0, 0, 0x84, type_named,
+                                                0, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(type_gcUIWidget, false);
+    if (widget != 0) {
+        return *(float *)((char *)widget + 0x80);
+    }
+
+    gcDialog *dialog = helper->GetDialog(false);
+    if (dialog == 0) {
+        return 0.0f;
+    }
+    return *(float *)((char *)dialog + 0x5C);
 }
 
 const cType *gcValUIOpacity::GetType(void) const {
