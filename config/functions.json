@@ -34266,11 +34266,25 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fMeDecalSystemECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fMeDecalSystemECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "99bd4a85",
+        "notes": "Not attempted in this session due to time budget consumed by the eHeightmapData destructor.\n\nFunction analysis: 684-byte Cull function with 8 args using SNC's PSP-eabi calling convention. Args 5-8 are passed via t0/t1/t2/t3 (which alias to a4/a5/a6/a7 in eabi). Float arg via $f12. The disassembly reads $t2 and $t3 at function entry (looks like uninitialized regs in standard MIPS o32 ABI, but in SNC's PSP-eabi these are the 5th-arg int and 6th-arg cHandleT* pointer). Confirmed via objdump: 0x014b2825 decodes to `or $a1, $t2, $t3`.\n\nFunction structure:\n(1) Early-exit chain (this->mLastStamp[0x88] == stamp || (a5 | (int)a6) != 0 || this->mList[0x9C] == 0)\n(2) Main loop iterates this->mEntries[0x94] in 12-byte strides. Each entry contains: handle at +0, count at +4 (skip if <= 0), various flags/priority fields at +5C/+5D/+5E/+5F, aux pointer at +44, aux handle at +48 (looked up in 0x38890 table), object handle at +50.\n(3) Handle lookup: 0x38890 is base of global object table. obj = *(void**)(0x38890 + (handle & 0xFFFF) * 4); valid if obj->mHandle[0x30] == handle.\n(4) Bin allocation: bins->mEntries (32-byte stride starting at bins+12, indexed by bins[8]). Each bin entry has flags(2B), idx(2B), handle_short(2B), priority(1B), 0xFF(1B), this(4B), camera(4B), float(4B), more.\n(5) Reads globals at 0x1770C, 0x17710, 0x18400, 0x18374. Float compare against 1.0f via mtc1 t3,$f13 with t3 = lui 0x3F80.\n\nRecommended approach for next agent:\n(a) Confirm SNC PSP-eabi 8-arg convention by inspecting any matched function with >4 args, looking for t0-t3 arg usage at entry.\n(b) Reconstruct mFrustum and eCameraBins struct layouts from 0x33780-0x33930.\n(c) Reconstruct cHandleT<T> as 16-bit slot + 16-bit generation: handle == 0 ? null : (*(T**)(0x38890 + (h&0xFFFF)*4))->mHandle == h ? that_obj : null.\n(d) Use #pragma control sched=2 (function is at 0x33xxx, BEFORE the sched=1 zone start at 0x6e000).\n\nNo exemplars exist for 8-arg Culls with non-trivial bodies. eCameraEffectGeom::Cull and eDynamicFluid::Cull are matched but empty-body. eRoomEnvironment::Cull is 4-arg only. This will require building patterns from scratch.\n\nExpected write target: src/eDecalSystem.cpp (canonical) or split-TU src/eDecalSystem_Cull.cpp. The file already contains other matched methods (AssignCopy, Write, Read, New, GetType, OnRemovedFromWorld); the destructor is in src/eDecalSystem_dtor.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:56:46Z",
+        "src_file": "src/eDecalSystem.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/99bd4a85/0003368c__agent_self_reported_failure__src_eDecalSystem.cpp"
+      }
+    ]
   },
   {
     "address": "0x00033938",
@@ -44196,7 +44210,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -44204,7 +44218,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVeDynamicModelTemplatedtv"
+    "mangled_symbol": "__0oVeDynamicModelTemplatedtv",
+    "failure_notes": [
+      {
+        "session": "1ea80da6",
+        "notes": "Reconstructed the canonical destructor in src/eDynamicModelTemplate.cpp using the matched eDynamicMesh/eStaticModelTemplate array-disposal pattern. The generated body now matches the target instruction shape through the return: vtable reset, m74 virtual delete, cArrayBase cleanup for 0x7C/0x78/0x4C, RemoveAll for 0x6C/0x64, manual cObject dtor, and deleting tail all use the same registers/order after adding a local operator delete and a1-bound DeleteRec temporaries.\n\nRemaining blocker is an 8-byte symbol-size/padding issue: target includes trailing `b .; nop` at +0x29c, while SNC emits the destructor symbol ending after `jr ra`/stack restore at 0x29c total size. Tried global `.word 0x1000ffff; .word 0` plus `.size __0oVeDynamicModelTemplatedtv, 0x2a4` before the destructor, after the destructor, and before a dummy anchor function; SNC either attached it to the preceding AssignCopy symbol or dropped it at EOF, so compare_func still reports SIZE MISMATCH 676B target vs 668B generated. This is not a bnel case; likely needs a known padding-placement pattern or split-TU experiment.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:07:52Z",
+        "src_file": "src/eDynamicModelTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/1ea80da6/0004c518__agent_self_reported_failure__src_eDynamicModelTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x0004c7bc",
@@ -73080,7 +73108,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -73093,6 +73121,18 @@
       {
         "session": "45487c1e",
         "notes": "Not attempted in this session. Function is a 664-byte destructor in the confirmed sched=1 zone (0x06e000-0x0bab28 of eAll_psp.obj). The Makefile currently has no -Xsched=1 override for eHeightmapData*.o (only eTextureMap%, eBumpOffsetMap%, eDynamicMeshMorphTarget%, eCollisionConstraint%, eCompoundShape%, eInputKeyboard%, eDynamicModel% are listed). Trying to match a 664-byte destructor with complex pool-allocator vtable dispatch and multiple destructor loops will not succeed at sched=2 because of instruction scheduling differences across branches. Per CLAUDE.md SCHED HINT and the agents-must-not-modify-tooling norm, reporting failure so a human can add `$(BUILD_DIR)/src/eHeightmapData%.o: CFLAGS := $(ECFLAGS)` to the Makefile.\n\nDecomp shape from disasm: destructor for a class with 5 members at offsets 0x0..0x10. Pattern: (1) if this->unk10 != NULL, look up allocator via cMemPool::GetPoolFromPtr(this->unk10)->unk24, call vtable destroy at a1+0x30, zero unk10. (2) Loop i in [0, size(this->unk4)): destroy each non-null entry in this->unk0[i] via same pool vtable pattern, zero the slot. size(arr) computed as (arr != NULL) ? (arr[-1] & 0x3FFFFFFF) : 0 - standard cArrayBase size prefix pattern. (3) Destroy this->unk0 itself as array. (4) Destroy this->unk8 (pointer). (5) Destroy this->unkC (pointer). (6) If (this+4) != NULL branch: recompute size of this->unk4, run an empty-body i++ loop to size (likely compiler-elided destructor-per-element for a POD-like type), then destroy (this->unk4 - 4) via pool. Zero this->unk4. (7) If (arg1 & 1) && this != NULL: destroy `this` itself via pool->unk24 vtable, falling back to free(this) at 0x1ac690 if pool lookup returned NULL. Class likely has shape: `cArrayBaseT<X*> mItems; Y* mY; Z* mZ; W* mTexture;` or similar, with mTexture destroyed first (unk10), then item array (unk0/unk4 as ptr/size_container), then mY (unk8), mZ (unkC). Next agent should add Makefile sched=1 override, then reconstruct struct layout by reading other eHeightmapData callers (e.g., eHeightmapTemplate), identify cArrayBaseT and cMemPool vtable interfaces, and write destructor using standard cArrayBase destroy idioms already established in the codebase."
+      },
+      {
+        "session": "99bd4a85",
+        "notes": "category=REG_ALLOC. Closest attempt: 664 bytes (EXACT SIZE MATCH) with 167/664 bytes differing \u2014 pure register-allocation drift per docs/research/snc-register-allocation.md.\n\nKey discoveries this session:\n(1) The trailing `b $; nop` trap (1000ffff/00000000) that prior agents noted as unmatchable IS reproducible by mimicking src/eDynamicLightHeightmapMtl.cpp lines 198-200 \u2014 inject the trap via inline asm directives placed at file scope before the destructor definition:\n  __asm__(\".word 0x1000ffff\\n\");\n  __asm__(\".word 0x00000000\\n\");\n  __asm__(\".size __0oOeHeightmapDatadtv, 0x298\\n\");\nSNC reorders functions in the output .o (dtor placed after ctor but before other methods), and the trailing .word directives end up at the END of the destructor body when SNC processes them. The .size directive locks the symbol size at 0x298 = 664 bytes. This explains the previously-unknown trap pattern across the unmatched sibling dtor family (ePhysicsControllerTemplate, eDynamicFluid, eCylinderShape, eShadowFillModelMtl).\n\n(2) Source-shape: split-TU file with GLOBAL inline operator delete (with `if (p != 0)` outer guard, pool dispatch + free fallback path matching expected behavior). Destructor body covers all 6 destruction sections plus the SNC auto-emitted deleting tail.\n\n(3) Used #pragma control sched=1 because function is in confirmed sched=1 zone (0x06e000-0x0bab28). The neighbor eHeightmapData::eHeightmapData() constructor in src/eHeightmapData.cpp matches at default sched=2, confirming this class is sched-mixed at method granularity.\n\nREMAINING DIFF (167 bytes): register-allocation drift only. Expected uses s2=i, s3=mask, s4=byteOff, s5=mb_addr. Mine produces s2=mb_addr, s3=i, s4=byteOff, s5=mask. The drift cascades through every load/store address in the function body. Per docs/research/snc-register-allocation.md, this is the documented context-sensitive SNC allocator behavior: the original eAll_psp.obj compiled in one giant TU, while this repo uses per-method split TUs \u2014 SNC's interference graph tie-breaks differ. \"Do not try harder. Record category=REG_ALLOC and stop.\"\n\nApproaches tested (in order):\n(a) 644B with global op delete, no outer p!=0 guard, mb_addr declared at top (-20B from target)\n(b) 652B class-static op delete (s5 saved/restored) (-12B)\n(c) 660B global op delete WITH if(p!=0) outer guard (-4B)\n(d) 668B + .word + .size trap injection (+4B over target; trap mispositioned)\n(e) 664B with trap injection + loop body inlined (no separate mb/ma_load vars) \u2014 EXACT SIZE, 167B reg-alloc diff (current state, best result)\n(f) 191B reg-alloc diff variant: declared i/byteOff before mb_addr \u2014 slightly worse\n(g) register asm(\"s5\") directive on local \u2014 silently ignored by SNC when var declared late\n\nPermuter ran but PERMUTER_SKIPPED_NOT_LAST_MILE: diff 167B exceeds 30B gate. Cannot engage. Permuter would not help anyway since reg-alloc drift is a TU-context issue not source-perturbation-fixable.\n\nNot unmatchable_bnel \u2014 diff is reg-alloc, not bnel-specific.\n\nNext agent angles:\n(i) The trap-injection technique now documented here could be applied to the sibling unmatched dtors (ePhysicsControllerTemplate@0x4bab4, eDynamicFluid@0x5ddc0, eCylinderShape@0x74320, eShadowFillModelMtl@0x7f3d8) \u2014 they all share the same pattern.\n(ii) Consider whether per-method split TUs could be re-merged into a single eHeightmapData.cpp file to perturb SNC's interference graph in a favorable direction. WARNING per docs/direction/005-regalloc-drift-guards.md: this risks breaking the matched constructor.\n(iii) If a future SNC patch (extern/snc-read-prologue) lands that affects register allocation, retry.\n(iv) Manual register allocation directives at file scope: try `register char *mb_addr_force __asm__(\"s5\");` as global var \u2014 may or may not work for SNC.\n(v) The 0x294 trap-position-off-by-4 issue still applies if the body is reg-alloc-correct but 4 bytes long \u2014 but that's not relevant given current 167B drift is structural.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:56:46Z",
+        "src_file": "src/eHeightmapData_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/99bd4a85/0008fb70__agent_self_reported_failure__src_eHeightmapData_dtor.cpp"
       }
     ],
     "mangled_symbol": "__0oOeHeightmapDatadtv"
@@ -115462,13 +115502,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcUIGeomECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fIgcUIGeomECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "dba14588",
+        "notes": "Partial match: 278/692 bytes differ. Structure, control flow, struct accesses, VFPU operations, branch shapes, and addressing modes all match. Used split-TU (gcUIGeom_Cull.cpp) to avoid regalloc drift in the parent file's matched siblings (AssignCopy/Reset were already failed before this run; other 7 siblings in gcUIGeom.cpp stayed matched). Solved several structural issues during this session: (1) vtable function-pointer access via struct VtSlot got `lh 0(reg)/lw 4(reg)` instead of `addiu+lw 0`; (2) chained `addiu a0,s1,32/addiu a1,a0,32/addiu a0,a0,48` for two camera+0x40/+0x50 bases via an `__asm__(\"\" : \"+r\"(camBase))` barrier; (3) struct CullEntry pointer at entry_start+0xC produces `sX val, N(a1)` direct-offset writes instead of `addiu+sX 0(reg)`. Remaining 278B diff is regalloc/scheduling-only: SNC allocates fade to callee-saved f24 here, but the original uses f20 (which cascades \u2014 0.0f goes to f22 vs f20, 1.0f to f24 vs f22, and all c.eq.s/c.lt.s/mov.s operand pairs reflect that). Also the alpha-clamp `if (alpha<0) alpha=0` emits `bc1f/nop/mov.s/c.eq.s` (4 instr) instead of original's `bc1tl/mov.s-in-delay/c.eq.s` (3 instr), making the function 696B vs 692B (+4B). Tried `int dotBits = ...; float dot = *(float*)&dotBits;` for fabsf arg shape \u2014 no change. Tried sched=1 \u2014 worse (316B). The branch-likely choice and FP-reg allocation appear driven by SNC's allocator state that I haven't found a source-level lever for. Permuter was not run (diff far above 30B threshold).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:11:02Z",
+        "src_file": "src/gcUIGeom_Cull.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dba14588/0013b4e4__agent_self_reported_failure__src_gcUIGeom_Cull.cpp"
+      }
+    ]
   },
   {
     "address": "0x0013b798",
@@ -196505,7 +196559,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196597,7 +196651,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x000d8230",
@@ -196862,7 +196916,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d707c",
@@ -196870,7 +196924,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcUIControlStringDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K"
+    "mangled_symbol": "__0fRgcUIControlStringDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K",
+    "failure_notes": [
+      {
+        "session": "1ea80da6",
+        "notes": "Added the canonical gcUIControlString::Get method in src/gcUIControlString.cpp. The closest attempt is exact size (616B) and keeps all existing sibling methods matched. It follows the target structure: reuses the matched Set() type-initialization chain, calls gcDesiredUIWidgetHelper::GetWidget(D_0009F410, true), validates the 0xC8 handle through D_00038890, calls gcStringTable::GetSubObject on the 0xCC subhandle, and writes either the pair or zeros. Local cSubHandleT temporaries force the expected sp+0/sp+4/sp+8 stores, and a handlePtr barrier forces the success path to use addiu+lw addressing for the 0xC8/0xCC fields.\n\nRemaining mismatch is register allocation, not control flow: generated code uses D_0009F410 in s3 and the output subhandle pointer in s2, while the target uses D_0009F410 in s2 and the output subhandle pointer in s7. That propagates through the type-chain globals and epilogue, producing 104 differing bytes despite the same symbol size. Tried binding outSub to s7 and binding the type slot, but SNC either ignored it or inserted an extra addiu/address variable and worsened the diff. This is retryable; likely needs a register-pressure/source-order variant rather than branch or scheduler work.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:07:52Z",
+        "src_file": "src/gcUIControlString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/1ea80da6/0028faa4__agent_self_reported_failure__src_gcUIControlString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028fd0c",
@@ -203104,7 +203172,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000d6148",
@@ -203112,7 +203180,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oUgcDoEntityAssignPathdtv"
+    "mangled_symbol": "__0oUgcDoEntityAssignPathdtv",
+    "src_file": "src/gcDoEntityAssignPath_dtor.cpp",
+    "symbol_name": "__0oUgcDoEntityAssignPathdtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "dba14588",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T06:11:02Z"
   },
   {
     "address": "0x002b292c",
@@ -234158,7 +234233,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001187f4",
       "0x001188dc",
@@ -234425,7 +234500,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
