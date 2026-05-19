@@ -214502,11 +214502,25 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fVgcDoPlayerSetViewportIEvaluatevK"
+    "mangled_symbol": "__0fVgcDoPlayerSetViewportIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "e1163def",
+        "notes": "Closest source uses the matched Evaluate-family tagged-pointer pattern with float temporaries so SNC emits the expected beqzl/trunc.w.s/mfc1 sequence for both desired values. It compiles cleanly, but gcDoPlayerSetViewport::Evaluate is still a size mismatch: generated 304B vs target 340B. The first half is structurally close, but SNC keeps this in s1 and the first evaluated index in s0, while the original keeps this in s0 and the first index in s1, then reuses s0 for the second index.\n\nTried direct int casts, separate ptr variables, float temporaries, typed player-slot store, explicit goto tail layout, per-function sched=1, and register-variable hints. sched=1 and register hints did not move codegen. The remaining gap is mainly tail block layout/register allocation: generated code falls through to a shared epilogue, while the original has an invalid-return epilogue before the player-store block and a second final epilogue after the store. Not a bnel/beql divergence and not last-mile/permuter-ready because size differs by 36B.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:18:13Z",
+        "src_file": "src/gcDoPlayerSetViewport.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e1163def/002f2cd0__agent_self_reported_failure__src_gcDoPlayerSetViewport.cpp"
+      }
+    ]
   },
   {
     "address": "0x002f2e24",
@@ -229750,7 +229764,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -231373,7 +231387,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -239941,13 +239955,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcValLobbyStatusIEvaluatevK"
+    "mangled_symbol": "__0fQgcValLobbyStatusIEvaluatevK",
+    "src_file": "src/gcValLobbyStatus.cpp",
+    "symbol_name": "__0fQgcValLobbyStatusIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "e1163def",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:18:13Z"
   },
   {
     "address": "0x0034ed50",

@@ -27,6 +27,11 @@ public:
                                  const char *, const char *, unsigned int);
 };
 
+class nwNetwork {
+public:
+    static void *GetLobby(void);
+};
+
 extern char cBaseclassdesc[];                       // @ 0x37E6A8
 
 struct PoolBlock {
@@ -38,6 +43,12 @@ struct AllocEntry {
     short offset;
     short pad;
     void *(*fn)(void *, int, int, int, int);
+};
+
+struct DispatchEntry {
+    short offset;
+    short pad;
+    int (*fn)(void *);
 };
 
 class cWriteBlock {
@@ -75,6 +86,7 @@ public:
 
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
+    float Evaluate(void) const;
     void GetText(char *) const;
     ~gcValLobbyStatus();
     int Read(cFile &, cMemPool *);
@@ -165,6 +177,53 @@ success:
     cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 8, 4);
     cFileSystem::Read((cFileHandle *)*(void **)rb._data[0], (char *)this + 12, 4);
     return result;
+}
+
+// ── gcValLobbyStatus::Evaluate(void) const @ 0x0034EBE8, 360B ──
+float gcValLobbyStatus::Evaluate(void) const {
+    void *lobby = nwNetwork::GetLobby();
+    DispatchEntry *e;
+    short off;
+    int (*fn)(void *);
+    int field8;
+    int status;
+
+    if (lobby == 0) goto retZeroLobby;
+    field8 = this->f8;
+    if (field8 < 2) goto low;
+    goto high;
+retZeroLobby:
+    return 0.0f;
+low:
+    if (field8 < 0) goto retZeroRange;
+    if (field8 > 0) goto entryOne;
+    e = (DispatchEntry *)(*(char **)lobby + 0x90);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)(this->fC == status);
+high:
+    if (field8 < 3) goto entryTwo;
+    if (field8 >= 4) goto retZeroRange;
+    e = (DispatchEntry *)(*(char **)lobby + 0xA0);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)(this->fC == status);
+entryOne:
+    e = (DispatchEntry *)(*(char **)lobby + 0x88);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)(this->fC == status);
+entryTwo:
+    e = (DispatchEntry *)(*(char **)lobby + 0x98);
+    off = e->offset;
+    fn = e->fn;
+    status = fn((char *)lobby + off);
+    return (float)(this->fC == status);
+retZeroRange:
+    return 0.0f;
 }
 
 // -- gcValLobbyStatus::GetText(char *) const @ 0x0015af44 --
