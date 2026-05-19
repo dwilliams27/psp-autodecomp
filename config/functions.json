@@ -34073,7 +34073,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948",
       "0x0009a774"
@@ -65731,13 +65731,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeProjectedModelMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fSeProjectedModelMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "cd524b74",
+        "notes": "Implemented a canonical C++ split-TU Apply body because include/eTextureMap.h does not declare eProjectedModelMtl::Apply and header edits can perturb matched siblings. The closest source reconstructs the D_00038890 handle lookup, eVRAMMgr::SetTexture call, cached float texture-state commands through D_000984D0, mode-dependent DF/E0/E1 render-state command generation, flags at this+0x5C/0x5E, and D_00098428 state updates. Manual variants tried included plain constants, register-pinned f20/f22 constants to match the target prologue, reordering the D_000984D0 pointer load before volatile float spills to influence bc1f scheduling, duplicating the mode==0/mode>0 source blocks, unsigned float word extraction for srl instead of sra, and a barrier on wordCount before pointer arithmetic.\n\nThe current best compiles and emits the correct mangled symbol, but compare_func reports SIZE MISMATCH: target 1000B, generated 992B. The prologue/epilogue now save f20/f22 and the main state logic is present, but remaining differences include branch-likely/scheduling around the float-cache update and register/branch-shape drift in the handle lookup and render-mode table. I did not run the permuter because the function is still size-mismatched and therefore outside the documented last-mile gate.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:37:34Z",
+        "src_file": "src/eProjectedModelMtl_Apply.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/cd524b74/0007e108__agent_self_reported_failure__src_eProjectedModelMtl_Apply.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007e4f0",
@@ -67679,7 +67693,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002f68c",
       "0x0002f960",
@@ -67691,7 +67705,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeFrameBufferTextureFApplyiPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fTeFrameBufferTextureFApplyiPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "cd524b74",
+        "notes": "Added a canonical eFrameBufferTexture::Apply implementation to the existing local class redeclaration in src/eFrameBufferTexture.cpp. The source reconstructs the enable gate at this+0x50, two D_00038890 handle validations for the render target at this+0x4C, the target dirty check against fields +0x58/+0x54 and D_0037D150, fog reset/restore calls, eRenderTarget::Select/Unselect, eVRAMMgr back-buffer binding, render-state flushes through D_000984D0/D_00098428, viewport copy from camera+4, surface-size versus eVideo::GetMaxWidthHeight handling, eVideoPlatform::DrawScreenSprite, final D_0037D140 reset, manual vtable entry +0xA0 dispatch, and the disabled path that stores back-buffer width/height into this+0x48/+0x4A. A first variant used cHandleT constructors and emitted an unwanted template constructor symbol; the current variant uses aggregate handles and preserves all previously matched eFrameBufferTexture siblings.\n\nThe current best compiles, and existing eFrameBufferTexture Write/dtor/GetType/AssignCopy/New still compare as MATCH, but Apply is still SIZE MISMATCH: target 1268B, generated 1200B. The generated frame is 96B versus the target 112B and the stack layout/control-flow is still too compact around the dirty-check locals, Select argument staging, viewport/surface locals, and several branch-likely opportunities. This is not a bnel/unmatchable-classification case and is not ready for the permuter because the generated symbol is not the same size as the DB target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:37:34Z",
+        "src_file": "src/eFrameBufferTexture.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/cd524b74/000817d0__agent_self_reported_failure__src_eFrameBufferTexture.cpp"
+      }
+    ]
   },
   {
     "address": "0x00081cc4",
@@ -68286,7 +68314,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948"
     ],
@@ -70319,7 +70347,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948",
       "0x0009a774"
@@ -70552,7 +70580,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948"
     ],
@@ -70798,7 +70826,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948"
     ],
@@ -71044,7 +71072,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948"
     ],
@@ -71303,7 +71331,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948",
       "0x0009a774"
@@ -71495,7 +71523,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002c21c",
       "0x0002d864",
@@ -121508,13 +121536,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d5348"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoSwitchIEvaluatevK"
+    "mangled_symbol": "__0fKgcDoSwitchIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "d2e474c2",
+        "notes": "Implemented gcDoSwitch::Evaluate in canonical C++ using the matched gcDoEvaluation tagged-expression dispatch pattern plus a struct-backed switch evaluation state so state->current/state->flags fold to lw/sw offset(reg). Read snc-branch-likely, snc-delay-slots, and snc-loop-switch before iterating. The closest build is exact size (508B) and preserves all previously matched gcDoSwitch siblings, but compare_func still reports 117/508 differing bytes.\n\nMain remaining issue is broad register allocation drift and branch-likely polarity in the first tagged dispatch / loop state block: my build keeps the initial expression and state in s2 and the clear mask in s1, while the original uses s1 for the expression/state, s2 for saved current, s3 for node, and s4 for the -3 mask. The loop structure, return paths, calls, and branch-likely loop preload are otherwise close. Diff is far above last-mile range, so I did not run the permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:38:06Z",
+        "src_file": "src/gcDoSwitch.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d2e474c2/00150580__agent_self_reported_failure__src_gcDoSwitch.cpp"
+      }
+    ]
   },
   {
     "address": "0x0015077c",
@@ -206334,7 +206376,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00008afc",
       "0x00110738",
@@ -206343,7 +206385,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcDoEntitySetAttractorIEvaluatevK"
+    "mangled_symbol": "__0fWgcDoEntitySetAttractorIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "a172ec9e",
+        "notes": "Implemented canonical gcDoEntitySetAttractor::Evaluate in src/gcDoEntitySetAttractor.cpp with gcDesiredEntity::Get(true), gcEntity::IsLocallyControlled, local cName stack initialization, cName::Set formatting, desired-value virtual evaluation through vtable slot 0x70, and gcEntityControllerCommonState::SetAttractor. Existing New/GetType/Read/Write siblings still compare as matched. Best source is exact size 436B and compare_func reports an 11-byte mismatch.\n\nManual attempts tested if/else, switch, two tagged-pointer validity spellings, explicit check = ptr before the virtual call, and an s3-bound format string. A 300s permuter run from the 19-byte near miss found no improvement; after manual improvement to 11 bytes, a required 600s permuter run generated 5948 candidates/2330 compiled and found zero improvement. The remaining mismatch is in the tagged-pointer normalization branch: original uses beqz plus an explicit branch/li sequence, while SNC emits a bnezl conditional assignment form. Diff exceeds the <=8 byte unmatchable-bnel threshold and is not specifically bnel/beql-only, so this remains failed/retryable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:34:44Z",
+        "src_file": "src/gcDoEntitySetAttractor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/a172ec9e/002c479c__agent_self_reported_failure__src_gcDoEntitySetAttractor.cpp"
+      }
+    ]
   },
   {
     "address": "0x002c4950",
@@ -216194,14 +216250,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoSetEventEnumParamIEvaluatevK"
+    "mangled_symbol": "__0fVgcDoSetEventEnumParamIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "067b36c8",
+        "notes": "Closest attempt is exact size at 504B but still has 57 differing bytes. The broad structure matches the target: 64-byte frame, desired enumeration helper call, tagged expression evaluation, D_00038890 handle lookup, GetSubObjectHandle call, common selected-pair copy, and final store into event params. Tried the gcValHasPartialController sibling pattern, explicit extra stack locals to force sp0/sp4/sp8/spc/sp10/sp18/sp1c/sp20/sp24 layout, direct 0x37D7B4 global load, sched=1, void-vs-typed handle lookup variables, and register hints/barriers around found/selected/index.\n\nRemaining differences are register-allocation/copy-shape issues, not control-flow size: SNC keeps the lookup candidate/found pair in a3/a2 instead of the target's a2/a3 in the D_00038890 block, sets up GetSubObjectHandle arguments earlier than target's t0 + delay-slot move pattern, and copies newPair directly before the common copy path instead of branching with selected in a1. Prologue also differs in the global load base register (a1 vs target a0) although root itself is in a0. A future retry should focus on variable lifetime/register pressure around the found pointer and selected pair pointer; current source is the closest same-size C attempt.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:41:05Z",
+        "src_file": "src/gcDoSetEventEnumParam_Evaluate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/067b36c8/002fc684__agent_self_reported_failure__src_gcDoSetEventEnumParam_Evaluate.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fc87c",
@@ -232420,14 +232490,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0001fce4",
       "0x0011d8c0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValEntityIsInFluidIEvaluatevK"
+    "mangled_symbol": "__0fUgcValEntityIsInFluidIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "a172ec9e",
+        "notes": "Implemented canonical gcValEntityIsInFluid::Evaluate in src/gcValEntityIsInFluid.cpp using a 64-byte local transform, gcDesiredEntity::Get(true), explicit vtable-slot calls at 0xB8/0xE0/0xE8, and eWorld::IsPointInFluidVolume. Read the VFPU, branch-likely, vtable, and delay-slot research notes first. Existing sibling methods still compare as matched. Best source shape is 416B target size with an 80-byte frame, but compare_func still reports a 140-byte mismatch.\n\nTried SceULong128 direct quad copies, mVec3 wrapper copies, sched=1 around the function, and hard register bindings for this/entity. The hard register binding regressed to a 96-byte frame and introduced s3; sched=1 also regressed. The closest attempt still has this/entity allocated as s0/s1 opposite the original, which cascades through the VFPU copy and virtual-call sequences; generated code also uses the same quad-copy encodings under different base registers. Not a last-mile permuter candidate because the diff is far above 30 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:34:44Z",
+        "src_file": "src/gcValEntityIsInFluid.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/a172ec9e/00334350__agent_self_reported_failure__src_gcValEntityIsInFluid.cpp"
+      }
+    ]
   },
   {
     "address": "0x003344f0",
@@ -234718,7 +234802,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0011887c",
       "0x00118964",
@@ -234729,7 +234813,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValEntitySoundFrequencyIEvaluatevK"
+    "mangled_symbol": "__0fZgcValEntitySoundFrequencyIEvaluatevK",
+    "src_file": "src/gcValEntitySoundFrequency_Evaluate.cpp",
+    "symbol_name": "__0fZgcValEntitySoundFrequencyIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "067b36c8",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:41:05Z"
   },
   {
     "address": "0x0033dde8",
@@ -235786,7 +235878,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d42e8",
       "0x000d44c8",
@@ -235794,7 +235886,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcValEnumerationEntryIEvaluatevK"
+    "mangled_symbol": "__0fVgcValEnumerationEntryIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "d2e474c2",
+        "notes": "Implemented gcValEnumerationEntry::Evaluate in canonical C++ with local HandlePair/HandleTableEntry structs and ABI-shaped extern aliases for gcDesiredEnumerationEntryHelper::Get, gcEnumeration::GetSubObjectHandle, and gcEnumeration::IsValid. Forced the original 64-byte stack frame layout with volatile copy temporaries at sp+8/sp+12, next pair at sp+16, subhandle temp at sp+24, empty pair at sp+28, and IsValid temp at sp+40. Existing matched methods in the file still compare cleanly.\n\nClosest stable source is 496B versus the 512B target. The missing bytes are in the two global handle-table lookup blocks and the pair-copy/return-tail shape: SNC compacts the lookup into direct lui+addu+lw-offset forms and uses shorter null/mismatch paths, while the original materializes the 0x38890 table base and keeps extra move-through-zero temporaries. A char* table-base rewrite made the symbol too large and introduced an extra s1 save, so I reverted to the smaller stable attempt. Diff is not last-mile, so I did not run the permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:38:06Z",
+        "src_file": "src/gcValEnumerationEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d2e474c2/00342270__agent_self_reported_failure__src_gcValEnumerationEntry.cpp"
+      }
+    ]
   },
   {
     "address": "0x00342470",
