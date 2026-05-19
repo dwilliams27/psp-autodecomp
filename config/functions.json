@@ -34259,7 +34259,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001ad668",
@@ -34268,7 +34268,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDecalSystemFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fMeDecalSystemFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "17bc7325",
+        "notes": "Created a split-TU C++ implementation to avoid perturbing matched eDecalSystem siblings. The source mirrors the SetSize default stack object, manual allocation of a 16-entry eDecalList array, copy/default-fill loop, old-array pool free, and final memset calls. The closest attempt compiles but is 532B versus the 568B target. Generated code still preserves literal 0x10 in an extra callee-save register (s4), producing an 0x80 frame instead of the target 0x70 frame, and the allocation/null branch and copy loop collapse differently from the target.\n\nTried restructuring the SetSize receiver, default-list pointer, old-list reload inside the copy loop, and literal 0x10 store after allocation. The compiler continued to reuse the compare literal across the allocator call, so this is not last-mile and the permuter was not run.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:47:28Z",
+        "src_file": "src/eDecalSystem_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/17bc7325/00033454__agent_self_reported_failure__src_eDecalSystem_Reset.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003368c",
@@ -52612,14 +52626,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00000db0",
       "0x002076a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeWeatherEffectFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fOeWeatherEffectFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "17bc7325",
+        "notes": "Created a split-TU C++ implementation for eWeatherEffect::Reset using the matched class conventions, cArrayBase<eWeatherParticle>::SetSize, unsigned cRand-to-float conversion, and a small VFPU mtv/sv.q store for the particle vector. Read the FPU scheduling, VFPU struct codegen, branch-likely, loop, and delay-slot notes before iterating. The closest attempt is 580B versus the 588B target after switching to structured template indexing so field loads fold to lw/lwc1 offsets and the FPU/random body aligns closely.\n\nRemaining mismatch is source-shape/codegen around the loop exit and handle lookup. The target uses beqzl with the reset byte store in the delay slot, and has a slightly different handle-table branch shape; rewriting the loop with explicit gotos improved some handle delay slots but shrank the function to 568B. Not a last-mile same-size diff, so the permuter was not run.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T06:47:28Z",
+        "src_file": "src/eWeatherEffect_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/17bc7325/00060934__agent_self_reported_failure__src_eWeatherEffect_Reset.cpp"
+      }
+    ]
   },
   {
     "address": "0x00060b80",
@@ -66521,7 +66549,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x0002f960",
       "0x00031570",
@@ -105740,7 +105768,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00121db4"
@@ -163042,7 +163070,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "untried",
     "callees": [
       "0x00007534",
       "0x00009d70",
@@ -201573,7 +201601,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -202805,7 +202833,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4",
@@ -207198,14 +207226,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oZgcDoEntitySetLookAtTargetdtv"
+    "mangled_symbol": "__0oZgcDoEntitySetLookAtTargetdtv",
+    "src_file": "src/gcDoEntitySetLookAtTarget.cpp",
+    "symbol_name": "__0oZgcDoEntitySetLookAtTargetdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8a449ec7",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T06:47:30Z"
   },
   {
     "address": "0x002ca650",
@@ -209521,14 +209557,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oLgcDoInputOpdtv"
+    "mangled_symbol": "__0oLgcDoInputOpdtv",
+    "src_file": "src/gcDoInputOp.cpp",
+    "symbol_name": "__0oLgcDoInputOpdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "8a449ec7",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T06:47:30Z"
   },
   {
     "address": "0x002dc64c",
@@ -222092,7 +222136,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
