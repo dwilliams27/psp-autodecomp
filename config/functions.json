@@ -36425,13 +36425,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeFontFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fFeFontFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "b8797b0c",
+        "notes": "Implemented eFont::Reset with a local eFontLayout, manual page-info allocation via the cMemPool allocation record at vtable offset 0x28, old page array destruction via offset 0x30, copy/default initialization of 8-byte page entries, and recomputation of per-page reciprocal texture width/height through the 0x38890 handle table. Existing matched eFont methods still compare cleanly.\n\nTried char* field pointers, layout-struct field offsets, register-bound count/mask/page locals, direct int copies, float copies, and a version with temporary float locals. The best frame/register shape uses the original 32-byte stack frame but compiles to 736B versus the 748B target; the missing bytes are in the page-entry copy loop, where SNC emits direct lwc1/swc1 stores instead of the original lwc1/lwc1/mfc1/mfc1/sw/sw sequence. A temporary-float variant produced the longer copy sequence and exact total size but forced a 48-byte stack frame. Current source is left at the closer original-frame variant; not eligible for permuter because the generated symbol size differs.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:04:53Z",
+        "src_file": "src/eFont.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b8797b0c/00039778__agent_self_reported_failure__src_eFont.cpp"
+      }
+    ]
   },
   {
     "address": "0x00039a64",
@@ -40422,7 +40436,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x00043b30",
@@ -64569,7 +64583,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x001b9780",
@@ -64578,7 +64592,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeGeomWakeFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fJeGeomWakeFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "b8797b0c",
+        "notes": "Implemented the Reset body in canonical eGeomWake::Reset syntax using the matched file's local redeclaration pattern. The source reconstructs the null-template SetSize(0) path, the template SetSize(template+0x48) path, the temporary nested cArray destruction through cMemPool::GetPoolFromPtr, per-segment particle SetSize(template+0x50+1) after __memzero(0x50), and the final handle-table flag update at 0x38890. Existing matched eGeomWake methods still compare cleanly.\n\nTried plain char* offsets, layout-struct offsets, moving the per-particle default object, and reloading the segment pointer after SetSize to match the original loop. Best current result is same broad stack frame/CFG but compare_func reports 229/712 bytes different. The remaining drift is mainly saved-register allocation and loop register assignment: current code still uses s8 for the particle-array pointer and different s1/s2 roles around the template/segments locals, while the original keeps template in s2, segments in s1, particle default at sp+0x10, and particle-array pointer in s6. Diff is far above last-mile permuter range.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:04:53Z",
+        "src_file": "src/eGeomWake.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b8797b0c/0007a240__agent_self_reported_failure__src_eGeomWake.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007a508",
@@ -66145,14 +66173,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x001bbc50"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fHeShadowECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fHeShadowECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "f2069d4e",
+        "notes": "Created split TU src/eShadow_Cull.cpp because include/eShadow.h does not declare Cull and the split-TU rule says not to add methods to shared headers. The closest attempt follows the gcUIGeom_Cull bin-entry/VFPU pattern and reconstructs the dynamic-model type check, opacity virtual call, update virtual call, VFPU camera dot/distance, and camera-bin record emission. It compiles to the correct mangled symbol, but compare_func still reports 704/1116 bytes differing; current nm size is 0x464 vs target 0x45c, so it is not a last-mile permuter candidate.\n\nTried several source shapes: adding a memory barrier after the stamp store fixed that store being scheduled into the float-compare delay slot; changing parent/model pointers to unsigned char removed signed-byte extension masks; rewriting the dynamic-model parent-type loop changed the size between 0x458 and 0x468, with the current closest semantic source at 0x464. Remaining drift is concentrated in CFG/register scheduling: the type-check loop still emits an extra branch around the false case, the initial global gate uses a0 instead of a3 and schedules f20 early, and the bin-entry allocation tail uses different branch-likely shape from the target. A retry should focus on reproducing the exact m2c type loop and eCameraBins NULL-entry fallthrough before trying permutation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:10:08Z",
+        "src_file": "src/eShadow_Cull.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/f2069d4e/0007ed60__agent_self_reported_failure__src_eShadow_Cull.cpp"
+      }
+    ]
   },
   {
     "address": "0x0007f1bc",
@@ -73861,7 +73903,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0001fb84",
       "0x0001fd30",
@@ -127582,7 +127624,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -209247,14 +209289,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oTgcDoEntitySubGeomOpdtv"
+    "mangled_symbol": "__0oTgcDoEntitySubGeomOpdtv",
+    "src_file": "src/gcDoEntitySubGeomOp.cpp",
+    "symbol_name": "__0oTgcDoEntitySubGeomOpdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "f2069d4e",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T08:10:08Z"
   },
   {
     "address": "0x002d8458",
@@ -230782,7 +230832,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00121680"
