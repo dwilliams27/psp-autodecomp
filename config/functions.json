@@ -33038,7 +33038,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x0003b1b0",
       "0x0009fc88",
@@ -33058,7 +33058,15 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeInputGUpdate6KcTimeValuebTCT"
+    "mangled_symbol": "__0fGeInputGUpdate6KcTimeValuebTCT",
+    "src_file": "src/eInput.cpp",
+    "symbol_name": "__0fGeInputGUpdate6KcTimeValuebTCT",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "dae40cdc",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:04:20Z"
   },
   {
     "address": "0x00030e24",
@@ -183099,7 +183107,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -183110,7 +183118,21 @@
       "0x002b8d80"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_DGetb_P9DAK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_DGetb_P9DAK",
+    "failure_notes": [
+      {
+        "session": "f03a898c",
+        "notes": "Closest attempt is a canonical split-TU template method that emits the expected Get(bool) mangled symbol after correcting the return type to the third template parameter (P9DA). It implements both paths from the disassembly: non-tagged object handles dispatch through the type method entry at +0x70, while tagged/null handles call gcDesiredObjectHelper::GetDesiredObject. Type init uses D_0009F434, type id 0x1CD, gcEntityCustomAttack::New, and strings 0x36D9A4/0x36D9B4.\n\nTried initial helper-return form (wrong P9CA symbol), corrected T3 return form (808B), direct member-field layout plus direct global D_000385DC/E0/E4 usage (816B), volatile byte spills for the two saved bool paths (still 816B but worse register allocation), sched=1 pragma (no size change), and unsigned-char local call prototypes (812B, worse). Current closest remains 816B vs target 840B. The permuter skipped because symbol size differs by 24B, so this is not last-mile. Main blocker is SNC source-shape/register-allocation drift: target keeps the object in a2 longer, saves s0-s8 at stack offsets +8..+40, uses s8 for adjusted this/fallback primary, and emits branch-likely plus stack byte reloads that this split TU has not reproduced.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:01:39Z",
+        "src_file": "src/gcDesiredCustomAttackHelpergcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/f03a898c/002664c0__agent_self_reported_failure__src_gcDesiredCustomAttackHelpergcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
+      }
+    ]
   },
   {
     "address": "0x00266808",
@@ -184738,7 +184760,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -184756,7 +184778,21 @@
       "0x003574f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_DGetb_P9DAK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_DGetb_P9DAK",
+    "failure_notes": [
+      {
+        "session": "f03a898c",
+        "notes": "Closest attempt mirrors the custom-attack source shape with point-specific values: D_00046A4C, type id 0x43, ePoint::New, strings 0x36DF5C/0x36DF68, and final InitializeType flags 0. It emits the expected Get(bool) mangled symbol once the template return type is declared as the third parameter (ePoint *) rather than the displayed helper pointer.\n\nTried the same variants as the custom-attack target: initial helper-return form (wrong P9CA symbol), corrected T3 return form (808B), direct member-field layout and direct global init (816B), volatile byte-spill variant (still 816B but different/worse register allocation), sched=1 pragma (unchanged), and unsigned-char local call prototypes (812B, worse). Current closest is 816B vs target 840B. The permuter skipped with symbol size delta 24B. The remaining mismatch is structural/register-allocation: expected prologue and both init blocks use a different s-register assignment and stack layout, with branch-likely handle dispatch and byte reloads that the current C shape does not force.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:01:39Z",
+        "src_file": "src/gcDesiredPointHelpergcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/f03a898c/0026c09c__agent_self_reported_failure__src_gcDesiredPointHelpergcDesiredObjectTgcDesiredPointgcDesiredPointHelperePoint.cpp"
+      }
+    ]
   },
   {
     "address": "0x0026c3e4",
@@ -190271,7 +190307,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00000e84",
       "0x00000fec",
@@ -190285,7 +190321,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcFormatStringDGetPwiK"
+    "mangled_symbol": "__0fOgcFormatStringDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "dae40cdc",
+        "notes": "Built a split-TU closest attempt using a raw locals struct to match the target stack layout: cStringBufferW at sp+0, parser at sp+8, value buffer at sp+16, number buffer at sp+32, subhandle temp at sp+64, and type delimiter at sp+68. Also used exact-symbol helper calls for cStringBufferW and gcStringTable::GetSubObject so the subhandle ABI passes by pointer like the original. This compiles, but compare_func reports a size mismatch: generated 776B vs target 796B.\n\nTried direct member calls, raw helper aliases, sched=1, explicit parser pointer, and goto-shaped literal/tag control flow. The best shape gets the loop-top bnel and much of the parser/dispatch structure, but remains short around the text fallback, type dispatch, and common loop tail; register allocation also differs from target (notably buffer/size/parser delimiter roles across s0/s1/s2/s5/s6). Not suitable for permuter because the generated symbol is not the same size as the DB target.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:04:20Z",
+        "src_file": "src/gcFormatString_Get.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dae40cdc/0027c630__agent_self_reported_failure__src_gcFormatString_Get.cpp"
+      }
+    ]
   },
   {
     "address": "0x0027c94c",
@@ -200405,7 +200455,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0009aa94"
     ],
@@ -207511,7 +207561,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00115760",
       "0x00115874",
@@ -223431,7 +223481,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00060450"
     ],
@@ -245414,7 +245464,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc"

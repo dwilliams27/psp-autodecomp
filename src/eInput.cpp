@@ -1,23 +1,31 @@
 // Local declarations to avoid header conflicts; matches the project's
 // pattern (e.g. src/eRigidBodyState.cpp) for tightly-scoped TUs.
 
+class cTimeValue {
+public:
+    int mTime;
+};
+
 class eInputJoystick {
 public:
     static bool Initialize();
     static void Reset();
     static void ResetIdleTime(int);
+    static void Update(cTimeValue, bool, bool);
 };
 
 class eInputMouse {
 public:
     static bool Initialize();
     static void Reset();
+    static void Update(cTimeValue, bool, bool);
 };
 
 class eInputKeyboard {
 public:
     static bool Initialize();
     static void Reset();
+    static void Update(cTimeValue, bool, bool);
 };
 
 class eInput {
@@ -25,7 +33,10 @@ public:
     static bool Initialize();
     static void Reset();
     static void ResetIdleTime();
+    static void Update(cTimeValue, bool, bool);
 };
+
+extern int D_00041020;
 
 // ── eInput::Initialize(void) static @ 0x00030d14 ──
 bool eInput::Initialize() {
@@ -44,6 +55,16 @@ void eInput::Reset() {
     eInputMouse::Reset();
     eInputKeyboard::Reset();
     *(char *)0x37D14C = 0;
+}
+
+// ── eInput::Update(cTimeValue, bool, bool) static @ 0x00030da8 ──
+void eInput::Update(cTimeValue dt, bool reset, bool accumTime) {
+    int pad[2];
+    D_00041020 += *(int *)&dt;
+    eInputJoystick::Update(dt, reset, accumTime);
+    eInputMouse::Update(dt, reset, accumTime);
+    eInputKeyboard::Update(dt, reset, accumTime);
+    __asm__ volatile("" : : "m"(pad));
 }
 
 // ── eInput::ResetIdleTime(void) static @ 0x00030e24 ──
