@@ -159307,14 +159307,21 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00068d18",
       "0x0006a27c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerDSetRC6ImCapsule"
+    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerDSetRC6ImCapsule",
+    "src_file": "src/eEmbedMultiSphereCollisionHandler.cpp",
+    "symbol_name": "__0fheEmbedMultiSphereCollisionHandlerDSetRC6ImCapsule",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "05ed2047",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T04:57:30Z"
   },
   {
     "address": "0x002095e0",
@@ -205227,7 +205234,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -212451,7 +212458,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -224476,7 +224483,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -224485,7 +224492,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcGeomCurveConfigKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcGeomCurveConfigKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "05ed2047",
+        "notes": "Wrote split-TU file src/gcGeomCurveConfig_AssignCopy.cpp with full structural framework: 3-level type-init chain (cBase 385DC -> gcEntityGeomConfig 9F43C ID 0xA0 -> gcGeomCurveConfig 9F784 ID 0x1D6), goto-based isa-check loop, field copies at +8/+C..+20 (6 words)/+24/SceULong128 quad at +30+40/byte +50/byte +60/word +64+ gcEvent::operator= at +68/tagged-base release+clone at +84/+88+8C+90+94/cArrayBase<gcDesiredEntityHelper>::operator= at +98. Trailing `b $-0; nop` pattern injected via __asm__(.word 0x1000ffff)+__asm__(.size, 0x33c) placed BEFORE the function definition (per the gcEntityTemplate pattern; placing after did not flush bytes to .text). Final symbol size is exactly 828 bytes matching the DB target.\n\nRemaining diff is 89/828 bytes. The differences are entirely register-allocation drift: expected uses s6 for destTagged (the this+0x84 address holder with the longest live range across all calls) and s3/s4/s5 for the type-init lui accumulators (D_0009F784/D_0009F43C/D_000385DC). My SNC build picks s3 for destTagged and shifts the lui accumulators to s4/s5/s6. This propagates through ~17 sw/lw/lui/move/bnez/bnel instructions in the prologue, type-init block, and the tagged-base clone helper. Tried `register char *destTagged __asm__(\"$22\")` to force s6 \u2014 the binding works for caller-save registers like $a2 ($6) but SNC silently ignores it for callee-save s-regs in this function. Also tried reordering the destTagged declaration relative to the type-init lui's, declaring decoy variables to consume s3/s4/s5 first, and binding both destTagged and other via register __asm__ \u2014 none flipped the allocation order. The permuter refuses to run (PERMUTER_SKIPPED_NOT_LAST_MILE: baseline 93B > 30B last-mile gate).\n\nAll other matched-precedent AssignCopy patterns in the repo that share this tagged-base release+clone shape (gcLanguageStrings, gcLobbyAccountStrings, gcLobbyFriendStrings, gcLobbyMailStrings, gcLobbyScoreboardRowStrings, gcLobbyUserStrings, gcNetworkConfigStrings, gcUserStrings, gcValEntityPathDistance) are also failed \u2014 this is a class-wide SNC register-allocation divergence on the tagged-base pattern. A retry should focus on either patching pspcor's s-register allocator heuristic or finding source shapes that flip the allocation order (which I could not \u2014 see docs/research/snc-register-allocation.md for the documented drift).",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:57:30Z",
+        "src_file": "src/gcGeomCurveConfig_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/05ed2047/0031b9cc__agent_self_reported_failure__src_gcGeomCurveConfig_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0031bd08",
