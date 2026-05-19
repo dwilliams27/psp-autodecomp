@@ -32918,7 +32918,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002c21c",
       "0x0002f960",
@@ -34073,14 +34073,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948",
       "0x0009a774"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSeStandardSpriteMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fSeStandardSpriteMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "6f7accf3",
+        "notes": "Implemented a canonical C++ eStandardSpriteMtl::Apply in the owning TU using a local class redeclaration, texture handle lookup, eVRAMMgr::SetTexture, eTexCoordGen::GetTextureMatrix, and the render-state command emission pattern from nearby standard material Apply functions. The first version compiled to 1728/1760 bytes; forcing the target stack layout with a local stack struct put the matrix at sp+0x10, float temporaries at sp+0x54..0x60, color packing at sp+0x64..0x73, and brought the function to the exact 1760-byte size. Existing matched sibling methods in the file still compare cleanly, except GetType was already a non-target mismatch in the DB.\n\nClosest attempt is exact-size but still 1225/1760 bytes different. The remaining problem is broad register allocation and scheduling drift, not a last-mile branch-likely issue: current code uses different saved-register roles for the render state, this pointer, matrix pointer, constants, and temporary byte/word-count values throughout the function. Tried direct m2c-shaped C, stack-layout forcing, serialized float command writes, duplicate byte masks for the boolean flag paths, and a local padding adjustment. Did not run the permuter because the diff is far above the documented <=30-byte last-mile range.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:50:12Z",
+        "src_file": "src/eStandardSpriteMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/6f7accf3/000323d8__agent_self_reported_failure__src_eStandardSpriteMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00032ab8",
@@ -36397,7 +36411,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -49686,7 +49700,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0005b194",
       "0x0005b768",
@@ -49697,7 +49711,21 @@
       "0x001125f0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPePathControllerGUpdate6KcTimeValuefRC6FmVec3bTC"
+    "mangled_symbol": "__0fPePathControllerGUpdate6KcTimeValuefRC6FmVec3bTC",
+    "failure_notes": [
+      {
+        "session": "bb5e91bc",
+        "notes": "Closest attempt is exact size (528B) under the existing sched=1 TU setting; forcing sched=2 made the diff worse. The remaining compare is 69/528 bytes, mostly instruction scheduling and branch-likely shape rather than missing logic. The implementation matches the handle lookup, cArray empty test, middle return-true epilogue layout, FindClosestPoint/CalcLead/PathT2Units calls, and f24 preservation. Remaining differences include the speed epsilon check compiling as bc1f plus explicit branch instead of the original bc1tl/branch pattern, and the dt scale expression using a temporary FPU register/order different from the original. Tried nested structured control flow, explicit gotos to place the shared return block, sched=2 isolation, memory barrier after FindClosestPoint, f24 register binding for endUnits, and rewriting the step expression.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:09Z",
+        "src_file": "src/ePathController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/bb5e91bc/0005ae94__agent_self_reported_failure__src_ePathController.cpp"
+      }
+    ]
   },
   {
     "address": "0x0005b0a4",
@@ -52711,7 +52739,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00000db0",
       "0x001bbb40",
@@ -52721,7 +52749,21 @@
       "0x00061f9c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeWeatherEffectGUpdate6KcTimeValueRC6FmVec3"
+    "mangled_symbol": "__0fOeWeatherEffectGUpdate6KcTimeValueRC6FmVec3",
+    "failure_notes": [
+      {
+        "session": "063a130c",
+        "notes": "Built a canonical eWeatherEffect::Update(cTimeValue, const mVec3 &) body in src/eWeatherEffect.cpp using scalar C for the trig/random/update logic and scoped inline VFPU for the vector scale/add/wrap operations. The source compiles and all previously matched eWeatherEffect siblings still match, but Update remains a large mismatch: compare_func reports 496/628 differing bytes. The generated function has the right high-level operations but the stack/VFPU shape is wrong: locals start at different stack offsets, the compiler introduces address temporaries for inline VFPU operands, and several VFPU instructions do not line up with the target's direct sp-relative lv.q/sv.q sequence.\n\nTried the m2c-derived expression order, explicit vector locals, and memory-clobbered inline VFPU blocks. The next retry should focus on reproducing the original stack layout exactly (target uses vectors at sp+0x10, +0x20, +0x30, +0x40 with a 0x80 frame) and probably use raw sp-relative VFPU asm/register constraints or compiler-generated V4SF copies rather than operand-addressed inline asm. Also note the random scale constant currently compiles as the nearby 0x2f7fffff value in one attempt; the target uses 0x2f7ffffd.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:12Z",
+        "src_file": "src/eWeatherEffect.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/063a130c/00060dd0__agent_self_reported_failure__src_eWeatherEffect.cpp"
+      }
+    ]
   },
   {
     "address": "0x00061044",
@@ -64513,7 +64555,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001b9780",
@@ -65533,7 +65575,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002e6a8",
       "0x000307ec",
@@ -68314,13 +68356,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeProjectedDynamicMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fUeProjectedDynamicMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "a60263e4",
+        "notes": "Created an isolated split-TU canonical C++ method because the current public header does not declare Apply. Copied the existing eStandardParticleSystemMtl Apply-family semantic pattern, then tried stack-local reordering, explicit sched=1, handle-lookup reshaping to avoid branch-likely null checks, a no-instruction stack pad to match the 96-byte frame, register-pinned mode temporaries, and verbose byte packing/masking for the color command tail. The closest source compiles to the correct 1436-byte size but still differs by 954/1436 bytes.\n\nThe remaining mismatch is broad codegen shape, not a last-mile issue: the compiler still schedules the prologue/handle setup differently, folds the mode command word-count as byte offsets, and emits substantially different state-update ordering in the tail. Diff is far above the <=30-byte permuter threshold, so I did not run the permuter. Next retry should probably start from a more literal m2c/goto reconstruction of the whole function or use a matched sibling once this Apply family has a true byte-exact exemplar.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:46:09Z",
+        "src_file": "src/eProjectedDynamicMtl_Apply.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/a60263e4/00083308__agent_self_reported_failure__src_eProjectedDynamicMtl_Apply.cpp"
+      }
+    ]
   },
   {
     "address": "0x000838a4",
@@ -69217,14 +69273,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0008d948",
       "0x0009a774"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTeRefractionModelMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fTeRefractionModelMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "64ff836f",
+        "notes": "Built a split-TU canonical C++ method because include/eTextureMap.h does not declare Apply and the split-TU rule says not to edit shared headers. The closest attempt follows the matched eStandardGeomTrailMtl/eStandardSpriteMtl Apply pattern: two cHandle lookups via D_00038890, refraction partner texture selection through entry[0x47]&1, eVRAMMgr::SetTexture, eTexCoordGen::GetTextureMatrix, VFPU matrix transform, texture matrix GPU upload, scale-bias update, blend-mode command emission, texture alpha flags, DE000005 primitive type, and alpha-test pair. It compiles cleanly but is 1660B versus the 1680B target.\n\nMain blocker is source shape/register allocation around the VFPU matrix setup and globals. Target uses a 272B frame with s1=sp+0x80, s8=sp+0x40, D_00098428 in s2, D_000984D0 in s4, and raw sv.q/lv.q stack offsets. The attempt uses a 192B frame, keeps D_000984D0 in s1, uses s7 for the matrix pointer, emits branch-likely forms in the handle lookup that the target does not, and stores the VFPU output in the same C array rather than the target's sp+0x80 area. Manual -Xsched=1 produced the same prologue/early lookup as make, so this is not fixed by just changing the scheduler flag for the split TU. A next attempt should probably bind the stack scratch pointers explicitly or move this into a TU shape that can reserve s1/s8 for the two matrix stack bases.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:26Z",
+        "src_file": "src/eRefractionModelMtl_Apply.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/64ff836f/00085954__agent_self_reported_failure__src_eRefractionModelMtl_Apply.cpp"
+      }
+    ]
   },
   {
     "address": "0x00085fe4",
@@ -70347,14 +70417,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948",
       "0x0009a774"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeStandardGeomTrailMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fVeStandardGeomTrailMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "6f7accf3",
+        "notes": "Implemented a canonical C++ eStandardGeomTrailMtl::Apply in the owning TU with local class redeclaration, texture handle lookup, optional texture-coordinate matrix upload from fields 0x6C/0x70, render-state updates, zero color packing, and the geom-trail alpha-state tail. The first version compiled to 1716/1760 bytes; forcing the target stack layout and adding explicit duplicate byte masks brought it to exact 1760-byte size. The surrounding already-matched GeomTrail methods and the colocated Heightmap stubs still compare cleanly.\n\nClosest attempt is exact-size but still 1225/1760 bytes different. The generated control-flow envelope is recognizable, but SNC assigns different saved registers and schedules many blocks differently from the target despite the sched=1 pragma already in this TU. Tried the direct standard-material pattern, explicit stack layout, serialized float command emission, duplicate flag masks, and an alpha-state temporary to reproduce the target tail shape. Did not run the permuter because this is not a last-mile diff; the root issue is broad source/register-shape mismatch across the whole 1760-byte function.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:50:12Z",
+        "src_file": "src/eStandardGeomTrailMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/6f7accf3/00087bd4__agent_self_reported_failure__src_eStandardGeomTrailMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x000882b4",
@@ -70580,13 +70664,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVeStandardHeightmapMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fVeStandardHeightmapMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "dacd2e53",
+        "notes": "Added a C++ Apply body by adapting the existing eStandardParticleSystemMtl render-state pattern and the target disassembly's heightmap-specific constant-color and camera-color command writes. The TU compiles and all previously matched eStandardHeightmapMtl/eStandardParticleSystemMtl siblings in this file still compare cleanly, but Apply is a size mismatch: generated 1664B vs target 1692B. This is not last-mile; do not permute yet.\n\nThe main mismatch is source shape/codegen, not a single branch. Generated code uses a different texture-handle lookup shape with branch-likely instructions and a different mode-command block: it computes byte counts directly instead of carrying word counts through the target's sll path. Stack layout also differs: saved f20/f22 land at 0x38/0x3c instead of target 0x40/0x44, and the float command temporaries are allocated at different offsets. Next retry should first reshape the handle lookup to match the m2c goto-style flow and rewrite the mode switch to preserve the target's t1 word-count variable before worrying about local stack padding.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:44:09Z",
+        "src_file": "src/eStandardHeightmapMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dacd2e53/00088a78__agent_self_reported_failure__src_eStandardHeightmapMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00089114",
@@ -70826,13 +70924,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0faeStandardParticleSystemMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0faeStandardParticleSystemMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "3c036655",
+        "notes": "Implemented eStandardParticleSystemMtl::Apply in C++ from the local eProjectedModelMtl render-state pattern plus the target disassembly. Tried the straightforward projected-material shape, then moved volatile local lifetimes to reproduce the target stack slots, rewrote the mode branch tree with a shared default label, and forced the mode word count through an explicit shift to match the target's sll/addu pointer update. All pre-existing methods in the file still match. Apply remains a size mismatch: target is 1436B and the current symbol is 1388B. The closest attempt now has the texture transform stack slots at 4/8/12/16 and the mode pointer update shape, but still differs in CFG/register allocation around the mode cases, omitted redundant byte-mask operations in later flag updates, and overall frame size (current 80B frame vs target 96B).",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:46:09Z",
+        "src_file": "src/eStandardParticleSystemMtl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/3c036655/00089904__agent_self_reported_failure__src_eStandardParticleSystemMtl.cpp"
+      }
+    ]
   },
   {
     "address": "0x00089ea0",
@@ -71072,13 +71184,27 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZeStandardWeatherEffectMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fZeStandardWeatherEffectMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "a60263e4",
+        "notes": "Created an isolated split-TU canonical C++ method because the current public header does not declare Apply. This function is byte-identical in disassembly to eProjectedDynamicMtl::Apply apart from symbol/address context, so I used the same source pattern and tuning attempts: existing Apply-family semantic copy, stack-local reordering, sched=1 pragma, handle-lookup reshaping, no-instruction stack pad, register-pinned mode temporaries, and verbose color byte packing/masking. The closest source compiles to the correct 1436-byte size but still differs by 954/1436 bytes.\n\nThe unresolved differences mirror the eProjectedDynamicMtl attempt: broad scheduling/register/CFG differences remain across the handle lookup, mode command construction, and render-state tail. This is not a last-mile permuter candidate because the diff is hundreds of bytes. A future retry should share whatever exact reconstruction solves eProjectedDynamicMtl::Apply, since the target bodies are structurally the same.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:46:09Z",
+        "src_file": "src/eStandardWeatherEffectMtl_Apply.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/a60263e4/0008a670__agent_self_reported_failure__src_eStandardWeatherEffectMtl_Apply.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008ac0c",
@@ -71331,14 +71457,28 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0008d948",
       "0x0009a774"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeTwoPassModelMtlFApplyPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fQeTwoPassModelMtlFApplyPC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "dacd2e53",
+        "notes": "Created a split-TU closest attempt because include/eTwoPassModelMtl.h does not declare Apply and the repo's split-TU rule says not to add methods to shared headers. The body reconstructs texture lookup, the pass-mode 1/2 texcoord matrix path using inline VFPU for the vtfm4.q sequence, the default viewport constant path, and the common render-state tail. It compiles, but Apply is a size mismatch: generated 1544B vs target 1584B.\n\nThis attempt is still structural. The target's matrix path relies on exact stack placement at sp+0x00/0x40/0x80 and uses s2/s5 setup in a specific order before eTexCoordGen::GetTextureMatrix; the current C/inline-asm hybrid gets close enough to build but not close enough for a byte diff. The common mode-command block is also the same shortened shape as the heightmap attempt. Next retry should align the stack/register setup around the texcoord matrix call first, then share a corrected mode-state emission shape with eStandardHeightmapMtl.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:44:09Z",
+        "src_file": "src/eTwoPassModelMtl_Apply.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dacd2e53/0008b770__agent_self_reported_failure__src_eTwoPassModelMtl_Apply.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008bda0",
@@ -71523,7 +71663,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002c21c",
       "0x0002d864",
@@ -71539,7 +71679,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeSpriteFilterFApply6IcHandleT76IeTexture_PC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fNeSpriteFilterFApply6IcHandleT76IeTexture_PC6HeCameraPC6GeWorldK",
+    "failure_notes": [
+      {
+        "session": "3c036655",
+        "notes": "Added a canonical C++ eSpriteFilter::Apply attempt using the matched class conventions, handle-table resolution, typed mFrustum/eCamera stack storage, virtual-dispatch entry structs, and inline VFPU only for identity/color vector setup and matrix copies. Existing eSpriteFilter methods still match, but Apply is a size mismatch: target is 1316B and the current symbol is 972B. The implementation is still missing substantial original code shape, especially the exact duplicated handle-resolution/control-flow sequence, stack frame layout, and compiler-generated VFPU scheduling around the 0x3d0/0x410 stack blocks. compare_func also reports an extra weak eSpriteFilter::operator delete symbol; declaring operator delete only suppresses that extra symbol but regresses the already matched destructor from 124B to 92B, so the inline delete body was restored to preserve existing matches.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:46:09Z",
+        "src_file": "src/eSpriteFilter.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/3c036655/0008c07c__agent_self_reported_failure__src_eSpriteFilter.cpp"
+      }
+    ]
   },
   {
     "address": "0x0008c5a0",
@@ -74966,7 +75120,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0001110c",
       "0x000115d0",
@@ -90592,7 +90746,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0001d818",
       "0x00030da8",
@@ -90628,7 +90782,21 @@
       "0x00226d04"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fFgcMapGUpdate6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "64ff836f",
+        "notes": "Implemented a split-TU gcMap::Update(cTimeValue) from disassembly/m2c with local declarations only. The best source compiles to the exact 688B target size and has the correct high-level call order: ProcessQueuedMessages, input/game/core/net updates, map loading handlers, pause handling with controller Evaluate checks, settings/save/weather/decal/timer/cinematic/entity/player updates, active-list cleanup loop, network flush/replicate, audio listener update, eUser update, and boolean return from mFlags. I tried the original time argument for the mid-update block, then the D_00099AF4 global time value, fixed the viewport flag access to base+0x10+0xEC0, and corrected the active-list removal branch to remove inactive entries with the old index.\n\nClosest exact-size variant still differs by 300/688 bytes. The largest drift is register allocation and stack layout rather than missing logic: target has a 384B frame, keeps D_0037D854 in s2 and D_0037D870 in s4, spills D_00099AF4 to sp+4/sp+8 for all mid-update calls, uses listeners at sp+0x10, and returns through s1. The attempt has a 352B frame, keeps the global update time in s3, uses listeners at sp+4, and shifts later globals/registers. A volatile-spill variant did force more stack traffic but became worse (394/688 bytes differ) because SNC placed the spills at high stack offsets and changed live ranges. Diff is not a bnel/beql-only case and is too broad for the permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:26Z",
+        "src_file": "src/gcMap_Update.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/64ff836f/000f364c__agent_self_reported_failure__src_gcMap_Update.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f38fc",
@@ -100198,7 +100366,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0010c494",
       "0x001193e4",
@@ -100210,7 +100378,21 @@
       "0x00153f14"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcEntityControllerGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fSgcEntityControllerGUpdate6KcTimeValue",
+    "failure_notes": [
+      {
+        "session": "063a130c",
+        "notes": "Added gcEntityController::Update(cTimeValue) in canonical C++ form. The current source compiles, keeps all pre-existing gcEntityController matches intact, and now generates the correct 644-byte symbol with the target 0xc0 stack frame. The scratch event object and dt spill array line up with the target stack offsets (scratch at sp+4, event params at sp+0x20, vector ctor area at sp+0x78, dt spills at sp+0x88 and above), and the two gcStateInfo::HandleUpdate calls pass the same stack addresses as the target.\n\nThe remaining mismatch is 246/644 bytes, not a last-mile diff. Main differences are register allocation and branch shape: SNC still keeps the interpolation target pointer in s2/f20-like live state instead of the target's s3 plus reload pattern, and the state-info guard branches compile as beqzl/bltzl shapes with different skip distances than the original beqz/beqzl/bgezl sequence. Tried plain if/else, goto-shaped guard blocks, explicit volatile dt spills, a top-level scratch object, and a volatile dtSaves array. The closest attempt is the current one; a future retry should concentrate on the first interpolation block's register allocation and the two state guard CFGs before using the permuter.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:12Z",
+        "src_file": "src/gcEntityController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/063a130c/00110e70__agent_self_reported_failure__src_gcEntityController.cpp"
+      }
+    ]
   },
   {
     "address": "0x001110f4",
@@ -125990,7 +126172,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002ff44",
       "0x00030050",
@@ -127724,7 +127906,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000385ec",
       "0x00038a74",
@@ -219568,7 +219750,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00108d04",
       "0x0012c580",
@@ -219576,7 +219758,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcDoTimerActivateIEvaluatevK"
+    "mangled_symbol": "__0fRgcDoTimerActivateIEvaluatevK",
+    "src_file": "src/gcDoTimerActivate.cpp",
+    "symbol_name": "__0fRgcDoTimerActivateIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ecb61714",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:56:44Z"
   },
   {
     "address": "0x003080d0",
@@ -219801,7 +219991,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00108d04",
       "0x0012d5b0",
@@ -219809,7 +219999,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcDoTriggerActivateIEvaluatevK"
+    "mangled_symbol": "__0fTgcDoTriggerActivateIEvaluatevK",
+    "src_file": "src/gcDoTriggerActivate.cpp",
+    "symbol_name": "__0fTgcDoTriggerActivateIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "ecb61714",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:56:44Z"
   },
   {
     "address": "0x00308b38",
@@ -232027,7 +232225,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011d8c0"
     ],
@@ -247192,7 +247390,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x00038ce8",
@@ -247203,7 +247401,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValUITexCoordDSetf"
+    "mangled_symbol": "__0fPgcValUITexCoordDSetf",
+    "failure_notes": [
+      {
+        "session": "bb5e91bc",
+        "notes": "Closest attempt is a C++ implementation in the canonical class file. It matches the type-initialization prologue, stack frame size, eSprite GetTexCoord ABI via symbol-bound C wrappers, and the component switch stack slots. Current compare is still a size mismatch: target 748B, generated 740B. The remaining gap is in control/register scheduling around the sprite handle lookup and blended tex-value handoff: original reloads the handle into s1 and uses bnez with andi in the delay slot, then carries the blended value through f12/f20; current source keeps the handle in a0 and carries texValue in f22. Tried return-by-value GetTexCoord declarations, explicit wrappers, volatile handle storage, swapped coord locals, component branch reorder, memory barrier after blend, and fixed FPU register variables.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:53:09Z",
+        "src_file": "src/gcValUITexCoord.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/bb5e91bc/00366c90__agent_self_reported_failure__src_gcValUITexCoord.cpp"
+      }
+    ]
   },
   {
     "address": "0x00366f7c",

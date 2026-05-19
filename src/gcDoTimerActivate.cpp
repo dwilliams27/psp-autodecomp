@@ -9,6 +9,26 @@ class cFile;
 class cFileHandle;
 class cReadBlock;
 class cType;
+class gcDesiredTimer;
+
+class gcTimer {
+public:
+    void Activate(bool, bool);
+};
+
+class gcDesiredTimerHelper : public gcTimer {
+};
+
+template <class T, class H, class O>
+class gcDesiredObjectT {
+public:
+    H *Get(bool) const;
+};
+
+class gcNetGame {
+public:
+    static int HasFullAuthority(void);
+};
 
 class cMemPool {
 public:
@@ -106,6 +126,7 @@ public:
     void GetText(char *) const;
     int Read(cFile &, cMemPool *);
     void Write(cFile &) const;
+    float Evaluate(void) const;
     ~gcDoTimerActivate(void);
     static void operator delete(void *);
 };
@@ -243,6 +264,23 @@ int gcDoTimerActivate::Read(cFile &file, cMemPool *pool) {
     *(char *)((char *)this + 0x21) = paused != 0;
     __0oKcReadBlockdtv(rb, 2);
     return result;
+}
+
+// 0x00308058 - gcDoTimerActivate::Evaluate(void) const
+float gcDoTimerActivate::Evaluate(void) const {
+    gcDesiredTimerHelper *timer;
+    if (gcNetGame::HasFullAuthority() != 0) {
+        timer = ((const gcDesiredObjectT<gcDesiredTimer, gcDesiredTimerHelper, gcTimer> *)((const char *)this + 0x0C))->Get(true);
+        if (timer != 0) {
+            goto activate;
+        }
+        return 0.0f;
+    }
+    return 0.0f;
+activate:
+    timer->Activate(*(const bool *)((const char *)this + 0x20),
+                    *(const bool *)((const char *)this + 0x21));
+    return 1.0f;
 }
 
 // 0x003080d0 - gcDoTimerActivate::GetText(char *) const

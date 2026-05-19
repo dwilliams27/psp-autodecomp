@@ -7,6 +7,26 @@
 class cBase;
 class cFile;
 class cType;
+class gcDesiredTrigger;
+
+class gcTrigger {
+public:
+    void Activate(bool);
+};
+
+class gcDesiredTriggerHelper : public gcTrigger {
+};
+
+template <class T, class H, class O>
+class gcDesiredObjectT {
+public:
+    H *Get(bool) const;
+};
+
+class gcNetGame {
+public:
+    static int HasFullAuthority(void);
+};
 
 class cMemPool {
 public:
@@ -90,6 +110,7 @@ public:
     const cType *GetType(void) const;
     void GetText(char *) const;
     void Write(cFile &) const;
+    float Evaluate(void) const;
     ~gcDoTriggerActivate(void);
     static void operator delete(void *);
 };
@@ -188,6 +209,22 @@ void gcDoTriggerActivate::Write(cFile &file) const {
 
     wb.Write(*(const bool *)((char *)this + 0x20));
     wb.End();
+}
+
+// ── gcDoTriggerActivate::Evaluate @ 0x00308ac0 ──
+float gcDoTriggerActivate::Evaluate(void) const {
+    gcDesiredTriggerHelper *trigger;
+    if (gcNetGame::HasFullAuthority() != 0) {
+        trigger = ((const gcDesiredObjectT<gcDesiredTrigger, gcDesiredTriggerHelper, gcTrigger> *)((const char *)this + 0x0C))->Get(true);
+        if (trigger != 0) {
+            goto activate;
+        }
+        return 0.0f;
+    }
+    return 0.0f;
+activate:
+    trigger->Activate(*(const bool *)((const char *)this + 0x20));
+    return 1.0f;
 }
 
 // ── gcDoTriggerActivate::GetText @ 0x00308b38 ──
