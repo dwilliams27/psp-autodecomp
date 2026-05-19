@@ -37279,7 +37279,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x001ad668"
     ],
@@ -37287,7 +37287,21 @@
       "0x0003a768"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5OeInputJoystickLeInputStateFResetv"
+    "mangled_symbol": "__0f5OeInputJoystickLeInputStateFResetv",
+    "failure_notes": [
+      {
+        "session": "4117c8bd",
+        "notes": "The body is a same-size near match after copying the eInputMouse/eInputKeyboard Reset pattern, adding the required volatile stack-zero stores, keeping the boolean one in a1, and using a struct-based final float loop so SNC emits swc1 offset(a0). Current compare is 10/160 bytes different. The remaining mismatch is prologue scheduling/register save placement only: generated code saves ra at 8(sp) before move s0,a0 and move a1,zero, while the target saves s0 at 4(sp), moves s0/a1, then saves ra at 8(sp). The stack-zero stores and reset body otherwise match the intended instruction sequence.\n\nTried sched=1, moving the volatile stack temp before and after memset, using a non-volatile stack temp with memory asm, and several source-order changes. A 600s permuter run generated 5816 candidates, compiled 3049, and found no improvement over the 10-byte baseline. This looks like a narrow SNC scheduling/register-allocation drift around the prologue rather than a semantic source issue, but it does not meet the branch-likely unmatchable criteria.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:07:56Z",
+        "src_file": "src/eInputJoystick_eInputState.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/4117c8bd/0003b09c__agent_self_reported_failure__src_eInputJoystick_eInputState.cpp"
+      }
+    ]
   },
   {
     "address": "0x0003b13c",
@@ -79785,7 +79799,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00238fcc"
     ],
@@ -91926,7 +91940,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002eff8",
       "0x000e0520",
@@ -126576,7 +126590,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0000242c",
       "0x00005458",
@@ -126590,7 +126604,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGameFWriteR6FcFileK"
+    "mangled_symbol": "__0fGgcGameFWriteR6FcFileK",
+    "failure_notes": [
+      {
+        "session": "4117c8bd",
+        "notes": "Built a split-TU C++ implementation using the gcMap::Write/cFactory::Write patterns: cWriteBlock(file, 0x26), cFactory::Write, WriteGroups, the three dynamic arrays, fixed GUID/handle fields, cBaseArray, all type-dispatch writes, and End(). The closest attempt compiles cleanly but is 1884B versus the 1900B target. Most of the body shape matches the disassembly; the shortfall is concentrated in the three dynamic-array loops, where original SNC initializes the loop pointer through an explicit base+0 add before the first element write, while this source folds that initialization to a move and keeps different live registers.\n\nTried typed pointer iteration, byte-offset iteration, explicit offset initialization, and an empty register barrier on the offset. Byte-offset iteration with a live offset forced extra saved registers and a larger frame, so the closest source keeps typed pointer iteration. Next retry should focus on reproducing the array loop entry sequence at offsets 0x90/0x128/0x718 without increasing the frame: preserve the array base in a0/s4 and synthesize the base+0 add only once before the do loop.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:07:56Z",
+        "src_file": "src/gcGame_Write.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/4117c8bd/0016b9d4__agent_self_reported_failure__src_gcGame_Write.cpp"
+      }
+    ]
   },
   {
     "address": "0x0016c140",
@@ -205234,7 +205262,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -205242,7 +205270,14 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oVgcDoEntitySendMessagedtv"
+    "mangled_symbol": "__0oVgcDoEntitySendMessagedtv",
+    "src_file": "src/gcDoEntitySendMessage_dtor.cpp",
+    "symbol_name": "__0oVgcDoEntitySendMessagedtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "63e64e13",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T05:08:10Z"
   },
   {
     "address": "0x002c2298",
@@ -210844,7 +210879,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
@@ -212458,14 +212493,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x0012f4e4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOgcDoObjectLoaddtv"
+    "mangled_symbol": "__0oOgcDoObjectLoaddtv",
+    "src_file": "src/gcDoObjectLoad_dtor.cpp",
+    "symbol_name": "__0oOgcDoObjectLoaddtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "63e64e13",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T05:08:10Z"
   },
   {
     "address": "0x002ec170",
@@ -238614,7 +238656,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
