@@ -1,5 +1,18 @@
-#include "gcDoUserOp.h"
 #include "cBase.h"
+
+class cMemPool;
+class cFile;
+class cType;
+
+class gcDoUserOp {
+public:
+    static cBase *New(cMemPool *, cBase *);
+    static void operator delete(void *);
+    const cType *GetType(void) const;
+    float Evaluate(void) const;
+    ~gcDoUserOp(void);
+    void Write(cFile &) const;
+};
 
 class cType {
 public:
@@ -20,6 +33,17 @@ public:
 class gcDesiredValue {
 public:
     void Write(cWriteBlock &) const;
+};
+
+struct gcDoUserOp_EvalSlot {
+    short adj;
+    short pad;
+    float (*fn)(const void *);
+};
+
+class eUser {
+public:
+    static void SignIn(unsigned short);
 };
 
 void gcAction_Write(const gcDoUserOp *, cFile &);
@@ -100,6 +124,66 @@ const cType *gcDoUserOp::GetType(void) const {
             0, 0, 0x288, type_action, gcDoUserOp::New, 0, 0, 0);
     }
     return type_gcDoUserOp;
+}
+
+float gcDoUserOp::Evaluate(void) const {
+    float zero = 0.0f;
+    int mode = *(int *)((char *)this + 0xC);
+
+    switch (mode) {
+    case 0: {
+        int val = *(int *)((char *)this + 0x10);
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        const void *ptr;
+        if (flag != 0) {
+            ptr = 0;
+        } else {
+            ptr = (const void *)val;
+        }
+
+        int user;
+        const void *check = ptr;
+        if (check != 0) {
+            gcDoUserOp_EvalSlot *slot =
+                (gcDoUserOp_EvalSlot *)(*(char **)((const char *)check + 4) + 0x70);
+            user = (int)slot->fn((const char *)ptr + slot->adj);
+        } else {
+            user = (int)zero;
+        }
+        eUser::SignIn((unsigned short)user);
+        break;
+    }
+    case 1: {
+        int val = *(int *)((char *)this + 0x10);
+        int flag = 0;
+        if (val & 1) {
+            flag = 1;
+        }
+        const void *ptr;
+        if (flag != 0) {
+            ptr = 0;
+        } else {
+            ptr = (const void *)val;
+        }
+
+        int user;
+        const void *check = ptr;
+        if (check != 0) {
+            gcDoUserOp_EvalSlot *slot =
+                (gcDoUserOp_EvalSlot *)(*(char **)((const char *)check + 4) + 0x70);
+            user = (int)slot->fn((const char *)ptr + slot->adj);
+        } else {
+            user = (int)zero;
+        }
+        user = user & 0xFFFF;
+        *(unsigned short *)0x37D2FA = (unsigned short)(user & 0xFFFF);
+        break;
+    }
+    }
+    return zero;
 }
 
 void *cMemPool_GetPoolFromPtr(const void *);

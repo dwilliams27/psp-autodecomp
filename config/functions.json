@@ -187937,7 +187937,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -187954,7 +187954,21 @@
       "0x00360838"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_DGetb_P9DAK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_DGetb_P9DAK",
+    "failure_notes": [
+      {
+        "session": "e44c2c37",
+        "notes": "Implemented a canonical split-TU template instantiation for gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate>::Get(bool) with the correct SNC symbol after switching the template return convention back to the third template parameter. Tried the straightforward sibling pattern (808B), then added explicit object fields, volatile bool-byte saves, and the tagged-handle barrier idiom from the parallel point/custom-attack attempts; that improved the emitted symbol to 816B but still misses the 840B target. The current source compiles and emits the right mangled symbol, but compare_func reports SIZE MISMATCH: sym is 816B vs target 840B.\n\nI also tested a sched=1 pragma and an absolute-lvalue cache variant for D_000385DC/D_000385E0/D_000385E4/D_0009F494. sched=1 worsened the byte diff. The absolute-cache variant reached 840B but produced a 481/840-byte mismatch by adding address-materialization noise, so I reverted to the relocation-based extern cache style. Root cause appears to be SNC register/lifetime shape: the target keeps the object in a2 until the adjusted self is computed, uses s8 pressure, and emits a branch-likely load for the method table; current source promotes the object/self into callee-save registers earlier and saves only through s7, leaving the function 24B short.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:04:48Z",
+        "src_file": "src/gcDesiredTableTemplateHelpergcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e44c2c37/002744e8__agent_self_reported_failure__src_gcDesiredTableTemplateHelpergcDesiredObjectTgcDesiredTableTemplategcDesiredTableTemplateHelpergcTableTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00274830",
@@ -188329,7 +188343,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -188339,7 +188353,21 @@
       "0x00308058"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_DGetb_P9DAK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_DGetb_P9DAK",
+    "failure_notes": [
+      {
+        "session": "e44c2c37",
+        "notes": "Implemented the timer variant with the same split-TU template shape, D_0009F49C cache, type id 0xDD, gcTimer::New, strings 0x36D9E0/0x36D9E8, and final InitializeType arg 4. The initial helper-return declaration emitted the wrong mangled return encoding (P9CAK); switching Get and the vtable method pointer back to the third template parameter emitted the expected P9DAK symbol. The straightforward sibling pattern emitted 808B, and the field-layout plus volatile bool-spill/tagged-handle barrier variant now emits 816B.\n\nCurrent compare_func result is SIZE MISMATCH: sym is 816B vs target 840B. This appears to be the same codegen problem as the table-template variant rather than a timer-specific type-data issue: the target uses an extra callee-save/s8-shaped allocation and branch-likely method-table load sequence, while the current source still promotes object/self into earlier callee-save registers and compiles short. I did not run the permuter because the best generated symbol is not target-sized and the exact-size absolute-cache experiment on the table-template sibling produced a large non-last-mile mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:04:48Z",
+        "src_file": "src/gcDesiredTimerHelpergcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e44c2c37/00275f84__agent_self_reported_failure__src_gcDesiredTimerHelpergcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
+      }
+    ]
   },
   {
     "address": "0x002762cc",
@@ -188755,7 +188783,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0012512c"
@@ -188765,7 +188793,21 @@
       "0x00308ac0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_DGetb_P9DAK"
+    "mangled_symbol": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_DGetb_P9DAK",
+    "failure_notes": [
+      {
+        "session": "26272b4b",
+        "notes": "Implemented a split-TU canonical C++ template instantiation for gcDesiredObjectT<gcDesiredTrigger, gcDesiredTriggerHelper, gcTrigger>::Get(bool), following the existing Point/Timer desired-object Get pattern, using the trigger type chain D_000385DC/D_000385E0/D_000385E4/D_0009F4A4 and the direct-object vtable slot at +0x70. Corrected the return template parameter to T3 so the emitted mangled symbol matches the DB target (__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_DGetb_P9DAK); the first attempt in the existing matched GetText/GetDesiredType TU was removed because it would risk matched sibling churn.\n\nClosest attempt is still a size mismatch: target is 840B, current emits 820B. Tried field-based and raw-offset object/primary/handle accesses, sched=1, and a forced register variable/barrier intended to reproduce the original's s8 lifetime. SNC still keeps the object/self path in s6 and does not emit the target's s8 save/restore or the same type-initialization register allocation. This looks like source-shape/register-allocation drift, not bnel/unmatchable criteria.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:10:15Z",
+        "src_file": "src/gcDesiredTriggerHelpergcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/26272b4b/0027804c__agent_self_reported_failure__src_gcDesiredTriggerHelpergcDesiredObjectTgcDesiredTriggergcDesiredTriggerHelpergcTrigger.cpp"
+      }
+    ]
   },
   {
     "address": "0x00278394",
@@ -197162,7 +197204,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00001528",
       "0x00001618",
@@ -197172,7 +197214,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcUIControlStringDGetPwiK"
+    "mangled_symbol": "__0fRgcUIControlStringDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "26272b4b",
+        "notes": "Added gcUIControlString::Get(wchar_t *, int) const in canonical C++ form using the existing type-init chain from Set(), gcDesiredUIWidgetHelper::GetWidget(D_0009F410, true), the mField14==1 selected-string-array path, and the string-table handle path through D_00038890 plus gcStringTable::GetSubObject. The call to GetSubObject uses an explicit declaration of the real mangled symbol so the local subhandle is stored on the stack and passed by address without emitting standalone cSubHandleT constructor/destructor symbols.\n\nClosest attempt is exact size but not exact bytes: compare_func reports 154/860 bytes different. Earlier variants were 840B and 844B; restructuring the selected-array path and subhandle load reached 860B. Remaining differences are mostly register/branch-shape choices in the handle resolution blocks: current keeps the resolved table in a1 where the target uses a0, has a different GetSubObject setup sequence, and uses s3 as the final D0-array count flag where the target uses a1/a2. This is not a last-mile permuter case yet because the byte diff is far above the <=30B threshold.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:10:15Z",
+        "src_file": "src/gcUIControlString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/26272b4b/0028f748__agent_self_reported_failure__src_gcUIControlString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028faa4",
@@ -200455,13 +200511,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0009aa94"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoDecalSpawnIEvaluatevK"
+    "mangled_symbol": "__0fOgcDoDecalSpawnIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "69934a88",
+        "notes": "Implemented gcDoDecalSpawn::Evaluate with the expression-eval stack lookup at 0x37D7B4, OCS extraction from frame+0x10, map lookup at 0x37D7FC, decal-system load from map+0x1FC, desired-value tagged-pointer evaluation, and raw-byte SpawnDecal call to avoid bool normalization. Existing matched methods in gcDoDecalSpawn.cpp still compare as matched. The closest current source compiles to 280B versus the 284B target; the remaining size gap is the map-null branch shape. Original uses bnezl on the map pointer with lw system in the delay slot, then an explicit branch to the shared 1.0f return for the null case. SNC keeps compiling the C++ if/goto variants to the shorter beqz form with the 1.0f lui in the delay slot.\n\nTried extern-global and literal-address global loads, method and raw extern SpawnDecal calls, nullable system checks, map-only checks, early return and shared return shapes, goto-shaped map branches, separate int/char pointer forms for the desired value, inverted pointer assignment, and sched=1. The raw-byte call fixes the active flag normalization; the int pointer form keeps folded vtable loads. The remaining problem is source-shaping SNC into the original branch-likely map idiom plus the exact register choices, so this is not suitable for permuter last-mile yet.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:10:42Z",
+        "src_file": "src/gcDoDecalSpawn.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/69934a88/0029dff0__agent_self_reported_failure__src_gcDoDecalSpawn.cpp"
+      }
+    ]
   },
   {
     "address": "0x0029e10c",
@@ -206264,7 +206334,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00008afc",
       "0x00110738",
@@ -207561,7 +207631,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00115760",
       "0x00115874",
@@ -207570,7 +207640,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerIEvaluatevK"
+    "mangled_symbol": "__0fegcDoEntitySetPrimaryControllerIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "69934a88",
+        "notes": "Implemented the canonical C++ method body using the matched class layout: gcDesiredEntity::Get(true), IsLocallyControlled gate, field_3D choosing SetPreviousPrimaryController, and desired-value tagged-pointer evaluation followed by truncation for SetPrimaryController. Existing matched siblings in the same file continue to compare as matched. The current Evaluate symbol is exact size (280B), but compare_func reports a broad mismatch (158/280 bytes). Objdump shows the main drift is register allocation/control shape: generated code keeps the Get result/final entity in s2/s1 while the original uses s1/s2, schedules the Get(true) argument in the jal delay slot instead of before the call, and differs in the desired-value branch/register sequence around the trunc.w.s/mfc1 and final SetPrimaryController call.\n\nTried the exemplar tagged-pointer pattern, inverted field_3D branch to produce the expected beqzl load of offset 0x38, raw-byte extern wrappers for the bool callees to avoid unwanted bool normalization, separate int pointer variants, inverted pointer assignment, an explicit local-register constraint variant, and sched=1. The register-constraint and sched=1 variants were worse; current source is the closest exact-size semantic attempt. Diff is not a last-mile <=30B case, so the permuter was not applicable.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:10:42Z",
+        "src_file": "src/gcDoEntitySetPrimaryController.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/69934a88/002cad28__agent_self_reported_failure__src_gcDoEntitySetPrimaryController.cpp"
+      }
+    ]
   },
   {
     "address": "0x002cae40",
@@ -211547,7 +211631,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a54fc"
     ],
@@ -214195,7 +214279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011d8c0",
       "0x0011f3b0"
@@ -214418,7 +214502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -223481,13 +223565,21 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00060450"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcDoUserOpIEvaluatevK"
+    "mangled_symbol": "__0fKgcDoUserOpIEvaluatevK",
+    "src_file": "src/gcDoUserOp.cpp",
+    "symbol_name": "__0fKgcDoUserOpIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a9510a65",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:11:57Z"
   },
   {
     "address": "0x00317380",
@@ -232228,7 +232320,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0001fce4",
       "0x0011d8c0"
@@ -239849,7 +239941,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x001a54fc"
     ],
@@ -240497,7 +240589,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000569a0",
       "0x00056a1c",
@@ -243907,7 +243999,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000015cc",
       "0x000016a8"
@@ -245464,14 +245556,22 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcValUIEnabledIEvaluatevK"
+    "mangled_symbol": "__0fOgcValUIEnabledIEvaluatevK",
+    "src_file": "src/gcValUIEnabled.cpp",
+    "symbol_name": "__0fOgcValUIEnabledIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a9510a65",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:11:57Z"
   },
   {
     "address": "0x003623a4",

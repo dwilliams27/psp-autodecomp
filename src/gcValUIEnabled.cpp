@@ -90,6 +90,7 @@ public:
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
     void GetText(char *) const;
+    float Evaluate(void) const;
     void Set(float);
     void AssignCopy(const cBase *);
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -241,6 +242,42 @@ void gcValUIEnabled::Set(float value) {
         }
         slot->fn(adjusted, (unsigned char)enabled);
     }
+}
+
+// ── gcValUIEnabled::Evaluate(void) const @ 0x0036225c ──
+float gcValUIEnabled::Evaluate(void) const {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 8);
+
+    if (type_gcUIWidget == 0) {
+        if (type_named == 0) {
+            if (type_base == 0) {
+                type_base = cType::InitializeType((const char *)0x36D894,
+                                                  (const char *)0x36D89C,
+                                                  1, 0, 0, 0, 0, 0);
+            }
+            type_named = cType::InitializeType(
+                0, 0, 2, type_base,
+                (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+        }
+        type_gcUIWidget = cType::InitializeType(0, 0, 0x84, type_named,
+                                                0, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(type_gcUIWidget, true);
+    if (widget == 0) {
+        return 0.0f;
+    }
+
+    unsigned int enabled = *(unsigned int *)((char *)widget + 0x24);
+    enabled = enabled & 0x10000000;
+    float result;
+    if ((unsigned char)(enabled != 0) != 0) {
+        result = 1.0f;
+    } else {
+        result = 0.0f;
+    }
+    return result;
 }
 
 // ── gcValUIEnabled::~gcValUIEnabled(void) @ 0x003625b0 ──
