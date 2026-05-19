@@ -70,6 +70,8 @@ public:
 };
 
 class gcDesiredEntity : public gcDesiredObject {
+public:
+    void *Get(bool) const;
 };
 
 class gcValue {
@@ -84,6 +86,7 @@ public:
     const cType *GetType(void) const;
     void Write(cFile &) const;
     int Read(cFile &, cMemPool *);
+    float Evaluate(void) const;
     void GetText(char *) const;
 };
 
@@ -195,6 +198,18 @@ success:
         ((ReadFn)e->fn)(base + e->offset, rb.file, cMemPool::GetPoolFromPtr(base));
     }
     return result;
+}
+
+// 0x00332768 (104B) — Evaluate
+float gcValEntityIsActive::Evaluate(void) const {
+    void *entity = ((const gcDesiredEntity *)((const char *)this + 8))->Get(true);
+    if (entity == 0) {
+        return 0.0f;
+    }
+    if (((*(unsigned int *)((char *)entity + 0x5C) & 2) != 0) & 0xFF) {
+        return 1.0f;
+    }
+    return 0.0f;
 }
 
 // 0x003327d0 (80B) — GetText
