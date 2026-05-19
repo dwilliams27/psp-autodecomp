@@ -40436,7 +40436,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x00043b30",
@@ -40445,7 +40445,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeStaticModelECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK"
+    "mangled_symbol": "__0fMeStaticModelECullUiRC6HeCameraRC6ImFrustumP6LeCameraBinsTBiPC6IcHandleT76JeMaterial_fK",
+    "failure_notes": [
+      {
+        "session": "b8575cc4",
+        "notes": "Read the existing eStaticModel.cpp/eStaticModel_CastSphere.cpp patterns plus docs/research/snc-struct-vfpu-codegen.md, docs/research/snc-branch-likely.md, and docs/research/snc-delay-slots.md. I also reran tools/decompile_func.py for 0x000427a0. The m2c output is not a compilable starting point: it has unset incoming t0/t1/t2/t3 parameters, unresolved M2C_ERROR expressions inside the VFPU frustum transform, and placeholder function signatures for AddDrawInfos/CullLOD that do not preserve the real argument/register layout.\n\nNo source was added for this target because a no-op or partial stub would only add a misleading symbol and would not help the next retry. The next useful attempt should first reconstruct the call signature and stack argument mapping for the 8-argument Cull ABI, then model the VFPU plane transform block using repo-native V4SF/inline VFPU patterns. Sched=2 should be tried first per metadata; sched=1 remains a plausible follow-up only after a structurally correct C body exists.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:18:11Z",
+        "src_file": "src/eStaticModel.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b8575cc4/000427a0__agent_self_reported_failure__src_eStaticModel.cpp"
+      }
+    ]
   },
   {
     "address": "0x00042f60",
@@ -42041,7 +42055,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -42052,7 +42066,15 @@
       "0x0017179c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oNeDynamicModeldtv"
+    "mangled_symbol": "__0oNeDynamicModeldtv",
+    "src_file": "src/eDynamicModel_dtor.cpp",
+    "symbol_name": "__0oNeDynamicModeldtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "a292cbed",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T09:43:00Z"
   },
   {
     "address": "0x00047a00",
@@ -75218,7 +75240,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0001110c",
       "0x000115d0",
@@ -75228,7 +75250,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeDynamicModelEDrawRC6JeDrawInfoK"
+    "mangled_symbol": "__0fNeDynamicModelEDrawRC6JeDrawInfoK",
+    "failure_notes": [
+      {
+        "session": "c41fbb9f",
+        "notes": "Created a split-TU eDynamicModel::Draw attempt because include/eDynamicModel.h does not declare Draw and the repo split-TU rule forbids editing headers for new methods. The first source variant compiled to 1900B; after correcting the dynamic draw vtable signature to pass type in a3, scale in f12, and color in t0, and after replacing the D_000984D0 overlay with explicit +0x08 command-ptr and +0x10 dynamic-chunk-index access, the symbol improved to 1924B vs the 1980B target.\n\nThe attempt still has a smaller 0x80 stack frame while the target uses 0x90, and the early handle-resolution/material path differs in register scheduling and saved local placement. No permuter was run because the symbol is still not same-size. A next retry should preserve the split-TU file but restructure the top of the function to match the target stack locals at sp+0x20..0x54 and keep the two material loops closer to the m2c ordering, especially the duplicated fog/material-scale command emission blocks.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T09:31:33Z",
+        "src_file": "src/eDynamicModel_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/c41fbb9f/000a8328__agent_self_reported_failure__src_eDynamicModel_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x000a8ae4",
@@ -75329,7 +75365,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000026dc",
       "0x00002724",
@@ -75347,7 +75383,21 @@
       "0x000527b0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeHeightmapMPlatformReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fKeHeightmapMPlatformReadR6FcFileP6IcMemPool",
+    "failure_notes": [
+      {
+        "session": "9fc89627",
+        "notes": "Created split TU src/eHeightmap_PlatformRead.cpp because include/eHeightmap.h does not declare PlatformRead and the split-TU rule says not to add shared header methods. The attempt implements the real cMemBlockSuspend/cReadBlock flow, GUID pool lookup for 0x812D2B72/0xB1E8A1F9, eHeightmapData allocation/construction, triangle-buffer allocation/read, cArray<cHandleT<eMaterial> >::Read, tile-count allocation, and the per-tile BuildTileDisplayList loop. The current source compiles to the correct mangled symbol but is 1160B versus the 1188B target.\n\nTried adding an explicit frame pad to move cMemBlockSuspend to sp+8 and cReadBlock to sp+0x0C, and changed the bool test to the target lb/beqz shape. That fixed the basic stack-object offsets and GUID constant materialization, but saved-register offsets are still 4 bytes low, the one-byte present flag is at sp+0x3C instead of target sp+0x148, and long-lived registers differ through the allocation and tile loop. This is a source-shape/register-allocation miss, not a last-mile permuter candidate while the symbol size differs by 28 bytes.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:24:51Z",
+        "src_file": "src/eHeightmap_PlatformRead.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/9fc89627/000aa274__agent_self_reported_failure__src_eHeightmap_PlatformRead.cpp"
+      }
+    ]
   },
   {
     "address": "0x000aa718",
@@ -108131,7 +108181,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x0011d8c0",
@@ -108149,7 +108199,21 @@
       "0x0033582c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDesiredEntityTemplateDGetbK"
+    "mangled_symbol": "__0fXgcDesiredEntityTemplateDGetbK",
+    "failure_notes": [
+      {
+        "session": "318fd751",
+        "notes": "Implemented gcDesiredEntityTemplate::Get(bool) in the canonical class file with the three observed paths: direct desired entity at +0x14 resolved through gcDesiredEntity::Get(true) and D_00038890, virtual desired-object dispatch through vtable slot 0x70, and gcDesiredObjectHelper::GetDesiredObject for the handle fallback. The desired gcEntityTemplate type initialization is inlined in both non-direct paths using the same D_000385DC/D_000385E0/D_000385E4/D_0009F448 chain as GetDesiredType. The new function compiles; pre-existing Read/AssignCopy mismatches in this file remain unrelated.\n\nClosest attempt is 1048B versus the 1064B target. The generated code uses a 48-byte frame and keeps the bool in s6, while the target uses a 64-byte frame, keeps the bool in s0, stores temporary bool/handle values at sp+0x0c/sp+0x0d/sp+0x00, and delays loading D_0009F448 until after the direct desired-entity path. The missing 16 bytes appear to come from those stack temporaries and different hoisting/register allocation; not a branch-likely divergence and not suitable for permuter because the symbol size still differs.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:20:18Z",
+        "src_file": "src/gcDesiredEntityTemplate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/318fd751/00127d98__agent_self_reported_failure__src_gcDesiredEntityTemplate.cpp"
+      }
+    ]
   },
   {
     "address": "0x001281c0",
@@ -127666,7 +127730,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -127675,7 +127739,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oIgcEntitydtv"
+    "mangled_symbol": "__0oIgcEntitydtv",
+    "failure_notes": [
+      {
+        "session": "b8575cc4",
+        "notes": "Created a split-TU canonical C++ destructor with local gcEntity redeclaration and class-local operator delete to avoid modifying include/gcEntity.h. The source follows the disassembly: vtable reset, global active-list cleanup, linked-list unlink, owned object virtual destructors for +0x1E0/+0x1E8, pool frees for +0x1F8 and nested cArray data at +0x20C/+0x208/+0x200/+0x1FC, cBaseArray::RemoveAll calls, eDynamicModel::~eDynamicModel(+0x80,2), cObject::~cObject(this,0), and the deleting-destructor tail. It compiles cleanly and emits __0oIgcEntitydtv at the expected size, but compare_func still reports 1225/1764 differing bytes.\n\nTried a first direct while/slot-pointer form, then reshaped the +0x1E0/+0x1E8 loops to reload the array count each iteration and recompute the store slot after the virtual destructor call, matching the exemplar pattern more closely. That fixed some callee-save allocation around the later cBaseArray blocks, but the owned-object loops still keep the array data in a2 and insert an extra move versus the original, which keeps data in a1/count in a0/object in a0. Register pinning on the loaded object did not affect SNC. Current hypothesis: this needs more source-shape work specifically to reproduce the cArray owned-object loop register lifetimes before the rest of the destructor can align; not a bnel/unmatchable case.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:18:11Z",
+        "src_file": "src/gcEntity_dtor.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b8575cc4/0017179c__agent_self_reported_failure__src_gcEntity_dtor.cpp"
+      }
+    ]
   },
   {
     "address": "0x00171e80",
@@ -128032,7 +128110,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000385ec",
       "0x00038a74",
@@ -128043,7 +128121,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcUIControlEDrawRC6HeCameraRC6EmOCSRC6FeRectTDfNCFUi"
+    "mangled_symbol": "__0fLgcUIControlEDrawRC6HeCameraRC6EmOCSRC6FeRectTDfNCFUi",
+    "failure_notes": [
+      {
+        "session": "c41fbb9f",
+        "notes": "Added a canonical gcUIControl::Draw body by copying the matched gcUIWidgetGroup::Draw flag/screen-position/MouseOver/DrawResizable pattern and filling in the control-specific eSprite path from disassembly. Existing gcUIControl siblings still compare MATCH, and the closest Draw attempt compiles to the correct 0x150 stack frame but is 1876B vs the 1880B target. The current source uses the closest variant; an alternate local-order/source-order variant reduced size to 1856B, so it was reverted.\n\nThe remaining mismatch is not last-mile-permutable because symbol size still differs. Main divergence is SNC register/local allocation around float parameter preservation and screen-position locals: target keeps alpha in f20, angle in f30, scale in f22 and lays the screen outputs at sp+0x10/0x18/0x20/0x28, while the closest source still allocates different FPRs/locals. Read snc-fpu-scheduling, snc-struct-vfpu-codegen, snc-branch-likely, and snc-delay-slots before editing; likely next lever is rewriting the early float/source variable order to force f30 and the exact local layout without perturbing the matched sibling methods.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T09:31:33Z",
+        "src_file": "src/gcUIControl.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/c41fbb9f/00179188__agent_self_reported_failure__src_gcUIControl.cpp"
+      }
+    ]
   },
   {
     "address": "0x001798e0",
@@ -196198,7 +196290,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000015cc",
       "0x0000165c",
@@ -196207,7 +196299,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcStatsTrackingStringsDGetPwiK"
+    "mangled_symbol": "__0fWgcStatsTrackingStringsDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "318fd751",
+        "notes": "Implemented gcStatsTrackingStrings::Get in canonical class-method form using the matched gcLobby* Get patterns: switch-based mode dispatch, tagged-pointer validity checks, explicit if/else memory barriers for tagged clears, large local key/wide buffers matching the 0x4820 frame, cXML::GetText, and nwStatsTracking virtual slots 0x78/0x88. The file compiles and all previously matched gcStatsTrackingStrings methods still compare exact. The closest attempt is exact size at 940B but still differs in 558/940 bytes.\n\nThe remaining issue is register allocation/source shape, not missing behavior. After changing the wide buffers to unsigned short[0x1000] and reloading mField10 after the float virtual call, the stack frame and saved-register set match the target. The main drift is in early mode-0 register choices: target keeps the first desired pointer in t0 and later moves it to s4, while the source keeps it in s4 earlier; target also uses a1/a2/a3/t0 for the two tagged-pointer tests in a different order. This is too large for the permuter's last-mile criteria.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:20:18Z",
+        "src_file": "src/gcStatsTrackingStrings.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/318fd751/00288cb4__agent_self_reported_failure__src_gcStatsTrackingStrings.cpp"
+      }
+    ]
   },
   {
     "address": "0x00289060",
@@ -203325,7 +203431,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x000d6148",
@@ -203334,7 +203440,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oRgcDoEntityCastRaydtv"
+    "mangled_symbol": "__0oRgcDoEntityCastRaydtv",
+    "failure_notes": [
+      {
+        "session": "9fc89627",
+        "notes": "Implemented a canonical C++ destructor in src/gcDoEntityCastRay.cpp using the matched destructor-family ownership cleanup pattern, local operator delete, gcDesiredCamera/gcEvent/gcAction base destructor calls, the cArray-style delete for the 0xD4 array, and the two-word dead trailer pattern used by matched sibling destructors. Existing matched methods in the file still compare byte-exact. The closest source emits the correct 1988-byte symbol but compare_func reports 45/1988 bytes differing.\n\nTried vtable restore variants using extern aliases, distinct cBase aliases to prevent CSE, literal absolute addresses from the disassembly, explicit null guard in operator delete to recover the target deleting-destructor tail, and moving the destructor to the end of the TU so the trailer lands inside the symbol. Literal address restores reduced relocation-looking byte differences but changed scheduling and shrank the symbol to 1964B, so I reverted to the same-size alias version. Remaining differences are concentrated in vtable/call materialization bytes and minor scheduling around those restore blocks; not a bnel/beql divergence and not a permuter candidate under the <=30B last-mile guidance.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T08:24:51Z",
+        "src_file": "src/gcDoEntityCastRay.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/9fc89627/002af3d4__agent_self_reported_failure__src_gcDoEntityCastRay.cpp"
+      }
+    ]
   },
   {
     "address": "0x002afb98",
