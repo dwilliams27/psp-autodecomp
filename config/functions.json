@@ -65731,7 +65731,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0008d948"
     ],
@@ -67679,7 +67679,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0002f68c",
       "0x0002f960",
@@ -121508,7 +121508,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d5348"
     ],
@@ -216194,7 +216194,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d44c8",
       "0x0010e73c"
@@ -220240,7 +220240,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d92a8",
@@ -220248,7 +220248,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fMgcDoUIEffectIEvaluatevK"
+    "mangled_symbol": "__0fMgcDoUIEffectIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "42de3cf6",
+        "notes": "Implemented the full type-init chain D_000385DC -> D_000385E0 -> D_0009990C, GetWidget(D_0009990C, true), mode 0 virtual slot dispatch at vtable+0x90, PushPull(false/true), and the two do-while PushPull drain loops. The type initialization and all surrounding matched methods in the TU still compare cleanly.\n\nClosest saved source compiles to 488B versus the 492B target. The remaining structural mismatch is in the mode dispatch: SNC emits the dense switch with mode 0 as the fall-through case after comparisons 1-4, while the target emits `beqz a0, case0` before comparisons 1-4 and places a zero-return fallback before the case bodies. Tried switch-only, m2c-style `if (mode < 5) switch`, goto-based if chains, explicit mode-0 precheck, sched=1, and direct-return variants. Direct-return/if-chain variants either introduced f20 saves or binary-tree comparisons; m2c-style variants duplicated the `sltiu` bounds check. Not a last-mile permuter candidate because the closest clean version is still a size mismatch.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:30:08Z",
+        "src_file": "src/gcDoUIEffect.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/42de3cf6/0030a448__agent_self_reported_failure__src_gcDoUIEffect.cpp"
+      }
+    ]
   },
   {
     "address": "0x0030a634",
@@ -222104,7 +222118,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d8708",
@@ -222113,7 +222127,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUISetSpriteIEvaluatevK"
+    "mangled_symbol": "__0fPgcDoUISetSpriteIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "9a120920",
+        "notes": "Implemented canonical C++ Evaluate in src/gcDoUISetSprite.cpp using the existing gcDoUISetSprite type-init conventions plus the gcUIControl/gcUIWidget type chain (D_000385E0, D_0009990C, D_0009F40C) and the gcDesiredObjectT<gcDesiredSprite,gcDesiredSpriteHelper,eSprite>::Get(false) helper. The current attempt compiles to the correct 496-byte symbol and all pre-existing functions in the TU still match, but compare_func reports 59/496 bytes differing for Evaluate. The main remaining mismatch is not semantic size: stack frame is now correct after volatile spill shaping, but register allocation differs in the type-init prologue and the post-GetWidget block (generated code keeps the widget/slot in different saved registers and stores through a saved slot pointer instead of the original a1-shaped sequence).\n\nTried the straightforward source, added a scheduler barrier after GetWidget to force the expected nop in the null-widget branch, added volatile stack spills for the desired sprite value to reproduce the original stack slots, tried pinning the helper/index with register variables, and briefly tested sched=1 (that changed the size to 488B, so it was reverted). No permuter run was used because the same-size diff is 59 bytes, above the documented last-mile threshold.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:29:42Z",
+        "src_file": "src/gcDoUISetSprite.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/9a120920/003108d0__agent_self_reported_failure__src_gcDoUISetSprite.cpp"
+      }
+    ]
   },
   {
     "address": "0x00310ac0",
@@ -222831,7 +222859,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012366c",
@@ -222839,7 +222867,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcDoUISetTextColorIEvaluatevK"
+    "mangled_symbol": "__0fSgcDoUISetTextColorIEvaluatevK",
+    "src_file": "src/gcDoUISetTextColor.cpp",
+    "symbol_name": "__0fSgcDoUISetTextColorIEvaluatevK",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "42de3cf6",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T07:30:08Z"
   },
   {
     "address": "0x00315310",
@@ -229786,7 +229822,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -229795,7 +229831,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityConstantIEvaluatevK"
+    "mangled_symbol": "__0fTgcValEntityConstantIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "dc2c5219",
+        "notes": "Built a canonical C++ Evaluate body in gcValEntityConstant.cpp using the matched class conventions, explicit cHandlePairT/cSubHandleT locals, gcDesiredEntity::Get(true), gcDesiredEnumerationEntryHelper::Get, D_00038890 handle lookup, and an explicit-output declaration for gcEnumeration::GetSubObjectHandle. Tried by-value return vs explicit output for GetSubObjectHandle, volatile stack temps to force the 64-byte frame, merged source-pair copy through a pointer, sched=1, pinned a0/a1 locals, and memory barriers around the tagged-handle and nullable object paths.\n\nClosest attempt preserves the already-matched GetType/New/Write siblings and compiles Evaluate to 436B vs target 444B. Remaining gap is in the shared handle-resolution block: SNC still emits shorter branch/register shapes around the tagged-handle clear and object-to-int virtual dispatch (for example beqz+nop+li / bnezl forms instead of the original beqz+nop+b with li in the delay slot, plus different source pointer copy scheduling). Not a bnel/beql divergence; source shape/register allocation still needs refinement.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:28:01Z",
+        "src_file": "src/gcValEntityConstant.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dc2c5219/00326708__agent_self_reported_failure__src_gcValEntityConstant.cpp"
+      }
+    ]
   },
   {
     "address": "0x003268c4",
@@ -231409,7 +231459,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -231418,7 +231468,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcValEntityHasTimeSinceIEvaluatevK"
+    "mangled_symbol": "__0fXgcValEntityHasTimeSinceIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "dc2c5219",
+        "notes": "Mirrored the gcValEntityConstant Evaluate reconstruction in gcValEntityHasTimeSince.cpp, changing only the final call to gcEntity::HasTimeSinceSet and using a float temp so the final boolean-to-float return matches the target shape. Tried the same variants: explicit-output GetSubObjectHandle declaration, volatile stack temps, common pair-copy pointer, sched=1, register-pinned a0/a1 flags, and memory barriers around branch-sensitive blocks.\n\nClosest attempt compiles Evaluate to 456B vs target 460B while existing Write/GetType/New stay matched. The final HasTimeSinceSet return block matches the expected diamond shape, but the common handle-resolution middle is still one instruction short before the final call, with remaining differences in the tagged-handle clear and nullable object dispatch branch-likely choices. Not classifiable as unmatchable_bnel because the mismatch is a size/source-shape issue, not an isolated <=8B bnel/beql diff.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:28:01Z",
+        "src_file": "src/gcValEntityHasTimeSince.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/dc2c5219/00330ce0__agent_self_reported_failure__src_gcValEntityHasTimeSince.cpp"
+      }
+    ]
   },
   {
     "address": "0x00330eac",
@@ -234654,7 +234718,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011887c",
       "0x00118964",
@@ -235722,7 +235786,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000d42e8",
       "0x000d44c8",
@@ -237198,7 +237262,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000d44c8",
       "0x0010e73c",
@@ -237207,7 +237271,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fZgcValHasPartialControllerIEvaluatevK"
+    "mangled_symbol": "__0fZgcValHasPartialControllerIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "9a120920",
+        "notes": "Added a split-TU source attempt in src/gcValHasPartialController_Evaluate.cpp to avoid perturbing the already crowded canonical gcValHasPartialController.cpp. The source follows the gcValEntityHasTimeSince/gcValEntityConstant desired-entity plus desired-enumeration-entry flow, then calls gcEntity::GetPartialController(pair, 0, 0, false) and returns either 1.0f or the inverse of controller flag bit 0 depending on this+0x4C. The canonical gcValHasPartialController.cpp was restored to no source diff after an initial in-file attempt changed register allocation in GetText.\n\nTried both normal return-by-value declaration for gcEnumeration::GetSubObjectHandle and an explicit out-pointer/local-subhandle declaration to match the original a0=this, a1=out, a2=&sub, a3=value call shape. Also tried adding the float-zero conversion path and explicit pair-copy spills; the current attempt is exact size but still differs broadly (315/496 bytes) because stack layout, branch scheduling, and return-value temporaries are still not aligned. A simpler semantic version was 448B, the out-pointer version 452B, pinning the output pair 464B, and adding the float-zero path 472B before spill shaping reached 496B. This needs a fresh source-shape pass around the pair temporary layout and final f12/mov.s return sequence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T07:29:42Z",
+        "src_file": "src/gcValHasPartialController_Evaluate.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/9a120920/00346464__agent_self_reported_failure__src_gcValHasPartialController_Evaluate.cpp"
+      }
+    ]
   },
   {
     "address": "0x00346654",

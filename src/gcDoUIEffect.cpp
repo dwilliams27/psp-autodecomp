@@ -7,6 +7,7 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcUIWidget;
 
 class cType {
 public:
@@ -41,6 +42,7 @@ class gcDesiredUIWidgetHelper {
 public:
     void GetText(char *) const;
     void Write(class cWriteBlock &) const;
+    gcUIWidget *GetWidget(const cType *, bool) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
 };
 
@@ -57,6 +59,7 @@ public:
     static cBase *New(cMemPool *, cBase *);
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    float Evaluate(void) const;
     void GetText(char *) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -68,6 +71,17 @@ public:
         short off = rec->offset;
         rec->fn((char *)block + off, p);
     }
+};
+
+class gcUIWidget {
+public:
+    int PushPull(bool);
+};
+
+struct gcUIEffectSlot {
+    short offset;
+    short pad;
+    void (*fn)(void *, int);
 };
 
 void gcAction_gcAction(gcDoUIEffect *, cBase *);
@@ -82,6 +96,10 @@ static cType *type_base;
 static cType *type_expression;
 static cType *type_action;
 static cType *type_gcDoUIEffect;
+
+extern cType *D_000385DC;
+extern cType *D_000385E0;
+extern cType *D_0009990C;
 
 struct PoolBlock {
     char pad[0x1C];
@@ -158,6 +176,62 @@ void gcDoUIEffect::Write(cFile &file) const {
     wb.Write(((int *)this)[7]);
     wb.Write(((int *)this)[6]);
     wb.End();
+}
+
+// 0x0030a448 — Evaluate(void) const
+float gcDoUIEffect::Evaluate(void) const {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 0x0C);
+
+    if (D_0009990C == 0) {
+        if (D_000385E0 == 0) {
+            if (D_000385DC == 0) {
+                D_000385DC = cType::InitializeType(
+                    gcDoUIEffect_base_name, gcDoUIEffect_base_desc,
+                    1, 0, 0, 0, 0, 0);
+            }
+            D_000385E0 = cType::InitializeType(
+                0, 0, 2, D_000385DC,
+                (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+        }
+        D_0009990C = cType::InitializeType(
+            0, 0, 0x84, D_000385E0, 0, 0, 0, 0);
+    }
+
+    gcUIWidget *widget = helper->GetWidget(D_0009990C, true);
+    if (widget != 0) {
+        int mode = *(int *)((char *)this + 0x18);
+        if ((unsigned int)mode >= 5U) goto one;
+        switch (mode) {
+        case 0: {
+            gcUIEffectSlot *slot =
+                (gcUIEffectSlot *)(*(char **)((char *)widget + 4) + 0x90);
+            slot->fn((char *)widget + slot->offset,
+                     *(int *)((char *)this + 0x1C));
+            goto one;
+        }
+        case 1:
+            widget->PushPull(false);
+            goto one;
+        case 2:
+            widget->PushPull(true);
+            goto one;
+        case 3:
+            do {
+            } while (widget->PushPull(false) != 0);
+            goto one;
+        case 4:
+            do {
+            } while (widget->PushPull(true) != 0);
+            goto one;
+        default:
+            return 0.0f;
+        }
+    }
+    return 0.0f;
+
+one:
+    return 1.0f;
 }
 
 // 0x0030a634 — GetText(char *) const, 136B

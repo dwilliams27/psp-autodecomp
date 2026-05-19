@@ -12,6 +12,13 @@ class cBase;
 class cFile;
 class cMemPool;
 class cType;
+class gcUIControl;
+class gcUITextControl;
+
+class eColor {
+public:
+    unsigned int mColor;
+};
 
 class cType {
 public:
@@ -60,7 +67,23 @@ public:
     char _pad[12];   // 3 ints
     void Write(cWriteBlock &) const;
     void GetText(char *) const;
+    gcUITextControl *GetWidget(const cType *, bool) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
+};
+
+class gcUIControl {
+public:
+    static cBase *New(cMemPool *, cBase *);
+};
+
+class gcUITextControl {
+public:
+    enum gcUITextColor {
+        TEXT_COLOR_0 = 0
+    };
+
+    static cBase *New(cMemPool *, cBase *);
+    void SetTextColor(gcUITextColor, eColor);
 };
 
 class gcDoUISetTextColor : public gcAction {
@@ -73,6 +96,7 @@ public:
     ~gcDoUISetTextColor();
     void AssignCopy(const cBase *);
     const cType *GetType(void) const;
+    float Evaluate(void) const;
     void GetText(char *) const;
     void Write(cFile &) const;
     void VisitReferences(unsigned int, cBase *, void (*)(cBase *, unsigned int, void *), void *, unsigned int);
@@ -116,6 +140,10 @@ struct AllocEntry {
 static cType *type_action asm("D_000385D4");
 static cType *type_expression asm("D_000385D8");
 static cType *type_base asm("D_000385DC");
+static cType *type_named asm("D_000385E0");
+static cType *type_gcUIWidget asm("D_0009990C");
+static cType *type_gcUIControl asm("D_0009F40C");
+static cType *type_gcUITextControl asm("D_0009F410");
 static cType *type_gcDoUISetTextColor asm("D_0009F74C");
 static cType *type_gcDoUISetTextSprite asm("D_0009F750");
 
@@ -206,6 +234,45 @@ void gcDoUISetTextColor::Write(cFile &file) const {
     wb.Write(mTextColorInt);
     wb.Write(mTextColorUint);
     wb.End();
+}
+
+// ── gcDoUISetTextColor::Evaluate @ 0x0031513c ──
+float gcDoUISetTextColor::Evaluate(void) const {
+    gcDesiredUIWidgetHelper *helper =
+        (gcDesiredUIWidgetHelper *)((char *)this + 0x0C);
+
+    if (type_gcUITextControl == 0) {
+        if (type_gcUIControl == 0) {
+            if (type_gcUIWidget == 0) {
+                if (type_named == 0) {
+                    if (type_base == 0) {
+                        type_base = cType::InitializeType(
+                            gcDoUISetTextColor_base_name,
+                            gcDoUISetTextColor_base_desc,
+                            1, 0, 0, 0, 0, 0);
+                    }
+                    type_named = cType::InitializeType(
+                        0, 0, 2, type_base,
+                        (cBase *(*)(cMemPool *, cBase *))0x1C3C58, 0, 0, 0);
+                }
+                type_gcUIWidget = cType::InitializeType(
+                    0, 0, 0x84, type_named, 0, 0, 0, 0);
+            }
+            type_gcUIControl = cType::InitializeType(
+                0, 0, 0x201, type_gcUIWidget, gcUIControl::New, 0, 0, 0);
+        }
+        type_gcUITextControl = cType::InitializeType(
+            0, 0, 0x200, type_gcUIControl, gcUITextControl::New, 0, 0, 0);
+    }
+
+    gcUITextControl *control = helper->GetWidget(type_gcUITextControl, true);
+    if (control != 0) goto hasControl;
+    return 0.0f;
+
+hasControl:
+    control->SetTextColor((gcUITextControl::gcUITextColor)mTextColorInt,
+                          *(eColor *)((char *)this + 0x1C));
+    return 1.0f;
 }
 
 // ── gcDoUISetTextColor::GetText @ 0x00315310 ──
