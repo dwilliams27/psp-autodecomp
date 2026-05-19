@@ -158903,14 +158903,22 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00068c34",
       "0x0006a198"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerDSetRC6ImCapsule"
+    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerDSetRC6ImCapsule",
+    "src_file": "src/eSweptMultiSphereCollisionHandler.cpp",
+    "symbol_name": "__0fheSweptMultiSphereCollisionHandlerDSetRC6ImCapsule",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "2437078b",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T04:25:00Z"
   },
   {
     "address": "0x002088c0",
@@ -159277,7 +159285,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [
       "0x00068d18",
@@ -196048,14 +196056,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcTableStringDGetPwiK"
+    "mangled_symbol": "__0fNgcTableStringDGetPwiK",
+    "failure_notes": [
+      {
+        "session": "d3022a72",
+        "notes": "Function gcTableString::Get(wchar_t *, int) const. Reached 51/476 byte diff with correct symbol size (476B). Same source structure as cHandlePairT variant but with WideDispatchEntry (4-arg fn signature for buf/size) at vtable offset 0xA8. Same exact diff pattern as 0x0028b2d8: outer/idx1 checks match (bltz+nop+jal+bnezl pattern), inner idx2 check emits bgezl-with-arr-load-in-delay instead of bltz-with-nop, cascading register swap (a1<->a2 for arr/sz). All other bytes match. Both Get methods share the same SNC scheduling divergence. Permuter skipped (diff >30B). Pattern-copy from gcLobbyFriendStrings::Get exemplar was the right starting point but the multi-bail-inline layout is sensitive to SNC's scheduler heuristic in ways C source can't easily control.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:24:12Z",
+        "src_file": "src/gcTableString_Get.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d3022a72/0028b0fc__agent_self_reported_failure__src_gcTableString_Get.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028b2d8",
@@ -196067,14 +196089,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcTableStringDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K"
+    "mangled_symbol": "__0fNgcTableStringDGetP6McHandlePairT76NgcStringTable6LcSubHandleT76IgcString__K",
+    "failure_notes": [
+      {
+        "session": "d3022a72",
+        "notes": "Function gcTableString::Get(cHandlePairT<gcStringTable, cSubHandleT<gcString> > *) const. Reached 51/460 byte diff with correct symbol size (460B). Source structure mirrors the gcLobbyFriendStrings::Get exemplar (table check via gcDesiredObjectT::Get(bool), tagged-self val&1 check, FloatDispatchEntry dispatch, GetNumRows bound check, then arr-table lookup via offset 0xB0 dispatch). Outer null check, idx1 < 0 / idx1 >= numRows checks, and float-dispatch sequences MATCH (used || combine for idx1 to get bltz+nop+jal+bnezl+delay pattern). Remaining diff is in the inner idx2/sz/arr-entry checks: my SNC emits bgezl s3, CONTINUE with arr-load in delay slot, while original emits bltz s3, BAIL_INNER with nop in delay. This cascades into register-allocation drift (arr in a1 instead of a2; sz in a2 instead of a1) and a 4-byte shift of branch offsets. Goto-label restructuring (split inner block with bail_idx2:/past_bail_idx2:) does produce the correct bltz pattern but optimizes the last bail tail (b end; li 0 \u2192 just li 0), producing wrong size 472B. Permuter skipped target (diff >30B threshold). Tried: ||-combined idx2 checks (couldn't reach without putting arr/sz before bltz), memory barrier between bltz and arr load (made worse), sz-declared-first (no effect), goto-label inline bails (correct bltz but size mismatch), pragma sched=1 (much worse: 99/95B). Root cause appears to be SNC scheduling heuristic for forward branch + adjacent memory load: original SNC chose bltz+nop+arr-load pattern, my SNC chose bgezl+arr-load-in-delay pattern. This is NOT a bnel divergence (diff >>8B and not specifically bnel/beql). Likely needs source-level control over instruction scheduling that C doesn't expose cleanly.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:24:12Z",
+        "src_file": "src/gcTableString_Get.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/d3022a72/0028b2d8__agent_self_reported_failure__src_gcTableString_Get.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028b4a4",
@@ -224348,7 +224384,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -227405,13 +227441,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x001217e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValCameraVariableDSetf"
+    "mangled_symbol": "__0fTgcValCameraVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "2437078b",
+        "notes": "Closest attempt is a 15-byte same-size mismatch. Implemented the full jump-table Set(float) body in canonical gcValCameraVariable::Set syntax using typed camera/frame/block structs so all case stores fold to direct offsets and the existing matched siblings in gcValCameraVariable.cpp remain byte-exact. Tried raw char* offsets, typed structs, moving block construction before/after the bounds check, memory barriers after the camera view-id check, explicit base materialization with an empty +r asm barrier, register-variable forcing for base/selector/block, and a small inline-asm setup sequence; the best source keeps the correct case table and case bodies but computes the frame base in a0 then moves it to a1, while the original keeps base in a1 and uses a0 for the block pointer in the bounds-check delay slot.\n\nPermuter ran twice for 5 minutes each. First run from a 27-byte baseline found internal non-saved improvements to 22 bytes; after manual tightening to 15 bytes, the second 5-minute run compiled 1347 candidates and found no improvement. Remaining diff appears to be register allocation / delay-slot placement around the pre-switch setup, not a bnel/beql compiler divergence.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:25:00Z",
+        "src_file": "src/gcValCameraVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/2437078b/00322b50__agent_self_reported_failure__src_gcValCameraVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x00322cf8",
@@ -232340,7 +232390,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -232348,7 +232398,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "cbcc3c1e",
+        "notes": "Implemented the full inline AssignCopy shape in the canonical class TU: type initialization for type id 0x207, vtable type-walk dynamic cast, gcDesiredEntity::operator= on this+8, byte/word field copies at 0x3c..0x44, and the desired-object handle release/clone sequence for the field at 0x48 with cMemPool::GetPoolFromPtr. Previously matched New/GetType/Write/Read continue to compare exact.\n\nClosest attempt compiles to 760B versus the 804B target. Inlining the type-query dispatch fixed an early under-size issue, but SNC still allocates the destination handle address in s3 instead of the original s8/fp pattern and the desired-object assignment tail remains shorter/differently scheduled. I also tried explicit register binding for the destination handle pointer and sched-sensitive restructuring; SNC ignored the intended fp binding and continued using s8 for the type_base static. Suspect remaining gap is source-shape/register-allocation around the handle assignment plus the target's trailing 8-byte infinite-branch padding.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:04:25Z",
+        "src_file": "src/gcValEntityPartialControllerVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/cbcc3c1e/003377ac__agent_self_reported_failure__src_gcValEntityPartialControllerVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x00337ad0",
@@ -232495,7 +232559,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00007534",
       "0x000d44c8",
@@ -232506,7 +232570,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableDSetf"
+    "mangled_symbol": "__0fkgcValEntityPartialControllerVariableDSetf",
+    "failure_notes": [
+      {
+        "session": "cbcc3c1e",
+        "notes": "Implemented Set(float) with the expected semantic flow: gcDesiredEntity::Get(true), IsLocallyControlled gate, optional gcDesiredEnumerationEntryHelper::Get at this+0x3c, desired object validity test at 0x48, virtual float/index fetch through vslot 0x70, D_00038890 enumeration lookup, gcEnumeration::GetSubObjectHandle into a selected handle pair, partial body controller type initialization (0x105/0x107), GetPartialController, and final swc1 to controller+0x48 when this+0x4c is zero.\n\nClosest attempt uses #pragma control sched=1 and volatile pair-copy temporaries to reach the exact 696B target size while preserving the four existing matched methods, but compare still reports 405 differing bytes. The stack layout now matches the target-sized 0x50 frame and the pair/out/empty copy path is much closer, but the prologue scheduling, validity-test register choices, and type-init scheduling still diverge broadly. A sched=2 variant was exact-size only after stack shaping but worse (493 differing bytes). This is not a last-mile permuter case because the diff is hundreds of bytes despite same size.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:04:25Z",
+        "src_file": "src/gcValEntityPartialControllerVariable.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/cbcc3c1e/00338220__agent_self_reported_failure__src_gcValEntityPartialControllerVariable.cpp"
+      }
+    ]
   },
   {
     "address": "0x003384d8",
@@ -243590,7 +243668,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
@@ -243609,7 +243687,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
