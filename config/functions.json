@@ -49530,7 +49530,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0005b194",
       "0x0005b768",
@@ -89371,7 +89371,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -89384,7 +89384,15 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oFgcMapdtv"
+    "mangled_symbol": "__0oFgcMapdtv",
+    "src_file": "src/gcMap_dtor.cpp",
+    "symbol_name": "__0oFgcMapdtv",
+    "matched_by_backend": "codex",
+    "matched_by_session_id": "b9ec4381",
+    "matched_by_model": "gpt-5.5",
+    "matched_by_effort": "high",
+    "matched_by_identity": "codex/gpt-5.5/high",
+    "matched_at": "2026-05-19T04:49:23Z"
   },
   {
     "address": "0x000f1458",
@@ -90225,7 +90233,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0002de40",
       "0x0002f68c",
@@ -90246,7 +90254,21 @@
       "0x00226d04"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapEDrawv"
+    "mangled_symbol": "__0fFgcMapEDrawv",
+    "failure_notes": [
+      {
+        "session": "b9ec4381",
+        "notes": "Closest attempt is exact size (608B) and structurally follows the target: flag early-out, eCameraBins construction at sp+0x2020, fullscreen viewport setup, five-viewport loop over D_0037D840, MakeOrtho, eWorld::Cull, then BeginFrame/Clear/gcViewport/eCameraBins::Draw/SetFogInfo/EndFrame. The remaining compare is 148 bytes. The main visible drift is scheduler/register layout: SNC emits an early `sw s0`/`move s0,a0` before loading mFlags, while the target loads/tests mFlags from a0 first and puts `move s0,a0` in the branch delay slot. The loop body is also close but not exact in instruction ordering around viewport globals and camera-bin count updates.\n\nTried local class fields vs raw offset access, explicit boolean normalization for the mFlags test, 24-byte eViewport padding to force viewport at sp+0x2008 and bins at sp+0x2020, volatile/nonvolatile alignment locals, D_0037D840 as extern vs absolute root pointer, reloading bins.mCameraCount after MakeOrtho, loading eWorld before and after the count update to recover the `lw a1; move a0,a1` call shape, a `self` local after the early-out, pinned a1/a2 flag registers, and `#pragma control sched=1` (worse: 215-byte diff). Not a bnel/unmatchable case; this is still a retryable scheduling/register-allocation source-shape problem.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:49:23Z",
+        "src_file": "src/gcMap_Draw.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b9ec4381/000f31a4__agent_self_reported_failure__src_gcMap_Draw.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f3404",
@@ -196122,14 +196144,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcTableStringDSetPCwK"
+    "mangled_symbol": "__0fNgcTableStringDSetPCwK",
+    "failure_notes": [
+      {
+        "session": "b9f0edf1",
+        "notes": "Implemented gcTableString::Set(const wchar_t *) const in canonical C++ form using the matched gcValTableEntry table-lookup pattern, local gcDesiredObjectT<gcDesiredTableTemplate, gcDesiredTableTemplateHelper, gcTableTemplate>::Get(true), desired-value evaluation through classdesc+0x70, column array validation at table+0x48, and final string setter dispatch through entry classdesc+0x90. The closest attempt compiles to the exact target size (464B) and preserves existing matched functions in gcTableString.cpp, but compare_func still reports 228/464 bytes differing. The core mismatch is branch shape: target starts with bnezl s4 with lw s5,0x1c(s0) in the delay slot and later uses bnezl after the row range check, while the closest C shape emits opposite beqzl/beqz forms with equivalent high-level control flow. Adding memory barriers fixed the tagged-pointer branches and size but not these branch-likely directions. Tried the initial nested if/else version, added matched-style tagged-pointer else barriers, tried explicit goto invalid exits, tried per-method sched=1, and tried isolating conditional assignments after reading docs/research/snc-branch-likely.md and docs/research/snc-delay-slots.md. The isolated-assignment variant worsened the output by causing non-likely branches elsewhere. Not a permuter candidate: the exact-size closest diff is far above last-mile threshold and is broad control-flow/register scheduling drift, not a <=30B local ordering issue.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:37:40Z",
+        "src_file": "src/gcTableString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b9f0edf1/0028b4a4__agent_self_reported_failure__src_gcTableString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028b674",
@@ -196141,7 +196177,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x001ad364",
@@ -196149,7 +196185,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcTableStringDSetPC6NgcStringValueK"
+    "mangled_symbol": "__0fNgcTableStringDSetPC6NgcStringValueK",
+    "failure_notes": [
+      {
+        "session": "b9f0edf1",
+        "notes": "Implemented gcTableString::Set(const gcStringValue *) const alongside the wchar_t overload, sharing the same table row/column lookup and final classdesc+0x90 setter dispatch. The source uses a local struct with an 8-byte pad before unsigned short text[4096], which gives the target stack frame (-0x2030), buffer address sp+8, and saved-register offsets; memcpy(local.text, 0x36DAF4, 2) and the optional gcStringValue classdesc+0x70 getter match the intended call sequence. Existing matched functions in the file still compare cleanly. The closest attempt is exact size (524B) but compare_func reports 239/524 bytes differing. Tried the same variants as the wchar_t overload: initial nested shape, tagged-pointer barriers, explicit invalid gotos, sched=1, and isolated conditional assignments guided by the branch-likely research doc. The stack/local-buffer portion is close, but the leading table null-check and row-range check still choose the wrong branch-likely direction, and the entries/count validation allocates a1/a2 opposite the target. Diff is too broad for permuter last-mile use.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:37:40Z",
+        "src_file": "src/gcTableString.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/b9f0edf1/0028b674__agent_self_reported_failure__src_gcTableString.cpp"
+      }
+    ]
   },
   {
     "address": "0x0028b880",
@@ -215320,14 +215370,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDoSetEventEnumParamKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fVgcDoSetEventEnumParamKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "30323f67",
+        "notes": "gcDoSetEventEnumParam::AssignCopy(const cBase *). Wrote split-TU src/gcDoSetEventEnumParam_AssignCopy.cpp with local class redeclaration that includes the embedded gcDesiredEnumerationEntry sub-object (at offset 0x0C) with members mF8/mF9 (signed char), mFC/mF10 (int), mF14 (gcDesiredValue), plus the outer mField24 int. Same inline gcDesiredValue::operator= template as target 1.\n\nResult: byte-exact match for the first 0x198 bytes (type-cache + cast + flag merge + byte copies of 0x14/0x15 + word copies of 0x18/0x1C + self-assign guard for 0x20). Function compiles to 720B vs target 764B \u2014 44 byte short. Diff breakdown:\n - 8 bytes from a different self-assign branch shape: target emits `bne a2,s7,inline; sw a1,0(a0); b end; lw s2,36(s2)` (jump-to-inline-if-not-self, with the unconditional branch's delay slot pre-loading copy[0x24]). Our SNC chose `beq a1,s7,end; sw a0,28(s0)` (jump-to-end-if-self) which is more compact \u2014 no unconditional branch needed.\n - 12 bytes from the same regalloc drift in the inline gcDesiredValue::operator= as target 1.\n - Several bytes from differing register choices for the final `copy[0x24]\u2192this[0x24]` (target reuses s2, we use a0).\n - 8 bytes from the trailing `b $-4; nop` dead tail at function end (same blocker as target 1).\n\nSame structural issue family as target 1 and the existing failed gcLobbyGameStrings::AssignCopy. Diff is 44B, well beyond the 8B unmatchable_bnel threshold. Closest source preserved at src/gcDoSetEventEnumParam_AssignCopy.cpp. The canonical TU src/gcDoSetEventEnumParam.cpp was NOT modified.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:25:48Z",
+        "src_file": "src/gcDoSetEventEnumParam_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/30323f67/002fc008__agent_self_reported_failure__src_gcDoSetEventEnumParam_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fc304",
@@ -215819,7 +215883,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00006e7c",
@@ -215827,7 +215891,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcDoSetEventObjectArrayKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fXgcDoSetEventObjectArrayKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "30323f67",
+        "notes": "gcDoSetEventObjectArray::AssignCopy(const cBase *). Wrote split-TU src/gcDoSetEventObjectArray_AssignCopy.cpp with local class redeclaration that includes mField0C (int), mArray (cBaseArray), mValue (gcDesiredValue) members. Used `*this = *copy` style with explicit field-by-field copies, calling cBaseArray::operator= (separate sym) and inlining gcDesiredValue::operator= (inline definition matching the template from gcLobbyGameStrings::operator= at 0x002812ac).\n\nResult: byte-exact match for the first 0x178 bytes (type-cache + cast + flag merge + mField0C copy + cBaseArray::operator= call + self-assign guard). Function compiles to 704B vs target 724B \u2014 20 byte short. Diff breakdown:\n - 12 bytes (3 instructions) inside the inline gcDesiredValue::operator= dtor block: target emits `move a3,a0; move a0,a2` (renames oldValue from a2 to a0, saves oldTagged in a3) PLUS duplicates the `ori a2,a2,1` in each branch (literal/pointer paths). Our SNC chose to keep oldValue in a0 throughout and factored out the `| 1` after the if/else converges \u2192 fewer instructions.\n - 8 bytes (2 instructions) of trailing `b $-4; nop` dead tail that the original linker placed in the gap between AssignCopy and ::New. Tried emitting via global `__asm__(\".word ...\")`, `__asm__(\".section .text\\n.word ...\")`, and the `.size` directive trick from gcDoChangeState.cpp \u2014 SNC silently drops top-level asm with no following text symbol. Tried inline `__asm__(\".word ...\")` inside the function body but compiler emitted bytes INSIDE the body (before the epilogue), not after the jr ra.\n\nThis is the same 20-byte gap that gcLobbyGameStrings::AssignCopy at 0x002812ac currently exhibits ([F] in DB) \u2014 the closest existing sibling and the source I templated from. Both use the same inline `gcDesiredValue::operator=` shape and both miss the byte-exact pattern by exactly 20 bytes. A real fix likely requires either:\n  1. A way to nudge SNC into the target's regalloc (oldValue\u2192a2, oldTagged\u2192a0 with renames + per-branch ori). Permuter is not applicable while sizes differ.\n  2. A way to coerce SNC to emit the trailing `b $-4; nop` dead tail after the last function in a TU.\n\nDiff is 20B, exceeds 8B threshold \u2014 does not qualify for unmatchable_bnel. Closest source attempt preserved at src/gcDoSetEventObjectArray_AssignCopy.cpp for future iteration. The canonical TU src/gcDoSetEventObjectArray.cpp was NOT modified.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:25:48Z",
+        "src_file": "src/gcDoSetEventObjectArray_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/30323f67/002fd814__agent_self_reported_failure__src_gcDoSetEventObjectArray_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x002fdae8",
@@ -221186,14 +221264,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUISetSpriteKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fPgcDoUISetSpriteKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "e39314a0",
+        "notes": "gcDoUISetSprite::AssignCopy(const cBase *) \u2014 772B target, 760B compiled (12-byte deficit). Modeled on gcDoMouseOp::AssignCopy pattern (which is also failed, in src/gcEntityTemplate.cpp). Function body has correct shape: 5-level type-init chain (base\u2192expression\u2192action\u2192gcDoUISetSprite, IDs 1/0x6A/0x6B/0x16F), cast loop, field copies at +0x8 (flags-mask)/+0xC/+0x10/+0x14/+0x18, inlined gcDesiredObject tagged-pointer dance at +0x24, trailing 2-word block at +0x28/+0x2C, plus .word b-self/nop padding.\n\nRoot cause: SNC register-allocation drift. The `register char *desiredThis __asm__(\"$23\")` pin is NOT being honored \u2014 compiler chooses s3 for desiredThis instead of target's s7, cascading register renames throughout the function. This produces ~300 bytes of byte-level diff that is purely callee-save register renaming. Same issue affects gcDoMouseOp::AssignCopy in gcEntityTemplate.cpp (also failed).\n\nStructural deltas beyond register renames: target has 3 more instructions (1 fewer addiu, 3 more move, 1 more ori). The ori asymmetry comes from target's CFG-diamond for `replacement = (cond ? oldValue & ~1 : *oldValue) | 1` emitting two distinct ori's per branch instead of CSE-merging. Tried `(... ) | 1` inline in each branch but compiler still merged. The 3 missing moves are register-allocation cascades I cannot reproduce.\n\nMatches docs/research/snc-register-allocation.md drift pattern, but byte diff exceeds the 8-byte heuristic because renames cascade through 770+ bytes of function. category=REG_ALLOC. Padding emitted via `__asm__(\".word 0x1000ffff\\n.word 0x00000000\\n.size ..., 0x304\\n\")` placed before function definition \u2014 pattern from src/gcDesiredEnumerationEntry.cpp.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:30:26Z",
+        "src_file": "src/gcDoUISetSprite_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e39314a0/0031025c__agent_self_reported_failure__src_gcDoUISetSprite_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x00310560",
@@ -232023,7 +232115,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x0011d8c0",
       "0x00127d98"
@@ -232089,7 +232181,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0"
     ],
@@ -234231,7 +234323,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x000047a0",
       "0x00007534",
@@ -234239,7 +234331,21 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcValEntityVariableKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fTgcValEntityVariableKAssignCopyPC6FcBase",
+    "failure_notes": [
+      {
+        "session": "e39314a0",
+        "notes": "gcValEntityVariable::AssignCopy(const cBase *) \u2014 788B target, 780B compiled (8-byte deficit). Modeled on the same gcDoMouseOp::AssignCopy pattern with adjustments: 5-level type-init chain (base\u2192expression\u2192value\u2192lvalue\u2192gcValEntityVariable, IDs 1/0x6A/0x6C/0x6D/0xD2, with t3=0x80 flag on value-level), gcDesiredEntity::operator= call after cast (resolves to jal 0x11d404), byte/byte/word/word field copies at +0x3C/+0x3D/+0x40/+0x44, inlined gcDesiredObject tagged-pointer dance at +0x48, no trailing field block, plus padding.\n\nUses `register char *desiredThis __asm__(\"$30\")` (s8/fp) because target uses fp register for desiredThis (this+0x48). Same drift symptom as fn1: pin not honored, register cascades. Mnemonic diff: target has 2 more `move` and 1 more `ori` \u2014 same CFG/CSE pattern as fn1.\n\nPadding emitted (8 bytes b-self/nop). Diff is similar order to fn1 (~250+ bytes byte-level diff dominated by register renames). category=REG_ALLOC + structural-3-insn-deficit. Source file uses split-TU pattern with ODR-WARNING; verified that existing matched siblings (Write/GetType/New/~gcValEntityVariable) still compile to identical bytes.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:30:26Z",
+        "src_file": "src/gcValEntityVariable_AssignCopy.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e39314a0/0033fcac__agent_self_reported_failure__src_gcValEntityVariable_AssignCopy.cpp"
+      }
+    ]
   },
   {
     "address": "0x0033ffc0",
@@ -243668,14 +243774,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValTableEntryIEvaluatevK"
+    "mangled_symbol": "__0fPgcValTableEntryIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "e1cdbe00",
+        "notes": "Added canonical gcValTableEntry::Evaluate(void) const using the same table/row/column validation as Set, with final getter dispatch through vtable slot 0xA0 and zero-float fallback. The closest attempt compiles to the correct 480-byte size but compare_func reports 229/480 bytes different.\n\nThe mismatch pattern is shared with Set: source semantics match the disassembly, but SNC chooses compact inverted branch forms for the initial table null check and range checks. I read docs/research/snc-branch-likely.md and docs/research/snc-delay-slots.md, then tried explicit success labels, ternary diamonds, object temporaries, and opaque zero-instruction asm constraints. The best local fixes either changed the desired virtual-call setup or introduced extra control-flow/register drift; the retained source is the exact-size baseline with the correct high-level operations and useful notes for the next retry.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:37:09Z",
+        "src_file": "src/gcValTableEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e1cdbe00/0035f580__agent_self_reported_failure__src_gcValTableEntry.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035f760",
@@ -243687,14 +243807,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0012bcf0",
       "0x002744e8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcValTableEntryDSetf"
+    "mangled_symbol": "__0fPgcValTableEntryDSetf",
+    "failure_notes": [
+      {
+        "session": "e1cdbe00",
+        "notes": "Added canonical gcValTableEntry::Set(float) using the same validation body as Evaluate: desired table lookup at this+8, row/column gcDesiredValue evaluation through vtable slot 0x70, row bounds through gcTableTemplate::GetNumRows(), entry array validation at table+0x48, and final setter dispatch through slot 0x98. The closest attempt compiles to the correct 460-byte size but compare_func reports 229/460 bytes different.\n\nThe remaining mismatch is branch-shape/codegen, not missing logic. The original uses bnezl success branches with useful delay-slot loads for the initial table null check and the row range check, plus bnez success shape for the column array bounds check. Several source variants were tried: straight nested if/else, explicit goto success/failure labels, ternary diamonds, row/column object temporaries to force move a0,sN before virtual calls, and zero-instruction asm constraints in else blocks. Some variants fixed one local shape but introduced extra saved registers or worse branch layout. The closest retained source is exact-size but still emits inverted beqz/beqzl failure branches in those range/null checks. Diff is too large for last-mile permuter guidance.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T04:37:09Z",
+        "src_file": "src/gcValTableEntry.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/e1cdbe00/0035f760__agent_self_reported_failure__src_gcValTableEntry.cpp"
+      }
+    ]
   },
   {
     "address": "0x0035f92c",
@@ -244345,7 +244479,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -245198,7 +245332,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -245218,7 +245352,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
