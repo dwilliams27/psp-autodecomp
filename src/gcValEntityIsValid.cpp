@@ -38,11 +38,20 @@ public:
 class gcDesiredEntity : public gcDesiredObject {
 public:
     gcDesiredEntity &operator=(const gcDesiredEntity &);
+    void *Get(bool) const;
 };
 
 class gcDesiredEntityTemplate : public gcDesiredObject {
 public:
     gcDesiredEntityTemplate &operator=(const gcDesiredEntityTemplate &);
+    void *Get(bool) const;
+};
+
+extern void *D_00038890[];
+
+struct gcTypeLookup {
+    char _pad[0x30];
+    int handle;
 };
 
 class gcValue {
@@ -59,6 +68,7 @@ public:
     void GetText(char *) const;
     void Write(cFile &) const;
     const cType *GetType(void) const;
+    float Evaluate(void) const;
     static cBase *New(cMemPool *, cBase *);
 };
 
@@ -192,6 +202,37 @@ cBase *gcValEntityIsValid::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
+}
+
+float gcValEntityIsValid::Evaluate(void) const {
+    void *entity =
+        ((const gcDesiredEntity *)((const char *)this + 8))->Get(false);
+    if (entity == 0) {
+        return 0.0f;
+    }
+    if (!field_34) {
+        goto ret_one;
+    }
+    {
+        void *tmpl =
+            ((const gcDesiredEntityTemplate *)((const char *)this + 0x38))->Get(false);
+        volatile int spill[2];
+        spill[0] = *(const int *)((const char *)entity + 0x44);
+        int typeId = spill[0];
+        gcTypeLookup *found = 0;
+        if (typeId != 0) {
+            gcTypeLookup *cand = (gcTypeLookup *)D_00038890[typeId & 0xFFFF];
+            if (cand != 0 && cand->handle == typeId) {
+                found = cand;
+            }
+        }
+        if (tmpl == (void *)found) {
+            goto ret_one;
+        }
+        return 0.0f;
+    }
+ret_one:
+    return 1.0f;
 }
 
 const cType *gcValEntityIsValid::GetType(void) const {

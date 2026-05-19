@@ -34266,7 +34266,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -52547,7 +52547,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -73052,7 +73052,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -79799,13 +79799,27 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x00238fcc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcNamedSetFResetP6IcMemPoolb"
+    "mangled_symbol": "__0fKgcNamedSetFResetP6IcMemPoolb",
+    "failure_notes": [
+      {
+        "session": "66c17909",
+        "notes": "Closest source is a direct C++ handle-table reconstruction in src/gcNamedSet.cpp. It preserves all existing matched gcNamedSet methods and emits the correct 236-byte size, control flow, stack frame, calls, immediates, and memory offsets. Final compare is an 8-byte mismatch in the first handle validity lookup: the generated code uses a3 for the found/candidate pointer where the target uses a2 (li/move/beqz register fields differ), while the rest of the function matches after relocation masking.\n\nTried the matched gcRoomInstance-style handle lookup, reordering found/candidate initialization, changing the dispatch record and enumeration temporaries, and keeping the canonical class method form. Read docs/research/snc-register-allocation.md before stopping. A clean 300s permuter pass ran with --workers 2 --save-best; it compiled 1178 candidates, found zero improvements, and best stayed at 8 bytes. Root cause appears to be small caller-register allocation drift rather than branch-likely divergence; category=REG_ALLOC.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:22:56Z",
+        "src_file": "src/gcNamedSet.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/66c17909/000d4e40__agent_self_reported_failure__src_gcNamedSet.cpp"
+      }
+    ]
   },
   {
     "address": "0x000d4f2c",
@@ -91940,7 +91954,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0002eff8",
       "0x000e0520",
@@ -91953,7 +91967,21 @@
       "0x000fde78"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcCameraFResetv"
+    "mangled_symbol": "__0fIgcCameraFResetv",
+    "failure_notes": [
+      {
+        "session": "66c17909",
+        "notes": "Closest source is in split TU src/gcCamera_Reset.cpp to avoid perturbing gcCamera.cpp's existing constructor TU. It compiles to the correct 392-byte size and reconstructs the scalar motion calls, XYZ motion zero-vector stack argument, float constants, VFPU zero stores, fixed-state initialization, and eCamera/gcUI resets. Final compare is 117/392 bytes different; the largest remaining differences are instruction scheduling and register choices in the prologue/first Set call, the zero Set call delay slot, constant-store scheduling, and the final state-offset calculation registers.\n\nTried an initial canonical gcCamera.cpp implementation, moved it to a split TU after it interacted with the constructor TU, changed the cTimeValue local to a volatile stack value to reproduce lw delay slots, moved the first global load earlier, introduced an explicit offset-copy inline asm to recover the missing instruction and exact size, changed the zero Set call to use a named float, and tested sched=1 before reverting to sched=2. Read the FPU and VFPU research docs before the variants. Diff is still too large for last-mile permuter; likely needs a different source shape for call setup/prologue scheduling rather than small variable permutation.",
+        "backend": "codex",
+        "model": "gpt-5.5",
+        "effort": "high",
+        "identity": "codex/gpt-5.5/high",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:22:56Z",
+        "src_file": "src/gcCamera_Reset.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/66c17909/000f88f8__agent_self_reported_failure__src_gcCamera_Reset.cpp"
+      }
+    ]
   },
   {
     "address": "0x000f8a80",
@@ -198891,7 +198919,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "in_progress",
     "callees": [
       "0x000047a0",
       "0x00121680",
@@ -232185,14 +232213,28 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "failed",
     "callees": [
       "0x0011d8c0",
       "0x00127d98"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcValEntityIsValidIEvaluatevK"
+    "mangled_symbol": "__0fSgcValEntityIsValidIEvaluatevK",
+    "failure_notes": [
+      {
+        "session": "c7a4fea8",
+        "notes": "Closest approach: 26/228 bytes differ. Function size matches (228B). Frame size matches (32B with `volatile int spill[2]` forcing the larger stack). Spill+reload pattern for typeId (sw a0,0(sp); lw a0,0(sp)) reproduced via `volatile int spill[2]; spill[0]=...; int typeId=spill[0];`. Control flow + epilogue dedup achieved via explicit `goto ret_one`. Remaining diff is REGISTER ALLOCATION: SNC allocates template->s0 (callee-save) and found->a1 (caller-save, reused for index), but our build allocates template->a1 and found->s0. Permuter ran 300s / 2892 candidates with zero improvement (allocation is structural, not source-shape). Also target emits 2-insn typeId fetch (addiu a0,s1,0x44; lw a0,0(a0)) while ours emits 1-insn (lw a0,0x44(s1)); tried explicit `const int *typeIdAddr = ...; *typeIdAddr;` but SNC still folds. `register asm(\"s0\")` annotation is silently ignored by SNC. Differing bytes are clustered at 0x44-0x58 (typeId fetch+template move) and 0x94-0xc8 (lookup-block register choice) plus the final beq's rs/rt swap. Future attempt: try `goto`-based init of found to inject `li a1,0` into a beqz delay slot, or alternative source shape that puts template's use closer to the cmp so SNC defers the move into the bnez delay slot.",
+        "backend": "claude",
+        "model": "claude-opus-4-7",
+        "effort": "",
+        "identity": "claude/claude-opus-4-7",
+        "variant": "tier12b",
+        "timestamp": "2026-05-19T05:30:30Z",
+        "src_file": "src/gcValEntityIsValid.cpp",
+        "snapshot": "logs/failure_snapshots/match_20260518_234610/c7a4fea8/0033582c__agent_self_reported_failure__src_gcValEntityIsValid.cpp"
+      }
+    ]
   },
   {
     "address": "0x00335910",
@@ -232251,13 +232293,20 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "in_progress",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oSgcValEntityIsValiddtv"
+    "mangled_symbol": "__0oSgcValEntityIsValiddtv",
+    "src_file": "src/gcValEntityIsValid_dtor.cpp",
+    "symbol_name": "__0oSgcValEntityIsValiddtv",
+    "matched_by_backend": "claude",
+    "matched_by_session_id": "c7a4fea8",
+    "matched_by_model": "claude-opus-4-7",
+    "matched_by_identity": "claude/claude-opus-4-7",
+    "matched_at": "2026-05-19T05:30:30Z"
   },
   {
     "address": "0x00336124",
