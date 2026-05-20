@@ -34,7 +34,6 @@ public:
 class gcDesiredCamera {
 public:
     gcDesiredCamera(cBase *);
-    void *Get(bool) const;
 };
 
 class gcDesiredEntity {
@@ -71,7 +70,6 @@ public:
 
     void AssignCopy(const cBase *);
     void Write(cFile &) const;
-    void Set(float);
     static cBase *New(cMemPool *, cBase *);
     const cType *GetType(void) const;
     ~gcValCameraVariable(void);
@@ -94,56 +92,6 @@ struct WriteRecord {
     short offset;
     short pad;
     void (*fn)(void *, cFile *);
-};
-
-struct gcValCameraVariable_Camera {
-    char pad000[0x20];
-    int frame;
-    char pad024[0xE9D];
-    unsigned char viewId;
-};
-
-struct gcValCameraVariable_Frame {
-    char pad00[0x70];
-    float f70;
-    float f74;
-    float f78;
-    char pad7C[0x1C];
-    float f98;
-};
-
-struct gcValCameraVariable_Block {
-    char pad00[0x08];
-    unsigned char b08;
-    unsigned char b09;
-    unsigned char b0A;
-    char pad0B[0x05];
-    float f10;
-    char pad14[0x28];
-    float f3C;
-    float f40;
-    float f44;
-    char pad48[0x14];
-    float f5C;
-    char pad60[0x10];
-    float f70;
-    float f74;
-    char pad78[0x18];
-    float f90;
-    float f94;
-    float f98;
-    char pad9C[0x7C];
-    float f118;
-    char pad11C[0x14];
-    float f130;
-    float f134;
-    char pad138[0x18];
-    float f150;
-    float f154;
-    float f158;
-    char pad15C[0x34];
-    float f190;
-    float f194;
 };
 
 // 0x003223ac, 88B
@@ -188,136 +136,6 @@ void gcValCameraVariable::Write(cFile &file) const {
     wb.Write(mField40);
     wb.Write(mField44);
     wb.End();
-}
-
-// 0x00322b50, 424B
-void gcValCameraVariable::Set(float value) {
-    gcValCameraVariable_Camera *camera =
-        (gcValCameraVariable_Camera *)((gcDesiredCamera *)((char *)this + 8))->Get(true);
-    if (camera == 0) {
-        return;
-    }
-
-    if (camera->viewId != mField40) {
-        return;
-    }
-    __asm__ volatile("" ::: "memory");
-
-    int frame = camera->frame;
-    int selector = mField44;
-    char *base = (char *)camera;
-    base += frame * 0x240;
-    base -= 0x210;
-    __asm__ volatile("" : "+r"(base));
-    selector -= 3;
-    if ((unsigned int)selector >= 30) {
-        return;
-    }
-
-    gcValCameraVariable_Frame *frameData = (gcValCameraVariable_Frame *)base;
-    gcValCameraVariable_Block *block =
-        (gcValCameraVariable_Block *)(base + 0xA0);
-    switch (selector) {
-    case 0:
-        frameData->f70 = value;
-        break;
-    case 1:
-        frameData->f74 = value;
-        break;
-    case 2:
-        frameData->f78 = value;
-        break;
-    case 3:
-        block->f190 = value;
-        break;
-    case 4:
-        block->f194 = value;
-        break;
-    case 5: {
-        float zero = 0.0f;
-        int flag = 0;
-        if (value != zero) {
-            flag = 1;
-        }
-        block->b08 = flag;
-        break;
-    }
-    case 6:
-        block->f70 = value;
-        break;
-    case 7:
-        block->f74 = value;
-        break;
-    case 8:
-        block->f10 = value;
-        break;
-    case 9:
-        block->f3C = value;
-        break;
-    case 10:
-        block->f44 = value;
-        break;
-    case 11:
-        frameData->f98 = value;
-        break;
-    case 12:
-        block->f98 = value;
-        break;
-    case 13:
-        block->f118 = value;
-        break;
-    case 14:
-        block->f5C = value;
-        break;
-    case 15: {
-        float zero = 0.0f;
-        int flag = 0;
-        if (value != zero) {
-            flag = 1;
-        }
-        block->b09 = flag;
-        break;
-    }
-    case 16: {
-        float zero = 0.0f;
-        int flag = 0;
-        if (value != zero) {
-            flag = 1;
-        }
-        block->b0A = flag;
-        break;
-    }
-    case 17:
-        block->f90 = value;
-        break;
-    case 18:
-        block->f94 = value;
-        break;
-    case 19:
-        block->f40 = value;
-        break;
-    case 20:
-        block->f130 = value;
-        break;
-    case 21:
-        block->f134 = value;
-        break;
-    case 22:
-        block->f158 = value;
-        break;
-    case 23:
-        block->f150 = value;
-        break;
-    case 24:
-        block->f154 = value;
-        break;
-    case 25:
-    case 26:
-    case 27:
-    case 28:
-    case 29:
-        break;
-    }
 }
 
 static cType *type_base;

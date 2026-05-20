@@ -97,18 +97,6 @@ struct GetTextSlot {
     void (*fn)(void *, char *);
 };
 
-typedef float (*gcExprVFn)(const void *);
-struct gcExprVEntry {
-    short adj;
-    short pad;
-    gcExprVFn fn;
-};
-
-struct gcPlayerViewportSlot {
-    char pad[0x30];
-    int viewport;
-};
-
 extern "C" void gcAction_gcAction(void *, cBase *);
 extern "C" void gcAction___dtor_gcAction_void(void *, int);
 extern "C" void cFile_SetCurrentPos(void *file, unsigned int pos);
@@ -132,7 +120,6 @@ public:
     gcDesiredValue mDesired2;  // 0x10
 
     void AssignCopy(const cBase *);
-    float Evaluate(void) const;
     const cType *GetType(void) const;
     void GetText(char *) const;
     static cBase *New(cMemPool *, cBase *);
@@ -169,71 +156,6 @@ cBase *gcDoPlayerSetViewport::New(cMemPool *pool, cBase *parent) {
         result = obj;
     }
     return (cBase *)result;
-}
-
-// ── gcDoPlayerSetViewport::Evaluate(void) const @ 0x002F2CD0, 340B ──
-float gcDoPlayerSetViewport::Evaluate(void) const {
-    int val = *(int *)((const char *)this + 0x0C);
-    int flag = 0;
-    if (val & 1) {
-        flag = 1;
-    }
-    const void *ptr;
-    if (flag != 0) {
-        ptr = 0;
-    } else {
-        ptr = (const void *)val;
-    }
-
-    float playerValue;
-    if (ptr != 0) {
-        const gcExprVEntry *e = *(const gcExprVEntry **)((const char *)ptr + 4) + 14;
-        playerValue = e->fn((const char *)ptr + e->adj);
-    } else {
-        playerValue = 0.0f;
-    }
-    int playerIndex = (int)playerValue;
-
-    if (playerIndex < 0 || playerIndex >= 8) {
-        return 0.0f;
-    }
-
-    int val2 = *(int *)((const char *)this + 0x10);
-    int flag2 = 0;
-    if (val2 & 1) {
-        flag2 = 1;
-    }
-    const void *ptr2;
-    if (flag2 != 0) {
-        ptr2 = 0;
-    } else {
-        ptr2 = (const void *)val2;
-    }
-
-    float viewportValue;
-    if (ptr2 != 0) {
-        const gcExprVEntry *e = *(const gcExprVEntry **)((const char *)ptr2 + 4) + 14;
-        viewportValue = e->fn((const char *)ptr2 + e->adj);
-    } else {
-        viewportValue = 0.0f;
-    }
-    int viewportIndex = (int)viewportValue;
-
-    if (viewportIndex < 0) goto retInvalid;
-    if (viewportIndex >= 5) goto retInvalid;
-    {
-        gcPlayerViewportSlot *player = 0;
-        if (playerIndex >= 0) goto playerValid;
-        player->viewport = viewportIndex;
-        goto retDone;
-playerValid:
-        player = (gcPlayerViewportSlot *)(*(char **)0x37D87C + playerIndex * 0x44);
-        player->viewport = viewportIndex;
-    }
-retDone:
-    return 0.0f;
-retInvalid:
-    return 0.0f;
 }
 
 const cType *gcDoPlayerSetViewport::GetType(void) const {

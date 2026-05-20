@@ -696,3 +696,4 @@ void eDynamicModel::ResetPartialAnimationController(int idx) {
         i++;
     } while (i < 4);
 }
+

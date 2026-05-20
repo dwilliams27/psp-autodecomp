@@ -3,21 +3,6 @@ class cBase;
 class cMemPool;
 class cType;
 class eVolume;
-class eCamera;
-class eCameraBins;
-class eMaterial;
-template <class T> class cHandleT;
-
-typedef int eRoom_v4sf_t __attribute__((mode(V4SF)));
-
-struct mSphere {
-    eRoom_v4sf_t v;
-};
-
-class mFrustum {
-public:
-    int Clip(const mSphere &, unsigned int) const;
-};
 
 inline void *operator new(unsigned int, void *p) { return p; }
 
@@ -87,49 +72,7 @@ public:
     void Free();
     void RemoveVolume(eVolume *);
     void ClearRoomVolumeList(eVolume *);
-    void Cull(unsigned int, const eCamera &, const mFrustum &, eCameraBins *,
-              int, const cHandleT<eMaterial> *, float) const;
     void Write(cFile &) const;
-};
-
-class eRoomEnvironment {
-public:
-    void Cull(unsigned int, const eCamera &, const mFrustum &,
-              eCameraBins *) const;
-};
-
-struct GeomCallRec {
-    short offset;
-    short _pad;
-    void (*fn)(void *, unsigned int, const eCamera &, const mFrustum &,
-               eCameraBins *, unsigned int, int, const cHandleT<eMaterial> *,
-               float);
-};
-
-struct UpdateCallRec {
-    short offset;
-    short _pad;
-    void (*fn)(void *, short, void *);
-};
-
-struct eRoomCullGeom {
-    char _pad0[4];
-    char *typeInfo;
-    char _pad8[0x38];
-    mSphere sphere;
-    char _pad50[0x24];
-    float radiusA;
-    float radiusB;
-    char _pad7C[0x0C];
-    unsigned int stamp;
-    unsigned char flags;
-    unsigned char mask;
-};
-
-struct eRoomCullNode {
-    eRoomCullGeom *geom;
-    char _pad4[8];
-    eRoomCullNode *next;
 };
 
 class eVolumeBody {
@@ -276,117 +219,6 @@ void eRoom::Free() {
 void eRoom::RemoveVolume(eVolume *volume) {
     ClearRoomVolumeList(volume);
     ((eVolumeBody *)volume)->mField24 = 0;
-}
-
-void eRoom::Cull(unsigned int stamp, const eCamera &camera,
-                 const mFrustum &frustum, eCameraBins *bins, int pass,
-                 const cHandleT<eMaterial> *material, float alpha) const {
-    eRoomCullNode *node = *(eRoomCullNode *const *)((const char *)this + 0x110);
-    if (node != 0) {
-        do {
-            eRoomCullGeom *geom = node->geom;
-            if (geom->stamp != stamp) {
-                if (((geom->mask &
-                      *(unsigned short *)((char *)bins + 4)) != 0) ||
-                    ((*(unsigned int *)0x37D0F0 & 0x2000) != 0)) {
-                    if ((geom->flags & 4) != 0) {
-                        char *typeInfo = geom->typeInfo;
-                        UpdateCallRec *rec = (UpdateCallRec *)(typeInfo + 0xB8);
-                        short off = rec->offset;
-                        void (*fn)(void *, short, void *) = rec->fn;
-                        fn((char *)geom + off, off, (void *)fn);
-                    }
-
-                    float radius = geom->radiusA * geom->radiusB;
-                    mSphere sphere;
-                    sphere.v = geom->sphere.v;
-                    *(float *)((char *)&sphere + 0xC) = radius;
-                    int clip = frustum.Clip(sphere, 0x40);
-                    if (clip != 0) {
-                        eRoomCullGeom *callGeom = node->geom;
-                        char *typeInfo = callGeom->typeInfo;
-                        GeomCallRec *rec = (GeomCallRec *)(typeInfo + 0x98);
-                        short off = rec->offset;
-                        rec->fn((char *)callGeom + off, stamp, camera,
-                                frustum, bins, clip, pass, material, alpha);
-                    }
-                }
-            }
-            node = node->next;
-        } while (node != *(eRoomCullNode *const *)((const char *)this + 0x110));
-    }
-
-    eRoomCullGeom *single = *(eRoomCullGeom **)((const char *)this + 0x118);
-    if (single != 0) {
-        if (((single->mask &
-              *(unsigned short *)((char *)bins + 4)) != 0) ||
-            ((*(unsigned int *)0x37D0F0 & 0x2000) != 0)) {
-            char *typeInfo = single->typeInfo;
-            GeomCallRec *rec = (GeomCallRec *)(typeInfo + 0x98);
-            short off = rec->offset;
-            rec->fn((char *)single + off, stamp, camera, frustum, bins,
-                    0x40, pass, material, alpha);
-        }
-    }
-
-    if (stamp != *(unsigned int *)((const char *)this + 0xF0)) {
-        *(unsigned int *)((char *)this + 0xF0) = stamp;
-        unsigned int handle = *(unsigned int *)((const char *)this + 0xE8);
-        bool valid;
-        if (handle == 0) {
-            valid = false;
-        } else {
-            unsigned int offset = (handle & 0xFFFF) << 2;
-            char *table = (char *)0x38890;
-            void *slot;
-            __asm__ volatile("addu %0,%1,%2"
-                             : "=r"(slot)
-                             : "r"(offset), "r"(table));
-            void *entry = *(void **)slot;
-            void *env = 0;
-            if (entry != 0) {
-                if (*(unsigned int *)((char *)entry + 0x30) == handle) {
-                    env = entry;
-                }
-            }
-            valid = env != 0;
-        }
-
-        if (((unsigned int)valid & 0xFF) != 0) {
-            eRoomEnvironment *env = 0;
-            if (handle != 0) {
-                unsigned int offset = (handle & 0xFFFF) << 2;
-                char *table = (char *)0x38890;
-                void *slot;
-                __asm__ volatile("addu %0,%1,%2"
-                                 : "=r"(slot)
-                                 : "r"(offset), "r"(table));
-                env = *(eRoomEnvironment **)slot;
-            }
-            env->Cull(stamp, camera, frustum, bins);
-        } else if (*(unsigned int *)((const char *)this + 0x100) != 0) {
-            unsigned int envHandle =
-                *(unsigned int *)(*(char **)((const char *)this + 0xF8) + 0x58);
-            eRoomEnvironment *env = 0;
-            if (envHandle != 0) {
-                unsigned int offset = (envHandle & 0xFFFF) << 2;
-                char *table = (char *)0x38890;
-                void *slot;
-                __asm__ volatile("addu %0,%1,%2"
-                                 : "=r"(slot)
-                                 : "r"(offset), "r"(table));
-                void *entry = *(void **)slot;
-                if (entry != 0) {
-                    if (*(unsigned int *)((char *)entry + 0x30) == envHandle) {
-                        env = (eRoomEnvironment *)entry;
-                    }
-                }
-            }
-            if (env != 0) {
-                env->Cull(stamp, camera, frustum, bins);
-            }
-        }
-    }
 }
 
 void eRoom::Write(cFile &file) const {
