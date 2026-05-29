@@ -1,36 +1,48 @@
 // gcDoEntitySpawn::operator=(const gcDoEntitySpawn &)  @ 0x00148aa0, 5640B target, gcAll_psp.obj
 //
-// STATUS: structurally complete; NOT YET byte-exact. Compiles to 5648B (8B over target)
-// and is byte-identical to the original through offset 0xF8. The residual: the inlined
-// gcDesiredValue release path lands the tagged handle in $t1 where the original used $t0,
-// plus an `ori` tail-duplication vs the original's handle-preserve `and;...;move` tail,
-// repeated across the ~20 inlined dances.
+// STATUS: structurally complete; NOT YET byte-exact (5656B / +16B; first 72 instructions of
+// each gcDesiredValue dance are byte-identical to the original). This is SOURCE-CONTROLLABLE
+// (the function's codegen is context-INDEPENDENT — see docs/sessions/2026-05-28.md), NOT the
+// ADR-012 wall. Marked failed (REG_ALLOC). Substantial progress; two coupled residual knots remain.
 //
-// ROOT CAUSE (corrected 2026-05-28): this is NOT the ADR-012 TU-context register-allocation
-// wall, and a compiler patch is NOT the path. The CG_LRA patch workflow EMPIRICALLY showed
-// this function's codegen is context-INDEPENDENT: freezing/sweeping the monotonic routine-ID
-// counter (pspcor.exe 0x5032d8) is a no-op, and prepending 2 / 40 / register-heavy / float
-// functions ahead of it in the same TU produces byte-identical output (verified). The $t1 /
-// tail-dup choice is therefore INTRINSIC to this reconstructed source structure, i.e.
-// SOURCE-CONTROLLABLE — the correct $t0-producing structure has simply not been found yet.
-// No surgical, zero-regression CG_LRA patch exists either (the decision is global to every
-// function). See docs/sessions/2026-05-28.md for the full CG_LRA map and the disproof of the
-// 0x5032d8-seed / ADR-012-context hypotheses for this function. Marked failed (REG_ALLOC).
+// SOLVED LEVERS (all verified at the instruction level):
+//   * Handle in $t0 (was $t1): comes from CORRECT call signatures — the release callback is
+//     2-arg void(*)(void*,void*) called slot->fn(handle+off, 3); cMemPool::GetPoolFromPtr is
+//     1-arg (const void*) @0x47a0; the acquire callback is 3-arg (srcPlus,pool,base2). (m2c had
+//     invented extra args; these are correctness fixes, cross-checked vs func_db / sibling src.)
+//   * Base-comp layout + duplicated `ori`: compute `base` into a separate per-arm local and
+//     `newval = base | 1u` per arm (NOT the foldable (x&~1)|1), so SNC keeps the and-arm as
+//     fall-through with the ori in the `b` delay slot — byte-exact 0x130-0x144.
+//   * Two-local release (unsigned int t0=m; unsigned int handle=t0;): REQUIRED to emit the
+//     handle-preserve pair (move a2,a1; move a1,t0); collapsing to one local undersizes.
+//   * Acquire deref via *(char**)(src+4): stops SNC folding src to the constant &rhs.dvXX.
+//   * srcPlus = (char*)src + aOff computed before GetPoolFromPtr: schedules into the jal delay slot.
 //
-// SIZE LEVER (2026-05-28): declaring `unsigned int handle = t0;` first in the release guard
-// (base from `t0`, but the post-store null-test and vtable deref reading `handle`) forces the
-// original's handle-preserve move pair and is what brings the body to ~target length; without
-// it the function is 88B short. The remaining $t1-vs-$t0 / tail-dup gap is the open source problem.
+// REMAINING (the open source problem, both register-coalescing/scheduling tie-breaks):
+//   (1) Release tail: the post-store null-test and (handle+off) arg read the raw $t0 where the
+//       original reads the PRESERVED $a1 copy (deref already uses a1). t0's live range from the
+//       base-comp is not dying before the tail. Need a source shape where null-test/deref/(handle
+//       +off) all flow through the single preserved copy (expected: move a0,a1; ...; addu a0,a0,a3).
+//   (2) Acquire head: src-preserve register assignment differs (expected preserves src into s1 in
+//       the beqz delay slot; ours keeps src in a1 / uses s0,s1 differently) — the +16B lives here.
 //
-// ODR-WARNING: split-TU file. The class is locally redeclared with only the data layout
-// this TU needs; it intentionally does NOT include or modify include/eMemCard-style
-// canonical headers, to avoid perturbing the allocator for already-matched siblings in
-// src/gcDoEntitySpawn.cpp (per docs/research/snc-register-allocation.md).
+// ODR-WARNING: split-TU file. The class is locally redeclared with only the data layout this TU
+// needs; it intentionally does NOT include or modify canonical headers, to avoid perturbing the
+// allocator for already-matched siblings in src/gcDoEntitySpawn.cpp (per snc-register-allocation.md).
+
+typedef void (*relFnT)(void *, void *);
+typedef unsigned int (*aFnT)(void *, void *, unsigned int);
 
 struct gcDVSlot {
     short offset;
     short pad;
-    void *fn;
+    relFnT fn;
+};
+
+struct gcDVASlot {
+    short offset;
+    short pad;
+    aFnT fn;
 };
 
 struct gcDVRec {
@@ -40,7 +52,7 @@ struct gcDVRec {
 
 class cMemPool {
 public:
-    static void *GetPoolFromPtr(const void *, void *, int);
+    static void *GetPoolFromPtr(const void *);
 };
 
 class gcDesiredValue {
@@ -62,19 +74,19 @@ public:
                 if (imm != 0) {
                     isimm = 1;
                 }
-                unsigned int base;
+                unsigned int newval;
                 if (isimm != 0) {
-                    base = t0 & ~1u;
+                    unsigned int base = t0 & ~1u;
+                    newval = base | 1u;
                 } else {
-                    base = ((gcDVRec *)t0)->unk0;
+                    unsigned int base = ((gcDVRec *)t0)->unk0;
+                    newval = base | 1u;
                 }
-                m = base | 1u;
+                m = newval;
                 if (handle != 0) {
                     char *rec = ((gcDVRec *)handle)->vtbl;
-                    short off = ((gcDVSlot *)(rec + 0x50))->offset;
-                    void *fn = ((gcDVSlot *)(rec + 0x50))->fn;
-                    ((void (*)(void *, int, void *, short))fn)(
-                        (char *)handle + off, 3, fn, off);
+                    gcDVSlot *slot = (gcDVSlot *)(rec + 0x50);
+                    slot->fn((char *)handle + slot->offset, (void *)3);
                 }
             }
             // ACQUIRE source value
@@ -85,10 +97,10 @@ public:
                 acq_guard = 0;
             }
             if (acq_guard != 0) {
-                gcDVSlot *aslot = (gcDVSlot *)(((gcDVRec *)src)->vtbl + 0x10);
+                gcDVASlot *aslot = (gcDVASlot *)(*(char **)(src + 4) + 0x10);
                 short aOff = aslot->offset;
                 char *srcPlus = (char *)src + aOff;
-                void *pool = cMemPool::GetPoolFromPtr(&m, (void *)(unsigned int)aOff, imm2);
+                void *pool = cMemPool::GetPoolFromPtr(&m);
                 unsigned int cur = m;
                 int isimm2 = 0;
                 if ((cur & 1) != 0) {
@@ -100,9 +112,7 @@ public:
                 } else {
                     base2 = ((gcDVRec *)cur)->unk0;
                 }
-                void *afn = aslot->fn;
-                m = ((unsigned int (*)(void *, void *, unsigned int, void *))afn)(
-                    srcPlus, pool, base2, afn);
+                m = aslot->fn(srcPlus, pool, base2);
             }
         }
         return *this;
