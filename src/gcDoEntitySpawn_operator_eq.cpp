@@ -1,20 +1,26 @@
-// gcDoEntitySpawn::operator=(const gcDoEntitySpawn &)  @ 0x00148aa0, 5640B, gcAll_psp.obj
+// gcDoEntitySpawn::operator=(const gcDoEntitySpawn &)  @ 0x00148aa0, 5640B target, gcAll_psp.obj
 //
-// STATUS: structurally complete; byte-exact PENDING the ADR-012 register-allocator
-// compiler patch. Compiles to the correct 5640B size and is byte-identical to the
-// original through offset 0x100 (prologue + dv-address pre-spilling). The residual is
-// pure context-dependent register-allocation drift (the inlined gcDesiredValue release
-// path lands the tagged handle in $t1 where the original monolithic gcAll_psp.obj TU
-// used $t0, plus a matching `ori` tail-duplication), repeated across the ~20 inlined
-// dances. This is the documented REG_ALLOC wall: see docs/decisions/012-snc-context-
-// dependent-regalloc.md and docs/research/snc-register-allocation.md. There is no local
-// source leverage; the close-out requires the deferred CG_LRA patch in pspcor.exe.
+// STATUS: structurally complete; NOT YET byte-exact. Compiles to 5648B (8B over target)
+// and is byte-identical to the original through offset 0xF8. The residual: the inlined
+// gcDesiredValue release path lands the tagged handle in $t1 where the original used $t0,
+// plus an `ori` tail-duplication vs the original's handle-preserve `and;...;move` tail,
+// repeated across the ~20 inlined dances.
 //
-// KEY SOURCE LEVER (discovered 2026-05-28): declaring `unsigned int handle = t0;` as the
-// first statement inside the release guard — base computed from `t0`, but the post-store
-// null-test and vtable deref reading `handle` — is what forces SNC to emit the original's
-// handle-preserve move pair (`move a2,a1 ; move a1,tN`) and brings the size to exactly
-// 5640. Without it SNC keeps one copy in a high temp and the function is 88B short.
+// ROOT CAUSE (corrected 2026-05-28): this is NOT the ADR-012 TU-context register-allocation
+// wall, and a compiler patch is NOT the path. The CG_LRA patch workflow EMPIRICALLY showed
+// this function's codegen is context-INDEPENDENT: freezing/sweeping the monotonic routine-ID
+// counter (pspcor.exe 0x5032d8) is a no-op, and prepending 2 / 40 / register-heavy / float
+// functions ahead of it in the same TU produces byte-identical output (verified). The $t1 /
+// tail-dup choice is therefore INTRINSIC to this reconstructed source structure, i.e.
+// SOURCE-CONTROLLABLE — the correct $t0-producing structure has simply not been found yet.
+// No surgical, zero-regression CG_LRA patch exists either (the decision is global to every
+// function). See docs/sessions/2026-05-28.md for the full CG_LRA map and the disproof of the
+// 0x5032d8-seed / ADR-012-context hypotheses for this function. Marked failed (REG_ALLOC).
+//
+// SIZE LEVER (2026-05-28): declaring `unsigned int handle = t0;` first in the release guard
+// (base from `t0`, but the post-store null-test and vtable deref reading `handle`) forces the
+// original's handle-preserve move pair and is what brings the body to ~target length; without
+// it the function is 88B short. The remaining $t1-vs-$t0 / tail-dup gap is the open source problem.
 //
 // ODR-WARNING: split-TU file. The class is locally redeclared with only the data layout
 // this TU needs; it intentionally does NOT include or modify include/eMemCard-style
