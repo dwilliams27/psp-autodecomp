@@ -1,9 +1,21 @@
 // gcDoEntitySpawn::operator=(const gcDoEntitySpawn &)  @ 0x00148aa0, 5640B target, gcAll_psp.obj
 //
-// STATUS: structurally complete; NOT YET byte-exact (5656B / +16B; first 72 instructions of
-// each gcDesiredValue dance are byte-identical to the original). This is SOURCE-CONTROLLABLE
-// (the function's codegen is context-INDEPENDENT — see docs/sessions/2026-05-28.md), NOT the
-// ADR-012 wall. Marked failed (REG_ALLOC). Substantial progress; two coupled residual knots remain.
+// STATUS: structurally complete; NOT YET byte-exact. Now compiles to EXACTLY 5640B (correct
+// size); the head of each gcDesiredValue dance (through ~0x144) is byte-identical to the
+// original, including the handle in $t0 and the handle-preserve pair. NOT the ADR-012 TU-context
+// wall (codegen is context-INDEPENDENT — see docs/sessions/2026-05-28.md). Marked failed (REG_ALLOC).
+//
+// RESIDUAL is a whole-function register-COLORING tie-break, proven NOT locally source-fixable:
+//   * The standalone weak gcDesiredValue::operator= symbol (compiled with no surrounding pressure)
+//     emits the EXPECTED pattern exactly — so the dance SOURCE is correct.
+//   * Inlined, the surrounding operator='s s0-s8 address-caching pressure makes SNC's global linear
+//     allocator route the post-store handle through raw $t0 where the original uses the preserved
+//     $a1 (first diff: release-tail null-test 0x148 `beqz t0` vs expected `beqz a1`). ~6 register-
+//     spelling instructions/dance; the large raw diff is branch-offset cascade, not structural.
+//   * Hard tension: unifying the post-store reads (which makes the tail byte-match) COLLAPSES the
+//     two-local preserve pair and undersizes. Every source lever trades one against the other.
+//   Closing this needs the whole 5640B function source-identical to the original (a fixed-point in
+//   the global interference graph), not a local tweak. Documented in docs/sessions/2026-05-28.md.
 //
 // SOLVED LEVERS (all verified at the instruction level):
 //   * Handle in $t0 (was $t1): comes from CORRECT call signatures — the release callback is
@@ -15,16 +27,10 @@
 //     fall-through with the ori in the `b` delay slot — byte-exact 0x130-0x144.
 //   * Two-local release (unsigned int t0=m; unsigned int handle=t0;): REQUIRED to emit the
 //     handle-preserve pair (move a2,a1; move a1,t0); collapsing to one local undersizes.
-//   * Acquire deref via *(char**)(src+4): stops SNC folding src to the constant &rhs.dvXX.
+//   * Acquire deref via ((gcDVRec*)src)->vtbl (a single lw N,4(reg)): folds the +4 into the lw,
+//     matching the original's single-load idiom — this is what brings the size to EXACTLY 5640
+//     (the manual *(char**)(src+4) form emitted addiu+lw, +2 instr/dance = the old +16B).
 //   * srcPlus = (char*)src + aOff computed before GetPoolFromPtr: schedules into the jal delay slot.
-//
-// REMAINING (the open source problem, both register-coalescing/scheduling tie-breaks):
-//   (1) Release tail: the post-store null-test and (handle+off) arg read the raw $t0 where the
-//       original reads the PRESERVED $a1 copy (deref already uses a1). t0's live range from the
-//       base-comp is not dying before the tail. Need a source shape where null-test/deref/(handle
-//       +off) all flow through the single preserved copy (expected: move a0,a1; ...; addu a0,a0,a3).
-//   (2) Acquire head: src-preserve register assignment differs (expected preserves src into s1 in
-//       the beqz delay slot; ours keeps src in a1 / uses s0,s1 differently) — the +16B lives here.
 //
 // ODR-WARNING: split-TU file. The class is locally redeclared with only the data layout this TU
 // needs; it intentionally does NOT include or modify canonical headers, to avoid perturbing the
@@ -97,7 +103,7 @@ public:
                 acq_guard = 0;
             }
             if (acq_guard != 0) {
-                gcDVASlot *aslot = (gcDVASlot *)(*(char **)(src + 4) + 0x10);
+                gcDVASlot *aslot = (gcDVASlot *)(((gcDVRec *)src)->vtbl + 0x10);
                 short aOff = aslot->offset;
                 char *srcPlus = (char *)src + aOff;
                 void *pool = cMemPool::GetPoolFromPtr(&m);
