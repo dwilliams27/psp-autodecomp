@@ -452,6 +452,20 @@ MUTATIONS = [
     (multiply_decompose, 2),
 ]
 
+# Register-allocation-affecting mutations (introduce/inline/duplicate temporaries,
+# live-range splits, sink/hoist, rename). These are the lever for REG_ALLOC
+# near-misses where the instruction stream is right but a register is wrong.
+# Imported here (after the helpers above are defined) because mutations_regalloc
+# imports those helpers back from this module — a top-of-file import would be a
+# circular import. REGALLOC_MUTATIONS is a list of bare callables; attach
+# weights here.
+try:
+    from mutations_regalloc import REGALLOC_MUTATIONS
+except ImportError:  # when imported as a package: tools.mutations
+    from tools.mutations_regalloc import REGALLOC_MUTATIONS
+
+MUTATIONS.extend((fn, 8) for fn in REGALLOC_MUTATIONS)
+
 _TOTAL_WEIGHT = sum(w for _, w in MUTATIONS)
 
 

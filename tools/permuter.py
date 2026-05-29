@@ -32,6 +32,7 @@ from common import (EBOOT_PATH, TEXT_FILE_OFFSET,
                     mask_relocation_bytes)
 from byte_match import extract_section, symbols_with_bytes_and_relocs
 from mutations import mutate
+from mips_score import score_instructions
 
 
 # ---------------------------------------------------------------------------
@@ -257,8 +258,51 @@ def score_bytes(compiled_bytes, expected_bytes, relocations):
     return sum(1 for a, b in zip(compiled_masked, expected_masked) if a != b)
 
 
-def permuter_suitability_reason(func_size, symbol_size, baseline_diff):
-    """Return skip reason when the target is not a last-mile permuter case."""
+def score_candidate(compiled_bytes, expected_bytes, relocations, score_mode):
+    """Score compiled bytes and return ``(rank_score, raw_score)``.
+
+    raw_score is always the relocation-masked byte diff (the WIN CONDITION,
+    identical to ``score_bytes``). rank_score is what the hill-climber ranks by:
+      - bytes mode: rank_score == raw_score (byte-identical to historical
+        behavior).
+      - insns mode: rank_score == guide_score from ``score_instructions``, which
+        masks the branch-displacement cascade so register-only near-misses get a
+        usable gradient. raw_score still gates the exact-match declaration.
+
+    Returns ``(float('inf'), float('inf'))`` for compile failures / size
+    mismatches.
+    """
+    raw_score = score_bytes(compiled_bytes, expected_bytes, relocations)
+    if score_mode == "bytes":
+        return raw_score, raw_score
+    if compiled_bytes is None:
+        return float("inf"), float("inf")
+    guide_score, raw_from_insns = score_instructions(
+        compiled_bytes, expected_bytes, relocations)
+    # score_instructions recomputes the same relocation-masked raw diff; keep
+    # the score_bytes value as the authoritative win condition. They must agree
+    # when both are finite (same masking path) — fail loud if not, per the
+    # project's no-silent-fallback norm.
+    if raw_score == float("inf"):
+        raw_score = raw_from_insns
+    elif raw_from_insns != float("inf"):
+        assert raw_score == raw_from_insns, (
+            f"raw diff disagreement: score_bytes={raw_score} "
+            f"score_instructions={raw_from_insns}"
+        )
+    return guide_score, raw_score
+
+
+def permuter_suitability_reason(func_size, symbol_size, baseline_diff,
+                                score_mode="bytes", insn_gate=None):
+    """Return skip reason when the target is not a last-mile permuter case.
+
+    In bytes mode the gate is the raw differing-byte count (default 30B,
+    byte-identical to historical behavior). In insns mode the gate is the
+    instruction-distance guide score; raw byte diffs are not a meaningful gate
+    there because a single register swap cascades branch offsets across the
+    whole function, so ``insn_gate`` (a guide_score threshold) is used instead.
+    """
     if symbol_size != func_size:
         delta = abs(symbol_size - func_size)
         return (
@@ -267,6 +311,15 @@ def permuter_suitability_reason(func_size, symbol_size, baseline_diff):
         )
     if baseline_diff == float("inf"):
         return "baseline could not be scored"
+    if score_mode == "insns":
+        if insn_gate is None:
+            return None
+        if baseline_diff > insn_gate:
+            return (
+                f"baseline guide score {baseline_diff} exceeds instruction "
+                f"gate {insn_gate}"
+            )
+        return None
     max_reasonable_diff = 30
     if baseline_diff > max_reasonable_diff:
         return (
@@ -280,13 +333,14 @@ def permuter_suitability_reason(func_size, symbol_size, baseline_diff):
 # Worker
 # ---------------------------------------------------------------------------
 
-def _worker_init(expected_bytes, func_size, base_cflags, target_sym):
+def _worker_init(expected_bytes, func_size, base_cflags, target_sym, score_mode):
     """Initialize worker process globals."""
-    global _w_expected, _w_func_size, _w_cflags, _w_target_sym
+    global _w_expected, _w_func_size, _w_cflags, _w_target_sym, _w_score_mode
     _w_expected = expected_bytes
     _w_func_size = func_size
     _w_cflags = base_cflags
     _w_target_sym = target_sym
+    _w_score_mode = score_mode
     signal.signal(signal.SIGTERM, _worker_sigterm)
 
 
@@ -298,7 +352,13 @@ def _worker_sigterm(signum, _frame):
 
 
 def _worker_eval(args):
-    """Evaluate a single candidate. Returns (score, source, status)."""
+    """Evaluate a single candidate.
+
+    Returns (rank_score, raw_score, source, status). rank_score drives the
+    hill-climb (guide_score in insns mode, raw byte diff in bytes mode);
+    raw_score is always the relocation-masked byte diff and is the only thing
+    that may declare an exact match.
+    """
     source, suffix, seed, flag_override = args
     random.seed(seed)
 
@@ -314,7 +374,7 @@ def _worker_eval(args):
 
         compile_result = compile_source(src_path, o_path, cflags)
         if not compile_result.ok:
-            return float("inf"), source, "compile_fail"
+            return float("inf"), float("inf"), source, "compile_fail"
 
         text_bytes = extract_text_bytes(o_path)
         try:
@@ -322,10 +382,11 @@ def _worker_eval(args):
                 o_path, text_bytes, _w_func_size, _w_target_sym
             )
         except SymbolSelectionError:
-            return float("inf"), source, "symbol_fail"
+            return float("inf"), float("inf"), source, "symbol_fail"
 
-        sc = score_bytes(func_bytes, _w_expected, relocs)
-        return sc, source, "ok"
+        rank_score, raw_score = score_candidate(
+            func_bytes, _w_expected, relocs, _w_score_mode)
+        return rank_score, raw_score, source, "ok"
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -362,10 +423,14 @@ def generate_candidates(source, batch_size, cflags, suffix, flag_mutate_chance=0
 
 def run_search(source, func_addr, func_size, cflags, eboot_data,
                target_symbol=None, time_limit=300, num_workers=None,
-               save_best_path=None, save_improved=False, no_gate=False):
+               save_best_path=None, save_improved=False, no_gate=False,
+               score_mode="bytes", insn_gate=None):
     """Run the permuter search loop.
 
-    Returns (best_score, best_source, stats_dict).
+    Returns (best_raw_score, best_source, stats_dict). The hill-climber ranks by
+    ``score_mode`` (raw byte diff in bytes mode, instruction guide score in
+    insns mode), but EXACT MATCH is declared and saved only when the raw
+    relocation-masked byte diff reaches 0 (the safety invariant).
     """
     if num_workers is None:
         num_workers = 2
@@ -394,7 +459,9 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
 
         start_offset = func_addr + TEXT_FILE_OFFSET
         expected_bytes = eboot_data[start_offset:start_offset + func_size]
-        baseline = score_bytes(func_bytes, expected_bytes, relocs)
+        baseline_rank, baseline_raw = score_candidate(
+            func_bytes, expected_bytes, relocs, score_mode)
+        baseline = baseline_rank
     finally:
         for p in [orig_src_path, orig_o_path]:
             try:
@@ -404,6 +471,8 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
 
     stats = {
         "baseline": baseline,
+        "baseline_raw": baseline_raw,
+        "score_mode": score_mode,
         "total": 0,
         "compiled": 0,
         "compile_fail": 0,
@@ -415,7 +484,10 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
         "saved": False,
     }
 
-    if baseline == 0:
+    # EXACT MATCH is governed by the raw relocation-masked byte diff only, even
+    # in insns mode where the rank score (guide) can hit 0 on a branch-offset
+    # residual. raw_score == 0 is the single win condition (safety invariant).
+    if baseline_raw == 0:
         if save_best_path:
             with open(save_best_path, "w") as f:
                 f.write(source)
@@ -425,11 +497,12 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
         return 0, source, stats
 
     skip_reason = permuter_suitability_reason(
-        func_size, len(func_bytes), baseline)
+        func_size, len(func_bytes), baseline,
+        score_mode=score_mode, insn_gate=insn_gate)
     if skip_reason and not no_gate:
         stats["skipped"] = skip_reason
         print(f"PERMUTER_SKIPPED_NOT_LAST_MILE: {skip_reason}")
-        return baseline, source, stats
+        return baseline_raw, source, stats
 
     if baseline == float("inf"):
         raise RuntimeError(
@@ -437,12 +510,21 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
             "Symbol size mismatch or relocation error."
         )
 
+    score_label = "guide score" if score_mode == "insns" else "bytes differ"
     print(f"Target symbol: {selected_symbol}")
-    print(f"Baseline: {baseline} bytes differ ({func_size}B function)")
+    print(f"Score mode: {score_mode}")
+    if score_mode == "insns":
+        print(f"Baseline: {baseline} {score_label} / {baseline_raw} bytes differ "
+              f"({func_size}B function)")
+    else:
+        print(f"Baseline: {baseline} {score_label} ({func_size}B function)")
     print(f"Workers: {num_workers}  |  Time limit: {time_limit}s")
     print()
 
-    best_score = baseline
+    # best_rank drives the hill-climb; best_raw is the win condition. In bytes
+    # mode they are identical.
+    best_rank = baseline
+    best_raw = baseline_raw
     best_source = source
 
     start_time = time.time()
@@ -455,8 +537,13 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
     pool = multiprocessing.Pool(
         num_workers,
         initializer=_worker_init,
-        initargs=(expected_slice, func_size, cflags, target_symbol),
+        initargs=(expected_slice, func_size, cflags, target_symbol, score_mode),
     )
+
+    def _fmt_best():
+        if score_mode == "insns":
+            return f"{best_rank}i/{best_raw}b"
+        return str(best_raw)
 
     try:
         while True:
@@ -470,7 +557,8 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                 if not candidates:
                     break
 
-            for sc, src, status in pool.imap_unordered(_worker_eval, candidates):
+            for rank_sc, raw_sc, src, status in pool.imap_unordered(
+                    _worker_eval, candidates):
                 stats["total"] += 1
 
                 if status == "compile_fail":
@@ -481,22 +569,33 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                     continue
                 stats["compiled"] += 1
 
-                if sc < best_score:
-                    best_score = sc
+                # Lexicographic (guide, raw): a candidate that ties the guide
+                # but lowers raw still counts as progress. This is REQUIRED for
+                # correctness: the guide masks branch displacements, so it can
+                # hit 0 on a branch-offset-only residual before a true raw==0
+                # match arrives. A plain `rank_sc < best_rank` would then drop
+                # the genuine exact match (0 not < 0). Tracking raw as the
+                # tiebreak guarantees the win condition is never discarded.
+                if (rank_sc, raw_sc) < (best_rank, best_raw):
+                    prev_best = _fmt_best()
+                    best_rank = rank_sc
+                    best_raw = raw_sc
                     best_source = src
                     stats["improvements"] += 1
-                    stats["best_scores"].append(best_score)
+                    stats["best_scores"].append(best_rank)
 
                     elapsed = time.time() - start_time
-                    print(f"  [{elapsed:6.1f}s] Improved: {best_score} bytes differ "
-                          f"(was {stats['best_scores'][-2]})")
+                    print(f"  [{elapsed:6.1f}s] Improved: {_fmt_best()} "
+                          f"(was {prev_best})")
 
-                    if save_best_path and (best_score == 0 or save_improved):
+                    # Save only on a true exact match (raw == 0), or on any
+                    # rank improvement when explicitly requested.
+                    if save_best_path and (best_raw == 0 or save_improved):
                         with open(save_best_path, "w") as f:
                             f.write(best_source)
                         stats["saved"] = True
 
-                    if best_score == 0:
+                    if best_raw == 0:
                         elapsed = time.time() - start_time
                         print(f"\n  EXACT MATCH found in {elapsed:.1f}s "
                               f"after {stats['total']} candidates!")
@@ -509,7 +608,7 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
                 elapsed = now - start_time
                 rate = stats["compiled"] / elapsed if elapsed > 0 else 0
                 print(f"  [{elapsed:6.1f}s] {stats['compiled']}/{stats['total']} compiled  "
-                      f"| best={best_score}  | {rate:.1f} candidates/sec")
+                      f"| best={_fmt_best()}  | {rate:.1f} candidates/sec")
                 last_print = now
 
     finally:
@@ -525,11 +624,15 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
     print(f"  Failures: {stats['compile_fail']} compile, "
           f"{stats['symbol_fail']} symbol isolation")
     print(f"  Rate: {rate:.1f} candidates/sec")
-    print(f"  Best: {best_score} bytes differ (started at {baseline})")
+    print(f"  Best: {_fmt_best()} (started at "
+          f"{baseline if score_mode == 'bytes' else f'{baseline}i/{baseline_raw}b'})")
     print(f"  Improvements: {stats['improvements']}")
     stats["exact"] = False
+    stats["best_raw"] = best_raw
 
-    return best_score, best_source, stats
+    # Return the raw byte diff as the primary score so callers' "== 0 means
+    # exact" contract holds regardless of score mode.
+    return best_raw, best_source, stats
 
 
 # ---------------------------------------------------------------------------
@@ -538,10 +641,13 @@ def run_search(source, func_addr, func_size, cflags, eboot_data,
 
 def _print_result(best_score, stats, save_path=None, saved=False):
     baseline = stats.get("baseline", float("inf"))
+    score_mode = stats.get("score_mode", "bytes")
     skipped = stats.get("skipped")
     selected_symbol = stats.get("selected_symbol", "<unknown>")
     fields = [
+        f"score_mode={score_mode}",
         f"baseline={baseline}",
+        f"baseline_raw={stats.get('baseline_raw', baseline)}",
         f"best={best_score}",
         f"total={stats.get('total', 0)}",
         f"compiled={stats.get('compiled', 0)}",
@@ -580,6 +686,16 @@ def run_main():
                         help="Exact compiled symbol to score (defaults to DB mangled_symbol)")
     parser.add_argument("--no-gate", action="store_true",
                         help="Run even when the baseline is outside the last-mile gate")
+    parser.add_argument("--score-mode", choices=["bytes", "insns"], default="bytes",
+                        help="Ranking objective: 'bytes' (default, raw byte diff, "
+                             "behavior identical to historical permuter) or 'insns' "
+                             "(instruction-aware guide score that masks the "
+                             "branch-displacement cascade for REG_ALLOC near-misses). "
+                             "Exact match is always declared on raw byte diff == 0.")
+    parser.add_argument("--insn-gate", type=int, default=None,
+                        help="In --score-mode insns, skip targets whose baseline guide "
+                             "score exceeds N (replaces the raw 30B gate, which wrongly "
+                             "blocks register-cascade cases). Default: no instruction gate.")
     parser.add_argument("--sched", choices=["1", "2"], default=None,
                         help="Override -Xsched flag (default: auto-detect from filename)")
     parser.add_argument("--mopt", choices=["0"], default=None,
@@ -599,6 +715,9 @@ def run_main():
 
     if args.save_improved and not (args.save_best or args.save_to):
         parser.error("--save-improved requires --save-best or --save-to")
+
+    if args.insn_gate is not None and args.score_mode != "insns":
+        parser.error("--insn-gate only applies with --score-mode insns")
 
     if not os.path.exists(args.source):
         print(f"PERMUTER_ERROR: source file not found: {args.source}",
@@ -658,15 +777,20 @@ def run_main():
         save_improved=args.save_improved,
         no_gate=args.no_gate,
         target_symbol=target_symbol,
+        score_mode=args.score_mode,
+        insn_gate=args.insn_gate,
     )
 
     saved = bool(stats.get("saved", False))
     _print_result(best_score, stats, save_path=save_path, saved=saved)
 
+    # best_score is the raw byte diff regardless of mode; compare against the
+    # raw baseline so "improved" reflects a real byte-level gain.
+    baseline_raw = stats.get("baseline_raw", stats.get("baseline", float("inf")))
     if best_score == 0:
         print(f"\nSource {'saved to ' + save_path if save_path else '(not saved — use --save-best)'}")
         return 0
-    elif best_score < stats.get("baseline", float("inf")):
+    elif best_score < baseline_raw:
         print(f"\nImproved but not matched. "
               f"{'Saved to ' + save_path if save_path and args.save_improved else 'Use --save-improved to save non-exact results.'}")
         return 1
