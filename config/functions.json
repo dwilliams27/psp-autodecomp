@@ -136752,13 +136752,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001ad9a0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "_ulp"
+    "mangled_symbol": "_ulp",
+    "src_file": "src/_ulp__001B8F04.cpp",
+    "symbol_name": "_ulp"
   },
   {
     "address": "0x001b8fa8",
@@ -160810,7 +160812,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0020a808",
@@ -160818,7 +160820,9 @@
       "0x0020f410"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_IFreeNodeP6UeDynamicAABBTreeNode79BA__v"
+    "mangled_symbol": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_IFreeNodeP6UeDynamicAABBTreeNode79BA__v",
+    "src_file": "src/voideDynamicAABBTreeAllocator_eRigidBodyState___FreeNode_eDynamicAABBTreeNode_eDynamicAABBTreeAllocator_ptr__0020A9EC.cpp",
+    "symbol_name": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_IFreeNodeP6UeDynamicAABBTreeNode79BA__v"
   },
   {
     "address": "0x0020aa90",
@@ -188309,11 +188313,13 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fRgcTableColumnGUIDHCompareiTBK"
+    "mangled_symbol": "__0fRgcTableColumnGUIDHCompareiTBK",
+    "src_file": "src/gcTableColumnGUID__Compare_int_intconst__002738E0.cpp",
+    "symbol_name": "__0fRgcTableColumnGUIDHCompareiTBK"
   },
   {
     "address": "0x00273980",
