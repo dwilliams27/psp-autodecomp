@@ -1181,7 +1181,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000009cc",
@@ -1234,7 +1234,9 @@
       "0x0035e0cc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FIcStrCopyPcPCc"
+    "mangled_symbol": "__0FIcStrCopyPcPCc",
+    "src_file": "src/cStrCopy_charptr_constcharptr__00001428.cpp",
+    "symbol_name": "__0FIcStrCopyPcPCc"
   },
   {
     "address": "0x00001478",
@@ -1264,7 +1266,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000d6938",
@@ -1272,7 +1274,9 @@
       "0x00100fe4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FIcStrCopyPwPCw"
+    "mangled_symbol": "__0FIcStrCopyPwPCw",
+    "src_file": "src/cStrCopy_wchar_tptr_constwchar_tptr__000014D8.cpp",
+    "symbol_name": "__0FIcStrCopyPwPCw"
   },
   {
     "address": "0x00001528",
@@ -1545,7 +1549,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00055430",
@@ -1554,7 +1558,9 @@
       "0x00056574"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FLcStrToUpperPc"
+    "mangled_symbol": "__0FLcStrToUpperPc",
+    "src_file": "src/cStrToUpper_charptr__000019D4.cpp",
+    "symbol_name": "__0FLcStrToUpperPc"
   },
   {
     "address": "0x00001a2c",
@@ -59242,11 +59248,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeSolverRowQGetEmbedVelocityP6PeRigidBodyStateTBRC6FmVec3TDP6FmVec3T"
+    "mangled_symbol": "__0fKeSolverRowQGetEmbedVelocityP6PeRigidBodyStateTBRC6FmVec3TDP6FmVec3T",
+    "src_file": "src/eSolverRow__GetEmbedVelocity_eRigidBodyStateptr_eRigidBodyStateptr_constmVec3ref_constmVec3ref_mVec3ptrstatic__0006EB98.cpp",
+    "symbol_name": "__0fKeSolverRowQGetEmbedVelocityP6PeRigidBodyStateTBRC6FmVec3TDP6FmVec3T"
   },
   {
     "address": "0x0006ebf0",
@@ -72839,13 +72847,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0008e12c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIeVRAMMgrLUnlinkAllocP65IeVRAMMgrJeAllocTagT"
+    "mangled_symbol": "__0fIeVRAMMgrLUnlinkAllocP65IeVRAMMgrJeAllocTagT",
+    "src_file": "src/eVRAMMgr__UnlinkAlloc_eVRAMMgr__eAllocTagptrstatic__0008E27C.cpp",
+    "symbol_name": "__0fIeVRAMMgrLUnlinkAllocP65IeVRAMMgrJeAllocTagT"
   },
   {
     "address": "0x0008e2d0",
@@ -106029,13 +106039,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00366f7c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fLgcUIControlNGetSpriteText65LgcUIControla__5LgcUIControlKgcUISpriteT"
+    "mangled_symbol": "__0fLgcUIControlNGetSpriteText65LgcUIControla__5LgcUIControlKgcUISpriteT",
+    "src_file": "src/gcUIControl__GetSpriteText_gcUIControl__gcUISpritestatic__00121F9C.cpp",
+    "symbol_name": "__0fLgcUIControlNGetSpriteText65LgcUIControla__5LgcUIControlKgcUISpriteT"
   },
   {
     "address": "0x00121fe8",
@@ -129794,13 +129806,15 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00098e50"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fFmLineWFindClosestPointOnLineRC6FmVec3NCBP6FmVec3T"
+    "mangled_symbol": "__0fFmLineWFindClosestPointOnLineRC6FmVec3NCBP6FmVec3T",
+    "src_file": "src/mLine__FindClosestPointOnLine_constmVec3ref_constmVec3ref_constmVec3ref_mVec3ptrstatic__001A2D44.cpp",
+    "symbol_name": "__0fFmLineWFindClosestPointOnLineRC6FmVec3NCBP6FmVec3T"
   },
   {
     "address": "0x001a2d98",
@@ -203716,11 +203730,13 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fWgcDoEntityFindAttachedHIterateR65HgcEventGgcLoopP6IgcEntityTCK"
+    "mangled_symbol": "__0fWgcDoEntityFindAttachedHIterateR65HgcEventGgcLoopP6IgcEntityTCK",
+    "src_file": "src/gcDoEntityFindAttached__Iterate_gcEvent__gcLoopref_gcEntityptr_gcEntityptrconst__002B0C28.cpp",
+    "symbol_name": "__0fWgcDoEntityFindAttachedHIterateR65HgcEventGgcLoopP6IgcEntityTCK"
   },
   {
     "address": "0x002b0c7c",
