@@ -10,12 +10,12 @@ struct GpuCmdList {
 extern GpuCmdList D_000984D0;
 
 void eVideo::SetAlphaBlendEnable(bool enable) {
-    int e = enable;
-    e &= 0xff;
+    unsigned int e = enable & 0xff;
     if (e != D_00098428) {
+        int v = e | 0x21000000;
         int *p = D_000984D0.ptr;
         D_000984D0.ptr = p + 1;
-        *p = e | 0x21000000;
+        *p = v;
         D_00098428 = e;
     }
 }

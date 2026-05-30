@@ -17589,7 +17589,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0027c630"
@@ -17601,7 +17601,9 @@
         "notes": "Not attempted -- see notes on 0x0000cf00. Same session-level block. Disassembly has two nested null/empty-string guards then a do-while that uses branch-likely (beqzl at cec8, bnezl at ceec) to stream 16-bit chars into the buffer while bounds-permitting, advancing the source pointer by 2 even when the store is skipped. The early returns at ceb4 and ceb0 handle the arg1==NULL and *arg1==0 cases. Given bnezl usage, read docs/research/snc-branch-likely.md before retrying."
       }
     ],
-    "mangled_symbol": "__0oOcStringBufferWlsPCw"
+    "mangled_symbol": "__0oOcStringBufferWlsPCw",
+    "src_file": "src/cStringBufferW__operator_shl_constwchar_tptr__0000CE98.cpp",
+    "symbol_name": "__0oOcStringBufferWlsPCw"
   },
   {
     "address": "0x0000cf00",
@@ -17639,7 +17641,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0027c630"
@@ -17651,7 +17653,9 @@
         "notes": "Not attempted -- see notes on 0x0000cf00. Same session-level block: refused to augment src/cStringBufferW.cpp after reading it. Disassembly is a tight while loop scanning forward through wide chars while (pos < end-2 && *pos != 0) { pos += 2; this->pos = pos; } then *pos = 0. Note the branch-delay slot at cf64-cf68 re-does the sltu to prime the next iteration's compare; a straightforward while-loop should match with maybe a memory barrier. Leaf function."
       }
     ],
-    "mangled_symbol": "__0fOcStringBufferWJSkipToEndv"
+    "mangled_symbol": "__0fOcStringBufferWJSkipToEndv",
+    "src_file": "src/cStringBufferW__SkipToEnd_void__0000CF38.cpp",
+    "symbol_name": "__0fOcStringBufferWJSkipToEndv"
   },
   {
     "address": "0x0000cf74",
@@ -32641,14 +32645,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00030898",
       "0x000b87bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeVideoTSetAlphaBlendEnablebT"
+    "mangled_symbol": "__0fGeVideoTSetAlphaBlendEnablebT",
+    "src_file": "src/eVideo__SetAlphaBlendEnable_boolstatic__000302B8.cpp",
+    "symbol_name": "__0fGeVideoTSetAlphaBlendEnablebT"
   },
   {
     "address": "0x000302f8",
@@ -47158,7 +47164,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -47178,7 +47184,9 @@
         "timestamp": "2026-04-30T12:53:24Z"
       }
     ],
-    "mangled_symbol": "__0fKeHeightmapQGetEmbedContactsRC6OeCollisionInfoiPC6HmSphereP6ReContactCollectorK"
+    "mangled_symbol": "__0fKeHeightmapQGetEmbedContactsRC6OeCollisionInfoiPC6HmSphereP6ReContactCollectorK",
+    "src_file": "src/eHeightmap__GetEmbedContacts_consteCollisionInforef_int_constmSphereptr_eContactCollectorptrconst__00052C78.cpp",
+    "symbol_name": "__0fKeHeightmapQGetEmbedContactsRC6OeCollisionInfoiPC6HmSphereP6ReContactCollectorK"
   },
   {
     "address": "0x00052cb8",
@@ -56263,7 +56271,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56285,7 +56293,9 @@
         "snapshot": "logs/failure_snapshots/match_20260503_231848/20de5b46/00069998__agent_self_reported_failure__src_eMultiSphereShape.cpp"
       }
     ],
-    "mangled_symbol": "__0fReMultiSphereShapeJGetVolumevK"
+    "mangled_symbol": "__0fReMultiSphereShapeJGetVolumevK",
+    "src_file": "src/eMultiSphereShape__GetVolume_voidconst__00069998.cpp",
+    "symbol_name": "__0fReMultiSphereShapeJGetVolumevK"
   },
   {
     "address": "0x000699e0",
@@ -56961,7 +56971,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56983,7 +56993,9 @@
         "snapshot": "logs/failure_snapshots/match_20260503_231848/40c4f721/0006aebc__agent_self_reported_failure__src_eCapsuleShape.cpp"
       }
     ],
-    "mangled_symbol": "__0fNeCapsuleShapeJGetVolumevK"
+    "mangled_symbol": "__0fNeCapsuleShapeJGetVolumevK",
+    "src_file": "src/eCapsuleShape__GetVolume_voidconst__0006AEBC.cpp",
+    "symbol_name": "__0fNeCapsuleShapeJGetVolumevK"
   },
   {
     "address": "0x0006af04",
@@ -59169,7 +59181,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0006e4f8"
@@ -59191,7 +59203,9 @@
         "timestamp": "2026-04-30T20:33:00Z"
       }
     ],
-    "mangled_symbol": "__0fPeConvexHullUtilTTensorSubExpressionfNCBRfNCEK"
+    "mangled_symbol": "__0fPeConvexHullUtilTTensorSubExpressionfNCBRfNCEK",
+    "src_file": "src/eConvexHullUtil__TensorSubExpression_float_float_float_floatref_floatref_floatrefconst__0006E77C.cpp",
+    "symbol_name": "__0fPeConvexHullUtilTTensorSubExpressionfNCBRfNCEK"
   },
   {
     "address": "0x0006e7bc",
@@ -61306,7 +61320,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000239d0",
@@ -61341,7 +61355,9 @@
         "snapshot": "logs/failure_snapshots/match_20260503_231848/0ecc0cfe/00074094__agent_self_reported_failure__src_eCompoundShape.cpp"
       }
     ],
-    "mangled_symbol": "__0fOeCompoundShapeLGetBoxShapeRC6EmOCSP6JeBoxShapeP6EmOCSK"
+    "mangled_symbol": "__0fOeCompoundShapeLGetBoxShapeRC6EmOCSP6JeBoxShapeP6EmOCSK",
+    "src_file": "src/eCompoundShape__GetBoxShape_constmOCSref_eBoxShapeptr_mOCSptrconst__00074094.cpp",
+    "symbol_name": "__0fOeCompoundShapeLGetBoxShapeRC6EmOCSP6JeBoxShapeP6EmOCSK"
   },
   {
     "address": "0x000740e4",
@@ -63693,7 +63709,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -63703,7 +63719,9 @@
         "notes": "Session aborted before any decompilation attempts. Same reason as 0x00077924: a system-level instruction prohibited augmenting the existing src/eDynamicLight.cpp after it was read. Update() involves a virtual-dispatch through what looks like a vtable at offset 0xB8 of arg0->unk4, gated by a flag bit (arg0->unk8C & 4). Next agent should retry \u2014 note that this is the cTimeValue parameter version, and the call pattern (lh offset, addu to this, jalr) is the standard SNC vtable dispatch documented in snc-vtable-layout.md."
       }
     ],
-    "mangled_symbol": "__0fNeDynamicLightGUpdate6KcTimeValue"
+    "mangled_symbol": "__0fNeDynamicLightGUpdate6KcTimeValue",
+    "src_file": "src/eDynamicLight__Update_cTimeValue__00077950.cpp",
+    "symbol_name": "__0fNeDynamicLightGUpdate6KcTimeValue"
   },
   {
     "address": "0x0007798c",
@@ -66526,7 +66544,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -66546,7 +66564,9 @@
         "timestamp": "2026-04-30T20:33:05Z"
       }
     ],
-    "mangled_symbol": "__0fTeShadowFillModelMtlHUnapplyvK"
+    "mangled_symbol": "__0fTeShadowFillModelMtlHUnapplyvK",
+    "src_file": "src/eShadowFillModelMtl__Unapply_voidconst__0007FA0C.cpp",
+    "symbol_name": "__0fTeShadowFillModelMtlHUnapplyvK"
   },
   {
     "address": "0x0007fa48",
@@ -87469,7 +87489,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000eb73c"
@@ -87503,7 +87523,9 @@
         "snapshot": "logs/failure_snapshots/match_20260518_220939/0be00f8f/000eb7dc__agent_self_reported_failure__src_gcCinematicInstance.cpp"
       }
     ],
-    "mangled_symbol": "__0fTgcCinematicInstanceUFreeDynamicInstancesvT"
+    "mangled_symbol": "__0fTgcCinematicInstanceUFreeDynamicInstancesvT",
+    "src_file": "src/gcCinematicInstance__FreeDynamicInstances_voidstatic__000EB7DC.cpp",
+    "symbol_name": "__0fTgcCinematicInstanceUFreeDynamicInstancesvT"
   },
   {
     "address": "0x000eb838",
@@ -102144,7 +102166,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0011ecc0",
@@ -102183,7 +102205,9 @@
         "src_file": "src/gcEntity.cpp",
         "snapshot": "logs/failure_snapshots/match_20260518_220939/57649131/00117440__agent_self_reported_failure__src_gcEntity.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcEntity__GetPlayer_voidconst__00117440.cpp",
+    "symbol_name": "__0fIgcEntityJGetPlayervK"
   },
   {
     "address": "0x00117498",
@@ -102216,7 +102240,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001125f0",
@@ -102230,7 +102254,9 @@
       "0x003413f8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityLGetVelocityP6FmVec3K"
+    "mangled_symbol": "__0fIgcEntityLGetVelocityP6FmVec3K",
+    "src_file": "src/gcEntity__GetVelocity_mVec3ptrconst__001174B4.cpp",
+    "symbol_name": "__0fIgcEntityLGetVelocityP6FmVec3K"
   },
   {
     "address": "0x001174f0",
@@ -131892,7 +131918,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -131912,7 +131938,9 @@
         "timestamp": "2026-04-30T19:55:21Z"
       }
     ],
-    "mangled_symbol": "__0o5MnwConnectionLnwMsgsBlockctv"
+    "mangled_symbol": "__0o5MnwConnectionLnwMsgsBlockctv",
+    "src_file": "src/nwConnection__nwMsgsBlock__nwMsgsBlock_void__001A63E4.cpp",
+    "symbol_name": "__0o5MnwConnectionLnwMsgsBlockctv"
   },
   {
     "address": "0x001a6420",

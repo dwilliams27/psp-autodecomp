@@ -50,7 +50,7 @@ function buildPrompt(t) {
     '4. Write src/' + t.safe_name + '.cpp emitting symbol ' + sym + '.',
     '   - Class methods: #include the existing header OR (if the method is missing from it) declare the class LOCALLY in the .cpp (split-TU). NEVER add new method declarations to include/*.h (BANNED).',
     '   - Template/handle ctors: declare a template class; define the ctor OUT-OF-LINE (an in-class inline ctor emits NO text symbol under explicit instantiation), then add an explicit ctor instantiation for the concrete type. compare_func requires the emitted symbol to EXACTLY equal the DB mangled symbol (no extern "C" wrappers — those get no DB entry).',
-    '   - Only create/modify src/*.cpp, src/*.c, include/*.h. NEVER touch tools/, config/, Makefile.',
+    '   - HARD ISOLATION (parallel run): create EXACTLY ONE new file, src/' + t.safe_name + '.cpp (or .c). Do NOT modify, append to, or DELETE any other existing file (no editing shared TUs like src/<Class>.cpp, no editing include/*.h, no rm). If a stale/conflicting/duplicate-symbol file exists, REPORT it in notes — do NOT touch it. NEVER touch tools/, config/, Makefile.',
     '5. Verify: python3 tools/compare_func.py src/' + t.safe_name + '.cpp --no-update-db . Drive the masked byte diff to 0.',
     '6. If stuck, try MULTIPLE restructurings (expression/eval order, loop/branch idiom, local declaration ORDER — it drives SNC register allocation/delay-slot fill — register-forcing locals, #pragma control sched=N, __asm__ volatile("" ::: "memory") barriers). Reuse matched-sibling structure when one exists.',
     '',
