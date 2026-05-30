@@ -963,7 +963,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00055430",
@@ -1151,7 +1151,9 @@
       "0x0036ae00"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FHcStrCatPcPCc"
+    "mangled_symbol": "__0FHcStrCatPcPCc",
+    "src_file": "src/cStrCat_charptr_constcharptr__00001368.cpp",
+    "symbol_name": "__0FHcStrCatPcPCc"
   },
   {
     "address": "0x000013c8",
@@ -1163,13 +1165,15 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0013a730"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FHcStrCatPwPCw"
+    "mangled_symbol": "__0FHcStrCatPwPCw",
+    "src_file": "src/cStrCat_wchar_tptr_constwchar_tptr__000013C8.cpp",
+    "symbol_name": "__0FHcStrCatPwPCw"
   },
   {
     "address": "0x00001428",
@@ -1248,13 +1252,15 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x002737c8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FIcStrCopyPcPCw"
+    "mangled_symbol": "__0FIcStrCopyPcPCw",
+    "src_file": "src/cStrCopy_charptr_constwchar_tptr__00001478.cpp",
+    "symbol_name": "__0FIcStrCopyPcPCw"
   },
   {
     "address": "0x000014d8",
@@ -1288,14 +1294,16 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00273870",
       "0x0028f748"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FIcStrCopyPwPCc"
+    "mangled_symbol": "__0FIcStrCopyPwPCc",
+    "src_file": "src/cStrCopy_wchar_tptr_constcharptr__00001528.cpp",
+    "symbol_name": "__0FIcStrCopyPwPCc"
   },
   {
     "address": "0x00001588",
@@ -134020,13 +134028,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001aa6d0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "std"
+    "mangled_symbol": "std",
+    "src_file": "src/std__001AA5F0.c",
+    "symbol_name": "std"
   },
   {
     "address": "0x001aa648",
@@ -162172,7 +162182,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001e6df4",
@@ -162182,7 +162192,9 @@
       "0x0021e27c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_MInsertObjectP9BA_v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_MInsertObjectP9BA_v",
+    "src_file": "src/voideDynamicAABBTreeNode_eRigidBodyState___InsertObject_eDynamicAABBTreeNodeptr__0020F200.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_MInsertObjectP9BA_v"
   },
   {
     "address": "0x0020f25c",
