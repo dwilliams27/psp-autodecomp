@@ -73160,7 +73160,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036baf4"
     ],
@@ -73174,7 +73174,9 @@
         "notes": "PhysiqueAlloc(int, unsigned int*): 356 bytes. Not attempted \u2014 same file/flag issue as SetShadowInfo. Function is a GE display-list allocator: checks *(0x37D0C8)->unk10 vs (*(u32*)0x37D380 + arg0), then if space available, allocates 16-byte aligned chunks from a ring buffer at 0x984D0 (fields unk8 write ptr, unk10 toggle, unk0/unk4 base ptrs). Writes two GE command DWORDs at the alloc point (opcode 0x10 with upper-byte count, opcode 0x08 with 24-bit lower-addr). Then computes a relative-offset descriptor (cmd index << 16 | offset>>4) into *arg1, calls sceKernelDcacheWritebackInvalidateRange, advances the counter. Returns the aligned alloc address. Three return paths: early fail (arg1=0), inner fail after allocation (arg1=0), success (arg1=descriptor, returns ptr). The double early-return structure (near-identical epilogs at 0x8e9d0 and 0x8e9f0) may be significant \u2014 likely two different `if(...)return 0;` branches, not sharing epilog. No scheduling-specific instructions here so flags may be less critical; worth trying once headers are set up."
       }
     ],
-    "mangled_symbol": "__0fOeVideoPlatformNPhysiqueAllociPUiT"
+    "mangled_symbol": "__0fOeVideoPlatformNPhysiqueAllociPUiT",
+    "src_file": "src/eVideoPlatform__PhysiqueAlloc_int_unsignedintptrstatic__0008E924.cpp",
+    "symbol_name": "__0fOeVideoPlatformNPhysiqueAllociPUiT"
   },
   {
     "address": "0x0008ea88",
@@ -198330,7 +198332,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0013aff8"
@@ -198349,7 +198351,9 @@
         "variant": "base",
         "timestamp": "2026-04-30T07:47:43Z"
       }
-    ]
+    ],
+    "src_file": "src/gcUIGeom__AssignCopy_constcBaseptr__00290B1C.cpp",
+    "symbol_name": "__0fIgcUIGeomKAssignCopyPC6FcBase"
   },
   {
     "address": "0x00290cc0",
