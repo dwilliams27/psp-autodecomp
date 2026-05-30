@@ -13974,14 +13974,16 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00007f30",
       "0x00008018"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fJcLanguagePGetLanguageName65JcLanguageY__5JcLanguageKcLanguagesT"
+    "mangled_symbol": "__0fJcLanguagePGetLanguageName65JcLanguageY__5JcLanguageKcLanguagesT",
+    "src_file": "src/cLanguage__GetLanguageName_cLanguage__cLanguagesstatic__00007C74.cpp",
+    "symbol_name": "__0fJcLanguagePGetLanguageName65JcLanguageY__5JcLanguageKcLanguagesT"
   },
   {
     "address": "0x00007d30",
@@ -13993,7 +13995,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00008018",
@@ -14004,7 +14006,9 @@
       "0x000804c0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fJcLanguageUGetLanguageShortName65JcLanguageY__5JcLanguageKcLanguagesT"
+    "mangled_symbol": "__0fJcLanguageUGetLanguageShortName65JcLanguageY__5JcLanguageKcLanguagesT",
+    "src_file": "src/cLanguage__GetLanguageShortName_cLanguage__cLanguagesstatic__00007D30.cpp",
+    "symbol_name": "__0fJcLanguageUGetLanguageShortName65JcLanguageY__5JcLanguageKcLanguagesT"
   },
   {
     "address": "0x00007dec",
@@ -14016,13 +14020,15 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0027f404"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fJcLanguageYGetLanguageNameLocalized65JcLanguageY__5JcLanguageKcLanguagesT"
+    "mangled_symbol": "__0fJcLanguageYGetLanguageNameLocalized65JcLanguageY__5JcLanguageKcLanguagesT",
+    "src_file": "src/cLanguage__GetLanguageNameLocalized_cLanguage__cLanguagesstatic__00007DEC.cpp",
+    "symbol_name": "__0fJcLanguageYGetLanguageNameLocalized65JcLanguageY__5JcLanguageKcLanguagesT"
   },
   {
     "address": "0x00007ea8",
@@ -72675,7 +72681,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0002c21c",
@@ -72697,7 +72703,9 @@
       "0x0008b770"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIeVRAMMgrKSetTexturePC6IeTexturePC6HeCameraPC6GeWorldT"
+    "mangled_symbol": "__0fIeVRAMMgrKSetTexturePC6IeTexturePC6HeCameraPC6GeWorldT",
+    "src_file": "src/eVRAMMgr__SetTexture_consteTextureptr_consteCameraptr_consteWorldptrstatic__0008D948.cpp",
+    "symbol_name": "__0fIeVRAMMgrKSetTexturePC6IeTexturePC6HeCameraPC6GeWorldT"
   },
   {
     "address": "0x0008da04",
@@ -84278,14 +84286,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000e17dc",
       "0x000e1aa8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEgcUIMRemoveDialogi"
+    "mangled_symbol": "__0fEgcUIMRemoveDialogi",
+    "src_file": "src/gcUI__RemoveDialog_int__000E16CC.cpp",
+    "symbol_name": "__0fEgcUIMRemoveDialogi"
   },
   {
     "address": "0x000e177c",
@@ -98865,14 +98875,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0010bd94",
       "0x0010d47c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcStateVTableEntryDGetP6McHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__K"
+    "mangled_symbol": "__0fSgcStateVTableEntryDGetP6McHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__K",
+    "src_file": "src/gcStateVTableEntry__Get_cHandlePairT_gcStateMachine_cSubHandleT_gcState__ptrconst__0010C5E8.cpp",
+    "symbol_name": "__0fSgcStateVTableEntryDGetP6McHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__K"
   },
   {
     "address": "0x0010c684",
@@ -161382,13 +161394,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000921f0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fNcRedBlackTree76FmVec36TcFixedSizeAllocator76RcRedBlackTreeNode76FmVec3_4000s_6FmVec36UcRedBlackTreeCompare_IFindNodeRC9DA_P6RcRedBlackTreeNode79BA_K"
+    "mangled_symbol": "__0fNcRedBlackTree76FmVec36TcFixedSizeAllocator76RcRedBlackTreeNode76FmVec3_4000s_6FmVec36UcRedBlackTreeCompare_IFindNodeRC9DA_P6RcRedBlackTreeNode79BA_K",
+    "src_file": "src/cRedBlackTreeNode_cRedBlackTree_ptrcRedBlackTree_mVec3_cFixedSizeAllocator_cRedBlackTreeNode_mVec3__200__mVec3_cRedBlackTreeCompare___FindNode_constcFixedSizeAllocator_cRedBlackTreeNode_mVec3__200_refconst__0020BFC8.cpp",
+    "symbol_name": "__0fNcRedBlackTree76FmVec36TcFixedSizeAllocator76RcRedBlackTreeNode76FmVec3_4000s_6FmVec36UcRedBlackTreeCompare_IFindNodeRC9DA_P6RcRedBlackTreeNode79BA_K"
   },
   {
     "address": "0x0020c078",
@@ -162501,13 +162515,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0020ed40"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_NShrinkExtentsRC6EmBox_v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_NShrinkExtentsRC6EmBox_v",
+    "src_file": "src/voideDynamicAABBTreeNode_eRigidBodyState___ShrinkExtents_constmBoxref__0020F51C.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_NShrinkExtentsRC6EmBox_v"
   },
   {
     "address": "0x0020f5cc",
