@@ -13595,7 +13595,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005c90"
@@ -13613,7 +13613,9 @@
         "notes": "[backfill] src/cListSubscriber.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fPcListSubscriberFWriteR6FcFileK"
+    "mangled_symbol": "__0fPcListSubscriberFWriteR6FcFileK",
+    "src_file": "src/cListSubscriber__Write_cFilerefconst__000076E4.cpp",
+    "symbol_name": "__0fPcListSubscriberFWriteR6FcFileK"
   },
   {
     "address": "0x0000770c",
@@ -39622,7 +39624,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -39635,7 +39637,9 @@
         "notes": "Not attempted \u2014 same constraint as 0x001ebb98. This is ePortal::~ePortal(void), 124 bytes, in the 0x040000-0x06e000 transition zone (sched may be 1 or 2, try sched=2 first). Standard dtor pattern: null-check, restore vtable at offset 4 (ePortalvirtualtable with addend 0x38-0x2728=0x380aa8, which matches 'lui a0,0x38; addiu a0,a0,0x0aa8'), call cObject::~cObject(self,0), then if (flags & 1) call the pool's delete-record fn at offset 0x30 of the block's +0x1C entry. The existing ePortal___dtor_ePortal_void in the file is very close to what's needed \u2014 the next agent can reuse that pattern nearly verbatim and just ensure it's the correct symbol for this address."
       }
     ],
-    "mangled_symbol": "__0oHePortaldtv"
+    "mangled_symbol": "__0oHePortaldtv",
+    "src_file": "src/ePortal___dtor_ePortal_void__000405C4.cpp",
+    "symbol_name": "__0oHePortaldtv"
   },
   {
     "address": "0x00040640",
@@ -46731,7 +46735,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0008fe10"
     ],
@@ -46755,7 +46759,9 @@
         "timestamp": "2026-05-06T18:07:51Z"
       }
     ],
-    "mangled_symbol": "__0fSeHeightmapTemplateMPlatformFreev"
+    "mangled_symbol": "__0fSeHeightmapTemplateMPlatformFreev",
+    "src_file": "src/eHeightmapTemplate__PlatformFree_void__000520B8.cpp",
+    "symbol_name": "__0fSeHeightmapTemplateMPlatformFreev"
   },
   {
     "address": "0x000520f0",
@@ -48764,7 +48770,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00090acc"
     ],
@@ -48778,7 +48784,9 @@
         "notes": "[backfill] src/eMovie.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fGeMovieEOpenPCc"
+    "mangled_symbol": "__0fGeMovieEOpenPCc",
+    "src_file": "src/eMovie__Open_constcharptr__00056E44.cpp",
+    "symbol_name": "__0fGeMovieEOpenPCc"
   },
   {
     "address": "0x00056e60",
@@ -60630,7 +60638,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0000553c"
     ],
@@ -60658,7 +60666,9 @@
         "variant": "base",
         "timestamp": "2026-04-30T19:20:22Z"
       }
-    ]
+    ],
+    "src_file": "src/eConvexHullShape__ePolyFace__Write_cWriteBlockrefconst__00072950.cpp",
+    "symbol_name": "__0f5QeConvexHullShapeJePolyFaceFWriteR6LcWriteBlockK"
   },
   {
     "address": "0x000729ac",
@@ -61877,7 +61887,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00046c48"
     ],
@@ -61891,7 +61901,9 @@
         "notes": "[backfill] src/eKeyframedController.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oUeKeyframedControllerctP6FcBase"
+    "mangled_symbol": "__0oUeKeyframedControllerctP6FcBase",
+    "src_file": "src/eKeyframedController__eKeyframedController_cBaseptr__00074EBC.cpp",
+    "symbol_name": "__0oUeKeyframedControllerctP6FcBase"
   },
   {
     "address": "0x00074ef4",
@@ -63581,7 +63593,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005c90",
@@ -63595,7 +63607,9 @@
         "notes": "Session aborted before any decompilation attempts. Same reason as the other functions in this batch. Write() uses the standard cWriteBlock RAII pattern (ctor with id=1, call eDynamicGeom::Write base, dtor calls End). Should be a straightforward match on retry."
       }
     ],
-    "mangled_symbol": "__0fNeDynamicLightFWriteR6FcFileK"
+    "mangled_symbol": "__0fNeDynamicLightFWriteR6FcFileK",
+    "src_file": "src/eDynamicLight__Write_cFilerefconst__0007776C.cpp",
+    "symbol_name": "__0fNeDynamicLightFWriteR6FcFileK"
   },
   {
     "address": "0x000777b8",
@@ -63634,7 +63648,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00044c44"
     ],
@@ -63648,7 +63662,9 @@
         "notes": "Session aborted before any decompilation attempts. Same reason as the other functions in this batch. The constructor calls eDynamicGeom::eDynamicGeom(cBase*) base ctor then sets vtable pointer at offset 4 to 0x384320. Standard ctor pattern \u2014 should match easily on retry."
       }
     ],
-    "mangled_symbol": "__0oNeDynamicLightctP6FcBase"
+    "mangled_symbol": "__0oNeDynamicLightctP6FcBase",
+    "src_file": "src/eDynamicLight__eDynamicLight_cBaseptr__00077874.cpp",
+    "symbol_name": "__0oNeDynamicLightctP6FcBase"
   },
   {
     "address": "0x000778a8",
@@ -121734,7 +121750,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00001368"
     ],
@@ -121746,7 +121762,9 @@
         "notes": "[backfill] src/gcDoSwitchCase.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fOgcDoSwitchCaseHGetTextPcK"
+    "mangled_symbol": "__0fOgcDoSwitchCaseHGetTextPcK",
+    "src_file": "src/gcDoSwitchCase__GetText_charptrconst__00150010.cpp",
+    "symbol_name": "__0fOgcDoSwitchCaseHGetTextPcK"
   },
   {
     "address": "0x00150038",
@@ -169019,7 +169037,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x001ac690"
@@ -169032,7 +169050,9 @@
         "notes": "[backfill] src/cHandlePairTgcEnumerationcSubHandleTgcEnumerationEntry.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oMcHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__dtv"
+    "mangled_symbol": "__0oMcHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__dtv",
+    "src_file": "src/cHandlePairT_gcEnumeration_cSubHandleT_gcEnumerationEntry_____dtor_cHandlePairT_void__0022757C.cpp",
+    "symbol_name": "__0oMcHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__dtv"
   },
   {
     "address": "0x002275f0",
@@ -186904,7 +186924,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x001edde8",
       "0x00224594"
@@ -186917,7 +186937,9 @@
         "notes": "[backfill] src/gcTableColumnByte.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fRgcTableColumnByteKAssignCopyPC6FcBase"
+    "mangled_symbol": "__0fRgcTableColumnByteKAssignCopyPC6FcBase",
+    "src_file": "src/gcTableColumnByte__AssignCopy_constcBaseptr__00270F30.cpp",
+    "symbol_name": "__0fRgcTableColumnByteKAssignCopyPC6FcBase"
   },
   {
     "address": "0x00270f64",
@@ -195046,7 +195068,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x001a58d0"
     ],
@@ -195058,7 +195080,9 @@
         "notes": "Not attempted. File already has a GetType implementation using a static pointer and nwMsgType::InitializeType call, matching the m2c shape (lazy singleton init). Needs compile/compare to confirm bytes. The lui 0xa; lw -2752(s0) pattern at 0x28586c-0x285870 suggests the static is at address 0x9f540 \u2014 existing source declares `static nwMsgType *sAckPlayerStateType;` which the linker should place somewhere in .bss; only matters if address happens to hash to 0xa0000-0x2760 = 0x9f540. May need explicit placement or a specific extern if linker doesn't put it there. Retry with baseline compile first."
       }
     ],
-    "mangled_symbol": "__0fTgcMsgAckPlayerStateHGetTypevK"
+    "mangled_symbol": "__0fTgcMsgAckPlayerStateHGetTypevK",
+    "src_file": "src/gcMsgAckPlayerState__GetType_voidconst__00285864.cpp",
+    "symbol_name": "__0fTgcMsgAckPlayerStateHGetTypevK"
   },
   {
     "address": "0x002858b0",
