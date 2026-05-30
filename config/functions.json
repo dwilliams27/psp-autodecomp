@@ -1694,7 +1694,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000084ac",
@@ -1708,7 +1708,9 @@
       "0x000a04f8"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FVcGetLanguageAndButtonPiTB"
+    "mangled_symbol": "__0FVcGetLanguageAndButtonPiTB",
+    "src_file": "src/cGetLanguageAndButton_intptr_intptr__00001BB0.cpp",
+    "symbol_name": "__0FVcGetLanguageAndButtonPiTB"
   },
   {
     "address": "0x00001c70",
@@ -35539,14 +35541,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00037664",
       "0x0006c118"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIePhysicsURemoveFromUpdateListP6UeSimulatedController"
+    "mangled_symbol": "__0fIePhysicsURemoveFromUpdateListP6UeSimulatedController",
+    "src_file": "src/ePhysics__RemoveFromUpdateList_eSimulatedControllerptr__00037594.cpp",
+    "symbol_name": "__0fIePhysicsURemoveFromUpdateListP6UeSimulatedController"
   },
   {
     "address": "0x00037664",
@@ -136752,13 +136756,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001b90d4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "_lo0bits"
+    "mangled_symbol": "_lo0bits",
+    "src_file": "src/_lo0bits__001B8780.cpp",
+    "symbol_name": "_lo0bits"
   },
   {
     "address": "0x001b883c",
