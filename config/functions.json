@@ -13871,13 +13871,15 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001045cc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPcListSubscriberMNotifyRemoveRP6PcListSubscriberPvT"
+    "mangled_symbol": "__0fPcListSubscriberMNotifyRemoveRP6PcListSubscriberPvT",
+    "src_file": "src/cListSubscriber__NotifyRemove_cListSubscriberptrref_voidptrstatic__000079FC.cpp",
+    "symbol_name": "__0fPcListSubscriberMNotifyRemoveRP6PcListSubscriberPvT"
   },
   {
     "address": "0x00007a7c",
@@ -14163,13 +14165,15 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001c759c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fJcLanguageLUnsubscribe65JcLanguagec__5JcLanguageOgcSubscriptionP6PcListSubscriberT"
+    "mangled_symbol": "__0fJcLanguageLUnsubscribe65JcLanguagec__5JcLanguageOgcSubscriptionP6PcListSubscriberT",
+    "src_file": "src/cLanguage__Unsubscribe_cLanguage__gcSubscription_cListSubscriberptrstatic__00008310.cpp",
+    "symbol_name": "__0fJcLanguageLUnsubscribe65JcLanguagec__5JcLanguageOgcSubscriptionP6PcListSubscriberT"
   },
   {
     "address": "0x00008380",
@@ -19739,7 +19743,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00033938",
@@ -19757,7 +19761,9 @@
       "0x000b87bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fReDynamicVertChunkDEndP6TeDynamicChunkHandle"
+    "mangled_symbol": "__0fReDynamicVertChunkDEndP6TeDynamicChunkHandle",
+    "src_file": "src/eDynamicVertChunk__End_eDynamicChunkHandleptr__000118C0.cpp",
+    "symbol_name": "__0fReDynamicVertChunkDEndP6TeDynamicChunkHandle"
   },
   {
     "address": "0x00011940",
@@ -101347,13 +101353,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00166f10"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIgcEntityROnMemPoolResetAllPC6IcMemPoolUiT"
+    "mangled_symbol": "__0fIgcEntityROnMemPoolResetAllPC6IcMemPoolUiT",
+    "src_file": "src/gcEntity__OnMemPoolResetAll_constcMemPoolptr_unsignedintstatic__00114828.cpp",
+    "symbol_name": "__0fIgcEntityROnMemPoolResetAllPC6IcMemPoolUiT"
   },
   {
     "address": "0x001148a0",
