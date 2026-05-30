@@ -56383,11 +56383,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
+    "mangled_symbol": "__0fheEmbedMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo",
+    "src_file": "src/eEmbedMultiSphereCollisionHandler__ProcessCollision_consteCollisionInforef__00069EAC.cpp",
+    "symbol_name": "__0fheEmbedMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
   },
   {
     "address": "0x00069ef0",
@@ -130609,7 +130611,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001a52ec",
@@ -130619,7 +130621,9 @@
       "0x001a7c24"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fJnwNetworkMSetLastError65JnwNetworkY__5JnwNetworkKnwNetErrorT"
+    "mangled_symbol": "__0fJnwNetworkMSetLastError65JnwNetworkY__5JnwNetworkKnwNetErrorT",
+    "src_file": "src/nwNetwork__SetLastError_nwNetwork__nwNetErrorstatic__001A5668.cpp",
+    "symbol_name": "__0fJnwNetworkMSetLastError65JnwNetworkY__5JnwNetworkKnwNetErrorT"
   },
   {
     "address": "0x001a56ac",
@@ -135198,14 +135202,16 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0000f5bc",
       "0x001aecb0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "strcpy"
+    "mangled_symbol": "strcpy",
+    "src_file": "src/strcpy__001AD7E4.cpp",
+    "symbol_name": "strcpy"
   },
   {
     "address": "0x001ad828",
