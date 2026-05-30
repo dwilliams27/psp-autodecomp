@@ -511,14 +511,16 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000010f8",
       "0x0027c630"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0FFcItoAiPw"
+    "mangled_symbol": "__0FFcItoAiPw",
+    "src_file": "src/cItoA_int_wchar_tptr__00000E84.cpp",
+    "symbol_name": "__0FFcItoAiPw"
   },
   {
     "address": "0x00000f1c",
@@ -92188,13 +92190,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000f1858"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcBackgroundLoaderMIsLoadingMapbK"
+    "mangled_symbol": "__0fSgcBackgroundLoaderMIsLoadingMapbK",
+    "src_file": "src/gcBackgroundLoader__IsLoadingMap_boolconst__000F7C1C.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderMIsLoadingMapbK"
   },
   {
     "address": "0x000f7cb8",
@@ -129496,7 +129500,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00010dbc",
@@ -129505,7 +129509,9 @@
       "0x000f9c80"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fImFrustumOGetPerspectivePfNFBK"
+    "mangled_symbol": "__0fImFrustumOGetPerspectivePfNFBK",
+    "src_file": "src/mFrustum__GetPerspective_floatptr_floatptr_floatptr_floatptr_floatptr_floatptrconst__001A1A20.cpp",
+    "symbol_name": "__0fImFrustumOGetPerspectivePfNFBK"
   },
   {
     "address": "0x001a1abc",
