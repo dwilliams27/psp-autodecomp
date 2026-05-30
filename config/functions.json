@@ -1532,7 +1532,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00055430",
@@ -1547,7 +1547,9 @@
         "notes": "SNC emits a merged-return (beql + move in delay slot, single jr ra) producing 56 bytes, but expected code uses a diamond-return structure with two separate jr ra blocks (64 bytes). 36/56 bytes differ. Tried for(;;) with break, if/else with explicit branch returns, and switching between pointer-compare and char-compare idioms. SNC's optimizer folds the two exit paths into a common epilogue regardless of source structure. Likely needs a different expression \u2014 perhaps assigning the return value through two distinct statement paths that can't be visibly merged \u2014 or compiler flag differences we haven't found. Not a bnel divergence (it's a beql-vs-beq+nop structural issue)."
       }
     ],
-    "mangled_symbol": "__0FHcStrChrPCci"
+    "mangled_symbol": "__0FHcStrChrPCci",
+    "src_file": "src/cStrChr_constcharptr_int__00001994.cpp",
+    "symbol_name": "__0FHcStrChrPCci"
   },
   {
     "address": "0x000019d4",
@@ -1904,7 +1906,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00010f64"
@@ -1916,7 +1918,9 @@
         "notes": "VFPU memcpy loop using lv.q/sv.q with C120. Used native V4SF type (typedef int v4sf_t __attribute__((mode(V4SF)))). Compiles to 56 bytes vs expected 60 bytes \u2014 4 bytes short = missing one instruction. Expected allocates registers: a3=size, t0=src (saved early via `move t0, a1`), a2=dst, a1=end (`addu a1, a0, a3`), then in loop src gets copied t0->a0 in the beqz delay slot (`move a0, t0`). Ours keeps src in a1 throughout: a3=size, a2=dst, a0=end (`addu a0, a0, a3`), src stays in a1. Compiler's register allocation chose a0 for end while expected chose a1. Tried: plain char* arithmetic with inline asm lv.q/sv.q, V4SF native types, introducing separate s_save variable to force src preservation, restructuring to declare end after the if. All produced 56B with src in a1. Permuter failed to load because the sandboxed flags don't include -Xvfpumatrix and the compiled .text is 376B vs expected 60B (permuter can't locate the function). Note: obj is cAll_psp.obj but instruction said write to src/gcMsgSynchronize.cpp \u2014 the build output mixes both obj domains. Not a bnel issue; pure register-allocation divergence. Next attempt should try forcing end to be computed via src+size, or passing the function through sched=1 override, or investigating if cAll_psp.obj needs different -Xvfpumatrix flags than gcAll_psp.obj's defaults."
       }
     ],
-    "mangled_symbol": "__0FNcCopyMemory16PvPCvi"
+    "mangled_symbol": "__0FNcCopyMemory16PvPCvi",
+    "src_file": "src/cCopyMemory16_voidptr_constvoidptr_int__00001D9C.cpp",
+    "symbol_name": "__0FNcCopyMemory16PvPCvi"
   },
   {
     "address": "0x00001e10",
@@ -37501,14 +37505,14 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x002e7bd8"
     ],
     "is_leaf": true,
-    "src_file": "src/eSweptSphereCollisionHandler.cpp",
-    "symbol_name": "__0fLeInputMouseJBeginDragRC6FmVec2iTCT",
+    "src_file": "src/eInputMouse__BeginDrag_constmVec2ref_eColor_cHandleT_eMaterial_static__0003B4EC.cpp",
+    "symbol_name": "__0fLeInputMouseJBeginDragRC6FmVec26GeColor6IcHandleT76JeMaterial_T",
     "mangled_symbol": "__0fLeInputMouseJBeginDragRC6FmVec26GeColor6IcHandleT76JeMaterial_T",
     "failure_notes": [
       {
@@ -54013,7 +54017,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -54023,7 +54027,9 @@
         "notes": "eSweptSphereCollisionHandler::ProcessCollision. 22/68 bytes diff with sched=2 AND with sched=1. Call is a 6-arg virtual dispatch: m(adjusted, info, 1, this+0x4960, this+0x80, this+0xd0) via vt+0x88 (slot offset) and vt+0x8c (method ptr). Semantics are correct \u2014 m/adjusted/args all match. Two separate divergences: (1) sw ra placement \u2014 expected emits sw ra at offset 0x04 (sched=1 behavior); our sched=2 emits it at 0x2c (just before jalr). Switching to sched=1 fixes this alone. (2) Register allocation for vt/slot temporaries \u2014 the ORIGINAL compiler reuses $a3 three times (vt \u2192 *slot \u2192 arg3=this+0x4960) and reuses $t2 twice (slot ptr \u2192 method ptr). Our SNC 1.2.7503.0 always allocates $t0 for vt and $t1 for *slot, keeping $a3 reserved for arg3 from the start. No Xsched/Xmopt/Xxopt combination changes this. Tested 5 source restructurings (explicit vt local, inline obj->vt, char** casts with early method load, combined slot+method loads, exposed pointer arithmetic). All produced the same t0/t1/t2 allocation. This is a compiler-heuristic divergence (early-reuse of argument registers as scratch), not a source-expression issue. Recommend: add $(BUILD_DIR)/src/eSweptSphereCollisionHandler%.o: CFLAGS := $(ECFLAGS) to the Makefile (sched=1 fixes one divergence but not the register allocation); if register allocation also matters, may need a newer pspsnc version. Address 0x000646d0 sits below the confirmed sched=1 zone (0x06e000+) but within the transition zone (0x040000-0x06e000); its sibling SetLocalToWorld at 0x00064714 matches with sched=2, which confuses the classification."
       }
     ],
-    "mangled_symbol": "__0fceSweptSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
+    "mangled_symbol": "__0fceSweptSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo",
+    "src_file": "src/eSweptSphereCollisionHandler__ProcessCollision_consteCollisionInforef__000646D0.cpp",
+    "symbol_name": "__0fceSweptSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
   },
   {
     "address": "0x00064714",
@@ -56363,7 +56369,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -56373,7 +56379,9 @@
         "notes": "Structure is correct (vtable dispatch with 6-arg callee using t0/t1 as args 5/6 per SNC's non-standard o32 ABI), 60/64 bytes compiled vs 64 expected, 31 bytes differ. Root cause: register allocation \u2014 SNC puts vt in t0 and computes 'adjusted' directly into a0, producing one fewer instruction than expected which uses a3 for vt and keeps adjusted in a2 with an explicit move a0,a2. Tried #pragma control sched=1, ((char**)obj)[1] vs *(char**)(obj+4), inline slot/vt expressions, and caching adjusted in a named local. All variations produce the same register assignment. This is a register-allocation heuristic difference the source can't force."
       }
     ],
-    "mangled_symbol": "__0fceEmbedSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
+    "mangled_symbol": "__0fceEmbedSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo",
+    "src_file": "src/eEmbedSphereCollisionHandler__ProcessCollision_consteCollisionInforef__00069E2C.cpp",
+    "symbol_name": "__0fceEmbedSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
   },
   {
     "address": "0x00069e6c",
