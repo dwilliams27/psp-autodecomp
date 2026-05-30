@@ -79,7 +79,7 @@ System: `brew install mipsel-linux-gnu-binutils openssl@3`
 
 **Tools:**
 - Function database: `config/functions.json` (~10K functions). Query: `python3 tools/func_db.py`.
-- Permuter (last-mile): `python3 tools/permuter.py src/file.cpp 0xADDR --time 300 --save-best` (`--save-best` only overwrites on exact match; add `--save-improved` for non-exact experiments). See `docs/decisions/005-snc-permuter.md`.
+- Permuter (last-mile): `python3 tools/permuter.py src/file.cpp 0xADDR --time 300 --save-best` (`--save-best` only overwrites on exact match; add `--save-improved` for non-exact experiments). See `docs/decisions/005-snc-permuter.md`. For register/scheduling near-misses, add `--score-mode insns` (instruction-aware hill-climbing that sees through the branch-offset cascade) — only effective on a structurally-complete candidate (exact size, 0 structural diffs). See `docs/decisions/013-permuter-reg-aware-scoring.md`.
 - asm-differ: `python3 extern/asm-differ/diff.py -o -f build/src/foo.cpp.o MANGLED_SYMBOL`.
 
 ## SNC compiler research

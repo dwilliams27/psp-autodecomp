@@ -25,7 +25,21 @@ Treat a diff as register-allocation drift when all of these are true:
 - Control flow, stack size, calls, immediates, and memory offsets already match.
 - A short permuter run does not improve the diff.
 
-If you see this pattern, do not try harder. Run one permuter pass if you have not already, record `category=REG_ALLOC` in the failure notes, and stop.
+If you see this pattern, do not grind it manually — manual reorderings can damage matched siblings
+(see "What Not To Do" below). The mechanical recourse is now the **register-aware permuter** (ADR-013):
+
+```
+python3 tools/permuter.py <file.cpp> 0xADDR --time 1800 --score-mode insns --no-gate --workers 8
+```
+
+`--score-mode insns` masks the branch-offset cascade that hid the gradient under the old byte-diff
+objective, so register/scheduling lockers become climbable. **Precondition:** the candidate must be
+**structurally complete first** — exact size and zero *structural* diffs (the permuter shuffles
+registers/scheduling, it cannot fix wrong operations). Check with a short `insns` run: the printed
+guide score is `1000·(structural diffs) + (register lockers)` at exact size, so a guide under ~1000
+means structurally clean and worth a long campaign; a large structural component means finish the
+reconstruction before permuting. If a long `insns` campaign makes no progress on a structurally-clean
+candidate, record `category=REG_ALLOC` in the failure notes and stop.
 
 ## Examples
 
