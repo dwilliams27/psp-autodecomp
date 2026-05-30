@@ -48538,7 +48538,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000ff78c",
@@ -48554,7 +48554,9 @@
         "notes": "[backfill] src/eMemCard_BeginLoadconsteMemCard.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fIeMemCardJBeginLoadRC65IeMemCardLeLoadParamsT"
+    "mangled_symbol": "__0fIeMemCardJBeginLoadRC65IeMemCardLeLoadParamsT",
+    "src_file": "src/eMemCard__BeginLoad_consteMemCard__eLoadParamsrefstatic__00056C30.cpp",
+    "symbol_name": "__0fIeMemCardJBeginLoadRC65IeMemCardLeLoadParamsT"
   },
   {
     "address": "0x00056c3c",
@@ -107075,7 +107077,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00127c0c",
@@ -107101,7 +107103,9 @@
         "notes": "[backfill] src/gcDesiredObjectHelper_GetPrimaryTextgcDesiredObjectHelper.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fVgcDesiredObjectHelperOGetPrimaryText65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimaryT"
+    "mangled_symbol": "__0fVgcDesiredObjectHelperOGetPrimaryText65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimaryT",
+    "src_file": "src/gcDesiredObjectHelper__GetPrimaryText_gcDesiredObjectHelper__gcPrimarystatic__001251C8.cpp",
+    "symbol_name": "__0fVgcDesiredObjectHelperOGetPrimaryText65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimaryT"
   },
   {
     "address": "0x001251d4",
@@ -121479,7 +121483,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0014f868"
@@ -121491,7 +121495,9 @@
         "notes": "[backfill] src/gcDesiredObjectHelper_GetPrimaryTextgcDesiredObjectHelper.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fMgcDoSetValueJGetOpText65MgcDoSetValueV__5MgcDoSetValueEgcOpT"
+    "mangled_symbol": "__0fMgcDoSetValueJGetOpText65MgcDoSetValueV__5MgcDoSetValueEgcOpT",
+    "src_file": "src/gcDoSetValue__GetOpText_gcDoSetValue__gcOpstatic__0014F89C.cpp",
+    "symbol_name": "__0fMgcDoSetValueJGetOpText65MgcDoSetValueV__5MgcDoSetValueEgcOpT"
   },
   {
     "address": "0x0014f8a8",
@@ -145885,7 +145891,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -145895,7 +145901,9 @@
         "notes": "[backfill] src/cHandleTePortal.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76HePortal_ctv"
+    "mangled_symbol": "__0oIcHandleT76HePortal_ctv",
+    "src_file": "src/cHandleTePortal.cpp",
+    "symbol_name": "__0oIcHandleT76HePortal_ctv"
   },
   {
     "address": "0x001d76b0",
@@ -145950,7 +145958,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -145960,7 +145968,9 @@
         "notes": "[backfill] src/cHandleTePortal.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76FeRoom_ctv"
+    "mangled_symbol": "__0oIcHandleT76FeRoom_ctv",
+    "src_file": "src/cHandleTePortal.cpp",
+    "symbol_name": "__0oIcHandleT76FeRoom_ctv"
   },
   {
     "address": "0x001d7b08",
@@ -150820,7 +150830,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -150830,7 +150840,9 @@
         "notes": "[backfill] src/cHandleTePortal.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76IeTexture_ctv"
+    "mangled_symbol": "__0oIcHandleT76IeTexture_ctv",
+    "src_file": "src/cHandleTePortal.cpp",
+    "symbol_name": "__0oIcHandleT76IeTexture_ctv"
   },
   {
     "address": "0x001e1298",
@@ -151621,7 +151633,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -151631,7 +151643,9 @@
         "notes": "[backfill] src/cHandleTeCameraEffect.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76NeCameraEffect_ctv"
+    "mangled_symbol": "__0oIcHandleT76NeCameraEffect_ctv",
+    "src_file": "src/cHandleTeCameraEffect.cpp",
+    "symbol_name": "__0oIcHandleT76NeCameraEffect_ctv"
   },
   {
     "address": "0x001e373c",
@@ -152616,7 +152630,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -152626,7 +152640,9 @@
         "notes": "[backfill] src/cHandleTeCameraEffect.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76HeSprite_ctv"
+    "mangled_symbol": "__0oIcHandleT76HeSprite_ctv",
+    "src_file": "src/cHandleTeCameraEffect.cpp",
+    "symbol_name": "__0oIcHandleT76HeSprite_ctv"
   },
   {
     "address": "0x001e74b0",
@@ -166532,7 +166548,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -166542,7 +166558,9 @@
         "notes": "[backfill] src/cHandleTeCameraEffect.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oKcArrayBase76WeDynamicMeshVisTriList_ctv"
+    "mangled_symbol": "__0oKcArrayBase76WeDynamicMeshVisTriList_ctv",
+    "src_file": "src/cHandleTeCameraEffect.cpp",
+    "symbol_name": "__0oKcArrayBase76WeDynamicMeshVisTriList_ctv"
   },
   {
     "address": "0x0021da38",
@@ -166588,7 +166606,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -166598,7 +166616,9 @@
         "notes": "[backfill] src/cArrayBaseeDynamicMeshMorphTarget.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oKcArrayBase76XeDynamicMeshMorphTarget_ctv"
+    "mangled_symbol": "__0oKcArrayBase76XeDynamicMeshMorphTarget_ctv",
+    "src_file": "src/cArrayBaseeDynamicMeshMorphTarget.cpp",
+    "symbol_name": "__0oKcArrayBase76XeDynamicMeshMorphTarget_ctv"
   },
   {
     "address": "0x0021db70",
@@ -166610,7 +166630,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -166620,7 +166640,9 @@
         "notes": "[backfill] src/cArrayBaseeDynamicMeshMorphTarget.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_ctv"
+    "mangled_symbol": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_ctv",
+    "src_file": "src/cArrayBaseeDynamicMeshMorphTarget.cpp",
+    "symbol_name": "__0oKcArrayBase76aeDynamicMeshVisSkinTriList_ctv"
   },
   {
     "address": "0x0021db7c",
@@ -171032,7 +171054,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -171042,7 +171064,9 @@
         "notes": "[backfill] src/cArrayBaseeDynamicMeshMorphTarget.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76OgcStateMachine_ctv"
+    "mangled_symbol": "__0oIcHandleT76OgcStateMachine_ctv",
+    "src_file": "src/cArrayBaseeDynamicMeshMorphTarget.cpp",
+    "symbol_name": "__0oIcHandleT76OgcStateMachine_ctv"
   },
   {
     "address": "0x00233328",
@@ -176255,7 +176279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -176265,7 +176289,9 @@
         "notes": "[backfill] src/cHandleTgcEntity.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oIcHandleT76IgcEntity_ctv"
+    "mangled_symbol": "__0oIcHandleT76IgcEntity_ctv",
+    "src_file": "src/cHandleTgcEntity.cpp",
+    "symbol_name": "__0oIcHandleT76IgcEntity_ctv"
   },
   {
     "address": "0x00241e68",
