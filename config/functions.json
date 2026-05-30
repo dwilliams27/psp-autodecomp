@@ -14101,7 +14101,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00007ea8",
@@ -14114,7 +14114,9 @@
         "notes": "[backfill] src/gcUIDialog_gcMouseOver.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fJcLanguageZGetSupportedVoiceLanguage65JcLanguageY__5JcLanguageKcLanguagesT"
+    "mangled_symbol": "__0fJcLanguageZGetSupportedVoiceLanguage65JcLanguageY__5JcLanguageKcLanguagesT",
+    "src_file": "src/gcUIDialog_gcMouseOver.cpp",
+    "symbol_name": "__0fJcLanguageZGetSupportedVoiceLanguage65JcLanguageY__5JcLanguageKcLanguagesT"
   },
   {
     "address": "0x00008018",
@@ -18005,7 +18007,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0000d964",
@@ -18018,7 +18020,9 @@
         "notes": "[backfill] src/cXML_cNode_cNodecXML.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0o5EcXMLFcNodect65EcXMLS__5EcXMLJcNodeTypePCc"
+    "mangled_symbol": "__0o5EcXMLFcNodect65EcXMLS__5EcXMLJcNodeTypePCc",
+    "src_file": "src/cXML_cNode_cNodecXML.cpp",
+    "symbol_name": "__0o5EcXMLFcNodect65EcXMLS__5EcXMLJcNodeTypePCc"
   },
   {
     "address": "0x0000dd18",
@@ -29740,7 +29744,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00022b58"
     ],
@@ -29758,7 +29762,9 @@
         "variant": "manual",
         "timestamp": "2026-04-30T15:24:44Z"
       }
-    ]
+    ],
+    "src_file": "src/eShape_Collide_eBoxShape.cpp",
+    "symbol_name": "__0fGeShapeHCollidePC6JeBoxShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK"
   },
   {
     "address": "0x0002ba14",
@@ -29809,7 +29815,7 @@
       }
     ],
     "mangled_symbol": "__0fGeShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
-    "src_file": "src/eShape.cpp",
+    "src_file": "src/eShape_Collide_eMultiSphereShape.cpp",
     "symbol_name": "__0fGeShapeHCollidePC6ReMultiSphereShapeiTCRC6EmOCSTEP6VeCollisionContactInfoK",
     "matched_by_backend": "claude",
     "matched_by_session_id": "17f9e5c8",
@@ -32793,7 +32799,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0003052c",
@@ -32806,7 +32812,9 @@
         "notes": "[backfill] no existing src file found (via entry, session_results, or convention)"
       }
     ],
-    "mangled_symbol": "__0fGeVideoMSetVideoMode65GeVideoV__5GeVideoKeVideoModeT"
+    "mangled_symbol": "__0fGeVideoMSetVideoMode65GeVideoV__5GeVideoKeVideoModeT",
+    "src_file": "src/eVideo.cpp",
+    "symbol_name": "__0fGeVideoMSetVideoMode65GeVideoV__5GeVideoKeVideoModeT"
   },
   {
     "address": "0x00030550",
@@ -37883,7 +37891,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000a0e1c"
@@ -37895,7 +37903,9 @@
         "notes": "[backfill] src/eInputKeyboard_KeyToASCIIeInputKeyboard.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fOeInputKeyboardKKeyToASCII65OeInputKeyboardX__5OeInputKeyboardEeKeyT"
+    "mangled_symbol": "__0fOeInputKeyboardKKeyToASCII65OeInputKeyboardX__5OeInputKeyboardEeKeyT",
+    "src_file": "src/eInputKeyboard_KeyToASCIIeInputKeyboard.cpp",
+    "symbol_name": "__0fOeInputKeyboardKKeyToASCII65OeInputKeyboardX__5OeInputKeyboardEeKeyT"
   },
   {
     "address": "0x0003b9d4",
@@ -38458,7 +38468,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -38472,7 +38482,9 @@
       "0x000a1264"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeFluidVolumeHReadOldR6KcReadBlock"
+    "mangled_symbol": "__0fMeFluidVolumeHReadOldR6KcReadBlock",
+    "src_file": "src/eFluidVolume.cpp",
+    "symbol_name": "__0fMeFluidVolumeHReadOldR6KcReadBlock"
   },
   {
     "address": "0x0003c7fc",
@@ -48555,7 +48567,7 @@
       }
     ],
     "mangled_symbol": "__0fIeMemCardJBeginLoadRC65IeMemCardLeLoadParamsT",
-    "src_file": "src/eMemCard__BeginLoad_consteMemCard__eLoadParamsrefstatic__00056C30.cpp",
+    "src_file": "src/eMemCard_BeginLoadconsteMemCard.cpp",
     "symbol_name": "__0fIeMemCardJBeginLoadRC65IeMemCardLeLoadParamsT"
   },
   {
@@ -48568,7 +48580,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000ff78c",
@@ -48584,7 +48596,9 @@
         "notes": "[backfill] src/eHeightmap.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fIeMemCardHEndLoadRC65IeMemCardLeLoadParamsT"
+    "mangled_symbol": "__0fIeMemCardHEndLoadRC65IeMemCardLeLoadParamsT",
+    "src_file": "src/eHeightmap.cpp",
+    "symbol_name": "__0fIeMemCardHEndLoadRC65IeMemCardLeLoadParamsT"
   },
   {
     "address": "0x00056c44",
@@ -48622,7 +48636,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00056c44",
@@ -48637,7 +48651,9 @@
         "notes": "[backfill] src/eHeightmap.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fIeMemCardHEndSaveRC65IeMemCardLeSaveParamsT"
+    "mangled_symbol": "__0fIeMemCardHEndSaveRC65IeMemCardLeSaveParamsT",
+    "src_file": "src/eHeightmap.cpp",
+    "symbol_name": "__0fIeMemCardHEndSaveRC65IeMemCardLeSaveParamsT"
   },
   {
     "address": "0x00056d3c",
@@ -53691,7 +53707,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000641d0",
@@ -53704,7 +53720,9 @@
         "notes": "[backfill] src/eContactCollector_ClearContactseContactCollector.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fReContactCollectorNClearContacts65ReContactCollectori__5ReContactCollectorMeContactType"
+    "mangled_symbol": "__0fReContactCollectorNClearContacts65ReContactCollectori__5ReContactCollectorMeContactType",
+    "src_file": "src/eContactCollector_ClearContactseContactCollector.cpp",
+    "symbol_name": "__0fReContactCollectorNClearContacts65ReContactCollectori__5ReContactCollectorMeContactType"
   },
   {
     "address": "0x00063570",
@@ -57046,7 +57064,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005c90"
@@ -57055,7 +57073,9 @@
       "0x0006b338"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedConstraintFWriteR6FcFileK"
+    "mangled_symbol": "__0fUeSimulatedConstraintFWriteR6FcFileK",
+    "src_file": "src/eSimulatedConstraint.cpp",
+    "symbol_name": "__0fUeSimulatedConstraintFWriteR6FcFileK"
   },
   {
     "address": "0x0006b228",
@@ -70997,7 +71017,7 @@
       "0x0008974c"
     ],
     "is_leaf": true,
-    "src_file": "src/eStandardHeightmapMtl.cpp",
+    "src_file": "src/eStandardParticleSystemMtl.cpp",
     "symbol_name": "__0faeStandardParticleSystemMtlMPlatformFreev",
     "mangled_symbol": "__0faeStandardParticleSystemMtlMPlatformFreev"
   },
@@ -71126,7 +71146,7 @@
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "src_file": "src/eStandardHeightmapMtl.cpp",
+    "src_file": "src/eStandardParticleSystemMtl.cpp",
     "symbol_name": "__0faeStandardParticleSystemMtlHUnapplyvK",
     "mangled_symbol": "__0faeStandardParticleSystemMtlHUnapplyvK"
   },
@@ -71147,7 +71167,7 @@
       "0x000896fc"
     ],
     "is_leaf": true,
-    "src_file": "src/eStandardHeightmapMtl.cpp",
+    "src_file": "src/eStandardParticleSystemMtl.cpp",
     "symbol_name": "__0faeStandardParticleSystemMtlKCreateDatav",
     "mangled_symbol": "__0faeStandardParticleSystemMtlKCreateDatav"
   },
@@ -72841,13 +72861,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0008df10"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIeVRAMMgrRInsertAllocBeforeP65IeVRAMMgrJeAllocTagTBT"
+    "mangled_symbol": "__0fIeVRAMMgrRInsertAllocBeforeP65IeVRAMMgrJeAllocTagTBT",
+    "src_file": "src/eVRAMMgr_InsertAllocBefore.cpp",
+    "symbol_name": "__0fIeVRAMMgrRInsertAllocBeforeP65IeVRAMMgrJeAllocTagTBT"
   },
   {
     "address": "0x0008e240",
@@ -72859,13 +72881,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0008df10"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIeVRAMMgrQInsertAllocAfterP65IeVRAMMgrJeAllocTagTBT"
+    "mangled_symbol": "__0fIeVRAMMgrQInsertAllocAfterP65IeVRAMMgrJeAllocTagTBT",
+    "src_file": "src/eVRAMMgr_InsertAllocAfter.cpp",
+    "symbol_name": "__0fIeVRAMMgrQInsertAllocAfterP65IeVRAMMgrJeAllocTagTBT"
   },
   {
     "address": "0x0008e27c",
@@ -82278,7 +82302,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000e4718"
@@ -82290,7 +82314,9 @@
         "notes": "[backfill] src/gcUIWidget_GetNeighbor.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fKgcUIWidgetLGetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighborK"
+    "mangled_symbol": "__0fKgcUIWidgetLGetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighborK",
+    "src_file": "src/gcUIWidget_GetNeighbor.cpp",
+    "symbol_name": "__0fKgcUIWidgetLGetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighborK"
   },
   {
     "address": "0x000d8ec0",
@@ -82302,7 +82328,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000d976c"
@@ -82314,7 +82340,9 @@
         "notes": "[backfill] src/gcUIWidget_SetNeighbor.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fKgcUIWidgetLSetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighbor6LcSubHandleT76KgcUIWidget_"
+    "mangled_symbol": "__0fKgcUIWidgetLSetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighbor6LcSubHandleT76KgcUIWidget_",
+    "src_file": "src/gcUIWidget_SetNeighbor.cpp",
+    "symbol_name": "__0fKgcUIWidgetLSetNeighbor65KgcUIWidgetb__5KgcUIWidgetMgcUINeighbor6LcSubHandleT76KgcUIWidget_"
   },
   {
     "address": "0x000d8ed8",
@@ -84362,7 +84390,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000e041c"
@@ -84374,7 +84402,9 @@
         "notes": "[backfill] src/gcUI_gcFader.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0o5EgcUIHgcFaderctv"
+    "mangled_symbol": "__0o5EgcUIHgcFaderctv",
+    "src_file": "src/gcUI_gcFader.cpp",
+    "symbol_name": "__0o5EgcUIHgcFaderctv"
   },
   {
     "address": "0x000e21a8",
@@ -84386,7 +84416,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000e0520"
@@ -84398,7 +84428,9 @@
         "notes": "[backfill] src/gcUI_gcFader.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0f5EgcUIHgcFaderFResetv"
+    "mangled_symbol": "__0f5EgcUIHgcFaderFResetv",
+    "src_file": "src/gcUI_gcFader.cpp",
+    "symbol_name": "__0f5EgcUIHgcFaderFResetv"
   },
   {
     "address": "0x000e21dc",
@@ -84532,7 +84564,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0000a9d8"
     ],
@@ -84546,7 +84578,9 @@
         "notes": "[backfill] src/gcUI_gcFader.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0f5EgcUIHgcFaderOOnMemPoolResetPC6IcMemPoolUi"
+    "mangled_symbol": "__0f5EgcUIHgcFaderOOnMemPoolResetPC6IcMemPoolUi",
+    "src_file": "src/gcUI_gcFader.cpp",
+    "symbol_name": "__0f5EgcUIHgcFaderOOnMemPoolResetPC6IcMemPoolUi"
   },
   {
     "address": "0x000e28c4",
@@ -97202,7 +97236,7 @@
       "0x002e88b4"
     ],
     "is_leaf": true,
-    "src_file": "src/gcNetGame.cpp",
+    "src_file": "src/gcNetGame_SetMaxConnections.cpp",
     "symbol_name": "__0fJgcNetGameRSetMaxConnectionsiT",
     "mangled_symbol": "__0fJgcNetGameRSetMaxConnectionsiT"
   },
@@ -97224,7 +97258,7 @@
       "0x0035309c"
     ],
     "is_leaf": true,
-    "src_file": "src/gcNetGame.cpp",
+    "src_file": "src/gcNetGame_GetMaxConnections.cpp",
     "symbol_name": "__0fJgcNetGameRGetMaxConnectionsvT",
     "mangled_symbol": "__0fJgcNetGameRGetMaxConnectionsvT"
   },
@@ -97568,7 +97602,7 @@
       "0x002f4100"
     ],
     "is_leaf": false,
-    "src_file": "src/gcNetGame.cpp",
+    "src_file": "src/gcNetGame_SendAllBufferedMessages.cpp",
     "symbol_name": "__0fJgcNetGameXSendAllBufferedMessagesvT",
     "mangled_symbol": "__0fJgcNetGameXSendAllBufferedMessagesvT"
   },
@@ -97590,7 +97624,7 @@
       "0x000f2ed8"
     ],
     "is_leaf": false,
-    "src_file": "src/gcNetGame.cpp",
+    "src_file": "src/gcNetGame_ResetAllNetworkConnections.cpp",
     "symbol_name": "__0fJgcNetGameaResetAllNetworkConnectionsvT",
     "mangled_symbol": "__0fJgcNetGameaResetAllNetworkConnectionsvT"
   },
@@ -97632,7 +97666,7 @@
       "0x0035309c"
     ],
     "is_leaf": false,
-    "src_file": "src/gcNetGame.cpp",
+    "src_file": "src/gcNetGame_IsClientConnected.cpp",
     "symbol_name": "__0fJgcNetGameRIsClientConnectedvT",
     "mangled_symbol": "__0fJgcNetGameRIsClientConnectedvT"
   },
@@ -101705,7 +101739,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00115760"
     ],
@@ -101719,7 +101753,9 @@
         "notes": "[backfill] src/gcEntity.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fIgcEntitycSetPreviousPrimaryControllerb"
+    "mangled_symbol": "__0fIgcEntitycSetPreviousPrimaryControllerb",
+    "src_file": "src/gcEntity_SetPreviousPrimaryController.cpp",
+    "symbol_name": "__0fIgcEntitycSetPreviousPrimaryControllerb"
   },
   {
     "address": "0x001158c0",
@@ -103841,7 +103877,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0011e264",
@@ -103918,7 +103954,9 @@
         "notes": "[backfill] src/gcDesiredEntityHelper_gcDesiredEntityHelpergcDesiredEntityHelper_gcPrimarygcDesiredEntityHelper_gcRelationshipgcDesiredEntityHelper.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oVgcDesiredEntityHelperct65VgcDesiredEntityHelperj__5VgcDesiredEntityHelperJgcPrimary65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipTC"
+    "mangled_symbol": "__0oVgcDesiredEntityHelperct65VgcDesiredEntityHelperj__5VgcDesiredEntityHelperJgcPrimary65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipTC",
+    "src_file": "src/gcDesiredEntityHelper_gcDesiredEntityHelpergcDesiredEntityHelper_gcPrimarygcDesiredEntityHelper_gcRelationshipgcDesiredEntityHelper.cpp",
+    "symbol_name": "__0oVgcDesiredEntityHelperct65VgcDesiredEntityHelperj__5VgcDesiredEntityHelperJgcPrimary65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipTC"
   },
   {
     "address": "0x0011b72c",
@@ -107104,7 +107142,7 @@
       }
     ],
     "mangled_symbol": "__0fVgcDesiredObjectHelperOGetPrimaryText65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimaryT",
-    "src_file": "src/gcDesiredObjectHelper__GetPrimaryText_gcDesiredObjectHelper__gcPrimarystatic__001251C8.cpp",
+    "src_file": "src/gcDesiredObjectHelper_GetPrimaryTextgcDesiredObjectHelper.cpp",
     "symbol_name": "__0fVgcDesiredObjectHelperOGetPrimaryText65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimaryT"
   },
   {
@@ -108558,7 +108596,7 @@
       "0x00291d1c"
     ],
     "is_leaf": false,
-    "src_file": "src/gcStringValue.cpp",
+    "src_file": "src/gcStringValue_Write.cpp",
     "symbol_name": "__0fNgcStringValueFWriteR6FcFileK",
     "mangled_symbol": "__0fNgcStringValueFWriteR6FcFileK"
   },
@@ -110937,7 +110975,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0027a3d8",
@@ -110973,7 +111011,9 @@
         "notes": "[backfill] src/gcStateVTableEntry.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oXgcDesiredUIWidgetHelperct65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimary"
+    "mangled_symbol": "__0oXgcDesiredUIWidgetHelperct65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimary",
+    "src_file": "src/gcStateVTableEntry.cpp",
+    "symbol_name": "__0oXgcDesiredUIWidgetHelperct65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimary"
   },
   {
     "address": "0x0012dfdc",
@@ -112626,7 +112666,7 @@
         "timestamp": "2026-04-27T21:36:33Z"
       }
     ],
-    "src_file": "src/gcValUserStatus.cpp",
+    "src_file": "src/gcValUserStatus_GetText.cpp",
     "symbol_name": "__0fPgcValUserStatusHGetTextPcK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "a2d72a56",
@@ -117807,7 +117847,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -117844,7 +117884,9 @@
         "src_file": "src/gcPartialBodyControllerTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/4255defd/0013fc58__agent_self_reported_failure__src_gcPartialBodyControllerTemplate.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcPartialBodyControllerTemplate.cpp",
+    "symbol_name": "__0ffgcPartialBodyControllerTemplateEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0013fd40",
@@ -121496,7 +121538,7 @@
       }
     ],
     "mangled_symbol": "__0fMgcDoSetValueJGetOpText65MgcDoSetValueV__5MgcDoSetValueEgcOpT",
-    "src_file": "src/gcDoSetValue__GetOpText_gcDoSetValue__gcOpstatic__0014F89C.cpp",
+    "src_file": "src/gcDesiredObjectHelper_GetPrimaryTextgcDesiredObjectHelper.cpp",
     "symbol_name": "__0fMgcDoSetValueJGetOpText65MgcDoSetValueV__5MgcDoSetValueEgcOpT"
   },
   {
@@ -122712,7 +122754,7 @@
         "timestamp": "2026-04-27T18:02:38Z"
       }
     ],
-    "src_file": "src/gcDoUISetState.cpp",
+    "src_file": "src/gcEntityRelationship.cpp",
     "symbol_name": "__0fUgcEntityRelationshipEReadR6FcFileP6IcMemPool",
     "matched_by_backend": "codex",
     "matched_by_session_id": "c6e5ad54",
@@ -131122,7 +131164,7 @@
       "0x00286094"
     ],
     "is_leaf": false,
-    "src_file": "src/gcMsgCinematicEnded.cpp",
+    "src_file": "src/nwNetwork_GetLastErrorString.cpp",
     "symbol_name": "__0fJnwNetworkSGetLastErrorStringPciT",
     "mangled_symbol": "__0fJnwNetworkSGetLastErrorStringPciT"
   },
@@ -131144,7 +131186,7 @@
       "0x00286094"
     ],
     "is_leaf": false,
-    "src_file": "src/gcMsgCinematicEnded.cpp",
+    "src_file": "src/nwNetwork_GetEULA.cpp",
     "symbol_name": "__0fJnwNetworkHGetEULAPciT",
     "mangled_symbol": "__0fJnwNetworkHGetEULAPciT"
   },
@@ -131916,7 +131958,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x001a6234"
     ],
@@ -131940,7 +131982,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T08:31:09Z"
       }
-    ]
+    ],
+    "src_file": "src/gcConstant.cpp",
+    "symbol_name": "__0fMnwConnectionISetError65MnwConnectioni__5MnwConnectionRnwConnectionError"
   },
   {
     "address": "0x001a6640",
@@ -132445,14 +132489,16 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001a739c",
       "0x001a7498"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fMnwConnectionMIsBlockIdOldUi65MnwConnectiond__5MnwConnectionMnwSendMethodK"
+    "mangled_symbol": "__0fMnwConnectionMIsBlockIdOldUi65MnwConnectiond__5MnwConnectionMnwSendMethodK",
+    "src_file": "src/nwConnection_IsBlockIdOld.cpp",
+    "symbol_name": "__0fMnwConnectionMIsBlockIdOldUi65MnwConnectiond__5MnwConnectionMnwSendMethodK"
   },
   {
     "address": "0x001a7498",
@@ -132606,7 +132652,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001a6f10",
@@ -132619,7 +132665,9 @@
         "notes": "[backfill] src/nwMsgType.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0f5MnwConnectionOnwOutBlockInfoENextv"
+    "mangled_symbol": "__0f5MnwConnectionOnwOutBlockInfoENextv",
+    "src_file": "src/nwMsgType.cpp",
+    "symbol_name": "__0f5MnwConnectionOnwOutBlockInfoENextv"
   },
   {
     "address": "0x001a7988",
@@ -132649,7 +132697,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001a7498",
@@ -132662,7 +132710,9 @@
         "notes": "[backfill] src/nwMsgType.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0f5MnwConnectionNnwInBlockInfoENextv"
+    "mangled_symbol": "__0f5MnwConnectionNnwInBlockInfoENextv",
+    "src_file": "src/nwMsgType.cpp",
+    "symbol_name": "__0f5MnwConnectionNnwInBlockInfoENextv"
   },
   {
     "address": "0x001a7a04",
@@ -138471,7 +138521,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x001b9730"
     ],
@@ -138490,7 +138540,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:50:01Z"
       }
-    ]
+    ],
+    "src_file": "src/std.cpp",
+    "symbol_name": "__0F5DstdJterminatev"
   },
   {
     "address": "0x001bb4f0",
@@ -138502,7 +138554,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x001bb4bc"
     ],
@@ -138524,7 +138576,9 @@
         "src_file": "src/std.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_162336/a48eba8c/001bb4f0__rejected_extern_c_class_method__src_std.cpp"
       }
-    ]
+    ],
+    "src_file": "src/std.cpp",
+    "symbol_name": "__0F5DstdKunexpectedv"
   },
   {
     "address": "0x001bb524",
@@ -155694,7 +155748,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0004e234"
     ],
@@ -155716,7 +155770,9 @@
         "timestamp": "2026-04-30T21:15:04Z"
       }
     ],
-    "mangled_symbol": "__0fMeDynamicMeshDNewP6IcMemPoolP6FcBaseT"
+    "mangled_symbol": "__0fMeDynamicMeshDNewP6IcMemPoolP6FcBaseT",
+    "src_file": "src/eDynamicMesh.cpp",
+    "symbol_name": "__0fMeDynamicMeshDNewP6IcMemPoolP6FcBaseT"
   },
   {
     "address": "0x001f3bf8",
@@ -161365,11 +161421,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0oRcRedBlackTreeNode765SeCollisionPolytopeFeEdge_ctv"
+    "mangled_symbol": "__0oRcRedBlackTreeNode765SeCollisionPolytopeFeEdge_ctv",
+    "src_file": "src/cRedBlackTreeNode_eEdge.cpp",
+    "symbol_name": "__0oRcRedBlackTreeNode765SeCollisionPolytopeFeEdge_ctv"
   },
   {
     "address": "0x0020d8b8",
@@ -161381,11 +161439,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0oRcRedBlackTreeNode76FmVec3_ctv"
+    "mangled_symbol": "__0oRcRedBlackTreeNode76FmVec3_ctv",
+    "src_file": "src/cRedBlackTreeNode_mVec3.cpp",
+    "symbol_name": "__0oRcRedBlackTreeNode76FmVec3_ctv"
   },
   {
     "address": "0x0020d8cc",
@@ -171078,7 +171138,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -171088,7 +171148,9 @@
         "notes": "[backfill] src/cHandlePairTgcStateMachinecSubHandleTgcState.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oMcHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__ctv"
+    "mangled_symbol": "__0oMcHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__ctv",
+    "src_file": "src/gcPartialEntityController.cpp",
+    "symbol_name": "__0oMcHandlePairT76OgcStateMachine6LcSubHandleT76HgcState__ctv"
   },
   {
     "address": "0x00233338",
@@ -175561,7 +175623,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -175571,7 +175633,9 @@
         "notes": "[backfill] src/gcUIDialog_gcMouseOver.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0o5KgcUIDialogLgcMouseOverctv"
+    "mangled_symbol": "__0o5KgcUIDialogLgcMouseOverctv",
+    "src_file": "src/gcUIDialog_gcMouseOver.cpp",
+    "symbol_name": "__0o5KgcUIDialogLgcMouseOverctv"
   },
   {
     "address": "0x0023f0c4",
@@ -177998,7 +178062,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -178008,7 +178072,9 @@
         "notes": "[backfill] src/gcMap_cObjectLoad.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0o5FgcMapLcObjectLoadctv"
+    "mangled_symbol": "__0o5FgcMapLcObjectLoadctv",
+    "src_file": "src/gcMap_cObjectLoad.cpp",
+    "symbol_name": "__0o5FgcMapLcObjectLoadctv"
   },
   {
     "address": "0x0024768c",
@@ -178130,7 +178196,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -178140,7 +178206,9 @@
         "notes": "[backfill] src/gcBackgroundLoader_gcObjectLoad.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0o5SgcBackgroundLoaderMgcObjectLoadctv"
+    "mangled_symbol": "__0o5SgcBackgroundLoaderMgcObjectLoadctv",
+    "src_file": "src/gcBackgroundLoader_gcObjectLoad.cpp",
+    "symbol_name": "__0o5SgcBackgroundLoaderMgcObjectLoadctv"
   },
   {
     "address": "0x00248e58",
@@ -178526,11 +178594,13 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fLgcStringSetHGetSizevK"
+    "mangled_symbol": "__0fLgcStringSetHGetSizevK",
+    "src_file": "src/gcStringSet.cpp",
+    "symbol_name": "__0fLgcStringSetHGetSizevK"
   },
   {
     "address": "0x00249d54",
@@ -181583,7 +181653,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0011d8c0"
     ],
@@ -181611,7 +181681,9 @@
         "src_file": "src/gcProfileSubscriber.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_225424/0ce79b6b/0025fa84__rejected_extern_c_class_method__src_gcProfileSubscriber.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcProfileSubscriber.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76PgcDesiredEntity6VgcDesiredEntityHelper6IgcEntity_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0025faa0",
@@ -182277,7 +182349,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000f943c"
     ],
@@ -182297,7 +182369,9 @@
         "src_file": "src/gcCameraModes_OnEntitySnappedFollowgcCameragcCamera.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_162336/c7ae2b24/00262494__rejected_extern_c_class_method__src_gcCameraModes_OnEntitySnappedFollowgcCameragcCamera.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcCameraModes_OnEntitySnappedFollowgcCameragcCamera.cpp",
+    "symbol_name": "__0fNgcCameraModesVOnEntitySnappedFollowR6IgcCameraR65IgcCameraHgcStateT"
   },
   {
     "address": "0x002624b4",
@@ -182309,7 +182383,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000f958c"
     ],
@@ -182325,7 +182399,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:37:41Z"
       }
-    ]
+    ],
+    "src_file": "src/gcCameraModes_OnEntitySnappedFollowWithAvoidancegcCameragcCamera.cpp",
+    "symbol_name": "__0fNgcCameraModesiOnEntitySnappedFollowWithAvoidanceR6IgcCameraR65IgcCameraHgcStateT"
   },
   {
     "address": "0x002624d4",
@@ -183708,7 +183784,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x002664c0"
     ],
@@ -183736,7 +183812,9 @@
         "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/00266808__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76VgcDesiredCustomAttack6bgcDesiredCustomAttackHelper6UgcEntityCustomAttack_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x00266824",
@@ -185057,7 +185135,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0026af58"
     ],
@@ -185073,7 +185151,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:27:07Z"
       }
-    ]
+    ],
+    "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76NgcDesiredPath6TgcDesiredPathHelper6FePath_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0026b2bc",
@@ -185368,7 +185448,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0026c09c"
     ],
@@ -185396,7 +185476,9 @@
         "src_file": "src/cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/0026c3e4__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredCustomAttackgcDesiredCustomAttackHelpergcEntityCustomAttack.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSoundDataGroup.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76OgcDesiredPoint6UgcDesiredPointHelper6GePoint_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0026c400",
@@ -186614,7 +186696,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -186624,7 +186706,9 @@
         "notes": "[backfill] src/gcTableColumn.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fNgcTableColumnHIsValidvK"
+    "mangled_symbol": "__0fNgcTableColumnHIsValidvK",
+    "src_file": "src/gcTableColumn_IsValid.cpp",
+    "symbol_name": "__0fNgcTableColumnHIsValidvK"
   },
   {
     "address": "0x00270ef4",
@@ -188546,7 +188630,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x002744e8"
     ],
@@ -188562,7 +188646,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:31:24Z"
       }
-    ]
+    ],
+    "src_file": "src/gcLobbyConfigStrings.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76WgcDesiredTableTemplate6cgcDesiredTableTemplateHelper6PgcTableTemplate_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0027484c",
@@ -188945,7 +189031,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00275f84"
     ],
@@ -188973,7 +189059,9 @@
         "src_file": "src/cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_225424/e5f5c048/002762cc__rejected_extern_c_class_method__src_cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76OgcDesiredTimer6UgcDesiredTimerHelper6HgcTimer_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x002762e8",
@@ -189385,7 +189473,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0027804c"
     ],
@@ -189401,7 +189489,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:31:24Z"
       }
-    ]
+    ],
+    "src_file": "src/gcLobbyConfigStrings.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76QgcDesiredTrigger6WgcDesiredTriggerHelper6JgcTrigger_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x002783b0",
@@ -190177,7 +190267,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0027add8"
     ],
@@ -190193,7 +190283,9 @@
         "variant": "base",
         "timestamp": "2026-04-27T03:04:53Z"
       }
-    ]
+    ],
+    "src_file": "src/cBasegcDesiredObjectTgcDesiredTimergcDesiredTimerHelpergcTimer.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76NgcDesiredSkin6TgcDesiredSkinHelper6FeSkin_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0027b13c",
@@ -191684,7 +191776,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -191694,7 +191786,9 @@
         "notes": "[backfill] src/gcUIWidgetList_PlayEffect.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fOgcUIWidgetListKPlayEffect65KgcUIWidgetZ__5KgcUIWidgetKgcUIEffect"
+    "mangled_symbol": "__0fOgcUIWidgetListKPlayEffect65KgcUIWidgetZ__5KgcUIWidgetKgcUIEffect",
+    "src_file": "src/gcUIWidgetList_PlayEffect.cpp",
+    "symbol_name": "__0fOgcUIWidgetListKPlayEffect65KgcUIWidgetZ__5KgcUIWidgetKgcUIEffect"
   },
   {
     "address": "0x0027e6f0",
@@ -196307,7 +196401,7 @@
     "callers": [],
     "is_leaf": true,
     "mangled_symbol": "__0fWgcStatsTrackingStringsDNewP6IcMemPoolP6FcBaseT",
-    "src_file": "src/gcDoSetStringValue.cpp",
+    "src_file": "src/gcStatsTrackingStrings.cpp",
     "symbol_name": "__0fWgcStatsTrackingStringsDNewP6IcMemPoolP6FcBaseT",
     "matched_by_backend": "codex",
     "matched_by_session_id": "ee8ea36c",
@@ -197735,7 +197829,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -197772,7 +197866,9 @@
         "src_file": "src/gcUIControlString.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/d741f0ba/0028f658__agent_self_reported_failure__src_gcUIControlString.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcUIControlString.cpp",
+    "symbol_name": "__0fRgcUIControlStringEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0028f748",
@@ -198788,7 +198884,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x002931b8"
     ],
@@ -198804,7 +198900,9 @@
         "variant": "base",
         "timestamp": "2026-04-26T19:31:24Z"
       }
-    ]
+    ],
+    "src_file": "src/gcLobbyConfigStrings.cpp",
+    "symbol_name": "__0fQgcDesiredObjectT76PgcDesiredPortal6VgcDesiredPortalHelper6HePortal_JGetObjectb_P6FcBaseK"
   },
   {
     "address": "0x0029351c",
@@ -203083,7 +203181,7 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fXgcDoEntityBipedSetShapeFWriteR6FcFileK",
-    "src_file": "src/eTexture.cpp",
+    "src_file": "src/gcDoEntityBipedSetShape.cpp",
     "symbol_name": "__0fXgcDoEntityBipedSetShapeFWriteR6FcFileK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "be3b535a",
@@ -216259,7 +216357,7 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "src_file": "src/gcDoReturn.cpp",
+    "src_file": "src/gcDoReturn_GetText.cpp",
     "symbol_name": "__0fKgcDoReturnHGetTextPcK",
     "mangled_symbol": "__0fKgcDoReturnHGetTextPcK"
   },
@@ -230417,7 +230515,7 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fTgcValEntityConstantFWriteR6FcFileK",
-    "src_file": "src/gcDoSwitchCase.cpp",
+    "src_file": "src/gcValEntityConstant.cpp",
     "symbol_name": "__0fTgcValEntityConstantFWriteR6FcFileK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "df564ae7",
@@ -231542,7 +231640,7 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fXgcValEntityHasAnimationFWriteR6FcFileK",
-    "src_file": "src/gcDoSwitchCase.cpp",
+    "src_file": "src/gcValEntityHasAnimation.cpp",
     "symbol_name": "__0fXgcValEntityHasAnimationFWriteR6FcFileK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "df564ae7",
@@ -233791,7 +233889,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -233816,7 +233914,9 @@
         "src_file": "src/gcValLookAtControllerVariable.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/8e20c0aa/0033675c__agent_self_reported_failure__src_gcValLookAtControllerVariable.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValLookAtControllerVariable.cpp",
+    "symbol_name": "__0fdgcValLookAtControllerVariableEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00336898",
@@ -235618,7 +235718,7 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fUgcValEntityTimeSinceFWriteR6FcFileK",
-    "src_file": "src/gcSubGeomController.cpp",
+    "src_file": "src/gcValEntityTimeSince.cpp",
     "symbol_name": "__0fUgcValEntityTimeSinceFWriteR6FcFileK",
     "matched_by_backend": "codex",
     "matched_by_session_id": "959a08b8",
@@ -238629,7 +238729,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x00005690",
@@ -238638,7 +238738,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fagcValLobbyConnectionStatusFWriteR6FcFileK"
+    "mangled_symbol": "__0fagcValLobbyConnectionStatusFWriteR6FcFileK",
+    "src_file": "src/gcValLobbyConnectionStatus.cpp",
+    "symbol_name": "__0fagcValLobbyConnectionStatusFWriteR6FcFileK"
   },
   {
     "address": "0x00347b24",
@@ -239423,13 +239525,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oOgcValLobbyInfodtv"
+    "mangled_symbol": "__0oOgcValLobbyInfodtv",
+    "src_file": "src/gcValLobbyInfo.cpp",
+    "symbol_name": "__0oOgcValLobbyInfodtv"
   },
   {
     "address": "0x00349e4c",
@@ -242258,7 +242362,7 @@
     "callers": [],
     "is_leaf": true,
     "mangled_symbol": "__0fSgcValObjectCompareDNewP6IcMemPoolP6FcBaseT",
-    "src_file": "src/gcValLobbyMailInfo.cpp",
+    "src_file": "src/gcValObjectCompare.cpp",
     "symbol_name": "__0fSgcValObjectCompareDNewP6IcMemPoolP6FcBaseT",
     "matched_by_backend": "codex",
     "matched_by_session_id": "1a1a7984",
@@ -245237,7 +245341,7 @@
     "callers": [],
     "is_leaf": false,
     "mangled_symbol": "__0fPgcValTableEntryDNewP6IcMemPoolP6FcBaseT",
-    "src_file": "src/gcTableString.cpp",
+    "src_file": "src/gcValTableEntry.cpp",
     "symbol_name": "__0fPgcValTableEntryDNewP6IcMemPoolP6FcBaseT",
     "matched_by_backend": "codex",
     "matched_by_session_id": "99d0cd09",
@@ -245814,7 +245918,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -245824,7 +245928,9 @@
         "notes": "[backfill] src/gcValTrinaryOp.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fOgcValTrinaryOpOGetMaxChildrenvK"
+    "mangled_symbol": "__0fOgcValTrinaryOpOGetMaxChildrenvK",
+    "src_file": "src/gcValTrinaryOp_GetMaxChildren.cpp",
+    "symbol_name": "__0fOgcValTrinaryOpOGetMaxChildrenvK"
   },
   {
     "address": "0x00361248",
@@ -246141,7 +246247,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -246185,7 +246291,9 @@
         "src_file": "src/gcValUIChecked.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3ffd6144/00361d54__agent_self_reported_failure__src_gcValUIChecked.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIChecked.cpp",
+    "symbol_name": "__0fOgcValUICheckedEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00361e1c",
@@ -246350,7 +246458,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -246394,7 +246502,9 @@
         "src_file": "src/gcValUIEnabled.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/4a341290/00362194__agent_self_reported_failure__src_gcValUIEnabled.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIEnabled.cpp",
+    "symbol_name": "__0fOgcValUIEnabledEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x0036225c",
@@ -246874,7 +246984,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -246918,7 +247028,9 @@
         "src_file": "src/gcValUIOpacity.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/62e25904/003637c0__agent_self_reported_failure__src_gcValUIOpacity.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIOpacity.cpp",
+    "symbol_name": "__0fOgcValUIOpacityEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00363888",
@@ -248282,7 +248394,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -248319,7 +248431,9 @@
         "src_file": "src/gcValUIVar.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/a9d4c73e/003684e8__agent_self_reported_failure__src_gcValUIVar.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIVar.cpp",
+    "symbol_name": "__0fKgcValUIVarEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x003685c4",
@@ -248553,7 +248667,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -248597,7 +248711,9 @@
         "src_file": "src/gcValUIVisible.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/62e25904/00369d88__agent_self_reported_failure__src_gcValUIVisible.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcValUIVisible.cpp",
+    "symbol_name": "__0fOgcValUIVisibleEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00369e50",
@@ -248815,7 +248931,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -248825,7 +248941,9 @@
         "notes": "[backfill] src/gcValUnaryOp.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0fMgcValUnaryOpOGetMaxChildrenvK"
+    "mangled_symbol": "__0fMgcValUnaryOpOGetMaxChildrenvK",
+    "src_file": "src/gcValUnaryOp_GetMaxChildren.cpp",
+    "symbol_name": "__0fMgcValUnaryOpOGetMaxChildrenvK"
   },
   {
     "address": "0x0036a4dc",
