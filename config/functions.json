@@ -54989,13 +54989,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000ae868"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fQeBipedControllerUUpdateGroundMovementP6FmVec3TB"
+    "mangled_symbol": "__0fQeBipedControllerUUpdateGroundMovementP6FmVec3TB",
+    "src_file": "src/eBipedController__UpdateGroundMovement_mVec3ptr_mVec3ptr__00067648.cpp",
+    "symbol_name": "__0fQeBipedControllerUUpdateGroundMovementP6FmVec3TB"
   },
   {
     "address": "0x000676dc",
@@ -134272,7 +134274,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001aa4c8",
@@ -134280,7 +134282,9 @@
       "0x001ab130"
     ],
     "is_leaf": true,
-    "mangled_symbol": "_fwalk"
+    "mangled_symbol": "_fwalk",
+    "src_file": "src/_fwalk__001AAEC8.cpp",
+    "symbol_name": "_fwalk"
   },
   {
     "address": "0x001aaf58",
