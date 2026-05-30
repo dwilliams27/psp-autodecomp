@@ -26833,7 +26833,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0001fd44",
@@ -26842,7 +26842,9 @@
       "0x000a179c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeWorldKAddBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin"
+    "mangled_symbol": "__0fGeWorldKAddBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin",
+    "src_file": "src/eWorld__AddBinGeom_eGeomptr_eWorld__eWorldGeomBin__0001FAD4.cpp",
+    "symbol_name": "__0fGeWorldKAddBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin"
   },
   {
     "address": "0x0001fb1c",
@@ -54029,11 +54031,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
+    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo",
+    "src_file": "src/eSweptMultiSphereCollisionHandler__ProcessCollision_consteCollisionInforef__00064754.cpp",
+    "symbol_name": "__0fheSweptMultiSphereCollisionHandlerQProcessCollisionRC6OeCollisionInfo"
   },
   {
     "address": "0x0006479c",
@@ -72042,13 +72046,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0001f3c4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOeAudioPlatformPSetStreamVolumeifT"
+    "mangled_symbol": "__0fOeAudioPlatformPSetStreamVolumeifT",
+    "src_file": "src/eAudioPlatform__SetStreamVolume_int_floatstatic__0008CEDC.cpp",
+    "symbol_name": "__0fOeAudioPlatformPSetStreamVolumeifT"
   },
   {
     "address": "0x0008cf28",
@@ -104051,13 +104057,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0011d020"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fVgcDesiredEntityHelperTGetRelationshipText65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipT"
+    "mangled_symbol": "__0fVgcDesiredEntityHelperTGetRelationshipText65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipT",
+    "src_file": "src/gcDesiredEntityHelper__GetRelationshipText_gcDesiredEntityHelper__gcRelationshipstatic__0011D3A0.cpp",
+    "symbol_name": "__0fVgcDesiredEntityHelperTGetRelationshipText65VgcDesiredEntityHelpero__5VgcDesiredEntityHelperOgcRelationshipT"
   },
   {
     "address": "0x0011d3ec",
@@ -136765,14 +136773,16 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001af65c",
       "0x001b0ffc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "memchr"
+    "mangled_symbol": "memchr",
+    "src_file": "src/memchr__001B92E4.cpp",
+    "symbol_name": "memchr"
   },
   {
     "address": "0x001b9328",
@@ -137183,14 +137193,16 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001b9a10",
       "0x001b9d90"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0Fkadd_vec_new_or_delete_eh_stack_entryP6Ran_eh_stack_entryP6Wan_array_alloc_eh_infoi"
+    "mangled_symbol": "__0Fkadd_vec_new_or_delete_eh_stack_entryP6Ran_eh_stack_entryP6Wan_array_alloc_eh_infoi",
+    "src_file": "src/add_vec_new_or_delete_eh_stack_entry_an_eh_stack_entryptr_an_array_alloc_eh_infoptr_int__001B9970.cpp",
+    "symbol_name": "__0Fkadd_vec_new_or_delete_eh_stack_entryP6Ran_eh_stack_entryP6Wan_array_alloc_eh_infoi"
   },
   {
     "address": "0x001b99b4",
@@ -139341,13 +139353,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001bbf24"
     ],
     "is_leaf": true,
-    "mangled_symbol": "isnan"
+    "mangled_symbol": "isnan",
+    "src_file": "src/isnan__001C0654.cpp",
+    "symbol_name": "isnan"
   },
   {
     "address": "0x001c0698",
