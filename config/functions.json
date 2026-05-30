@@ -26870,7 +26870,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0001fd44",
@@ -26880,7 +26880,9 @@
       "0x00061edc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fGeWorldNRemoveBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin"
+    "mangled_symbol": "__0fGeWorldNRemoveBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin",
+    "src_file": "src/eWorld__RemoveBinGeom_eGeomptr_eWorld__eWorldGeomBin__0001FB1C.cpp",
+    "symbol_name": "__0fGeWorldNRemoveBinGeomP6FeGeom65GeWorldY__5GeWorldNeWorldGeomBin"
   },
   {
     "address": "0x0001fb84",
@@ -95440,14 +95442,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00287bb4",
       "0x00288640"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fOgcGameSettingsLUnsubscribe65OgcGameSettingsh__5OgcGameSettingsOgcSubscriptionP6PcListSubscriber"
+    "mangled_symbol": "__0fOgcGameSettingsLUnsubscribe65OgcGameSettingsh__5OgcGameSettingsOgcSubscriptionP6PcListSubscriber",
+    "src_file": "src/gcGameSettings__Unsubscribe_gcGameSettings__gcSubscription_cListSubscriberptr__00103270.cpp",
+    "symbol_name": "__0fOgcGameSettingsLUnsubscribe65OgcGameSettingsh__5OgcGameSettingsOgcSubscriptionP6PcListSubscriber"
   },
   {
     "address": "0x001032d8",
@@ -135298,13 +135302,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000009cc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "strstr"
+    "mangled_symbol": "strstr",
+    "src_file": "src/strstr__001AD938.c",
+    "symbol_name": "strstr"
   },
   {
     "address": "0x001ad9a0",
@@ -135652,13 +135658,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001b25c4"
     ],
     "is_leaf": true,
-    "mangled_symbol": "wstrrev"
+    "mangled_symbol": "wstrrev",
+    "src_file": "src/wstrrev__001B2558.cpp",
+    "symbol_name": "wstrrev"
   },
   {
     "address": "0x001b25c4",
@@ -159796,11 +159804,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerKMoveVolumeRC6FmVec3"
+    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerKMoveVolumeRC6FmVec3",
+    "src_file": "src/eSweptMultiSphereCollisionHandler__MoveVolume_constmVec3ref__002088C0.cpp",
+    "symbol_name": "__0fheSweptMultiSphereCollisionHandlerKMoveVolumeRC6FmVec3"
   },
   {
     "address": "0x00208928",
