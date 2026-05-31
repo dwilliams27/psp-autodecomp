@@ -11731,7 +11731,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000763c",
       "0x001ad668"
@@ -13569,7 +13569,9 @@
       "0x0036b6a8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFcTypeOInitializeTypePCcTBUiPC6FcTypePFP6IcMemPoolP6FcBase_P6FcBaseNCBTDT"
+    "mangled_symbol": "__0fFcTypeOInitializeTypePCcTBUiPC6FcTypePFP6IcMemPoolP6FcBase_P6FcBaseNCBTDT",
+    "src_file": "src/cType__InitializeType_constcharptr_const__00007534.cpp",
+    "symbol_name": "__0fFcTypeOInitializeTypePCcTBUiPC6FcTypePFP6IcMemPoolP6FcBase_P6FcBaseNCBTDT"
   },
   {
     "address": "0x0000763c",
@@ -55945,13 +55947,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a21f4"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeHCastRayRC6EmRayRC6OeCollisionInfoP6FmVec3TDPfK"
+    "mangled_symbol": "__0fReMultiSphereShapeHCastRayRC6EmRayRC6OeCollisionInfoP6FmVec3TDPfK",
+    "src_file": "src/eMultiSphereShape__CastRay_constmRayref___00068DFC.cpp",
+    "symbol_name": "__0fReMultiSphereShapeHCastRayRC6EmRayRC6OeCollisionInfoP6FmVec3TDPfK"
   },
   {
     "address": "0x00068f00",
@@ -87490,7 +87494,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ec3c8",
       "0x0015fd0c"
@@ -87502,7 +87506,9 @@
       "0x000f41b8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcCinematicInstanceEPlay6HcHandlef"
+    "mangled_symbol": "__0fTgcCinematicInstanceEPlay6HcHandlef",
+    "src_file": "src/gcCinematicInstance__Play_cHandle_float__000EB3E8.cpp",
+    "symbol_name": "__0fTgcCinematicInstanceEPlay6HcHandlef"
   },
   {
     "address": "0x000eb4f0",
@@ -91949,7 +91955,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000024f8",
       "0x000069ec",
@@ -91960,7 +91966,9 @@
       "0x0016b438"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapiReadDynamicallyLoadedObjectsToLoadR6JcInStream"
+    "mangled_symbol": "__0fFgcMapiReadDynamicallyLoadedObjectsToLoadR6JcInStream",
+    "src_file": "src/gcMap__ReadDynamicallyLoadedObjectsToLoad_cInStreamref__000F61F0.cpp",
+    "symbol_name": "__0fFgcMapiReadDynamicallyLoadedObjectsToLoadR6JcInStream"
   },
   {
     "address": "0x000f62f8",
@@ -134379,7 +134387,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001aa74c",
       "0x001aaa0c",
@@ -134390,7 +134398,9 @@
       "0x001aa93c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "_fopen_r"
+    "mangled_symbol": "_fopen_r",
+    "src_file": "src/_fopen_r__001AA838.cpp",
+    "symbol_name": "_fopen_r"
   },
   {
     "address": "0x001aa93c",
