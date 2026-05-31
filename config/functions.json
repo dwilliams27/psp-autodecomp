@@ -15438,7 +15438,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000ccc",
       "0x000099d8",
@@ -15452,7 +15452,9 @@
       "0x00127330"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcManagerDAddP6HcObjectT"
+    "mangled_symbol": "__0fIcManagerDAddP6HcObjectT",
+    "src_file": "src/cManager__Add_cObjectptrstatic__00009728.cpp",
+    "symbol_name": "__0fIcManagerDAddP6HcObjectT"
   },
   {
     "address": "0x00009824",
@@ -41526,7 +41528,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0002cb20"
     ],
@@ -41534,7 +41536,9 @@
       "0x0004a334"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDynamicGeomSUpdateLocalToWorldv"
+    "mangled_symbol": "__0fMeDynamicGeomSUpdateLocalToWorldv",
+    "src_file": "src/eDynamicGeom__UpdateLocalToWorld_void__000453B4.cpp",
+    "symbol_name": "__0fMeDynamicGeomSUpdateLocalToWorldv"
   },
   {
     "address": "0x000454b0",
@@ -55953,13 +55957,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a0f54"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK"
+    "mangled_symbol": "__0fReMultiSphereShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK",
+    "src_file": "src/eMultiSphereShape__CastSphere_constmSphereref_constmCollideInforef_consteCollisionInforef_mVec3ptr_mVec3ptr_floatptrconst__00068F00.cpp",
+    "symbol_name": "__0fReMultiSphereShapeKCastSphereRC6HmSphereRC6MmCollideInfoRC6OeCollisionInfoP6FmVec3TEPfK"
   },
   {
     "address": "0x00069000",
@@ -83507,13 +83513,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000d8aa8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIWidgetGroupQInsertIntoDialogP6KgcUIDialog"
+    "mangled_symbol": "__0fPgcUIWidgetGroupQInsertIntoDialogP6KgcUIDialog",
+    "src_file": "src/gcUIWidgetGroup__InsertIntoDialog_gcUIDialogptr__000DEF00.cpp",
+    "symbol_name": "__0fPgcUIWidgetGroupQInsertIntoDialogP6KgcUIDialog"
   },
   {
     "address": "0x000deffc",
@@ -89483,7 +89491,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000f40a0"
     ],
@@ -89491,7 +89499,9 @@
       "0x000f4048"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQgcRegionSetGroupTClearRegionSetStateiK"
+    "mangled_symbol": "__0fQgcRegionSetGroupTClearRegionSetStateiK",
+    "src_file": "src/gcRegionSetGroup__ClearRegionSetState_intconst__000EFC00.cpp",
+    "symbol_name": "__0fQgcRegionSetGroupTClearRegionSetStateiK"
   },
   {
     "address": "0x000efd00",
@@ -129805,7 +129815,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a02d0"
     ],
@@ -129813,7 +129823,9 @@
       "0x000aa718"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fImFrustumKGetCornersP6FmVec3"
+    "mangled_symbol": "__0fImFrustumKGetCornersP6FmVec3",
+    "src_file": "src/mFrustum__GetCorners_mVec3ptr__001A1E90.cpp",
+    "symbol_name": "__0fImFrustumKGetCornersP6FmVec3"
   },
   {
     "address": "0x001a1f8c",
@@ -132501,7 +132513,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a6604",
       "0x001a70fc",
@@ -132513,7 +132525,9 @@
       "0x001a8b70"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionHReceiveiR6KnwInPacket"
+    "mangled_symbol": "__0fMnwConnectionHReceiveiR6KnwInPacket",
+    "src_file": "src/nwConnection__Receive_int_nwInPacketref__001A7000.cpp",
+    "symbol_name": "__0fMnwConnectionHReceiveiR6KnwInPacket"
   },
   {
     "address": "0x001a70fc",
