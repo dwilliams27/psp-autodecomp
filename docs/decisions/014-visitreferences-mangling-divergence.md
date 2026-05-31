@@ -283,3 +283,32 @@ the function-type canonicalizer reached via the encoder fn-ptr case 0x4a61ba →
 That site is a multi-instruction structural patch, not a byte flip; pinning the exact list-link
 write needs one more focused trace (watch which code writes `[innerfn+0x54]` / its `ctx[0]` and
 where the enclosing context ptr is available at that point). **Path B remains the lower-risk route.**
+
+### Deeper RE (2026-05-31, pass 5) — path-A CONCLUSION: no minimal/safe patch exists
+
+A bounded trace at the F-helper recursion `0x4a35d7` settled path-A feasibility by static
+structure (firsthand-verified against /tmp/pspcfe.exe; original intact):
+- `0x4a35d7` recurses via `push 1; push edi; push [esi+0x50]; call 0x4a5dc8` — it passes
+  ONLY the inner node `[esi+0x50]`; the enclosing context `[esi+0x54]` is **not threaded in**.
+- Encoder `0x4a5dc8` is purely node-driven (dispatch on tag `[node+0x32]`); the backref
+  redirect uses only the node's OWN `[node+0x54]`; no enclosing list-head is carried.
+- Walker `0x4a345c` only **reads** `esi=[eax+0x54]` (the node's own context) and walks that
+  node's private list; the `T`-emit at `0x4a3550` never sees any other node's list.
+- `+0x54` is **overloaded across 40+ write sites** (typedef redirect in the encoder, context
+  object in the walker, unrelated fields elsewhere). The inner node's context + list-head are
+  built at **type parse/canonicalization time** (the `0x51296f` red-herring region), not at
+  any single mangle-time write.
+
+**Conclusion:** there is **no list-head write to flip at mangle time** (the walker only reads
+it). Making the nested function node share/chain the enclosing list requires editing context
+construction in the canonicalizer — which has no single site, sits behind the overloaded
+`+0x54`, and is **also consumed by codegen**, so a patch there risks corrupting compilation.
+**Path A is not achievable as a minimal/safe byte or single-cave patch; only a broad, risky
+canonicalizer rewrite remains.** The 5-pass RE is complete and fully documented here; it is
+resumable if a structural rewrite is ever desired, but is not recommended.
+
+**Decision posture:** with path A blocked on a corruption-risk rewrite, the realistic routes
+to credit the 346 are (B) the verifier-side demangle-equivalence (RE-strengthened: SN's own
+`demangle.dll` treats cumulative `TB` as canonical, so `Ui` and `TB` resolve to one type — the
+masked byte-compare still fully gates), or leaving the family parked while effort goes to the
+larger ADR-012 byte frontier. Operator's call.
