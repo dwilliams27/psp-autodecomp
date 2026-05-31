@@ -238,3 +238,48 @@ So a verifier-side equivalence (path B) is recognizing two spellings of one type
 loosening byte-exactness (the masked byte-compare still fully gates the match). Path B
 remains hours of work; path A is now a confirmed multi-day RE with corruption risk and no
 pinned site. Operator decision refreshed.
+
+### Deeper RE (2026-05-31, pass 4) — finding = appended_but_rejected (distinct per-function contexts)
+
+JMP-trampoline loggers (E8-free / no `pushad`; manual `push retaddr; jmp 0x4a32f4` to piggyback
+the char emitter; originals md5 `0ef5d17b…` intact, buggy `…PFP6FcBaseUiPv…` reproduced) on /tmp
+copies **corrected the pass-3 mechanism** and pinned the true defect locus class.
+
+**Walker 0x4a345c is the recursive type-LIST emitter, and it DOES process scalar params.** It is
+called once per function-type node with `eax` = that node; `esi=[eax+0x54]` is the node's
+substitution CONTEXT, `edi=[esi]` is the list head, and it iterates `edi=[edi]` over the
+function's component type-list (return + params). For each entry it searches earlier entries
+(loop 0x4a3492–0x4a34c3, equality call 0x52911d, qualifier `[ebx+0x11]^[edi+0x11]&3`) and on a
+match emits `T`/`Tn` at 0x4a3550, else recurses `call 0x4a5dc8` @0x4a34e7 to spell it literally.
+- A T-site marker at 0x4a354d proved `f(unsigned,unsigned)` emits the outer dup `TB` **from the
+  walker** (`__0FBfUiWTB`, `W` immediately precedes `TB`). So scalar backrefs ARE a walker job.
+- `f(void(*)(unsigned,unsigned))` → `PF…UiWTB_v` (inner dup works WITHIN one list);
+  `f(unsigned,void(*)(unsigned))` → `Ui…PF…Ui_v` (no `W`, no `TB`: the inner uint's search misses).
+
+**Root cause (refutes pass-3's "same context"):** each function-type node owns a **distinct**
+context object at `[node+0x54]`. A context-field dump at walker entry for the minimal bug
+`f(unsigned,void(*)(unsigned))` shows the outer fn and inner-PF fn use **different** context
+objects (e.g. outer `6C24F8A8` list-head `6C24F8D8`, inner `6C24FBB0` list-head `0` then its own
+chain) — the inner context's list is built fresh from the inner function's own components and is
+**never linked to the enclosing function's list**, so the inner `unsigned` reaches the inner
+walker's SEARCH but is rejected (no match) because the outer `unsigned` was appended to a
+different object's list. Finding = **appended_but_rejected** (outer appended to outer list; inner
+searches a separate inner list).
+
+**The pass-3 PRIME gate 0x4a6126/0x4a612c is a dead path for these signatures.** A tag logger at
+0x4a6126 recorded **zero** hits while mangling the probe `g` and `f(uint,uint,(*)(uint))`, and an
+empirical patch of `0x4a612c 74 07 → 90 90` (and the `jne→je` inversion) produced **no change** to
+any of g/p1/p2/p3/vref. This is why pass-2's 10 emit-path patches were all no-ops: the inner scalar
+never traverses that gate, and the real defect is the **per-function context allocation/linkage**,
+not any emit-site decision. The scalar dispatch (`Ui` literal @0x4a5f20 → common emit @0x4a60ac →
+tag check @0x4a60b4 → `ret` @0x4a6210) has no append and no walker call; appends happen only inside
+the walker (0x4a34e7) for whichever function-context is active.
+
+**Implication for path A:** there is **no same-size single-instruction emit-site/gate flip** that
+fixes it without corruption. The fix must make the nested function-type node either SHARE the
+enclosing node's context object or CHAIN its list onto the enclosing list — an upstream
+context-construction change (where `[fn-node+0x54]` and its `ctx[0]` list head are populated, in
+the function-type canonicalizer reached via the encoder fn-ptr case 0x4a61ba → F-helper 0x4a3582).
+That site is a multi-instruction structural patch, not a byte flip; pinning the exact list-link
+write needs one more focused trace (watch which code writes `[innerfn+0x54]` / its `ctx[0]` and
+where the enclosing context ptr is available at that point). **Path B remains the lower-risk route.**
