@@ -16381,7 +16381,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x00005d00",
@@ -16393,7 +16393,9 @@
       "0x0000a914"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcObjectKReadHeaderR6FcFileP65HcObjectJcFileInfoT"
+    "mangled_symbol": "__0fHcObjectKReadHeaderR6FcFileP65HcObjectJcFileInfoT",
+    "src_file": "src/cObject__ReadHeader_cFileref_cObject__cFileInfoptrstatic__0000A828.cpp",
+    "symbol_name": "__0fHcObjectKReadHeaderR6FcFileP65HcObjectJcFileInfoT"
   },
   {
     "address": "0x0000a914",
@@ -16786,7 +16788,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -16802,7 +16804,9 @@
       "0x00169548"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryNLoadLocalizedPCc"
+    "mangled_symbol": "__0fIcFactoryNLoadLocalizedPCc",
+    "src_file": "src/cFactory__LoadLocalized_constcharptr__0000B70C.cpp",
+    "symbol_name": "__0fIcFactoryNLoadLocalizedPCc"
   },
   {
     "address": "0x0000b7f8",
@@ -84011,7 +84015,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000e83dc"
     ],
@@ -84022,7 +84026,9 @@
       "0x0017c7f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fEgcUIPCloseAllDialogsv"
+    "mangled_symbol": "__0fEgcUIPCloseAllDialogsv",
+    "src_file": "src/gcUI__CloseAllDialogs_void__000E091C.cpp",
+    "symbol_name": "__0fEgcUIPCloseAllDialogsv"
   },
   {
     "address": "0x000e0a08",
@@ -91433,7 +91439,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ea9e4",
       "0x000eb3e8",
@@ -91447,7 +91453,9 @@
       "0x002ef1bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapNPlayCinematicP6LgcCinematic6HcHandlefbT"
+    "mangled_symbol": "__0fFgcMapNPlayCinematicP6LgcCinematic6HcHandlefbT",
+    "src_file": "src/gcMap__PlayCinematic_gcCinematicptr_cHandle_float_boolstatic__000F41B8.cpp",
+    "symbol_name": "__0fFgcMapNPlayCinematicP6LgcCinematic6HcHandlefbT"
   },
   {
     "address": "0x000f42a4",
