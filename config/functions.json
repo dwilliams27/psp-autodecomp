@@ -20286,7 +20286,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000129c8",
       "0x00012a14",
@@ -20301,7 +20301,9 @@
       "0x000912e4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformSdecode_videoDecodev"
+    "mangled_symbol": "__0fOeMoviePlatformSdecode_videoDecodev",
+    "src_file": "src/eMoviePlatform__decode_videoDecode_void__00012078.cpp",
+    "symbol_name": "__0fOeMoviePlatformSdecode_videoDecodev"
   },
   {
     "address": "0x0001218c",
@@ -83588,7 +83590,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000df4f8"
     ],
@@ -83600,7 +83602,9 @@
       "0x000e41e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIWidgetGroupQDeleteAllWidgetsb"
+    "mangled_symbol": "__0fPgcUIWidgetGroupQDeleteAllWidgetsb",
+    "src_file": "src/gcUIWidgetGroup__DeleteAllWidgets_bool__000DF620.cpp",
+    "symbol_name": "__0fPgcUIWidgetGroupQDeleteAllWidgetsb"
   },
   {
     "address": "0x000df734",
@@ -138857,7 +138861,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001bf3d4",
       "0x001bf988",
@@ -138901,7 +138905,9 @@
       "0x00328ee0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "cosf"
+    "mangled_symbol": "cosf",
+    "src_file": "src/cosf__001BBB40.cpp",
+    "symbol_name": "cosf"
   },
   {
     "address": "0x001bbc50",
@@ -139050,7 +139056,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0005b194",
@@ -139058,7 +139064,9 @@
       "0x001bfad0"
     ],
     "is_leaf": true,
-    "mangled_symbol": "floorf"
+    "mangled_symbol": "floorf",
+    "src_file": "src/floorf__001BBC68.cpp",
+    "symbol_name": "floorf"
   },
   {
     "address": "0x001bbd7c",
@@ -139070,7 +139078,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001bf3d4",
       "0x001bf988",
@@ -139116,7 +139124,9 @@
       "0x00328ee0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "sinf"
+    "mangled_symbol": "sinf",
+    "src_file": "src/sinf__001BBD7C.c",
+    "symbol_name": "sinf"
   },
   {
     "address": "0x001bbe90",
