@@ -92446,14 +92446,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000f2ed8",
       "0x0016f4bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcBackgroundLoaderGOnExitv"
+    "mangled_symbol": "__0fSgcBackgroundLoaderGOnExitv",
+    "src_file": "src/gcBackgroundLoader__OnExit_void__000F7D34.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderGOnExitv"
   },
   {
     "address": "0x000f7e40",
@@ -94436,7 +94438,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000e1080",
       "0x000e121c",
@@ -94447,7 +94449,9 @@
       "0x00108140"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcViewportQMemCardReplicateR6UgcReplicationVisitorT"
+    "mangled_symbol": "__0fKgcViewportQMemCardReplicateR6UgcReplicationVisitorT",
+    "src_file": "src/gcViewport__MemCardReplicate_gcReplicationVisitorrefstatic__000FE378.cpp",
+    "symbol_name": "__0fKgcViewportQMemCardReplicateR6UgcReplicationVisitorT"
   },
   {
     "address": "0x000fe484",
@@ -97067,7 +97071,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000f286c",
       "0x00107428"
@@ -97080,7 +97084,9 @@
       "0x00167048"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGameYFindStreamedCinematicAllRC6GcGUIDT76TgcStreamedCinematic_T"
+    "mangled_symbol": "__0fGgcGameYFindStreamedCinematicAllRC6GcGUIDT76TgcStreamedCinematic_T",
+    "src_file": "src/gcGame__FindStreamedCinematicAll_constcGUIDT_gcStreamedCinematic_refstatic__00107240.cpp",
+    "symbol_name": "__0fGgcGameYFindStreamedCinematicAllRC6GcGUIDT76TgcStreamedCinematic_T"
   },
   {
     "address": "0x0010734c",
@@ -136048,7 +136054,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b2fa0"
     ],
@@ -136057,7 +136063,9 @@
       "0x001b4840"
     ],
     "is_leaf": false,
-    "mangled_symbol": "_wwrite"
+    "mangled_symbol": "_wwrite",
+    "src_file": "src/_wwrite__001B30FC.cpp",
+    "symbol_name": "_wwrite"
   },
   {
     "address": "0x001b320c",
