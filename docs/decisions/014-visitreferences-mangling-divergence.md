@@ -156,6 +156,43 @@ gate — rebuild every currently-matched function, any `.o` byte change aborts.
 substitution-list head while mangling the probe) or anchored static RE on the `T`-token
 emission + list append/search — a deeper, possibly multi-iteration RE pass.
 
+### Deeper RE (2026-05-31, pass 2) — mangler routines PINNED, decisive probe identified
+
+A second workflow (static anchors + a patch-and-test loop validated against real DB
+symbols) pinned the actual mangler machinery in pspcfe.exe (non-relocatable, fixed load
+0x400000, so guest VAs are stable):
+- **0x4a5dc8** — central recursive per-type ENCODER. Dispatches on type tag `[node+0x32]`;
+  function-type case is tag==8 @0x4a61ba → calls the F-helper.
+- **0x4a3582** — FUNCTION-TYPE (`F`) helper. Emits `F`@0x4a3593, calls the walker@0x4a35bb,
+  emits `_`@0x4a35ca, then recurses into params via 0x4a5dc8@0x4a35d7 using node `[esi+0x50]`.
+- **0x4a345c** — SUBSTITUTION-LIST WALKER / backref emitter. Reads list head from
+  `[eax+0x54]`@0x4a3464, walks a circular list, emits `T`@0x4a3550 on a head match (append
+  via 0x4a5dc8@0x4a34e7). **The `T`-vs-literal decision lives here.**
+- Leaf helpers (NOT the bug): char-emit 0x4a32f4, string 0x4a3324, numeric/index 0x4a334a,
+  list-register 0x4a341f.
+
+**Key disambiguation (why static RE kept mis-converging):** node field `+0x54` is OVERLOADED.
+In the encoder 0x4a5dc8 it is the typedef/canonicalization redirect link (ties to the
+0x51296f canonicalizer red herring — do NOT patch). In the walker 0x4a345c, `[eax+0x54]` is
+read off the CONTEXT object and yields the substitution-LIST head — a different use of the
+same displacement.
+
+**All 10 emit-path candidate patches returned `no_effect`** → the bug is NOT a hardcoded
+reset on the emit path. The remaining decisive question: when mangling the OUTER `unsigned
+int` vs the INNER `unsigned int` (inside the PF), do the walker invocations present the
+**same list-head object** (→ the list is reset on entering the PF param recursion at
+0x4a35d7; an emit-/recursion-framing patch is viable) or **distinct list-head objects** (→
+the substitution scope is rebuilt per-parameter-list-context UPSTREAM during recursive
+descent; the patch must target where that context/scope is allocated — which would explain
+the 10 no-effect results)?
+
+**Next probe (concrete):** an in-binary TRAMPOLINE LOGGER at the walker prologue 0x4a345c
+(5-byte `E8` call into a code cave in .text slack) that logs, per invocation while mangling
+the firsthand probe: the context ptr (`eax`), the derived list head (`[eax+0x54]`), and the
+emitted token (`T` vs literal). Compare the outer-`uint` call against the inner-`uint` call.
+Prefer the in-binary trampoline over lldb (wibo+Rosetta2 makes lldb VA-mapping to translated
+code unreliable). The answer directly localizes the patch.
+
 ### Bearing on the A-vs-B decision
 This RE *strengthens path B*: `demangle.dll` — SN's own decoder — treats the cumulative
 form as canonical and would resolve our `Ui` and the DB's `TB` to the **identical type**.
