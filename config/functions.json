@@ -20255,7 +20255,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00012f50",
       "0x00012f9c",
@@ -20268,7 +20268,9 @@
       "0x000912e4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformSdecode_audioDecodev"
+    "mangled_symbol": "__0fOeMoviePlatformSdecode_audioDecodev",
+    "src_file": "src/eMoviePlatform__decode_audioDecode_void__00011F80.cpp",
+    "symbol_name": "__0fOeMoviePlatformSdecode_audioDecodev"
   },
   {
     "address": "0x00012078",
@@ -36302,7 +36304,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0003857c"
     ],
@@ -36311,7 +36313,9 @@
       "0x00366c90"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHeSpriteMGetTexCoord1vK"
+    "mangled_symbol": "__0fHeSpriteMGetTexCoord1vK",
+    "src_file": "src/eSprite__GetTexCoord1_voidconst__00038DA0.cpp",
+    "symbol_name": "__0fHeSpriteMGetTexCoord1vK"
   },
   {
     "address": "0x00038e98",
@@ -36323,7 +36327,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0003857c"
     ],
@@ -36332,7 +36336,9 @@
       "0x00366c90"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHeSpriteMGetTexCoord2vK"
+    "mangled_symbol": "__0fHeSpriteMGetTexCoord2vK",
+    "src_file": "src/eSprite__GetTexCoord2_voidconst__00038E98.cpp",
+    "symbol_name": "__0fHeSpriteMGetTexCoord2vK"
   },
   {
     "address": "0x00038f90",
@@ -59418,13 +59424,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0006f834"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeSolverRowJWarmStartv"
+    "mangled_symbol": "__0fKeSolverRowJWarmStartv",
+    "src_file": "src/eSolverRow__WarmStart_void__0006EDB4.cpp",
+    "symbol_name": "__0fKeSolverRowJWarmStartv"
   },
   {
     "address": "0x0006eeac",
@@ -97873,7 +97881,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a564c",
       "0x001a7d24",
@@ -97886,7 +97894,9 @@
       "0x0035309c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcNetGameXGetNumActiveConnectionsUiT"
+    "mangled_symbol": "__0fJgcNetGameXGetNumActiveConnectionsUiT",
+    "src_file": "src/gcNetGame__GetNumActiveConnections_unsignedintstatic__00108F54.cpp",
+    "symbol_name": "__0fJgcNetGameXGetNumActiveConnectionsUiT"
   },
   {
     "address": "0x0010904c",
@@ -119044,7 +119054,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x00111904",
@@ -119052,7 +119062,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcBipedControllerLOnActivatedv"
+    "mangled_symbol": "__0fRgcBipedControllerLOnActivatedv",
+    "src_file": "src/gcBipedController__OnActivated_void__0014205C.cpp",
+    "symbol_name": "__0fRgcBipedControllerLOnActivatedv"
   },
   {
     "address": "0x00142154",
@@ -132672,7 +132684,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a79e8",
       "0x001ad364",
@@ -132682,7 +132694,9 @@
       "0x001a7498"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionNBufferInBlockUiPUci"
+    "mangled_symbol": "__0fMnwConnectionNBufferInBlockUiPUci",
+    "src_file": "src/nwConnection__BufferInBlock_unsignedint_unsignedcharptr_int__001A7608.cpp",
+    "symbol_name": "__0fMnwConnectionNBufferInBlockUiPUci"
   },
   {
     "address": "0x001a76fc",
