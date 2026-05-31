@@ -45998,7 +45998,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
@@ -46020,7 +46020,9 @@
         "snapshot": "logs/failure_snapshots/match_20260430_231646/126b2744/000507dc__agent_self_reported_failure__src_eHeightmapShape.cpp"
       }
     ],
-    "mangled_symbol": "__0fPeHeightmapShapeHGetAABBP6EmBoxRC6EmOCSK"
+    "mangled_symbol": "__0fPeHeightmapShapeHGetAABBP6EmBoxRC6EmOCSK",
+    "src_file": "src/eHeightmapShape__GetAABB_mBoxptr_constmOCSrefconst__000507DC.cpp",
+    "symbol_name": "__0fPeHeightmapShapeHGetAABBP6EmBoxRC6EmOCSK"
   },
   {
     "address": "0x000507fc",
@@ -49726,7 +49728,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0005b420",
@@ -49739,7 +49741,9 @@
         "notes": "[backfill] src/eSweptTest.cpp: no_symbol_with_matching_name"
       }
     ],
-    "mangled_symbol": "__0oKePathPointctv"
+    "mangled_symbol": "__0oKePathPointctv",
+    "src_file": "src/ePathPoint__ePathPoint_void__0005AB78.cpp",
+    "symbol_name": "__0oKePathPointctv"
   },
   {
     "address": "0x0005aba8",
@@ -59653,7 +59657,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0006f1c8",
@@ -59666,7 +59670,9 @@
         "notes": "ComputeAngularMass is 100% VFPU computation (56B). The function loads three mVec3 inputs via lv.q, computes a triple product via vcrsp.t (cross) + vmul.t + vcrsp.t + vdot.t, and returns a scalar via mfv/mtc1. None of vcrsp.t, vmul.t, or vdot.t have a C equivalent in the SNC native VFPU type system (per docs/decisions/007: V4SF/V16SF are transport-only, all arithmetic must be inline asm). The only way to reproduce the bytes is to wrap the entire body in inline asm, which CLAUDE.md explicitly bans (a function that is >50% inline asm by instruction count must be reported failed, not bypassed). There are 10 VFPU instructions vs 4 scalar (addiu sp / mtc1 / jr / addiu sp) \u2014 ~70% VFPU. No C representation is possible. Recommendation: leave unmatchable until SNC gains arithmetic support for V4SF types, or until a special policy for pure-VFPU kernels is adopted."
       }
     ],
-    "mangled_symbol": "__0fReConstraintSolverSComputeAngularMassRC6FmVec3NCB"
+    "mangled_symbol": "__0fReConstraintSolverSComputeAngularMassRC6FmVec3NCB",
+    "src_file": "src/eConstraintSolver__ComputeAngularMass_constmVec3ref_constmVec3ref_constmVec3ref__0006FB64.cpp",
+    "symbol_name": "__0fReConstraintSolverSComputeAngularMassRC6FmVec3NCB"
   },
   {
     "address": "0x0006fb9c",
