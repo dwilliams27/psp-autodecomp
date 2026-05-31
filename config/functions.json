@@ -36769,7 +36769,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0009f3e4",
       "0x001bbc50"
@@ -36778,7 +36778,9 @@
       "0x0009f6cc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5FeFontIePrinterRCalcRectAddSpritePC6HeSprite"
+    "mangled_symbol": "__0f5FeFontIePrinterRCalcRectAddSpritePC6HeSprite",
+    "src_file": "src/eFont__ePrinter__CalcRectAddSprite_consteSpriteptr__0003A614.cpp",
+    "symbol_name": "__0f5FeFontIePrinterRCalcRectAddSpritePC6HeSprite"
   },
   {
     "address": "0x0003a718",
@@ -49666,14 +49668,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00059c8c",
       "0x000ab4bc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fIeNavMeshNGetSolidVertsUc65IeNavMeshV__5IeNavMeshIeNavEdgePiK"
+    "mangled_symbol": "__0fIeNavMeshNGetSolidVertsUc65IeNavMeshV__5IeNavMeshIeNavEdgePiK",
+    "src_file": "src/eNavMesh__GetSolidVerts_unsignedchar_eNavMesh__eNavEdge_intptrconst__0005A140.cpp",
+    "symbol_name": "__0fIeNavMeshNGetSolidVertsUc65IeNavMeshV__5IeNavMeshIeNavEdgePiK"
   },
   {
     "address": "0x0005a244",
@@ -52449,11 +52453,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fTeStaticSurfaceLightOGetDirectLightP6FmVec3RC6FmVec3TCRC6EmRayTCK"
+    "mangled_symbol": "__0fTeStaticSurfaceLightOGetDirectLightP6FmVec3RC6FmVec3TCRC6EmRayTCK",
+    "src_file": "src/eStaticSurfaceLight__GetDirectLight_long__00060140.cpp",
+    "symbol_name": "__0fTeStaticSurfaceLightOGetDirectLightP6FmVec3RC6FmVec3TCRC6EmRayTCK"
   },
   {
     "address": "0x00060244",
@@ -136767,7 +136773,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad364",
       "0x001b83e4",
@@ -136778,7 +136784,9 @@
       "0x001b8a84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "_multadd"
+    "mangled_symbol": "_multadd",
+    "src_file": "src/_multadd__001B84DC.cpp",
+    "symbol_name": "_multadd"
   },
   {
     "address": "0x001b85dc",
@@ -139618,14 +139626,16 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001bbb40",
       "0x001bbd7c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__kernel_sinf"
+    "mangled_symbol": "__kernel_sinf",
+    "src_file": "src/__kernel_sinf__001C02F4.c",
+    "symbol_name": "__kernel_sinf"
   },
   {
     "address": "0x001c03f4",
@@ -213164,7 +213174,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0003b4ec",
       "0x0003b530",
@@ -213173,7 +213183,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcDoMouseOpIEvaluatevK"
+    "mangled_symbol": "__0fLgcDoMouseOpIEvaluatevK",
+    "src_file": "src/gcDoMouseOp__Evaluate_voidconst__002E7BD8.cpp",
+    "symbol_name": "__0fLgcDoMouseOpIEvaluatevK"
   },
   {
     "address": "0x002e7cd8",
