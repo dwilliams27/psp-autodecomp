@@ -16949,7 +16949,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000054e0",
       "0x00005690",
@@ -16962,7 +16962,9 @@
       "0x0016b9d4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryLWriteGroupsR6LcWriteBlockK"
+    "mangled_symbol": "__0fIcFactoryLWriteGroupsR6LcWriteBlockK",
+    "src_file": "src/cFactory__WriteGroups_cWriteBlockrefconst__0000BD44.cpp",
+    "symbol_name": "__0fIcFactoryLWriteGroupsR6LcWriteBlockK"
   },
   {
     "address": "0x0000be30",

@@ -83,3 +83,32 @@ see ADR-014's path-A experience), not a source/grouping fix.
 **Net:** Mechanism A is a clean ~5 KB no-patch win (pending the stub-vs-real-predecessor purity
 call). Mechanism B — the actual 80%-of-bytes mountain — is blocked behind a pspcor allocator
 patch, the same class of deep RE as the (ultimately structural/risky) ADR-014 mangler patch.
+
+## CORRECTION (2026-05-31, later) — Mechanism B is a SOURCE problem, NOT a compiler patch
+
+A follow-up pspcor characterization **overturned** the "Mechanism B needs a pspcor allocator
+patch" conclusion above. Verified end-to-end against the oracle on the clean testbed
+cFactory::WriteGroups (0xbd44):
+- Pointer-walk idiom (`void *obj = *groups; … groups++;`) → 9/236 mismatch (the s1↔s3 swap).
+- Array-index idiom (`void *obj = groups[i];`, no post-increment) → **byte-EXACT MATCH (236B)**.
+  (Now committed as the WriteGroups match.)
+- Negative control: moving `groups++` into the for-update clause stays 9/236 — so the lever is
+  the **addressing IDIOM** (indexed base kept live vs a mutated loop pointer), not decl order.
+
+**Mechanism:** the induction-variable idiom changes the live-range-creation ORDER, which flips a
+**non-stable qsort tie-break** in pspcor's greedy GRA color driver (located at 0x0045d925;
+comparator 0x00453509; CRT qsort 0x004a4af0; color picker 0x0045b057). So Mechanism-B coloring
+is a **per-function deterministic function of the function's own IR** — and that IR is
+**steerable from source**. cause = **our_ir**: our reconstructed C++ produced a different
+live-range order than the original (compiled from the index form). **No pspcor patch is
+warranted** (confidence 0.95).
+
+**Implication:** the ~80%-of-bytes Mechanism-B mountain is, at least substantially, a tractable
+**source-idiom search** problem — induction-variable form (index vs pointer-walk, base-kept-live
+vs mutated-pointer), declaration order, naming/name-hash — closed by the reg-aware permuter
+(`--score-mode insns`) on structurally-complete candidates. Do NOT open a pspcor allocator-patch
+project. (Caveat: only WriteGroups verified end-to-end; the IV-idiom lever should be validated to
+GENERALIZE across the other reg-alloc near-misses — ApplyPositionedImpulse 0x6c9cc, SnapControllerTo
+0x4a188, eBoxShape::GetProjectedMinMax 0x1e0c5c — before declaring the whole class source-tractable.
+A patch is reconsidered only if a function with no source-idiom freedom still mis-colors against
+every variant + the permuter.)
