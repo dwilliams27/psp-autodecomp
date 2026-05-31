@@ -92045,7 +92045,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000ed2e4",
@@ -92058,7 +92058,9 @@
       "0x000f3ecc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMaplMemCardReplicateStreamedCinematicLoadR6UgcReplicationVisitor"
+    "mangled_symbol": "__0fFgcMaplMemCardReplicateStreamedCinematicLoadR6UgcReplicationVisitor",
+    "src_file": "src/gcMap__MemCardReplicateStreamedCinematicLoad_gcReplicationVisitorref__000F6F54.cpp",
+    "symbol_name": "__0fFgcMaplMemCardReplicateStreamedCinematicLoadR6UgcReplicationVisitor"
   },
   {
     "address": "0x000f7044",
@@ -121796,13 +121798,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000d5348"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoSwitchCaseIEvaluatevK"
+    "mangled_symbol": "__0fOgcDoSwitchCaseIEvaluatevK",
+    "src_file": "src/gcDoSwitchCase__Evaluate_voidconst__0014FF20.cpp",
+    "symbol_name": "__0fOgcDoSwitchCaseIEvaluatevK"
   },
   {
     "address": "0x00150010",
@@ -132038,7 +132042,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64"
     ],
@@ -132046,7 +132050,9 @@
       "0x001a848c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0oMnwConnectionctP6InwSocket6SnwConnectionHandleiRC6JnwAddressPF6SnwConnectionHandle65MnwConnectioni__5MnwConnectionRnwConnectionError_v"
+    "mangled_symbol": "__0oMnwConnectionctP6InwSocket6SnwConnectionHandleiRC6JnwAddressPF6SnwConnectionHandle65MnwConnectioni__5MnwConnectionRnwConnectionError_v",
+    "src_file": "src/nwConnection__nwConnection_nwSocketptr_nwConnectionHandle_int_constnwAddressref_void_ptr_nwConnectionHandle_nwConnection__nwConnectionError__001A6420.cpp",
+    "symbol_name": "__0oMnwConnectionctP6InwSocket6SnwConnectionHandleiRC6JnwAddressPF6SnwConnectionHandle65MnwConnectioni__5MnwConnectionRnwConnectionError_v"
   },
   {
     "address": "0x001a6514",
@@ -132329,7 +132335,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00006118",
       "0x001a6c40",
@@ -132339,7 +132345,9 @@
       "0x001a9284"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionFFlush65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacket"
+    "mangled_symbol": "__0fMnwConnectionFFlush65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacket",
+    "src_file": "src/nwConnection__Flush_nwConnection__nwSendMethod_nwOutPacketref__001A6B50.cpp",
+    "symbol_name": "__0fMnwConnectionFFlush65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacket"
   },
   {
     "address": "0x001a6c40",
@@ -134732,13 +134740,15 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001ab674"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__sccl"
+    "mangled_symbol": "__sccl",
+    "src_file": "src/__sccl__001AB584.cpp",
+    "symbol_name": "__sccl"
   },
   {
     "address": "0x001ab674",
@@ -135734,7 +135744,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001af65c",
       "0x001b0ffc"
@@ -135747,7 +135757,9 @@
       "0x001ac408"
     ],
     "is_leaf": false,
-    "mangled_symbol": "vfprintf"
+    "mangled_symbol": "vfprintf",
+    "src_file": "src/vfprintf__001AF56C.cpp",
+    "symbol_name": "vfprintf"
   },
   {
     "address": "0x001af65c",
