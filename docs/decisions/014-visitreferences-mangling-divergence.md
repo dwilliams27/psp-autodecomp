@@ -193,6 +193,44 @@ emitted token (`T` vs literal). Compare the outer-`uint` call against the inner-
 Prefer the in-binary trampoline over lldb (wibo+Rosetta2 makes lldb VA-mapping to translated
 code unreliable). The answer directly localizes the patch.
 
+### Deeper RE (2026-05-31, pass 3) — MECHANISM cracked
+
+Dynamic JMP-trampoline loggers on /tmp copies (originals verified intact, md5
+0ef5d17b…; the buggy `__0FBgUiP6FcBasePFP6FcBaseUiPv_vPv` reproduced) settled it — and
+**refuted** the pass-3 trace agents' "distinct" guess:
+
+- **Relationship is SAME.** Encoder-entry logger (0x4a5dc8, node=[ebp+8], ctx=[ebp+0xc]):
+  every type in the probe signature shares the SAME context (0x7dff0c84); the outer `uint`
+  and inner `uint` are the IDENTICAL canonical node (0x6c241820); both `cBase*` share one
+  node, both `void*` share one. So the shared context + shared type identity a `TB` needs
+  ARE present — refuting both "distinct context" AND "list reset."
+- **Actual mechanism:** the `T` backref char is emitted at exactly one site, 0x4a3550,
+  inside the walker 0x4a345c. The walker fires ONLY for the function-type node (dedup),
+  **never for a scalar param**. The scalar inner `uint` is gated out at **0x4a6126**
+  (`mov ecx,[node+0x54]; cmp dword[ecx],0; jne 0x4a6134; test byte[ecx+8],1; je …`) — only
+  function-type/qualified paths consult the cumulative list. So the inner `uint` never runs
+  the substitution SEARCH. THIS is why all 10 emit-path patches were no-ops: they edited a
+  decision the inner `uint` never reaches.
+- Combined EN+WK logger trace of the probe confirmed the walker fires once (for the PF/
+  function-type node), and the scalar `uint` (outer and inner) never enters it.
+
+**Toolchain intel (critical for any patch/logger):** JMP (`E9`) trampolines run cleanly
+under wibo; CALL (`E8`) and `pushad` SIGBUS. Zero-filled `.text` caves at 0x53d4c0 /
+0x53da00 / 0x53dc00. Oracle harness pattern: `/tmp/pspcfe.<…>/oracle.sh` (arg-vector via
+extern/wibo + pspcfe.exe). Gotcha: a stray `/tmp/select.py` shadows stdlib — run python with
+`PYTHONPATH=` and cwd outside /tmp.
+
+**Next step + PRIME patch candidate:** (1) a walker-internal-loop logger over
+0x4a3492–0x4a34c3 (log candidate [ebx+4], queried [edi+4], the type-equality call 0x52911d
+@0x4a34a6, and the qualifier check `[ebx+0x11]^[edi+0x11]&3` @0x4a34b8) to decide whether the
+inner `uint` is (a) never appended to the cumulative list or (b) appended but rejected by the
+equality/qualifier test. (2) Prime same-size in-place candidate: the gate at **0x4a612c**
+(`74 07` → `90 90`, or invert the `jne` @0x4a612c) so the scalar inner `uint` also consults
+the already-cumulative list. Alternatives: the match test (`je` @0x4a34a0 / @0x4a34ba) or the
+append (`call 0x4a5dc8` @0x4a34e7). Validate any candidate against the exact DB symbol +
+3 sanity probes + zero-regression gate — making scalars search risks over-eager backrefs, so
+the disambiguating probes matter here.
+
 ### Bearing on the A-vs-B decision
 This RE *strengthens path B*: `demangle.dll` — SN's own decoder — treats the cumulative
 form as canonical and would resolve our `Ui` and the DB's `TB` to the **identical type**.
