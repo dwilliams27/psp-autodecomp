@@ -109,3 +109,57 @@ small/medium bodies will match immediately. The large ones (cFactory 628B, cGrou
 648B, gcEntityTemplate 6956B, …) still require real per-function body decompilation
 and will hit the usual ADR-012 whole-TU register-coloring wall; the *mangling*
 blocker, however, lifts uniformly across all 346.
+
+## Mangler RE findings (2026-05-31 — path-A investigation)
+
+A 3-phase RE workflow (recon ×4 → synthesis → prototype) investigated the path-A
+compiler-mangler patch. Result: **diagnosis confirmed, exact patch site NOT pinned;
+synthesis returned feasible=false (no blind patch).**
+
+**Confirmed:**
+- **The mangler is `extern/snc/pspcfe.exe`** (the SN-customized EDG C/C++ Front End,
+  PE32 x86, ImageBase 0x400000, md5 `0ef5d17bf2e033885380b6663399849e`) — proven
+  empirically: the buggy literal-`Ui` symbol appears in pspcfe's `.B` intermediate
+  *before* pspcor/pspas run. (`pspname.exe` is a RED HERRING — it is an Itanium `_Z`
+  demangler via `pspdemangle.dll`; the SN `__0f` *demangler* is `demangle.dll`.)
+- **The substitution scheme is CUMULATIVE by design.** The `demangle.dll` decoder
+  (entry `demangle`@0x1001adc0 → driver fcn.1001aa80 → recursive type parser
+  fcn.10015f90, 50-way type-letter switch via tables 0x100166e4/0x10016714) keeps a
+  single shared type-array at ctx `+0x2830` for the *entire* signature. In its
+  function-type (`F`) case (0x100164e2–0x10016562) it SAVES+ZEROES only the two walk
+  cursors `+0x2880`/`+0x2870` around the recursive param parse and RESTORES them after
+  — it never touches `+0x2830`. So inside a function-pointer param, the substitution
+  *table* stays cumulative; only per-subtype walk bookkeeping is locally framed. The
+  original game's `TB` backref is exactly what this decoder expects.
+- **The bug:** pspcfe's *encoder* analog resets the substitution LIST (not just the
+  cursors) when entering a `PF…_` param list, so an inner type duplicating an outer arg
+  is spelled literally instead of as `Tn`.
+
+**Not pinned:** the exact encoder routine + list-reset instruction inside the 1.69 MB
+pspcfe.exe. Recon converged on `0x51296f`, but synthesis identified that as the global
+**type-canonicalizer** (touching type-identity globals 0x5be8e0/0x5c1b80) — NOT the
+backref emitter; patching it would corrupt all type processing. **Do not patch blind.**
+
+**Firsthand repro** (project toolchain): a free-fn probe with a
+`(uint,cBase*,void(*)(cBase*,uint,void*),void*)` arg emits undefined symbol
+`__0FBgUiP6FcBasePFP6FcBaseUiPv_vPv` — inner `Ui` literal, confirming the bug outside the
+VisitReferences family.
+
+**Validation plan for any future path-A patch:** (1) patch a COPY in /tmp; (2) assert the
+probe's inner `Ui`→`TB`; (3) the 3 disambiguating probes keep their behavior
+(`f(int,void(*)(float,int))` inner stays `i`; `f(int,void(*)(float,float))` inner-2nd stays
+`TB`; `f(uint,uint,void(*)(uint))` outer-dup `TB` preserved); (4) the DB symbol
+`__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBaseTBPv_vPvTB` reproduces; (5) ZERO-BREAKAGE
+gate — rebuild every currently-matched function, any `.o` byte change aborts.
+
+**Pinning the encoder needs** either dynamic tracing (watch which pspcfe code writes the
+substitution-list head while mangling the probe) or anchored static RE on the `T`-token
+emission + list append/search — a deeper, possibly multi-iteration RE pass.
+
+### Bearing on the A-vs-B decision
+This RE *strengthens path B*: `demangle.dll` — SN's own decoder — treats the cumulative
+form as canonical and would resolve our `Ui` and the DB's `TB` to the **identical type**.
+So a verifier-side equivalence (path B) is recognizing two spellings of one type, not
+loosening byte-exactness (the masked byte-compare still fully gates the match). Path B
+remains hours of work; path A is now a confirmed multi-day RE with corruption risk and no
+pinned site. Operator decision refreshed.
