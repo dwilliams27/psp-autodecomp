@@ -1,0 +1,111 @@
+# ADR-014: VisitReferences function-pointer backref mangling divergence
+
+**Status:** Verified finding (point-in-time). Fix path is an open operator decision (A vs B below).
+**Date:** 2026-05-31
+**Relates to:** ADR-006 (bnel compiler divergence), ADR-008 (snc-name-mangling), ADR-009 (compiler-version search), ADR-011 (bnel compiler-patch design).
+
+## Summary
+
+All **346** `VisitReferences(unsigned int, cBase *, void (*)(cBase*, unsigned int, void*), void *)`
+methods in the binary share a single, systematic **name-mangling-algorithm divergence**
+between the original SNC mangler and our `pspsnc 1.2.7503.0`. The divergence is
+**purely symbolic — there is ZERO codegen divergence.** The compiled instruction
+bytes are byte-for-byte identical to the original; the functions cannot be
+*credited* only because the emitted symbol string differs from the DB's recorded
+mangled symbol, so the verifier's symbol gate never pairs them to their DB entry.
+
+This is the largest single mangling-blocked family found to date.
+
+## The divergence (exact)
+
+For `cObject::VisitReferences` (0x00009cb0, 120B):
+
+| | mangled symbol |
+|---|---|
+| DB / original SNC | `__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBase`**`TB`**`Pv_vPvTB` |
+| our pspsnc emits  | `__0fHcObjectPVisitReferencesUiP6FcBasePFP6FcBase`**`Ui`**`Pv_vPvTB` |
+
+The only difference is the inner `unsigned int` of the **nested function-pointer
+parameter** `void (*)(cBase*, unsigned int, void*)`:
+
+- **Original SNC:** backreferences inside a function-pointer parameter (`PF … _ ret`)
+  draw from the **enclosing function's cumulative parameter type table**. The inner
+  `unsigned int` is therefore encoded `TB` = "same type as outer param B" (the outer
+  `flags` arg). The mangler keeps **one shared/global backref table** across the
+  enclosing signature and its nested fn-ptr parameter lists.
+- **pspsnc 1.2.7503.0:** keeps a **separate, fn-ptr-local backref table**. Backrefs
+  inside a `PF` may only point at earlier params *within that fn-ptr*. The inner
+  `unsigned int` has no local predecessor of that type, so it is spelled literally `Ui`.
+
+The trailing outer `unsigned int` (the final param `…Pv`**`TB`**) correctly emits
+`TB` in **both** compilers, because that is an outer→outer backref and both share
+one table for the top level. The asymmetry is exactly the **cross-scope
+(outer ↔ fn-ptr) backref** that this compiler version dropped.
+
+### Decisive disambiguating probes (free functions, -O2)
+
+| Source | our emitted symbol | interpretation |
+|--------|--------------------|----------------|
+| `f(int, void(*)(float,int))`     | `…iPF f i _v`        | inner `int` → `i`, NOT `TB`: no outer ref |
+| `f(int, void(*)(float,float))`   | `…iPF f TB _v`       | inner 2nd `float` → `TB` = 1st *inner* float: local-only table |
+| `f(uint, uint, void(*)(uint))`   | `…Ui TB PFUi_v`      | outer dup refs work; inner `Ui` never refs outer |
+
+## What does NOT fix it
+
+Exhaustively tested, all still emit `…P6FcBaseUiPv…`:
+literal `unsigned int`; a shared `typedef u32`; a named `typedef VisitFn`; inner
+param reordering; `const` qualification; and every codegen flag
+(`-Xsched=0/1/2`, `-Xmopt=0`, `-Xxopt=0/5`). Mangling-adjacent flags `-Xcompat`
+(rejects all tried integer/string values) and `-Xtmpl` (rejects 0–3) do not expose
+the cumulative-backref behavior. **No source-level change can fix this** — it is a
+compiler-version mangling-algorithm difference, in the same class as the bnel
+branch-likely divergence (ADR-006).
+
+## Verification that it is bytes-identical (not codegen)
+
+- `cObject::VisitReferences` (120B): all 30 instructions identical between
+  `build/src/cObject.cpp.o` (`…Ui…`) and `expected/bin/00009cb0.bin` (`…TB…`).
+- `cBase::VisitReferences` (60B): byte-identical, independently confirmed.
+- `ePortal::VisitReferences` (28B): trivial tail-call body, byte-identical.
+
+`compare_func.py` reports `NO DB ENTRY: no database function has this mangled name`
+for all three — the gate is `find_db_func_for_sym` in `tools/byte_match.py`, which
+requires `sym_name == mangled_symbol` exactly. The `…Ui…` symbol never equals the
+DB's `…TB…`, so byte comparison is never reached.
+
+## Fix paths (OPEN — operator decision)
+
+These 346 are byte-exact-correct functions blocked solely by an encoding artifact.
+Two routes can credit them; they have different norm implications.
+
+- **(A) Patch the SNC mangler binary** — change the backref-table scoping inside
+  function-pointer parameter mangling to be cumulative (outer-inclusive), so emitted
+  symbols become `…TB…`. This is the **norms-blessed route** (CLAUDE.md: "compiler
+  divergences are fixed by patching pspcor.exe, not post-processing"; precedent in
+  ADR-011 bnel patch). Blast radius: changes emitted symbols for *every* function
+  with a nested fn-ptr param whose inner type repeats an outer type — **must be
+  regression-tested against all currently-matched functions before deploy**
+  (zero-breakage gate). High prize (one patch unlocks the whole family at the
+  source), uncertain RE effort.
+
+- **(B) Normalize the verifier symbol gate** — teach `find_db_func_for_sym` to treat
+  `PF…<literal-type>…` and `PF…<backref-to-equal-outer-type>…` as equivalent when
+  the literal type equals the outer-referenced type. Must be a precise
+  demangle-and-compare equivalence (not textual munging) to avoid mispairing.
+  **Byte comparison still runs unchanged afterward**, so it cannot manufacture a
+  false byte match — the only theoretical risk (two different functions whose names
+  normalize identically *and* whose bytes coincide) is astronomically unlikely.
+  Lower effort / lower technical risk, but it handles a compiler divergence in the
+  verifier rather than the compiler, which is in tension with the no-post-processing
+  norm. Operator's call.
+
+## Classification guidance
+
+These functions must **not** be marked `failed` for codegen reasons — the codegen is
+already exact. The accurate status is `unmatchable_symbol_mangling` (as 26 already
+are). Hold reclassification of the remaining 302 untried + 18 failed until the A/B
+decision lands: if path A or B is taken, they become creditable and many of the
+small/medium bodies will match immediately. The large ones (cFactory 628B, cGroup
+648B, gcEntityTemplate 6956B, …) still require real per-function body decompilation
+and will hit the usual ADR-012 whole-TU register-coloring wall; the *mangling*
+blocker, however, lifts uniformly across all 346.

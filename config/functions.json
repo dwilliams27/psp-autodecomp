@@ -35300,7 +35300,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000358d0",
@@ -35309,7 +35309,9 @@
       "0x00036adc"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fLeBroadphaseKUnlinkPairP6OeCollisionPair"
+    "mangled_symbol": "__0fLeBroadphaseKUnlinkPairP6OeCollisionPair",
+    "src_file": "src/eBroadphase__UnlinkPair_eCollisionPairptr__00036A08.cpp",
+    "symbol_name": "__0fLeBroadphaseKUnlinkPairP6OeCollisionPair"
   },
   {
     "address": "0x00036adc",
@@ -57667,13 +57669,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000b0828"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fPeSimulatedStateOUpdateSleepingv"
+    "mangled_symbol": "__0fPeSimulatedStateOUpdateSleepingv",
+    "src_file": "src/eSimulatedState__UpdateSleeping_void__0006BAE4.cpp",
+    "symbol_name": "__0fPeSimulatedStateOUpdateSleepingv"
   },
   {
     "address": "0x0006bbb8",
@@ -59388,11 +59392,13 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fKeSolverRowTApplyUnembedImpulseP6PeRigidBodyStateTBPC6KeSolverRowfT"
+    "mangled_symbol": "__0fKeSolverRowTApplyUnembedImpulseP6PeRigidBodyStateTBPC6KeSolverRowfT",
+    "src_file": "src/eSolverRow__ApplyUnembedImpulse_eRigidBodyStateptr_eRigidBodyStateptr_consteSolverRowptr_floatstatic__0006ECD8.cpp",
+    "symbol_name": "__0fKeSolverRowTApplyUnembedImpulseP6PeRigidBodyStateTBPC6KeSolverRowfT"
   },
   {
     "address": "0x0006edb4",
@@ -73744,14 +73750,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x00052e4c",
       "0x000aa274"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fWeHeightmapTemplateDataUBuildTileDisplayListPUiiPC6SeHeightmapTemplatePC6TeHeightmapVertexPSPNCCbK"
+    "mangled_symbol": "__0fWeHeightmapTemplateDataUBuildTileDisplayListPUiiPC6SeHeightmapTemplatePC6TeHeightmapVertexPSPNCCbK",
+    "src_file": "src/eHeightmapTemplateData__BuildTileDisplayList_unsignedintptr_int_consteHeightmapTemplateptr_consteHeightmapVertexPSPptr_int_int_boolconst__0008FE84.cpp",
+    "symbol_name": "__0fWeHeightmapTemplateDataUBuildTileDisplayListPUiiPC6SeHeightmapTemplatePC6TeHeightmapVertexPSPNCCbK"
   },
   {
     "address": "0x0008ff64",
@@ -111391,13 +111399,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0012e67c"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fXgcDesiredUIWidgetHelperOGetPrimaryText65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimaryT"
+    "mangled_symbol": "__0fXgcDesiredUIWidgetHelperOGetPrimaryText65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimaryT",
+    "src_file": "src/gcDesiredUIWidgetHelper__GetPrimaryText_gcDesiredUIWidgetHelper__gcPrimarystatic__0012E9A0.cpp",
+    "symbol_name": "__0fXgcDesiredUIWidgetHelperOGetPrimaryText65XgcDesiredUIWidgetHelperl__5XgcDesiredUIWidgetHelperJgcPrimaryT"
   },
   {
     "address": "0x0012ea78",
