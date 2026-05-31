@@ -29336,7 +29336,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad668"
     ],
@@ -29344,7 +29344,9 @@
       "0x000bab28"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeCollisionUInitContactFunctionsvT"
+    "mangled_symbol": "__0fKeCollisionUInitContactFunctionsvT",
+    "src_file": "src/eCollision__InitContactFunctions_voidstatic__0002ACA4.cpp",
+    "symbol_name": "__0fKeCollisionUInitContactFunctionsvT"
   },
   {
     "address": "0x0002ad94",
@@ -36606,7 +36608,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00039c40",
       "0x00039d1c",
@@ -36617,7 +36619,9 @@
       "0x0009ecd0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0f5FeFontIePrinterLPrintStringPCw"
+    "mangled_symbol": "__0f5FeFontIePrinterLPrintStringPCw",
+    "src_file": "src/eFont__ePrinter__PrintString_constwchar_tptr__00039B50.cpp",
+    "symbol_name": "__0f5FeFontIePrinterLPrintStringPCw"
   },
   {
     "address": "0x00039c40",
@@ -90205,7 +90209,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000f73bc",
       "0x000f76f4",
@@ -90215,7 +90219,9 @@
       "0x0016f4bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapOLoadBackgroundRC6GcGUIDT76FgcMap_RC6GcGUIDT76PgcLoadingScreen_UiT"
+    "mangled_symbol": "__0fFgcMapOLoadBackgroundRC6GcGUIDT76FgcMap_RC6GcGUIDT76PgcLoadingScreen_UiT",
+    "src_file": "src/gcMap__LoadBackground_constcGUIDT_gcMap_ref_constcGUIDT_gcLoadingScreen_ref_unsignedintstatic__000F1768.cpp",
+    "symbol_name": "__0fFgcMapOLoadBackgroundRC6GcGUIDT76FgcMap_RC6GcGUIDT76PgcLoadingScreen_UiT"
   },
   {
     "address": "0x000f1858",
@@ -129844,7 +129850,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x001f8b08",
@@ -129853,7 +129859,9 @@
       "0x001fc190"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fEmRayJIntersectRC6HmSphereK"
+    "mangled_symbol": "__0fEmRayJIntersectRC6HmSphereK",
+    "src_file": "src/mRay__Intersect_constmSphererefconst__001A2350.cpp",
+    "symbol_name": "__0fEmRayJIntersectRC6HmSphereK"
   },
   {
     "address": "0x001a243c",
@@ -131907,7 +131915,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000062e0",
       "0x001a54fc",
@@ -131919,7 +131927,9 @@
       "0x001a8048"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionFClosev"
+    "mangled_symbol": "__0fMnwConnectionFClosev",
+    "src_file": "src/nwConnection__Close_void__001A6148.cpp",
+    "symbol_name": "__0fMnwConnectionFClosev"
   },
   {
     "address": "0x001a6234",
@@ -134304,7 +134314,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001aa648",
       "0x001aa6d0"
@@ -134313,7 +134323,9 @@
       "0x001aa838"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__sfp"
+    "mangled_symbol": "__sfp",
+    "src_file": "src/__sfp__001AA74C.cpp",
+    "symbol_name": "__sfp"
   },
   {
     "address": "0x001aa838",
@@ -210435,7 +210447,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -210443,7 +210455,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oMgcDoFunctiondtv"
+    "mangled_symbol": "__0oMgcDoFunctiondtv",
+    "src_file": "src/gcDoFunction___dtor_gcDoFunction_void__002DA10C.cpp",
+    "symbol_name": "__0oMgcDoFunctiondtv"
   },
   {
     "address": "0x002da1f8",
