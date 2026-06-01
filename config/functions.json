@@ -41838,7 +41838,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -41892,7 +41892,9 @@
         "snapshot": "logs/failure_snapshots/match_20260508_185952/ec45590d/00046bd0__agent_self_reported_failure__src_ePhysicsController.cpp"
       }
     ],
-    "mangled_symbol": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool"
+    "mangled_symbol": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool",
+    "src_file": "src/ePhysicsController__Read_cFileref_cMemPoolptr__00046BD0.cpp",
+    "symbol_name": "__0fSePhysicsControllerEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00046c48",
@@ -45502,7 +45504,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4"
     ],
@@ -45530,7 +45532,9 @@
         "variant": "manual",
         "timestamp": "2026-05-06T18:07:51Z"
       }
-    ]
+    ],
+    "src_file": "src/eMeshShapeNode__Read_cReadBlockref__0004EA6C.cpp",
+    "symbol_name": "__0fOeMeshShapeNodeEReadR6KcReadBlock"
   },
   {
     "address": "0x0004eac0",
@@ -113805,7 +113809,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0000616c"
     ],
@@ -113829,7 +113833,9 @@
         "snapshot": "logs/failure_snapshots/match_20260505_162336/567ba94e/00133bd0__agent_self_reported_failure__src_gcMsgConnected.cpp"
       }
     ],
-    "mangled_symbol": "__0fOgcMsgConnectedFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
+    "mangled_symbol": "__0fOgcMsgConnectedFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK",
+    "src_file": "src/gcMsgConnected__Write_cOutStreamref_nwSocketHandle_constnwAddressref_nwConnectionHandleconst__00133BD0.cpp",
+    "symbol_name": "__0fOgcMsgConnectedFWriteR6KcOutStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandleK"
   },
   {
     "address": "0x00133c04",
@@ -115508,7 +115514,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00122158"
     ],
@@ -115528,7 +115534,9 @@
         "src_file": "src/gcUIButton.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/cac8207d/00139c2c__agent_self_reported_failure__src_gcUIButton.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcUIButton__GetFocusedSpriteToDraw_voidconst__00139C2C.cpp",
+    "symbol_name": "__0fKgcUIButtonWGetFocusedSpriteToDrawvK"
   },
   {
     "address": "0x00139c9c",
