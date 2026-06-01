@@ -1742,7 +1742,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000738",
       "0x000050b0",
@@ -1766,7 +1766,9 @@
       "0x00226ee8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FJcUpdateOSv"
+    "mangled_symbol": "__0FJcUpdateOSv",
+    "src_file": "src/cUpdateOS_void__00001C80.cpp",
+    "symbol_name": "__0FJcUpdateOSv"
   },
   {
     "address": "0x00001d04",
@@ -5273,7 +5275,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000e710",
       "0x0000e820"
@@ -5717,7 +5719,9 @@
       "0x003684e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLcFileSystemEReadP6LcFileHandlePvUiT"
+    "mangled_symbol": "__0fLcFileSystemEReadP6LcFileHandlePvUiT",
+    "src_file": "src/cFileSystem__Read_cFileHandleptr_voidptr_unsignedintstatic__00004FF4.cpp",
+    "symbol_name": "__0fLcFileSystemEReadP6LcFileHandlePvUiT"
   },
   {
     "address": "0x00005074",
@@ -19160,7 +19164,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000f2c0",
       "0x0000f3f4"
@@ -19169,7 +19173,9 @@
       "0x0000e170"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTcFileSystemPlatformEOpenP6NcFilePlatformT"
+    "mangled_symbol": "__0fTcFileSystemPlatformEOpenP6NcFilePlatformT",
+    "src_file": "src/cFileSystemPlatform__Open_cFilePlatformptrstatic__0000F240.cpp",
+    "symbol_name": "__0fTcFileSystemPlatformEOpenP6NcFilePlatformT"
   },
   {
     "address": "0x0000f2c0",
@@ -26560,7 +26566,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0001e648"
     ],
@@ -26569,7 +26575,9 @@
       "0x0016eec4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeAudioOPauseAllSoundsvT"
+    "mangled_symbol": "__0fGeAudioOPauseAllSoundsvT",
+    "src_file": "src/eAudio__PauseAllSounds_voidstatic__0001ED94.cpp",
+    "symbol_name": "__0fGeAudioOPauseAllSoundsvT"
   },
   {
     "address": "0x0001ee14",
@@ -113937,7 +113945,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000062e0",
       "0x000092f0",
@@ -113948,7 +113956,9 @@
       "0x001342b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcMsgEntitySendMessageOWriteEventDataR6KcOutStreamRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__RC6NgcEventParamsRC6QgcEventStackDataT"
+    "mangled_symbol": "__0fWgcMsgEntitySendMessageOWriteEventDataR6KcOutStreamRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__RC6NgcEventParamsRC6QgcEventStackDataT",
+    "src_file": "src/gcMsgEntitySendMessage__WriteEventData__001341BC.cpp",
+    "symbol_name": "__0fWgcMsgEntitySendMessageOWriteEventDataR6KcOutStreamRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__RC6NgcEventParamsRC6QgcEventStackDataT"
   },
   {
     "address": "0x00134238",
@@ -113960,7 +113970,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00006af8",
       "0x00009370",
@@ -113971,7 +113981,9 @@
       "0x00134310"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcMsgEntitySendMessageNReadEventDataR6JcInStreamR6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__R6NgcEventParamsR6QgcEventStackDataT"
+    "mangled_symbol": "__0fWgcMsgEntitySendMessageNReadEventDataR6JcInStreamR6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__R6NgcEventParamsR6QgcEventStackDataT",
+    "src_file": "src/gcMsgEntitySendMessage__ReadEventData__00134238.cpp",
+    "symbol_name": "__0fWgcMsgEntitySendMessageNReadEventDataR6JcInStreamR6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__R6NgcEventParamsR6QgcEventStackDataT"
   },
   {
     "address": "0x001342b4",
@@ -133742,7 +133754,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00006af8"
     ],
@@ -133751,7 +133763,9 @@
       "0x001a8844"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fInwSocketGReadIdR6JcInStream"
+    "mangled_symbol": "__0fInwSocketGReadIdR6JcInStream",
+    "src_file": "src/nwSocket__ReadId_cInStreamref__001A8D74.cpp",
+    "symbol_name": "__0fInwSocketGReadIdR6JcInStream"
   },
   {
     "address": "0x001a8df0",
@@ -142309,14 +142323,16 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRcFastMemAllocatorLGetUsedSizevK"
+    "mangled_symbol": "__0fRcFastMemAllocatorLGetUsedSizevK",
+    "src_file": "src/cFastMemAllocator__GetUsedSize_voidconst__001C60D4.cpp",
+    "symbol_name": "__0fRcFastMemAllocatorLGetUsedSizevK"
   },
   {
     "address": "0x001c6150",
@@ -161256,7 +161272,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0020f71c"
     ],
@@ -161266,7 +161282,9 @@
       "0x0020f1a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_JAllocNodeP6UeDynamicAABBTreeNode79BA__P6UeDynamicAABBTreeNode79BA_"
+    "mangled_symbol": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_JAllocNodeP6UeDynamicAABBTreeNode79BA__P6UeDynamicAABBTreeNode79BA_",
+    "src_file": "src/eDynamicAABBTreeAllocator__AllocNode__0020A970.cpp",
+    "symbol_name": "__0fZeDynamicAABBTreeAllocator76PeRigidBodyState_JAllocNodeP6UeDynamicAABBTreeNode79BA__P6UeDynamicAABBTreeNode79BA_"
   },
   {
     "address": "0x0020a9ec",
