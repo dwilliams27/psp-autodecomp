@@ -27663,7 +27663,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000053c8",
       "0x00005d00",
@@ -27705,7 +27705,9 @@
         "src_file": "src/eStaticSurfaceLight.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/d49eeec5/000211d8__out_of_scope_path__src_eStaticSurfaceLight.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSound__Read_cFileref_cMemPoolptr__000211D8.cpp",
+    "symbol_name": "__0fGeSoundEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00021250",
@@ -33710,7 +33712,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x000053c8",
@@ -33758,7 +33760,9 @@
         "src_file": "src/eSpriteMtl.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/a514e54d/000319a8__agent_self_reported_failure__src_eSpriteMtl.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eSpriteMtl__Read_cFileref_cMemPoolptr__000319A8.cpp",
+    "symbol_name": "__0fKeSpriteMtlEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x00031a8c",
@@ -46858,7 +46862,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4",
@@ -46880,7 +46884,9 @@
         "src_file": "src/eHeightmapTemplate_dtor.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/7f5942e0/00052168__agent_self_reported_failure__src_eHeightmapTemplate_dtor.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eHeightmapTemplate___dtor_eHeightmapTemplate_void__00052168.cpp",
+    "symbol_name": "__0oSeHeightmapTemplatedtv"
   },
   {
     "address": "0x000522c4",
@@ -90889,7 +90895,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000f2c8c"
     ],
@@ -90923,7 +90929,9 @@
         "src_file": "src/gcMap.cpp",
         "snapshot": "logs/failure_snapshots/match_20260518_220939/d5fba0b4/000f2bf8__agent_self_reported_failure__src_gcMap.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcMap__LoadRegionSet_int_int__000F2BF8.cpp",
+    "symbol_name": "__0fFgcMapNLoadRegionSetiTB"
   },
   {
     "address": "0x000f2c8c",
@@ -115924,7 +115932,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00001314",
       "0x000d8708"
@@ -115953,7 +115961,9 @@
         "src_file": "src/gcUIEditBox.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_170107/65a5a0de/0013a98c__agent_self_reported_failure__src_gcUIEditBox.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcUIEditBox__SetCursorPos_int__0013A98C.cpp",
+    "symbol_name": "__0fLgcUIEditBoxMSetCursorPosi"
   },
   {
     "address": "0x0013aa20",
