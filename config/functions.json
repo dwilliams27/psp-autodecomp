@@ -14951,7 +14951,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000ccc",
       "0x000011c0",
@@ -14976,7 +14976,9 @@
         "variant": "base",
         "timestamp": "2026-04-27T21:59:59Z"
       }
-    ]
+    ],
+    "src_file": "src/cNamed__GenerateName_constcharptr__00008F50.cpp",
+    "symbol_name": "__0fGcNamedMGenerateNamePCc"
   },
   {
     "address": "0x00009030",
@@ -15504,7 +15506,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000099d8",
       "0x0036bbcc",
@@ -15514,7 +15516,9 @@
       "0x00009dc4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcManagerGRemoveP6HcObjectT"
+    "mangled_symbol": "__0fIcManagerGRemoveP6HcObjectT",
+    "src_file": "src/cManager__Remove_cObjectptrstatic__00009824.cpp",
+    "symbol_name": "__0fIcManagerGRemoveP6HcObjectT"
   },
   {
     "address": "0x00009904",
@@ -30568,7 +30572,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0008d948"
     ],
@@ -30583,7 +30587,9 @@
       "0x000b87bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJeMaterialMApplyVirtualPC6HeCameraPC6GeWorldK"
+    "mangled_symbol": "__0fJeMaterialMApplyVirtualPC6HeCameraPC6GeWorldK",
+    "src_file": "src/eMaterial__ApplyVirtual_consteCameraptr_consteWorldptrconst__0002C21C.cpp",
+    "symbol_name": "__0fJeMaterialMApplyVirtualPC6HeCameraPC6GeWorldK"
   },
   {
     "address": "0x0002c2fc",
@@ -101273,7 +101279,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001114b0",
       "0x00118c98",
@@ -101284,7 +101290,9 @@
       "0x001563d0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcEntityControllerNOnDeactivatedv"
+    "mangled_symbol": "__0fSgcEntityControllerNOnDeactivatedv",
+    "src_file": "src/gcEntityController__OnDeactivated_void__001119CC.cpp",
+    "symbol_name": "__0fSgcEntityControllerNOnDeactivatedv"
   },
   {
     "address": "0x00111aa8",
@@ -116243,7 +116251,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000da7d4",
       "0x000e4718",
@@ -116253,7 +116261,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fLgcUIEditBoxGUpdate6KcTimeValueRC6QgcEventStackData"
+    "mangled_symbol": "__0fLgcUIEditBoxGUpdate6KcTimeValueRC6QgcEventStackData",
+    "src_file": "src/gcUIEditBox__Update_cTimeValue_constgcEventStackDataref__0013AA40.cpp",
+    "symbol_name": "__0fLgcUIEditBoxGUpdate6KcTimeValueRC6QgcEventStackData"
   },
   {
     "address": "0x0013ab1c",
@@ -132468,7 +132478,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000ccc",
       "0x00001588",
@@ -132480,7 +132490,9 @@
       "0x001a7c24"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionHConnectPCcb"
+    "mangled_symbol": "__0fMnwConnectionHConnectPCcb",
+    "src_file": "src/nwConnection__Connect_constcharptr_bool__001A6640.cpp",
+    "symbol_name": "__0fMnwConnectionHConnectPCcb"
   },
   {
     "address": "0x001a671c",
@@ -225999,13 +226011,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcDynamicModelConfigRGetControllerTypevK"
+    "mangled_symbol": "__0fUgcDynamicModelConfigRGetControllerTypevK",
+    "src_file": "src/gcDynamicModelConfig__GetControllerType_voidconst__00319E9C.cpp",
+    "symbol_name": "__0fUgcDynamicModelConfigRGetControllerTypevK"
   },
   {
     "address": "0x00319f78",
@@ -226712,13 +226726,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcGeomCurveConfigRGetControllerTypevK"
+    "mangled_symbol": "__0fRgcGeomCurveConfigRGetControllerTypevK",
+    "src_file": "src/gcGeomCurveConfig__GetControllerType_voidconst__0031BE68.cpp",
+    "symbol_name": "__0fRgcGeomCurveConfigRGetControllerTypevK"
   },
   {
     "address": "0x0031bf44",
@@ -226922,13 +226938,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fRgcGeomTrailConfigRGetControllerTypevK"
+    "mangled_symbol": "__0fRgcGeomTrailConfigRGetControllerTypevK",
+    "src_file": "src/gcGeomTrailConfig__GetControllerType_voidconst__0031CC30.cpp",
+    "symbol_name": "__0fRgcGeomTrailConfigRGetControllerTypevK"
   },
   {
     "address": "0x0031cd0c",
@@ -227490,13 +227508,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fWgcParticleSystemConfigRGetControllerTypevK"
+    "mangled_symbol": "__0fWgcParticleSystemConfigRGetControllerTypevK",
+    "src_file": "src/gcParticleSystemConfig__GetControllerType_voidconst__0031DE74.cpp",
+    "symbol_name": "__0fWgcParticleSystemConfigRGetControllerTypevK"
   },
   {
     "address": "0x0031df50",
@@ -228408,13 +228428,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcShadowConfigRGetControllerTypevK"
+    "mangled_symbol": "__0fOgcShadowConfigRGetControllerTypevK",
+    "src_file": "src/gcShadowConfig__GetControllerType_voidconst__0031FC10.cpp",
+    "symbol_name": "__0fOgcShadowConfigRGetControllerTypevK"
   },
   {
     "address": "0x0031fcec",

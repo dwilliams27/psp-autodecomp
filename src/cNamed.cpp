@@ -153,24 +153,9 @@ int cNamed::Read(cFile &file, cMemPool *pool) {
     return result;
 }
 
-// ── GenerateName ──  @ 0x00008f50, 224B
-void cNamed::GenerateName(const char *src) {
-    char buf[256];
-    int n = cStrLength(src) - 1;
-    while (n >= 0) {
-        signed char c = src[n];
-        if (!(((c >= '0') & (c < ':')) & 0xff)) break;
-        n--;
-    }
-    n += 2;
-    int len = (n < 18) ? n : 18;
-    buf[0] = 0;
-    cStrCopy(buf, src, len);
-    cStrAppend(buf, cNamed_genname_fmt, cIRand() % 100);
-    ((cName *)((char *)this + 8))->Set(buf);
-    DispatchEntry *e = (DispatchEntry *)(*(char **)((char *)this + 4) + 0x70);
-    e->fn((char *)this + e->offset);
-}
+// GenerateName moved to its own byte-exact TU
+// (src/cNamed__GenerateName_constcharptr__00008F50.cpp); the prior in-TU
+// attempt here was a 62-byte near-miss.
 
 // ── AssignCopy ──  @ 0x001c6dd4, 96B
 void cNamed::AssignCopy(const cBase *base) {
