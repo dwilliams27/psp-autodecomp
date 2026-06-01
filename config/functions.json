@@ -395,7 +395,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00008ad4"
     ],
@@ -430,7 +430,9 @@
       "0x002cf8e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FGcIRandv"
+    "mangled_symbol": "__0FGcIRandv",
+    "src_file": "src/cIRand_void__00000CCC.cpp",
+    "symbol_name": "__0FGcIRandv"
   },
   {
     "address": "0x00000db0",
@@ -20976,7 +20978,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00011ee0",
       "0x00011f54",
@@ -20992,7 +20994,9 @@
       "0x00013094"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fOeMoviePlatformPsoundbuf_threadv"
+    "mangled_symbol": "__0fOeMoviePlatformPsoundbuf_threadv",
+    "src_file": "src/eMoviePlatform__soundbuf_thread_void__000130B0.cpp",
+    "symbol_name": "__0fOeMoviePlatformPsoundbuf_threadv"
   },
   {
     "address": "0x00013194",
@@ -54319,13 +54323,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000643a0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS"
+    "mangled_symbol": "__0fheSweptMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS",
+    "src_file": "src/eSweptMultiSphereCollisionHandler__SetLocalToWorld_constmOCSref__0006479C.cpp",
+    "symbol_name": "__0fheSweptMultiSphereCollisionHandlerPSetLocalToWorldRC6EmOCS"
   },
   {
     "address": "0x0006487c",
@@ -56074,14 +56080,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64",
       "0x002094c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fReMultiSphereShapeTGetCollisionHandlerRC6FmVec3K"
+    "mangled_symbol": "__0fReMultiSphereShapeTGetCollisionHandlerRC6FmVec3K",
+    "src_file": "src/eMultiSphereShape__GetCollisionHandler_constmVec3refconst__00068D18.cpp",
+    "symbol_name": "__0fReMultiSphereShapeTGetCollisionHandlerRC6FmVec3K"
   },
   {
     "address": "0x00068dfc",
@@ -86259,7 +86267,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000e4718"
     ],
@@ -86268,7 +86276,9 @@
       "0x000e8584"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKgcUIDialogUFocusNearestNeighborP6KgcUIWidget"
+    "mangled_symbol": "__0fKgcUIDialogUFocusNearestNeighborP6KgcUIWidget",
+    "src_file": "src/gcUIDialog__FocusNearestNeighbor_gcUIWidgetptr__000E7D5C.cpp",
+    "symbol_name": "__0fKgcUIDialogUFocusNearestNeighborP6KgcUIWidget"
   },
   {
     "address": "0x000e7e3c",
@@ -93123,7 +93133,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00169a74"
     ],
@@ -93131,7 +93141,9 @@
       "0x00297acc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcCameraNLookFromPoint6KcTimeValueRC6FmVec3TC"
+    "mangled_symbol": "__0fIgcCameraNLookFromPoint6KcTimeValueRC6FmVec3TC",
+    "src_file": "src/gcCamera__LookFromPoint_cTimeValue_constmVec3ref_constmVec3ref__000F8FD8.cpp",
+    "symbol_name": "__0fIgcCameraNLookFromPoint6KcTimeValueRC6FmVec3TC"
   },
   {
     "address": "0x000f90b8",
@@ -143735,7 +143747,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001c81e8"
     ],
@@ -143744,7 +143756,9 @@
       "0x001c81e8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJcFilePack76RcFilePackPlatform_HReadDirR6McFilePackDir_v"
+    "mangled_symbol": "__0fJcFilePack76RcFilePackPlatform_HReadDirR6McFilePackDir_v",
+    "src_file": "src/voidcFilePack_cFilePackPlatform___ReadDir_cFilePackDirref__001C81E8.cpp",
+    "symbol_name": "__0fJcFilePack76RcFilePackPlatform_HReadDirR6McFilePackDir_v"
   },
   {
     "address": "0x001c82c8",
