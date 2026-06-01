@@ -17041,7 +17041,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000012d0",
       "0x00001588",
@@ -17075,7 +17075,9 @@
         "src_file": "src/cFactory_OnNameChanged.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/5d7878fd/0000c0d8__agent_self_reported_failure__src_cFactory_OnNameChanged.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cFactory__OnNameChanged_void__0000C0D8.cpp",
+    "symbol_name": "__0fIcFactoryNOnNameChangedv"
   },
   {
     "address": "0x0000c18c",
@@ -80529,7 +80531,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00238fcc"
     ],
@@ -80549,7 +80551,9 @@
         "src_file": "src/gcNamedSet.cpp",
         "snapshot": "logs/failure_snapshots/match_20260518_234610/66c17909/000d4e40__agent_self_reported_failure__src_gcNamedSet.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcNamedSet__Reset_cMemPoolptr_bool__000D4E40.cpp",
+    "symbol_name": "__0fKgcNamedSetFResetP6IcMemPoolb"
   },
   {
     "address": "0x000d4f2c",
