@@ -14087,7 +14087,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000016a8",
       "0x00007c74"
@@ -14096,7 +14096,9 @@
       "0x00007aec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJcLanguageLGetLanguagePCcP65JcLanguageY__5JcLanguageKcLanguagesT"
+    "mangled_symbol": "__0fJcLanguageLGetLanguagePCcP65JcLanguageY__5JcLanguageKcLanguagesT",
+    "src_file": "src/cLanguage__GetLanguage_constcharptr_cLanguage__cLanguagesptrstatic__00007F30.cpp",
+    "symbol_name": "__0fJcLanguageLGetLanguagePCcP65JcLanguageY__5JcLanguageKcLanguagesT"
   },
   {
     "address": "0x00007fc8",
@@ -44612,7 +44614,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x00008c78"
@@ -44621,7 +44623,9 @@
       "0x0004da0c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeDynamicMeshNodeEReadR6KcReadBlock"
+    "mangled_symbol": "__0fQeDynamicMeshNodeEReadR6KcReadBlock",
+    "src_file": "src/eDynamicMeshNode__Read_cReadBlockref__0004CD10.cpp",
+    "symbol_name": "__0fQeDynamicMeshNodeEReadR6KcReadBlock"
   },
   {
     "address": "0x0004cdac",
@@ -59295,7 +59299,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006e4f8"
     ],
@@ -59303,7 +59307,9 @@
       "0x000724a0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeConvexHullUtilKAddPolygonPC6FmVec3PCUci"
+    "mangled_symbol": "__0fPeConvexHullUtilKAddPolygonPC6FmVec3PCUci",
+    "src_file": "src/eConvexHullUtil__AddPolygon_constmVec3ptr_unsignedconstcharptr_int__0006E6E4.cpp",
+    "symbol_name": "__0fPeConvexHullUtilKAddPolygonPC6FmVec3PCUci"
   },
   {
     "address": "0x0006e77c",
@@ -95211,7 +95217,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001030c8"
     ],
@@ -95223,7 +95229,9 @@
       "0x003450e4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcProfilePGetControllerIdvK"
+    "mangled_symbol": "__0fJgcProfilePGetControllerIdvK",
+    "src_file": "src/gcProfile__GetControllerId_voidconst__0010061C.cpp",
+    "symbol_name": "__0fJgcProfilePGetControllerIdvK"
   },
   {
     "address": "0x001006b4",
@@ -97297,7 +97305,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00107780"
     ],
@@ -97306,7 +97314,9 @@
       "0x00323e40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGamehFindStreamedCinematicConfigGroups65GgcGamep__5GgcGameegcFindStreamedCinematicContextPC6FcBaseT"
+    "mangled_symbol": "__0fGgcGamehFindStreamedCinematicConfigGroups65GgcGamep__5GgcGameegcFindStreamedCinematicContextPC6FcBaseT",
+    "src_file": "src/gcGame__FindStreamedCinematicConfigGroups__001079F4.cpp",
+    "symbol_name": "__0fGgcGamehFindStreamedCinematicConfigGroups65GgcGamep__5GgcGameegcFindStreamedCinematicContextPC6FcBaseT"
   },
   {
     "address": "0x00107a8c",
@@ -101782,7 +101792,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00126ffc"
     ],
@@ -101790,7 +101800,9 @@
       "0x00330ce0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityPHasTimeSinceSet6IcHandleT76NgcEnumeration_K"
+    "mangled_symbol": "__0fIgcEntityPHasTimeSinceSet6IcHandleT76NgcEnumeration_K",
+    "src_file": "src/gcEntity__HasTimeSinceSet_cHandleT_gcEnumeration_const__00114D00.cpp",
+    "symbol_name": "__0fIgcEntityPHasTimeSinceSet6IcHandleT76NgcEnumeration_K"
   },
   {
     "address": "0x00114d98",
@@ -101849,7 +101861,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00127070"
     ],
@@ -101857,7 +101869,9 @@
       "0x0011ded8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntitySHasRelationshipSet6IcHandleT76NgcEnumeration_K"
+    "mangled_symbol": "__0fIgcEntitySHasRelationshipSet6IcHandleT76NgcEnumeration_K",
+    "src_file": "src/gcEntity__HasRelationshipSet_cHandleT_gcEnumeration_const__00115038.cpp",
+    "symbol_name": "__0fIgcEntitySHasRelationshipSet6IcHandleT76NgcEnumeration_K"
   },
   {
     "address": "0x001150d0",
@@ -103262,7 +103276,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00116b3c"
     ],
@@ -103270,7 +103284,9 @@
       "0x00123e20"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntitycOnFullscreenCinematicStartedvT"
+    "mangled_symbol": "__0fIgcEntitycOnFullscreenCinematicStartedvT",
+    "src_file": "src/gcEntity__OnFullscreenCinematicStarted_voidstatic__00119A7C.cpp",
+    "symbol_name": "__0fIgcEntitycOnFullscreenCinematicStartedvT"
   },
   {
     "address": "0x00119b14",
@@ -192509,13 +192525,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000078c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcGenericSubscriberHOnAddedPv"
+    "mangled_symbol": "__0fTgcGenericSubscriberHOnAddedPv",
+    "src_file": "src/gcGenericSubscriber__OnAdded_voidptr__0027ECA0.cpp",
+    "symbol_name": "__0fTgcGenericSubscriberHOnAddedPv"
   },
   {
     "address": "0x0027ed38",
