@@ -29524,13 +29524,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000986cc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fKeCollisionTGetEdgeFaceContactsPC6ReCollisionSupportTBP6OeContactResultT"
+    "mangled_symbol": "__0fKeCollisionTGetEdgeFaceContactsPC6ReCollisionSupportTBP6OeContactResultT",
+    "src_file": "src/eCollision__GetEdgeFaceContacts__0002B4DC.cpp",
+    "symbol_name": "__0fKeCollisionTGetEdgeFaceContactsPC6ReCollisionSupportTBP6OeContactResultT"
   },
   {
     "address": "0x0002b57c",
@@ -35993,7 +35995,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006cc34",
       "0x000afbc4"
@@ -36002,7 +36004,9 @@
       "0x00037a90"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIePhysicsnApplyExternalForcesAndIntegrateVelocityf"
+    "mangled_symbol": "__0fIePhysicsnApplyExternalForcesAndIntegrateVelocityf",
+    "src_file": "src/ePhysics__ApplyExternalForcesAndIntegrateVelocity_float__0003800C.cpp",
+    "symbol_name": "__0fIePhysicsnApplyExternalForcesAndIntegrateVelocityf"
   },
   {
     "address": "0x000380ac",
@@ -97374,7 +97378,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ec9c8",
       "0x000f3e44",
@@ -97386,7 +97390,9 @@
       "0x00178774"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGameSResetNetConnectioni"
+    "mangled_symbol": "__0fGgcGameSResetNetConnectioni",
+    "src_file": "src/gcGame__ResetNetConnection_int__00107E14.cpp",
+    "symbol_name": "__0fGgcGameSResetNetConnectioni"
   },
   {
     "address": "0x00107eb4",
@@ -105009,7 +105015,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0011e75c"
     ],
@@ -105018,7 +105024,9 @@
       "0x0011e714"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValControllerStateLEvaluateAll65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtonT"
+    "mangled_symbol": "__0fUgcValControllerStateLEvaluateAll65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtonT",
+    "src_file": "src/gcValControllerState__EvaluateAll__0011EC20.cpp",
+    "symbol_name": "__0fUgcValControllerStateLEvaluateAll65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtonT"
   },
   {
     "address": "0x0011ecc0",
@@ -118649,14 +118657,16 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00049624",
       "0x00170854"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fXgcPartialBodyControllerPPostUpdateFinalv"
+    "mangled_symbol": "__0fXgcPartialBodyControllerPPostUpdateFinalv",
+    "src_file": "src/gcPartialBodyController__PostUpdateFinal_void__001407E0.cpp",
+    "symbol_name": "__0fXgcPartialBodyControllerPPostUpdateFinalv"
   },
   {
     "address": "0x00140880",
@@ -162580,7 +162590,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00035440",
       "0x0020ef38",
@@ -162591,7 +162601,9 @@
       "0x00035788"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_JAddObjectP9BAP6ZeDynamicAABBTreeAllocator79BA__v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_JAddObjectP9BAP6ZeDynamicAABBTreeAllocator79BA__v",
+    "src_file": "src/eDynamicAABBTreeNode__AddObject__0020EAF0.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_JAddObjectP9BAP6ZeDynamicAABBTreeAllocator79BA__v"
   },
   {
     "address": "0x0020eb90",
