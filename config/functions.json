@@ -1977,7 +1977,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0036bbd4",
       "0x0036bbf4",
@@ -1994,7 +1994,9 @@
         "notes": "cThread::WaitForFinish(void) \u2014 68/132 bytes differ (expected 140B). Large divergence. Expected uses callee-saved s1/s2 for the priority/tid values and keeps 0x6F in a stack slot for delay-slot filling; our output spills to stack more aggressively. Also missing `sltu + andi 0xff` bool-canonicalization pattern in the loop test \u2014 the SNC idiom for `while ((bool)(m_flags & 0x1000))` differs from the plain `while (m_flags & 0x1000)` mine emits. Tried: basic while loop; explicit `bool running = (bool)(m_flags & 0x1000);`; volatile spills of prio/tid. The bool-cast version didn't trigger andi 0xff. Root cause is unknown SNC trigger for the full bool canonicalization sequence combined with live-range/register-allocation choices we can't drive from source. Needs permuter or deeper investigation."
       }
     ],
-    "mangled_symbol": "__0fHcThreadNWaitForFinishv"
+    "mangled_symbol": "__0fHcThreadNWaitForFinishv",
+    "src_file": "src/cThread__WaitForFinish_void__00001E44.cpp",
+    "symbol_name": "__0fHcThreadNWaitForFinishv"
   },
   {
     "address": "0x00001ed0",
@@ -50473,7 +50475,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00009dc4"
@@ -50490,7 +50492,9 @@
         "variant": "base",
         "timestamp": "2026-04-28T10:48:38Z"
       }
-    ]
+    ],
+    "src_file": "src/ePoint___dtor_ePoint_void__0005C424.cpp",
+    "symbol_name": "__0oGePointdtv"
   },
   {
     "address": "0x0005c4a0",
@@ -101695,7 +101699,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00126f1c"
     ],
@@ -101703,7 +101707,9 @@
       "0x0032fd28"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityMHasConstants6IcHandleT76NgcEnumeration_K"
+    "mangled_symbol": "__0fIgcEntityMHasConstants6IcHandleT76NgcEnumeration_K",
+    "src_file": "src/gcEntity__HasConstants_cHandleT_gcEnumeration_const__001148A0.cpp",
+    "symbol_name": "__0fIgcEntityMHasConstants6IcHandleT76NgcEnumeration_K"
   },
   {
     "address": "0x00114938",
@@ -101756,7 +101762,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00126f8c"
     ],
@@ -101764,7 +101770,9 @@
       "0x00331ad4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityMHasVariables6IcHandleT76NgcEnumeration_K"
+    "mangled_symbol": "__0fIgcEntityMHasVariables6IcHandleT76NgcEnumeration_K",
+    "src_file": "src/gcEntity__HasVariables_cHandleT_gcEnumeration_const__00114B18.cpp",
+    "symbol_name": "__0fIgcEntityMHasVariables6IcHandleT76NgcEnumeration_K"
   },
   {
     "address": "0x00114bb0",
