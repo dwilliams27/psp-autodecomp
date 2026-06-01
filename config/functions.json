@@ -132517,7 +132517,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a6c40",
       "0x001a796c"
@@ -132527,7 +132527,9 @@
       "0x001a9284"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionOResendReliableR6LnwOutPacketi"
+    "mangled_symbol": "__0fMnwConnectionOResendReliableR6LnwOutPacketi",
+    "src_file": "src/nwConnection__ResendReliable_nwOutPacketref_int__001A6F10.cpp",
+    "symbol_name": "__0fMnwConnectionOResendReliableR6LnwOutPacketi"
   },
   {
     "address": "0x001a7000",
@@ -162403,7 +162405,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00035440",
       "0x0020ef38",
@@ -162415,7 +162417,9 @@
       "0x0020ed40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KMoveObjectP9BAP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA__v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KMoveObjectP9BAP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA__v",
+    "src_file": "src/voideDynamicAABBTreeNode_eRigidBodyState__0020EC30.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KMoveObjectP9BAP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA__v"
   },
   {
     "address": "0x0020ed40",
