@@ -10924,7 +10924,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad364"
     ],
@@ -10940,7 +10940,9 @@
       "0x001a6c40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fKcOutStreamIWriteRawiPCv"
+    "mangled_symbol": "__0fKcOutStreamIWriteRawiPCv",
+    "src_file": "src/cOutStream__WriteRaw_int_constvoidptr__000067E8.cpp",
+    "symbol_name": "__0fKcOutStreamIWriteRawiPCv"
   },
   {
     "address": "0x000068c4",
@@ -19129,7 +19131,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036bbd4",
       "0x0036bbf4",
@@ -19143,7 +19145,9 @@
       "0x0000f200"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTcFileSystemPlatformJWaitAsyncP6NcFilePlatformT"
+    "mangled_symbol": "__0fTcFileSystemPlatformJWaitAsyncP6NcFilePlatformT",
+    "src_file": "src/cFileSystemPlatform__WaitAsync_cFilePlatformptrstatic__0000F084.cpp",
+    "symbol_name": "__0fTcFileSystemPlatformJWaitAsyncP6NcFilePlatformT"
   },
   {
     "address": "0x0000f15c",
@@ -35383,7 +35387,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0003417c"
     ],
@@ -35394,7 +35398,9 @@
       "0x00036adc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fLeBroadphaseILinkPairP6OeCollisionPair"
+    "mangled_symbol": "__0fLeBroadphaseILinkPairP6OeCollisionPair",
+    "src_file": "src/eBroadphase__LinkPair_eCollisionPairptr__00036930.cpp",
+    "symbol_name": "__0fLeBroadphaseILinkPairP6OeCollisionPair"
   },
   {
     "address": "0x00036a08",
@@ -38758,7 +38764,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x0003c860",
@@ -38770,7 +38776,9 @@
       "0x000a1264"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeRoomAABBTreeEReadR6KcReadBlock"
+    "mangled_symbol": "__0fNeRoomAABBTreeEReadR6KcReadBlock",
+    "src_file": "src/eRoomAABBTree__Read_cReadBlockref__0003CA08.cpp",
+    "symbol_name": "__0fNeRoomAABBTreeEReadR6KcReadBlock"
   },
   {
     "address": "0x0003cae4",
@@ -48023,7 +48031,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4"
     ],
@@ -48031,7 +48039,9 @@
       "0x001d69b8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeLightGridSampleEReadR6KcReadBlock"
+    "mangled_symbol": "__0fQeLightGridSampleEReadR6KcReadBlock",
+    "src_file": "src/eLightGridSample__Read_cReadBlockref__00054BB8.cpp",
+    "symbol_name": "__0fQeLightGridSampleEReadR6KcReadBlock"
   },
   {
     "address": "0x00054c94",
@@ -52418,14 +52428,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001bbb40",
       "0x001bbd7c"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPeStaticSunLightMGetSampleRayP6EmRayP6FmVec3RC6FmVec3TDK"
+    "mangled_symbol": "__0fPeStaticSunLightMGetSampleRayP6EmRayP6FmVec3RC6FmVec3TDK",
+    "src_file": "src/eStaticSunLight__GetSampleRay_mRayptr_mVec3ptr_constmVec3ref_constmVec3refconst__0005FCE8.cpp",
+    "symbol_name": "__0fPeStaticSunLightMGetSampleRayP6EmRayP6FmVec3RC6FmVec3TDK"
   },
   {
     "address": "0x0005fdc4",
@@ -58301,13 +58313,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006bbb8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerMApplyImpulseiRC6FmVec3TC"
+    "mangled_symbol": "__0fUeSimulatedControllerMApplyImpulseiRC6FmVec3TC",
+    "src_file": "src/eSimulatedController__ApplyImpulse_int_constmVec3ref_constmVec3ref__0006C7A8.cpp",
+    "symbol_name": "__0fUeSimulatedControllerMApplyImpulseiRC6FmVec3TC"
   },
   {
     "address": "0x0006c880",
@@ -73095,7 +73109,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0008e27c"
     ],
@@ -73103,7 +73117,9 @@
       "0x0008d74c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeVRAMMgrPDeallocatePagesiT"
+    "mangled_symbol": "__0fIeVRAMMgrPDeallocatePagesiT",
+    "src_file": "src/eVRAMMgr__DeallocatePages_intstatic__0008E12C.cpp",
+    "symbol_name": "__0fIeVRAMMgrPDeallocatePagesiT"
   },
   {
     "address": "0x0008e204",
