@@ -18865,7 +18865,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4",
       "0x00005074"
@@ -18874,7 +18874,9 @@
       "0x0000ebb0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fRcFilePackPlatformIPackReadUiPvTB"
+    "mangled_symbol": "__0fRcFilePackPlatformIPackReadUiPvTB",
+    "src_file": "src/cFilePackPlatform__PackRead_unsignedint_voidptr_unsignedint__0000E9FC.cpp",
+    "symbol_name": "__0fRcFilePackPlatformIPackReadUiPvTB"
   },
   {
     "address": "0x0000ea80",
@@ -48685,7 +48687,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036bbcc",
       "0x0036bc24"
@@ -48694,7 +48696,9 @@
       "0x003502f4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeMemCardSGetCardClusterSizevT"
+    "mangled_symbol": "__0fIeMemCardSGetCardClusterSizevT",
+    "src_file": "src/eMemCard__GetCardClusterSize_voidstatic__00056B94.cpp",
+    "symbol_name": "__0fIeMemCardSGetCardClusterSizevT"
   },
   {
     "address": "0x00056c30",
@@ -101954,7 +101958,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001270e4"
     ],
@@ -101962,7 +101966,9 @@
       "0x0011df9c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityLHasCategoryRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K"
+    "mangled_symbol": "__0fIgcEntityLHasCategoryRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K",
+    "src_file": "src/gcEntity__HasCategory__00115494.cpp",
+    "symbol_name": "__0fIgcEntityLHasCategoryRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K"
   },
   {
     "address": "0x00115528",
@@ -133643,7 +133649,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a77fc",
       "0x001a8d74"
@@ -133652,7 +133658,9 @@
       "0x001a8b70"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fInwSocketQReceiveImmediateR6KnwInPacketRC6JnwAddress6SnwConnectionHandle"
+    "mangled_symbol": "__0fInwSocketQReceiveImmediateR6KnwInPacketRC6JnwAddress6SnwConnectionHandle",
+    "src_file": "src/nwSocket__ReceiveImmediate__001A8688.cpp",
+    "symbol_name": "__0fInwSocketQReceiveImmediateR6KnwInPacketRC6JnwAddress6SnwConnectionHandle"
   },
   {
     "address": "0x001a871c",
@@ -134951,14 +134959,16 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b7dbc",
       "0x001b7f24"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__swrite"
+    "mangled_symbol": "__swrite",
+    "src_file": "src/__swrite__001AB474.cpp",
+    "symbol_name": "__swrite"
   },
   {
     "address": "0x001ab508",
@@ -139398,7 +139408,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001bf3d4",
       "0x001c03f4"
@@ -139408,7 +139418,9 @@
       "0x0033c0e0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "tanf"
+    "mangled_symbol": "tanf",
+    "src_file": "src/tanf__001BBE90.c",
+    "symbol_name": "tanf"
   },
   {
     "address": "0x001bbf24",
@@ -161306,13 +161318,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad668"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0oRcRedBlackTreeNode76OeCollisionPair_ctv"
+    "mangled_symbol": "__0oRcRedBlackTreeNode76OeCollisionPair_ctv",
+    "src_file": "src/cRedBlackTreeNode_eCollisionPair___cRedBlackTreeNode_void__0020A4E8.cpp",
+    "symbol_name": "__0oRcRedBlackTreeNode76OeCollisionPair_ctv"
   },
   {
     "address": "0x0020a560",
@@ -162727,7 +162741,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0020efd4",
       "0x0020f1a0"
@@ -162738,7 +162752,9 @@
       "0x0020ed40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_OLocateBestNodeRC6EmBoxP6ZeDynamicAABBTreeAllocator79BA__P6UeDynamicAABBTreeNode79BA_"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_OLocateBestNodeRC6EmBoxP6ZeDynamicAABBTreeAllocator79BA__P6UeDynamicAABBTreeNode79BA_",
+    "src_file": "src/eDynamicAABBTreeNode__LocateBestNode__0020EF38.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_OLocateBestNodeRC6EmBoxP6ZeDynamicAABBTreeAllocator79BA__P6UeDynamicAABBTreeNode79BA_"
   },
   {
     "address": "0x0020efb0",
