@@ -1887,7 +1887,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001d30",
       "0x00001d3c"
@@ -1896,7 +1896,9 @@
       "0x000b995c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FRcEnableExceptionsb"
+    "mangled_symbol": "__0FRcEnableExceptionsb",
+    "src_file": "src/cEnableExceptions_bool__00001D54.cpp",
+    "symbol_name": "__0FRcEnableExceptionsb"
   },
   {
     "address": "0x00001d9c",
@@ -11170,7 +11172,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad364"
     ],
@@ -11185,7 +11187,9 @@
       "0x001a5a40"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJcInStreamHReadRawiPv"
+    "mangled_symbol": "__0fJcInStreamHReadRawiPv",
+    "src_file": "src/cInStream__ReadRaw_int_voidptr__00006D9C.cpp",
+    "symbol_name": "__0fJcInStreamHReadRawiPv"
   },
   {
     "address": "0x00006de8",
@@ -104846,7 +104850,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0011e75c",
       "0x0011ec20"
@@ -104861,7 +104865,9 @@
       "0x0016eec4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUgcValControllerStateIEvaluate65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtoniT"
+    "mangled_symbol": "__0fUgcValControllerStateIEvaluate65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtoniT",
+    "src_file": "src/gcValControllerState__Evaluate__0011E714.cpp",
+    "symbol_name": "__0fUgcValControllerStateIEvaluate65UgcValControllerStateg__5UgcValControllerStateHgcState65OeInputJoysticka__5OeInputJoystickHeButtoniT"
   },
   {
     "address": "0x0011e75c",
@@ -113775,7 +113781,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000069ec"
     ],
@@ -113787,7 +113793,9 @@
         "notes": "gcMsgConnected::Read - Size matches at 80B (20 insns) after discovering the `volatile nwSocketHandle vol_sock = sock; volatile nwConnectionHandle vol_conn = conn;` pattern (taken from gcMsgSynchronize::Write source) that forces SNC to save sock (a2) and conn (t0) to stack slots 0 and 4. But 24/80 bytes differ due to scheduler placement:\n\nExpected instruction order:\n  addiu sp,-32\n  sw s0, 12(sp)\n  move s0, a0\n  sw a2, 0(sp)\n  move a0, a1\n  sw t0, 4(sp)\n  addiu a1, sp, 8\n  li a3, 1\n  sw ra, 16(sp)    <- sw ra late, near jal\n  jal\n  li a2, 8 (delay) <- a2 in delay\n\nOurs:\n  addiu sp,-32\n  sw s0, 12(sp)\n  sw ra, 16(sp)    <- sw ra early\n  move s0, a0\n  sw a2, 0(sp)\n  sw t0, 4(sp)\n  move a0, a1\n  addiu a1, sp, 8\n  li a2, 8         <- a2 early\n  jal\n  li a3, 1 (delay) <- a3 in delay\n\nThe post-call sequence (lw, sb, lb, lui/sw gConnectedState, epilogue) is identical.\n\nTried -Xsched=0,1,2, -Xmopt=0,1, -Xxopt=0,1. None change the scheduling. The `sw ra` placement and delay slot choice (li a2 vs li a3) appear to be a deep SNC scheduler behavior that doesn't respond to flag tuning. Possibly sensitive to source expression ordering or requires a slightly different prologue (e.g., different stack usage pattern). Next agent: try rearranging the volatile stores, or using `this->mState` explicitly in multiple references to change register pressure."
       }
     ],
-    "mangled_symbol": "__0fOgcMsgConnectedEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle"
+    "mangled_symbol": "__0fOgcMsgConnectedEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle",
+    "src_file": "src/gcMsgConnected__Read_cInStreamref_nwSocketHandle_constnwAddressref_nwConnectionHandle__00133C04.cpp",
+    "symbol_name": "__0fOgcMsgConnectedEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle"
   },
   {
     "address": "0x00133c54",
@@ -134230,7 +134238,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001aa2ac",
       "0x001b63f4"
@@ -134240,7 +134248,9 @@
       "0x001aa2f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "cleanup_glue"
+    "mangled_symbol": "cleanup_glue",
+    "src_file": "src/cleanup_glue__001AA2AC.cpp",
+    "symbol_name": "cleanup_glue"
   },
   {
     "address": "0x001aa2f8",
@@ -134853,7 +134863,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001af56c"
     ],
@@ -134862,7 +134872,9 @@
       "0x0000123c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "vsprintf"
+    "mangled_symbol": "vsprintf",
+    "src_file": "src/vsprintf__001AC3B8.cpp",
+    "symbol_name": "vsprintf"
   },
   {
     "address": "0x001ac408",
@@ -137599,7 +137611,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9a10"
     ],
@@ -137608,7 +137620,9 @@
       "0x000355d4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__placement_array_new"
+    "mangled_symbol": "__placement_array_new",
+    "src_file": "src/__placement_array_new__001B9C1C.cpp",
+    "symbol_name": "__placement_array_new"
   },
   {
     "address": "0x001b9c64",
@@ -137926,7 +137940,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ba29c"
     ],
@@ -137934,7 +137948,9 @@
       "0x001b9a10"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0OnwaUi"
+    "mangled_symbol": "__0OnwaUi",
+    "src_file": "src/operatornew_arr__unsignedint__001B9FA0.cpp",
+    "symbol_name": "__0OnwaUi"
   },
   {
     "address": "0x001b9fec",
@@ -153182,13 +153198,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5OeInputJoystickLeInputStatectv"
+    "mangled_symbol": "__0o5OeInputJoystickLeInputStatectv",
+    "src_file": "src/eInputJoystick__eInputState__eInputState_void__001E832C.cpp",
+    "symbol_name": "__0o5OeInputJoystickLeInputStatectv"
   },
   {
     "address": "0x001e8378",
@@ -162333,7 +162351,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0020efb0",
       "0x0021e27c"
@@ -162343,7 +162361,9 @@
       "0x0009c508"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_HBalanceP6ZeDynamicAABBTreeAllocator79BA__v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_HBalanceP6ZeDynamicAABBTreeAllocator79BA__v",
+    "src_file": "src/eDynamicAABBTreeNode_Balance__0020EA58.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_HBalanceP6ZeDynamicAABBTreeAllocator79BA__v"
   },
   {
     "address": "0x0020eaa4",
@@ -162355,7 +162375,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0020f5ec"
     ],
@@ -162364,7 +162384,9 @@
       "0x0020f5ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KGetExtentsP6EmBox_v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KGetExtentsP6EmBox_v",
+    "src_file": "src/eDynamicAABBTreeNode_GetExtents__0020EAA4.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_KGetExtentsP6EmBox_v"
   },
   {
     "address": "0x0020eaf0",
