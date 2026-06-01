@@ -2112,7 +2112,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036bb1c"
     ],
@@ -2130,7 +2130,9 @@
         "variant": "base",
         "timestamp": "2026-04-27T00:18:01Z"
       }
-    ]
+    ],
+    "src_file": "src/cVolatile__Initialize_voidstatic__00002164.cpp",
+    "symbol_name": "__0fJcVolatileKInitializevT"
   },
   {
     "address": "0x000021f4",
@@ -4848,7 +4850,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00002dd0",
       "0x00004540",
@@ -4861,7 +4863,9 @@
       "0x00105db0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcMemPoolPAllocGlobalPoolvT"
+    "mangled_symbol": "__0fIcMemPoolPAllocGlobalPoolvT",
+    "src_file": "src/cMemPool__AllocGlobalPool_voidstatic__00004AA4.cpp",
+    "symbol_name": "__0fIcMemPoolPAllocGlobalPoolvT"
   },
   {
     "address": "0x00004b38",
@@ -19319,7 +19323,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000ee28",
       "0x0000f68c",
@@ -19330,7 +19334,9 @@
       "0x0000f5bc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTcFileSystemPlatformKAppendPathPcPCcT"
+    "mangled_symbol": "__0fTcFileSystemPlatformKAppendPathPcPCcT",
+    "src_file": "src/cFileSystemPlatform__AppendPath_charptr_constcharptrstatic__0000F6C8.cpp",
+    "symbol_name": "__0fTcFileSystemPlatformKAppendPathPcPCcT"
   },
   {
     "address": "0x0000f758",
@@ -26179,7 +26185,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0001d0a4"
     ],
@@ -26187,7 +26193,9 @@
       "0x00166f10"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeAudioOOnMemPoolResetPC6IcMemPoolUiT"
+    "mangled_symbol": "__0fGeAudioOOnMemPoolResetPC6IcMemPoolUiT",
+    "src_file": "src/eAudio__OnMemPoolReset_constcMemPoolptr_unsignedintstatic__0001D9F8.cpp",
+    "symbol_name": "__0fGeAudioOOnMemPoolResetPC6IcMemPoolUiT"
   },
   {
     "address": "0x0001da88",
@@ -27893,7 +27901,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0001e034",
       "0x0001e89c",
@@ -27903,7 +27911,9 @@
       "0x0001d818"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGeSoundEPlayv"
+    "mangled_symbol": "__0fGeSoundEPlayv",
+    "src_file": "src/eSound__Play_void__0002154C.cpp",
+    "symbol_name": "__0fGeSoundEPlayv"
   },
   {
     "address": "0x000215e0",
@@ -35874,7 +35884,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00037b20",
       "0x00037c74",
@@ -35887,7 +35897,9 @@
       "0x0003775c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIePhysicsEStepf"
+    "mangled_symbol": "__0fIePhysicsEStepf",
+    "src_file": "src/ePhysics__Step_float__00037A90.cpp",
+    "symbol_name": "__0fIePhysicsEStepf"
   },
   {
     "address": "0x00037b20",
@@ -92382,7 +92394,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001e10",
       "0x000f804c"
@@ -92391,7 +92403,9 @@
       "0x00168534"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcBackgroundLoaderELoadPC6GcGUIDT76IgcRegion_Pi"
+    "mangled_symbol": "__0fSgcBackgroundLoaderELoadPC6GcGUIDT76IgcRegion_Pi",
+    "src_file": "src/gcBackgroundLoader__Load_constcGUIDT_gcRegion_ptr_intptr__000F7AA4.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderELoadPC6GcGUIDT76IgcRegion_Pi"
   },
   {
     "address": "0x000f7b34",
@@ -97695,7 +97709,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a564c",
       "0x001a7e38",
@@ -97715,7 +97729,9 @@
       "0x002f4100"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcNetGameJSendToAll65MnwConnectiond__5MnwConnectionMnwSendMethodRC6FnwMsgUi6SnwConnectionHandleT"
+    "mangled_symbol": "__0fJgcNetGameJSendToAll65MnwConnectiond__5MnwConnectionMnwSendMethodRC6FnwMsgUi6SnwConnectionHandleT",
+    "src_file": "src/gcNetGame__SendToAll__00108884.cpp",
+    "symbol_name": "__0fJgcNetGameJSendToAll65MnwConnectiond__5MnwConnectionMnwSendMethodRC6FnwMsgUi6SnwConnectionHandleT"
   },
   {
     "address": "0x00108914",
@@ -130899,7 +130915,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a54fc",
       "0x001a7bd8",
@@ -130910,7 +130926,9 @@
       "0x002e88b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJnwNetworkLSetGameMode65JnwNetworkY__5JnwNetworkKnwGameModeT"
+    "mangled_symbol": "__0fJnwNetworkLSetGameMode65JnwNetworkY__5JnwNetworkKnwGameModeT",
+    "src_file": "src/nwNetwork__SetGameMode__001A5504.cpp",
+    "symbol_name": "__0fJnwNetworkLSetGameMode65JnwNetworkY__5JnwNetworkKnwGameModeT"
   },
   {
     "address": "0x001a5594",
@@ -132517,7 +132535,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000062e0",
       "0x000067e8"
@@ -132527,7 +132545,9 @@
       "0x001a6f10"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionKWriteBlock65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacketUiTDPUc"
+    "mangled_symbol": "__0fMnwConnectionKWriteBlock65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacketUiTDPUc",
+    "src_file": "src/nwConnection__WriteBlock__001A6C40.cpp",
+    "symbol_name": "__0fMnwConnectionKWriteBlock65MnwConnectiond__5MnwConnectionMnwSendMethodR6LnwOutPacketUiTDPUc"
   },
   {
     "address": "0x001a6cd0",
