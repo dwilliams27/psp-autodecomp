@@ -19131,7 +19131,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0036bd44"
     ],
@@ -19139,7 +19139,9 @@
       "0x0000e308"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTcFileSystemPlatformJPollAsyncP6NcFilePlatformT"
+    "mangled_symbol": "__0fTcFileSystemPlatformJPollAsyncP6NcFilePlatformT",
+    "src_file": "src/cFileSystemPlatform__PollAsync_cFilePlatformptrstatic__0000F15C.cpp",
+    "symbol_name": "__0fTcFileSystemPlatformJPollAsyncP6NcFilePlatformT"
   },
   {
     "address": "0x0000f200",
@@ -35549,7 +35551,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000028cc",
       "0x0001cb18",
@@ -35560,7 +35562,9 @@
       "0x000cce60"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIePhysicsKInitializevT"
+    "mangled_symbol": "__0fIePhysicsKInitializevT",
+    "src_file": "src/ePhysics__Initialize_voidstatic__000373E4.cpp",
+    "symbol_name": "__0fIePhysicsKInitializevT"
   },
   {
     "address": "0x00037490",
@@ -44837,7 +44841,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00004ff4"
     ],
@@ -44845,7 +44849,9 @@
       "0x0004d520"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fpeDynamicMeshExtrudedShadowVertexOneWeightEReadR6KcReadBlock"
+    "mangled_symbol": "__0fpeDynamicMeshExtrudedShadowVertexOneWeightEReadR6KcReadBlock",
+    "src_file": "src/eDynamicMeshExtrudedShadowVertexOneWeight__Read_cReadBlockref__0004D1BC.cpp",
+    "symbol_name": "__0fpeDynamicMeshExtrudedShadowVertexOneWeightEReadR6KcReadBlock"
   },
   {
     "address": "0x0004d260",
@@ -92617,7 +92623,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ad668"
     ],
@@ -92630,7 +92636,9 @@
       "0x000f7b80"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcBackgroundLoaderHPreLoadv"
+    "mangled_symbol": "__0fSgcBackgroundLoaderHPreLoadv",
+    "src_file": "src/gcBackgroundLoader__PreLoad_void__000F804C.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderHPreLoadv"
   },
   {
     "address": "0x000f80f4",
@@ -97769,7 +97777,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a5f3c",
       "0x001a83e8"
@@ -97778,7 +97786,9 @@
       "0x00178774"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJgcNetGameGSendTo65MnwConnectiond__5MnwConnectionMnwSendMethodiP6SnwConnectionHandleRC6FnwMsgUiT"
+    "mangled_symbol": "__0fJgcNetGameGSendTo65MnwConnectiond__5MnwConnectionMnwSendMethodiP6SnwConnectionHandleRC6FnwMsgUiT",
+    "src_file": "src/gcNetGame__SendTo__00108914.cpp",
+    "symbol_name": "__0fJgcNetGameGSendTo65MnwConnectiond__5MnwConnectionMnwSendMethodiP6SnwConnectionHandleRC6FnwMsgUiT"
   },
   {
     "address": "0x001089bc",
@@ -104389,7 +104399,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -104403,7 +104413,9 @@
       "0x002347fc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredEntityHelperEReadR6KcReadBlock"
+    "mangled_symbol": "__0fVgcDesiredEntityHelperEReadR6KcReadBlock",
+    "src_file": "src/gcDesiredEntityHelper__Read_cReadBlockref__0011D1C4.cpp",
+    "symbol_name": "__0fVgcDesiredEntityHelperEReadR6KcReadBlock"
   },
   {
     "address": "0x0011d268",
@@ -105839,7 +105851,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0011f5ec"
     ],
@@ -105847,7 +105859,9 @@
       "0x001201e4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcPlayerTBindLocalControllervT"
+    "mangled_symbol": "__0fIgcPlayerTBindLocalControllervT",
+    "src_file": "src/gcPlayer__BindLocalController_voidstatic__0012111C.cpp",
+    "symbol_name": "__0fIgcPlayerTBindLocalControllervT"
   },
   {
     "address": "0x001211c4",
@@ -135102,7 +135116,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ac66c"
     ],
@@ -135110,7 +135124,9 @@
       "0x001a99b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "atexit"
+    "mangled_symbol": "atexit",
+    "src_file": "src/atexit__001AC4E0.cpp",
+    "symbol_name": "atexit"
   },
   {
     "address": "0x001ac584",
