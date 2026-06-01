@@ -16921,7 +16921,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0000b648",
       "0x0000bc90"
@@ -16945,7 +16945,9 @@
         "src_file": "src/cFactory.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/287a7542/0000bc90__agent_self_reported_failure__src_cFactory.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cFactory__DeleteMarkedForClean_unsignedint_bool__0000BC90.cpp",
+    "symbol_name": "__0fIcFactoryUDeleteMarkedForCleanUib"
   },
   {
     "address": "0x0000bd44",
@@ -35438,7 +35440,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00034130",
       "0x001ad668"
@@ -35463,7 +35465,9 @@
         "variant": "base",
         "timestamp": "2026-04-30T08:38:43Z"
       }
-    ]
+    ],
+    "src_file": "src/eBroadphase__ClearAccumulatedImpulses_eCollisionPairptr__000372D8.cpp",
+    "symbol_name": "__0fLeBroadphaseYClearAccumulatedImpulsesP6OeCollisionPair"
   },
   {
     "address": "0x0003737c",
@@ -86423,7 +86427,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x00004ff4",
@@ -86459,7 +86463,9 @@
         "src_file": "src/eLensFlare.cpp",
         "snapshot": "logs/failure_snapshots/match_20260508_185952/3e302832/000e8e8c__agent_self_reported_failure__src_eLensFlare.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcAnimationEvent__Read_cFileref_cMemPoolptr__000E8E8C.cpp",
+    "symbol_name": "__0fQgcAnimationEventEReadR6FcFileP6IcMemPool"
   },
   {
     "address": "0x000e8f6c",
@@ -89660,7 +89666,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000f0150"
     ],
@@ -89680,7 +89686,9 @@
         "src_file": "src/gcConfig.cpp",
         "snapshot": "logs/failure_snapshots/match_20260514_022603/1c8a5471/000f00c8__agent_self_reported_failure__src_gcConfig.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcConfig__Reset_cMemPoolptr_bool__000F00C8.cpp",
+    "symbol_name": "__0fIgcConfigFResetP6IcMemPoolb"
   },
   {
     "address": "0x000f0150",
@@ -110360,7 +110368,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0",
       "0x000070bc",
@@ -110382,7 +110390,9 @@
         "src_file": "src/gcTableTemplate.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/5ec22464/0012bae8__agent_self_reported_failure__src_gcTableTemplate.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcTableTemplate___dtor_gcTableTemplate_void__0012BAE8.cpp",
+    "symbol_name": "__0oPgcTableTemplatedtv"
   },
   {
     "address": "0x0012bc18",
@@ -187245,7 +187255,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000047a0"
     ],
@@ -187265,7 +187275,9 @@
         "src_file": "src/gcTableColumnByte.cpp",
         "snapshot": "logs/failure_snapshots/match_20260507_103437/673b88c6/002710c8__agent_self_reported_failure__src_gcTableColumnByte.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcTableColumnByte__SetSize_int__002710C8.cpp",
+    "symbol_name": "__0fRgcTableColumnByteHSetSizei"
   },
   {
     "address": "0x00271248",
