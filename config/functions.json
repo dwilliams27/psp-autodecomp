@@ -16252,7 +16252,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0000123c",
       "0x00004bac",
@@ -16277,7 +16277,9 @@
         "src_file": "src/cObject.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/e1470084/0000a238__agent_self_reported_failure__src_cObject.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cObject__GetLocalizedFilename_constcTypeptr_constcGUIDref_cStrptrstatic__0000A238.cpp",
+    "symbol_name": "__0fHcObjectUGetLocalizedFilenamePC6FcTypeRC6FcGUIDP6EcStrT"
   },
   {
     "address": "0x0000a2e0",
@@ -87862,7 +87864,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x002ef1bc"
@@ -87882,7 +87884,9 @@
         "src_file": "src/gcCinematicInstance.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/eceb75ce/000ebd0c__agent_self_reported_failure__src_gcCinematicInstance.cpp"
       }
-    ]
+    ],
+    "src_file": "src/gcCinematicInstance__FindPlayingCinematic_gcCinematicptr_cHandlestatic__000EBD0C.cpp",
+    "symbol_name": "__0fTgcCinematicInstanceUFindPlayingCinematicP6LgcCinematic6HcHandleT"
   },
   {
     "address": "0x000ebdb4",

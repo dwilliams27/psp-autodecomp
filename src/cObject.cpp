@@ -187,38 +187,9 @@ int cObject::WriteHeader(cFile &file) {
     return pos;
 }
 
-// ============================================================
-// cObject::GetLocalizedFilename(const cType *, const cGUID &, cStr *) static
-// @ 0x0000a238, 168B
-// ============================================================
-//
-// FAILED: 64/168 byte diff (down from 73 via permuter).
-// Structure is correct. The expected layout allocates:
-//   s1=guid, s2=t14, s3=fmt(0x36CA78), s0=out, s4=prefix(0x38780), s5=langShort
-// SNC keeps wanting to allocate guid → s0 (lowest free saved reg) regardless
-// of source ordering, asm barriers, or register asm("$N") constraints. The
-// permuter exhausted 4080 candidates without breaking past this allocation.
-// Likely needs the same kind of compiler-level fix as ML2 (cReadBlock prologue).
-void cObject::GetLocalizedFilename(const cType *type, const cGUID &guid, cStr *out) {
-    const char *fmt = (const char *)0x36CA78;
-    const cGUID *gptr = &guid;
-    __asm__ volatile("" : "+r"(gptr));
-    char buf[256];
-    cStr *o = out;
-    buf[0] = 0;
-    const char *prefix = (const char *)0x38780;
-    __asm__ volatile("" : "+r"(fmt));
-    int t14 = ((const ::cType *)type)->mField14;
-    __asm__ volatile("" : "+r"(o), "+r"(prefix));
-
-    const char *langShort = cLanguage::GetLanguageShortName(
-        (cLanguage::cLanguages)gSomePlatformDefault);
-
-    cStrFormat(buf, (const char *)0x36C89C,
-               ((const int *)gptr)[0], ((const int *)gptr)[1]);
-
-    o->Set(fmt, prefix, t14, langShort, buf);
-}
+// GetLocalizedFilename moved to its own TU
+// (src/cObject__GetLocalizedFilename_..._0000A238.cpp) where it matches
+// byte-exact; the prior in-TU attempt here was a 64-byte near-miss.
 
 // ============================================================
 // cObject::IsEditable(void) const
