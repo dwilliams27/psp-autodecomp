@@ -92477,7 +92477,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001e10",
       "0x000f804c"
@@ -92486,7 +92486,9 @@
       "0x000f5500"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcBackgroundLoaderELoadiPC65FgcMapLcObjectLoad"
+    "mangled_symbol": "__0fSgcBackgroundLoaderELoadiPC65FgcMapLcObjectLoad",
+    "src_file": "src/gcBackgroundLoader__Load_int_constgcMap__cObjectLoadptr__000F7B80.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderELoadiPC65FgcMapLcObjectLoad"
   },
   {
     "address": "0x000f7c1c",
@@ -92587,7 +92589,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001c80",
       "0x000f4fe4",
@@ -92598,7 +92600,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcBackgroundLoaderNWaitForFinishv"
+    "mangled_symbol": "__0fSgcBackgroundLoaderNWaitForFinishv",
+    "src_file": "src/gcBackgroundLoader__WaitForFinish_void__000F7E40.cpp",
+    "symbol_name": "__0fSgcBackgroundLoaderNWaitForFinishv"
   },
   {
     "address": "0x000f7eec",
@@ -97124,7 +97128,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000009cc",
       "0x00167048",
@@ -97134,7 +97138,9 @@
       "0x00167730"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGgcGameUPlayInitialCinematicv"
+    "mangled_symbol": "__0fGgcGameUPlayInitialCinematicv",
+    "src_file": "src/gcGame__PlayInitialCinematic_void__00106C34.cpp",
+    "symbol_name": "__0fGgcGameUPlayInitialCinematicv"
   },
   {
     "address": "0x00106ce0",
@@ -103238,7 +103244,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ec9c8"
     ],
@@ -103246,7 +103252,9 @@
       "0x000f3e44"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntitySResetNetConnectioniT"
+    "mangled_symbol": "__0fIgcEntitySResetNetConnectioniT",
+    "src_file": "src/gcEntity__ResetNetConnection_intstatic__001196F0.cpp",
+    "symbol_name": "__0fIgcEntitySResetNetConnectioniT"
   },
   {
     "address": "0x0011978c",
@@ -107407,7 +107415,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00124fd4"
     ],
@@ -107433,7 +107441,9 @@
       "0x002ed334"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fVgcDesiredObjectHelperQGetDesiredObject65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimary6HcHandlePC6FcTypebT"
+    "mangled_symbol": "__0fVgcDesiredObjectHelperQGetDesiredObject65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimary6HcHandlePC6FcTypebT",
+    "src_file": "src/gcDesiredObjectHelper__GetDesiredObject__0012512C.cpp",
+    "symbol_name": "__0fVgcDesiredObjectHelperQGetDesiredObject65VgcDesiredObjectHelperj__5VgcDesiredObjectHelperJgcPrimary6HcHandlePC6FcTypebT"
   },
   {
     "address": "0x001251c8",
@@ -133407,7 +133417,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a539c",
       "0x001ad668"
@@ -133416,7 +133426,9 @@
       "0x001a7a04"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fInwSocketGCreatev"
+    "mangled_symbol": "__0fInwSocketGCreatev",
+    "src_file": "src/nwSocket__Create_void__001A81B4.cpp",
+    "symbol_name": "__0fInwSocketGCreatev"
   },
   {
     "address": "0x001a8260",
@@ -135217,7 +135229,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a9e70"
     ],
@@ -135227,7 +135239,9 @@
       "0x001a99b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "exit"
+    "mangled_symbol": "exit",
+    "src_file": "src/exit__001AC5C0.cpp",
+    "symbol_name": "exit"
   },
   {
     "address": "0x001ac66c",
