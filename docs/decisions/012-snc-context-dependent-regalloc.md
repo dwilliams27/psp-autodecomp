@@ -112,3 +112,20 @@ GENERALIZE across the other reg-alloc near-misses — ApplyPositionedImpulse 0x6
 0x4a188, eBoxShape::GetProjectedMinMax 0x1e0c5c — before declaring the whole class source-tractable.
 A patch is reconsidered only if a function with no source-idiom freedom still mis-colors against
 every variant + the permuter.)
+
+
+## Policy note (2026-05-31) — Mechanism A dispatcher cash-in REJECTED as constructed
+
+The scheduler latch only flips for a predecessor whose body has a hand-written inline-asm
+control transfer (jr $ra). The dispatcher cash-in workflow seeded each TU with a
+GetInertialTensor copy that hand-writes `jr $ra` + `sv.q 0($a1)` (reads the arg via a
+hardcoded reg) — the exact asm-ban pattern eMeshShape::GetInertialTensor was REJECTED for.
+A respected matching-decomp project would NOT accept this: an asm-seed that games the
+scheduler comparison is teaching-to-the-test, and asm-wrapper functions are nonmatching, not
+matches. DECISION: the dispatcher Collide bodies are byte-exact C++, but they are NOT
+credited this way — the asm-seed trick is rejected. The legitimate route for the ~5KB
+Collide-dispatcher class is real translation-unit reconstruction (compile them in original
+order alongside their genuine predecessors), deferred. Separately: the asm-heavy
+GetInertialTensor entries currently marked `matched` (eSphereShape/eBox/eMultiSphere/
+eCylinder/eCapsule) use the same hand-jr+sv.q($a1) pattern and are likely an over-count to
+reconcile against the asm-ban (eMeshShape's is correctly `failed`).
