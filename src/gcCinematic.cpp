@@ -56,7 +56,6 @@ public:
 void cObject_ctor(void *, cBase *);
 void gcEvent_ctor(void *, cBase *, const char *);
 void gcCinematic_ctor(gcCinematic *, cBase *);
-void cHandle_Write(const cHandle *, cWriteBlock &);
 
 extern char gcCinematicvirtualtable[];
 extern const char gcEventName_Cinematic[];
@@ -241,29 +240,6 @@ void gcCinematic::AssignCopy(const cBase *base) {
     ((int *)this)[0x7C / 4] = ((const int *)other)[0x7C / 4];
 }
 
-// ─────────────────────────────────────────────────────
-// 0x000ea520 (204B) — gcCinematic::Write
-// ─────────────────────────────────────────────────────
-struct gcEventVTableEntry {
-    short this_adjust;
-    short pad;
-    void (*fn)(void *, cFile *);
-};
-
-void gcCinematic::Write(cFile &file) const {
-    cWriteBlock wb(file, 5);
-    ((const cObject *)this)->Write(file);
-    ((const cBaseArray *)((char *)this + 0x44))->Write(wb);
-    wb.Write(((const bool *)this)[0x4C]);
-    wb.Write(((const bool *)this)[0x4D]);
-    wb.Write(((const bool *)this)[0x4E]);
-    cHandle_Write((const cHandle *)((char *)this + 0x50), wb);
-    wb.Write((unsigned int)((const int *)this)[0x54 / 4]);
-    cHandle_Write((const cHandle *)((char *)this + 0x58), wb);
-    wb.Write((unsigned int)((const int *)this)[0x5C / 4]);
-    gcEventVTableEntry *entry =
-        (gcEventVTableEntry *)(*(char **)((char *)this + 0x64) + 0x28);
-    ((void (*)(void *, cFile *))entry->fn)(
-        (char *)this + 0x60 + entry->this_adjust, *(cFile **)&wb);
-    wb.End();
-}
+// gcCinematic::Write moved to its own byte-exact TU
+// (src/gcCinematic__Write_cFilerefconst__000EA520.cpp); the prior in-TU
+// attempt here was a 16-byte vtable-dispatch register-coloring near-miss.

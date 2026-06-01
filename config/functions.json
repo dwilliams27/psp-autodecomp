@@ -31530,7 +31530,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x000f8f08"
@@ -31550,7 +31550,9 @@
         "src_file": "src/eCameraEffectMgr.cpp",
         "snapshot": "logs/failure_snapshots/match_20260518_234610/20676039/0002d6d8__agent_self_reported_failure__src_eCameraEffectMgr.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eCameraEffectMgr__Update_cTimeValue__0002D6D8.cpp",
+    "symbol_name": "__0fQeCameraEffectMgrGUpdate6KcTimeValue"
   },
   {
     "address": "0x0002d798",
@@ -87154,7 +87156,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00005458",
       "0x000054e0",
@@ -87172,7 +87174,9 @@
         "notes": "gcCinematic::Write(cFile &) const (204B). The cObject::Write, cBaseArray::Write, three bool writes, two cHandle::Write, and two uint32 writes all match byte-exact (188/204 bytes identical in best attempt). The remaining diff is localized to the final virtual dispatch against gcEvent's vtable at +0x64, slot index 5 (offset +0x28). Expected schedule keeps the vtable pointer live in $a0 and allocates the entry pointer into $a2 (addiu a2,a0,0x28; lh a0,0(a2); lw a2,4(a2)). SNC here allocates the entry pointer into $a0 itself, overwriting the vtable base (addiu a0,a0,0x28; lh a2,0(a0); lw a3,4(a0)) \u2014 a legal register-allocation choice but different from the original compiler's. Tried: (1) splitting the vtable/entry load across two locals with explicit intermediate uses; (2) inlining the entry access into a single expression; (3) typedef'd function-pointer cast in the call. None of these nudged SNC's register allocator to the expected assignment. Best attempt diffs by 5 bytes (register fields only, semantically equivalent); current source diffs by 16 bytes because the simpler restructuring changed several intermediate temporaries. Classic SNC register-allocation divergence with no plain-C source transformation that resolves it; also survives permuter mutation."
       }
     ],
-    "mangled_symbol": "__0fLgcCinematicFWriteR6FcFileK"
+    "mangled_symbol": "__0fLgcCinematicFWriteR6FcFileK",
+    "src_file": "src/gcCinematic__Write_cFilerefconst__000EA520.cpp",
+    "symbol_name": "__0fLgcCinematicFWriteR6FcFileK"
   },
   {
     "address": "0x000ea5ec",
