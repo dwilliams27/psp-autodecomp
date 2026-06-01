@@ -19996,7 +19996,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x000021f4"
     ],
@@ -20020,7 +20020,9 @@
         "src_file": "src/eMoviePlatform.cpp",
         "snapshot": "logs/failure_snapshots/match_20260505_232432/5160fab3/00011bdc__agent_self_reported_failure__src_eMoviePlatform.cpp"
       }
-    ]
+    ],
+    "src_file": "src/eMoviePlatform__AllocWorkArea_int_int__00011BDC.cpp",
+    "symbol_name": "__0fOeMoviePlatformNAllocWorkAreaiTB"
   },
   {
     "address": "0x00011c80",
@@ -165081,7 +165083,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -165093,7 +165095,9 @@
         "notes": "eTextureFilter::GetType(void) const \u2014 152B. Prologue register save ordering differs: expected batches s0/s1/ra saves first then uses s1, our output interleaves save s1\u2192use s1\u2192save s0/ra. Note: 0x216eac is OUTSIDE the documented sched=1 zone (0x06e000-0x0bab28). Compared against gcDoChangeState_GetType (matched with default sched=2, interleaved) \u2014 so this GetType was compiled with different flags. May need sched=1 or different -Xmopt/-Xxopt. 2-level cache structure (type_base + type_eTextureFilter with class ID 0x13B) is correct; only scheduling differs. Agent cannot investigate further without flag experimentation tooling."
       }
     ],
-    "mangled_symbol": "__0fOeTextureFilterHGetTypevK"
+    "mangled_symbol": "__0fOeTextureFilterHGetTypevK",
+    "src_file": "src/eTextureFilter__GetType_voidconst__00216EAC.cpp",
+    "symbol_name": "__0fOeTextureFilterHGetTypevK"
   },
   {
     "address": "0x00216f44",
@@ -249895,7 +249899,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x0036b228"
     ],
@@ -249923,7 +249927,9 @@
         "src_file": "src/nwConfigBase.cpp",
         "snapshot": "logs/failure_snapshots/match_20260503_231848/f8bb1648/0036b340__agent_self_reported_failure__src_nwConfigBase.cpp"
       }
-    ]
+    ],
+    "src_file": "src/nwConfigBase__AssignCopy_constcBaseptr__0036B340.cpp",
+    "symbol_name": "__0fMnwConfigBaseKAssignCopyPC6FcBase"
   },
   {
     "address": "0x0036b3e4",
