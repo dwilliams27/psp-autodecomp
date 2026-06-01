@@ -114651,7 +114651,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000db0",
       "0x00006af8"
@@ -114664,7 +114664,9 @@
         "notes": "gcMsgCheckSynchronization::Read \u2014 SCHEDULING-ONLY mismatch, 19/56 bytes differ. Same 14 instructions, same stack layout (sp+0=vol_sock, sp+4=vol_conn, sp+8=tmp, sp+12=ra), only the order of stores differs. Expected schedules sw a2 (sock) at position 2 (right after prologue), interleaves sw t0 (conn) between 'addiu a1,sp,8' and 'li a2,0x20' (position 5), and places sw ra at position 7 (just before jal). My output with `volatile nwSocketHandle vol_sock = sock; volatile nwConnectionHandle vol_conn = conn; unsigned int tmp;` bunches all three stores (sw ra, sw a2, sw t0) at positions 2-4 before the call setup.\n\nApproaches tried: (1) `volatile` with `(void)vol_X` reads \u2014 bunches stores; (2) same but w/o reads \u2014 same result; (3) split volatile declaration from assignment \u2014 same result; (4) `__asm__ volatile(\"\" : : \"m\"(h_sock))` on local copies \u2014 SNC elided the stores entirely (48B output, no spills); (5) asm at end vs asm at start \u2014 same elision; (6) reorder tmp between volatiles \u2014 breaks stack layout; (7) 5-minute permuter run \u2014 11.7K candidates, improved 30\u219218 bytes diff, could not close.\n\nRoot cause: SNC's instruction scheduler chooses a different pairing strategy for this function than for the original source. Sister functions gcMsgConnected::Read and gcMsgSynchronize::Write have the EXACT same issue (known failing in repo) \u2014 all three use the established `volatile nwSocketHandle`/`volatile nwConnectionHandle` homing pattern and all three hit the same scheduler divergence. This may need `-Xsched=1` testing or a different homing mechanism (e.g., varargs stub, debug macro that takes args by reference) that forces the scheduler into the same decision tree as the original compiler. Not a bnel issue. Not a source/flag problem either \u2014 the instruction set is identical, only ordering differs. Likely needs compiler-internal investigation or a creative source-level trick that none of the existing matched translation units demonstrate for args-spill scheduling."
       }
     ],
-    "mangled_symbol": "__0fZgcMsgCheckSynchronizationEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle"
+    "mangled_symbol": "__0fZgcMsgCheckSynchronizationEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle",
+    "src_file": "src/gcMsgCheckSynchronization__Read_cInStreamref_nwSocketHandle_constnwAddressref_nwConnectionHandle__00136C44.cpp",
+    "symbol_name": "__0fZgcMsgCheckSynchronizationEReadR6JcInStream6OnwSocketHandleRC6JnwAddress6SnwConnectionHandle"
   },
   {
     "address": "0x00136c7c",
@@ -129186,7 +129188,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0019f888",
       "0x001a2fec"
@@ -129196,7 +129198,9 @@
       "0x00156400"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGmBasisMGetAxisAngleP6FmVec3PfK"
+    "mangled_symbol": "__0fGmBasisMGetAxisAngleP6FmVec3PfK",
+    "src_file": "src/mBasis__GetAxisAngle_mVec3ptr_floatptrconst__0019FC58.cpp",
+    "symbol_name": "__0fGmBasisMGetAxisAngleP6FmVec3PfK"
   },
   {
     "address": "0x0019fc9c",
@@ -137616,7 +137620,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9a10"
     ],
@@ -137790,7 +137794,9 @@
       "0x003513d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__vec_new"
+    "mangled_symbol": "__vec_new",
+    "src_file": "src/__vec_new__001B9C64.cpp",
+    "symbol_name": "__vec_new"
   },
   {
     "address": "0x001b9ca8",
@@ -137876,7 +137882,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9730"
     ],
@@ -137884,7 +137890,9 @@
       "0x001b9d90"
     ],
     "is_leaf": false,
-    "mangled_symbol": "_array_pointer_not_from_vec_new"
+    "mangled_symbol": "_array_pointer_not_from_vec_new",
+    "src_file": "src/_array_pointer_not_from_vec_new__001B9F40.cpp",
+    "symbol_name": "_array_pointer_not_from_vec_new"
   },
   {
     "address": "0x001b9f5c",
@@ -137896,7 +137904,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9fec"
     ],
@@ -137904,7 +137912,9 @@
       "0x001b99b4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0OdlaPv"
+    "mangled_symbol": "__0OdlaPv",
+    "src_file": "src/operatordelete_arr__voidptr__001B9F5C.cpp",
+    "symbol_name": "__0OdlaPv"
   },
   {
     "address": "0x001b9fa0",
@@ -138181,7 +138191,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001ac66c",
       "0x001bb488"
@@ -138190,7 +138200,9 @@
       "0x001ba534"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FNeh_get_memoryUi"
+    "mangled_symbol": "__0FNeh_get_memoryUi",
+    "src_file": "src/eh_get_memory_unsignedint__001BA414.cpp",
+    "symbol_name": "__0FNeh_get_memoryUi"
   },
   {
     "address": "0x001ba450",
