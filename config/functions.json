@@ -16918,7 +16918,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000bbd4"
     ],
@@ -16927,7 +16927,9 @@
       "0x0000bbd4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryMMarkForCleanUi"
+    "mangled_symbol": "__0fIcFactoryMMarkForCleanUi",
+    "src_file": "src/cFactory__MarkForClean_unsignedint__0000BBD4.cpp",
+    "symbol_name": "__0fIcFactoryMMarkForCleanUi"
   },
   {
     "address": "0x0000bc90",
@@ -35608,7 +35610,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006d06c"
     ],
@@ -35617,7 +35619,9 @@
       "0x0006c07c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIePhysicsPAddToUpdateListP6UeSimulatedController"
+    "mangled_symbol": "__0fIePhysicsPAddToUpdateListP6UeSimulatedController",
+    "src_file": "src/ePhysics__AddToUpdateList_eSimulatedControllerptr__000374D8.cpp",
+    "symbol_name": "__0fIePhysicsPAddToUpdateListP6UeSimulatedController"
   },
   {
     "address": "0x00037594",
@@ -41518,7 +41522,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000450d4",
       "0x000455d8"
@@ -41530,7 +41534,9 @@
       "0x001746f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMeDynamicGeomIAddChildP6MeDynamicGeomi"
+    "mangled_symbol": "__0fMeDynamicGeomIAddChildP6MeDynamicGeomi",
+    "src_file": "src/eDynamicGeom__AddChild_eDynamicGeomptr_int__00045018.cpp",
+    "symbol_name": "__0fMeDynamicGeomIAddChildP6MeDynamicGeomi"
   },
   {
     "address": "0x000450d4",
@@ -132876,7 +132882,7 @@
     "obj_file": "nwAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a7458",
       "0x001a7758"
@@ -132885,7 +132891,9 @@
       "0x001a7284"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fMnwConnectionRReceiveUnreliable65MnwConnectiond__5MnwConnectionMnwSendMethodUiPUci"
+    "mangled_symbol": "__0fMnwConnectionRReceiveUnreliable65MnwConnectiond__5MnwConnectionMnwSendMethodUiPUci",
+    "src_file": "src/nwConnection__ReceiveUnreliable__001A739C.cpp",
+    "symbol_name": "__0fMnwConnectionRReceiveUnreliable65MnwConnectiond__5MnwConnectionMnwSendMethodUiPUci"
   },
   {
     "address": "0x001a7458",
@@ -162900,7 +162908,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0020a9ec",
       "0x0020f25c",
@@ -162911,7 +162919,9 @@
       "0x0020f25c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_LRemoveChildP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA_b_v"
+    "mangled_symbol": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_LRemoveChildP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA_b_v",
+    "src_file": "src/eDynamicAABBTreeNode__RemoveChild__0020F410.cpp",
+    "symbol_name": "__0fUeDynamicAABBTreeNode76PeRigidBodyState_LRemoveChildP6UeDynamicAABBTreeNode79BA_P6ZeDynamicAABBTreeAllocator79BA_b_v"
   },
   {
     "address": "0x0020f4cc",
