@@ -17404,7 +17404,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00009728"
     ],
@@ -17413,7 +17413,9 @@
       "0x0000c96c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fGcGroupJAddObjectP6HcObjectRC6FcGUIDbTD"
+    "mangled_symbol": "__0fGcGroupJAddObjectP6HcObjectRC6FcGUIDbTD",
+    "src_file": "src/cGroup__AddObject_cObjectptr_constcGUIDref_bool_bool__0000C544.cpp",
+    "symbol_name": "__0fGcGroupJAddObjectP6HcObjectRC6FcGUIDbTD"
   },
   {
     "address": "0x0000c5f8",
@@ -54442,7 +54444,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000376f8",
       "0x00037890",
@@ -54450,7 +54452,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeBipedControllerKDeactivateP6NeDynamicModel"
+    "mangled_symbol": "__0fQeBipedControllerKDeactivateP6NeDynamicModel",
+    "src_file": "src/eBipedController__Deactivate_eDynamicModelptr__000653A4.cpp",
+    "symbol_name": "__0fQeBipedControllerKDeactivateP6NeDynamicModel"
   },
   {
     "address": "0x00065454",
@@ -102615,7 +102619,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00047b60",
       "0x00173d58"
@@ -102625,7 +102629,9 @@
       "0x002d0b08"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityOAttachToParentP6IgcEntityRC6FcNameb"
+    "mangled_symbol": "__0fIgcEntityOAttachToParentP6IgcEntityRC6FcNameb",
+    "src_file": "src/gcEntity__AttachToParent_gcEntityptr_constcNameref_bool__00117AE0.cpp",
+    "symbol_name": "__0fIgcEntityOAttachToParentP6IgcEntityRC6FcNameb"
   },
   {
     "address": "0x00117b94",
@@ -102979,7 +102985,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000d478c",
       "0x001189c4"
@@ -103005,7 +103011,9 @@
       "0x003513d8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityESendb65IgcEntityi__5IgcEntityVgcDesiredStateMachine65PgcStateMessagesj__5PgcStateMessagesPgcSystemMessageRC6NgcEventParamsRC6QgcEventStackData"
+    "mangled_symbol": "__0fIgcEntityESendb65IgcEntityi__5IgcEntityVgcDesiredStateMachine65PgcStateMessagesj__5PgcStateMessagesPgcSystemMessageRC6NgcEventParamsRC6QgcEventStackData",
+    "src_file": "src/gcEntity__Send__00118C98.cpp",
+    "symbol_name": "__0fIgcEntityESendb65IgcEntityi__5IgcEntityVgcDesiredStateMachine65PgcStateMessagesj__5PgcStateMessagesPgcSystemMessageRC6NgcEventParamsRC6QgcEventStackData"
   },
   {
     "address": "0x00118d48",
@@ -103099,7 +103107,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000ed29c"
     ],
@@ -103158,7 +103166,9 @@
       "0x00343b20"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityTIsLocallyControlledvK"
+    "mangled_symbol": "__0fIgcEntityTIsLocallyControlledvK",
+    "src_file": "src/gcEntity__IsLocallyControlled_voidconst__001193E4.cpp",
+    "symbol_name": "__0fIgcEntityTIsLocallyControlledvK"
   },
   {
     "address": "0x00119494",
@@ -120249,13 +120259,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00147ad0"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fSgcLookAtControllerLOnActivatedv"
+    "mangled_symbol": "__0fSgcLookAtControllerLOnActivatedv",
+    "src_file": "src/gcLookAtController__OnActivated_void__00147B5C.cpp",
+    "symbol_name": "__0fSgcLookAtControllerLOnActivatedv"
   },
   {
     "address": "0x00147c10",
