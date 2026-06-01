@@ -319,7 +319,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000012d0",
       "0x00004bac"
@@ -332,7 +332,9 @@
       "0x00056574"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FLcGetFileExtPCcP6EcStr"
+    "mangled_symbol": "__0FLcGetFileExtPCcP6EcStr",
+    "src_file": "src/cGetFileExt_constcharptr_cStrptr__000008FC.cpp",
+    "symbol_name": "__0FLcGetFileExtPCcP6EcStr"
   },
   {
     "address": "0x000009c0",
@@ -72389,7 +72391,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000e0b0",
       "0x001ad668",
@@ -72397,7 +72399,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0o5OeAudioPlatformNeStreamThreadctv"
+    "mangled_symbol": "__0o5OeAudioPlatformNeStreamThreadctv",
+    "src_file": "src/eAudioPlatform__eStreamThread__eStreamThread_void__0008D084.cpp",
+    "symbol_name": "__0o5OeAudioPlatformNeStreamThreadctv"
   },
   {
     "address": "0x0008d144",
@@ -83842,7 +83846,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000d976c"
     ],
@@ -83852,7 +83856,9 @@
       "0x0015d588"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcUIWidgetGroupRInsertInDrawOrderiP6KgcUIWidgetTC"
+    "mangled_symbol": "__0fPgcUIWidgetGroupRInsertInDrawOrderiP6KgcUIWidgetTC",
+    "src_file": "src/gcUIWidgetGroup__InsertInDrawOrder_int_gcUIWidgetptr_gcUIWidgetptr__000DFC8C.cpp",
+    "symbol_name": "__0fPgcUIWidgetGroupRInsertInDrawOrderiP6KgcUIWidgetTC"
   },
   {
     "address": "0x000dfd4c",
@@ -134505,7 +134511,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001aa4c8",
       "0x001aa6d0"
@@ -134515,7 +134521,9 @@
       "0x001c51cc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "fclose"
+    "mangled_symbol": "fclose",
+    "src_file": "src/fclose__001AA408.cpp",
+    "symbol_name": "fclose"
   },
   {
     "address": "0x001aa4c8",
