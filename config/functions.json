@@ -614,7 +614,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000e84"
     ],
@@ -623,7 +623,9 @@
       "0x0009f6cc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFcFtoAfPwi"
+    "mangled_symbol": "__0FFcFtoAfPwi",
+    "src_file": "src/cFtoA_float_wchar_tptr_int__000010F8.cpp",
+    "symbol_name": "__0FFcFtoAfPwi"
   },
   {
     "address": "0x000011c0",
@@ -3181,7 +3183,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000399c",
       "0x0036bbcc",
@@ -3189,7 +3191,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUcDynamicMemAllocatorJStopBlockb"
+    "mangled_symbol": "__0fUcDynamicMemAllocatorJStopBlockb",
+    "src_file": "src/cDynamicMemAllocator__StopBlock_bool__000038D4.cpp",
+    "symbol_name": "__0fUcDynamicMemAllocatorJStopBlockb"
   },
   {
     "address": "0x0000399c",
@@ -11116,7 +11120,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00006de8"
     ],
@@ -11142,7 +11146,9 @@
       "0x002358dc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fJcInStreamEReadRfb"
+    "mangled_symbol": "__0fJcInStreamEReadRfb",
+    "src_file": "src/cInStream__Read_floatref_bool__00006BC0.cpp",
+    "symbol_name": "__0fJcInStreamEReadRfb"
   },
   {
     "address": "0x00006c84",
@@ -16439,7 +16445,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000050cc",
       "0x00005234",
@@ -16453,7 +16459,9 @@
       "0x00169548"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fHcObjectLGetFileInfoPCcP65HcObjectJcFileInfoT"
+    "mangled_symbol": "__0fHcObjectLGetFileInfoPCcP65HcObjectJcFileInfoT",
+    "src_file": "src/cObject__GetFileInfo_constcharptr_cObject__cFileInfoptrstatic__0000A914.cpp",
+    "symbol_name": "__0fHcObjectLGetFileInfoPCcP65HcObjectJcFileInfoT"
   },
   {
     "address": "0x0000a9d8",
@@ -16798,7 +16806,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000cae4"
     ],
@@ -16808,7 +16816,9 @@
       "0x000f52c0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIcFactoryLCleanGroupsUib"
+    "mangled_symbol": "__0fIcFactoryLCleanGroupsUib",
+    "src_file": "src/cFactory__CleanGroups_unsignedint_bool__0000B648.cpp",
+    "symbol_name": "__0fIcFactoryLCleanGroupsUib"
   },
   {
     "address": "0x0000b70c",
@@ -39295,7 +39305,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0001fd30",
       "0x0003f49c",
@@ -39305,7 +39315,9 @@
       "0x00020168"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFeRoomJAddVolumeP6HeVolumeRC6HmSphere"
+    "mangled_symbol": "__0fFeRoomJAddVolumeP6HeVolumeRC6HmSphere",
+    "src_file": "src/eRoom__AddVolume_eVolumeptr_constmSphereref__0003F3AC.cpp",
+    "symbol_name": "__0fFeRoomJAddVolumeP6HeVolumeRC6HmSphere"
   },
   {
     "address": "0x0003f474",
@@ -92060,7 +92072,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000024a4",
       "0x0000616c",
@@ -92071,7 +92083,9 @@
       "0x00105220"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapjWriteDynamicallyLoadedObjectsToLoadR6KcOutStream"
+    "mangled_symbol": "__0fFgcMapjWriteDynamicallyLoadedObjectsToLoadR6KcOutStream",
+    "src_file": "src/gcMap__WriteDynamicallyLoadedObjectsToLoad_cOutStreamref__000F612C.cpp",
+    "symbol_name": "__0fFgcMapjWriteDynamicallyLoadedObjectsToLoadR6KcOutStream"
   },
   {
     "address": "0x000f61f0",
@@ -100082,7 +100096,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0000a9d8",
       "0x001ad668"
@@ -100091,7 +100105,9 @@
       "0x00110c58"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fTgcEntityAttackStateOOnMemPoolResetP6IgcEntityPC6IcMemPoolUi"
+    "mangled_symbol": "__0fTgcEntityAttackStateOOnMemPoolResetP6IgcEntityPC6IcMemPoolUi",
+    "src_file": "src/gcEntityAttackState__OnMemPoolReset_gcEntityptr_constcMemPoolptr_unsignedint__0010F188.cpp",
+    "symbol_name": "__0fTgcEntityAttackStateOOnMemPoolResetP6IgcEntityPC6IcMemPoolUi"
   },
   {
     "address": "0x0010f24c",
@@ -137025,7 +137041,7 @@
     "obj_file": "gMain_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b94dc"
     ],
@@ -137040,7 +137056,9 @@
       "0x001b90d4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "_Balloc"
+    "mangled_symbol": "_Balloc",
+    "src_file": "src/_Balloc__001B83E4.cpp",
+    "symbol_name": "_Balloc"
   },
   {
     "address": "0x001b84a8",
@@ -146545,7 +146563,7 @@
       }
     ],
     "mangled_symbol": "__0oIcHandleT76FeRoom_ctv",
-    "src_file": "src/cHandleTePortal.cpp",
+    "src_file": "src/eRoom__AddVolume_eVolumeptr_constmSphereref__0003F3AC.cpp",
     "symbol_name": "__0oIcHandleT76FeRoom_ctv"
   },
   {
