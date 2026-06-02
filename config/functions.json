@@ -168008,7 +168008,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168016,7 +168016,9 @@
       "0x002380fc"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6ZgcEntityCustomAttackGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6ZgcEntityCustomAttackGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcEntityCustomAttackGroupptr__constcBaseptr__0021FACC.cpp",
+    "symbol_name": "__0FFdcast7P6ZgcEntityCustomAttackGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021fc20",
@@ -168028,7 +168030,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168036,7 +168038,9 @@
       "0x00238364"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6TgcRoomInstanceGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6TgcRoomInstanceGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcRoomInstanceGroupptr__constcBaseptr__0021FC20.cpp",
+    "symbol_name": "__0FFdcast7P6TgcRoomInstanceGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021fd74",
@@ -168068,7 +168072,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168076,7 +168080,9 @@
       "0x00238834"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6YgcExternalCinematicGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6YgcExternalCinematicGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcExternalCinematicGroupptr__constcBaseptr__0021FEC8.cpp",
+    "symbol_name": "__0FFdcast7P6YgcExternalCinematicGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0022001c",
@@ -168128,7 +168134,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168136,7 +168142,9 @@
       "0x00239d88"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6JgcBoolSet_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6JgcBoolSet_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcBoolSetptr__constcBaseptr__00220318.cpp",
+    "symbol_name": "__0FFdcast7P6JgcBoolSet_PC6FcBase_9BA"
   },
   {
     "address": "0x0022046c",
@@ -168500,7 +168508,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168508,7 +168516,9 @@
       "0x0024932c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6KgcFloatSet_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6KgcFloatSet_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcFloatSetptr__constcBaseptr__00221BF8.cpp",
+    "symbol_name": "__0FFdcast7P6KgcFloatSet_PC6FcBase_9BA"
   },
   {
     "address": "0x00221d4c",
@@ -168740,7 +168750,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168748,7 +168758,9 @@
       "0x0025c6a8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6RgcEntityAttackSet_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6RgcEntityAttackSet_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcEntityAttackSetptr__constcBaseptr__002232EC.cpp",
+    "symbol_name": "__0FFdcast7P6RgcEntityAttackSet_PC6FcBase_9BA"
   },
   {
     "address": "0x00223440",
@@ -169007,7 +169019,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -169015,7 +169027,9 @@
       "0x00270f30"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6RgcTableColumnByte_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6RgcTableColumnByte_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcTableColumnByteptr__constcBaseptr__00224594.cpp",
+    "symbol_name": "__0FFdcast7P6RgcTableColumnByte_PC6FcBase_9BA"
   },
   {
     "address": "0x002246e8",
@@ -169027,7 +169041,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -169035,7 +169049,9 @@
       "0x00271504"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6SgcTableColumnShort_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6SgcTableColumnShort_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcTableColumnShortptr__constcBaseptr__002246E8.cpp",
+    "symbol_name": "__0FFdcast7P6SgcTableColumnShort_PC6FcBase_9BA"
   },
   {
     "address": "0x0022483c",
@@ -169047,7 +169063,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -169055,7 +169071,9 @@
       "0x00271b10"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6SgcTableColumnFloat_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6SgcTableColumnFloat_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcTableColumnFloatptr__constcBaseptr__0022483C.cpp",
+    "symbol_name": "__0FFdcast7P6SgcTableColumnFloat_PC6FcBase_9BA"
   },
   {
     "address": "0x00224990",
@@ -169067,7 +169085,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -169075,7 +169093,9 @@
       "0x00272140"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6YgcTableColumnStringTable_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6YgcTableColumnStringTable_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcTableColumnStringTableptr__constcBaseptr__00224990.cpp",
+    "symbol_name": "__0FFdcast7P6YgcTableColumnStringTable_PC6FcBase_9BA"
   },
   {
     "address": "0x00224ae4",
