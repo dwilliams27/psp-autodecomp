@@ -92218,7 +92218,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0000b2dc",
@@ -92228,7 +92228,9 @@
       "0x0016b438"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapnDynamicallyLoadedObjectsSetToLoadDifferv"
+    "mangled_symbol": "__0fFgcMapnDynamicallyLoadedObjectsSetToLoadDifferv",
+    "src_file": "src/gcMap__DynamicallyLoadedObjectsSetToLoadDiffer_void__000F6370.cpp",
+    "symbol_name": "__0fFgcMapnDynamicallyLoadedObjectsSetToLoadDifferv"
   },
   {
     "address": "0x000f655c",
@@ -212338,13 +212340,15 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001a54fc"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoLobbyMailOpIEvaluatevK"
+    "mangled_symbol": "__0fPgcDoLobbyMailOpIEvaluatevK",
+    "src_file": "src/gcDoLobbyMailOp__Evaluate_voidconst__002E19D8.cpp",
+    "symbol_name": "__0fPgcDoLobbyMailOpIEvaluatevK"
   },
   {
     "address": "0x002e1b6c",
@@ -222295,7 +222299,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x000e41bc",
@@ -222304,7 +222308,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fOgcDoUISetFocusIEvaluatevK"
+    "mangled_symbol": "__0fOgcDoUISetFocusIEvaluatevK",
+    "src_file": "src/gcDoUISetFocus__Evaluate_voidconst__0030C898.cpp",
+    "symbol_name": "__0fOgcDoUISetFocusIEvaluatevK"
   },
   {
     "address": "0x0030ca34",
@@ -223321,7 +223327,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534",
       "0x0012dfdc",
@@ -223329,7 +223335,9 @@
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcDoUISetOriginIEvaluatevK"
+    "mangled_symbol": "__0fPgcDoUISetOriginIEvaluatevK",
+    "src_file": "src/gcDoUISetOrigin__Evaluate_voidconst__0030FFC8.cpp",
+    "symbol_name": "__0fPgcDoUISetOriginIEvaluatevK"
   },
   {
     "address": "0x00310110",
