@@ -23,26 +23,9 @@ mVec3::mVec3(float x, float y, float z) {
     );
 }
 
-// --------------------------------------------------------------------------
-// mVec3::IRandDir(float) @ 0x0019f5dc
-// Random unit direction on a spherical cap scaled by mag (polar axis = Y).
-// --------------------------------------------------------------------------
-void mVec3::IRandDir(float mag) {
-    float u1 = (float)(unsigned int)cIRand();
-    float theta = mag * (1.0f - u1 * 2.328306e-10f * 2.0f) * 0.017453292f;
-    float s_theta = sinf(theta);
-    float c_theta = cosf(theta);
-
-    float u2 = (float)(unsigned int)cIRand();
-    float angle2 = u2 * 2.328306e-10f * 360.0f * 0.017453292f;
-    float s_a2 = sinf(angle2);
-    float c_a2 = cosf(angle2);
-
-    float *p = (float *)this;
-    p[0] = c_a2 * s_theta;
-    p[1] = c_theta;
-    p[2] = s_theta * s_a2;
-}
+// mVec3::IRandDir(float) moved to its own byte-exact TU
+// (src/mVec3__IRandDir_float__0019F5DC.cpp); the prior in-TU attempt here was
+// a 2-byte commutative-operand-order near-miss.
 
 // --------------------------------------------------------------------------
 // eBspTree::eBspTree(cBase *) @ 0x00021998

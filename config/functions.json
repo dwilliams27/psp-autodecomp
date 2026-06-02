@@ -39314,14 +39314,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0003eda8",
       "0x0003ee70"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fFeRoomRClearRoomGeomListP6FeGeom"
+    "mangled_symbol": "__0fFeRoomRClearRoomGeomListP6FeGeom",
+    "src_file": "src/eRoom__ClearRoomGeomList_eGeomptr__0003F294.cpp",
+    "symbol_name": "__0fFeRoomRClearRoomGeomListP6FeGeom"
   },
   {
     "address": "0x0003f3ac",
@@ -39408,14 +39410,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [
       "0x0003f3ac",
       "0x0003f474"
     ],
     "is_leaf": true,
-    "mangled_symbol": "__0fFeRoomTClearRoomVolumeListP6HeVolume"
+    "mangled_symbol": "__0fFeRoomTClearRoomVolumeListP6HeVolume",
+    "src_file": "src/eRoom__ClearRoomVolumeList_eVolumeptr__0003F81C.cpp",
+    "symbol_name": "__0fFeRoomTClearRoomVolumeListP6HeVolume"
   },
   {
     "address": "0x0003f934",
@@ -60816,7 +60820,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006e3e8",
       "0x0006e40c",
@@ -60827,7 +60831,9 @@
       "0x00071688"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fQeConvexHullShapeaGetInertialTensorAndVolumefP6FmVec3PfK"
+    "mangled_symbol": "__0fQeConvexHullShapeaGetInertialTensorAndVolumefP6FmVec3PfK",
+    "src_file": "src/eConvexHullShape__GetInertialTensorAndVolume_float_mVec3ptr_floatptrconst__000724A0.cpp",
+    "symbol_name": "__0fQeConvexHullShapeaGetInertialTensorAndVolumefP6FmVec3PfK"
   },
   {
     "address": "0x000725b8",
@@ -80549,7 +80555,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000d4a8c",
       "0x00238f34",
@@ -80560,7 +80566,9 @@
       "0x001746f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fNgcEnumerationRIsEntryReplicatediK"
+    "mangled_symbol": "__0fNgcEnumerationRIsEntryReplicatediK",
+    "src_file": "src/gcEnumeration__IsEntryReplicated_intconst__000D4A8C.cpp",
+    "symbol_name": "__0fNgcEnumerationRIsEntryReplicatediK"
   },
   {
     "address": "0x000d4ba4",
@@ -129300,7 +129308,7 @@
     "obj_file": "mAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00000ccc",
       "0x001bbb40",
@@ -129316,7 +129324,9 @@
         "notes": "266/268 bytes match (99.25%). Only remaining diff is a single instruction at offset 0xe0: ours=mul.s $f15,$f22,$f20 vs expected=mul.s $f15,$f20,$f22. This is a commutative mul.s with the two operand registers swapped (fs/ft order) \u2014 semantically identical (a*b == b*a for IEEE floats), different byte encoding.\n\nSurrounding scheduling, register allocation (s_theta=f20, c_theta=f26, s_a2=f22, c_a2=f0), constants, branch layout, and all other 266 bytes match the EBOOT exactly.\n\nApproaches tried (none fixed it):\n1. Swap source operand order: `s_a2 * s_theta` \u2192 SNC produces the same swapped output regardless of source order (both produce fs=f22,ft=f20).\n2. Intermediate variables: `float pz=s_theta*s_a2; p[2]=pz;` \u2192 same output.\n3. Alias variable: `float pz=s_a2; p[2]=s_theta*pz;` \u2192 SNC optimizes alias, same output.\n4. Reorder assignments (p[2]/p[0]/p[1] vs p[0]/p[1]/p[2]) \u2192 scheduling changes for the worse (4 diffs).\n5. Store-then-compute ordering variations \u2192 same result.\n6. Inline asm barrier `__asm__ volatile(\"\" : \"+f\"(s_theta))` \u2192 breaks scheduling (3 diffs).\n7. Flag variants: -Xsched=1 (13 diffs), -Xmopt=0 (42 diffs), -Xmopt=1 (42 diffs), -Xxopt=0/1/5 (1 diff, same). Only -Xsched=2 default gives minimal diff.\n8. Permuter: 1119 compilations over 120 seconds with --workers 4. Zero improvements.\n\nRoot cause hypothesis: SNC canonicalizes commutative mul.s operand order when both source operands reside in callee-saved registers (f20 and f22 here, both written across earlier call boundaries). Our pspsnc 1.2.7503.0 picks the higher-numbered register as fs ($f22), while the original compiler picked the lower ($f20). The other mul.s in this function (mul.s f14, f0, f20) matches because one operand is in a caller-saved register ($f0, cosf's fresh return), so that case doesn't hit the callee-saved canonicalization path.\n\nThis is analogous to the documented bnel compiler divergence (docs/decisions/006) but for mul.s operand order, not branch-likely. Does NOT meet the strict `unmatchable_bnel` criteria (the differing instruction is mul.s not bnel/beql), so leaving as `failed`.\n\nA future retry could: (a) check whether a newer or older pspsnc build exists that canonicalizes the other way; (b) investigate if the mAll_psp.obj unit uses a different default canonicalization heuristic; (c) add a new unmatchable classification for mul.s commutative-swap divergence."
       }
     ],
-    "mangled_symbol": "__0fFmVec3IIRandDirf"
+    "mangled_symbol": "__0fFmVec3IIRandDirf",
+    "src_file": "src/mVec3__IRandDir_float__0019F5DC.cpp",
+    "symbol_name": "__0fFmVec3IIRandDirf"
   },
   {
     "address": "0x0019f6e8",
