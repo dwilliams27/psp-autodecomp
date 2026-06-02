@@ -8364,7 +8364,7 @@
     "obj_file": "cAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "failed",
+    "match_status": "matched",
     "callees": [
       "0x00004fec"
     ],
@@ -8437,7 +8437,9 @@
         "src_file": "src/cWriteBlock.cpp",
         "snapshot": "logs/failure_snapshots/match_20260430_231646/023bddfd/00005b3c__agent_self_reported_failure__src_cWriteBlock.cpp"
       }
-    ]
+    ],
+    "src_file": "src/cWriteBlock__Write_int_constfloatptr__00005B3C.cpp",
+    "symbol_name": "__0fLcWriteBlockFWriteiPCf"
   },
   {
     "address": "0x00005c10",
