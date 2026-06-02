@@ -48470,7 +48470,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": true,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00001588",
       "0x00001b48",
@@ -48484,7 +48484,9 @@
       "0x002fab08"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIeMemCardKDeleteListvT"
+    "mangled_symbol": "__0fIeMemCardKDeleteListvT",
+    "src_file": "src/eMemCard__DeleteList_voidstatic__00055C78.cpp",
+    "symbol_name": "__0fIeMemCardKDeleteListvT"
   },
   {
     "address": "0x00055d60",
@@ -56854,14 +56856,16 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x001b9c64",
       "0x002094c8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fNeCapsuleShapeTGetCollisionHandlerRC6FmVec3K"
+    "mangled_symbol": "__0fNeCapsuleShapeTGetCollisionHandlerRC6FmVec3K",
+    "src_file": "src/eCapsuleShape__GetCollisionHandler_constmVec3refconst__0006A27C.cpp",
+    "symbol_name": "__0fNeCapsuleShapeTGetCollisionHandlerRC6FmVec3K"
   },
   {
     "address": "0x0006a360",
@@ -58421,13 +58425,15 @@
     "obj_file": "eAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0006bbb8"
     ],
     "callers": [],
     "is_leaf": false,
-    "mangled_symbol": "__0fUeSimulatedControllerUApplyPositionedForceiRC6FmVec3TC"
+    "mangled_symbol": "__0fUeSimulatedControllerUApplyPositionedForceiRC6FmVec3TC",
+    "src_file": "src/eSimulatedController__ApplyPositionedForce_int_constmVec3ref_constmVec3ref__0006CAD0.cpp",
+    "symbol_name": "__0fUeSimulatedControllerUApplyPositionedForceiRC6FmVec3TC"
   },
   {
     "address": "0x0006cbb8",
@@ -90075,7 +90081,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -90084,7 +90090,9 @@
       "0x00164130"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcConfigurationRGetCoreConfigTypev"
+    "mangled_symbol": "__0fPgcConfigurationRGetCoreConfigTypev",
+    "src_file": "src/gcConfiguration__GetCoreConfigType_void__000F08F8.cpp",
+    "symbol_name": "__0fPgcConfigurationRGetCoreConfigTypev"
   },
   {
     "address": "0x000f09dc",
@@ -90096,7 +90104,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -90105,7 +90113,9 @@
       "0x00164130"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcConfigurationTGetEngineConfigTypev"
+    "mangled_symbol": "__0fPgcConfigurationTGetEngineConfigTypev",
+    "src_file": "src/gcConfiguration__GetEngineConfigType_void__000F09DC.cpp",
+    "symbol_name": "__0fPgcConfigurationTGetEngineConfigTypev"
   },
   {
     "address": "0x000f0ac0",
@@ -90117,7 +90127,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -90126,7 +90136,9 @@
       "0x00164130"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fPgcConfigurationUGetNetworkConfigTypev"
+    "mangled_symbol": "__0fPgcConfigurationUGetNetworkConfigTypev",
+    "src_file": "src/gcConfiguration__GetNetworkConfigType_void__000F0AC0.cpp",
+    "symbol_name": "__0fPgcConfigurationUGetNetworkConfigTypev"
   },
   {
     "address": "0x000f0ba4",
@@ -92114,7 +92126,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x000024f8",
       "0x000069ec",
@@ -92124,7 +92136,9 @@
       "0x0016b438"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fFgcMapcReadDynamicallyLoadedObjectsR6JcInStream"
+    "mangled_symbol": "__0fFgcMapcReadDynamicallyLoadedObjectsR6JcInStream",
+    "src_file": "src/gcMap__ReadDynamicallyLoadedObjects_cInStreamref__000F6048.cpp",
+    "symbol_name": "__0fFgcMapcReadDynamicallyLoadedObjectsR6JcInStream"
   },
   {
     "address": "0x000f612c",
