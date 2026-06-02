@@ -218772,11 +218772,13 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [],
     "callers": [],
     "is_leaf": true,
-    "mangled_symbol": "__0fSgcDoSetStringValueIEvaluatevK"
+    "mangled_symbol": "__0fSgcDoSetStringValueIEvaluatevK",
+    "src_file": "src/gcDoSetStringValue__Evaluate_voidconst__002FFB08.cpp",
+    "symbol_name": "__0fSgcDoSetStringValueIEvaluatevK"
   },
   {
     "address": "0x002ffc68",
