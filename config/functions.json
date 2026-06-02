@@ -144351,7 +144351,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144359,7 +144359,9 @@
       "0x001e01a8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6GeSound_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6GeSound_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eSoundptr__constcBaseptr__001CA5F0.cpp",
+    "symbol_name": "__0FFdcast7P6GeSound_PC6FcBase_9BA"
   },
   {
     "address": "0x001ca708",
@@ -144371,7 +144373,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144379,7 +144381,9 @@
       "0x001e0aec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6IeBspTree_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6IeBspTree_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eBspTreeptr__constcBaseptr__001CA708.cpp",
+    "symbol_name": "__0FFdcast7P6IeBspTree_PC6FcBase_9BA"
   },
   {
     "address": "0x001ca820",
@@ -144391,7 +144395,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144399,7 +144403,9 @@
       "0x001e2808"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6SeCameraEffectLayer_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6SeCameraEffectLayer_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eCameraEffectLayerptr__constcBaseptr__001CA820.cpp",
+    "symbol_name": "__0FFdcast7P6SeCameraEffectLayer_PC6FcBase_9BA"
   },
   {
     "address": "0x001ca938",
@@ -144551,7 +144557,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144559,7 +144565,9 @@
       "0x001e8378"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6QeLensFlareSprite_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6QeLensFlareSprite_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eLensFlareSpriteptr__constcBaseptr__001CB50C.cpp",
+    "symbol_name": "__0FFdcast7P6QeLensFlareSprite_PC6FcBase_9BA"
   },
   {
     "address": "0x001cb624",
@@ -144591,7 +144599,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144599,7 +144607,9 @@
       "0x001e8d54"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6MeFluidVolume_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6MeFluidVolume_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eFluidVolumeptr__constcBaseptr__001CB7C4.cpp",
+    "symbol_name": "__0FFdcast7P6MeFluidVolume_PC6FcBase_9BA"
   },
   {
     "address": "0x001cb8dc",
