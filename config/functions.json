@@ -144933,7 +144933,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144941,7 +144941,9 @@
       "0x001f5f84"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6QeSurfaceProperty_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6QeSurfaceProperty_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eSurfacePropertyptr__constcBaseptr__001CCEFC.cpp",
+    "symbol_name": "__0FFdcast7P6QeSurfaceProperty_PC6FcBase_9BA"
   },
   {
     "address": "0x001cd058",
@@ -145653,7 +145655,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -145661,7 +145663,9 @@
       "0x0020e6c8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6SeSimpleMotorConfig_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6SeSimpleMotorConfig_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eSimpleMotorConfigptr__constcBaseptr__001D0148.cpp",
+    "symbol_name": "__0FFdcast7P6SeSimpleMotorConfig_PC6FcBase_9BA"
   },
   {
     "address": "0x001d029c",
@@ -145953,7 +145957,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -145961,7 +145965,9 @@
       "0x00217518"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6LeBlurFilter_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6LeBlurFilter_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eBlurFilterptr__constcBaseptr__001D1D54.cpp",
+    "symbol_name": "__0FFdcast7P6LeBlurFilter_PC6FcBase_9BA"
   },
   {
     "address": "0x001d1ea8",
@@ -146313,7 +146319,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -146321,7 +146327,9 @@
       "0x0021cd0c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6NeSpriteFilter_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6NeSpriteFilter_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eSpriteFilterptr__constcBaseptr__001D4564.cpp",
+    "symbol_name": "__0FFdcast7P6NeSpriteFilter_PC6FcBase_9BA"
   },
   {
     "address": "0x001d46b8",
@@ -146333,7 +146341,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -146341,7 +146349,9 @@
       "0x0021d1d0"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6MeWaterFilter_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6MeWaterFilter_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eWaterFilterptr__constcBaseptr__001D46B8.cpp",
+    "symbol_name": "__0FFdcast7P6MeWaterFilter_PC6FcBase_9BA"
   },
   {
     "address": "0x001d480c",
