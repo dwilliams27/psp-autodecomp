@@ -144527,7 +144527,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144535,7 +144535,9 @@
       "0x001e4278"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6MeTexCoordGen_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6MeTexCoordGen_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eTexCoordGenptr__constcBaseptr__001CAE98.cpp",
+    "symbol_name": "__0FFdcast7P6MeTexCoordGen_PC6FcBase_9BA"
   },
   {
     "address": "0x001cafb0",
@@ -144791,7 +144793,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -144799,7 +144801,9 @@
       "0x001f0e34"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6beDynamicModelLookAtTemplate_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6beDynamicModelLookAtTemplate_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eDynamicModelLookAtTemplateptr__constcBaseptr__001CC348.cpp",
+    "symbol_name": "__0FFdcast7P6beDynamicModelLookAtTemplate_PC6FcBase_9BA"
   },
   {
     "address": "0x001cc460",
@@ -144995,7 +144999,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -145003,7 +145007,9 @@
       "0x00202058"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6KeLightGrid_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6KeLightGrid_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eLightGridptr__constcBaseptr__001CD398.cpp",
+    "symbol_name": "__0FFdcast7P6KeLightGrid_PC6FcBase_9BA"
   },
   {
     "address": "0x001cd4b0",
@@ -145095,7 +145101,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -145103,7 +145109,9 @@
       "0x00204250"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6QeSkyGeomTemplate_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6QeSkyGeomTemplate_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eSkyGeomTemplateptr__constcBaseptr__001CDB30.cpp",
+    "symbol_name": "__0FFdcast7P6QeSkyGeomTemplate_PC6FcBase_9BA"
   },
   {
     "address": "0x001cdc48",
@@ -145135,7 +145143,7 @@
     "obj_file": "eAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -145143,7 +145151,9 @@
       "0x0020502c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6HeVolume_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6HeVolume_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_eVolumeptr__constcBaseptr__001CDDE8.cpp",
+    "symbol_name": "__0FFdcast7P6HeVolume_PC6FcBase_9BA"
   },
   {
     "address": "0x001cdf00",
@@ -168492,7 +168502,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168500,7 +168510,9 @@
       "0x0024917c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6KgcViewport_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6KgcViewport_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcViewportptr__constcBaseptr__00221AE0.cpp",
+    "symbol_name": "__0FFdcast7P6KgcViewport_PC6FcBase_9BA"
   },
   {
     "address": "0x00221bf8",
@@ -168946,7 +168958,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -168954,7 +168966,9 @@
       "0x00267980"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6TgcEntitySoundConfig_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6TgcEntitySoundConfig_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcEntitySoundConfigptr__constcBaseptr__00224024.cpp",
+    "symbol_name": "__0FFdcast7P6TgcEntitySoundConfig_PC6FcBase_9BA"
   },
   {
     "address": "0x0022413c",
