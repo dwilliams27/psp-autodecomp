@@ -167698,7 +167698,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -167706,7 +167706,9 @@
       "0x00235ce4"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6VgcStaticInstanceGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6VgcStaticInstanceGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcStaticInstanceGroupptr__constcBaseptr__0021E6E0.cpp",
+    "symbol_name": "__0FFdcast7P6VgcStaticInstanceGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021e834",
@@ -167798,7 +167800,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -167806,7 +167808,9 @@
       "0x002368ec"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6PgcUIDialogGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6PgcUIDialogGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcUIDialogGroupptr__constcBaseptr__0021ED84.cpp",
+    "symbol_name": "__0FFdcast7P6PgcUIDialogGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021eed8",
@@ -167818,7 +167822,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -167826,7 +167830,9 @@
       "0x00236b54"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6NgcEntityGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6NgcEntityGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcEntityGroupptr__constcBaseptr__0021EED8.cpp",
+    "symbol_name": "__0FFdcast7P6NgcEntityGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021f02c",
@@ -167878,7 +167884,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -167886,7 +167892,9 @@
       "0x0023728c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6SgcEnumerationGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6SgcEnumerationGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcEnumerationGroupptr__constcBaseptr__0021F2D4.cpp",
+    "symbol_name": "__0FFdcast7P6SgcEnumerationGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021f428",
@@ -167958,7 +167966,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".gnu.linkonce.t.*",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00007534"
     ],
@@ -167966,7 +167974,9 @@
       "0x00237c2c"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0FFdcast7P6QgcCinematicGroup_PC6FcBase_9BA"
+    "mangled_symbol": "__0FFdcast7P6QgcCinematicGroup_PC6FcBase_9BA",
+    "src_file": "src/dcastdcast_gcCinematicGroupptr__constcBaseptr__0021F824.cpp",
+    "symbol_name": "__0FFdcast7P6QgcCinematicGroup_PC6FcBase_9BA"
   },
   {
     "address": "0x0021f978",
