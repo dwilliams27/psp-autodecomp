@@ -101884,7 +101884,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x00114938"
     ],
@@ -101892,7 +101892,9 @@
       "0x00326708"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntityLGetConstantRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K"
+    "mangled_symbol": "__0fIgcEntityLGetConstantRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K",
+    "src_file": "src/gcEntity__GetConstant_constcHandlePairT_gcEnumeration_cSubHandleT_gcEnumerationEntry__refconst__00114A88.cpp",
+    "symbol_name": "__0fIgcEntityLGetConstantRC6McHandlePairT76NgcEnumeration6LcSubHandleT76SgcEnumerationEntry__K"
   },
   {
     "address": "0x00114b18",
@@ -103623,7 +103625,7 @@
     "obj_file": "gcAll_psp.obj",
     "section": ".text",
     "is_static": false,
-    "match_status": "untried",
+    "match_status": "matched",
     "callees": [
       "0x0011ace4"
     ],
@@ -103634,7 +103636,9 @@
       "0x001746f8"
     ],
     "is_leaf": false,
-    "mangled_symbol": "__0fIgcEntitySHandleParentChangev"
+    "mangled_symbol": "__0fIgcEntitySHandleParentChangev",
+    "src_file": "src/gcEntity__HandleParentChange_void__0011ACE4.cpp",
+    "symbol_name": "__0fIgcEntitySHandleParentChangev"
   },
   {
     "address": "0x0011adf0",
