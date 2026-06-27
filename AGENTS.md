@@ -152,9 +152,12 @@ is the assistant repo's [`docs/projects/psp-decomp-tenant.md`](https://github.co
 the workload entrypoint is **`tools/run_sink.sh`** (decision record:
 [`docs/decisions/`](docs/decisions/)).
 
-- **Launch** (operator, over SSH): `psp-run 8h` (a nix-store command). It halt-gates on
+- **Launch** (operator, over SSH): `psp-run [claude|codex|shootout] [budget]` (default
+  `claude 8h`), a nix-store command. The lane picks the orchestrator backend — `claude`
+  (default model), `codex` (gpt-5.5, subscription `codex login`), or `shootout` (both
+  attempt every function, `--backend claude,codex --shootout`). It halt-gates on
   `/var/db/household-halt`, brings up the PF egress jail, drops to the nix-managed
-  `autodecomp` uid, and runs `tools/run_sink.sh --hours 8`.
+  `autodecomp` uid, and runs `tools/run_sink.sh --hours <h> --backend <...>`.
 - **`run_sink.sh`** is the sink-mode sibling of `run_overnight.sh`: it syncs `main`, runs
   the same preflights, then runs the orchestrator directly (already inside the PF jail, as
   autodecomp) — the orchestrator is what creates the `overnight/<ts>` branch and commits to
