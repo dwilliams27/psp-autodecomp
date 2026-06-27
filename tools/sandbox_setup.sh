@@ -1,13 +1,31 @@
 #!/bin/bash
-# One-time setup for the autodecomp sandbox.
-# Creates a restricted macOS user and PF firewall rules.
+# One-time setup for the autodecomp sandbox (STANDALONE / laptop hosts only).
+# Creates a restricted macOS user (uid 599) and PF firewall rules.
 #
 # Usage: sudo ./tools/sandbox_setup.sh
 #
 # After running, authenticate Claude Code for the new user:
 #   sudo -u autodecomp claude --version
+#
+# DO NOT RUN THIS ON THE MINI. There, psp-autodecomp runs as a sink sub-tenant and
+# the `autodecomp` account (uid 573, its own group) AND the PF egress anchor are
+# declared by nix-darwin (assistant repo, docs/projects/psp-decomp-tenant.md) — a
+# root-run script living in this agent-writable checkout is exactly the privilege
+# vector that design avoids. This script's uid 599 / group `staff` would also
+# *conflict* with the nix-managed account. The guard below refuses if it detects a
+# pre-existing nix-managed (non-599) autodecomp.
 
 set -euo pipefail
+
+if id autodecomp >/dev/null 2>&1; then
+    existing_uid="$(id -u autodecomp 2>/dev/null || echo '')"
+    if [[ -n "$existing_uid" && "$existing_uid" != "599" ]]; then
+        echo "Refusing: 'autodecomp' already exists as uid $existing_uid (nix-managed?)." >&2
+        echo "On the mini the account + PF anchor are nix-managed — do not run this here." >&2
+        echo "See the assistant repo's docs/projects/psp-decomp-tenant.md." >&2
+        exit 1
+    fi
+fi
 
 SANDBOX_USER="autodecomp"
 SANDBOX_UID="599"

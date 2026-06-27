@@ -144,6 +144,32 @@ sudo ln -sfn /usr/local/share/claude/<VER> /usr/local/bin/claude
 sudo chmod -R a+rX /usr/local/share/claude
 ```
 
+### Sink tenancy (overnight on the mini)
+
+On David's always-on mini, psp-autodecomp runs as a **sink sub-tenant** — the same kill
+switch, subscription-only posture, and uid isolation as the `sink` repo. The substrate side
+is the assistant repo's [`docs/projects/psp-decomp-tenant.md`](https://github.com/dwilliams27/psp-autodecomp);
+the workload entrypoint is **`tools/run_sink.sh`** (decision record:
+[`docs/decisions/`](docs/decisions/)).
+
+- **Launch** (operator, over SSH): `psp-run 8h` (a nix-store command). It halt-gates on
+  `/var/db/household-halt`, brings up the PF egress jail, drops to the nix-managed
+  `autodecomp` uid, and runs `tools/run_sink.sh --hours 8`.
+- **`run_sink.sh`** is the sink-mode sibling of `run_overnight.sh`: it syncs `main`, runs
+  the same preflights, then runs the orchestrator directly (already inside the PF jail, as
+  autodecomp) — the orchestrator is what creates the `overnight/<ts>` branch and commits to
+  it. It enforces **subscription compute only** — it *refuses* to start if `OPENAI_API_KEY`
+  is set (sink decision 0002: no metered API spend). Auth is subscription OAuth
+  (`~/.claude`, `~/.codex`); like `run_overnight.sh` it unlocks the login keychain
+  best-effort in case Claude stored its OAuth there. It does not push by default; `--push`
+  backs the overnight branch up to origin.
+- **Kill switch:** `sudo household-halt` reaps the `autodecomp` uid — orchestrator and every
+  agent child. `psp-run` refuses to start while the flag is set.
+- **On the mini everything privileged is nix-managed** — the `autodecomp` account (uid 573)
+  and the PF egress anchor are declared in nix-darwin, *not* by `sandbox_setup.sh`. Do **not**
+  run `sandbox_setup.sh` on the mini (it's laptop-only; it would conflict). Full bring-up
+  steps live in the assistant repo's `docs/projects/psp-decomp-tenant.md`.
+
 ## Norms
 
 **Quality:**
