@@ -20,7 +20,7 @@ READELF = "mipsel-linux-gnu-readelf"
 AS = "mipsel-linux-gnu-as"
 AS_FLAGS = ["-march=allegrex", "-mabi=eabi", "-EL"]
 CLAUDE = "/usr/local/bin/claude"
-CLAUDE_MODEL = "claude-opus-4-7"
+CLAUDE_MODEL = "claude-opus-4-8"
 # Resolved via PATH — codex ships through nvm, not /usr/local/bin.
 CODEX = "codex"
 CODEX_MODEL = "gpt-5.5"
