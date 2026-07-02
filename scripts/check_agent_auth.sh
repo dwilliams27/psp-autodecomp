@@ -3,6 +3,27 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX_USER="autodecomp"
+
+# Optional backend filter: probe one harness or both (default). Lets a
+# codex-first bring-up pass without a Claude login yet, and vice versa.
+BACKEND="${1:-all}"
+case "$BACKEND" in
+  claude|codex|all) ;;
+  *) echo "usage: check_agent_auth.sh [claude|codex|all]" >&2; exit 2 ;;
+esac
+
+# This script may run EITHER as the operator (who can sudo into the sandbox
+# user) OR directly as the sandbox user (e.g. via the mini's \`psp\` helper —
+# autodecomp's home is 0750, unreadable to the operator, and autodecomp
+# itself has no sudo). Pick the hop accordingly.
+if [ "$(whoami)" = "$SANDBOX_USER" ]; then
+  AS_SANDBOX=(env)
+  AS_SANDBOX_CODEX=(env)
+else
+  AS_SANDBOX=(sudo -i -u "$SANDBOX_USER" env)
+  AS_SANDBOX_CODEX=(sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" env)
+fi
+
 TMP_DIR="$(mktemp -d "/private/tmp/agent-auth.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 chmod 755 "$TMP_DIR"
@@ -24,7 +45,7 @@ echo "claude-path=$(command -v /usr/local/bin/claude)"
 # unlock can be a no-op when already unlocked or when API-key auth is used.
 security unlock-keychain -p "" "/Users/$SANDBOX_USER/Library/Keychains/login.keychain-db" >/dev/null 2>&1 || true
 /usr/local/bin/claude -p "Reply with exactly OK." \
-  --model claude-opus-4-7 \
+  --model claude-opus-4-8 \
   --dangerously-skip-permissions \
   --output-format json \
   --verbose \
@@ -153,10 +174,17 @@ run_probe() {
   echo
 }
 
-run_probe "Claude" "$TMP_DIR/claude.log" \
-sudo -i -u "$SANDBOX_USER" env REPO_DIR="$REPO_DIR" SANDBOX_USER="$SANDBOX_USER" "$CLAUDE_PROBE"
+if [ "$BACKEND" != "codex" ]; then
+  run_probe "Claude" "$TMP_DIR/claude.log" \
+    "${AS_SANDBOX[@]}" REPO_DIR="$REPO_DIR" SANDBOX_USER="$SANDBOX_USER" "$CLAUDE_PROBE"
+fi
 
-run_probe "Codex" "$TMP_DIR/codex.log" \
-sudo --preserve-env=OPENAI_API_KEY -i -u "$SANDBOX_USER" env REPO_DIR="$REPO_DIR" SANDBOX_USER="$SANDBOX_USER" "$CODEX_PROBE"
+if [ "$BACKEND" != "claude" ]; then
+  run_probe "Codex" "$TMP_DIR/codex.log" \
+    "${AS_SANDBOX_CODEX[@]}" REPO_DIR="$REPO_DIR" SANDBOX_USER="$SANDBOX_USER" "$CODEX_PROBE"
+fi
 
-echo "Both agent auth probes passed."
+case "$BACKEND" in
+  all) echo "Both agent auth probes passed." ;;
+  *)   echo "$BACKEND auth probe passed." ;;
+esac
